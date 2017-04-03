@@ -1,0 +1,1557 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ajax on Tableless</title>
+    <link>http://tableless.com.br/categories/ajax/index.xml</link>
+    <description>Recent content in Ajax on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/categories/ajax/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Upload de imagens desmistificado com simpleGallery.js</title>
+      <link>http://tableless.com.br/upload-de-imagens-desmistificado-com-simplegallery-js/</link>
+      <pubDate>Wed, 07 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/upload-de-imagens-desmistificado-com-simplegallery-js/</guid>
+      <description>
+
+&lt;p&gt;Olá pessoal, tudo bem?&lt;/p&gt;
+
+&lt;p&gt;Neste artigo vou procurar abordar algo comum no dia-a-dia de qualquer desenvolver, o &amp;#8220;temido&amp;#8221; upload de imagens. No processo utilizarei NodeJS e Express para o back-end. A grande sacada será a utilização da lib &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;, que nos auxiliará no front-end.&lt;/p&gt;
+
+&lt;h2 id=&#34;passos-iniciais&#34;&gt;Passos iniciais..&lt;/h2&gt;
+
+&lt;p&gt;A seguir criaremos um servidor bem simples. Utilizarei o package &amp;#8220;Multer&amp;#8221; como middleware para as requisições de arquivo. Não vou prezar por segurança nem boas práticas, já que este artigo é apenas para encorajar aqueles que ainda possuem dificuldades.&lt;/p&gt;
+
+&lt;p&gt;Primeiro começaremos com a instalação do NodeJS e NPM, para mais informações:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://nodejs.org/en/&#34;&gt;https://nodejs.org/en/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.npmjs.org/post/85484771375/how-to-install-npm&#34;&gt;http://blog.npmjs.org/post/85484771375/how-to-install-npm&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Após NodeJS e NPM instalados, é hora de criarmos nosso &lt;code&gt;package.json&lt;/code&gt;, que será responsável por armazenar o nome do app, versão, nossos packages etc. Abra o terminal e digite:&lt;/p&gt;
+
+&lt;pre&gt;npm init /my-upload-app
+cd my-upload-app
+mkdir public&lt;/pre&gt;
+
+&lt;p&gt;Após todos os dados inseridos, partiremos para a inclusão dos packages que utilizaremos.&lt;/p&gt;
+
+&lt;pre&gt;npm install --save-dev express multer&lt;/pre&gt;
+
+&lt;p&gt;Este comando instalará as últimas versões de cada package, permitindo a sua utilização junto ao NodeJS.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-o-server&#34;&gt;Criando o Server&lt;/h2&gt;
+
+&lt;p&gt;Com tudo instalado, basta criar um arquivo em nosso diretório chamado de &lt;code&gt;index.js&lt;/code&gt;. Este conterá o básico para criar nossa API e seus respectivos endpoints. Estou utilizando o Hello World do próprio Express, que está presente &lt;a href=&#34;http://expressjs.com/pt-br/starter/hello-world.html&#34;&gt;neste&lt;/a&gt; link.&lt;/p&gt;
+
+&lt;pre&gt;const express = require(&#39;express&#39;)
+const app = express()
+
+app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+ res.sendFile(&#39;public/index.html&#39;)
+})
+
+app.listen(3000, () =&amp;gt; console.log(&#39;Lstening on port 3000!&#39;))
+
+&lt;/pre&gt;
+
+&lt;p&gt;Isto já é o suficiente para rodar nosso server (digite &lt;code&gt;node index.js&lt;/code&gt;). Tudo que estiver dentro da pasta &lt;code&gt;/public&lt;/code&gt; obviamente será considerado como público e &amp;#8220;visível&amp;#8221; ao browser.&lt;/p&gt;
+
+&lt;p&gt;Sem mais delongas, vamos partir para o endpoint que receberá os arquivos e retornará um JSON com as respectivas URL&amp;#8217;s, ele também será responsável por armazenar nossas imagens na pasta &lt;code&gt;/uploads&lt;/code&gt;. Neste ponto utilizo uma configuração mínima do &amp;#8216;Multer&amp;#8217;, você pode melhorar este processo limitando os arquivos por tamanho, tipo, quantidade etc. Para mais informações, clique &lt;a href=&#34;https://github.com/expressjs/multer&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre&gt;const express = require(&#39;express&#39;)
+const app = express()
+const multer = require(&#39;multer&#39;)
+
+const upload = multer({ dest: &#39;public/uploads/&#39; }) // Configuramos o destino dos arquivos.
+
+app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+ res.sendFile(&#39;public/index.html&#39;)
+})
+
+app.post(&#39;/upload&#39;, upload.array(&#39;gallery[]&#39;), (req, res) =&amp;gt; {
+ let gallery = []
+ req.files.map((image) =&amp;gt; gallery.push({&#39;url&#39;: `http://localhost:3000/uploads/${image.filename}`}))
+ res.status(200).json(gallery)
+})
+
+app.listen(3000, () =&amp;gt; console.log(&#39;Listening on port 3000!&#39;))&lt;/pre&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Agora nossa API já está 100% funcional. Para testar, submeta um POST com as imagens para a url &lt;code&gt;http://localhost:3000/uploads&lt;/code&gt;. Você receberá uma resposta formato JSON com a URL das imagens enviadas.&lt;/p&gt;
+
+&lt;h2 id=&#34;já-no-front-end&#34;&gt;Já no Front-End..&lt;/h2&gt;
+
+&lt;p&gt;Com a nossa API criada, agora precisamos configurar o nosso front-end. Para isto, vamos iniciar criando um &lt;code&gt;index.html&lt;/code&gt; dentro da pasta &lt;code&gt;/public&lt;/code&gt;. Após criado, é hora de escrevermos nosso HTML:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+ &amp;lt;head&amp;gt;
+ &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Upload App&amp;lt;/title&amp;gt;
+ &amp;lt;/head&amp;gt;
+ &amp;lt;body&amp;gt;
+ &amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+ &amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;
+ &amp;lt;label for=&#34;&#34;&amp;gt;Image Gallery&amp;lt;/label&amp;gt;
+ &amp;lt;div class=&#34;input-upload btn&#34;&amp;gt;
+ Upload
+ &amp;lt;input class=&#34;upload&#34; type=&#34;file&#34; multiple=&#34;multiple&#34; accept=&#34;image/*&#34;&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=&#34;gallery-container&#34;&amp;gt;&amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+ &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Até agora nenhuma novidade, um formulário &lt;code&gt;enctype=&amp;quot;multipart/form-data&amp;quot;&lt;/code&gt; com os campos necessários para enviarmos as fotos para nossa API.&lt;/p&gt;
+
+&lt;h2 id=&#34;8220-hora-do-show-8221&#34;&gt;&amp;#8220;Hora do show!&amp;#8221;&lt;/h2&gt;
+
+&lt;p&gt;Chegou a hora de implementarmos o &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;, uma lib JS vanilla, de apenas 2kb gzipped. Esta será responsável por submeter as imagens e salvar o JSON de retorno em algum input hidden, em nosso exemplo, utilizaremos o padrão da lib que será:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Também faremos a inclusão do CSS e JS, que pode ser encontrado no próprio repositório do &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;. Ou via NPM/Bower, basta procurar por: &lt;code&gt;simple-gallery-js&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;https://github.com/RubaXa/Sortable&#34;&gt;Sortable&lt;/a&gt;, uma lib JS vanilla, será responsável por permitir a reordenação de nossa galeria.&lt;/p&gt;
+
+&lt;p&gt;O código final fica assim:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+ &amp;lt;head&amp;gt;
+ &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Upload App&amp;lt;/title&amp;gt;
+ &amp;lt;link rel=&#34;stylesheet&#34; href=&#34;https://raw.githubusercontent.com/fccoelho7/simpleGallery.js/master/dist/simple-gallery.min.css&#34; media=&#34;screen&#34; charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;/head&amp;gt;
+ &amp;lt;body&amp;gt;
+ &amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+ &amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;
+ &amp;lt;label for=&#34;&#34;&amp;gt;Image Gallery&amp;lt;/label&amp;gt;
+ &amp;lt;div class=&#34;input-upload btn&#34;&amp;gt;
+Upload
+ &amp;lt;input class=&#34;upload&#34; type=&#34;file&#34; multiple=&#34;multiple&#34; accept=&#34;image/*&#34;&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=&#34;gallery-container&#34;&amp;gt;&amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+
+&amp;lt;script src=&#34;https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.4.2/Sortable.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script src=&#34;https://raw.githubusercontent.com/fccoelho7/simpleGallery.js/master/dist/simple-gallery.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+ new SimpleGallery(&#39;.form-upload&#39;);
+ &amp;lt;/script&amp;gt;
+ &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;mas-pera&#34;&gt;Mas pera!&lt;/h2&gt;
+
+&lt;p&gt;&amp;#8220;Eu tenho minha API de uploads em uma URL e meu formulário será enviado para outro endpoint, como farei isso?&amp;#8221; Bom, caso você não deseje utilizar o mesmo endpoint para upload de imagens e requisição do formulário, o &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt; nos permite criar um segundo &lt;strong&gt;action. &lt;/strong&gt;Basta inserir um &lt;code&gt;data-action-gallery&lt;/code&gt;, como no exemplo abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; data-action-gallery=&#34;/uploads&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;por-fim&#34;&gt;Por fim.&lt;/h2&gt;
+
+&lt;p&gt;Outras opções como: trocar o name do input que receberá o JSON das url&amp;#8217;s e a classe que conterá a galeria também são possíveis, para mais informações acesse o repositório oficial do &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O conteúdo deste artigo pode ser encontrado &lt;a href=&#34;https://github.com/fccoelho7/simple-gallery-demo&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Bom, é isso. Espero que tenha gostado e perdido o medo quando o assunto é &amp;#8220;upload de imagens&amp;#8221;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Múltiplas galerias de fotos dinâmicas com Fancybox, Ajax e JSON</title>
+      <link>http://tableless.com.br/multiplas-galerias-de-fotos-dinamicas-com-fancybox-ajax-e-json/</link>
+      <pubDate>Fri, 27 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/multiplas-galerias-de-fotos-dinamicas-com-fancybox-ajax-e-json/</guid>
+      <description>
+
+&lt;h3 id=&#34;introdução&#34;&gt;Introdução&lt;/h3&gt;
+
+&lt;p&gt;Ano passado trabalhei em um projeto que era um concurso de fotografia online, o &lt;a href=&#34;http://www.prixphotoaliancafrancesa.com.br&#34; target=&#34;_blank&#34;&gt;Prix Photo Web&lt;/a&gt;, onde cada fotógrafo podia se cadastrar, fazer upload de suas fotos e concorrer a um prêmio.&lt;/p&gt;
+
+&lt;p&gt;O site tinha uma página de galeria, onde se podia ver os diversos trabalhos publicados a partir de &lt;em&gt;thumbnails&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Eu havia pego o código já quase todo pronto, mas resolvi atualizar algumas coisas e uma delas foi a tal galeria.&lt;/p&gt;
+
+&lt;p&gt;No decorrer do processo acabei tendo que usar o &lt;strong&gt;JSON&lt;/strong&gt; para trocar informações entre scripts PHP e JavaScript, e achei muito interessante a maneira como isso aconteceu.&lt;/p&gt;
+
+&lt;p&gt;O resultado final pode ser conferido &lt;a href=&#34;http://www.prixphotoaliancafrancesa.com.br/galeria&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;, e a seguir vou descrever o passo a passo do processo que percorri.&lt;/p&gt;
+
+&lt;h3 id=&#34;escopo&#34;&gt;Escopo&lt;/h3&gt;
+
+&lt;p&gt;O conteúdo do site era totalmente dinâmico, ou seja, vinha de consultas ao banco de dados feitas no carregamento da página. Veja abaixo como ficou a página da galeria, com os &lt;em&gt;thumbnails&lt;/em&gt; clicáveis:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-1.png&#34;&gt;&lt;img class=&#34; wp-image-43 size-large aligncenter&#34; src=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-1-1024x550.png&#34; alt=&#34;galeria-prix-1&#34; width=&#34;660&#34; height=&#34;354&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ao dar o clique em um dos &lt;em&gt;thumbs&lt;/em&gt; se abria uma galeria de fotos em &lt;em&gt;lightbox&lt;/em&gt;, usando o &lt;em&gt;plugin&lt;/em&gt; jQuery &lt;a href=&#34;http://fancyapps.com/fancybox/&#34; target=&#34;_blank&#34;&gt;&lt;em&gt;fancybox&lt;/em&gt; &lt;/a&gt;(um velho favorito meu):&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-2.png&#34;&gt;&lt;img class=&#34; size-large wp-image-42 aligncenter&#34; src=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-2-1024x550.png&#34; alt=&#34;galeria-prix-2&#34; width=&#34;660&#34; height=&#34;354&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;o-problema&#34;&gt;O problema&lt;/h4&gt;
+
+&lt;p&gt;Eu já tinha toda a lógica para exibir os &lt;em&gt;thumbnails&lt;/em&gt; na página e também as galerias em &lt;em&gt;lightbox&lt;/em&gt;, mas achei o código meio &amp;#8216;macarrônico&amp;#8217; e me questionei se não podia ser mais simples e limpo.&lt;/p&gt;
+
+&lt;p&gt;Para demonstrar o funcionamento do sistema existente de carregamento das galerias, segue um diagrama:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/diagrama-prix.png&#34;&gt;&lt;img class=&#34; size-full wp-image-68 aligncenter&#34; src=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/diagrama-prix.png&#34; alt=&#34;diagrama-prix&#34; width=&#34;361&#34; height=&#34;536&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Trata-se de um exemplo básico de uso de Ajax, aonde temos:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Página HTML&lt;/strong&gt;: Renderiza a galeria de &lt;em&gt;thumbnails&lt;/em&gt; e as galerias de fotos em &lt;em&gt;lightbox&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Script JS&lt;/strong&gt;: Ativado a cada clique em um &lt;em&gt;thumbnail&lt;/em&gt;, faz a requisição de um arquivo PHP através de &lt;em&gt;Ajax&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Arquivo PHP&lt;/strong&gt;: Faz as consultas no banco de dados para pegar todas os dados necessários para exibição da galeria, e devolve estes dados ao script, que finalmente vai exibir a galeria, usando o plugin &lt;em&gt;fancybox&lt;/em&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;O sistema como um todo funcionava, mas faltava um toque de agilidade, que foi dado ao acrescentar o JSON no sistema.&lt;/p&gt;
+
+&lt;p&gt;Vamos então ver agora como isso foi feito.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-código&#34;&gt;O código&lt;/h3&gt;
+
+&lt;p&gt;O HTML da galeria era mais ou menos assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;projetos&#34;&amp;gt;
+    &amp;lt;a id=&#34;10&#34;&amp;gt;
+        &amp;lt;img src=&#34;dir/nome-img.jpg&#34;&amp;gt;
+    &amp;lt;/a&amp;gt;
+    &amp;lt;a id=&#34;11&#34;&amp;gt;
+        &amp;lt;img src=&#34;dir/nome-img.jpg&#34;&amp;gt;
+    &amp;lt;/a&amp;gt;
+&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;E abaixo o código JS (usando jQuery) que fazia acontecer a mágica a cada clique nos &lt;em&gt;thumbnails&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(document).ready(function(){
+    $(&#39;.projetos &amp;gt; a&#39;).click(function(){
+        var id = $(this).attr(&#39;id&#39;);
+        $.post(&#39;ajax-projetos.php&#39;,{&#39;idp&#39;:id}, function(data){
+            fancyPrix(data);
+        },&#39;text&#39;);
+    });
+});&lt;/pre&gt;
+
+&lt;p&gt;Observando o script, vemos que ele aplica algumas ações ao evento &lt;em&gt;click&lt;/em&gt; nos links, conforme indicado neste trecho: &lt;code&gt;$(&#39;.projetos &amp;gt; a&#39;).click(function(){&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;As ações basicamente são: a requisição do arquivo &lt;code&gt;ajax-projetos.php&lt;/code&gt; usando o método do jQuery $.&lt;code&gt;post&lt;/code&gt; (método do jQuery para chamadas Ajax), passando como parâmetro a variável &lt;code&gt;id&lt;/code&gt;, cujo valor vem de um atributo em cada link. O retorno dado pelo arquivo php, representado na variável &lt;code&gt;data&lt;/code&gt;, era em seguida passado pela função &lt;code&gt;fancyPrix&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se ficou com dúvidas examine novamente o script até entender todo o processo.&lt;/p&gt;
+
+&lt;h3 id=&#34;usando-o-json&#34;&gt;Usando o JSON&lt;/h3&gt;
+
+&lt;p&gt;Agora que ficou claro (espero) o importante papel do script JS, vamos ao arquivo &lt;code&gt;ajax-projetos.php&lt;/code&gt;. Como explicado no diagrama apresentado anteriormente, este arquivo fazia a consulta no banco de dados entregando ao final um &lt;em&gt;array&lt;/em&gt; contendo os dados necessários para a renderização da galeria de imagens em &lt;em&gt;lightbox&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Ao final do processo, o array produzido tinha a seguinte estrutura:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$proj = array (
+    &#34;candidato&#34; =&amp;gt; &#34;Felisbério dos Santos&#34;,
+    &#34;imgs&#34;  =&amp;gt; array ( 
+        0 =&amp;gt; &#34;http://localhost/projeto/diretorio/nome-arquivo.jpg&#34;,
+        1 =&amp;gt; &#34;http://localhost/projeto/diretorio/nome-arquivo.jpg&#34;,
+        2 =&amp;gt; &#34;http://localhost/projeto/diretorio/nome-arquivo.jpg&#34;,
+    ),
+    &#34;projeto&#34; =&amp;gt; &#34;Sombras Negras&#34;
+);&lt;/pre&gt;
+
+&lt;p&gt;Como se pode ver, o &lt;em&gt;array&lt;/em&gt; tinha todos os dados necessários para criação da galeria: nome do candidato, nome do projeto e as imagens, como um &lt;em&gt;sub-array&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;No código original, a grande falha no entanto era a forma como esses dados eram devolvidos ao script JS. Havia uma mistura de código JS como variáveis do php dentro do mesmo script que tornava tudo confuso e difícil de manter.&lt;/p&gt;
+
+&lt;p&gt;Porque não passar o &lt;em&gt;array&lt;/em&gt; de volta como um objeto &lt;strong&gt;JSON&lt;/strong&gt;, que pode ser interpretado dentro do script JS original, abolindo assim o uso de código php macarrônico?&lt;/p&gt;
+
+&lt;p&gt;Isto foi feito simplesmente adicionando-se ao código esta linha:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;echo json_encode($proj);&lt;/pre&gt;
+
+&lt;p&gt;A função nativa do PHP &amp;#8216;&lt;a href=&#34;http://php.net/manual/pt_BR/function.json-encode.php&#34; target=&#34;_blank&#34;&gt;json_encode&lt;/a&gt;&amp;#8216;, como diz o nome, converte o &lt;em&gt;array&lt;/em&gt; &lt;code&gt;$proj&lt;/code&gt; para um objeto JSON, que ficará assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+    &#34;candidato&#34;:&#34;Felisbério dos Santos&#34;,
+    &#34;imgs&#34;:[
+        &#34;http://path/da/imagem/136/000-1.jpg&#34;,
+        &#34;http://path/da/imagem/136/000-2.jpg&#34;,
+        &#34;http://path/da/imagem/136/000-3.jpg&#34;
+        ],
+    &#34;nome&#34;:&#34;Sombras Negras&#34;
+ }&lt;/pre&gt;
+
+&lt;p&gt;Este objeto pode ser passado tranquilamente pela script JS, aonde será usado na já citada função &lt;code&gt;fancyPrix()&lt;/code&gt;, que é quem vai pegar cada informação do objeto JSON e aplicar no _plugin &lt;a href=&#34;http://fancyapps.com/fancybox/&#34; target=&#34;_blank&#34;&gt;fancybox&lt;/a&gt;_, da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function fancyPrix(projeto) {
+    $.fancybox.open(projeto.imgs, {
+        padding: 0,
+        maxWidth : &#39;680px&#39;,
+        maxHeight : &#39;660px&#39;,
+        title: projeto.nome + &#34; - &#34;+ projeto.candidato,
+        loop : &#39;false&#39;,
+        prevEffect : &#39;none&#39;,
+        nextEffect : &#39;none&#39;
+    });
+}&lt;/pre&gt;
+
+&lt;p&gt;Vemos que o plugin &lt;em&gt;fancybox&lt;/em&gt; possui um método que permite trabalhar com objetos JSON, o &lt;code&gt;fancybox.open&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Repare como foram passadas as imagens logo no início do código: &lt;code&gt;$.fancybox.open(projeto.imgs, {&lt;/code&gt;. Com a simples propriedade &lt;code&gt;projeto.imgs&lt;/code&gt; conseguimos passar &lt;strong&gt;todas&lt;/strong&gt; as imagens que fazem parte da galeria. O restante das propriedades são usadas como opções dentro do plugin, como mostrado acima.&lt;/p&gt;
+
+&lt;p&gt;Relembrando o script jQuery original podemos ver como a galeria toda é criada em apenas uma linha de código.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(document).ready(function(){
+    $(&#39;.projetos a&#39;).click(function(){
+        var id = $(this).attr(&#39;id&#39;);
+        $.post(&#39;ajax-projetos.php&#39;,{&#39;idp&#39;:id}, function(data){
+            &lt;strong&gt;fancyPrix(data);&lt;/strong&gt;
+        },&#39;text&#39;);
+    });
+});&lt;/pre&gt;
+
+&lt;h3 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h3&gt;
+
+&lt;p&gt;Quando apliquei esta solução e vi tudo funcionando o orgulho (e o alívio) foram grandes, mas maior ainda foi a sensação de &amp;#8216;uau&amp;#8217; ao ver as diferentes linguagens da web conversando juntas e de maneira tão integrada.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Formulário responsivo com MailChimp</title>
+      <link>http://tableless.com.br/formulario-responsivo-com-mailchimp/</link>
+      <pubDate>Fri, 06 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/formulario-responsivo-com-mailchimp/</guid>
+      <description>
+
+&lt;p&gt;Há cada dia mais utilizamos serviços disponíveis na web que tem um plano básico e gratuito que permite integrações. Nos últimos meses tenho feito formulários com frequência usando uma abordagem bem simples. Vou mostrar agora como criar um formulário responsivo, integrando com MailChimp e usando jQuery Validate.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-html&#34;&gt;O HTML&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar o formulário da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;section&amp;gt;
+  &amp;lt;h1&amp;gt;CREATE RESPONSIVE FORM WITH INTEGRATE MAILCHIMP&amp;lt;/h1&amp;gt;
+  &amp;lt;form id=&#34;form-contact&#34; method=&#34;POST&#34; action=&#34;mailchimp-contact.php&#34;&amp;gt;
+    &amp;lt;div class=&#34;input&#34;&amp;gt;
+      &amp;lt;label for=&#34;name&#34;&amp;gt;Name&amp;lt;/label&amp;gt;
+      &amp;lt;input type=&#34;text&#34; id=&#34;name&#34; name=&#34;name&#34; placeholder=&#34;Your name&#34; required&amp;gt;
+    &amp;lt;/div&amp;gt;
+
+    ...
+    
+    &amp;lt;div class=&#34;input txt&#34;&amp;gt;
+      &amp;lt;label for=&#34;message&#34;&amp;gt;Message&amp;lt;/label&amp;gt;
+      &amp;lt;textarea id=&#34;message&#34; name=&#34;message&#34; cols=&#34;10&#34; rows=&#34;5&#34; placeholder=&#34;Its message leaves&#34; required&amp;gt;&amp;lt;/textarea&amp;gt;
+    &amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;buttons&#34;&amp;gt;
+      &amp;lt;span class=&#34;form-message&#34;&amp;gt;&amp;lt;/span&amp;gt;
+      &amp;lt;input type=&#34;submit&#34; value=&#34;SEND&#34; /&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;/form&amp;gt;
+&amp;lt;/section&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-form-mailchimp/demo-only-elements.html&#34; target=&#34;_blank&#34; title=&#34;Ver demo sem style.&#34;&gt;Ver demo sem style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-css&#34;&gt;O CSS&lt;/h2&gt;
+
+&lt;p&gt;Para cada label e input foi adicionado uma &lt;code&gt;div.input&lt;/code&gt; para inserir uma formatação por grupo.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-form-está-centralizado-com-max-width&#34;&gt;O form está centralizado com max-width:&lt;/h3&gt;
+
+&lt;p&gt;Por ser um elemento &amp;#8216;block&amp;#8217;, vamos definir o tamanho máximo que ele pode ter.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;form {
+&amp;nbsp; margin: 0 auto;
+&amp;nbsp; max-width: 850px;
+&amp;nbsp; padding: 20px 10px;
+&amp;nbsp; background-color: rgba(255,255,255,0.4)
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;o-grupo-div-input-com-50-em-8216-width-8217-do-form&#34;&gt;O grupo div.input com 50% em &amp;#8216;width&amp;#8217; do form:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input {
+  float: left;
+  width: 48%;
+  padding: 0 1% 20px;
+  position: relative;
+}
+
+.input.txt { width: 98%; } /*textarea 100%*/
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;os-labels&#34;&gt;Os labels:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input label {
+  display: block;
+  padding-bottom: 5px;
+  color: #666;
+}
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input label.error {
+  position: absolute;
+  right: 18px;
+  top: 35px;
+  color: #f00;
+}&lt;/pre&gt;
+
+&lt;p&gt;O label.error é gerado pelo jQuery validate e adicionado seguido dos campos.&lt;/p&gt;
+
+&lt;h3 id=&#34;os-campos&#34;&gt;Os campos:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input input,
+.input textarea {
+  padding-top: 10px;
+  padding-bottom: 9px;
+  border: none;
+  font-size: 16px;
+  font-weight: 100;
+  font-family: &#34;Helvetica Neue&#34;, Helvetica, Arial, sans-serif;
+}
+
+.input input {
+  width: 94%;
+  padding-left: 3%;
+  padding-right: 3%;
+}
+
+.input textarea {
+  width: 97%;
+  padding-left: 1.5%;
+  padding-right: 1.5%;
+}&lt;/pre&gt;
+
+&lt;p&gt;Formatamos os campos para ter 100% de tamanho do elemento pai &amp;#8216;div.input&amp;#8217;.&lt;/p&gt;
+
+&lt;p&gt;Sempre que redimensionar não haverá quebras, portanto, responsivo meu amigo.&lt;/p&gt;
+
+&lt;h3 id=&#34;agora-um-capricho-para-resoluções-pequenas&#34;&gt;Agora um capricho para resoluções pequenas.&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@media screen and (max-width: 520px) {
+  .input {
+    width: 98%;
+  }
+}&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-form-mailchimp/demo-style-elements.html&#34; target=&#34;_blank&#34; title=&#34;Ver demo com style.&#34;&gt;Ver demo com style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-jquery-mailchimp&#34;&gt;O jQuery + MailChimp&lt;/h2&gt;
+
+&lt;p&gt;Com o HTML e CSS prontos, vamos adicionar o JavaScript que é fácil. Como dependemos do jQuery e não podemos iniciar de qualquer forma, segue uma estrutura bem legal:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function(){
+  var contact = function(){
+    var init = function() {
+      //initialize code
+    };
+    
+&amp;nbsp;   //more functions
+
+    return {init: init};
+  }();
+
+  //jQuery loaded
+  $(document).ready(contact.init);
+})();&lt;/pre&gt;
+
+&lt;p&gt;Como sabemos exatamente qual função vai executar quando a jQuery carregar, adicionaremos o jQuery Validate no init:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var init = function() {
+  $(&amp;#039;#form-contact&amp;#039;).validate({
+    rules : {
+      name: &#34;required&#34;,
+      email: { required: true, email: true },
+      phone: { required: true, minlength: 14 },
+      company: &#34;required&#34;,
+      message: &#34;required&#34;
+    },
+    messages: {
+      name: &#34;*&#34;,
+      email: { required: &#34;*&#34;, email: &#34;*&#34; },
+      phone: { required: &#34;*&#34;, minlength: &#34;*&#34; },
+      company: &#34;*&#34;,
+      message: &#34;*&#34;
+    }
+  });
+};&lt;/pre&gt;
+
+&lt;p&gt;Agora que estamos validando todos os campos, que tal adicionar um ajax para deixar nosso formulário bem suave e uma função para exibir mensagens de sucesso ou erro, veja:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var init = function() {
+  $(&amp;#039;#form-contact&amp;#039;).validate({
+    rules : {
+      ...
+    },
+    messages: {
+      ...
+    },
+    submitHandler: function(form) {
+      var $form = $(form);
+
+      var params = {
+        name: $form.find(&amp;#039;#name&amp;#039;).val(),
+        email: $form.find(&amp;#039;#email&amp;#039;).val(),
+        phone: $form.find(&amp;#039;#phone&amp;#039;).val(),
+        company: $form.find(&amp;#039;#company&amp;#039;).val(),
+        message: $form.find(&amp;#039;#message&amp;#039;).val()
+      };
+
+      $.ajax({
+        type: $form.attr(&amp;#039;method&amp;#039;),
+        url: $form.attr(&amp;#039;action&amp;#039;),
+        data: params,
+        success: function( data ) {
+          if(data == &#34;true&#34;) {
+            $form.find(&amp;#039;.input input&amp;#039;).val(&#34;&#34;);
+            $form.find(&amp;#039;.input textarea&amp;#039;).val(&#34;&#34;);
+            setMessage(&#34;Mission accomplished. &amp;lt;strong&amp;gt;&#34;+ params.email +&#34;&amp;lt;/strong&amp;gt; was successfully added to list.&#34;, &#34;success&#34;);
+          } else {
+            setMessage(&#34;Mission failed. &amp;lt;strong&amp;gt;&#34;+ params.email +&#34;&amp;lt;/strong&amp;gt; not was added to list.&#34;, &#34;error&#34;);
+          }
+        },
+        error: function( data ) {
+          setMessage(&#34;Mission failed in connection. Try again.&#34;, &#34;error&#34;);
+        }
+      });
+
+      return false;
+    }
+  });
+};
+
+var setMessage = function($message, $type) {
+  $(&amp;#039;.form-message&amp;#039;).html($message).addClass($type);
+
+  setTimeout(function(){
+    $(&amp;#039;.form-message&amp;#039;).removeClass($type);
+  }, 6000);
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Via &amp;#8216;submitHandler&amp;#8217; do &lt;a href=&#34;http://jQueryvalidation.org/&#34; target=&#34;_blank&#34;&gt;jQuery Validate&lt;/a&gt;, vamos disparar por ajax todos os dados preenchidos e travar o post do form com &amp;#8216;return false&amp;#8217; no final da função. Assim evitamos aquele redirecionamento de post.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-php&#34;&gt;O PHP&lt;/h3&gt;
+
+&lt;p&gt;Como definimos com &amp;#8216;method&amp;#8217; e &amp;#8216;action&amp;#8217; para o nosso formulário, segue o código para resgatar os dados:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+    require_once &amp;#039;MCAPI.class.php&amp;#039;;
+    $api = new MCAPI(&amp;#039;casiuach1293kajsc912319203cja23s-us9&amp;#039;);
+    $merge_vars = array(&amp;#039;NAME&amp;#039;=&amp;gt;$_POST[&#34;name&#34;], &#39;PHONE&#39;=&amp;gt;$_POST[&#34;phone&#34;], &#39;COMPANY&#39;=&amp;gt;$_POST[&#34;company&#34;], &#39;MESSAGE&#39;=&amp;gt;$_POST[&#34;message&#34;]);
+    
+    // Submit subscriber data to MailChimp
+    // For parameters doc, refer to: http://apidocs.mailchimp.com/api/1.3/listsubscribe.func.php
+    $retval = $api-&amp;gt;listSubscribe( &amp;#039;12938asd98&amp;#039;, $_POST[&#34;email&#34;], $merge_vars, &amp;#039;html&amp;#039;, false, true );
+    
+    if ($api-&amp;gt;errorCode){
+        echo &#34;false&#34;;
+    } else {
+        echo &#34;true&#34;;
+    }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Dependemos da MCAPI.class que você pode verificar na &lt;a href=&#34;https://apidocs.mailchimp.com/api/example-code/&#34; target=&#34;_blank&#34;&gt;documentação&lt;/a&gt; ou baixar &lt;a href=&#34;https://codeload.github.com/sunarlim/mailchimp-subscribe/zip/master&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;, só lembrando que precisa adicionar sua API Key e List ID.&lt;/p&gt;
+
+&lt;h2 id=&#34;pronto&#34;&gt;PRONTO&lt;/h2&gt;
+
+&lt;p&gt;Nosso formulário é responsivo e integrado ao mailchimp.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://css4html.com.br/demos/responsive-form-mailchimp/&#34; target=&#34;_blank&#34; title=&#34;Veja como ficou o resultado final&#34;&gt;Veja como ficou o resultado final&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/palloi/responsive-form-mailchimp/&#34; target=&#34;_blank&#34; title=&#34;Veja o código completo no github&#34;&gt;Veja o c&amp;oacute;digo completo no github&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;É isso ae pessoal, obrigado.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Lendo um arquivo de texto com AJAX</title>
+      <link>http://tableless.com.br/lendo-um-arquivo-de-texto-com-ajax/</link>
+      <pubDate>Wed, 14 Sep 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/lendo-um-arquivo-de-texto-com-ajax/</guid>
+      <description>&lt;p&gt;Inicio mostrando como realizar uma requisição de arquivos de texto com AJAX.&lt;/p&gt;
+
+&lt;p&gt;Em tempos de Web 2.0, não podemos pensar mais em sites que usem requisições síncronas para rotinas de interação com o usuário.&lt;/p&gt;
+
+&lt;p&gt;Uma das técnicas mais utilizadas para esse fim é o AJAX &amp;#8211; Assynchronous Javascript and XML.&lt;/p&gt;
+
+&lt;p&gt;De uma forma resumida e sem muito &amp;#8220;tecniquês&amp;#8221;, AJAX é a captura de informações sem a necessidade de recarregamento da estrutura do documento HTML a cada requisição ao servidor web.&lt;/p&gt;
+
+&lt;p&gt;E para poder fazer conexão assíncrona com o servidor web temos que criar um objeto com as propriedades e métodos AJAX .&lt;/p&gt;
+
+&lt;p&gt;Porém, como a web não é um ambiente perfeito, temos que criar um objeto AJAX para os browsers Firefox, Chrome, Opera, Safari, chamado de XMLHttpRequest. E para o IE um objeto ActiveX que faça referencia ao objeto XMLHTTP.&lt;/p&gt;
+
+&lt;p&gt;Como padrão de desenvolvimento, vamos criar um arquivo que faça essa identificação e criação chamado de xhr.js.&lt;/p&gt;
+
+&lt;p&gt;Para a criação desse arquivo, abra o editor de código de sua preferência e digite o seguinte código:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Arquivo xhr.js&lt;/strong&gt;&amp;#8230;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//Declarando variaveis globais
+var xhr;
+var txt ;
+
+function ajax(){
+//Verificando se os browsers aceitam o objeto XMLHttpRequest
+if(window.XMLHttpRequest){
+xhr  = new XMLHttpRequest();
+}
+//Verificando se o browser IE versão &amp;gt; 6
+else if(window.ActiveXObject){
+try{
+xhr = new ActiveXObject(Msxml2.XMLHTTP);
+}
+catch(e){
+try{
+xhr =  new ActiveXObject(Microsoft.XMLHTTP);
+}
+catch(er){
+txt = &#34;Seu browser não aceita AJAX!&#34;;
+alert(txt);
+}
+}
+}
+return xhr;
+}
+...
+&lt;/pre&gt;
+
+&lt;p&gt;Em seguida, vamos criar o arquivo HTML e fazer referência ao objeto AJAX criado pelo arquivo &lt;strong&gt;xhr.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para isso use a  tag script no head da página html. Exemplo: &lt;strong&gt;&lt;script type=&amp;#8221;text/javascript&amp;#8221; src=&amp;#8221;caminho/xhr.js&amp;#8221;&gt;&lt;/script&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Arquivo ajax_txt.html&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//Declarando variáveis globais
+var xhr;
+var valor;
+
+//Função para pegar os arquivos de texto
+function pegaTextos{
+//Instancia o objeto ajax e guarda na var xhr
+xhr = ajax();
+//Captura o elemento select  via DOM
+var txt = document.getElementById(&#34;textos&#34;);
+//Pega o valor da opção escolhida na lista do campo select
+valor = txt.options[txt.selectedIndex].value;
+//Monta a url da chamada AJAX
+var url = &#34;texto&#34;+valor+&#34;.txt&#34;;
+//Abre a conexão com o servidor web via AJAX
+xhr.open(&#34;GET&#34;,url,false);
+//Confirma o envio dos dados
+xhr.send(null);
+//Verifica a mudança de estado do servidor web e dispara a função para mostrar os textos
+xhr.onreadystatechange = mostraTextos;
+}
+
+//Função para mostras os textos
+function mostraTextos(){
+//Verifica o status do retorno do servidor web
+if(xhr.readyState == 4 &amp;&amp; xhr.status == 200){
+//Pega a resposta do servidor web
+var resposta = xhr.responseText;
+//Captura a div Box para mostrar os textos
+var box  = document.getElementById(&#34;box&#34;);
+//Escreve os textos na div Box
+box.innerHTML = resposta;
+//Aplica um estilo de borda na div Box
+box.style.border = &#34;1px dotted #333&#34;;
+}
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Aplicando um estilo CSS na div Box&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;#box{
+width: 450px;
+height: auto;
+padding: 10px;
+margin-top: 25px;
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Montamos agora o HTML com o combo dos textos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;body&amp;gt;
+&amp;lt;p&amp;gt;Selecionando textos com AJAX&amp;lt;/p&amp;gt;&amp;lt;br/&amp;gt;
+&amp;lt;select id=&#34;textos&#34; onchange=&#34;pegaTextos()&#34;&amp;gt;
+&amp;lt;option value=&#34;&#34; selected=&#34;selected&#34;&amp;gt;selecione&amp;lt;/option&amp;gt;
+&amp;lt;option value=&#34;1&#34;&amp;gt;Texto 1&amp;lt;/option&amp;gt;
+&amp;lt;option value=&#34;2&#34;&amp;gt;Texto 2&amp;lt;/option&amp;gt;
+&amp;lt;option value=&#34;3&#34;&amp;gt;Texto 3&amp;lt;/option&amp;gt;
+&amp;lt;/select&amp;gt;
+&amp;lt;div id=&#34;box&#34;&amp;gt;&amp;lt;/div&amp;gt;
+&amp;lt;/body&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Para que a chamada AJAX funcione, temos que criar os arquivos de textos com os respectivos nomes: texto1.txt,texto2.txt e texto3.txt.&lt;/p&gt;
+
+&lt;p&gt;Em seguida salve os arquivos na mesma pasta onde se encontram os &lt;strong&gt;arquivos xhr.js&lt;/strong&gt; e &lt;strong&gt;ajax_txt.html&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora é so testar!&lt;/p&gt;
+
+&lt;p&gt;Lembrando que para uma requisição AJAX funcionar, ela tem que passar por um servidor. No nosso caso o &lt;strong&gt;localhost&lt;/strong&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Entendendo os Reflows</title>
+      <link>http://tableless.com.br/entendendo-os-reflows-2/</link>
+      <pubDate>Mon, 18 Jul 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/entendendo-os-reflows-2/</guid>
+      <description>
+
+&lt;p&gt;Reflow é um assunto extenso e necessário. Ele sempre vai existir nos navegadores, então temos que entendê-lo para saber como utilizá-lo de maneira racional. O mais legal é entender todo o contexto sobre o que são e como funcionam, para a partir daí repensar o código que renderizamos no navegador para obtermos maior performance.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Reflow é o resultado de um evento que desencadeia mudanças no jeito que a pagina deve ser renderizada, tomando tempo para cálculo e reposicionamento de elementos.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Para explicar como isso acontece, o importante é entender como um navegador renderiza uma página web.&lt;/p&gt;
+
+&lt;h2 id=&#34;dom&#34;&gt;DOM&lt;/h2&gt;
+
+&lt;p&gt;Document Object Model (DOM) é uma interface independente de linguagem e plataforma para representar e interagir com objetos em HTML, XHTML e XML. Mas o DOM é mais que isso; toda linguagem estruturada tem uma arvore DOM.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_3941&#34; style=&#34;width: 490px&#34; class=&#34;wp-caption alignleft&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif&#34;&gt;&lt;img class=&#34;size-full wp-image-3941 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif&#34; alt=&#34;Exemplo de arvore DOM para documento HTML&#34; width=&#34;480&#34; height=&#34;212&#34; srcset=&#34;uploads/2011/07/DOMTree.gif 800w, uploads/2011/07/DOMTree-300x132.gif 300w&#34; sizes=&#34;(max-width: 480px) 100vw, 480px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Exemplo de arvore DOM para documento HTML
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Mas sobre o DOM podemos dizer que programas ou scripts podem dinamicamente acessar elementos na árvore DOM e alterar seu conteúdo, estrutura e estilo. Adicional ao estado inicial da pagina, estas alterações são agregadas a árvore DOM. O resultado é a renderização &amp;#8211; o que nós vemos em um navegador. Mas a nossa &lt;em&gt;Render Tree&lt;/em&gt; tem mais que isso:&lt;/p&gt;
+
+&lt;h2 id=&#34;render-tree-e-como-realmente-entender-display-x-visibility&#34;&gt;Render Tree e como realmente entender display X visibility&lt;/h2&gt;
+
+&lt;div id=&#34;attachment_3942&#34; style=&#34;width: 514px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/07/render.png&#34;&gt;&lt;img class=&#34;size-full wp-image-3942 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/render.png&#34; alt=&#34;Como a render tree e montada&#34; width=&#34;504&#34; height=&#34;234&#34; srcset=&#34;uploads/2011/07/render.png 630w, uploads/2011/07/render-300x139.png 300w&#34; sizes=&#34;(max-width: 504px) 100vw, 504px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Como a render tree é montada
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;O DOM é resultado do parse do markup HTML que você montou dentro de um navegador. Só que dentro de um HTML você não tem apenas a estrutura do documento, estilos em CSS e funcionalidades em javascript também estarão no seu markup. E a Render tree é a soma de DOM mais estilos, que depois podem ser manipulados (seus scripts).&lt;/p&gt;
+
+&lt;p&gt;Pode parecer estranho, mas para mim a melhor maneira de entender as diferencas entre DOM e Render Tree é encarar esta última como um &lt;span class=&#34;c17&#34;&gt;individuo narcisista&lt;/span&gt;. Isso mesmo: A Render Tree gosta de aparecer, é o que vemos no browser. O DOM acontece por trás das cortinas. &lt;em&gt;À Render tree, o palco&lt;/em&gt;. (&lt;a href=&#34;http://tableless.com.br/tenha-o-dom&#34; title=&#34;Tenha o DOM&#34;&gt;Para saber mais sobre o DOM, veja este outro artigo&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;Uma página que tem controles de show/hide mostra isso muito bem. Enquanto todo o conteúdo da página está presente na árvore DOM, apenas alguns itens estarão disponíveis na Render Tree &amp;#8211; os visíveis na página (display:block). Alterar os elementos display:none vão disparar mudanças na render tree, e não na árvore DOM.&lt;/p&gt;
+
+&lt;p&gt;Já tentou entender as diferenças entre display:none e visibility:hidden? A maioria das explicações que vemos é que um “deixa de mostrar o elemento totalmente, incluindo seu espaço em tela” e o outro “deixa de mostrar o elemento visual, mas sua área de exibição continua sendo utilizada”. Esta explicação não está incorreta, mas seria melhor dizer que a propriedade display altera a estrutura da render tree, adicionando algo que antes não estava ali, enquanto visibility não faz alterações, apenas o câmbio de mostrar ou não um elemento que já esta na render tree.&lt;/p&gt;
+
+&lt;h2 id=&#34;repaint&#34;&gt;Repaint&lt;/h2&gt;
+
+&lt;p&gt;Entendido as diferenças entre display e visibility, além do contexto de área do elemento, conseguimos explicar o Repaint. Uma ação que faça alteração de propriedades de background &lt;strong&gt;sem alterar dimensões ou outras propriedades do elemento&lt;/strong&gt; não causam o reflow, apenas o repaint, que seria a atualização da propriedade de cor ou da imagem &amp;#8211; literalmente pintar novamente o elemento. Repaints gastam menos CPU que reflows.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-um-navegador-monta-seu-documento-html&#34;&gt;Como um navegador monta seu documento HTML&lt;/h2&gt;
+
+&lt;p&gt;Esses vídeos são sensacionais. Eles explicam o que são os reflows e dai como minimizá-los durante a fase de desenvolvimento do documento (sempre usando &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://tableless.com.br/bem-vindo-a-xangrila-parte-1&#34;&gt;Progressive Enhancement&lt;/a&gt;&lt;/span&gt; quando possível) é mais fácil..&lt;/p&gt;
+
+&lt;p&gt;[youtube &lt;a href=&#34;http://www.youtube.com/watch?v=ZTnIxIA5KGw&#34;&gt;http://www.youtube.com/watch?v=ZTnIxIA5KGw&lt;/a&gt;]&lt;/p&gt;
+
+&lt;p class=&#34;c6 anotacao&#34;&gt;
+  Esta é uma representação de como a página da Mozilla é montada. Quer mais? Veja também como a &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://video.google.com/videoplay?docid=-5863446593724321515&#34;&gt;Wikipedia&lt;/a&gt;&lt;/span&gt; e a página do &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://video.google.com/videoplay?docid=-1471976166301235697&#34;&gt;Google&lt;/a&gt;&lt;/span&gt; no Japão são renderizadas.
+&lt;/p&gt;
+
+&lt;p&gt;Analisando o primeiro vídeo, perceba que ao finalizar a montagem do rodapé, “algo mais” acontece (a partir de 12seg). São os Reflows. A maioria dos elementos são recalculados e reposicionados. Se ponderarmos que o rodapé acaba de ser montado aos 14 segundos e a renderização termina aos 26 segundos da pagina, estamos falando quase de 50% do tempo de renderização sendo gasto com Reflows, o que é muito, dependendo do que a sua página deve fazer.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que-causam-exatamente-os-reflows&#34;&gt;O que causam exatamente os reflows?&lt;/h3&gt;
+
+&lt;h5 id=&#34;reflow-é-um-assunto-extenso-e-necessário-ele-sempre-vai-existir-nos-navegadores-então-temos-que-entendê-lo-para-saber-como-utilizá-lo-de-maneira-racional-o-mais-legal-é-entender-todo-o-contexto-sobre-o-que-são-e-como-funcionam-para-a-partir-daí-repensar-o-código-que-renderizamos-no-navegador-para-obtermos-maior-performance&#34;&gt;`Reflow é um assunto extenso e necessário. Ele sempre vai existir nos navegadores, então temos que entendê-lo para saber como utilizá-lo de maneira racional. O mais legal é entender todo o contexto sobre o que são e como funcionam, para a partir daí repensar o código que renderizamos no navegador para obtermos maior performance.&lt;/h5&gt;
+
+&lt;p&gt;&lt;strong&gt;Reflow é o resultado de um evento que desencadeia mudanças no jeito que a pagina deve ser renderizada, tomando tempo para cálculo e reposicionamento de elementos.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Para explicar como isso acontece, o importante é entender como um navegador renderiza uma página web.&lt;/p&gt;
+
+&lt;h2 id=&#34;dom-1&#34;&gt;DOM&lt;/h2&gt;
+
+&lt;p&gt;Document Object Model (DOM) é uma interface independente de linguagem e plataforma para representar e interagir com objetos em HTML, XHTML e XML. Mas o DOM é mais que isso; toda linguagem estruturada tem uma arvore DOM.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_3941&#34; style=&#34;width: 490px&#34; class=&#34;wp-caption alignleft&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif&#34;&gt;&lt;img class=&#34;size-full wp-image-3941 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif&#34; alt=&#34;Exemplo de arvore DOM para documento HTML&#34; width=&#34;480&#34; height=&#34;212&#34; srcset=&#34;uploads/2011/07/DOMTree.gif 800w, uploads/2011/07/DOMTree-300x132.gif 300w&#34; sizes=&#34;(max-width: 480px) 100vw, 480px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Exemplo de arvore DOM para documento HTML
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Mas sobre o DOM podemos dizer que programas ou scripts podem dinamicamente acessar elementos na árvore DOM e alterar seu conteúdo, estrutura e estilo. Adicional ao estado inicial da pagina, estas alterações são agregadas a árvore DOM. O resultado é a renderização &amp;#8211; o que nós vemos em um navegador. Mas a nossa &lt;em&gt;Render Tree&lt;/em&gt; tem mais que isso:&lt;/p&gt;
+
+&lt;h2 id=&#34;render-tree-e-como-realmente-entender-display-x-visibility-1&#34;&gt;Render Tree e como realmente entender display X visibility&lt;/h2&gt;
+
+&lt;div id=&#34;attachment_3942&#34; style=&#34;width: 514px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/07/render.png&#34;&gt;&lt;img class=&#34;size-full wp-image-3942 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/render.png&#34; alt=&#34;Como a render tree e montada&#34; width=&#34;504&#34; height=&#34;234&#34; srcset=&#34;uploads/2011/07/render.png 630w, uploads/2011/07/render-300x139.png 300w&#34; sizes=&#34;(max-width: 504px) 100vw, 504px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Como a render tree é montada
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;O DOM é resultado do parse do markup HTML que você montou dentro de um navegador. Só que dentro de um HTML você não tem apenas a estrutura do documento, estilos em CSS e funcionalidades em javascript também estarão no seu markup. E a Render tree é a soma de DOM mais estilos, que depois podem ser manipulados (seus scripts).&lt;/p&gt;
+
+&lt;p&gt;Pode parecer estranho, mas para mim a melhor maneira de entender as diferencas entre DOM e Render Tree é encarar esta última como um &lt;span class=&#34;c17&#34;&gt;individuo narcisista&lt;/span&gt;. Isso mesmo: A Render Tree gosta de aparecer, é o que vemos no browser. O DOM acontece por trás das cortinas. &lt;em&gt;À Render tree, o palco&lt;/em&gt;. (&lt;a href=&#34;http://tableless.com.br/tenha-o-dom&#34; title=&#34;Tenha o DOM&#34;&gt;Para saber mais sobre o DOM, veja este outro artigo&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;Uma página que tem controles de show/hide mostra isso muito bem. Enquanto todo o conteúdo da página está presente na árvore DOM, apenas alguns itens estarão disponíveis na Render Tree &amp;#8211; os visíveis na página (display:block). Alterar os elementos display:none vão disparar mudanças na render tree, e não na árvore DOM.&lt;/p&gt;
+
+&lt;p&gt;Já tentou entender as diferenças entre display:none e visibility:hidden? A maioria das explicações que vemos é que um “deixa de mostrar o elemento totalmente, incluindo seu espaço em tela” e o outro “deixa de mostrar o elemento visual, mas sua área de exibição continua sendo utilizada”. Esta explicação não está incorreta, mas seria melhor dizer que a propriedade display altera a estrutura da render tree, adicionando algo que antes não estava ali, enquanto visibility não faz alterações, apenas o câmbio de mostrar ou não um elemento que já esta na render tree.&lt;/p&gt;
+
+&lt;h2 id=&#34;repaint-1&#34;&gt;Repaint&lt;/h2&gt;
+
+&lt;p&gt;Entendido as diferenças entre display e visibility, além do contexto de área do elemento, conseguimos explicar o Repaint. Uma ação que faça alteração de propriedades de background &lt;strong&gt;sem alterar dimensões ou outras propriedades do elemento&lt;/strong&gt; não causam o reflow, apenas o repaint, que seria a atualização da propriedade de cor ou da imagem &amp;#8211; literalmente pintar novamente o elemento. Repaints gastam menos CPU que reflows.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-um-navegador-monta-seu-documento-html-1&#34;&gt;Como um navegador monta seu documento HTML&lt;/h2&gt;
+
+&lt;p&gt;Esses vídeos são sensacionais. Eles explicam o que são os reflows e dai como minimizá-los durante a fase de desenvolvimento do documento (sempre usando &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://tableless.com.br/bem-vindo-a-xangrila-parte-1&#34;&gt;Progressive Enhancement&lt;/a&gt;&lt;/span&gt; quando possível) é mais fácil..&lt;/p&gt;
+
+&lt;p&gt;[youtube &lt;a href=&#34;http://www.youtube.com/watch?v=ZTnIxIA5KGw&#34;&gt;http://www.youtube.com/watch?v=ZTnIxIA5KGw&lt;/a&gt;]&lt;/p&gt;
+
+&lt;p class=&#34;c6 anotacao&#34;&gt;
+  Esta é uma representação de como a página da Mozilla é montada. Quer mais? Veja também como a &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://video.google.com/videoplay?docid=-5863446593724321515&#34;&gt;Wikipedia&lt;/a&gt;&lt;/span&gt; e a página do &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://video.google.com/videoplay?docid=-1471976166301235697&#34;&gt;Google&lt;/a&gt;&lt;/span&gt; no Japão são renderizadas.
+&lt;/p&gt;
+
+&lt;p&gt;Analisando o primeiro vídeo, perceba que ao finalizar a montagem do rodapé, “algo mais” acontece (a partir de 12seg). São os Reflows. A maioria dos elementos são recalculados e reposicionados. Se ponderarmos que o rodapé acaba de ser montado aos 14 segundos e a renderização termina aos 26 segundos da pagina, estamos falando quase de 50% do tempo de renderização sendo gasto com Reflows, o que é muito, dependendo do que a sua página deve fazer.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que-causam-exatamente-os-reflows-1&#34;&gt;O que causam exatamente os reflows?&lt;/h3&gt;
+
+&lt;p&gt;#####`&lt;/p&gt;
+
+&lt;p&gt;Reflows são excessivamente pesados e para reduzir efeitos uma das táticas que navegadores usam é processar nossos scripts em lote. Uma fila é criada para todos os comandos que causam reflow sejam processados de uma única vez. Porém o foco é entender o que causa um reflow e tentar minimizar o seu uso para ganhar performance na aplicação.&lt;/p&gt;
+
+&lt;p&gt;Este assunto é novo, e com certeza, A lista que mostro abaixo deve crescer. É importante mantermos a atenção a este assunto porque pequenos cuidados podem significar muito. Em um site web visualizado em desktops a diferença é óbvia sobre o tempo de renderização. Mas isso implica em outras coisas, que podem fazer a diferença não apenas em montar uma página mais rápido, mas também para menor gasto de processamento, o que garante também mais tempo de bateria em mobiles e tablets por exemplo.&lt;/p&gt;
+
+&lt;ol start=&#34;1&#34;&gt;
+  &lt;li&gt;
+    Adicionar, remover ou atualizar o DOM;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Esconder nós do DOM usando display:none;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Mover e animar o DOM na página;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Adicionar folhas de estilo on-the-fly que mudem o comportamento dos elementos;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Redimensionar janelas;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Alterar tamanho de fontes;
+  &lt;/li&gt;
+  &lt;li class=&#34;c6 c15&#34;&gt;
+    Scroll de página;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Em um dos posts sobre o assunto, Tony G mapeou pesquisas prévias e montou a seguinte tabela, que também está sendo constantemente atualizada.&lt;/p&gt;
+
+&lt;table class=&#34;c16&#34; cellspacing=&#34;0&#34; cellpadding=&#34;0&#34;&gt;
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;Element&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;Frame, Image&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;Range&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;SVGLocatable&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;SVGTextContent&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;SVGUse&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;window&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;span class=&#34;c0&#34;&gt;clientHeight,&lt;br /&gt; &lt;/span&gt;&lt;span class=&#34;c0&#34;&gt;clientLeft,&lt;br /&gt; &lt;/span&gt;&lt;span class=&#34;c0&#34;&gt;clientTop,&lt;br /&gt; &lt;/span&gt;&lt;span class=&#34;c0&#34;&gt;clientWidth,&lt;br /&gt; focus(), getBoundingClientRect(), getClientRects(), innerText,&lt;br /&gt; offsetHeight,&lt;br /&gt; offsetLeft,&lt;br /&gt; offsetParent,&lt;br /&gt; offsetTop,&lt;br /&gt; offsetWidth,&lt;br /&gt; outerText,&lt;br /&gt; scrollByLines(), scrollByPages(), scrollHeight, scrollIntoView(), scrollIntoViewIfNeeded(), scrollLeft,&lt;br /&gt; scrollTop,&lt;br /&gt; &lt;/span&gt;scrollWidth
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;span class=&#34;c0&#34;&gt;height, width&lt;/span&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;span class=&#34;c0&#34;&gt;getBoundingClientRect(), getClientRects()&lt;/span&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;span class=&#34;c0&#34;&gt;computeCTM(), getBBox()&lt;/span&gt;&lt;/p&gt; 
+      
+      &lt;p class=&#34;c5&#34;&gt;
+        &lt;/td&gt; 
+        
+        &lt;td&gt;
+          &lt;span class=&#34;c0&#34;&gt;getCharNumAtPosition(), getComputedTextLength(), getEndPositionOfChar(), getExtentOfChar(), getNumberOfChars(), getRotationOfChar(), getStartPositionOfChar(), getSubStringLength(), selectSubString()&lt;/span&gt;
+        &lt;/td&gt;
+        
+        &lt;td&gt;
+          &lt;span class=&#34;c0&#34;&gt;instanceRoot&lt;/span&gt;
+        &lt;/td&gt;
+        
+        &lt;td&gt;
+          &lt;span class=&#34;c0&#34;&gt;getComputedStyle(),&lt;br /&gt; scrollBy(),&lt;br /&gt; scrollTo(),&lt;br /&gt; scrollX,&lt;br /&gt; scrollY, webkitConvertPointFromNodeToPage(), webkitConvertPointFromPageToNode()&lt;/span&gt;
+        &lt;/td&gt;&lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt; 
+        
+
+&lt;pre&gt;&lt;code&gt;    &amp;lt;h2&amp;gt;
+      Como melhorar o meu código para minimizar os reflows?
+    &amp;lt;/h2&amp;gt;
+
+    &amp;lt;p&amp;gt;
+      É simples. Basta minimizar o uso de requisições de estilo, que façam o navegador executar reflows ou repaints.
+    &amp;lt;/p&amp;gt;
+
+    &amp;lt;ol start=&amp;quot;1&amp;quot;&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Planejar a sua aplicação e entender como plugins e scripts criados vão se comportar em relação a reflow e repaints. Arquitetar o uso de plugins de acordo com a personalização que deve ser feita. Minimize o uso de alteração de estilos on-the-fly.&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Quando precisar alterar a propriedade de um estilo, troque o nome da classe, planeje a existência deste estado e adicione-o ao CSS previamente. Se o valor desta nova classe for dinâmica, use cssText. Evite alterar a propriedade diretamente para qualquer mudança.&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c0&amp;quot;&amp;gt;Pense como suas mudanças afetam a render tree e o quanto precisará ser revalidado depois desta mudanca. Se você usa position:absolute em um elemento, ele deixa de pertencer ao nó que está, e passa a ser filho do BODY. Alterá-lo então, não será tão custoso em termos de performance. Mesmo que alterações neste nó sobreponha outras areas, o reflow acontecerá apenas neste nó, e não em toda a render tree. &amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Limpe seu CSS. Classes não utilizadas devem ser removidas.&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Reduza o número de mudanças no DOM. Ele vai causar mudanças estruturais em todas as outras etapas. E mais tempo de reflow. &amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Animações na página, transições? Pondere sobre posicioná-la de maneira absoluta e trabalhar com ela a partir do BODY.&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Vá com calma nos seletores CSS &amp;amp;#8211; os descendentes em particular &amp;amp;#8211; pois usam maior poder de CPU para executar a tarefa (CPU = Bateria).&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+    &amp;lt;/ol&amp;gt;
+
+    &amp;lt;h2&amp;gt;
+      Referências
+    &amp;lt;/h2&amp;gt;
+
+    &amp;lt;ul&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://en.wikipedia.org/wiki/Document_Object_Model&amp;quot;&amp;gt;DOM&amp;lt;/a&amp;gt; pela wikipedia
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://video.google.com/videoplay?docid=-1471976166301235697#docid=1020647662203348823&amp;quot;&amp;gt;Gecko Reflow&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://paulirish.com/2011/dom-html5-css3-performance/&amp;quot;&amp;gt;DOM, HTML5, CSS3 e Performance&amp;lt;/a&amp;gt; &amp;amp;#8211; &amp;lt;a href=&amp;quot;http://dl.dropbox.com/u/39519/talks/gperf/index.html&amp;quot;&amp;gt;Slides&amp;lt;/a&amp;gt; por Paul Irish
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.mozilla.org/newlayout/doc/reflow.html&amp;quot;&amp;gt;Reflow&amp;lt;/a&amp;gt; pelo Mozilla Labs
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://ajaxian.com/archives/browser-reflows-how-do-they-affect-performance&amp;quot;&amp;gt;Reflow e Repaint&amp;lt;/a&amp;gt; na Ajaxian
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://code.google.com/speed/articles/reflow.html&amp;quot;&amp;gt;Reflow&amp;lt;/a&amp;gt; pelo Google Code
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.w3.org/DOM/&amp;quot;&amp;gt;W3C Overview do DOM&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.dayofjs.com/videos/22158462/web-browsers_alex-russel&amp;quot;&amp;gt;1 dia de javascript com Alex Russel: Como Navegadores Veem as suas Apps&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://gent.ilcore.com/2011/03/how-not-to-trigger-layout-in-webkit.html&amp;quot;&amp;gt;Como (não) criar um layout no webkit por Tony G&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.webkit.org/blog/1091/more-web-inspector-updates/#timeline_panel&amp;quot;&amp;gt;Usando a timeline panel em navegadores webkit&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.bookofspeed.com/&amp;quot;&amp;gt;The book of Speed&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.phpied.com/rendering-repaint-reflowrelayout-restyle/&amp;quot;&amp;gt;Reflow/Repaint&amp;lt;/a&amp;gt; por Stoyan Stefanov
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://calendar.perfplanet.com/2009/the-new-game-show-will-it-reflow/&amp;quot;&amp;gt;Inconsistências dos navegadores em Reflows&amp;lt;/a&amp;gt; por Stoyan Stefanov
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.browserscope.org/?category=reflow&amp;quot;&amp;gt;BrowserScope tests para reflows&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.youtube.com/watch?v=a2_6bGNZ7bA&amp;quot;&amp;gt;Browsers para Web Developers&amp;lt;/a&amp;gt; David Baron da Mozilla labs
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.webkit.org/blog/114/webcore-rendering-i-the-basics/&amp;quot;&amp;gt;Renderização no webkit, o básico&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+    &amp;lt;/ul&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Templates e jQuery – parte 2</title>
+      <link>http://tableless.com.br/templates-jquery-parte2/</link>
+      <pubDate>Mon, 13 Dec 2010 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/templates-jquery-parte2/</guid>
+      <description>
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/templates-e-jquery-parte-1&#34;&gt;Na primeira parte&lt;/a&gt; deste artigo você conferiu uma introdução ao novo plugin .tmpl() que possibilita a utilização de templates para retornos e saídas de suas aplicações jQuery. O plugin certamente é um avanço considerável na organização de código &amp;#8211; é o JavaScript ficando cada vez mais profissional e robusto, abandonando a fama de ser uma simples linguagem de script, sem padrões.&lt;/p&gt;
+
+&lt;p&gt;A forma mais básica de utilização do plugin .tmpl() é declarar seu template em uma variável e chamá-lo da seguinte forma:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;var noticias = [&lt;/p&gt;
+
+&lt;p&gt;{&lt;/p&gt;
+
+&lt;p&gt;titulo : &amp;#8216;Notícia 1&amp;#8242;,&lt;/p&gt;
+
+&lt;p&gt;data_publicacao : &amp;#8217;28/10/2010 20h31&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;chamada : &amp;#8216;Chamada da notícia 1&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;link : &amp;#8216;/noticia-1/&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;},&lt;/p&gt;
+
+&lt;p&gt;{&lt;/p&gt;
+
+&lt;p&gt;titulo : &amp;#8216;Notícia 2&amp;#8242;,&lt;/p&gt;
+
+&lt;p&gt;data_publicacao : &amp;#8217;28/10/2010 20h32&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;chamada : &amp;#8216;Chamada da notícia 2&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;link : &amp;#8216;/noticia-2/&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;},&lt;/p&gt;
+
+&lt;p&gt;{&lt;/p&gt;
+
+&lt;p&gt;titulo : &amp;#8216;Notícia 3&amp;#8242;,&lt;/p&gt;
+
+&lt;p&gt;data_publicacao : &amp;#8217;28/10/2010 20h33&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;chamada : &amp;#8216;Chamada da notícia 3&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;link : &amp;#8216;/noticia-3/&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;];&lt;/p&gt;
+
+&lt;p&gt;var tpl_noticia = &amp;#8216;&lt;li&gt;&lt;h3&gt;${titulo}&lt;/h3&gt;&lt;span class=&amp;#8221;data&amp;#8221;&gt;${data_publicacao}&lt;/span&gt;&lt;span&gt;${chamada}&lt;/span&gt;&lt;span&gt;&lt;a href=&amp;#8221;${link}&amp;#8221;&gt;Veja mais&lt;/a&gt;&lt;/span&gt;&lt;/li&gt;&amp;#8217;;&lt;/p&gt;
+
+&lt;p&gt;$.tmpl( tpl_noticia, noticias ).appendTo( &amp;#8216;ul#noticias&amp;#8217; );&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Um problema do exemplo acima é que o template acaba ficando confuso dentro de uma variável. Uma outra forma de declarar um modelo seria utilizando a própria tag script, mas com um tipo diferente (text/x-jquery-tmpl):&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;xml&amp;#8221;]&lt;/p&gt;
+
+&lt;script id=&amp;#8221;tpl-noticia&amp;#8221; type=&amp;#8221;text/x-jquery-tmpl&amp;#8221;&gt;
+      
+&lt;li&gt;
+      
+&lt;h3&gt;${titulo}&lt;/h3&gt;
+      
+&lt;span class=&amp;#8221;data&amp;#8221;&gt;${data}&lt;/span&gt;
+      
+&lt;p class=&amp;#8221;chamada&amp;#8221;&gt;${chamada}&lt;/p&gt;
+      
+&lt;a href=&amp;#8221;${link}&amp;#8221;&gt;Leia mais&lt;/a&gt;
+     
+&lt;/li&gt;
+  
+&lt;/script&gt;
+  
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Dessa forma é possível indentar o template HTML obtendo uma melhor organização/visualização do código.&lt;/p&gt;
+
+&lt;h2 id=&#34;caching&#34;&gt;Caching&lt;/h2&gt;
+
+&lt;p&gt;Antes de um template ser retornado através do método .tmpl(), ele é tranformado em uma função e depois executado. Uma forma de evitar esta execução toda vez que for retornado o plugin é utilizar o método .template() para criar uma versão em cache, otimizando a performance do script.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;// renderizando como plugin diretamente no objeto jQuery&lt;/p&gt;
+
+&lt;p&gt;$(&amp;#8216;#tpl-noticia&amp;#8217;).template(&amp;#8216;tplNoticia&amp;#8217;);&lt;/p&gt;
+
+&lt;p&gt;// associando diretamente a uma variável&lt;/p&gt;
+
+&lt;p&gt;var tplNoticia = $(&amp;#8216;#tpl-noticia&amp;#8217;).template();&lt;/p&gt;
+
+&lt;p&gt;// renderizando passando html/texto como parâmetro&lt;/p&gt;
+
+&lt;p&gt;$.template(&amp;#8216;tplNoticia&amp;#8217;, &amp;#8216;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;${titulo}
+&amp;#8216;);
+&lt;br /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;No exemplo acima, a variável &lt;strong&gt;tplNoticia&lt;/strong&gt; armazena a função responsável por nosso template. O método .template() é chamado de duas formas distintas: a primeira cria a função do template baseada no script com o id tpl-noticia. A segunda chamada funciona da mesma forma, só que dessa vez passamos o conteúdo do template diretamente como parâmetro. &lt;a href=&#34;http://tableless.com.br/anatomia-de-um-plugin-jquery&#34;&gt;Lembram do artigo sobre plugins?&lt;/a&gt; Então, uma é um método público e a outra um utilitário jQuery.&lt;/p&gt;
+
+&lt;h2 id=&#34;wrap-e-tmpl&#34;&gt;{{wrap}} e {{tmpl}}&lt;/h2&gt;
+
+&lt;p&gt;As tags especiais {{wrap}} e {{tmpl}} possuem objetivos bem parecidos. A primeira permite a iteração e inclusão de trechos HTML dentro de um objeto de template. Já a tag {{tmpl}} utiliza, ao invés de trechos HTML, um outro objeto template.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;xml&amp;#8221;]&lt;/p&gt;
+
+&lt;script id=&amp;#8221;tplNoticia&amp;#8221; type=&amp;#8221;text/x-jquery-tmpl&amp;#8221;&gt;
+      
+{{wrap &amp;#8220;#tableNoticia&amp;#8221;}}
+          
+&lt;h2&gt;Notícia 1&lt;/h2&gt;
+          
+&lt;p&gt;&lt;a href=&amp;#8221;noticia-1&amp;#8243;&gt;Chamada da notícia 1&lt;/a&gt;&lt;/p&gt;
+          
+&lt;h2&gt;Notícia 2&lt;/h2&gt;
+          
+&lt;p&gt;&lt;a href=&amp;#8221;noticia-2&amp;#8243;&gt;Chamada da notícia 2&lt;/p&gt;
+      
+{{/wrap}}
+  
+&lt;/script&gt;
+
+&lt;script id=&amp;#8221;tableNoticia&amp;#8221; type=&amp;#8221;text/x-jquery-tmpl&amp;#8221;&gt;
+      
+&lt;table&gt;
+        
+&lt;tbody&gt;
+          
+&lt;tr&gt;
+              
+{{each $item.html(&amp;#8220;h2&amp;#8221;, true)}}
+                  
+&lt;td&gt;
+                      
+${$value}
+                  
+&lt;/td&gt;
+              
+{{/each}}
+          
+&lt;/tr&gt;
+          
+&lt;tr&gt;
+              
+{{each $item.html(&amp;#8220;p&amp;#8221;)}}
+                  
+&lt;td&gt;
+                      
+{{html $value}}
+                  
+&lt;/td&gt;
+              
+{{/each}}
+          
+&lt;/tr&gt;
+        
+&lt;/tbody&gt;
+      
+&lt;/table&gt;
+  
+&lt;/script&gt;
+
+&lt;div id=&amp;#8221;noticias&amp;#8221;&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  
+$(function(){
+    
+$(&amp;#8220;#tplNoticia&amp;#8221;).tmpl().appendTo(&amp;#8220;#noticias&amp;#8221;);
+  
+});
+  
+&lt;/script&gt;
+  
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;No código acima utilizamos a tag {{wrap}} para popular dados em uma tabela. A primeira linha (&lt;tr&gt;) da tabela recebe os títulos do nosso template de notícias &amp;#8211; tudo o que estiver entre a tag &lt;h2&gt;. A iteração é feita através da tag {{each}}, explicada no &lt;a href=&#34;http://tableless.com.br/templates-e-jquery-parte-1&#34;&gt;artigo anterior&lt;/a&gt;. O que o exemplo acima faz é buscar todos os elementos H2 no item de template e adicionar o seu conteúdo, sem a tag, na célula da tabela. (Lembrando que você pode utilizar qualquer método jQuery no item de um loop dentro do template.)&lt;/p&gt;
+
+&lt;p&gt;Já a segunda linha da tabela recebe a chamada da notícia, preservando suas tags HTML &amp;#8211; por isso a utilização da tag {{html}} no valor de cada notícia.&lt;/p&gt;
+
+&lt;p&gt;A tag {{tmpl}} é muito útil quando precisamos encadear ou utilizar uma espécie de include dentro de um outro template. No exemplo abaixo, o template para o título e o template da chamada da notícia estão separados. O método .tmpl() recebe apenas o template da chamada.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;xml&amp;#8221;]&lt;/p&gt;
+
+&lt;script id=&amp;#8221;tplNoticia&amp;#8221; type=&amp;#8221;text/x-jquery-tmpl&amp;#8221;&gt;
+      
+{{tmpl &amp;#8220;#tplTitulo&amp;#8221;}}
+      
+&lt;p class=&amp;#8221;chamada&amp;#8221;&gt;${chamada} &lt;a href=&amp;#8221;${link}&amp;#8221;&gt;Leia mais&amp;#8230;&lt;/a&gt;&lt;/p&gt;
+  
+&lt;/script&gt;
+
+&lt;script id=&amp;#8221;tplTitulo&amp;#8221; type=&amp;#8221;text/x-jquery-tmpl&amp;#8221;&gt;
+      
+&lt;h2&gt;${titulo}&lt;/h2&gt;
+      
+&lt;span class=&amp;#8221;data&amp;#8221;&gt;${data_publicacao}&lt;/span&gt;
+  
+&lt;/script&gt;
+
+&lt;div id=&amp;#8221;noticias&amp;#8221;&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  
+$(function(){
+    
+$( &amp;#8220;#tplNoticia&amp;#8221; ).tmpl( noticias ).appendTo( &amp;#8220;#noticias&amp;#8221; );
+  
+});
+  
+&lt;/script&gt;
+  
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;h2 id=&#34;como-e-quando-utilizar-templates&#34;&gt;Como e quando utilizar templates?&lt;/h2&gt;
+
+&lt;p&gt;Templating é um conceito relativamente novo no jQuery, portanto, algumas funcionalidades ainda podem parecer confusas. Cabe a você decidir qual a melhor forma de definir e converter seus modelos. Por exemplo, se o seu template só vai ser utilizado uma única vez não é necessário utilizar caching (de repente não é necessário nem mesmo utilizar um template!).&lt;/p&gt;
+
+&lt;p&gt;Procure organizar bem seu código e pensar sempre em uma possível evolução do projeto &amp;#8211; nesse caso, templates vão ser uma mão na roda.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Javascript e acessibilidade</title>
+      <link>http://tableless.com.br/javascript-e-acessibilidade/</link>
+      <pubDate>Thu, 04 Nov 2010 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/javascript-e-acessibilidade/</guid>
+      <description>
+
+&lt;p&gt;É muito comum o desenvolvedor ficar empolgado ao descobrir recursos, plugins, animações e efeitos JavaScript e acabar exagerando no produto final. Também é muito comum, &lt;a href=&#34;http://tableless.com.br/como-tornar-seu-website-acessivel&#34;&gt;como disse a Thaiana&lt;/a&gt;, que acessiblidade esteja ligado exclusivamente a sites governamentais. Aos poucos este cenário está mudando.&lt;/p&gt;
+
+&lt;p&gt;Além de tornar o seu site acessível à pessoas com necessidades especiais, as técnicas abaixo serão úteis também quando o navegador do usuário estiver com JavaScript desabilitado. E se mesmo assim você ainda não estiver convencido, pense que, quanto menos JavaScript, mais otimizado e estável será o seu site/sistema.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-problema&#34;&gt;O problema&lt;/h2&gt;
+
+&lt;p&gt;Acessibilidade, basicamente, significa tornar o seu site/sistema compatível com dispositivos leitores de tela. O que este dispositivo faz é tentar converter todo o conteúdo presente em uma página para uma saída especial, seja ela voz (text-to-speech) ou braille. Por isso a importância da semântica no HTML e, por isso também, a importância do JavaScript não acabar atrapalhando o funcionamento do seu site.&lt;/p&gt;
+
+&lt;p&gt;Dependendo da forma como você utilizou JavaScript, parte do conteúdo pode passar batida no screen reader. Isso acontece muito com animações (conteúdos escondidos) e eventos que não são nativos do elemento, como tentar utilizar onClick em um parágrafo.&lt;/p&gt;
+
+&lt;h2 id=&#34;noscript&#34;&gt;&lt;noscript&gt;&lt;/h2&gt;
+
+&lt;p&gt;A prioridade número 1 nas regras para acessibilidade é tornar todo o conteúdo disponível quando o navegador não estiver com JavaScript habilitado. Procure implementar alternativas HTML parecidas com o conteúdo estabelecido por seus scripts.&lt;/p&gt;
+
+&lt;p&gt;No entanto, é importante ressaltar que o noscript só vai funcionar quando o javascript estiver dasabilitado no navegador (ele não vai funcionar se o JavaScript estiver com erro, por exemplo). Alguns screen readers tentam interpretar JS, portanto, utilizar JavaScript NÃO significa tornar seu site pouco acessível. Depende da forma como você implementa seus scripts.&lt;/p&gt;
+
+&lt;p&gt;Muita gente é a favor da extinção da tag &lt;noscript&gt;. O que eles defendem é que basta você desenvolver seus scripts de forma não-obstrutiva. Seu script pode ser executado ou não &amp;#8211; independente disso ele não afetará a funcionalidade básica da página.&lt;/p&gt;
+
+&lt;h2 id=&#34;preciso-mesmo-usar-javascript&#34;&gt;Preciso mesmo usar JavaScript?&lt;/h2&gt;
+
+&lt;p&gt;Sempre que for utilizar algum efeito ou interação em JavaScript você deve se perguntar se ele é mesmo necessário. Ou ainda, não daria pra fazer a mesma coisa utilizando apenas HTML e CSS?&lt;/p&gt;
+
+&lt;p&gt;Pense duas vezes antes de implementar qualquer tipo de script. Analise não só a questão da acessibilidade, mas também performance e manutenção.&lt;/p&gt;
+
+&lt;h2 id=&#34;não-invente-eventos-e-não-fique-preso-ao-mouse&#34;&gt;Não invente eventos e não fique preso ao mouse&lt;/h2&gt;
+
+&lt;p&gt;Procure utilizar eventos JavaScript apenas em elementos que estão aptos a recebê-los. Por exemplo, não utilize onClick em um &lt;li&gt;. Geralmente, os eventos de interação devem estar associados a links e botões.&lt;/p&gt;
+
+&lt;p&gt;Lembre-se também que nem sempre vai ser utilizado o mouse, logo, eventos como onMouseOver e onMouseOut seriam inválidos. Ofereça alternativas globais, como onFocus, onBlur, onClick (que, no teclado, seria executado com a tecla Enter) &amp;#8211; visando usuários que utilizam outros dispositivos.&lt;/p&gt;
+
+&lt;p&gt;Um problema grave são menus ativados no mouseover. Nesse caso o usuário não teria como acessar todas as páginas &amp;#8211; ele não poderia navegar por toda a estrutura do site.&lt;/p&gt;
+
+&lt;p&gt;Essas regras estão também diretamente ligadas a conteúdos carregados via AJAX. Dependendo da forma como você ativa o evento, o screenreader vai ler ou não o conteúdo recém adicionado.&lt;/p&gt;
+
+&lt;h2 id=&#34;wai-aria&#34;&gt;WAI-ARIA&lt;/h2&gt;
+
+&lt;p&gt;Procurando estabelecer um padrão para acessibilidade e conteúdos dinâmicos foi criada a especificação WAI-ARIA (Accessible Rich Internet Applications). O que ela faz é adicionar novas formas de identificar e habilitar funcionalidades dinâmicas através de propriedades nas tags HTML. Recentemente o jQuery UI adicionou suporte total ao framework ARIA tornando assim seus widgets e elementos de interface acessíveis a usuários com alguma necessidade especial.&lt;/p&gt;
+
+&lt;p&gt;O ARIA, por exemplo, pode definir regiões em um site e habilitar o movimento via tab entre essas regiões, ao invés de elemento por elemento. O WAI-ARIA também possibilita definir papéis (roles) para elementos como menu, menuitem, banner, application etc.&lt;/p&gt;
+
+&lt;p&gt;Este é um assunto muito rico e ainda pouco explorado. Para mais informações visite a &lt;a href=&#34;http://www.w3.org/WAI/PF/aria/&#34; rel=&#34;external&#34;&gt;especificação do WAI-ARIA no site do W3C&lt;/a&gt; e também &lt;a href=&#34;http://www.paciellogroup.com/blog/?p=106&#34; rel=&#34;external&#34;&gt;este tutorial sobre os papéis disponíveis no ARIA&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Vote no Especialista em Usabilidade para Presidente</title>
+      <link>http://tableless.com.br/vote-no-especialista-em-usabilidade-para-presidente/</link>
+      <pubDate>Thu, 21 Oct 2010 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/vote-no-especialista-em-usabilidade-para-presidente/</guid>
+      <description>&lt;nav&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#a-discussão-deste-post-vale-para-aplicações-de-grande-porte-o-que-não-significa-que-a-mesma-abordagem-possa-ser-aplicada-com-sucesso-em-ambientes-menores-como-blogs-por-exemplo&#34;&gt;﻿(A discussão deste post vale para aplicações de grande porte, o que não significa que a mesma abordagem possa ser aplicada com sucesso em ambientes menores como blogs, por exemplo)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/nav&gt;
+
+&lt;h6 id=&#34;a-discussão-deste-post-vale-para-aplicações-de-grande-porte-o-que-não-significa-que-a-mesma-abordagem-possa-ser-aplicada-com-sucesso-em-ambientes-menores-como-blogs-por-exemplo&#34;&gt;﻿(A discussão deste post vale para aplicações de grande porte, o que não significa que a mesma abordagem possa ser aplicada com sucesso em ambientes menores como blogs, por exemplo)&lt;/h6&gt;
+
+&lt;p&gt;&lt;strong&gt;Usabilidade&lt;/strong&gt; é um termo usado para definir a facilidade com que as pessoas podem empregar uma ferramenta ou objeto a fim de realizar uma tarefa específica e importante. Podemos dizer que a Usabilidade é empregada também para oferecer uma experiência de aprendizado fácil e intuitiva, fazendo com que o usuário tenha maior produtividade, navegando / utilizando sua aplicação rapidamente, memorizando operações e comentendo menos erros.&lt;/p&gt;
+
+&lt;p&gt;Usabilidade é um assunto muitas vezes subestimado em toda a cadeia de produção de um aplicativo. Veja bem, estou me referindo a &lt;strong&gt;aplicativos&lt;/strong&gt; porque este assunto vai além do escopo de desenvolvimento web. A Usabilidade é um assunto pertinente a &lt;strong&gt;todo&lt;/strong&gt; o ciclo de vida do projeto, e sua aplicabilidade envolve o nível executivo, o tático e o operacional.&lt;/p&gt;
+
+&lt;p&gt;E apesar de envolver vários níveis em uma organização, um dos roles mais importantes na &lt;em&gt;hierarquia de poder&lt;/em&gt; do projeto (ainda mais agora com o HTML5) é o do desenvolvedor web responsável pela prototipação dos templates que recebem as funcionalidades de uma aplicação. Componentes e objetos desenvolvidos em outras camadas devem obedecer formatos de saída definidos para a camada web, o que transforma a responsabilidade (o poder&amp;#8230;) do Especialista de Usabilidade em diferencial na otimização de processos de desenvolvimento de outras frentes, fornecendo as informações necessárias sobre o comportamento do browser com os componentes criados (e como ele deveria se comportar) &amp;#8211; como a informação entra e sai das telas, como ela é embalada para consumo, o que pode ser feito no front-end X o que vai para o middleware, economizando horas de desenvolvimento&amp;#8230; obviamente a lista de vantagens é maior e fica visível a medida que o projeto caminha. Uma camada web bem escrita é um mar aberto, tranquilo. Navegar com &lt;em&gt;navios e jangadas&lt;/em&gt; em um cenário desses é mais rápido, mais tranquilo e o melhor de tudo, mais barato.&lt;/p&gt;
+
+&lt;p&gt;As aplicações web de grande porte hoje em dia são monstruosas quando analisadas do ponto de vista da arquitetura. Não é raro você encontrar projetos que façam uso de várias tecnologias para atingir determinado objetivo. Um exemplo pertinente é o &lt;a title=&#34;Veja o Google Instant em ação&#34; href=&#34;http://www.google.com/instant/&#34; target=&#34;_blank&#34;&gt;Google Instant&lt;/a&gt;: Lançado em setembro, o Instant é uma colcha-de-retalhos de 16 diferentes tecnologias feito para otimizar suas pesquisas. O ganho com esse upgrade no engine de busca fica entre 2-5 segundos por busca. Aonde entra a Usabilidade aqui? Facilitando o usuário a fazer uma pesquisa de maneira mais rápida. &amp;#8211; “Mas a rapidez do search do Google já é incrível. Pra que melhorar um tempo de busca que já é absurdamente rápido? Vale o custo-benefício?”&lt;/p&gt;
+
+&lt;p&gt;Sim. Vale e muito. Perguntar isso é pensar apenas em um ambiente restrito. É manter a cabeça no ambiente desktop. A web é maior que isso. Temos uma infinidade de dispositivos que hoje a acessam para compartilhar e usar informação. Quando aplicamos a solução nas pesquisas dos browsers dos smartphones, o Instant se transforma em uma das melhores soluções deste ano em termos de Usabilidade.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_2138&#34; style=&#34;width: 207px&#34; class=&#34;wp-caption alignright&#34;&gt;
+  &lt;a href=&#34;../wp-content/uploads/2010/10/usability-as-a-top1.png&#34;&gt;&lt;img class=&#34;size-medium wp-image-2138&#34; src=&#34;../wp-content/uploads/2010/10/usability-as-a-top1-296x300.png&#34; alt=&#34;Do planejamento a execucao de testes, a Usabilidade deve ser uma discussão constante&#34; width=&#34;197&#34; height=&#34;199&#34; srcset=&#34;uploads/2010/10/usability-as-a-top1-296x300.png 296w, uploads/2010/10/usability-as-a-top1.png 454w&#34; sizes=&#34;(max-width: 197px) 100vw, 197px&#34; /&gt;&lt;/a&gt;&lt;br /&gt; 
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Usabilidade deve ser tratada em todas as competências do projeto
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;E se isso é feito em um browser, a responsabilidade de encapsular todas essas 16 tecnologias em uma sopa de letrinhas que o navegador vai ler bonitinho, sem erros, e com coesão visual é do desenvolvedor web, mas com certeza podemos considerar que em um futuro próximo o seu estoque de leite estará acabando e além da sua geladeira informar o fato, ela vai te dar uma lista dos locais mais baratos para garantir que você não fique sem o produto.&lt;/p&gt;
+
+&lt;p&gt;Quem vai garantir que a ferramenta de busca da geladeira vai conseguir ler o catálogo de produtos que sua empresa tem que criar com o mais novo contrato assinado (Aquele do portal de laticínios)? Fica visível o impacto da atuação do Especialista nas vendas da empresa.&lt;/p&gt;
+
+&lt;p&gt;Um bom Plano de Usabilidade tem que passar por todas as competências envolvidas em um projeto: &lt;strong&gt;Planejamento, Análise, Design e Testes / Upgrades.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Como falamos, uma aplicação web é exibida na maioria das vezes em um browser. E os Especialistas em navegadores somos nós. Se os navegadores fossem balanças, teríamos em um prato a &lt;strong&gt;aplicação,&lt;/strong&gt; e no ****outro teríamos a &lt;strong&gt;necessidade do usuário.&lt;/strong&gt; Os dois são muito pesados e seus valores aumentam e diminuem ao longo do projeto. Para atingir o &lt;strong&gt;equilíbrio&lt;/strong&gt; em uma balança desse tipo precisamos de &lt;strong&gt;lastros&lt;/strong&gt; para balanceá-la, e nosso lastro é a &lt;strong&gt;Usabilidade.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div style=&#34;width: 386px&#34; class=&#34;wp-caption alignleft&#34;&gt;
+  &lt;img src=&#34;http://upload.wikimedia.org/wikipedia/commons/9/96/Basmati_Johns_%28peas_and_basmati_rice%29.jpg&#34; alt=&#34;Um mexidão preparado em um prato altamente decorado.&#34; width=&#34;376&#34; height=&#34;249&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Em uma boa embalagem, até um mexidão fica mais apetitoso
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Defendo fortemente o uso de desenvolvedores web com fluência no front-end (nossa amada trinca HTML/CSS/JS) como os Especialistas de Usabilidade. A culinária francesa é um grande exemplo: famosa pelo sabor mas também pela &amp;#8220;embalagem&amp;#8221; na qual oferece seus alimentos, ela mostra que o design é algo fundamental na experiência de quem consome o produto. Organizar o prato em &amp;#8220;fases&amp;#8221; para que os sabores possam combinar harmoniosamente tambem é uma abordagem usada nessa fase de design &amp;#8211; indicando ao cliente a sequência de ações para que o sabor de ingredientes mais fortes não faça desaparecer a mais suave especiaria. Em outras palavras, o chef está ensinando o cliente a comer o seu prato. Nós também precisamos fazer isso quando trabalhamos o design de nossas aplicações &amp;#8211; mesmo com os features e plugins do jQuery mais bem desenhados da internet, nós ainda temos que nos preocupar em como a informação trafega por este design para garantir que a experiencia do usuário, independente da plataforma ou navegador seja a mais rica possível (e a mais próxima da pedida pelo seu cliente).&lt;/p&gt;
+
+&lt;p&gt;Por sermos em nossa maioria multidisciplinares, normalmente o perfil do desenvolvedor de front-end não o restringe apenas as tecnologias mencionadas acima (e um Especialista não pode se escorar apenas nestes skills para atuar, o roadmap para esta carreira é maior, porém de aprendizado fácil e lógico para nós) mas a um combinado de tecnologias para garantir que se necessário, ele possa gerar uma solução de front-end do zero, embalando diferentes camadas de aplicação em um produto que o usuário não pense para operar, mas seja levado pela intuição, agregando valor a experiência vivida no produto que você criou. Isso garante que ele poderá, em conjunto com o Arquiteto e líderes de outras frentes (Java, Banco de dados, Negócio) discutir abordagens mais eficazes para os componentes que a aplicação terá, uma vez que elas terão que ser embarcadas, inevitavelmente, em HTML para renderização em browsers. O papel do Especialista é evitar que problemas no desenvolvimento explodam na ponta do usuário, &lt;em&gt;domando&lt;/em&gt; tudo que foi desenvolvido por todos os times para a aplicação em um documento com significado, heurística, taxonomia e funcionalidade reconhecíveis por browsers, web services, motores de busca, dispositivos e o que mais pintar por ai. E dos 5 maiores problemas em Usabilidade, 4 sao de responsabilidade direta do HTML:&lt;/p&gt;
+
+&lt;dl&gt;
+&lt;dt&gt;Conteudo&lt;/dt&gt;
+&lt;dd&gt;Quando você abre a página em um navegador, o que você vê? Se você criou um site aplicando regras de Usabilidade, você deve ver 80-90% o que seu cliente está procurando. No entanto, com a maioria dos sites, geralmente o que seu cliente está procurando constitui apenas entre 50-60% (ou menos), a parte principal da página. O resto está nas intrusivas propagandas, navegação confusa e gráficos e cores estranhos.&lt;/dd&gt;
+&lt;dt&gt;Layout&lt;/dt&gt;
+&lt;dd&gt;Intimamente relacionado ao conteúdo é a forma como esse conteúdo é exibido na página. Embora os estudos têm mostrado que usuários estão dispostos a dar scroll para ler páginas web, se eles não encontram conteúdo relevante rapidamente eles são saem do seu website. Mantenha sua páginas limpas e simples. Teste remoção de elementos, faça análises e pondere se sua aplicação precisa realmente deles.&lt;/dd&gt;
+&lt;dt&gt;Cores&lt;/dt&gt;
+&lt;dd&gt;As cores afetam a usabilidade do seu website. Elas podem ser uma importante ferramenta cognitiva – como também podem confundir. Cor em elementos de páginas podem afetar leitores de tela por exemplo. Informações codificadas em imagens ou cores podem não ser reconhecidas por leitores de tela e Progressive Enhancement pode ser usado para resolver o problema. Um estudo de cores é também necessário para que pessoas com daltonismo não sejam impactadas em sua experiência.&lt;/dd&gt;
+&lt;dt&gt;Velocidade de renderização&lt;/dt&gt;
+&lt;dd&gt;O acesso à Internet pode estar ficando mais e mais rápido, mas isso não significa que o HTML deve ficar maior. Estudos de Usabilidade para Web continuam a mostrar que a velocidade de renderização da página/componentes é muito importante. Em um portal de conteúdo a demora pode fazer o usuário perder o interesse, não importa o quanto eles estavam interessados no tema. Você não pode controlar todos os aspectos da renderização (download) &amp;#8211; por isso é importante fazer o que puder para que o HTML &amp;#8211; o documento que carrega o significado da página &amp;#8211; seja renderizado (e compreendido) rapidamente pelo browser.&lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;p&gt;Um HTML bem escrito, limpo e escalonado garante uma melhora sensível no desenvolvimento de um projeto. Ter um desenvolvedor HTML como Especialista de Usabilidade garante que o cóodigo gerado pelo time de integração vai ser o mais enxuto possível, afinal de contas um desenvolvedor HTML precisa saber que para resolver situações como a de velocidade de renderização de página por exemplo, precisamos*:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Fazer o menor número possível de requisições HTTP em uma página;&lt;/li&gt;
+&lt;li&gt;Garantir o uso de CDNs para otimizar o tempo de resposta de uma requisição HTTP;&lt;/li&gt;
+&lt;li&gt;Garantir um uso eficiente da memória cache do navegador, adicionando cabecalhos Expires para otimizar as requisições HTTP, fazendo AJAX ou outra tecnologia se aproveitar de tudo que pode ser deixado no cliente;&lt;/li&gt;
+&lt;li&gt;Utilizar gzip para compactar HTML, scripts e estilos;&lt;/li&gt;
+&lt;li&gt;Chamar o estilo no topo das páginas, evitando declarações inline e se possivel chamando pela tag &lt;link&gt;, ou seja, sempre em arquivos externos;&lt;/li&gt;
+&lt;li&gt;Rodar os scripts no final da página (ou garantir que uma função apenas rode após o document.ready) e sempre que possível em arquivos externos&lt;/li&gt;
+&lt;li&gt;Usar o Keep-alive e poucos dominios para reduzir as pesquisas de DNS (isso pode mudar agora no HTML com o localStorage em alguns casos específicos);&lt;/li&gt;
+&lt;li&gt;Sempre compactar o javascript e remover chamadas duplicadas, garantindo uma biblioteca leve e centralizada para suas funções;&lt;/li&gt;
+&lt;li&gt;Evitar redirecionamentos.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Algumas coisas podem soar como óbvias mas é comum o já &lt;em&gt;marginalizado&lt;/em&gt; HTML (assunto para outro post) ser entregue a responsabilidade de desenvolvedores de outras frentes (como java por exemplo) para garantir um prazo de entrega mais rápido e menor custo, uma vez que desenvolvimento e integração acontecem no mesmo momento. HTML é sim uma linguagem realmente simples. Porém ela também é muito criteriosa e domina-lá é a garantia entre os milhões de page-views e um mirror do seu-site-que-fechou-ano-passado no web archive. Estamos falando de milhares/milhões de visitas e transações simultâneas, alta performance, alta colaboração, interoperabilidade de dispositivos, garantia cross-browser, garantia de baixo impacto e custo para mudanças estruturais futuras da aplicação (design), redução de gastos na implementação do projeto devido a rapidez da integração dos componentes ao front-end, de um responsável em entender as requisições do cliente e discutí-las com linguagem simples, para garantir que as expectativas criadas possam ser atingidas na camada web da aplicação e devidamente repassadas para as outras frentes do projeto. A lista é maior. Não é pouca coisa e o mais indicado para preencher esta demanda somos nós. Se a satisfação do usuário é medida diretamente pela sua experiência no front-end, somos nós os presidentes. Detalhando um passo-a-passo de Usabilidade, isso fica mais claro ainda:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2010/10/visual_map.png&#34;&gt;&lt;img class=&#34;aligncenter size-full wp-image-2139&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2010/10/visual_map.png&#34; alt=&#34;Um mapa mostrando todas as etapas de um Plano de Usabilidade&#34; width=&#34;681&#34; height=&#34;454&#34; srcset=&#34;uploads/2010/10/visual_map.png 890w, uploads/2010/10/visual_map-300x200.png 300w&#34; sizes=&#34;(max-width: 681px) 100vw, 681px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Voltaremos a esse Plano de Usabilidade no próximo post, discutindo a criticidade de cada uma das etapas, e aplicabilidade de acordo com tamanho e prazo de entrega do projeto, porém posso adiantar que das 26 etapas, em pelo menos 17 um profissional sênior de HTML/CSS/JS deve ter grande desenvoltura, com atuação moderada/leve ou massiva:&lt;/p&gt;
+
+&lt;dl&gt;
+&lt;dt&gt;Colaboração leve e moderada&lt;/dt&gt;
+&lt;dd&gt;Criação do SOW (Statement of Work), Condução de Análise de Tarefas, Desenvolvimento de Atores, Cenários de Teste, Definição de métricas, objetivos, Análise de cartas, Casos de uso, Preparação do Plano de Testes, Análise e geração de relatórios.&lt;/dd&gt;
+&lt;dt&gt;Colaboração massiva&lt;/dt&gt;
+&lt;dd&gt;Especificação do site, Inventório de conteúdo, Arquitetura da Informação, Reconhecimento de padrões visuais para textos, Design paralelo, Release da aplicação, Testes de Usabilidade, Testes de Heurística.&lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;p&gt;Com certeza o Plano de Usabilidade acima é utópico. É como o socialismo &amp;#8211; se pudéssemos aplicar 100% da sua teoria, o mundo seria lindo. Porém o custo para a manutenção de uma estrutura aonde o diagrama acima possa ser 100% executado não é proibitivo, porém considerável. E quanto maior o projeto, mais necessária a sua aplicação, e maior o ROI de Usabilidade.&lt;/p&gt;
+
+&lt;p&gt;Mas lidar com a Usabilidade requer as etapas descritas, isso é fato. O negócio é &lt;strong&gt;flexibilizar&lt;/strong&gt;, entendendo as necessidades do cliente e aplicando seus conhecimentos nas etapas que forem aplicadas no seu projeto. E sempre pensar em Usabilidade e Escalabilidade e Acessibilidade enquanto escreve seus templates. Acabou de criar um portal de venda de lingerie? Sera que suas listviews estao preparadas para o inevitável sucesso da aplicação (afinal você é um grande desenvolvedor) e futura integração via webservices com seus mais novos contratos, um portal de produtos de beleza e um portal de cabeleireiros?&lt;/p&gt;
+
+&lt;p&gt;Como eu disse no inicio do post, este fluxo de trabalho é muito mais real para portais e aplicações web de médio/grande porte. Se seu site tem um stickiness alto, independente do porte, você também pode ponderar sobre a adoção dos métodos acima, afinal se você otimiza a experiência do usuário e ele feliz, recomenda seu produto, é o seu nome que está na vitrine. E este tipo de profissional está em falta no mercado, sendo disputado a &lt;em&gt;tapa&lt;/em&gt; por empresas.&lt;/p&gt;
+
+&lt;p&gt;No próximo post detalho o passo-a-passo do Plano de Usabilidade, e tambem alguns métodos de Usabilidade para serem aplicados no desenvolvimento web, alem de Design Centrado no Usuário (UCD).&lt;/p&gt;
+
+&lt;p&gt;*Se estes bullets soam como Javanês nos seus ouvidos, recomendo fortemente a leitura de um livro sensacional do &lt;strong&gt;Steve Souders&lt;/strong&gt; chamado &lt;strong&gt;High Performance Web Sites.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;******&lt;a title=&#34;Aprendendo o estado-da-arte em Usabilidade&#34; href=&#34;http://www.nngroup.com/events/tutorials/usability.html&#34; target=&#34;_blank&#34;&gt;Tá com grana no bolso para o investimento de uma carreira?&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Referências:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://webdesign.about.com/od/usability/tp/aatpwebusable.htm&#34; target=&#34;_blank&#34;&gt;Most Important Web Usability Issues&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.usability.gov/methods/process.html&#34;&gt;Usability.gov &amp;#8211; Visual Map&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.kissmetrics.com/color-psychology/?wide=1&#34;&gt;How do colors affect purchases?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://oreilly.com/catalog/9780596529307&#34; target=&#34;_blank&#34;&gt;High Performance Web Sites &amp;#8211; Essential Knowledge for Front-End Engineers&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Digest 04/09: Javascript, JQuery e Ajax</title>
+      <link>http://tableless.com.br/digest-0409-javascript-jquery-e-ajax/</link>
+      <pubDate>Wed, 29 Apr 2009 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/digest-0409-javascript-jquery-e-ajax/</guid>
+      <description>&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://jorenrapini.com/blog/web-development/useful-javascript-jquery-and-ajax-tutorials-and-resources-massive-link-collection-part-1&#34;&gt;Useful Javascript, jQuery, and AJAX Tutorials and Resources &amp;#8211; Massive Link Collection Part #1&lt;/a&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://tableless.com.br/wp-admin/post-new.php&#34;&gt;jQuery Tips and Tricks II&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.ajaxline.com/10-best-jquery-datepickers-plugins&#34;&gt;10 Best jQuery Datepickers Plugins&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.noupe.com/php/20-useful-php-jquery-tutorials.html&#34;&gt;20 Useful PHP + jQuery Components &amp;amp; Tuts for Everyday Project&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://webstandard.kulando.de/post/2009/04/09/best-of-jquery-tutorials-part-3&#34;&gt;Best of JQuery Tutorials&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.queness.com/post/212/10-jquery-and-non-jquery-javascript-rich-text-editors&#34;&gt;10 JQuery and Non JQuery Javascript Rich Text Editors&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.queness.com/post/204/25-jquery-plugins-that-enhance-and-beautify-html-form-elements&#34;&gt;25+ jQuery Plugins that enhance and beautify HTML form elements&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.webdesigntoolslist.com/2009/04/webmastertools/javascript-cheat-sheets-quick-reference-guides-for-javascript-webmasters-coders-web-developers-designers/&#34;&gt;Roundup of Javascript Cheat Sheets&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Descontos no DreamHost – para serviços anuais e mensais</title>
+      <link>http://tableless.com.br/desconto-no-dreamhost/</link>
+      <pubDate>Wed, 04 Jan 2006 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/desconto-no-dreamhost/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;Atenção&lt;/strong&gt;: Se tiver problemas com o pagamento por ser necessário o Google Checkout, leia as instruções aqui:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://blog.elcio.com.br/pagando-o-dreamhost-com-google-checkout-mesmo-sendo-brasileiro/&#34;&gt;Pagando o Dreamhost com Google Checkout mesmo sendo brasileiro&lt;/a&gt; e &lt;a href=&#34;http://www.revolucao.etc.br/archives/criando-sua-conta-no-google-checkout-para-assinar-a-dreamhost/&#34;&gt;outras informações aqui&lt;/a&gt;.[&lt;strong&gt;Atenção&lt;/strong&gt;: Se tiver problemas com o pagamento por ser necessário o Google Checkout, leia as instruções aqui:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://blog.elcio.com.br/pagando-o-dreamhost-com-google-checkout-mesmo-sendo-brasileiro/&#34;&gt;Pagando o Dreamhost com Google Checkout mesmo sendo brasileiro&lt;/a&gt; e &lt;a href=&#34;http://www.revolucao.etc.br/archives/criando-sua-conta-no-google-checkout-para-assinar-a-dreamhost/&#34;&gt;outras informações aqui&lt;/a&gt;.]&lt;a href=&#34;http://blog.elcio.com.br/pagando-o-dreamhost-com-google-checkout-mesmo-sendo-brasileiro/&#34;&gt;1&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Eu uso &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt; a muito tempo. Quase nunca tenho problemas (você já viu este site fora do ar?). Ele tem ferramentas úteis como WordPress ou PHPBB que são facilmente instaláveis com apenas 1 clique. Fazer atualização destes sistemas também é tão fácil quanto instalá-los.&lt;/p&gt;
+
+&lt;p&gt;Algumas vantagens:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;No &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt; você também pode criar domínios e subdomínios ilimitados. Isso é bom para quem quiser hospedar sites de clientes, amigos e etc;&lt;/li&gt;
+&lt;li&gt;Painel de controle simple e bonito;&lt;/li&gt;
+&lt;li&gt;Você pode criar uma conta FTP individual para cada domínio hospedado;&lt;/li&gt;
+&lt;li&gt;Além do FTP, você tem acesso o servidor via SSH;&lt;/li&gt;
+&lt;li&gt;O &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/signup/?next_step=Index&#34;&gt;plano mais básico&lt;/a&gt; do &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt; te dá 200 Gigas de espaço e 2 Teras de transferência mensal.&lt;/li&gt;
+&lt;li&gt;Você pode ter mais de 3000 contas de email para cada domínio hospedado&amp;#8230; e isso no plano básico!&lt;/li&gt;
+&lt;li&gt;Fora painel de controle, instalações com um clique, Ruby on Rails, PHP nas versões 4 e 5 e MySQL, Streamming Quicktime, Aliases de e-mails ilimitados e muito mais.&lt;/li&gt;
+&lt;li&gt;Você ganha um domínio .com/.net/.org *&lt;strong&gt;&lt;em&gt;graça&lt;/em&gt;&lt;/strong&gt;*&lt;/li&gt;
+&lt;li&gt;E depois que virar cliente, você ainda pode ganhar uns trocados com o programa de afiliados que eles tem. É só indicar assim como fazemos aqui. Se quiser, pode copiar as informações descritas nesta página.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;No &lt;a href=&#34;http://wiki.dreamhost.com/index.php/Main_Page&#34;&gt;Wiki do Dreamhost&lt;/a&gt; tem mais detalhes e repostas de alguma dúvida que você possa ter.&lt;/p&gt;
+
+&lt;p&gt;Com o Tableless você ganha 3 tipos de descontos no &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt;, abaixo veja as descrições e passos para o cadastro:&lt;/p&gt;
+
+&lt;p&gt;Com o cupom de desconto &lt;strong&gt;TABLELESS&lt;/strong&gt; você consegue:&lt;/p&gt;
+
+&lt;p&gt;25% de desconto no L1 Anual: &lt;strong&gt;de $119.40 você paga $89.65&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;15% no L2 Anual: &lt;strong&gt;de $239.40 você paga $203.49&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você preferir &lt;strong&gt;uma conta mensal&lt;/strong&gt; no &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt;, também damos desconto, use o cupom &lt;strong&gt;TABLEBLESSMENSAL&lt;/strong&gt; e ganhe &lt;strong&gt;$39,90&lt;/strong&gt; de desconto em todos os planos mensais do &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mensal L1 de $59,90 &lt;strong&gt;você paga $20,00&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mensal L2 de $69,90 &lt;strong&gt;você paga $30,00&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mensal L3 de $89,90 &lt;strong&gt;você paga $50,00&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;E tem também o cupom &lt;strong&gt;TABLELESS6007&lt;/strong&gt;, onde você ganha 60% de desconto nos planos:&lt;/p&gt;
+
+&lt;p&gt;Mensal L1 de $59,90 &lt;strong&gt;você paga $24,96.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Anual L1 de $119,40 &lt;strong&gt;você paga $47,76 por um ano!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Mensal L2 de $69,90 **você paga só $27,96.&lt;/p&gt;
+
+&lt;p&gt;** Mensal L3 de $89,90 &lt;strong&gt;você paga $35,96.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;E tem também o &lt;strong&gt;TABLELESS2&lt;/strong&gt; onde você ganha $40,00 de desconto em qualquer plano do &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt;. Só colocar TABLELESS2 na hora de comprar qualquer plano e você ganha $40,00 de desconto no ato.&lt;/p&gt;
+
+&lt;p&gt;Para poder &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;ganhar desconto ao assinar&lt;/a&gt; algum plano de hospedagem na &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt;, siga os seguintes passos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Escolha o plano que gostar mais&lt;/a&gt;;&lt;/li&gt;
+&lt;li&gt;Clique no botão “&lt;strong&gt;SIGN UP NOW&lt;/strong&gt;” do respectivo plano;&lt;/li&gt;
+&lt;li&gt;Na seguinte página, você escolhe o nível do plano que você gostaria de ter;&lt;/li&gt;
+&lt;li&gt;Na mesma página, você escolhe se quer receber comissões por indicações;&lt;/li&gt;
+&lt;li&gt;Logo após, selecione as opções de domínio, se você não tiver domínio ainda, preencha os dados referentes ao seu domínio, conta de usuário, email e seus dados pessoais. Se já tiver, é só selecionar dizendo que já tem um domínio;&lt;/li&gt;
+&lt;li&gt;No último campo, intitulado “&lt;strong&gt;Promo Code or email of who referred you:&lt;/strong&gt;“, digite um dos cupons do Tableless: &lt;strong&gt;TABLELESS&lt;/strong&gt;, &lt;strong&gt;TABLELESSMENSAL&lt;/strong&gt; ou &lt;strong&gt;TABLELESS60&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Clique em &lt;strong&gt;I agree to abide by DreamHost&amp;#8217;s &lt;a href=&#34;http://www.dreamhost.com/tos.html&#34; target=&#34;new&#34;&gt;Terms of Service&lt;/a&gt; and &lt;a href=&#34;http://www.dreamhost.com/spam.html&#34; target=&#34;new&#34;&gt;Anti-Spam Policy&lt;/a&gt;.&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;E para finalizar clique no botão “&lt;strong&gt;Continue to secure payment…&lt;/strong&gt;”;&lt;/li&gt;
+&lt;li&gt;Cheque o valor. Ele já deve estar &lt;em&gt;com o desconto aplicado&lt;/em&gt;;&lt;/li&gt;
+&lt;li&gt;Preencha os dados do seu cartão de crédito (&lt;strong&gt;&lt;em&gt;tem que ser internacional&lt;/em&gt;&lt;/strong&gt; &lt;strong&gt;ou via &lt;a href=&#34;http://www.paypal.com/us/&#34;&gt;paypal&lt;/a&gt;&lt;/strong&gt;) e finalize a compra;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Pagando pelo GoogleChekout é fácil:&lt;/p&gt;
+
+&lt;p&gt;Por causa de fraudes que estavam ocorrendo o Dreamhost está passando a utilizar o GoogleCheckout como forma de pagamento. Para ter uma conta no GoogleCheckout, você precisa apenas já ter ou criar uma conta no Google (GMail).&lt;/p&gt;
+
+&lt;p&gt;Para usar o GoogleCheckout no Dreamhost, siga os passos abaixo:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Ao se cadastrar, no país escolha BAHAMAS. Isso porque você não precisará colocar CEP.&lt;/li&gt;
+&lt;li&gt;Preencha o restante dos dados normalmente.&lt;/li&gt;
+&lt;li&gt;Quando chegar em SHIP MY ORDER TO, selecione a opção A DIFFERENT ADDRESS, e agora sim, selecione BRAZIL como seu país. Depois, preencha seu endereço.&lt;/li&gt;
+&lt;li&gt;Clique em AGREE e CONTINUE e pronto!&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Assine o &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;DreamHost pelo Tableless&lt;/a&gt; e saia do sufoco.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

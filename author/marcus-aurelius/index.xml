@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Marcus Aurelius on Tableless</title>
+    <link>http://tableless.com.br/author/marcus-aurelius/index.xml</link>
+    <description>Recent content in Marcus Aurelius on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/marcus-aurelius/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Vulnerabilidades em Sistemas Web</title>
+      <link>http://tableless.com.br/vulnerabilidades-em-sistemas-web/</link>
+      <pubDate>Mon, 11 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/vulnerabilidades-em-sistemas-web/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-são-vulnerabilidades-em-sistemas-web&#34;&gt;O que são vulnerabilidades em sistemas web?&lt;/h2&gt;
+
+&lt;p&gt;Vulnerabilidades em sistemas web são uma realidade cada vez mais crescente na internet. Primeiro deixem-me explicar rapidamente como funciona a comunicação entre o &lt;em&gt;browser&lt;/em&gt; e o servidor web. Sistemas web funcionam com uma dupla muito conhecida neste ramo: requisição e resposta.&lt;/p&gt;
+
+&lt;p&gt;A requisição se origina do lado do usuário (pelo Chrome, IE, Firefox, Safari, cURL, etc) composta de elementos como &lt;em&gt;header&lt;/em&gt;, URL, método, parâmetros, &lt;em&gt;cookies&lt;/em&gt;, etc. Ela é enviada para um servidor web que responde pelo domínio (o &amp;#8216;www.algumacoisa.com.br&amp;#8217;) da requisição. Por sua vez, o servidor processa a requisição e retorna para o usuário a resposta (42?), também composta de partes conhecidas como &lt;em&gt;header&lt;/em&gt;, &lt;em&gt;body&lt;/em&gt;, &lt;em&gt;code&lt;/em&gt;, &lt;em&gt;cookies&lt;/em&gt;, etc.&lt;/p&gt;
+
+&lt;p&gt;As vulnerabilidades web nascem quando determinadas partes oriundas da requisição, são processadas sem o devido tratamento pelo servidor. Essas partes podem ser &lt;em&gt;cookies&lt;/em&gt; mal configurados, o ID de uma sessão exposta no navegador e até mesmo os parâmetros passados pela URL ou num formulário de &lt;em&gt;login&lt;/em&gt;, por exemplo. Essas informações, quando não são tratadas no servidor se caracteriza como uma falha de segurança, deixando assim o próprio servidor suscetível à ataques específicos através da exploração dessas falhas.&lt;/p&gt;
+
+&lt;h3 id=&#34;como-sei-se-minha-url-ou-melhor-se-meu-site-está-vulnerável-através-de-minha-url&#34;&gt;Como sei se minha URL, ou melhor, se meu site está vulnerável através de minha URL?&lt;/h3&gt;
+
+&lt;p&gt;Entre as várias formas existentes para explorar vulnerabilidades web, a Nº 01 do &lt;a href=&#34;https://www.owasp.org/index.php/Top_10_2013-Top_10&#34; target=&#34;_blank&#34;&gt;Top 10&lt;/a&gt; da OWASP (&lt;em&gt;Open Web Application Security Project&lt;/em&gt;) é a &lt;em&gt;A1 &amp;#8211; Injection&lt;/em&gt;, injeção direta de código malicioso através de parâmetros enviados pela requisição, ou seja, pelo usuário. A OWASP é uma organização que visa orientar desenvolvedores, analistas, arquitetos e empresas quanto aos riscos das vulnerabilidades em sistemas web.&lt;/p&gt;
+
+&lt;p&gt;Existe um teste bem simples para saber se  existem vulnerabilidades em sua URL: forçando um erro. Tomemos como exemplo um ambiente web, com um banco de dado MySQL, a aplicação em PHP e a URL no padrão:&lt;/p&gt;
+
+&lt;p style=&#34;text-align: center&#34;&gt;
+  http://www.meudominio.com.br/produtos.php?id=15
+&lt;/p&gt;
+
+&lt;p&gt;A extensão da URL não importa muito nesse momento, o problema está nos parâmetros, e estou supondo um banco de dados MySQL apenas para exemplificar o erro.&lt;/p&gt;
+
+&lt;p class=&#34;lang-php&#34;&gt;
+  Digamos então que, no lado do servidor, naquele arquivo &lt;em&gt;produtos.php&lt;/em&gt; que fica na raiz do site, existe uma linha de código que recebe via GET o parâmetro &amp;#8216;id&amp;#8217; e nosso amiguinho que o desenvolveu implementou a regra de busca de produto no banco de dados com a seguinte consulta SQL:
+&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;$id = $_GET[&#39;id&#39;];&amp;lt;br /&amp;gt;
+$sql = &amp;quot;SELECT * FROM produtos WHERE produtos.id = {$id}&amp;quot;;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Até aí tudo bem, o código funciona, isso se o valor passado no parâmetro &amp;#8216;id&amp;#8217; da URL sempre for um número. Entendeu? E se eu substituir o valor do parâmetro &amp;#8216;id&amp;#8217; na URL por uma letra, ou até mesmo acrescentar um simples apóstrofo após o número 15 e o servidor retornar algo do tipo:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &amp;#8220;15&amp;#8221; LIMIT 1&amp;#8242; at line 1&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Não quero assustar ninguém, mas alguém com conhecimentos avançados em consultas SQL pode explorar essa falha de segurança e como resultado obter acesso a todo o banco de dados da aplicação, podendo assim baixar dados sigilosos, como número de cartões de crédito, ou obter acesso ao sistema como um usuário autenticado, quebrando a encriptação de senhas através de força bruta, isso se a senha estiver encriptada. Tudo isso através de sua URL.&lt;/p&gt;
+
+&lt;p&gt;Essa técnica é chamada de Injeção de SQL (SQL Injection), quando o atacante tenta alterar o código SQL para conseguir acesso à essas informações, direto do banco de dados e segundo a OWASP é considerada uma das vulnerabilidades em sistemas web mais comuns.&lt;/p&gt;
+
+&lt;h3 id=&#34;como-faço-para-me-proteger&#34;&gt;Como faço para me proteger?&lt;/h3&gt;
+
+&lt;p&gt;Lembra daquela parte do código que recebeu o parâmetro &amp;#8216;id&amp;#8217; da URL? Pois então, uma solução bem prática seria fazer o parse (forçar o valor) para o tipo inteiro, que no PHP poderia ficar assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;$id = (int) $_GET[&#39;id&#39;];&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Dessa forma, qualquer valor que não fosse um número inteiro seria forçado para um simples 0 (zero).&lt;/p&gt;
+
+&lt;p&gt;Existem outras formas de se explorar falhas como essa, seja através da URL ou de formulários, mas para mitigá-las é necessário realizar uma varredura em todo o código em que a aquisição de dados através de parâmetros se faz presente, e realizando as devidas correções.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Testes de Invasão e Análise de Vulnerabilidades</title>
+      <link>http://tableless.com.br/testes-de-invasao-e-analise-de-vulnerabilidades/</link>
+      <pubDate>Tue, 26 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/testes-de-invasao-e-analise-de-vulnerabilidades/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-é-um-teste-de-invasão&#34;&gt;O que é um Teste de Invasão&lt;/h2&gt;
+
+&lt;p&gt;Teste de invasão ou &lt;em&gt;pentest&lt;/em&gt; são métodos que avaliam a segurança de um sistema de computador ou de uma rede, simulando ataques de uma fonte maliciosa. O processo envolve uma análise nas atividades do sistema, que envolvem a busca de alguma vulnerabilidade em potencial que possa ser resultado de uma má configuração do sistema, falhas em hardwares/softwares desconhecidas, deficiência no sistema operacional ou técnicas contramedidas. Todas as análises submetidas pelos testes escolhidos são apresentadas no sistema, junto com uma avaliação do seu impacto e muitas vezes com uma proposta de resolução ou de uma solução técnica.&lt;/p&gt;
+
+&lt;h3 id=&#34;testes-de-invasão-x-análise-de-vulnerabilidades&#34;&gt;Testes de Invasão x Análise de Vulnerabilidades&lt;/h3&gt;
+
+&lt;p&gt;Diferente de uma avaliação de vulnerabilidades, ao realizar um teste de invasão, os &lt;em&gt;pentesters&lt;/em&gt; não só identificam as vulnerabilidades que poderiam ser utilizadas pelos invasores, mas também exploram essas vulnerabilidades, sempre que possível, para avaliar os danos que os invasores poderiam causar após uma exploração bem-sucedida das falhas.&lt;/p&gt;
+
+&lt;h3 id=&#34;como-se-realiza-um-pentest&#34;&gt;Como se realiza um Pentest?&lt;/h3&gt;
+
+&lt;p&gt;Um &lt;em&gt;pentest&lt;/em&gt; é realizado seguindo algumas etapas explicadas abaixo. Porém, antes de iniciar um &lt;em&gt;pentest&lt;/em&gt;, é necessário que o cliente esteja a par de todo o processo para que não haja nenhuma falha de comunicação entre as partes. É necessário conhecer os objetivos do negócio do cliente no que diz respeito ao teste de invasão: se esse é o primeiro teste de invasão, o que o levou a procurar esse serviço? Quais as exposições que ele mais teme? Existe algum dispositivo frágil com o qual deveremos ter cuidado ao efetuar os testes?&lt;/p&gt;
+
+&lt;h4 id=&#34;1-preparação&#34;&gt;1. Preparação&lt;/h4&gt;
+
+&lt;p&gt;Nessa fase é necessário decidir o escopo do teste de invasão: quais endereços de IP serão incluídos nos testes e quais não serão, quais tipos de ações o cliente permitirá que sejam realizados durante o teste, permissões para desativar potencialmente determinado serviço, limitar a avaliação a simplesmente uma análise de vulnerabilidades, etc. O cliente pode solicitar que os testes sejam realizados somente em determinados dias e durante horários específicos.&lt;/p&gt;
+
+&lt;h4 id=&#34;2-coleta-de-informações&#34;&gt;2. Coleta de Informações&lt;/h4&gt;
+
+&lt;p&gt;Nesta fase será analisada livremente as fontes de informações disponíveis, um processo conhecido como coleta de OSINT (&lt;em&gt;Open Source Intelligence&lt;/em&gt;, ou inteligência de fonte aberta). Essa pesquisa é realizada através de motores de busca, como o Google, Bing e Yahoo, redes sociais e demais fontes de informações públicas como registro de domínio.&lt;/p&gt;
+
+&lt;h4 id=&#34;3-mapeamento-de-rede&#34;&gt;3. Mapeamento de Rede&lt;/h4&gt;
+
+&lt;p&gt;O DNS (&lt;em&gt;Domain Name System&lt;/em&gt;, ou sistema de nomes de domínio) é um sistema de gerenciamento de nomes hierárquico e distribuído para computadores, serviços ou qualquer recurso conectado à Internet ou em uma rede privada. Através do DNS é possível descobrir a topologia da rede, endereços de IP e a quantidade de computadores na rede interna.&lt;/p&gt;
+
+&lt;h4 id=&#34;4-enumeração-de-serviços&#34;&gt;4. Enumeração de Serviços&lt;/h4&gt;
+
+&lt;p&gt;Utilizando ferramentas específicas, uma varredura de portas abertas é realizada nas máquinas descobertas e nos IP&amp;#8217;s informados com o fim de descobrir quais sistemas estão presentes na Internet ou na rede interna, bem como quais softwares estão sendo executados.&lt;/p&gt;
+
+&lt;h4 id=&#34;5-análise-de-vulnerabilidades&#34;&gt;5. Análise de Vulnerabilidades&lt;/h4&gt;
+
+&lt;p&gt;Tendo conhecimento das portas, softwares instalados e sistemas ativos, é iniciado o processo de análise de vulnerabilidades utilizando &lt;em&gt;scanners&lt;/em&gt; e banco de dados de vulnerabilidades no auxílio em detectar falhas nos ativos do cliente que possam a vir, através da execução de &lt;em&gt;exploits&lt;/em&gt; (códigos específicos para exploração de falhas), permitir o acesso à rede e computadores.&lt;/p&gt;
+
+&lt;h4 id=&#34;6-exploração-de-falhas&#34;&gt;6. Exploração de Falhas&lt;/h4&gt;
+
+&lt;p&gt;Esta é a fase onde executamos os &lt;em&gt;exploits&lt;/em&gt; nas vulnerabilidades detectadas na fase anterior, como por exemplo: acessar remotamente uma máquina sem a necessidade de autenticação através de login e senha ou por meio de tentativas de autenticação com senhas padrão em determinados sistemas.&lt;/p&gt;
+
+&lt;h4 id=&#34;7-pós-exploração-de-falhas&#34;&gt;7. Pós-Exploração de Falhas&lt;/h4&gt;
+
+&lt;p&gt;Nesta fase são reunidas informações sobre o sistema invadido, busca por arquivos relevantes ao teste de invasão, a criação de &lt;em&gt;backdoors&lt;/em&gt; para posteriores acessos ao sistema, ampliar a exploração da rede ganhando assim acesso à demais máquinas/sistemas que não estavam visíveis na tentativa inicial de escaneamento da rede.&lt;/p&gt;
+
+&lt;h4 id=&#34;8-relatório&#34;&gt;8. Relatório&lt;/h4&gt;
+
+&lt;p&gt;Ao final de todas as etapas de um &lt;em&gt;pentest&lt;/em&gt; é gerado um relatório contendo todo o descritivo do teste realizado de forma clara, transparente e objetiva. Neste relatório será apontado o que o cliente está fazendo corretamente, quais pontos ele deverá melhorar sua postura quanto à segurança da informação, como foi possível realizar a invasão, quais os resultados das descobertas durante a invasão, como corrigir esses problemas, etc.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

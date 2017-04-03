@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Módulos on Tableless</title>
+    <link>http://tableless.com.br/tags/m%C3%B3dulos/index.xml</link>
+    <description>Recent content in Módulos on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/m%C3%B3dulos/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Gerenciando módulos no TypeScript</title>
+      <link>http://tableless.com.br/gerenciando-modulos-no-typescript/</link>
+      <pubDate>Tue, 12 Jan 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/gerenciando-modulos-no-typescript/</guid>
+      <description>
+
+&lt;p&gt;Como vimos no &lt;a href=&#34;http://tableless.com.br/diga-ola-ao-typescript-e-adeus-ao-javascript/&#34;&gt;artigo anterior&lt;/a&gt;, com TypeScript podemos programar de forma orientada a objetos, criando classes, interfaces, get/set etc, e compilar tudo isso para JavaScript. Neste artigo veremos como criar módulos e separar classes e funcionalidades em arquivos distintos, de forma a tornar o nosso projeto mais organizado.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Para instalar o TypeScript, você precisa ter o Node.js, juntamente com o NPM. Execute o comando &lt;code&gt;npm install typescript -g&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Existem diversas formas de trabalhar com módulos no typeScript, sendo as 3 mais comuns descritas a seguir:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Combinando tudo em um arquivo somente&lt;/strong&gt;: Esta é a forma mais fácil de utilizar TypeScript. Primeiro criamos vários arquivos separados, com a extensão &lt;code&gt;ts&lt;/code&gt; e depois executamos o comando &lt;code&gt;tsc&lt;/code&gt; para juntar tudo em um único arquivo. Veja que todos os arquivos TypeScript serão agrupados, o que pode não ser uma boa prática de programação, principalmente para projetos muito extensos.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Inclusão dinâmica pelo webserver&lt;/strong&gt;: Neste método todos os arquivos &lt;code&gt;ts&lt;/code&gt; terão o seu correspondente &lt;code&gt;js&lt;/code&gt;, na qual serão carregados de forma dinâmica, via ajax. Como estamos utilizando um carregamento dinâmico, precisamos utilizar a biblioteca RequireJS&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Inclusão dinâmica pelo node&lt;/strong&gt;: Nesta forma criamos uma estrutura para ser executada diretamente pelo Node.JS, utilizando o padrão commonjs. Não usaremos este conceito aqui porque queremos ilustrar como utilizar o TypeScript em um site.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;combinando-todos-os-arquivos-em-um-só&#34;&gt;Combinando todos os arquivos em um só&lt;/h2&gt;
+
+&lt;p&gt;Esta forma é a mais simples e pode ser usada na maioria dos seus projetos web. Vamos inicialmente criar a pasta &lt;code&gt;teste1&lt;/code&gt; e nela criaremos duas pastas: &lt;code&gt;src&lt;/code&gt; e &lt;code&gt;build&lt;/code&gt;. A pasta src contém o código fonte da aplicação, os arquivos TypeScript. A pasta build conterá o código JavaScript gerado pelo TypeScript. Na pasta &lt;code&gt;src&lt;/code&gt;, criaremos 3 arquivos:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;pessoa.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;class Pessoa{
+    nome : string;
+    constructor(nome:string){
+        this.nome = nome;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Este primeiro arquivo é uma classe simples, com um parâmetro e o método construtor. A próxima classe será chamada de &lt;code&gt;Aluno&lt;/code&gt;, que irá estender da classe &lt;code&gt;Pessoa&lt;/code&gt;. Como a classe Aluno usa a classe Pessoa (que está em outro arquivo), precisamos importá-la e isso é feito da seguinte forma: &lt;code&gt;/// &amp;lt;reference path=&amp;quot;&amp;quot; /&amp;gt;&lt;/code&gt;. O parâmetro &lt;code&gt;path&lt;/code&gt; é justamente a classe que se deseja referenciar. Então temos:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;aluno.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;/// &amp;lt;reference path=&#34;pessoa.ts&#34; /&amp;gt;
+
+class Aluno extends Pessoa{
+    matricula : string;
+    
+    constructor(nome:string,matricula:string){
+        super(nome);
+        this.matricula=matricula;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Nesta classe referenciamos na primeira linha a classe &lt;code&gt;Pessoa&lt;/code&gt;, informando o nome do arquivo &lt;code&gt;pessoa.ts&lt;/code&gt;. Depois criamos a classe &lt;code&gt;Aluno&lt;/code&gt;, que herda de Pessoa. Na classe &lt;code&gt;Aluno&lt;/code&gt; criamos o parâmetro &lt;code&gt;matricula&lt;/code&gt;, e no seu construtor usamos a palavra &lt;code&gt;super&lt;/code&gt; para referenciar o construtor da classe pai, que neste caso é &lt;code&gt;Pessoa&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Com as duas classes prontas, podemos finalmente criar o arquivo &lt;code&gt;index.ts&lt;/code&gt;, que é o arquivo principal do projeto.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;index.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;/// &amp;lt;reference path=&#34;aluno.ts&#34; /&amp;gt
+
+var a = new Aluno(&#34;Joãozinho&#34;,&#34;0001&#34;);
+&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Veja que não é preciso adicionar a classe pessoa. Ela será adicionada na classe aluno&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Veja que o arquivo principal faz uma referência a classe &lt;code&gt;Aluno&lt;/code&gt;, do arquivo &lt;code&gt;aluno.ts&lt;/code&gt;. Com os três arquivos prontos, podemos usar o comando &lt;code&gt;tsc&lt;/code&gt; para compilar tudo em um único arquivo. Este comando é executado a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/12/ts05.png&#34; alt=&#34;ts05&#34; width=&#34;819&#34; height=&#34;580&#34; class=&#34;aligncenter size-full wp-image-52470&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Nesta imagem usamos o comando &lt;code&gt;tree&lt;/code&gt; do DOS apenas para mostrar que o arquivo &lt;code&gt;script.js&lt;/code&gt; foi criado. O principal comando é o:&lt;/p&gt;
+
+&lt;pre&gt;tsc ./src/index.ts --out ./build/script.js
+&lt;/pre&gt;
+
+&lt;p&gt;Este comando possui como primeiro parâmetro o arquivo ts inicial que neste caso é o &lt;code&gt;index.ts&lt;/code&gt;. O parâmetro &lt;code&gt;--out&lt;/code&gt; indica o nome do arquivo que será gerado pela compilação do TypeScript em JavaScript. Este arquivo é exibido a seguir:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;build/script.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;var Pessoa = (function () {
+    function Pessoa(nome) {
+        this.nome = nome;
+    }
+    return Pessoa;
+})();
+/// &amp;lt;reference path=&#34;pessoa.ts&#34; /&amp;gt;
+var __extends = (this &amp;&amp; this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var Aluno = (function (_super) {
+    __extends(Aluno, _super);
+    function Aluno(nome, matricula) {
+        _super.call(this, nome);
+        this.matricula = matricula;
+    }
+    return Aluno;
+})(Pessoa);
+/// &amp;lt;reference path=&#34;aluno.ts&#34; /&amp;gt;
+var a = new Aluno(&#34;Joãozinho&#34;, &#34;0001&#34;);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;utilizando-módulos&#34;&gt;Utilizando módulos&lt;/h2&gt;
+
+&lt;p&gt;O uso de módulos na aplicação faz com que as classes não pertençam mais ao escopo global, como Pessoa e Aluno pertenciam no exemplo anterior. Vamos fazer uma refatoração no código e adicionar a criação de módulos no escopo da aplicação. Suponha que a classe Pessoa pertença ao módulo &amp;#8220;comum&amp;#8221; e que a classe Aluno pertença ao módulo &amp;#8220;ensino&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;pessoa.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;u&gt;&lt;strong&gt;module&lt;/strong&gt;&amp;lt;/u&gt; comum {
+    &lt;strong&gt;&amp;lt;u&gt;export&amp;lt;/u&gt;&lt;/strong&gt; class Pessoa{
+        nome : string;
+        constructor(nome:string){
+            this.nome = nome;
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Deixamos sublinhado as 2 palavras que são novidade neste código. A primeira é a palavra &lt;code&gt;module&lt;/code&gt;, seguida do nome do seu módulo que neste caso é &amp;#8220;comum&amp;#8221;. Dentro do módulo &amp;#8220;comum&amp;#8221; temos a classe Pessoa, e nela usamos a palavra &lt;code&gt;export&lt;/code&gt; que diz ao módulo que esta classe é pública ao módulo. Podemos incluir no módulo classes, variáveis, métodos etc. Para expôr estas classes a outros módulos, usamos export.&lt;/p&gt;
+
+&lt;p&gt;A classe Aluno é refatorada para o seguinte código:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;aluno.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;/// &amp;lt;reference path=&#34;pessoa.ts&#34; /&amp;gt;
+module ensino{
+    export class Aluno extends &lt;strong&gt;&amp;lt;u&gt;comum.Pessoa&amp;lt;/u&gt;&lt;/strong&gt;{
+        matricula : string;
+        
+        constructor(nome:string,matricula:string){
+            super(nome);
+            this.matricula=matricula;
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;A classe Aluno agora é do módulo &lt;code&gt;ensino&lt;/code&gt; e como novidade temos a referência da classe Pessoa como &lt;code&gt;comum.Pessoa&lt;/code&gt;. Isso é necessário já que estamos modularizando a aplicação. Finalmente, a classe &lt;code&gt;index.ts&lt;/code&gt; é refatorada para:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;index.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;/// &amp;lt;reference path=&#34;aluno.ts&#34; /&amp;gt;
+
+var a = new ensino.Aluno(&#34;Joãozinho&#34;,&#34;0001&#34;);
+&lt;/pre&gt;
+
+&lt;p&gt;Como novidade temos a chamada da classe Aluno como &lt;code&gt;ensino.Aluno&lt;/code&gt;. Com estas mudanças, podemos executar novamente a compilação:&lt;/p&gt;
+
+&lt;pre&gt;tsc ./src/index.ts --out ./build/script.js
+&lt;/pre&gt;
+
+&lt;p&gt;e obteremos o seguinte resultado:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;build/script.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;var comum;
+(function (comum) {
+    var Pessoa = (function () {
+        function Pessoa(nome) {
+            this.nome = nome;
+        }
+        return Pessoa;
+    })();
+    comum.Pessoa = Pessoa;
+})(comum || (comum = {}));
+var __extends = (this &amp;&amp; this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+/// $lt;reference path=&#34;pessoa.ts&#34; /&amp;gt;
+var ensino;
+(function (ensino) {
+    var Aluno = (function (_super) {
+        __extends(Aluno, _super);
+        function Aluno(nome, matricula) {
+            _super.call(this, nome);
+            this.matricula = matricula;
+            console.log(this.matricula);
+        }
+        return Aluno;
+    })(comum.Pessoa);
+    ensino.Aluno = Aluno;
+})(ensino || (ensino = {}));
+/// $lt;reference path=&#34;aluno.ts&#34; /&amp;gt;
+var a = new ensino.Aluno(&#34;Joãozinho&#34;, &#34;0001&#34;);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;módulos-em-diretórios&#34;&gt;Módulos em diretórios&lt;/h2&gt;
+
+&lt;p&gt;Geralmente a organização de módulos é feita em diretórios, para que todos os arquivos não fiquem em somente um único diretório. No caso anterior, poderíamos (na verdade deveríamos) criar os diretórios &lt;code&gt;src/comum&lt;/code&gt; e &lt;code&gt;src/ensino&lt;/code&gt; e reorganizar as classes de acordo com a imagem a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/12/ts06.png&#34; alt=&#34;ts06&#34; width=&#34;186&#34; height=&#34;256&#34; class=&#34;aligncenter size-full wp-image-52476&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A única mudança que precisamos realizar no código é no &lt;code&gt;reference&lt;/code&gt;, que deverá ser:&lt;/p&gt;
+
+&lt;pre&gt;/// &amp;lt;reference path=&#34;../comum/pessoa.ts&#34; /&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Na classe aluno, como temos que subir um nível para encontrar o diretório &amp;#8220;comum&amp;#8221;, usamos &amp;#8220;../&amp;#8221;.&lt;/p&gt;
+
+&lt;pre&gt;/// &amp;lt;reference path=&#34;ensino/aluno.ts&#34; /&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;No arquivo index.ts, não precisamos usar &amp;#8220;../&amp;#8221; pois estamos no mesmo nível do diretório &lt;code&gt;ensino&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;módulos-externos-com-requirejs&#34;&gt;Módulos externos com requirejs&lt;/h2&gt;
+
+&lt;p&gt;Até este momento todos os módulos estão em um único arquivo de saída, o &lt;code&gt;build/script.js&lt;/code&gt;. Agora desejamos criar uma forma de carregar os módulos sob demanda, ou seja,&lt;/p&gt;
+
+&lt;p&gt;ao invés de carregar tudo de uma vez, vamos carregando os arquivos javascript na medida que eles forem sendo requisitados. Para isso precisamos criar uma estrutura um pouco mais complexa, e também precisaremos utilizar um framework qualquer para carregar módulos. Neste caso usamos o &lt;code&gt;Requirejs&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;criando-a-estrutura-inicial&#34;&gt;Criando a estrutura inicial&lt;/h3&gt;
+
+&lt;p&gt;Crie uma nova pasta e copie os arquivos Pessoa.ts, Aluno.ts e index.ts com a mesma estrutura anterior. Ao invés de criarmos o diretório &amp;#8220;build&amp;#8221;, crie o diretório &amp;#8220;public&amp;#8221;, conforme a imagem a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/12/ts07.png&#34; alt=&#34;ts07&#34; width=&#34;181&#34; height=&#34;292&#34; class=&#34;aligncenter size-full wp-image-52478&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;redefinido-as-classes&#34;&gt;Redefinido as classes&lt;/h3&gt;
+
+&lt;p&gt;Ao utilizarmos módulos externos precisamos alterar a forma como referenciamos as classes. Ou seja, não usaremos mais o &lt;code&gt;&amp;lt;reference path=&amp;quot;../comum/pessoa.ts&amp;quot; /&amp;gt;&lt;/code&gt; conforme aprendemos, e não será necessário neste momento definir um módulo. Vamos aos ajustes:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;comum/pessoa.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;export class Pessoa{
+    nome : string;
+    constructor(nome:string){
+        this.nome = nome;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O que temos agora é o fim do &lt;code&gt;module&lt;/code&gt; e o uso do &lt;code&gt;export&lt;/code&gt; antes do nome da classe. Na classe Aluno, temos:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;ensino/aluno.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;u&gt;&lt;strong&gt;import comum = require(&#34;../comum/pessoa&#34;)&lt;/strong&gt;&amp;lt;/u&gt;
+
+export class Aluno extends comum.Pessoa{
+    matricula : string;
+    
+    constructor(nome:string,matricula:string){
+        super(nome);
+        this.matricula=matricula;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Alem do fim da palavra &lt;code&gt;module&lt;/code&gt; e do uso do &lt;code&gt;export&lt;/code&gt;, temos uma importante alteração na primeira linha do arquivo &lt;em&gt;aluno.ts&lt;/em&gt;. Estamos utilizando a seguinte sintaxe:&lt;/p&gt;
+
+&lt;pre&gt;import MODULO = require(&#34;caminho&#34;);
+&lt;/pre&gt;
+
+&lt;p&gt;Aqui tivemos uma inversão do uso do nome do módulo. Se antes definimos o nome do módulo como &amp;#8220;comum&amp;#8221; na classe &amp;#8220;pessoa&amp;#8221;, agora definimos na própria classe &amp;#8220;aluno&amp;#8221;. Como temos agora o &lt;code&gt;import comum&lt;/code&gt;, podemos usar &lt;code&gt;comum.Pessoa&lt;/code&gt;. O arquivo &lt;code&gt;index.js&lt;/code&gt; é refatorado para:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;index.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;import ensino = require(&#34;ensino/aluno&#34;)
+
+var a = new ensino.Aluno(&#34;Joãozinho&#34;,&#34;0001&#34;);
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;instalando-o-requirejs&#34;&gt;Instalando o requirejs&lt;/h3&gt;
+
+&lt;p&gt;Precisamos instalar o requirejs no projeto, e podemos fazer isso com npm, através do comando &lt;code&gt;npm i requirejs --save&lt;/code&gt;. Este comando irá instalar o ``Como vimos no &lt;a href=&#34;http://tableless.com.br/diga-ola-ao-typescript-e-adeus-ao-javascript/&#34;&gt;artigo anterior&lt;/a&gt;, com TypeScript podemos programar de forma orientada a objetos, criando classes, interfaces, get/set etc, e compilar tudo isso para JavaScript. Neste artigo veremos como criar módulos e separar classes e funcionalidades em arquivos distintos, de forma a tornar o nosso projeto mais organizado.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Para instalar o TypeScript, você precisa ter o Node.js, juntamente com o NPM. Execute o comando &lt;code&gt;npm install typescript -g&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Existem diversas formas de trabalhar com módulos no typeScript, sendo as 3 mais comuns descritas a seguir:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Combinando tudo em um arquivo somente&lt;/strong&gt;: Esta é a forma mais fácil de utilizar TypeScript. Primeiro criamos vários arquivos separados, com a extensão &lt;code&gt;ts&lt;/code&gt; e depois executamos o comando &lt;code&gt;tsc&lt;/code&gt; para juntar tudo em um único arquivo. Veja que todos os arquivos TypeScript serão agrupados, o que pode não ser uma boa prática de programação, principalmente para projetos muito extensos.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Inclusão dinâmica pelo webserver&lt;/strong&gt;: Neste método todos os arquivos &lt;code&gt;ts&lt;/code&gt; terão o seu correspondente &lt;code&gt;js&lt;/code&gt;, na qual serão carregados de forma dinâmica, via ajax. Como estamos utilizando um carregamento dinâmico, precisamos utilizar a biblioteca RequireJS&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Inclusão dinâmica pelo node&lt;/strong&gt;: Nesta forma criamos uma estrutura para ser executada diretamente pelo Node.JS, utilizando o padrão commonjs. Não usaremos este conceito aqui porque queremos ilustrar como utilizar o TypeScript em um site.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;combinando-todos-os-arquivos-em-um-só-1&#34;&gt;Combinando todos os arquivos em um só&lt;/h2&gt;
+
+&lt;p&gt;Esta forma é a mais simples e pode ser usada na maioria dos seus projetos web. Vamos inicialmente criar a pasta &lt;code&gt;teste1&lt;/code&gt; e nela criaremos duas pastas: &lt;code&gt;src&lt;/code&gt; e &lt;code&gt;build&lt;/code&gt;. A pasta src contém o código fonte da aplicação, os arquivos TypeScript. A pasta build conterá o código JavaScript gerado pelo TypeScript. Na pasta &lt;code&gt;src&lt;/code&gt;, criaremos 3 arquivos:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;pessoa.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;class Pessoa{
+    nome : string;
+    constructor(nome:string){
+        this.nome = nome;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Este primeiro arquivo é uma classe simples, com um parâmetro e o método construtor. A próxima classe será chamada de &lt;code&gt;Aluno&lt;/code&gt;, que irá estender da classe &lt;code&gt;Pessoa&lt;/code&gt;. Como a classe Aluno usa a classe Pessoa (que está em outro arquivo), precisamos importá-la e isso é feito da seguinte forma: &lt;code&gt;/// &amp;lt;reference path=&amp;quot;&amp;quot; /&amp;gt;&lt;/code&gt;. O parâmetro &lt;code&gt;path&lt;/code&gt; é justamente a classe que se deseja referenciar. Então temos:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;aluno.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;/// &amp;lt;reference path=&#34;pessoa.ts&#34; /&amp;gt;
+
+class Aluno extends Pessoa{
+    matricula : string;
+    
+    constructor(nome:string,matricula:string){
+        super(nome);
+        this.matricula=matricula;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Nesta classe referenciamos na primeira linha a classe &lt;code&gt;Pessoa&lt;/code&gt;, informando o nome do arquivo &lt;code&gt;pessoa.ts&lt;/code&gt;. Depois criamos a classe &lt;code&gt;Aluno&lt;/code&gt;, que herda de Pessoa. Na classe &lt;code&gt;Aluno&lt;/code&gt; criamos o parâmetro &lt;code&gt;matricula&lt;/code&gt;, e no seu construtor usamos a palavra &lt;code&gt;super&lt;/code&gt; para referenciar o construtor da classe pai, que neste caso é &lt;code&gt;Pessoa&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Com as duas classes prontas, podemos finalmente criar o arquivo &lt;code&gt;index.ts&lt;/code&gt;, que é o arquivo principal do projeto.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;index.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;/// &amp;lt;reference path=&#34;aluno.ts&#34; /&amp;gt
+
+var a = new Aluno(&#34;Joãozinho&#34;,&#34;0001&#34;);
+&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Veja que não é preciso adicionar a classe pessoa. Ela será adicionada na classe aluno&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Veja que o arquivo principal faz uma referência a classe &lt;code&gt;Aluno&lt;/code&gt;, do arquivo &lt;code&gt;aluno.ts&lt;/code&gt;. Com os três arquivos prontos, podemos usar o comando &lt;code&gt;tsc&lt;/code&gt; para compilar tudo em um único arquivo. Este comando é executado a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/12/ts05.png&#34; alt=&#34;ts05&#34; width=&#34;819&#34; height=&#34;580&#34; class=&#34;aligncenter size-full wp-image-52470&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Nesta imagem usamos o comando &lt;code&gt;tree&lt;/code&gt; do DOS apenas para mostrar que o arquivo &lt;code&gt;script.js&lt;/code&gt; foi criado. O principal comando é o:&lt;/p&gt;
+
+&lt;pre&gt;tsc ./src/index.ts --out ./build/script.js
+&lt;/pre&gt;
+
+&lt;p&gt;Este comando possui como primeiro parâmetro o arquivo ts inicial que neste caso é o &lt;code&gt;index.ts&lt;/code&gt;. O parâmetro &lt;code&gt;--out&lt;/code&gt; indica o nome do arquivo que será gerado pela compilação do TypeScript em JavaScript. Este arquivo é exibido a seguir:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;build/script.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;var Pessoa = (function () {
+    function Pessoa(nome) {
+        this.nome = nome;
+    }
+    return Pessoa;
+})();
+/// &amp;lt;reference path=&#34;pessoa.ts&#34; /&amp;gt;
+var __extends = (this &amp;&amp; this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var Aluno = (function (_super) {
+    __extends(Aluno, _super);
+    function Aluno(nome, matricula) {
+        _super.call(this, nome);
+        this.matricula = matricula;
+    }
+    return Aluno;
+})(Pessoa);
+/// &amp;lt;reference path=&#34;aluno.ts&#34; /&amp;gt;
+var a = new Aluno(&#34;Joãozinho&#34;, &#34;0001&#34;);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;utilizando-módulos-1&#34;&gt;Utilizando módulos&lt;/h2&gt;
+
+&lt;p&gt;O uso de módulos na aplicação faz com que as classes não pertençam mais ao escopo global, como Pessoa e Aluno pertenciam no exemplo anterior. Vamos fazer uma refatoração no código e adicionar a criação de módulos no escopo da aplicação. Suponha que a classe Pessoa pertença ao módulo &amp;#8220;comum&amp;#8221; e que a classe Aluno pertença ao módulo &amp;#8220;ensino&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;pessoa.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;u&gt;&lt;strong&gt;module&lt;/strong&gt;&amp;lt;/u&gt; comum {
+    &lt;strong&gt;&amp;lt;u&gt;export&amp;lt;/u&gt;&lt;/strong&gt; class Pessoa{
+        nome : string;
+        constructor(nome:string){
+            this.nome = nome;
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Deixamos sublinhado as 2 palavras que são novidade neste código. A primeira é a palavra &lt;code&gt;module&lt;/code&gt;, seguida do nome do seu módulo que neste caso é &amp;#8220;comum&amp;#8221;. Dentro do módulo &amp;#8220;comum&amp;#8221; temos a classe Pessoa, e nela usamos a palavra &lt;code&gt;export&lt;/code&gt; que diz ao módulo que esta classe é pública ao módulo. Podemos incluir no módulo classes, variáveis, métodos etc. Para expôr estas classes a outros módulos, usamos export.&lt;/p&gt;
+
+&lt;p&gt;A classe Aluno é refatorada para o seguinte código:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;aluno.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;/// &amp;lt;reference path=&#34;pessoa.ts&#34; /&amp;gt;
+module ensino{
+    export class Aluno extends &lt;strong&gt;&amp;lt;u&gt;comum.Pessoa&amp;lt;/u&gt;&lt;/strong&gt;{
+        matricula : string;
+        
+        constructor(nome:string,matricula:string){
+            super(nome);
+            this.matricula=matricula;
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;A classe Aluno agora é do módulo &lt;code&gt;ensino&lt;/code&gt; e como novidade temos a referência da classe Pessoa como &lt;code&gt;comum.Pessoa&lt;/code&gt;. Isso é necessário já que estamos modularizando a aplicação. Finalmente, a classe &lt;code&gt;index.ts&lt;/code&gt; é refatorada para:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;index.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;/// &amp;lt;reference path=&#34;aluno.ts&#34; /&amp;gt;
+
+var a = new ensino.Aluno(&#34;Joãozinho&#34;,&#34;0001&#34;);
+&lt;/pre&gt;
+
+&lt;p&gt;Como novidade temos a chamada da classe Aluno como &lt;code&gt;ensino.Aluno&lt;/code&gt;. Com estas mudanças, podemos executar novamente a compilação:&lt;/p&gt;
+
+&lt;pre&gt;tsc ./src/index.ts --out ./build/script.js
+&lt;/pre&gt;
+
+&lt;p&gt;e obteremos o seguinte resultado:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;build/script.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;var comum;
+(function (comum) {
+    var Pessoa = (function () {
+        function Pessoa(nome) {
+            this.nome = nome;
+        }
+        return Pessoa;
+    })();
+    comum.Pessoa = Pessoa;
+})(comum || (comum = {}));
+var __extends = (this &amp;&amp; this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+/// $lt;reference path=&#34;pessoa.ts&#34; /&amp;gt;
+var ensino;
+(function (ensino) {
+    var Aluno = (function (_super) {
+        __extends(Aluno, _super);
+        function Aluno(nome, matricula) {
+            _super.call(this, nome);
+            this.matricula = matricula;
+            console.log(this.matricula);
+        }
+        return Aluno;
+    })(comum.Pessoa);
+    ensino.Aluno = Aluno;
+})(ensino || (ensino = {}));
+/// $lt;reference path=&#34;aluno.ts&#34; /&amp;gt;
+var a = new ensino.Aluno(&#34;Joãozinho&#34;, &#34;0001&#34;);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;módulos-em-diretórios-1&#34;&gt;Módulos em diretórios&lt;/h2&gt;
+
+&lt;p&gt;Geralmente a organização de módulos é feita em diretórios, para que todos os arquivos não fiquem em somente um único diretório. No caso anterior, poderíamos (na verdade deveríamos) criar os diretórios &lt;code&gt;src/comum&lt;/code&gt; e &lt;code&gt;src/ensino&lt;/code&gt; e reorganizar as classes de acordo com a imagem a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/12/ts06.png&#34; alt=&#34;ts06&#34; width=&#34;186&#34; height=&#34;256&#34; class=&#34;aligncenter size-full wp-image-52476&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A única mudança que precisamos realizar no código é no &lt;code&gt;reference&lt;/code&gt;, que deverá ser:&lt;/p&gt;
+
+&lt;pre&gt;/// &amp;lt;reference path=&#34;../comum/pessoa.ts&#34; /&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Na classe aluno, como temos que subir um nível para encontrar o diretório &amp;#8220;comum&amp;#8221;, usamos &amp;#8220;../&amp;#8221;.&lt;/p&gt;
+
+&lt;pre&gt;/// &amp;lt;reference path=&#34;ensino/aluno.ts&#34; /&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;No arquivo index.ts, não precisamos usar &amp;#8220;../&amp;#8221; pois estamos no mesmo nível do diretório &lt;code&gt;ensino&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;módulos-externos-com-requirejs-1&#34;&gt;Módulos externos com requirejs&lt;/h2&gt;
+
+&lt;p&gt;Até este momento todos os módulos estão em um único arquivo de saída, o &lt;code&gt;build/script.js&lt;/code&gt;. Agora desejamos criar uma forma de carregar os módulos sob demanda, ou seja,&lt;/p&gt;
+
+&lt;p&gt;ao invés de carregar tudo de uma vez, vamos carregando os arquivos javascript na medida que eles forem sendo requisitados. Para isso precisamos criar uma estrutura um pouco mais complexa, e também precisaremos utilizar um framework qualquer para carregar módulos. Neste caso usamos o &lt;code&gt;Requirejs&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;criando-a-estrutura-inicial-1&#34;&gt;Criando a estrutura inicial&lt;/h3&gt;
+
+&lt;p&gt;Crie uma nova pasta e copie os arquivos Pessoa.ts, Aluno.ts e index.ts com a mesma estrutura anterior. Ao invés de criarmos o diretório &amp;#8220;build&amp;#8221;, crie o diretório &amp;#8220;public&amp;#8221;, conforme a imagem a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/12/ts07.png&#34; alt=&#34;ts07&#34; width=&#34;181&#34; height=&#34;292&#34; class=&#34;aligncenter size-full wp-image-52478&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;redefinido-as-classes-1&#34;&gt;Redefinido as classes&lt;/h3&gt;
+
+&lt;p&gt;Ao utilizarmos módulos externos precisamos alterar a forma como referenciamos as classes. Ou seja, não usaremos mais o &lt;code&gt;&amp;lt;reference path=&amp;quot;../comum/pessoa.ts&amp;quot; /&amp;gt;&lt;/code&gt; conforme aprendemos, e não será necessário neste momento definir um módulo. Vamos aos ajustes:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;comum/pessoa.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;export class Pessoa{
+    nome : string;
+    constructor(nome:string){
+        this.nome = nome;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O que temos agora é o fim do &lt;code&gt;module&lt;/code&gt; e o uso do &lt;code&gt;export&lt;/code&gt; antes do nome da classe. Na classe Aluno, temos:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;ensino/aluno.ts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;u&gt;&lt;strong&gt;import comum = require(&#34;../comum/pessoa&#34;)&lt;/strong&gt;&amp;lt;/u&gt;
+
+export class Aluno extends comum.Pessoa{
+    matricula : string;
+    
+    constructor(nome:string,matricula:string){
+        super(nome);
+        this.matricula=matricula;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Alem do fim da palavra &lt;code&gt;module&lt;/code&gt; e do uso do &lt;code&gt;export&lt;/code&gt;, temos uma importante alteração na primeira linha do arquivo &lt;em&gt;aluno.ts&lt;/em&gt;. Estamos utilizando a seguinte sintaxe:&lt;/p&gt;
+
+&lt;pre&gt;import MODULO = require(&#34;caminho&#34;);
+&lt;/pre&gt;
+
+&lt;p&gt;Aqui tivemos uma inversão do uso do nome do módulo. Se antes definimos o nome do módulo como &amp;#8220;comum&amp;#8221; na classe &amp;#8220;pessoa&amp;#8221;, agora definimos na própria classe &amp;#8220;aluno&amp;#8221;. Como temos agora o &lt;code&gt;import comum&lt;/code&gt;, podemos usar &lt;code&gt;comum.Pessoa&lt;/code&gt;. O arquivo &lt;code&gt;index.js&lt;/code&gt; é refatorado para:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;index.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;import ensino = require(&#34;ensino/aluno&#34;)
+
+var a = new ensino.Aluno(&#34;Joãozinho&#34;,&#34;0001&#34;);
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;instalando-o-requirejs-1&#34;&gt;Instalando o requirejs&lt;/h3&gt;
+
+&lt;p&gt;Precisamos instalar o requirejs no projeto, e podemos fazer isso com npm, através do comando &lt;code&gt;npm i requirejs --save&lt;/code&gt;. Este comando irá instalar o`&lt;code&gt;no diretório&lt;/code&gt;node_modules&lt;code&gt;do seu projeto. Se isso não acontecer, execute antes o comando&lt;/code&gt;npm init&lt;code&gt;para inicializar o repositório npm no projeto. Após instalar o requirejs, copie o arquivo&lt;/code&gt;node_modules/requirejs/require.js&lt;code&gt;para a pasta&lt;/code&gt;public/js`. Se você não está confortável com o uso do npm para instalar o requirejs, utilize o seguinte CDN:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;script src=&#34;https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.22/require.min.js&#34; data-main=&#34;js/index.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;configurando-o-arquivo-index-html&#34;&gt;Configurando o arquivo index.html&lt;/h3&gt;
+
+&lt;p&gt;O arquivo &lt;code&gt;index.html&lt;/code&gt; é configurado da seguinte forma:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;public/index.html&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;html&amp;gt;
+    &amp;lt;head&amp;gt;
+        &amp;lt;title&amp;gt;TypeScript Modules&amp;lt;/title&amp;gt;
+        &amp;lt;script src=&#34;js/require.js&#34; data-main=&#34;js/index.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+    &amp;lt;/head&amp;gt;
+    &amp;lt;body&amp;gt;
+        Olá Mundo....
+    &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Neste simples arquivo apenas incluímos o &lt;code&gt;require.js&lt;/code&gt; que foi copiado do &lt;code&gt;node_modules&lt;/code&gt; e usamos o atributo &lt;code&gt;data-main=&amp;quot;js/index.js&amp;quot;&lt;/code&gt; para informar o arquivo no qual será carregado inicialmente.&lt;/p&gt;
+
+&lt;h3 id=&#34;compilando-a-aplicação&#34;&gt;Compilando a aplicação&lt;/h3&gt;
+
+&lt;p&gt;Aliás este arquivo ainda não foi criado, já que não executamos o comando &lt;code&gt;tsc&lt;/code&gt;. O comando para compilar o JavaScript para que o requirejs possa entendê-lo é o seguinte:&lt;/p&gt;
+
+&lt;pre&gt;tsc ./src/index.ts --outDir ./public/js/ --module &#34;amd&#34;
+&lt;/pre&gt;
+
+&lt;p&gt;Neste comando indicamos como primeiro parâmetro &lt;code&gt;./src/index.ts&lt;/code&gt; o arquivo inicial no qual será compilado. O parâmetro &lt;code&gt;--outDir ./public/js/&lt;/code&gt; indica o diretório de saída da compilação, neste caso será o diretório &lt;code&gt;public/js&lt;/code&gt;, o mesmo onde se encontra o arquivo require.js. O terceiro parâmetro &lt;code&gt;--module &amp;quot;amd&amp;quot;&lt;/code&gt; indica a forma como o tsc vai compilar os arquivos, onde AMD significa &lt;code&gt;Asynchronous Module Definition&lt;/code&gt;. Após executar este comando, os arquivos jsvascript serão criados na pasta &lt;code&gt;public/js&lt;/code&gt; conforme a imagem a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/12/ts08.png&#34; alt=&#34;ts08&#34; width=&#34;1171&#34; height=&#34;580&#34; class=&#34;aligncenter size-full wp-image-52480&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;executando-no-navegador&#34;&gt;Executando no navegador&lt;/h3&gt;
+
+&lt;p&gt;Chegou o momento de testar o carregamento dinâmico das classes javascript, e para isso você precisa usar um servidor web. Se você possui um servidor web como o apache, basta copiar a pasta &lt;code&gt;public&lt;/code&gt; para o diretório web e testá-la. Caso negativo, podemos usar o &lt;strong&gt;live-server&lt;/strong&gt; que é facilmente instalado através do node: &lt;code&gt;npm i live-server /g&lt;/code&gt;. Após instalar, acesse o diretório public pela linha de comando e digite o comando &lt;code&gt;live-server&lt;/code&gt;. O navegador será aberto automaticamente e o arquivo &lt;code&gt;index.html&lt;/code&gt; será carregado.&lt;/p&gt;
+
+&lt;p&gt;Você verá a mensagem &lt;em&gt;Olá mundo&lt;/em&gt;, mas o que estamos interessados é no carregamento dos arquivos javascript da aplicação. Para isso, se estiver no Chrome, tecle F12, navegue até a aba Networking e recarregue a aplicação com F5. Você obterá um resultado semelhante a figura a seguir. &lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/12/ts09.png&#34; alt=&#34;ts09&#34; width=&#34;960&#34; height=&#34;677&#34; class=&#34;aligncenter size-full wp-image-52481&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Neste artigo criamos duas formas para utilizar TypeScript no qual os arquivos estão inicialmente separados. A primeira é utilizando o padrão do TypeScript e o &lt;code&gt;/// &amp;lt;reference path=&amp;quot;arquivo.ts&amp;quot; /&amp;gt;&lt;/code&gt; e a segunda é usando &lt;code&gt;requirejs&lt;/code&gt; para carregar os arquivos javascript via ajax. Para que você possa se aprofundar ainda mais neste conceito, que é complexo, sugiro a leitura da documentação: &lt;a href=&#34;http://www.typescriptlang.org/Handbook#modules&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.typescriptlang.org/Handbook#modules&#34;&gt;http://www.typescriptlang.org/Handbook#modules&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

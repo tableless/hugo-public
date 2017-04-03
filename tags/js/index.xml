@@ -1,0 +1,2064 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Js on Tableless</title>
+    <link>http://tableless.com.br/tags/js/index.xml</link>
+    <description>Recent content in Js on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/js/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Hello World com React, do rascunho até o primeiro componente</title>
+      <link>http://tableless.com.br/hello-world-com-react-do-rascunho-ate-o-primeiro-componente/</link>
+      <pubDate>Mon, 31 Oct 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/hello-world-com-react-do-rascunho-ate-o-primeiro-componente/</guid>
+      <description>
+
+&lt;p&gt;Há muito tempo eu queria fazer um Hello World com React, mas nunca tinha tempo por que eu mudei de área há uns 3 anos, ficando mais na parte de gestão de produtos e times, deixando quase que totalmente o desenvolvimento e a escrita de código. Por isso, senti na pele o que os iniciantes sentem quando precisam fazer um simples Hello World de uma tecnologia nova. São tantos artigos falando coisas diferentes, usando setups diferentes, na sua maioria complexos e que não explicam as coisas com simplicidade.&lt;/p&gt;
+
+&lt;p&gt;Na busca de conteúdo sobre ReactJS, encontrei uma série de fontes pela internet, que você pode conferir no final deste texto, além de um curso grátis, muito, mas muito bem feito pelo &lt;a href=&#34;http://jscasts.teachable.com/&#34;&gt;Matheus Lima no JSCasts&lt;/a&gt;. Esse capítulo baseado em todas essas fontes. Tentei abstrair toda as inutilidades que alguém não precisa aprender logo que está iniciando. Espero que tenha cumprido com o objetivo.&lt;/p&gt;
+
+&lt;h2 id=&#34;conceitos-do-react-e-introdução&#34;&gt;Conceitos do React e Introdução&lt;/h2&gt;
+
+&lt;p&gt;O React foi pensado em como podemos componentizar nossos elementos, de forma que eles sejam independentes, mas reutilizáveis. Pensa em um componente como se fosse um widget ou um módulo. Se ficar mais fácil, pense que um componente é um pedaço de HTML, CSS, JS e os poucos dados que irão popular esse pedaço do layout.&lt;/p&gt;
+
+&lt;p&gt;Sem entrar na polêmica de modularização e componentização no JS, atualmente, nós organizamos na pior das hipóteses &amp;#8211; e mais comum também -, os componentes como partes separadas de códigos. Você pega um pedaço de código HTML, coloca numa determinada página, que é formatada com CSS e manipulada com JS. O código que estrutura, formata e manipula seu componente está separado nesses três arquivos de HTML, CSS e JS. No React, o conceito é mais simples, onde unificamos o HTML dentro do JS, o que no React chamamos de JSX.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/react-component.jpg&#34; alt=&#34;react-component&#34; width=&#34;1784&#34; height=&#34;1298&#34; class=&#34;aligncenter size-full wp-image-56272&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Perceba que na imagem acima &amp;#8211; &lt;a href=&#34;https://dribbble.com/shots/1262636-To-Do-Dashboard/attachments/172917&#34;&gt;peguei como exemplo daqui&lt;/a&gt; &amp;#8211; cada retângulo colorido tem um componente pai, com seus componentes internos, que chamamos de componentes filhos. Podemos, então, criar um componente chamado &lt;code&gt;navBar&lt;/code&gt; com um componente filho chamado &lt;code&gt;userInfo&lt;/code&gt;, que conterá as informações do usuário. O nosso componente &lt;strong&gt;pai&lt;/strong&gt;, guarda estado dos dados que usaremos nos componentes filhos. O &lt;strong&gt;pai&lt;/strong&gt; compartilha os dados com os filhos por meio de atributos. Nesse exemplo, a &lt;code&gt;navBar&lt;/code&gt; iria compartilhar as informações do usuário logado para o componente filho &lt;code&gt;userInfo&lt;/code&gt;. Esta hierarquia de pai e filho faz com que o gerenciamento de dados seja simples, por que nós sabemos exatamente onde os dados estarão, não causando confusão usando esses dados erroneamente em outros lugares.&lt;/p&gt;
+
+&lt;p&gt;O JSX é como o ReactJS cria os componentes em JavaScript. Você vai escrever HTML (quase) normal dentro do próprio JS, o ReactJS, por sua vez, vai se encarregar de traduzir esse HTML para JavaScript, que vai renderizar um elemento no DOM. Se você tem o código &lt;code&gt;&amp;lt;h1&amp;gt;Titulo&amp;lt;/h1&amp;gt;&lt;/code&gt;, o JSX vai se transformar em &lt;code&gt;React.createElement(&#39;h1&#39;, null, &#39;Titulo&#39;);&lt;/code&gt; antes de ser executado pelo browser. Escrever com esse HTML do React (JSX), facilita a leitura e você diminui a curva de aprendizado.&lt;/p&gt;
+
+&lt;p&gt;Você já deve ter ouvido sobre o &lt;strong&gt;Virtual DOM&lt;/strong&gt;. O Virtual DOM é a árvore de componentes que o ReactJS gera para que o browser renderize na tela. Pra melhorar a performance, o ReactJS gera todo o HTML (baseado em JSX e transformado em JavaScript) na memória antes de renderizar para o usuário. Além disso, ele fica vigiando esse Virtual DOM procurando por alterações. Quando algo é alterado, ele muda apenas o que foi alterado e não todo o HTML.&lt;/p&gt;
+
+&lt;h2 id=&#34;setup-do-projeto&#34;&gt;Setup do projeto&lt;/h2&gt;
+
+&lt;p&gt;Como todo o projeto, necessitamos fazer um setup inicial, preparando o ambiente e iniciando parte do código. Nesse setup vamos começar criando o projeto com NPM, depois vamos criar arquivos de configuração do Webpack e também o arquivo &lt;strong&gt;index.html&lt;/strong&gt;, que é onde vamos mostrar nossa App.&lt;/p&gt;
+
+&lt;h3 id=&#34;npm&#34;&gt;NPM&lt;/h3&gt;
+
+&lt;p&gt;Como gerenciador de pacotes, vamos usar o NPM. Por isso, abra seu terminal predileto e veja os comandos abaixo. Esses comandos vão criar uma pasta para o projeto (eu já estou na minha pasta publica, onde coloco meus projetos para serem acessados via localhost), depois eu inicio o NPM e aí instalo dois pacotes iniciais &lt;strong&gt;react&lt;/strong&gt; e &lt;strong&gt;react-dom&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ mkdir meu-projeto
+$ npm install --save react react-dom
+$ npm init # aperte enter em tudo que vier
+&lt;/pre&gt;
+
+&lt;p&gt;Agora, dentro da pasta &lt;strong&gt;meu-projeto&lt;/strong&gt; deve haver um &lt;strong&gt;package.json&lt;/strong&gt; que o NPM instalou. Vamos instalar agora o Webpack. O Webpack é o que vai juntar todos os nossos módulos, compilar nosso CSS e etc.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ cd meu-projeto
+$ npm install --save-dev webpack
+&lt;/pre&gt;
+
+&lt;p&gt;Nós vamos instalar o &lt;strong&gt;webpack&lt;/strong&gt; apenas em desenvolvimento, por que, obviamente vamos usar o código que ele gerar em produção. Mas vamos aproveitar para instalá-lo também globalmente, por que vamos precisar rodar o comando &lt;code&gt;webpack&lt;/code&gt; para gerar nosso bundle:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ npm install webpack -g
+&lt;/pre&gt;
+
+&lt;p&gt;Seu &lt;strong&gt;package.json&lt;/strong&gt; tem que ficar mais ou menos assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+  &#34;name&#34;: &#34;curso-react-matheus&#34;,
+  &#34;version&#34;: &#34;1.0.0&#34;,
+  &#34;description&#34;: &#34;&#34;,
+  &#34;main&#34;: &#34;index.js&#34;,
+  &#34;scripts&#34;: {
+    &#34;test&#34;: &#34;echo \&#34;Error: no test specified\&#34; &amp;&amp; exit 1&#34;
+  },
+  &#34;author&#34;: &#34;&#34;,
+  &#34;license&#34;: &#34;ISC&#34;,
+  &#34;dependencies&#34;: {
+    &#34;react&#34;: &#34;^15.3.2&#34;,
+    &#34;react-dom&#34;: &#34;^15.3.2&#34;
+  },
+  &#34;devDependencies&#34;: {
+    &#34;webpack&#34;: &#34;^1.13.2&#34;
+  }
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;config-do-webpack&#34;&gt;Config do Webpack&lt;/h3&gt;
+
+&lt;p&gt;O webpack é um empacotador de código focado em módulos. Você pode ver com mais detalhes sobre o que é o webpack &lt;a href=&#34;http://tableless.com.br/introducao-ao-webpack/&#34;&gt;nesse artigo do Leo Cavalcante no Tableless&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Como já instalamos anteriormente o webpack com o NPM, vamos criar agora um &lt;strong&gt;webpack.config.js&lt;/strong&gt;. Aqui é onde vamos ter as configurações do Webpack. O Matheus, em seu vídeo, simplificou ao máximo as explicações que não ficasse confusa, tendo que explicar Redux, Flux, ES6 e etc, por isso, vamos fazer o mesmo aqui. Assim facilita seu aprendizado.&lt;/p&gt;
+
+&lt;p&gt;O código do config do Webpack é esse aqui:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;module.exports = {
+  entry: &#34;./app/App.js&#34;,
+  output: {
+    filename: &#34;public/bundle.js&#34;
+  },
+  module: {
+    loaders: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: &#39;babel&#39;,
+        query: {
+          presets: [&#39;react&#39;]
+        }
+      }
+    ]
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O Matheus explicou tim tim por tim tim cada uma dessas linhas no segundo vídeo do curso dele. Por enquanto, você só precisa saber o seguinte:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;entry: &amp;quot;./app/App.js&amp;quot;,&lt;/code&gt; vai ler o arquivo App.js, gerando um &lt;strong&gt;output&lt;/strong&gt; chamado &lt;strong&gt;bundle.js&lt;/strong&gt;. Aproveite para criar agora o &lt;strong&gt;App.js&lt;/strong&gt;, dentro de uma pasta &lt;strong&gt;app&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;O React usa o conceito de Loaders. Não vamos ver isso agora. Mas no bloco &lt;code&gt;loaders&lt;/code&gt; desse código, ele vai testar todos os arquivos &lt;strong&gt;.js&lt;/strong&gt;, menos a pasta &lt;strong&gt;node_modules&lt;/strong&gt;, usando o &lt;strong&gt;babel&lt;/strong&gt; para fazer o transpiler. Ali nos presets, estamos dizendo que vamos usar react. Se fossemos usar ES6 no código, nós colocaríamos também ali no chave &lt;code&gt;presets&lt;/code&gt;, para que o babel soubesse que ele também teria que pegar código ES6 para poder transpor para código conhecido.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Agora, para que o babel funcione, vamos instalá-lo também via NPM:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ npm install --save-dev babel-core babel-loader babel-preset-react
+&lt;/pre&gt;
+
+&lt;p&gt;E por enquanto, é isso que você precisa saber.&lt;/p&gt;
+
+&lt;h3 id=&#34;index-html&#34;&gt;index.html&lt;/h3&gt;
+
+&lt;p&gt;Todo os projetos React tem um &lt;strong&gt;index.html&lt;/strong&gt; que faz a conexão com o nosso código. Esse &lt;strong&gt;index.html&lt;/strong&gt; é onde o App vai aparecer e ele deve ficar dentro da pasta &lt;strong&gt;public&lt;/strong&gt;. Crie então uma pasta &lt;strong&gt;public&lt;/strong&gt; e dentro coloque o arquivo &lt;strong&gt;index.html&lt;/strong&gt;. O código é mais ou menos esse. Também tendo em mente a simplicidade da explicação. Não inserirmos nada de outro mundo aqui:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+  &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+  &amp;lt;title&amp;gt;&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+
+&amp;lt;div id=&#34;app&#34;&amp;gt;&amp;lt;/div&amp;gt;
+
+&amp;lt;script src=&#34;bundle.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;O div APP é onde vamos renderizar a aplicação. É quase que padrão usar o nome &lt;code&gt;app&lt;/code&gt; ali. Mas você pode colocar qualquer outra coisa se quiser.&lt;/p&gt;
+
+&lt;p&gt;Depois chamamos o JavaScript da nossa app, que vai estar tudo contido num arquivo só, que as vezes se chama &lt;code&gt;all.js&lt;/code&gt;, outras &lt;code&gt;bundle.js&lt;/code&gt;, outros &lt;code&gt;app.js&lt;/code&gt;. Tanto faz. Vamos usar &lt;code&gt;bundle.js&lt;/code&gt;, só para não ficar diferente dos artigos que li e do vídeo que o Matheus fez. Assim quando você for procurar mais referências, não fica confuso. E pronto.&lt;/p&gt;
+
+&lt;h2 id=&#34;app-js-e-hello-world&#34;&gt;App.js e Hello World&lt;/h2&gt;
+
+&lt;p&gt;Vamos começar a nossa App fazendo dois &lt;code&gt;require&lt;/code&gt;. O require vai importar para nosso código o &lt;strong&gt;react&lt;/strong&gt; e o &lt;strong&gt;react-dom&lt;/strong&gt; que instalamos aquela hora com NPM. Abra seu &lt;strong&gt;App.js&lt;/strong&gt; e escreva:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var React = require(&#39;react&#39;); // importa a lib react
+var reactDOM = require(&#39;react-dom&#39;); // importa a lib react-dom
+&lt;/pre&gt;
+
+&lt;p&gt;Com esses dois pacotes importados, vamos agora colocar um código inicial. Nesse código vamos usar o &lt;code&gt;reactDOM&lt;/code&gt;, que vai pegar nosso código HTML escrito em JSX e jogar naquele div com id &lt;code&gt;app&lt;/code&gt; que fizemos no &lt;strong&gt;index.html&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var React = require(&#39;react&#39;); // importa a lib react
+var reactDOM = require(&#39;react-dom&#39;); // importa a lib react-dom
+
+reactDOM.render(&amp;lt;h1&amp;gt;Hello World&amp;lt;/h1&amp;gt;, document.getElementById(&#39;app&#39;));
+&lt;/pre&gt;
+
+&lt;p&gt;Pra ver funcionando, lá no seu terminal, rode o comando abaixo na pasta do projeto:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ webpack -w
+&lt;/pre&gt;
+
+&lt;p&gt;Ele vai gerar um bundle todas as vezes que você salvar algo no projeto. Você poderá acessar o &lt;strong&gt;index.html&lt;/strong&gt; pelo seu browser. No meu Mac eu acessei nesse endereço &lt;strong&gt;&lt;a href=&#34;http://localhost/curso-react-matheus/public/index.html&#34;&gt;http://localhost/curso-react-matheus/public/index.html&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O Tutorial puro do ReactJS sugere rodar um server. Exatamente por que eles não mostram o processo usando Webpack. Contudo, se quiser, segue aí as instruções. &lt;a href=&#34;https://github.com/reactjs/react-tutorial/#to-use&#34;&gt;Entre nesse link e rode um dos servidores&lt;/a&gt;. É só baixar um dos arquivos da linguagem que mais te agrada e rodar o comando para que o servidor rode.&lt;/p&gt;
+
+&lt;p&gt;Crie uma pasta, baixe o arquivo preferencial e rode o comando correspondente. Ex.: &lt;code&gt;php server.php&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Sugiro que fique conosco aqui no Webpack, assim você não se perde no processo. Nesse momento, você já deve ter rodado seu primeiro &lt;strong&gt;Hello World&lt;/strong&gt; com React, usando Webpack.&lt;/p&gt;
+
+&lt;h3 id=&#34;importando-seu-primeiro-módulo&#34;&gt;Importando seu primeiro módulo&lt;/h3&gt;
+
+&lt;p&gt;Para importar seu primeiro módulo, lá no &lt;strong&gt;App.js&lt;/strong&gt;, vamos criar uma variável que faz a importação do nosso componente. O arquivo desse componente estará na pasta &lt;strong&gt;components&lt;/strong&gt;, dentro da pasta &lt;strong&gt;App&lt;/strong&gt;. A estrutura de pastas fica assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/folders-react.png&#34; alt=&#34;folders-react&#34; width=&#34;650&#34; height=&#34;618&#34; class=&#34;aligncenter size-full wp-image-56270&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;O seu App.js fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var React = require(&#39;react&#39;); // importa a lib react
+var reactDOM = require(&#39;react-dom&#39;);// importa a lib react-dom
+
+var MeuComponente = require(&#39;./components/MeuComponente.js’);
+
+reactDOM.render(, document.getElementById(&#39;app&#39;));
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;criando-seu-primeiro-componente&#34;&gt;Criando seu primeiro componente&lt;/h4&gt;
+
+&lt;p&gt;Dentro da pasta &lt;strong&gt;components&lt;/strong&gt;, crie um arquivo chamado &lt;strong&gt;MeuComponente.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;DISCLAIMER:&lt;/strong&gt; Como boas práticas e uma convenção comum nos projetos, nós colocamos o nome do arquivo do componente como sendo o mesmo nome do componente dentro do código. O nome do arquivo poderia ser diferente do nome do componente, mas aí o risco de bagunça seria enorme. Por isso, mantenha o nome do arquivo do componente sendo igual ao nome do componente no código.&lt;/p&gt;
+
+&lt;p&gt;Voltando… dentro desse componente você vai escrever o código básico de todo o componente, que é o código que segue abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var React = require(&#39;react&#39;); // importa a lib react
+
+var MeuComponente = React.createClass({
+  render: function(){
+    return (
+      
+
+&lt;h1&gt;
+  teste
+&lt;/h1&gt;
+    );
+  }
+});
+
+module.exports = MeuComponente;
+&lt;/pre&gt;
+
+&lt;p&gt;Todos os componentes react vão ter esse código. Primeiro ele importa a lib do React. Depois nós criamos uma classe (&lt;code&gt;React.createClass&lt;/code&gt;) onde construíremos nosso Componente. E aí, exportamos (&lt;code&gt;module.exports = MeuComponente&lt;/code&gt;) nosso Componente para importá-lo em outras partes do projeto, como fizemos no App.js.&lt;/p&gt;
+
+&lt;p&gt;Dentro a classe do seu componente, perceba que há uma função &lt;strong&gt;render&lt;/strong&gt;. Essa função irá transformar o código JSX que estiver ali dentro no seu componente e irá renderizá-la na tela.&lt;/p&gt;
+
+&lt;p&gt;Perceba uma curiosidade: Por que precisamos de um parênteses em volta do return? O JavaScript insere o sinal de ponto-virgula (;) automaticamente. Sem os parênteses, o JavaScript ignoraria as linhas seguintes e não retornaria valor algum. Se o JSX começa na mesma linha que o return, então os parênteses não são necessários.&lt;/p&gt;
+
+&lt;p&gt;Se você for no seu browser e mudar o texto do seu componente, você vai perceber que nosso componente está funcionando! ;-D&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/gif-react.gif&#34; alt=&#34;gif-react&#34; width=&#34;1394&#34; height=&#34;878&#34; class=&#34;aligncenter size-full wp-image-56271&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Bom, vou ficando por aqui. O objetivo era apenas fazer um setup rápido, para você conseguir inserir pelo menos um componente e ver as coisas mudando na tela. Talvez as coisas tenham ficado mais claras para você agora, assim como ficaram para mim depois desse estudo. Sugiro que você veja os links abaixo para aprofundar mais seus estudos. Tem conteúdo em ingles e também conteúdo em português. Vá fundo!&lt;/p&gt;
+
+&lt;h2 id=&#34;leitura-recomendada&#34;&gt;Leitura recomendada:&lt;/h2&gt;
+
+&lt;p&gt;Algumas leituras eu perdi, outras estão por aí. Todos esses links me ajudaram a entender um bocado sobre o setup do React, seus módulos, inserir CSS, modularização e etc. Praticamente todos eles explicam as mesmas coisas, com palavras diferentes detalhes diferentes.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://facebook.github.io/react/tutorial/tutorial.html&#34;&gt;Documentação do React&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.tutorialspoint.com/reactjs/reactjs_environment_setup.htm&#34;&gt;React Environment Setup&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.andrewray.me/reactjs-for-stupid-people/&#34;&gt;React for Stupid People&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://jamesknelson.com/learn-raw-react-no-jsx-flux-es6-webpack/&#34;&gt;Learn React by itsel&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://medium.com/@jviereck/modularise-css-the-react-way-1e817b317b04&#34;&gt;Modularise CSS the React way&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://hugogiraudel.com/2015/06/18/styling-react-components-in-sass/&#34;&gt;Style React Components in SASS&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://survivejs.com/react/advanced-techniques/styling-react/&#34;&gt;Style React&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://buildwithreact.com/tutorial/components&#34;&gt;http://buildwithreact.com/tutorial/components&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://jscasts.teachable.com/&#34;&gt;Curso do Matheus Lima em Português&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://hugobessa.com.br/2015/01/17/comecando-com-react/&#34;&gt;Começando com React &amp;#8211; Hugo Bessa&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.jackcallister.com/2015/01/05/the-react-quick-start-guide.html&#34;&gt;The React Quick Starter Guide&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://gist.github.com/danawoodman/9cfddb1a0c934a35f31a&#34;&gt;React Hello World Examples&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://tylermcginnis.com/react-js-tutorial-pt-1-a-comprehensive-guide-to-building-apps-with-react-js-8ce321b125ba#.wn4e2ymf3&#34;&gt;React.js Tutorial Pt 1: A Comprehensive Guide to Building Apps with React.js&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/facebook/react&#34;&gt;GitHub do projeto React&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://medium.com/tableless/organizando-uma-aplicação-com-react-5b8ea9075596#.3q8sxog55&#34;&gt;Organizando uma aplicação com React&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://medium.com/@ignit.io/react-native-construindo-apps-nativos-com-javascript-parte-1-37af2fbcde84#.muc6c8dyv&#34;&gt;React Native — Construindo Apps Nativos com Javascript (parte 1)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/fnando/react-starter-pack&#34;&gt;Starter Pack para React do Nando&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Upload de imagens desmistificado com simpleGallery.js</title>
+      <link>http://tableless.com.br/upload-de-imagens-desmistificado-com-simplegallery-js/</link>
+      <pubDate>Wed, 07 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/upload-de-imagens-desmistificado-com-simplegallery-js/</guid>
+      <description>
+
+&lt;p&gt;Olá pessoal, tudo bem?&lt;/p&gt;
+
+&lt;p&gt;Neste artigo vou procurar abordar algo comum no dia-a-dia de qualquer desenvolver, o &amp;#8220;temido&amp;#8221; upload de imagens. No processo utilizarei NodeJS e Express para o back-end. A grande sacada será a utilização da lib &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;, que nos auxiliará no front-end.&lt;/p&gt;
+
+&lt;h2 id=&#34;passos-iniciais&#34;&gt;Passos iniciais..&lt;/h2&gt;
+
+&lt;p&gt;A seguir criaremos um servidor bem simples. Utilizarei o package &amp;#8220;Multer&amp;#8221; como middleware para as requisições de arquivo. Não vou prezar por segurança nem boas práticas, já que este artigo é apenas para encorajar aqueles que ainda possuem dificuldades.&lt;/p&gt;
+
+&lt;p&gt;Primeiro começaremos com a instalação do NodeJS e NPM, para mais informações:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://nodejs.org/en/&#34;&gt;https://nodejs.org/en/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.npmjs.org/post/85484771375/how-to-install-npm&#34;&gt;http://blog.npmjs.org/post/85484771375/how-to-install-npm&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Após NodeJS e NPM instalados, é hora de criarmos nosso &lt;code&gt;package.json&lt;/code&gt;, que será responsável por armazenar o nome do app, versão, nossos packages etc. Abra o terminal e digite:&lt;/p&gt;
+
+&lt;pre&gt;npm init /my-upload-app
+cd my-upload-app
+mkdir public&lt;/pre&gt;
+
+&lt;p&gt;Após todos os dados inseridos, partiremos para a inclusão dos packages que utilizaremos.&lt;/p&gt;
+
+&lt;pre&gt;npm install --save-dev express multer&lt;/pre&gt;
+
+&lt;p&gt;Este comando instalará as últimas versões de cada package, permitindo a sua utilização junto ao NodeJS.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-o-server&#34;&gt;Criando o Server&lt;/h2&gt;
+
+&lt;p&gt;Com tudo instalado, basta criar um arquivo em nosso diretório chamado de &lt;code&gt;index.js&lt;/code&gt;. Este conterá o básico para criar nossa API e seus respectivos endpoints. Estou utilizando o Hello World do próprio Express, que está presente &lt;a href=&#34;http://expressjs.com/pt-br/starter/hello-world.html&#34;&gt;neste&lt;/a&gt; link.&lt;/p&gt;
+
+&lt;pre&gt;const express = require(&#39;express&#39;)
+const app = express()
+
+app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+ res.sendFile(&#39;public/index.html&#39;)
+})
+
+app.listen(3000, () =&amp;gt; console.log(&#39;Lstening on port 3000!&#39;))
+
+&lt;/pre&gt;
+
+&lt;p&gt;Isto já é o suficiente para rodar nosso server (digite &lt;code&gt;node index.js&lt;/code&gt;). Tudo que estiver dentro da pasta &lt;code&gt;/public&lt;/code&gt; obviamente será considerado como público e &amp;#8220;visível&amp;#8221; ao browser.&lt;/p&gt;
+
+&lt;p&gt;Sem mais delongas, vamos partir para o endpoint que receberá os arquivos e retornará um JSON com as respectivas URL&amp;#8217;s, ele também será responsável por armazenar nossas imagens na pasta &lt;code&gt;/uploads&lt;/code&gt;. Neste ponto utilizo uma configuração mínima do &amp;#8216;Multer&amp;#8217;, você pode melhorar este processo limitando os arquivos por tamanho, tipo, quantidade etc. Para mais informações, clique &lt;a href=&#34;https://github.com/expressjs/multer&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre&gt;const express = require(&#39;express&#39;)
+const app = express()
+const multer = require(&#39;multer&#39;)
+
+const upload = multer({ dest: &#39;public/uploads/&#39; }) // Configuramos o destino dos arquivos.
+
+app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+ res.sendFile(&#39;public/index.html&#39;)
+})
+
+app.post(&#39;/upload&#39;, upload.array(&#39;gallery[]&#39;), (req, res) =&amp;gt; {
+ let gallery = []
+ req.files.map((image) =&amp;gt; gallery.push({&#39;url&#39;: `http://localhost:3000/uploads/${image.filename}`}))
+ res.status(200).json(gallery)
+})
+
+app.listen(3000, () =&amp;gt; console.log(&#39;Listening on port 3000!&#39;))&lt;/pre&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Agora nossa API já está 100% funcional. Para testar, submeta um POST com as imagens para a url &lt;code&gt;http://localhost:3000/uploads&lt;/code&gt;. Você receberá uma resposta formato JSON com a URL das imagens enviadas.&lt;/p&gt;
+
+&lt;h2 id=&#34;já-no-front-end&#34;&gt;Já no Front-End..&lt;/h2&gt;
+
+&lt;p&gt;Com a nossa API criada, agora precisamos configurar o nosso front-end. Para isto, vamos iniciar criando um &lt;code&gt;index.html&lt;/code&gt; dentro da pasta &lt;code&gt;/public&lt;/code&gt;. Após criado, é hora de escrevermos nosso HTML:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+ &amp;lt;head&amp;gt;
+ &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Upload App&amp;lt;/title&amp;gt;
+ &amp;lt;/head&amp;gt;
+ &amp;lt;body&amp;gt;
+ &amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+ &amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;
+ &amp;lt;label for=&#34;&#34;&amp;gt;Image Gallery&amp;lt;/label&amp;gt;
+ &amp;lt;div class=&#34;input-upload btn&#34;&amp;gt;
+ Upload
+ &amp;lt;input class=&#34;upload&#34; type=&#34;file&#34; multiple=&#34;multiple&#34; accept=&#34;image/*&#34;&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=&#34;gallery-container&#34;&amp;gt;&amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+ &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Até agora nenhuma novidade, um formulário &lt;code&gt;enctype=&amp;quot;multipart/form-data&amp;quot;&lt;/code&gt; com os campos necessários para enviarmos as fotos para nossa API.&lt;/p&gt;
+
+&lt;h2 id=&#34;8220-hora-do-show-8221&#34;&gt;&amp;#8220;Hora do show!&amp;#8221;&lt;/h2&gt;
+
+&lt;p&gt;Chegou a hora de implementarmos o &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;, uma lib JS vanilla, de apenas 2kb gzipped. Esta será responsável por submeter as imagens e salvar o JSON de retorno em algum input hidden, em nosso exemplo, utilizaremos o padrão da lib que será:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Também faremos a inclusão do CSS e JS, que pode ser encontrado no próprio repositório do &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;. Ou via NPM/Bower, basta procurar por: &lt;code&gt;simple-gallery-js&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;https://github.com/RubaXa/Sortable&#34;&gt;Sortable&lt;/a&gt;, uma lib JS vanilla, será responsável por permitir a reordenação de nossa galeria.&lt;/p&gt;
+
+&lt;p&gt;O código final fica assim:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+ &amp;lt;head&amp;gt;
+ &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Upload App&amp;lt;/title&amp;gt;
+ &amp;lt;link rel=&#34;stylesheet&#34; href=&#34;https://raw.githubusercontent.com/fccoelho7/simpleGallery.js/master/dist/simple-gallery.min.css&#34; media=&#34;screen&#34; charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;/head&amp;gt;
+ &amp;lt;body&amp;gt;
+ &amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+ &amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;
+ &amp;lt;label for=&#34;&#34;&amp;gt;Image Gallery&amp;lt;/label&amp;gt;
+ &amp;lt;div class=&#34;input-upload btn&#34;&amp;gt;
+Upload
+ &amp;lt;input class=&#34;upload&#34; type=&#34;file&#34; multiple=&#34;multiple&#34; accept=&#34;image/*&#34;&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=&#34;gallery-container&#34;&amp;gt;&amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+
+&amp;lt;script src=&#34;https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.4.2/Sortable.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script src=&#34;https://raw.githubusercontent.com/fccoelho7/simpleGallery.js/master/dist/simple-gallery.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+ new SimpleGallery(&#39;.form-upload&#39;);
+ &amp;lt;/script&amp;gt;
+ &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;mas-pera&#34;&gt;Mas pera!&lt;/h2&gt;
+
+&lt;p&gt;&amp;#8220;Eu tenho minha API de uploads em uma URL e meu formulário será enviado para outro endpoint, como farei isso?&amp;#8221; Bom, caso você não deseje utilizar o mesmo endpoint para upload de imagens e requisição do formulário, o &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt; nos permite criar um segundo &lt;strong&gt;action. &lt;/strong&gt;Basta inserir um &lt;code&gt;data-action-gallery&lt;/code&gt;, como no exemplo abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; data-action-gallery=&#34;/uploads&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;por-fim&#34;&gt;Por fim.&lt;/h2&gt;
+
+&lt;p&gt;Outras opções como: trocar o name do input que receberá o JSON das url&amp;#8217;s e a classe que conterá a galeria também são possíveis, para mais informações acesse o repositório oficial do &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O conteúdo deste artigo pode ser encontrado &lt;a href=&#34;https://github.com/fccoelho7/simple-gallery-demo&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Bom, é isso. Espero que tenha gostado e perdido o medo quando o assunto é &amp;#8220;upload de imagens&amp;#8221;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introdução à Programação Funcional (Functional Programming) em Javascript</title>
+      <link>http://tableless.com.br/introducao-programacao-funcional-functional-programming-em-javascript/</link>
+      <pubDate>Tue, 28 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/introducao-programacao-funcional-functional-programming-em-javascript/</guid>
+      <description>&lt;p&gt;Eu venho estudando functional programming já faz um tempo, e decidi colocar no papel o que aprendi, pois para mim essa é a melhor forma de reter o que se aprendeu. Além disso, será um prazer se esse post ajudar outros programadores.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;“Em ciência da computação, &lt;strong&gt;programação funcional&lt;/strong&gt; é um paradigma de programação que trata a computação como uma avaliação de funções matemáticas e que evita estados ou dados mutáveis. Ela enfatiza a aplicação de funções, em contraste da programação imperativa, que enfatiza mudanças no estado do programa” &lt;a href=&#34;https://pt.wikipedia.org/wiki/Programa%C3%A7%C3%A3o_funcional&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://pt.wikipedia.org/wiki/Programa%C3%A7%C3%A3o_funcional&#34;&gt;https://pt.wikipedia.org/wiki/Programa%C3%A7%C3%A3o_funcional&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;A princípio, isso pode parecer algo de outro mundo, mas com calma você também entenderá.&lt;/p&gt;
+
+&lt;p&gt;Basicamente, em programação funcional:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Dados são imutáveis, ou seja, uma vez atribuídos os valores de uma variável, não devemos nunca alterá-los (parece bizarro, mas fará sentido logo logo)&lt;/li&gt;
+&lt;li&gt;As funções devem ser sem estado (stateless), ou seja, elas devem sempre agir e retornar algo como se fosse a primeira vez que elas fossem utilizadas no programa. Para uma função neste paradigma, o que aconteceu antes de ser chamada não lhe interessa e não deve influenciar em nada a sua resposta&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Por isso, a principal característica da programação funcional é a ausência de efeitos secundários. Como uma função não altera nenhum dado externo e não depende de nenhum dado externo para fazer o seu trabalho, teoricamente não existe efeitos secundários causados por ela no programa.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Como programar utilizando o paradigma da Programação Funcional&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Abaixo eu coloquei 3 regras básicas para transformar seu código em Programação Funcional (tirado deste ótimo artigo &lt;a href=&#34;http://www.smashingmagazine.com/2014/07/dont-be-scared-of-functional-programming/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.smashingmagazine.com/2014/07/dont-be-scared-of-functional-programming/&#34;&gt;http://www.smashingmagazine.com/2014/07/dont-be-scared-of-functional-programming/&lt;/a&gt;&lt;/a&gt;)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A função deve conter pelo menos 1 argumento&lt;/li&gt;
+&lt;li&gt;A função deve retornar algum dado ou outra função (isso será visto mais pra frente)&lt;/li&gt;
+&lt;li&gt;Sem loops (este ponto é controverso, pois a biblioteca Lodash foi otimizada usando loops internamente nas funções. Gostaria de ouvir comentários e mais informações a respeito)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Utilizaremos uma pequena aplicação, uma página para uma agência de turismo virtual, e  transformaremos tudo o que for possível em seu código seguindo os conceitos de programação funcional.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://farinelliwebdevelopment.com/demo/functional-programming&#34; target=&#34;_blank&#34;&gt;Demo Page&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;(se quiser pegar o código para acompanhar e testar você mesmo, &lt;a href=&#34;https://github.com/maufarinelli/tutorial-functional-programming/tree/functional-part1&#34; target=&#34;_blank&#34;&gt;pegue o código no github&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;Começaremos pela parte dos dados:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javasript&#34;&gt;(function(_) {
+    // Data
+    var cities = [
+        {name: &#39;Nova York&#39;, passagem: 1550.00, hotel: 1800.00, category: &#39;north-america&#39;},
+        {name: &#39;Paris&#39;,     passagem: 1720.00, hotel: 2100.00, category: &#39;europe&#39;},
+        {name: &#39;Londres&#39;,   passagem: 1630.00, hotel: 2500.00, category: &#39;europe&#39;},
+        {name: &#39;Amsterdam&#39;, passagem: 1430.00, hotel: 1750.00, category: &#39;europe&#39;},
+        {name: &#39;Santiago&#39;,  passagem: 600.00,  hotel: 1150.00, category: &#39;south-america&#39;},
+        {name: &#39;Buenos Aires&#39;, passagem: 520.00, hotel: 950.00, category: &#39;south-america&#39;},
+        {name: &#39;Barcelona&#39;, passagem: 1390.00, hotel: 1670.00, category: &#39;europe&#39;},
+        {name: &#39;Lisboa&#39;,    passagem: 1280.00, hotel: 1450.00, category: &#39;europe&#39;},
+        {name: &#39;Vancouver&#39;, passagem: 1590.00, hotel: 320.00, category: &#39;north-america&#39;},
+        {name: &#39;Roma&#39;,      passagem: 1400.00, hotel: 1950.00, category: &#39;europe&#39;},
+    ];
+    function createPackages() {
+        for(var i = 0; i &amp;lt; cities.length; i++) {
+            cities[i].pacote = (cities[i].passagem + cities[i].hotel) * 0.8;
+        }
+}
+});
+&lt;/pre&gt;
+
+&lt;p&gt;A função &lt;code&gt;createPackages()&lt;/code&gt; não tem nada de programação funcional. Ela depende da variável &lt;em&gt;cities&lt;/em&gt; e ela altera os dados dessa variável, uma vez chamada.&lt;/p&gt;
+
+&lt;p&gt;Vamos transformá-la em uma função pura, como dizem na programação funcional, onde ela não dependerá de uma variável externa e não irá alterar nada exterior a ela.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;(function(_) {
+  // Data
+  var cities = [
+    {name: &#39;Nova York&#39;, passagem: 1550.00, hotel: 1800.00, category: &#39;north-america&#39;},
+    {name: &#39;Paris&#39;,     passagem: 1720.00, hotel: 2100.00, category: &#39;europe&#39;},
+    {name: &#39;Londres&#39;,   passagem: 1630.00, hotel: 2500.00, category: &#39;europe&#39;},
+    {name: &#39;Amsterdam&#39;, passagem: 1430.00, hotel: 1750.00, category: &#39;europe&#39;},
+    {name: &#39;Santiago&#39;,  passagem: 600.00,  hotel: 1150.00, category: &#39;south-america&#39;},
+    {name: &#39;Buenos Aires&#39;, passagem: 520.00, hotel: 950.00, category: &#39;south-america&#39;},
+    {name: &#39;Barcelona&#39;, passagem: 1390.00, hotel: 1670.00, category: &#39;europe&#39;},
+    {name: &#39;Lisboa&#39;,    passagem: 1280.00, hotel: 1450.00, category: &#39;europe&#39;},
+    {name: &#39;Vancouver&#39;, passagem: 1590.00, hotel: 320.00, category: &#39;north-america&#39;},
+    {name: &#39;Roma&#39;,      passagem: 1400.00, hotel: 1950.00, category: &#39;europe&#39;},
+  ];
+  function setPackages(collection) {
+    var result = [];
+    for(var i = 0; i &amp;lt; collection.length; i++) {
+        collection[i].pacote = (collection[i].passagem + collection[i].hotel) * 0.8;
+        result.push(collection[i]);
+    }
+    return result;
+  }
+
+  var citiesWithPackages = setPackages(cities);
+});
+&lt;/pre&gt;
+
+&lt;p&gt;A função setPackages pega qualquer coleção e, para cada objeto dessa coleção, insere mais uma propriedade chamada &lt;em&gt;pacote&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Alterei o nome da função, pois além de fazer mais sentido, fica claro para o leitor que na verdade, é uma nova função. Ela é pura, ou seja, não depende mais de dados externos e não alterará nada fora do seu escopo.&lt;/p&gt;
+
+&lt;p&gt;Opps, quase pura. O leitor mais atento já pode ter percebido que, na verdade, ela alterou sim a variável &lt;em&gt;cities&lt;/em&gt; também. Isso porque em JavaScript, assim como Java e outros linguagens, no momento em que fizemos : &lt;code&gt;collection[i].pacote = alguma coisa&lt;/code&gt;, esta alterando o objeto que esta alocado na referência &lt;em&gt;collection[i].&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-53585&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/tuto3.png&#34; alt=&#34;tuto3&#34; width=&#34;867&#34; height=&#34;138&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para que essa função seja realmente pura, teremos que clonar o objeto para somente após inserirmos essa nova propriedade. Para isso, vou criar um objecto chamado utilities, que conterá funções utilitárias para nossa aplicação, e a primeira será o método &lt;code&gt;cloneObject&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;(function(_) {
+  var utilities = {};
+
+  utilities.cloneObject = function(obj) {
+    if(typeof obj === &#34;object&#34;) {
+      var clone = {};
+      for (var prop in obj)
+        if (obj.hasOwnProperty(prop))
+          clone[prop] = obj[prop];
+      return clone;
+    }
+  };
+
+  // Data
+  var cities = [
+    {name: &#39;Nova York&#39;, passagem: 1550.00, hotel: 1800.00, category: &#39;north-america&#39;},
+    {name: &#39;Paris&#39;,     passagem: 1720.00, hotel: 2100.00, category: &#39;europe&#39;},
+    {name: &#39;Londres&#39;,   passagem: 1630.00, hotel: 2500.00, category: &#39;europe&#39;},
+    {name: &#39;Amsterdam&#39;, passagem: 1430.00, hotel: 1750.00, category: &#39;europe&#39;},
+    {name: &#39;Santiago&#39;,  passagem: 600.00,  hotel: 1150.00, category: &#39;south-america&#39;},
+    {name: &#39;Buenos Aires&#39;, passagem: 520.00, hotel: 950.00, category: &#39;south-america&#39;},
+    {name: &#39;Barcelona&#39;, passagem: 1390.00, hotel: 1670.00, category: &#39;europe&#39;},
+    {name: &#39;Lisboa&#39;,    passagem: 1280.00, hotel: 1450.00, category: &#39;europe&#39;},
+    {name: &#39;Vancouver&#39;, passagem: 1590.00, hotel: 320.00, category: &#39;north-america&#39;},
+    {name: &#39;Roma&#39;,      passagem: 1400.00, hotel: 1950.00, category: &#39;europe&#39;},
+  ];
+  function setPackages(collection) {
+    var result = [];
+    for(var i = 0; i &amp;lt; collection.length; i++) {
+      if(typeof collection[i].passagem !== &#39;undefined&#39; &amp;&amp; typeof collection[i].hotel !== &#39;undefined&#39;) {
+        var cloned = utilities.cloneObject(collection[i]);
+        cloned.pacote = (cloned.passagem + cloned.hotel) * 0.8;
+        result.push(cloned);
+      }
+    }
+    return result;
+  }
+
+  var citiesWithPackages = setPackages(cities);
+});
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-53587&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/tuto5.png&#34; alt=&#34;tuto5&#34; width=&#34;872&#34; height=&#34;138&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora sim, temos uma função realmente pura, que não altera nenhum dado externo. Como calculamos os pacotes a partir do preço da passagem e do hotel, devemos checar se o objeto em questão contém essas duas propriedades para evitarmos erros, pois agora essa função é mais abstrata e pode receber qualquer tipo de coleção.&lt;/p&gt;
+
+&lt;p&gt;Contudo, se queremos uma função abstrata, que pode aceitar qualquer tipo de coleção, por que não criarmos um método de utilities que fará esse papel.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;(function(_) {
+  var utilities = {};
+
+  utilities.map = function(list, callback) {
+    var resultList = [];
+    for(var i = 0; i &amp;lt; list.length; i++) {
+      resultList.push(callback(list[i]));
+    }
+    return resultList;
+  }
+
+  utilities.cloneObject = function(obj) {
+    if(typeof obj === &#34;object&#34;) {
+      var clone = {};
+      for (var prop in obj)
+        if (obj.hasOwnProperty(prop))
+          clone[prop] = obj[prop];
+      return clone;
+    }
+  };
+
+  // Data
+  var cities = [
+    {name: &#39;Nova York&#39;, passagem: 1550.00, hotel: 1800.00, category: &#39;north-america&#39;},
+    {name: &#39;Paris&#39;,     passagem: 1720.00, hotel: 2100.00, category: &#39;europe&#39;},
+    {name: &#39;Londres&#39;,   passagem: 1630.00, hotel: 2500.00, category: &#39;europe&#39;},
+    {name: &#39;Amsterdam&#39;, passagem: 1430.00, hotel: 1750.00, category: &#39;europe&#39;},
+    {name: &#39;Santiago&#39;,  passagem: 600.00,  hotel: 1150.00, category: &#39;south-america&#39;},
+    {name: &#39;Buenos Aires&#39;, passagem: 520.00, hotel: 950.00, category: &#39;south-america&#39;},
+    {name: &#39;Barcelona&#39;, passagem: 1390.00, hotel: 1670.00, category: &#39;europe&#39;},
+    {name: &#39;Lisboa&#39;,    passagem: 1280.00, hotel: 1450.00, category: &#39;europe&#39;},
+    {name: &#39;Vancouver&#39;, passagem: 1590.00, hotel: 320.00, category: &#39;north-america&#39;},
+    {name: &#39;Roma&#39;,      passagem: 1400.00, hotel: 1950.00, category: &#39;europe&#39;},
+  ];
+  var citiesWithPackages = utilities.map(cities, function(city){
+    if(typeof collection[i].passagem !== &#39;undefined&#39; &amp;&amp; typeof collection[i].hotel !== &#39;undefined&#39;) {
+      var city = utilities.cloneObject(city);
+      city.pacote = (city.passagem + city.hotel) * 0.8;
+    }
+    return city;
+  });
+});
+
+&lt;/pre&gt;
+
+&lt;p&gt;O método map, existente em diversas linguagens de programação, percorre nossa coleção e retornará uma nova coleção com os dados alterados da forma que a função callback quiser. Ou seja, agora temos toda flexibilidade para inserirmos ou retirarmos dados dos objetos de uma coleção sem afetar a coleção original.&lt;/p&gt;
+
+&lt;p&gt;Pode parecer estranho para alguns que não estão habituados a javascript, mais funções callback são tão comuns nessa linguagem que, as vezes, nem me dou conta.&lt;/p&gt;
+
+&lt;p&gt;Em javascript, funções podem receber outras funções como argumento e funções podem retornar outras funções.&lt;/p&gt;
+
+&lt;p&gt;Vamos a explicação do que fizemos no método map: primeiramente ele aceita uma função como argumento. O que essa função retorna é que realmente será inserido na array resultList.&lt;/p&gt;
+
+&lt;p&gt;Funções que podem receber outras funções como argumento ou que retornar outras funções são chamadas funções de ordem superior (higher-order functions).&lt;/p&gt;
+
+&lt;p&gt;Vamos supor que eu precise clonar uma array e não mais um objeto. O método cloneObjects como próprio nome já diz, não irá ajudar. Então preciso criar outro método mais eficiente.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;(function(_) {
+  var utilities = {};
+
+  utilities.map = function(list, callback) {
+    var resultList = [];
+    for(var i = 0; i &amp;lt; list.length; i++) {
+      resultList.push(callback(list[i]));
+    }
+    return resultList;
+  }
+
+  utilities.toClone = function() {
+    if(arguments[0] === &#34;object&#34;) {
+      return function(obj) {
+        var clone = {};
+        for(var prop in obj)
+          if (obj.hasOwnProperty(prop))
+            clone[prop] = obj[prop];
+        return clone;
+      }
+    }
+    if (arguments[0]===&#34;array&#34;){
+      return function(obj) {
+        var arrayClone = [];
+        for (var i=0; i &amp;lt; obj.length; i++) {
+          arrayClone.push(obj);
+        }
+        return arrayClone;
+      };
+    }
+  };
+
+  utilities.cloneObject = function(obj) {
+    if(typeof obj === &#34;object&#34;) {
+      var clone = {};
+      for (var prop in obj)
+        if (obj.hasOwnProperty(prop))
+          clone[prop] = obj[prop];
+      return clone;
+    }
+  };
+
+  // Data
+  var cities = [
+    {name: &#39;Nova York&#39;, passagem: 1550.00, hotel: 1800.00, category: &#39;north-america&#39;},
+    {name: &#39;Paris&#39;,     passagem: 1720.00, hotel: 2100.00, category: &#39;europe&#39;},
+    {name: &#39;Londres&#39;,   passagem: 1630.00, hotel: 2500.00, category: &#39;europe&#39;},
+    {name: &#39;Amsterdam&#39;, passagem: 1430.00, hotel: 1750.00, category: &#39;europe&#39;},
+    {name: &#39;Santiago&#39;,  passagem: 600.00,  hotel: 1150.00, category: &#39;south-america&#39;},
+    {name: &#39;Buenos Aires&#39;, passagem: 520.00, hotel: 950.00, category: &#39;south-america&#39;},
+    {name: &#39;Barcelona&#39;, passagem: 1390.00, hotel: 1670.00, category: &#39;europe&#39;},
+    {name: &#39;Lisboa&#39;,    passagem: 1280.00, hotel: 1450.00, category: &#39;europe&#39;},
+    {name: &#39;Vancouver&#39;, passagem: 1590.00, hotel: 320.00, category: &#39;north-america&#39;},
+    {name: &#39;Roma&#39;,      passagem: 1400.00, hotel: 1950.00, category: &#39;europe&#39;},
+  ];
+  var citiesWithPackages = utilities.map(cities, function(city){
+    if(typeof city.passagem !== &#39;undefined&#39; &amp;&amp; typeof city.hotel !== &#39;undefined&#39;) {
+      var clone = utilities.toClone(&#34;object&#34;);
+      var city = clone(city);
+      city.pacote = (city.passagem + city.hotel) * 0.8;
+    }
+    return city;
+  });
+});
+&lt;/pre&gt;
+
+&lt;p&gt;O método toClone é muito mais eficiente. Ele recebe como argumento a string “object” ou “array” e retorna a função correta para clonar esse tipo de objeto. E foi isso que utilizei na linha 58, dentro da função callback para a variável citiesWithPackages.&lt;/p&gt;
+
+&lt;p&gt;O método toClone é uma função de ordem superior que retorna outra função para ser utilizada futuramente.&lt;/p&gt;
+
+&lt;p&gt;Bom, é isso. Uma introdução à programação funcional. Por fim, se quiser continuar seu aprendizado em programação funcional, recomendo as video aulas da &lt;a href=&#34;http://webschool.io/jsfuncional/&#34;&gt;webschool.io&lt;/a&gt;, do Suissa. O cara disponibiliza gratuitamente um material muito bom e abrengente.&lt;/p&gt;
+
+&lt;p&gt;Grande abraço.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>ReactJS 101</title>
+      <link>http://tableless.com.br/reactjs-101/</link>
+      <pubDate>Sat, 07 May 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/reactjs-101/</guid>
+      <description>
+
+&lt;h4 id=&#34;tl-dr&#34;&gt;TL;DR&lt;/h4&gt;
+
+&lt;p&gt;ReactJS é a biblioteca criada pelo Facebook para criação de interfaces. Pensando no mundo &lt;strong&gt;MV&lt;/strong&gt;* qual vivenciamos hoje, este seria o &lt;strong&gt;V&lt;/strong&gt; (view).&lt;/p&gt;
+
+&lt;p&gt;Através de uma api simples qual previlegia o uso do javascript e com uma performance acima da apresentada pelos seus concorrentes, o ReactJS vem ganhando cada dia mais adeptos.&lt;/p&gt;
+
+&lt;h4 id=&#34;building-blocks&#34;&gt;Building Blocks&lt;/h4&gt;
+
+&lt;p&gt;Fortemente inspirado pelo conceito de componentes, trazendo duas grandes características que o desenvolvedor deve se concentrar: &lt;em&gt;Components&lt;/em&gt; e&lt;em&gt;Elements&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h5 id=&#34;components&#34;&gt;Components&lt;/h5&gt;
+
+&lt;p&gt;É o template para criação de elementos. Fazendo um paralelo com a web atual, exemplos de components são &lt;em&gt;div&lt;/em&gt;, &lt;em&gt;button&lt;/em&gt;, &lt;em&gt;label&lt;/em&gt; entre outros.&lt;/p&gt;
+
+&lt;h5 id=&#34;elements&#34;&gt;Elements&lt;/h5&gt;
+
+&lt;p&gt;&lt;em&gt;Element&lt;/em&gt; é a instância de um &lt;em&gt;component&lt;/em&gt;. Por exemplo quando inserimos um &lt;em&gt;button&lt;/em&gt; em uma página HTML, este elemento é a materialização/instância de um componente no DOM.&lt;/p&gt;
+
+&lt;p&gt;Complicado?&lt;/p&gt;
+
+&lt;p&gt;Vamos ver como funciona na prática:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;//cria elemento
+var customDiv = React.createElement(&#39;div&#39;);
+
+//renderiza elemento
+ReactDOM.render(customDiv, document.getElementById(&#39;container&#39;));
+&lt;/pre&gt;
+
+&lt;p&gt;O código acima cria um &lt;em&gt;element&lt;/em&gt; baseado no &lt;em&gt;component&lt;/em&gt; &lt;code&gt;div&lt;/code&gt; e renderiza o mesmo no DOM.&lt;/p&gt;
+
+&lt;p&gt;Legal! Mas usar diretamente o HTML não é mais eficiente?&lt;/p&gt;
+
+&lt;p&gt;A resposta: normalmente não.&lt;/p&gt;
+
+&lt;p&gt;E eis que lhes apresento o &lt;em&gt;Virtual DOM&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;virtual-dom&#34;&gt;Virtual DOM&lt;/h4&gt;
+
+&lt;p&gt;Como todos sabem a manipulação de DOM além de não ser uma das coisas mais simples no mundo web, ainda tem um grande impacto na performance de nossas aplicações.&lt;/p&gt;
+
+&lt;p&gt;E com isso em mente os engenheiros do facebook/instagram criaram o &lt;em&gt;virtual DOM&lt;/em&gt; que na prática é a representação do DOM em memória. Deste modo, todos os &lt;em&gt;elements&lt;/em&gt; que criamos utilizando React.createElement são criados e mantidos nesse ambiente virtual antes de serem renderizados no DOM original.&lt;/p&gt;
+
+&lt;p&gt;A mágica acontece de verdade nas atualizações. Imagine o seguinte cenário: numa tela HTML temos um campo de texto do tipo numeric e um botão de adicionar. Toda vez que clicamos no botão adiciona em 1 o valor do campo de texto.&lt;/p&gt;
+
+&lt;p&gt;Uma atividade super simples como adicionar um handler para o evento de click do botão e dentro do handler pegar o campo de texto através da api de DOM e somar 1 ao value do mesmo. Tudo lindo, mas tem alguns problemas:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;adicionar e manter event handlers nos &lt;em&gt;elements&lt;/em&gt; do DOM consomem bastante memória.&lt;/li&gt;
+&lt;li&gt;modificar o conteúdo da página gera reflow (nova renderização do _element_modificado e seus filhos).&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Agora imagine tudo isso acontecendo em uma página com centenas ou talvez milhares de &lt;em&gt;elements&lt;/em&gt; no DOM. Não é uma experiência muito boa.&lt;/p&gt;
+
+&lt;p&gt;Com o &lt;em&gt;virtual DOM&lt;/em&gt; esses problemas são minimizados com a técnica conhecida como &amp;#8220;o menos é mais&amp;#8221;, ou seja, toda vez que algo é alterado nos &lt;em&gt;elements&lt;/em&gt; que foram criados através do método React.createElement. O ReactJS renderiza esse conteúdo no &lt;em&gt;virtual DOM&lt;/em&gt; e através de um algoritmo super otimizado calcula a diferença entre o DOM atual e o DOM com as alterações e são essas diferenças que são renderizadas no DOM original. E desta forma causa o mínimo de impacto possível fazendo com que nossas páginas estejam sempre responsivas e rápidas para o usuário.&lt;/p&gt;
+
+&lt;h4 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h4&gt;
+
+&lt;p&gt;ReactJS é uma nova opção para criação de interfaces focada na simplidade de desenvolvimento e alta performance. Com baixo consumo de memória e um gerenciamento eficiente do DOM esta biblioteca vem ganhando o mundo.&lt;/p&gt;
+
+&lt;p&gt;Por hoje é isso!&lt;/p&gt;
+
+&lt;p&gt;Espero que tenham gostado dessa introdução e até a próxima!&lt;/p&gt;
+
+&lt;h5 id=&#34;links-de-referência&#34;&gt;Links de referência:&lt;/h5&gt;
+
+&lt;p&gt;&amp;#8211; &lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction&#34; target=&#34;_blank&#34;&gt;DOM (Document Object Model)&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; &lt;a href=&#34;https://developers.google.com/speed/articles/reflow&#34; target=&#34;_blank&#34;&gt;Reflow&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; &lt;a href=&#34;https://facebook.github.io/react/docs/getting-started.html&#34; target=&#34;_blank&#34;&gt;ReactJS&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Uma visão detalhada sobre instanciação de variaveis no JavaScript</title>
+      <link>http://tableless.com.br/uma-visao-detalhada-sobre-instanciacao-de-variaveis-no-javascript/</link>
+      <pubDate>Wed, 09 Dec 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/uma-visao-detalhada-sobre-instanciacao-de-variaveis-no-javascript/</guid>
+      <description>
+
+&lt;h2 id=&#34;hoisting&#34;&gt;Hoisting&lt;/h2&gt;
+
+&lt;p&gt;Antes de falarmos sobre hoisting é importante lembrar como funciona escopo em JavaScript. Escopo nada mais é do que um contexto criado para os valores e expressões terem sua validade. Em JavaScript o escopo é criado com a declaração de funções. Vamos a um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Escopo global
+var num = 0; 
+
+// Escopo criado pela função
+function imprimir(){
+    var num = 1;
+    console.log(num);
+}
+
+// Executar a função e o que tem em seu escopo
+imprimir(); // 1
+
+// Imprimindo a variável do escopo global
+console.log(num); // 0
+&lt;/pre&gt;
+
+&lt;p&gt;No exemplo acima temos o seguinte: A variável &amp;#8220;num&amp;#8221; foi declarada com o mesmo nome em 2 lugares diferentes: No escopo global e no escopo criado pela função imprimir. Por elas estarem em escopos diferentes, não tem problema terem o mesmo nome.&lt;/p&gt;
+
+&lt;p&gt;Mas cuidado! As variáveis declaradas sem a palavra reservada &amp;#8220;var&amp;#8221; passam a ser parte do escopo global. Olha só:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Escopo global
+var num = 0;
+
+// Escopo criado para a função imprimir
+function imprimir(){
+    num = 1; 
+    console.log(num);
+}
+
+// Executar a função e o que tem no escopo
+imprimir(); // 1
+
+// Acessando a variável do escopo global
+console.log(num); // 1
+&lt;/pre&gt;
+
+&lt;p&gt;Uma das boas praticas em JavaScript é sempre declarar as variáveis com a palavra reservada &amp;#8216;var&amp;#8217; para conter o valor em seu escopo local e manter o escopo global limpo.&lt;/p&gt;
+
+&lt;p&gt;Legal, agora que já relembramos o escopo em JavaScript vamos entender o que é o hoisting.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Hoisting pode ser traduzido como levantar, erguer ou içar.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Esse comportamento na linguagem JavaScript vale para funções e variáveis. Vamos falar primeiro sobre o hoisting de variáveis. Quando declaramos uma variável em JavaScript a mesma é erguida, ou hoisted, para o topo do escopo, no caso de variaveis somente a sua declaração é levada para o topo do escopo mas sua inicialização não. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function nome(){
+    var nome = &#34;Alex&#34;;
+    console.log(nome + &#34; &#34; + sobreNome);
+    var sobreNome = &#34;Miranda&#34;;
+}
+nome(); // Alex undefined
+&lt;/pre&gt;
+
+&lt;p&gt;O valor da variável sobreNome é undefined, ou seja, ela esta sendo considerada na função mas o seu valor não.&lt;/p&gt;
+
+&lt;p&gt;E é assim que funciona o hoisting de variável. 😉&lt;/p&gt;
+
+&lt;p&gt;No caso de funções o hoisting ocorre de um jeito diferente. Tanto a sua declaração quanto o seu escopo é içado&lt;/p&gt;
+
+&lt;p&gt;para o topo. Olha que interessante:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;nome(); // Alex
+function nome(){
+    var nome = &#34;Alex&#34;;
+    console.log(nome);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Sim, a função foi executada antes da sua declaração por conta do hoisting. Porém, aqui vale um lembrete, uma das formas de declaramos funções em JavaScript é armazenando elas em variáveis, nesse caso a regra para hoisting em variáveis entra em cena novamente. Vamos ver o que o nosso exemplo anterior retornaria neste caso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;nome();
+var nome = function(){
+    var nome = &#34;Alex&#34;;
+    console.log(nome);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Declarando a função desta forma o JavaScript retorna um erro dizendo que &amp;#8220;nome&amp;#8221; não é uma função.&lt;/p&gt;
+
+&lt;h2 id=&#34;closure&#34;&gt;Closure&lt;/h2&gt;
+
+&lt;p&gt;A tradução para a Closure em português seria clausura que quer dizer confinamento ou ambiente fechado. Para conseguir esse confinamento basta declarar uma função dentro de outra, a função externa confina a função interna.&lt;/p&gt;
+
+&lt;p&gt;O confinamento acontece por conta da regra do JavaScript referente a escopo. Sabemos que o escopo é criado por funções, isso quer dizer que a função externa cria um escopo em que a função interna fica confinada podendo ser executada somente dentro desse escopo. As variáveis e parâmetros da função externa podem ser acessados pela função interna.&lt;/p&gt;
+
+&lt;p&gt;Vamos a um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// função externa
+function lancamentoDeNota(nome, exercicio , nota){
+    // função interna
+    function fechamento(){
+        var mensagem = &#34;Avaliação do exercício : &#34; + exercicio;
+        mensagem += &#34;\n Aluno: &#34; + nome;
+        mensagem += &#34;\n Nota: &#34; + nota;
+        console.log(mensagem)
+    }
+    // executa a função interna
+    fechamento();
+
+} // fecha função externa
+
+lancamentoDeNota(&#34;Alex&#34;, &#34;Importando collections&#34;, &#34;10&#34;); // Avaliação do exercício : Importando collections Aluno: Alex Nota: 10
+&lt;/pre&gt;
+
+&lt;p&gt;Acabamos de ver um exemplo de closure em JavaScript, mas ainda temos uma diferença muito bacana na linguagem. Em JavaScript é possível escapar a função interna do seu confinamento. Vamos avaliar o código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// função externa
+function lancamentoDeNota(nome, exercicio , nota){
+    // função interna
+    function fechamento(){
+        var mensagem = &#34;Avaliação do exercício: &#34; + exercicio;
+        mensagem += &#34;\n Aluno: &#34; + nome;
+        mensagem += &#34;\n Nota: &#34; + nota;
+        console.log(mensagem)
+    }
+    // escapando a função interna retornando ela de forma literal para função externa. Malandragem é pouco pro JS kkkk
+    return fechamento;
+}
+var primeiroExercicio = lancamentoDeNota(&#34;Alex&#34;, &#34;Importando collections&#34;, &#34;10&#34;);
+var segundoExercicio = lancamentoDeNota(&#34;Alex&#34;, &#34;Inserindo Pokemons&#34;, &#34;10&#34;);
+
+primeiroExercicio(); // Avaliação do exercício : Importando collections Aluno: Alex Nota: 10
+segundoExercicio(); // Avaliação do exercício : Importando Pokemons Aluno: Alex Nota: 10
+&lt;/pre&gt;
+
+&lt;p&gt;O return faz com que a função interna seja retornada de forma literal podendo ser executada fora do confinamento.&lt;/p&gt;
+
+&lt;h2 id=&#34;variável-global&#34;&gt;Variável Global&lt;/h2&gt;
+
+&lt;p&gt;Variáveis globais são todas aquelas definidas fora de alguma função. Isso porque cada função gera seu próprio escopo. A variável global pode ser acessada por qualquer função. Fizemos isso segundo exemplo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Escopo global
+var num = 0;
+
+// Escopo criado para a função imprimir
+function imprimir(){
+    num = 1; 
+    console.log(num);
+}
+
+// Executar a função e o que tem no escopo
+imprimir(); // 1
+
+// Acessando a variável do escopo global
+console.log(num); // 1
+&lt;/pre&gt;
+
+&lt;p&gt;Todas as variáveis que não forem declaradas com a palavra reservada &amp;#8216;var&amp;#8217; serão consideradas parte do escopo&lt;/p&gt;
+
+&lt;p&gt;global.&lt;/p&gt;
+
+&lt;h2 id=&#34;variável-por-parâmetro&#34;&gt;Variável por parâmetro&lt;/h2&gt;
+
+&lt;p&gt;Quando declaramos uma função temos a opção de indicar alguns parâmetros para elas. Tais parâmetros são considerados como variáveis que recebem um valor na hora da execução da função. Esses valores são utilizados dentro da função. Exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function sub(num1, num2){
+ console.log(num1-num2)
+}
+sub(10, 2) // 8
+&lt;/pre&gt;
+
+&lt;p&gt;Caso esse parâmetro seja uma variável global o valor dela não se altera. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var global = 12;
+function sub(global, num2){
+ console.log(global-num2);
+}
+sub(15, 2) // 13
+console.log(global); // 12
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;instanciação-usando-uma-iife&#34;&gt;Instanciação usando uma IIFE&lt;/h2&gt;
+
+&lt;p&gt;IIFE é a abreviação para Imediately Invoked Function Expression, que pode ser traduzida para Expressão de Função Invocada Imediatamente. Esse tipo de função é executada no mesmo momento que esta sendo interpretada, veja a sintaxe dela:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;(function(){
+ // corpo da função
+}())
+&lt;/pre&gt;
+
+&lt;p&gt;Os parenteses que envolvem a função fazem dela uma expressão e os parenteses no final da declaração executa a&lt;/p&gt;
+
+&lt;p&gt;função. Esse tipo de função também pode ser armazenada em uma variável. Dessa forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var nome = (function(){
+ // corpo da função
+}())
+&lt;/pre&gt;
+
+&lt;p&gt;Como toda função, a IIFE também pode receber parâmetros. Mas agora pense o seguinte, se ela é chamada imediatamente em tempo de execução, como podemos passar os parâmetros ? Vamos ver:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var nome = (function(nome){
+ // corpo da função
+ console.log(&#34;Artigo escrito por: &#34; + nome); // Alex
+}(&#34;Alex&#34;))
+&lt;/pre&gt;
+
+&lt;p&gt;Bem bacana né ? A IIFE é um partner em JavaScript que evita poluição no escopo global e com ela também é possível modularizar o código e deixar tudo mais organizado.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Harvest: Boilerplate de Gulp para seus projetos</title>
+      <link>http://tableless.com.br/harvest-boilerplate-de-gulp-para-seus-projetos/</link>
+      <pubDate>Wed, 07 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/harvest-boilerplate-de-gulp-para-seus-projetos/</guid>
+      <description>&lt;p&gt;Não importa qual o Task Runner você usa. Muitos gostam de Grunt, outros de Gulp, outros usam Rake e todos tem o seu encanto e seus truques. Já usei muito Grunt, mas ultimamente tenho experimentado o Gulp. Cara&amp;#8230; como é rápido. Por isso, tive a grande ideia de criar um boilerplate para os meus projetos, onde eu consigo rapidamente concatenar os assets, otimizar imagens, criar source maps dos arquivos SASS, subir um servidor e várias outras coisas.&lt;/p&gt;
+
+&lt;p&gt;Mas antes de iniciar a criação desse boilerplate, obviamente, procurei se alguém não já teve essa ideia e feito esse trabalho para mim. Foi aí que eu achei o &lt;a href=&#34;http://www.ryanbensonmedia.com/harvest&#34;&gt;Harvest&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O Harvest é um boilerplate Gulp que te ajuda a fazer uma série tarefas rotineiras como:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Levantar um servidor na porta 3000&lt;/li&gt;
+&lt;li&gt;Live Reload usando o BrowserSync&lt;/li&gt;
+&lt;li&gt;Build do projeto&lt;/li&gt;
+&lt;li&gt;Conversão do SCSS com Source Maps&lt;/li&gt;
+&lt;li&gt;Concatenação e minificação do CSS e JS&lt;/li&gt;
+&lt;li&gt;Compressão e Otimização de imagem&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A instalação é fácil:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Faça o download ou o clone do projeto&lt;/li&gt;
+&lt;li&gt;Rode &lt;code&gt;npm install&lt;/code&gt; para instalar as dependencias.&lt;/li&gt;
+&lt;li&gt;Rode &lt;code&gt;gulp&lt;/code&gt; para iniciar o servidor, o live reload e o watch dos assets.&lt;/li&gt;
+&lt;li&gt;Abra o browser em &lt;a href=&#34;http://localhost:8080&#34;&gt;http://localhost:8080&lt;/a&gt; para ver seu servidor local e o live reload do projeto&lt;/li&gt;
+&lt;li&gt;Rode &lt;code&gt;gulp deploy&lt;/code&gt; para fazer o build seu projeto&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Alguns dos módulos usados para fazer esse boilerplate são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-autoprefixer&#34; target=&#34;_blank&#34;&gt;Gulp Auto Prefixer&lt;/a&gt; insere os prefixos dos browsers no seu CSS automaticamente&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-concat&#34; target=&#34;_blank&#34;&gt;Gulp Concat&lt;/a&gt; Concatena o JS e o CSS em um arquivo.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-connect&#34; target=&#34;_blank&#34;&gt;Gulp Connect&lt;/a&gt; Cria um servidor local para o desenvolvimento faz o reload quando você muda e salva um arquivo.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-imagemin&#34; target=&#34;_blank&#34;&gt;Gulp ImageMin&lt;/a&gt; Minifica as imagens.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-sass&#34; target=&#34;_blank&#34;&gt;Gulp SASS&lt;/a&gt; Biblioteca do SASS sem a dependência do Ruby.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-sourcemaps&#34; target=&#34;_blank&#34;&gt;Gulp SourceMaps&lt;/a&gt; Adiciona os arquivos de source maps para facilitar o debug do SASS&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-uglify&#34; target=&#34;_blank&#34;&gt;Gulp Uglify&lt;/a&gt; Uglify de JS.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-shell&#34; target=&#34;_blank&#34;&gt;Gulp Shell&lt;/a&gt; Ajuda na criação e limpeza de diretório de build&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-sequence&#34; target=&#34;_blank&#34;&gt;Gulp Sequence&lt;/a&gt; Organiza e roda as tarefas de build em uma sequência definida.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/browser-sync&#34; target=&#34;_blank&#34;&gt;BrowserSync&lt;/a&gt; Sincroniza vários browsers e executa o live reload da página.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-minify-css&#34; target=&#34;_blank&#34;&gt;Gulp Minify CSS&lt;/a&gt; Minifica o CSS.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A &lt;a href=&#34;http://www.ryanbensonmedia.com/harvest/documentation&#34;&gt;documentação&lt;/a&gt; ainda está sendo escrita, mas acho que você vai conseguir se virar bem.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Aprendendo JavaScript online</title>
+      <link>http://tableless.com.br/aprendendo-javascript-online/</link>
+      <pubDate>Fri, 19 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/aprendendo-javascript-online/</guid>
+      <description>
+
+&lt;p&gt;Outro dia eu estava tentando me lembrar de um site bem simpático e simples para aprender JavaScript online. Eu não me lembrava do nome do site, nem o nome de quem havia feito. Joguei no twitter a pergunta e uma pancada de gente trouxe vários websites cuja a abordagem era aprender JS online, grátis, de forma fácil. Nenhum dos sites era o que eu estava procurando, mas eram sites bem legais que talvez você possa se interessar. Abaixo segue o link para todos eles.&lt;/p&gt;
+
+&lt;h2 id=&#34;javascript-com&#34;&gt;Javascript.com&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://javascript.com/&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/javascript-com.jpg&#34; alt=&#34;javascript-com&#34; width=&#34;500&#34; height=&#34;300&#34; class=&#34;alignnone size-full wp-image-49682&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;codewars&#34;&gt;CodeWars&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.codewars.com/join?language=javascript&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/code-wars.jpg&#34; alt=&#34;code-wars&#34; width=&#34;500&#34; height=&#34;300&#34; class=&#34;alignnone size-full wp-image-49683&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;codeavengers&#34;&gt;CodeAvengers&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.codeavengers.com/javascript/1#1.1&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/code-avengers.jpg&#34; alt=&#34;code-avengers&#34; width=&#34;500&#34; height=&#34;300&#34; class=&#34;alignnone size-full wp-image-49684&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;codecombat&#34;&gt;CodeCombat&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codecombat.com/&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/code-combat.jpg&#34; alt=&#34;code-combat&#34; width=&#34;500&#34; height=&#34;300&#34; class=&#34;alignnone size-full wp-image-49681&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Jails – O Framework e a Arquitetura do Javascript</title>
+      <link>http://tableless.com.br/jails-o-framework-e-arquitetura-javascript/</link>
+      <pubDate>Wed, 17 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/jails-o-framework-e-arquitetura-javascript/</guid>
+      <description>
+
+&lt;p&gt;Quero compartilhar algo que estive desenvolvendo há um tempo: um framework JavaScript. Sim, mais um&amp;#8230; porém este não é um MVC. Eu não acredito muito no MVC como vem sendo difundido para o front-end. Quem já leu algo sobre o &lt;strong&gt;React&lt;/strong&gt; deve imaginar que não estou só nesta maneira de pensar.&lt;/p&gt;
+
+&lt;p&gt;Faz um bom tempo que trabalho com JavaScript e dentre todas as formas que usei para elaborar um projeto, uma se destacou por ser a mais eficaz. Estou falando da arquitetura baseada em &lt;strong&gt;Módulos&lt;/strong&gt;, ou seja, uma &lt;strong&gt;Arquitetura Modular&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;por-que-mais-um-framework&#34;&gt;Por que mais um Framework?&lt;/h2&gt;
+
+&lt;p&gt;A necessidade de escrever um framework nasceu após ter trabalhado dois anos em um e-commerce enorme e muito conhecido, provavelmente você deve ter comprado lá algumas dezenas de vezes. Ao chegar neste projeto, percebi que mesmo tendo sido incialmente concebido de forma modular, usando uma biblioteca &lt;strong&gt;AMD&lt;/strong&gt;, o projeto carecia de um &lt;strong&gt;Framework&lt;/strong&gt;. Não basta apenas criar seus módulos, você precisa saber muito mais que isso, precisa saber como classificar os problemas, como abstrair os módulos e como relacioná-los.&lt;/p&gt;
+
+&lt;p&gt;Ao perceber a dificuldade da manutenção e pensando em como melhorar toda a arquitetura, fui atrás dos frameworks existentes no mercado.&lt;/p&gt;
+
+&lt;h2 id=&#34;angularjs-backbone-ember-e-react&#34;&gt;AngularJS, Backbone, Ember e React.&lt;/h2&gt;
+
+&lt;p&gt;Estes eram os que estavam no mainstream e me chamaram a atenção. Estudei todos, não sou uma assumidade em nenhum, mas para mim bastava entender os paradigmas de cada um deles. Feitos os estudos, a minha conclusão era de que seriam inviáveis para o projeto por diversas razões, resumindo:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;AngularJS:&lt;/strong&gt; tinha futuro incerto; não era performático; pouco controle; muitas coisas aconteciam por baixo dos panos; uma boa parte dos seus componentes seriam removidos na próxima versão ( &lt;strong&gt;AngularJS 2&lt;/strong&gt; ).&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Backbone:&lt;/strong&gt; ótimo para programadores. Difícil para quem está começando, muitos métodos para aprender, é modularizado, mas ainda é necessário um trabalho manual para arquitetar os padrões no seu projeto.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Ember:&lt;/strong&gt; Díficil. Embora em seus screencasts tudo acontece de forma mágica e rápida, na prática é necessário uma curva de aprendizado considerável para ser produtivo.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;React:&lt;/strong&gt; Embora eu goste de projetos ousados, eu ainda não me acostumei com a idéia de misturar html e construção de markup via JavaScript. Para o React, tudo é componente, o que considero o principal motivo pelo e-commerce que eu trabalhava ter falhado numa arquitetura ideal, o fato de que tudo é a mesma coisa, no caso do meu projeto, tudo era módulo.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;O fato de ter estudado cada uma delas me deu um conhecimento que eu não tinha, tive algumas idéias&amp;#8230; Este aprendizado era o que precisava para olhar para todos os problemas que havia passado no projeto e imaginar qual seria a solução. Na hora, me veio na cabeça um projeto antigo que eu tinha, havia colocado o nome &lt;strong&gt;Jails&lt;/strong&gt;, não tinha nada haver com o &lt;strong&gt;Rails&lt;/strong&gt;, o nome surgiu de uma brincadeira. Era um MVC na época, mas seria reformulado.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-proposta&#34;&gt;A proposta.&lt;/h2&gt;
+
+&lt;p&gt;A idéia era desenvolver um framework leve, pequeno o bastante para gastar o menor tempo possível refatorando e fazendo atualizações, assim eu também minimizaria as falhas. Que ajudasse nas tarefas repetitivas e como organizar melhor as funções de uma aplicação seja ela complexa ou não e garantir um fluxo mais previsível. E seria modular, deveria crescer de acordo com a comunidade, assim como o &lt;strong&gt;Rails&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;jails-a-filosofia&#34;&gt;Jails, A filosofia.&lt;/h2&gt;
+
+&lt;p&gt;Basicamente o Jails abstrai sua aplicação em 4 partes.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Components&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Controllers&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Apps&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Modules&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Um &lt;strong&gt;componente&lt;/strong&gt; resolve um determinado problema, é mais genérico, escuta e ouve eventos, manipula o dom, não sabe da existência de outros elementos e classes.&lt;/p&gt;
+
+&lt;p&gt;Uma &lt;strong&gt;controladora&lt;/strong&gt; fecha um escopo um pouco maior, menos genérico, mais ligado à alguma regra de negócio, usado onde há uma relação entre dois ou mais componentes, escuta e dispara eventos para os componentes.&lt;/p&gt;
+
+&lt;p&gt;As &lt;strong&gt;aplicações&lt;/strong&gt; são o maior escopo da página, escuta eventos de componentes e controladoras, realiza as regras de negócio da página numa escala mais macro, menos genérica que as controladoras.&lt;/p&gt;
+
+&lt;p&gt;Os &lt;strong&gt;módulos&lt;/strong&gt; são apenas estruturas de classes ou módulos AMD, que podem ou não utilizar o Jails e seus elementos, sendo totalmente stand-alone, capaz de ser usado em projetos que não possuem o Jails. A &lt;strong&gt;Model&lt;/strong&gt; padrão do Jails é um exemplo de um módulo, pois é independente do framework.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-comunidade-escolhe-o-padrão&#34;&gt;A comunidade escolhe o padrão&lt;/h2&gt;
+
+&lt;p&gt;Eu não tenho a pretensão de escrever os melhores componentes e módulos para o framework, é provável que outros desenvolvedores o façam muito melhor do que eu. Portanto, para mim faz todo o sentido fazer a &lt;strong&gt;Model&lt;/strong&gt; como um módulo a parte, porque um desenvolvedor pode criar um projeto paralelo e fazer uma &lt;strong&gt;Model&lt;/strong&gt; mais sofisticada.&lt;/p&gt;
+
+&lt;p&gt;Da mesma forma, a &lt;strong&gt;View&lt;/strong&gt; padrão do &lt;strong&gt;Jails&lt;/strong&gt; é apenas um componente disponibilizado no repositório. Não faz sentido a comunidade esperar por um release para usar uma &lt;strong&gt;View&lt;/strong&gt; mais sofisticada ou diferente.&lt;/p&gt;
+
+&lt;h2 id=&#34;flexibilidade-e-eliminando-acoplamento&#34;&gt;Flexibilidade e eliminando acoplamento&lt;/h2&gt;
+
+&lt;p&gt;O MVC no front-end das formas como foi elaborado simplesmente não escala. É burocrático, você fica vendido à um fluxo Model -&amp;gt; Controller -&amp;gt; View que em muitas vezes não faz o menor sentido. No Jails você &lt;strong&gt;pode&lt;/strong&gt; ou não utilizar &lt;strong&gt;Models&lt;/strong&gt; ou &lt;strong&gt;Views&lt;/strong&gt;. Porque são apenas módulos/componentes.&lt;/p&gt;
+
+&lt;p&gt;Com isso vem a simplicidade, a curva de aprendizado é baixa, você precisa decorar 6 métodos que são disponibilizados igualmente para as &lt;strong&gt;Controllers e Apps&lt;/strong&gt;. Na verdade, elas são a mesma coisa, os componentes possuem apenas 2 métodos.&lt;/p&gt;
+
+&lt;p&gt;Você apenas precisa aprender mais métodos conforme adiciona componentes/módulos no seu projeto, você não é obrigado a saber dezenas e dezenas de métodos que pode nunca utilizar.&lt;/p&gt;
+
+&lt;h2 id=&#34;test-drive&#34;&gt;Test Drive&lt;/h2&gt;
+
+&lt;p&gt;Existem duas formas de trabalhar com o Jails, uma é usando de forma assícrona, bom pra prototipar e subir uma aplicação rápidamente, e outra é compilando o JavaScript pra uma saída só minificado. Vou mostrar apenas a primeira que utiliza módulos/componentes do repositório do Jails.&lt;/p&gt;
+
+&lt;p&gt;Crie uma estrutura de pastas padrão: (É possível mudar)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;assets/js/
+&lt;br /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;index.htm&lt;/p&gt;
+
+&lt;p&gt;Jails utiliza o &lt;strong&gt;gulp&lt;/strong&gt; como automatizador:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;npm install gulp-jails&lt;/pre&gt;
+
+&lt;p&gt;Instale o gulp localmente:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;npm install gulp&lt;/pre&gt;
+
+&lt;p&gt;Crie o arquivo gulpfile.js se não tiver, e carregue as tarefas do Jails:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;require(&#39;gulp-jails&#39;)();&lt;/pre&gt;
+
+&lt;p&gt;Pronto, agora já temos o automatizador do Jails.&lt;/p&gt;
+
+&lt;p&gt;No index.htm, adicione a variável global usada para referenciar nosso app inicial:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var global = { page :&#39;apps/my-app&#39; };&lt;/pre&gt;
+
+&lt;p&gt;Aqui estamos carregando a requirejs e falando para ela executar o config.js, a variável global.page dirá ao nosso config.js qual app deveremos iniciar da nossa pasta de apps nesta tela. Tudo pronto&amp;#8230; agora é só criar os arquivos. Por enquanto nossa pasta &lt;strong&gt;js&lt;/strong&gt; está vazia, mas precisamos criar o &lt;strong&gt;config.js&lt;/strong&gt; e &lt;strong&gt;apps/my-app.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;gulp jails/config -n global.page&lt;/pre&gt;
+
+&lt;p&gt;Este comando criará o config.js, com algumas definições e apontamentos para o repositório oficial.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;require.config({
+    baseUrl :&#39;assets/js/&#39;,
+    deps :[&#39;jquery&#39;, &#39;jails&#39;, global.page],
+    paths :{
+        jails :&#39;//rawgit.com/Javiani/Jails/master/source/jails.min&#39;,
+        mods :&#39;//rawgit.com/jails-org/Modules/master&#39;,
+        comps :&#39;//rawgit.com/jails-org/Components/master&#39;,
+        jquery :&#39;//code.jquery.com/jquery-2.1.1.min&#39;
+    },
+    callback :function( jquery, jails ){
+        jails.start({ base :jquery });
+    }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Agora criamos o arquivo my-app.js&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;gulp jails/app -n my-app&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;my-app.js&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;define([
+    &#39;jails&#39;
+],  
+function( jails ){
+    jails.app(&#39;my-app&#39;, function(html, data){
+        this.init = function(){};
+    });
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Criando o app e o arquivo config, temos o mínimo para rodar um código executável, basta colocar um &lt;code&gt;alert()&lt;/code&gt; ou um &lt;code&gt;console.log()&lt;/code&gt; no método &lt;code&gt;.init()&lt;/code&gt; da app.&lt;/p&gt;
+
+&lt;p&gt;Sem esquecer de referenciar no markup!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;body data-app=&#34;my-app&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;O primeiro componente vamos criar localmente, deverá ouvir uma lista de radio buttons e disparar um evento enviando o valor do radio clicado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;define([&#39;jails&#39;], function( jails ){
+    jails.component(&#39;my-component&#39;, function(html, anno){
+        var cp = this, buttons;
+
+        this.init = function(){
+            buttons = html.find(&#39;input[type=radio]&#39;);
+            html.append(&#39;Meu componente!!&#39;);
+            buttons.on(&#39;change&#39;, emit);
+        };
+
+        function emit(){
+            cp.emit(&#39;choose&#39;, this.value);
+        }
+    });
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Se você sabe jQuery, ou Zepto, aqui você está em casa =). É aconselhável que você passe um componente para um estagiário ou um júnior que está aprendendo JavaScript. Porque geralmente é simples e num escopo fechado, ajuda no aprendizado.&lt;/p&gt;
+
+&lt;p&gt;O que vamos fazer é utilizar um componente &lt;code&gt;hello-world&lt;/code&gt; que está no repositório do projeto para interagir com o nosso componente inicial. Vamos fazer este relacionamento usando a application mesmo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;define([
+    &#39;jails&#39;,
+    &#39;components/my-component&#39;,
+    &#39;comps/hello-world/hello-world&#39;
+], function( jails ){
+
+    jails.app(&#39;my-app&#39;, function(html, data){
+
+        var app = this, cp, hello_world;
+
+        cp = app.x(&#39;[data-component*=my-component]&#39;);
+        hello_world = app.x(&#39;[data-component*=hello-world]&#39;);
+
+        this.init = function(){
+            hello_world(&#39;greetings&#39;);
+            this.listen(&#39;my-component:choose&#39;, action);
+        };
+
+        function action(e, value){
+            hello_world(&#39;answer&#39;, value);
+        }
+    });
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Carregamos os dois mixins dos componentes da nossa aplicação. Um de maneira externa, usando o namespace &lt;strong&gt;comps &lt;/strong&gt; definido no &lt;code&gt;config.js&lt;/code&gt; e outro carregado localmente da nossa pasta components.&lt;/p&gt;
+
+&lt;p&gt;Guardamos duas referências para os dois componentes através do método &lt;code&gt;.x()&lt;/code&gt;, a query usada é um seletor jQuery.&lt;/p&gt;
+
+&lt;p&gt;No init executamos via evento o método público &lt;code&gt;hello-world.greeting()&lt;/code&gt; que apenas exibirá uma mensagem amigável =).&lt;/p&gt;
+
+&lt;p&gt;Depois ouvimos o evento disparado por nosso componente, sempre o nome vindo antes da ação &lt;code&gt;&#39;meu-componente:acao&#39;&lt;/code&gt;, executamos outro método do componente &lt;code&gt;hello-world.answer()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Sempre utilizamos as referências para executar métodos públicos dos nossos componentes, se os componentes não existirem na página, ou não possuírem o método, a aplicação não irá quebrar, levantando um erro, assim, deixamos nossa aplicação desacoplada, pois se alguém grita e ninguém ouve, nada acontece na vida real não é mesmo?&lt;/p&gt;
+
+&lt;p&gt;Embora os scripts estejam sendo carregados, precisamos definir no html, onde o mixin irá atuar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div data-component=&#34;hello-world&#34;&amp;gt;&amp;lt;/div&amp;gt;
+
+    &amp;lt;form data-component=&#34;my-component&#34;&amp;gt;
+
+        &amp;lt;label&amp;gt;How are you?&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;radio&#34; name=&#34;question&#34; value=&#34;how&#34; /&amp;gt;
+
+        &amp;lt;br /&amp;gt;
+        &amp;lt;label&amp;gt;What day is today?&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;radio&#34; name=&#34;question&#34; value=&#34;today&#34; /&amp;gt;
+
+        &amp;lt;br /&amp;gt;
+        &amp;lt;label&amp;gt;Where should I start from?&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;radio&#34; name=&#34;question&#34; value=&#34;start&#34; /&amp;gt;
+
+        &amp;lt;br /&amp;gt;
+        &amp;lt;label&amp;gt;Bye&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;radio&#34; name=&#34;question&#34; value=&#34;bye&#34; /&amp;gt;
+
+        &amp;lt;br /&amp;gt;
+        &amp;lt;label&amp;gt;Nothing to say&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;radio&#34; name=&#34;question&#34; value=&#34;nothing&#34; /&amp;gt;
+     &amp;lt;/form&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;p&gt;O componente &lt;code&gt;hello-world&lt;/code&gt; responde à alguns parametros no método &lt;code&gt;.answer()&lt;/code&gt; como:&lt;code&gt;how&lt;/code&gt;, &lt;code&gt;today&lt;/code&gt;, &lt;code&gt;start&lt;/code&gt;, &lt;code&gt;bye&lt;/code&gt; e &lt;code&gt;nothing&lt;/code&gt;. Dessa forma conseguimos fazer dois componentes disconexos funcionarem sozinhos, e fizemos a relação entre os dois usando uma application.&lt;/p&gt;
+
+&lt;p&gt;Há muito mais coisas envolvidas no framework, mas não daria para falar tudo aqui. Se quiserem saber mais ou atém mesmo ajudar essa iniciativa escrevendo módulos, componentes ou contribuindo de alguma outra forma, fique à vontade. Os convido a dar uma olhada no projeto pelos links no final do post. Há também screencasts e a documentação do projeto. Seria muito bom ver uma iniciativa brasileira figurar dentre os frameworks gringos do mercado.&lt;/p&gt;
+
+&lt;p&gt;Valeu galera, um grande abraço.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Screencast&lt;/strong&gt; : &lt;a href=&#34;http://jails-org.github.io/Jails/docs/#/video-components&#34;&gt;http://jails-org.github.io/Jails/docs/#/video-components&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Repositório&lt;/strong&gt;: &lt;a href=&#34;https://github.com/Jails-org/&#34;&gt;https://github.com/Jails-org/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Framework&lt;/strong&gt;: &lt;a href=&#34;https://github.com/jails-org/Jails&#34;&gt;https://github.com/jails-org/Jails&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Como criar um Chrome App com o seu Chromebook</title>
+      <link>http://tableless.com.br/como-criar-um-chrome-app-com-o-seu-chromebook/</link>
+      <pubDate>Mon, 01 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/como-criar-um-chrome-app-com-o-seu-chromebook/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-é-um-chrome-app&#34;&gt;O que é um chrome app&lt;/h2&gt;
+
+&lt;p&gt;A ideia de &lt;a href=&#34;https://www.google.com/chrome/webstore/apps-create.html&#34;&gt;chrome app&lt;/a&gt;&amp;nbsp;é trazer ferramentas que você usa no browser para o seu computador. Como se fosse uma extensão do browser. &amp;nbsp;A&amp;nbsp;instalação/desinstalação destes apps é fácil, rápida e sem dor de cabeça, além de contar com aplicativos que podem funcionar off-line.&lt;/p&gt;
+
+&lt;h2 id=&#34;por-que-criar-um-chrome-app&#34;&gt;Por que criar um chrome APP?&lt;/h2&gt;
+
+&lt;p&gt;A grande vantagem, é que aplicativos nativos para Chrome&amp;nbsp;OS são feitos com tecnologias que já conhecemos como HTML, CSS e JS. Podendo também utilizar a linguagem &lt;a href=&#34;http://pt.wikipedia.org/wiki/Dart_%28linguagem_de_programa%C3%A7%C3%A3o%29&#34;&gt;dart&lt;/a&gt;&amp;nbsp;que me parece bem interessante.&lt;/p&gt;
+
+&lt;h2 id=&#34;equipamento-necessário&#34;&gt;Equipamento necessário&lt;/h2&gt;
+
+&lt;p&gt;Encontrei vários editores de texto para o Chromebook, mas me familiarizei com o &lt;a href=&#34;http://thomaswilburn.net/caret/&#34;&gt;Caret&lt;/a&gt;. Gosto dele, pois além de informar erros, ele dá dicas de otimizações, e avisa se você esquecer de deixar callbacks para outros navegadores. Isso evita uma grande dor de cabeça. Fique à vontade para escolher o editor que mais te agrade.&lt;/p&gt;
+
+&lt;h2 id=&#34;começar-pelo-inicio&#34;&gt;Começar pelo inicio&lt;/h2&gt;
+
+&lt;p&gt;Para iniciar Você vai precisar de um arquivo &lt;strong&gt;manifest.json&lt;/strong&gt; para informar detalhes sobre a aplicação como titulo, descrição e icones. E de um arquivo JavaScript para criar a tela responsável pela interação com o APP conhecido como &lt;strong&gt;background.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Crie um diretório para o seu projeto. Na raiz dele vamos criar um arquivo chamado &lt;strong&gt;manifest.json&lt;/strong&gt;. A sintaxe para quem não conhece é composta por &lt;strong&gt;&amp;#8220;chave&amp;#8221;: &amp;#8220;valor&amp;#8221;&lt;/strong&gt;. É &amp;#8220;tipo&amp;#8221; um objeto JavaScript (na verdade ele é). Nele informamos nome, descrição, versão da aplicação, versão do arquivo manifest, o script de background e os ícones que serão usados no APP.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;{
+  &#34;name&#34;: &#34;Nome do meu APP&#34;,
+  &#34;description&#34;: &#34;Descrição do meu APP&#34;,
+  &#34;version&#34;: &#34;0.1&#34;,
+  &#34;manifest_version&#34;: 2,
+  &#34;app&#34;: {
+    &#34;background&#34;: {
+      &#34;scripts&#34;: [&#34;background.js&#34;]
+    }
+  },
+  &#34;icons&#34;: { &#34;16&#34;: &#34;icone-16.png&#34;, &#34;128&#34;: &#34;icone-128.png&#34; }
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Os icones são opcionais. Contudo, se você não tiver ícones para testar agora, tire essa linha. Na linha onde setamos &amp;#8220;app&amp;#8221;, setamos também o arquivo de background que é muito importante para nós.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-o-script-de-background&#34;&gt;Criando o script de background&lt;/h2&gt;
+
+&lt;p&gt;Após setar o script background.js, precisamos cria-lo. Aqui, por enquanto não tem segredo. Criamos o o arquivo js como o abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;chrome.app.runtime.onLaunched.addListener(function() {
+  chrome.app.window.create(&#39;index.html&#39;, {
+    &#39;bounds&#39;: {
+      &#39;width&#39;: 400,
+      &#39;height&#39;: 500
+    }
+  });
+});&lt;/pre&gt;
+
+&lt;p&gt;Na primeira linha, criamos um listener para ouvir nossos eventos de onLaunched, ou seja quando iniciarmos nossa aplicação. dentro dele criamos a nossa primeira tela, a função &lt;code&gt;chrome.app.window.create&lt;/code&gt; cria a nossa view index.html com o tamanho de 400&amp;#215;500.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-a-view&#34;&gt;Criando a view&lt;/h2&gt;
+
+&lt;p&gt;É mais simples do que vocês estão pensando. Criamos um arquivo index.html que será chamado pelo background.js quando executarmos nosso app.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+  &amp;lt;head&amp;gt;
+  &amp;lt;/head&amp;gt;
+  &amp;lt;body&amp;gt;
+    &amp;lt;h1&amp;gt;Minha primeira aplicação&amp;lt;/h1&amp;gt;
+  &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;como-testar-meu-chrome-app&#34;&gt;Como testar meu Chrome App?&lt;/h2&gt;
+
+&lt;p&gt;Acesse o endereço pelo seu chrome &lt;strong&gt;chrome://flags&lt;/strong&gt;. Procure por &amp;#8220;&lt;strong&gt;Experimental Extension APIs&lt;/strong&gt;&amp;#8220;, use &amp;#8220;ctrl+f&amp;#8221; ou &amp;#8220;command+f&amp;#8221; para acelerar o processo, e clique no link &amp;#8220;Enable&amp;#8221;. Caso esteja com o chrome em pt-br procure por &amp;#8220;&lt;strong&gt;APIs de extensões experimentais&amp;#8221;&lt;/strong&gt; e clique no link ativar.&lt;/p&gt;
+
+&lt;p&gt;Após ativarmos as extensões experimentais, podemos agora finalmente carregar nossa aplicação para teste.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Vá no menu do chrome&amp;gt;&amp;gt; Mais ferramentas &amp;gt;&amp;gt; Extensões&amp;#8221;&lt;/em&gt; Ou acesse o endereço &lt;strong&gt;chrome://extensions/&lt;/strong&gt; acho mais fácil. Verifique se o modo desenvolvedor está ativado.&lt;/p&gt;
+
+&lt;p&gt;Clique em &amp;#8220;&lt;strong&gt;carregar extensão expandida&lt;/strong&gt;&amp;#8221;&amp;nbsp;, escolha a pasta do seu projeto. Agora é só você procurar na sua lista de app do seu chrome, e sua aplicação está lá.&lt;/p&gt;
+
+&lt;h2 id=&#34;tornando-as-coisas-mais-simples-com-o-nbsp-chrome-dev-editor&#34;&gt;Tornando as coisas mais simples com o&amp;nbsp;Chrome Dev Editor&lt;/h2&gt;
+
+&lt;ul class=&#34;postList&#34;&gt;
+  &lt;li class=&#34;li&#34;&gt;
+    Primeiro vamos instalar&amp;nbsp;o Chrome Dev Editor acessando &lt;a class=&#34;markup--anchor markup--li-anchor&#34; href=&#34;https://chrome.google.com/webstore/detail/chrome-dev-editor-develop/pnoffddplpippgcfjdhbmhkofpnaalpg&#34;&gt;esse link&lt;/a&gt;.
+  &lt;/li&gt;
+  &lt;li class=&#34;li&#34;&gt;
+    Acessamos o menu principal, e clicamos em &lt;em class=&#34;markup--em markup--li-em&#34;&gt;New Project&lt;/em&gt;
+  &lt;/li&gt;
+  &lt;li class=&#34;li&#34;&gt;
+    Digitamos o nome da aplicação, e escolhemos o &lt;em class=&#34;markup--em markup--li-em&#34;&gt;Project Type&lt;/em&gt;
+  &lt;/li&gt;
+  &lt;li class=&#34;li&#34;&gt;
+    Usamos o atalho &lt;em class=&#34;markup--em markup--li-em&#34;&gt;ctrl+r &lt;/em&gt;para testar a aplicação
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Nessa IDE, temos várias opções de &lt;em&gt;Project Type&lt;/em&gt;, mas o que importa para nós agora são os &lt;strong&gt;Chrome Apps&lt;/strong&gt;. Podemos iniciar um projeto usando &lt;a href=&#34;http://pt.wikipedia.org/wiki/Dart_%28linguagem_de_programa%C3%A7%C3%A3o%29&#34;&gt;Dart&lt;/a&gt;, ou &lt;a href=&#34;http://pt.wikipedia.org/wiki/JavaScript&#34;&gt;JavaScript&lt;/a&gt;, também iniciar um projeto usando &lt;a href=&#34;https://www.polymer-project.org/0.5/&#34;&gt;Polymer&lt;/a&gt; e todas as facilidades dele. A Facilidade, é que os arquivos que expliquei anteriormente são criados automaticamente, e a instalação e teste também são automáticos, fazemos tudo pela IDE. Tem jeito mais fácil&amp;nbsp;?&lt;/p&gt;
+
+&lt;p&gt;É claro que isso é só o básico sobre criação de chrome Apps, mas já dá pra brincar um pouquinho. Abraço, e bons estudos. ☺&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Funções do JavaScript na versão ES 6 – Parte 1</title>
+      <link>http://tableless.com.br/funcoes-javascript-na-versao-es-6-parte-1/</link>
+      <pubDate>Wed, 25 Mar 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/funcoes-javascript-na-versao-es-6-parte-1/</guid>
+      <description>
+
+&lt;p&gt;Ao longo dos anos as funções em JavaScript não tem mudado muito, mas agora com a nova especificação de ECMAScript 6 teremos algum avanço. Confira abaixo o que tem mudado na nova versão do JavaScript.&lt;/p&gt;
+
+&lt;h2 id=&#34;parâmetros-default&#34;&gt;Parâmetros Default:&lt;/h2&gt;
+
+&lt;p&gt;Algo muito comum ao desenvolvermos é verificar a presença de uma váriavel e caso ela não exista, inicializamos com um valor, assim como no código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function hello(nome,cidade){
+
+  nome = nome || &#34;Caio&#34;;
+  cidade = cidade || &#34;São Paulo&#34;;
+
+  console.log(&#34;Sou &#34;+nome+ &#34; e moro em &#34;+cidade);
+
+}
+
+hello(); // Sou Caio e moro em São Paulo
+&lt;/pre&gt;
+
+&lt;p&gt;Agora, com a novidade de &lt;strong&gt;default parameters&lt;/strong&gt;, nós podemos declarar valores padrões de uma forma bem mais elegante:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function hello(nome=&#34;Caio&#34;, cidade=&#34;São Paulo&#34;){
+
+  console.log(&#34;Sou &#34;+nome+ &#34; e moro em &#34;+cidade);
+
+}
+
+hello(); // Sou Caio e moro em São Paulo
+
+hello(&#34;Pedro&#34;,&#34;Belo Horizonte&#34;) // Sou Pedro e moro em Belo Horizonte
+
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que reduzimos muito nosso código, além de ficar mais fácil para um novo desenvolvedor compreender o que está ocorrendo.&lt;/p&gt;
+
+&lt;h2 id=&#34;rest-parameters&#34;&gt;Rest Parameters:&lt;/h2&gt;
+
+&lt;p&gt;Em JavaScript sempre pudemos passar quantos parâmetros quiséssemos para uma função por meio de argumentos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function somaContaDoCliente(cliente, moeda, valores){
+  var i = 2;
+  var tamanho = arguments.length;
+  var resultado = 0;
+
+  while (i &amp;lt; tamanho) {
+   resultado += arguments[i];
+   i++;
+  }
+
+console.log(&#34;A conta do cliente &#34;+cliente+ &#34; totalizou &#34;+moeda+ resultado);
+
+}
+
+somaContaDoCliente(&#34;Caio&#34;,&#34;R$&#34;,1,2,3,4,5); // A conta do cliente Caio totalizou R$15
+&lt;/pre&gt;
+
+&lt;p&gt;Repare que no código acima precisamos lembrar da posição que começa nosso valores, mas e se adicionarmos mais um parâmetro no futuro? Precisaríamos lembrar de alterar o índice que usamos, mas será que só pelo nome da variável, lembraríamos que ali pode estar uma quantidade indefinida de valores?&lt;/p&gt;
+
+&lt;p&gt;Pensando nisto, foi criado o &lt;strong&gt;Rest Parameters&lt;/strong&gt;, onde nós podemos realizar isso de um modo mais interessante, pois não precisamos mais acessar o array arguments e verificar as posições dele, o parâmetro que pode receber vários valores é precedido por três pontos(&amp;#8230;) e precisa ser sempre o último parâmetro da função:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function somaContaDoCliente(cliente, moeda, ...valores){
+
+  var resultado = 0;
+  var i = 0;
+
+  while (i &amp;lt; valores.length) {
+
+    resultado += valores[i];
+
+    i++;
+
+  }
+
+console.log(&#34;A conta do cliente &#34;+cliente+ &#34; totalizou &#34;+moeda+ resultado);
+
+}
+
+somaContaDoCliente(&#34;Caio&#34;,&#34;R$&#34;,1,2,3,4,5); //A conta do cliente Caio totalizou R$15
+&lt;/pre&gt;
+
+&lt;p&gt;Repare que ficou mais simples, não nos preocupamos com o índice e ainda está bem claro que o valores é um parâmetro especial que recebe um ou mais números.&lt;/p&gt;
+
+&lt;h2 id=&#34;destructured-parameters&#34;&gt;Destructured Parameters:&lt;/h2&gt;
+
+&lt;p&gt;É muito comum em bibliotecas e afins, precisarmos extrair os paramêtros passados como opção, por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function auth(name, password, options) {
+
+  options = options || {};
+
+  var https = options.https,
+  provider = options.provider,
+  callback = options.callback;
+
+
+//Autentica baseado no provider, verifica se usa https e executa um callback caso necessário.
+
+}
+
+auth(&#34;caio&#34;, &#34;minhasenha&#34;, {
+
+  https: true,
+
+  provider: &#34;git&#34;
+
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Com destructured parameters nós podemos simplesmente passar o array de elementos, sem precisar extrair cada um manualmente, deixando nossa função mais enxuta.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function auth(name, password, {https,provider,callback}) {
+
+  //Autentica baseado no provider, verifica se usa https e executa um callback caso necessário.
+
+}
+
+auth(&#34;caio&#34;, &#34;minhasenha&#34;, {
+
+  https: true,
+
+  provider: &#34;git&#34;
+
+});
+
+&lt;/pre&gt;
+
+&lt;p&gt;Interessante não? O problema nesta abordagem é que caso o último parâmetro não seja passado, receberemos um erro, mas temos um meio de lidar com isso, usando os default parameters abordados no começo do texto, deixando nossa função da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function auth(name, password, {https,provider,callback} = {}) {
+
+  //Autentica baseado no provider, verifica se usa https e executa um callback caso necessário.
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ainda existem outras mudanças e incrementações nas funções em ECMAScript 6, essas irão ficar para o segundo post da série, espero que tenham gostado.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Múltiplas galerias de fotos dinâmicas com Fancybox, Ajax e JSON</title>
+      <link>http://tableless.com.br/multiplas-galerias-de-fotos-dinamicas-com-fancybox-ajax-e-json/</link>
+      <pubDate>Fri, 27 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/multiplas-galerias-de-fotos-dinamicas-com-fancybox-ajax-e-json/</guid>
+      <description>
+
+&lt;h3 id=&#34;introdução&#34;&gt;Introdução&lt;/h3&gt;
+
+&lt;p&gt;Ano passado trabalhei em um projeto que era um concurso de fotografia online, o &lt;a href=&#34;http://www.prixphotoaliancafrancesa.com.br&#34; target=&#34;_blank&#34;&gt;Prix Photo Web&lt;/a&gt;, onde cada fotógrafo podia se cadastrar, fazer upload de suas fotos e concorrer a um prêmio.&lt;/p&gt;
+
+&lt;p&gt;O site tinha uma página de galeria, onde se podia ver os diversos trabalhos publicados a partir de &lt;em&gt;thumbnails&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Eu havia pego o código já quase todo pronto, mas resolvi atualizar algumas coisas e uma delas foi a tal galeria.&lt;/p&gt;
+
+&lt;p&gt;No decorrer do processo acabei tendo que usar o &lt;strong&gt;JSON&lt;/strong&gt; para trocar informações entre scripts PHP e JavaScript, e achei muito interessante a maneira como isso aconteceu.&lt;/p&gt;
+
+&lt;p&gt;O resultado final pode ser conferido &lt;a href=&#34;http://www.prixphotoaliancafrancesa.com.br/galeria&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;, e a seguir vou descrever o passo a passo do processo que percorri.&lt;/p&gt;
+
+&lt;h3 id=&#34;escopo&#34;&gt;Escopo&lt;/h3&gt;
+
+&lt;p&gt;O conteúdo do site era totalmente dinâmico, ou seja, vinha de consultas ao banco de dados feitas no carregamento da página. Veja abaixo como ficou a página da galeria, com os &lt;em&gt;thumbnails&lt;/em&gt; clicáveis:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-1.png&#34;&gt;&lt;img class=&#34; wp-image-43 size-large aligncenter&#34; src=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-1-1024x550.png&#34; alt=&#34;galeria-prix-1&#34; width=&#34;660&#34; height=&#34;354&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ao dar o clique em um dos &lt;em&gt;thumbs&lt;/em&gt; se abria uma galeria de fotos em &lt;em&gt;lightbox&lt;/em&gt;, usando o &lt;em&gt;plugin&lt;/em&gt; jQuery &lt;a href=&#34;http://fancyapps.com/fancybox/&#34; target=&#34;_blank&#34;&gt;&lt;em&gt;fancybox&lt;/em&gt; &lt;/a&gt;(um velho favorito meu):&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-2.png&#34;&gt;&lt;img class=&#34; size-large wp-image-42 aligncenter&#34; src=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-2-1024x550.png&#34; alt=&#34;galeria-prix-2&#34; width=&#34;660&#34; height=&#34;354&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;o-problema&#34;&gt;O problema&lt;/h4&gt;
+
+&lt;p&gt;Eu já tinha toda a lógica para exibir os &lt;em&gt;thumbnails&lt;/em&gt; na página e também as galerias em &lt;em&gt;lightbox&lt;/em&gt;, mas achei o código meio &amp;#8216;macarrônico&amp;#8217; e me questionei se não podia ser mais simples e limpo.&lt;/p&gt;
+
+&lt;p&gt;Para demonstrar o funcionamento do sistema existente de carregamento das galerias, segue um diagrama:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/diagrama-prix.png&#34;&gt;&lt;img class=&#34; size-full wp-image-68 aligncenter&#34; src=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/diagrama-prix.png&#34; alt=&#34;diagrama-prix&#34; width=&#34;361&#34; height=&#34;536&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Trata-se de um exemplo básico de uso de Ajax, aonde temos:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Página HTML&lt;/strong&gt;: Renderiza a galeria de &lt;em&gt;thumbnails&lt;/em&gt; e as galerias de fotos em &lt;em&gt;lightbox&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Script JS&lt;/strong&gt;: Ativado a cada clique em um &lt;em&gt;thumbnail&lt;/em&gt;, faz a requisição de um arquivo PHP através de &lt;em&gt;Ajax&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Arquivo PHP&lt;/strong&gt;: Faz as consultas no banco de dados para pegar todas os dados necessários para exibição da galeria, e devolve estes dados ao script, que finalmente vai exibir a galeria, usando o plugin &lt;em&gt;fancybox&lt;/em&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;O sistema como um todo funcionava, mas faltava um toque de agilidade, que foi dado ao acrescentar o JSON no sistema.&lt;/p&gt;
+
+&lt;p&gt;Vamos então ver agora como isso foi feito.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-código&#34;&gt;O código&lt;/h3&gt;
+
+&lt;p&gt;O HTML da galeria era mais ou menos assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;projetos&#34;&amp;gt;
+    &amp;lt;a id=&#34;10&#34;&amp;gt;
+        &amp;lt;img src=&#34;dir/nome-img.jpg&#34;&amp;gt;
+    &amp;lt;/a&amp;gt;
+    &amp;lt;a id=&#34;11&#34;&amp;gt;
+        &amp;lt;img src=&#34;dir/nome-img.jpg&#34;&amp;gt;
+    &amp;lt;/a&amp;gt;
+&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;E abaixo o código JS (usando jQuery) que fazia acontecer a mágica a cada clique nos &lt;em&gt;thumbnails&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(document).ready(function(){
+    $(&#39;.projetos &amp;gt; a&#39;).click(function(){
+        var id = $(this).attr(&#39;id&#39;);
+        $.post(&#39;ajax-projetos.php&#39;,{&#39;idp&#39;:id}, function(data){
+            fancyPrix(data);
+        },&#39;text&#39;);
+    });
+});&lt;/pre&gt;
+
+&lt;p&gt;Observando o script, vemos que ele aplica algumas ações ao evento &lt;em&gt;click&lt;/em&gt; nos links, conforme indicado neste trecho: &lt;code&gt;$(&#39;.projetos &amp;gt; a&#39;).click(function(){&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;As ações basicamente são: a requisição do arquivo &lt;code&gt;ajax-projetos.php&lt;/code&gt; usando o método do jQuery $.&lt;code&gt;post&lt;/code&gt; (método do jQuery para chamadas Ajax), passando como parâmetro a variável &lt;code&gt;id&lt;/code&gt;, cujo valor vem de um atributo em cada link. O retorno dado pelo arquivo php, representado na variável &lt;code&gt;data&lt;/code&gt;, era em seguida passado pela função &lt;code&gt;fancyPrix&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se ficou com dúvidas examine novamente o script até entender todo o processo.&lt;/p&gt;
+
+&lt;h3 id=&#34;usando-o-json&#34;&gt;Usando o JSON&lt;/h3&gt;
+
+&lt;p&gt;Agora que ficou claro (espero) o importante papel do script JS, vamos ao arquivo &lt;code&gt;ajax-projetos.php&lt;/code&gt;. Como explicado no diagrama apresentado anteriormente, este arquivo fazia a consulta no banco de dados entregando ao final um &lt;em&gt;array&lt;/em&gt; contendo os dados necessários para a renderização da galeria de imagens em &lt;em&gt;lightbox&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Ao final do processo, o array produzido tinha a seguinte estrutura:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$proj = array (
+    &#34;candidato&#34; =&amp;gt; &#34;Felisbério dos Santos&#34;,
+    &#34;imgs&#34;  =&amp;gt; array ( 
+        0 =&amp;gt; &#34;http://localhost/projeto/diretorio/nome-arquivo.jpg&#34;,
+        1 =&amp;gt; &#34;http://localhost/projeto/diretorio/nome-arquivo.jpg&#34;,
+        2 =&amp;gt; &#34;http://localhost/projeto/diretorio/nome-arquivo.jpg&#34;,
+    ),
+    &#34;projeto&#34; =&amp;gt; &#34;Sombras Negras&#34;
+);&lt;/pre&gt;
+
+&lt;p&gt;Como se pode ver, o &lt;em&gt;array&lt;/em&gt; tinha todos os dados necessários para criação da galeria: nome do candidato, nome do projeto e as imagens, como um &lt;em&gt;sub-array&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;No código original, a grande falha no entanto era a forma como esses dados eram devolvidos ao script JS. Havia uma mistura de código JS como variáveis do php dentro do mesmo script que tornava tudo confuso e difícil de manter.&lt;/p&gt;
+
+&lt;p&gt;Porque não passar o &lt;em&gt;array&lt;/em&gt; de volta como um objeto &lt;strong&gt;JSON&lt;/strong&gt;, que pode ser interpretado dentro do script JS original, abolindo assim o uso de código php macarrônico?&lt;/p&gt;
+
+&lt;p&gt;Isto foi feito simplesmente adicionando-se ao código esta linha:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;echo json_encode($proj);&lt;/pre&gt;
+
+&lt;p&gt;A função nativa do PHP &amp;#8216;&lt;a href=&#34;http://php.net/manual/pt_BR/function.json-encode.php&#34; target=&#34;_blank&#34;&gt;json_encode&lt;/a&gt;&amp;#8216;, como diz o nome, converte o &lt;em&gt;array&lt;/em&gt; &lt;code&gt;$proj&lt;/code&gt; para um objeto JSON, que ficará assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+    &#34;candidato&#34;:&#34;Felisbério dos Santos&#34;,
+    &#34;imgs&#34;:[
+        &#34;http://path/da/imagem/136/000-1.jpg&#34;,
+        &#34;http://path/da/imagem/136/000-2.jpg&#34;,
+        &#34;http://path/da/imagem/136/000-3.jpg&#34;
+        ],
+    &#34;nome&#34;:&#34;Sombras Negras&#34;
+ }&lt;/pre&gt;
+
+&lt;p&gt;Este objeto pode ser passado tranquilamente pela script JS, aonde será usado na já citada função &lt;code&gt;fancyPrix()&lt;/code&gt;, que é quem vai pegar cada informação do objeto JSON e aplicar no _plugin &lt;a href=&#34;http://fancyapps.com/fancybox/&#34; target=&#34;_blank&#34;&gt;fancybox&lt;/a&gt;_, da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function fancyPrix(projeto) {
+    $.fancybox.open(projeto.imgs, {
+        padding: 0,
+        maxWidth : &#39;680px&#39;,
+        maxHeight : &#39;660px&#39;,
+        title: projeto.nome + &#34; - &#34;+ projeto.candidato,
+        loop : &#39;false&#39;,
+        prevEffect : &#39;none&#39;,
+        nextEffect : &#39;none&#39;
+    });
+}&lt;/pre&gt;
+
+&lt;p&gt;Vemos que o plugin &lt;em&gt;fancybox&lt;/em&gt; possui um método que permite trabalhar com objetos JSON, o &lt;code&gt;fancybox.open&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Repare como foram passadas as imagens logo no início do código: &lt;code&gt;$.fancybox.open(projeto.imgs, {&lt;/code&gt;. Com a simples propriedade &lt;code&gt;projeto.imgs&lt;/code&gt; conseguimos passar &lt;strong&gt;todas&lt;/strong&gt; as imagens que fazem parte da galeria. O restante das propriedades são usadas como opções dentro do plugin, como mostrado acima.&lt;/p&gt;
+
+&lt;p&gt;Relembrando o script jQuery original podemos ver como a galeria toda é criada em apenas uma linha de código.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(document).ready(function(){
+    $(&#39;.projetos a&#39;).click(function(){
+        var id = $(this).attr(&#39;id&#39;);
+        $.post(&#39;ajax-projetos.php&#39;,{&#39;idp&#39;:id}, function(data){
+            &lt;strong&gt;fancyPrix(data);&lt;/strong&gt;
+        },&#39;text&#39;);
+    });
+});&lt;/pre&gt;
+
+&lt;h3 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h3&gt;
+
+&lt;p&gt;Quando apliquei esta solução e vi tudo funcionando o orgulho (e o alívio) foram grandes, mas maior ainda foi a sensação de &amp;#8216;uau&amp;#8217; ao ver as diferentes linguagens da web conversando juntas e de maneira tão integrada.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Tamanho da tela e tamanho da janela com JavaScript</title>
+      <link>http://tableless.com.br/tamanho-da-tela-e-tamanho-da-janela-com-js/</link>
+      <pubDate>Mon, 09 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/tamanho-da-tela-e-tamanho-da-janela-com-js/</guid>
+      <description>&lt;p&gt;Se você trabalha em um projeto que precisa ser em visto em todos os dispositivos, você precisará ir muito além das Media Queries. Um passo adiante será detectar o tamanho da tela do usuário e também o tamanho da janela usada pelo usuário.&lt;/p&gt;
+
+&lt;p&gt;Note que os dois são bem diferentes. Enquanto o usuário está um desktop, ele pode modificar o tamanho da janela do browser e consequentemente isso irá alterar o breakpoint da página. Se você faz um layout responsivo, ele verá o layout se adaptando enquanto faz o redimensionamento da página. Embora ele esteja modificando o tamanho da janela, o tamanho da tela (baseada PPI &amp;#8211; Points Per Inch &amp;#8211; da tela) dele não é modificada.&lt;/p&gt;
+
+&lt;p&gt;Você pode usar as duas ocasiões para fazer mudanças no layout ou no funcionamento da página de acordo com o tamanho da janela ou o tamanho da tela. Abaixo, veja um código bem básico, onde você consegue recuperar esses valores:&lt;/p&gt;
+
+&lt;p&gt;Redimensionando a janela, os valores mudam e você conhece o tamanho da janela. Para que os valores da tela mudem, modifique a resolução do seu computador e faça um refresh na página. Perceba que aqui no Desktop, ele mostra a resolução que você colocou, que na verdade é uma emulação caso a tela tivesse uma quantidade de pontos por polegada menor do que ela realmente tem.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/02/desktop-width-height.png&#34; alt=&#34;desktop-width-height&#34; width=&#34;1188&#34; height=&#34;762&#34; class=&#34;alignnone size-full wp-image-46914&#34; srcset=&#34;uploads/2015/02/desktop-width-height.png 1188w, uploads/2015/02/desktop-width-height-217x139.png 217w, uploads/2015/02/desktop-width-height-400x257.png 400w&#34; sizes=&#34;(max-width: 1188px) 100vw, 1188px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Mas até aqui estamos testando isso em um Desktop. Quando testamos isso em um iPhone, que tem densidade de pixels diferente de desktops e toda aquela história, ele vai mostrar o valor real de PPI, que é o valor original da tela do iPhone, sem contar com o valor dobrado da tela retina. Nesse caso, em um iPhone 6, ficaria mais ou menos como a imagem abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/02/iphone-width-height.png&#34; alt=&#34;iphone-width-height&#34; width=&#34;675&#34; height=&#34;1135&#34; class=&#34;alignnone size-full wp-image-46912&#34; srcset=&#34;uploads/2015/02/iphone-width-height.png 675w, uploads/2015/02/iphone-width-height-83x139.png 83w, uploads/2015/02/iphone-width-height-400x673.png 400w&#34; sizes=&#34;(max-width: 675px) 100vw, 675px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;E agora em um iPad Air:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/02/ipad-width-height.png&#34; alt=&#34;ipad-width-height&#34; width=&#34;880&#34; height=&#34;1158&#34; class=&#34;alignnone size-full wp-image-46913&#34; srcset=&#34;uploads/2015/02/ipad-width-height.png 880w, uploads/2015/02/ipad-width-height-106x139.png 106w, uploads/2015/02/ipad-width-height-400x526.png 400w&#34; sizes=&#34;(max-width: 880px) 100vw, 880px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Como as janelas dos browsers em mobiles são sempre maximizadas, muito dificilmente elas serão muito menores que o tamanho da tela do aparelho.&lt;/p&gt;
+
+&lt;p&gt;Tendo esses valores, você consegue pelo menos ter uma ideia do tamanho do dispositivo que o usuário tem usado. Pelo menos saber qual categoria ergonômica ele se encaixa e então fazer decisões de layout e funcionalidades mais adequadas ao projeto.&lt;/p&gt;
+
+&lt;p&gt;As Media Queries do CSS funcionando se baseando no tamanho da janela do browser e não no tamanho da tela. Isso é importante você saber.&lt;/p&gt;
+
+&lt;p&gt;Lembrando que aqui você não está detectando o dispositivo. Você não sabe se o cara está usando um iPhone ou um Motorola. Se ele está usando um iOS ou um Android. Mas, teoricamente, isso não precisa importar pra você, já que você faz websites se preocupando com o tamanho da tela e não qual o sistema operacional usado.&lt;/p&gt;
+
+&lt;p&gt;Sugiro que você faça testes aí veja essas alterações comparando com os diversos dispositivos. Faz bem para não confundir as bolas quando você precisar desenhar algo específico ou resolver bugs.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Entendendo as diretivas e fazendo abas com AngularJS</title>
+      <link>http://tableless.com.br/diretivas-angularjs-abas/</link>
+      <pubDate>Mon, 08 Sep 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/diretivas-angularjs-abas/</guid>
+      <description>
+
+&lt;p&gt;O AngularJS é um framework em JavaScript para a criação de web apps. Uma das suas principais características é levar parte da lógica das funcionalidades dos componentes direto para o HTML a partir das diretivas.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://twitter.com/rodrigobranas&#34;&gt;Rodrigo Branas&lt;/a&gt; define as diretivas assim:&lt;/p&gt;
+
+&lt;blockquote cite=&#34;rodrigo branas&#34;&gt;
+  &lt;p&gt;
+    Diretivas são extensões da linguagem HTML que permitem a implementação de novos comportamentos de forma declarativa.
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Isso quer dizer que você não vai precisar escrever um monte de JavaScripts para executar funções que deveriam ser simples, como abas, por exemplo. Vamos fazer agora a funcionalidade de abas, que é bastante conhecida de todo mundo. Isso vai fazer você entender melhor como a lógica das diretivas do AngularJS funciona.&lt;/p&gt;
+
+&lt;h2 id=&#34;iniciando-as-abas&#34;&gt;Iniciando as abas&lt;/h2&gt;
+
+&lt;p&gt;Este é um HTML simples, com o código HTML básico que precisamos para formatar o visual e acomodar o conteúdo das abas.&lt;/p&gt;
+
+&lt;p&gt;Ainda não há nenhuma funcionalidade, só estilo CSS. Vamos inserir as diretivas a partir de agora. se você for acompanhar por aí, basta chamar o AngularJS no seu exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script src=&#34;https://ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.19/angular.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;inserindo-as-diretivas&#34;&gt;Inserindo as diretivas&lt;/h2&gt;
+
+&lt;p&gt;A primeira diretiva que precisamos inserir é a &lt;code&gt;ng-app&lt;/code&gt; que vai iniciar o AngularJS, avisando que aquele pedaço de HTML é a minha aplicação e que ele vai apenas funcionar naquele escopo. Nesse meu exemplo, eu inseri &lt;code&gt;ng-app&lt;/code&gt; no meu div &lt;code&gt;.container&lt;/code&gt; que é o div que engloba tudo, mas geralmente esse &lt;code&gt;ng-app&lt;/code&gt; é colocado na tag &lt;code&gt;html&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;container&#34; ng-app&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Se você quiser ler uma introdução básica sobre AngularJS, leia o artigo do Davi Ferreira, aqui mesmo no Tableless, explicando sobre &lt;a href=&#34;http://tableless.com.br/criando-uma-aplicacao-simples-com-angularjs/&#34; title=&#34;Criando uma aplicação simples com AngularJS&#34;&gt;como iniciar uma aplicação simples com AngularJS&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Feito isso, vamos inserir algumas diretivas no HTML que fazemd as abas. Serão duas diretivas: &lt;code&gt;ng-click&lt;/code&gt; e &lt;code&gt;ng-class&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;ul class=&#34;tabs-nav&#34;&amp;gt;
+  &amp;lt;li&amp;gt;&amp;lt;a ng-click=&#34;tab=1&#34; ng-class=&#34;{&#39;active&#39; : tab==1}&#34;&amp;gt;Aba 1&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+  &amp;lt;li&amp;gt;&amp;lt;a ng-click=&#34;tab=2&#34; ng-class=&#34;{&#39;active&#39; : tab==2}&#34;&amp;gt;Aba 2&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+  &amp;lt;li&amp;gt;&amp;lt;a ng-click=&#34;tab=3&#34; ng-class=&#34;{&#39;active&#39; : tab==3}&#34;&amp;gt;Aba 2&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+&amp;lt;/ul&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;A &lt;a href=&#34;https://docs.angularjs.org/api/ng/directive/ngClick&#34;&gt;diretiva ng-click&lt;/a&gt; detecta o click no elemento e executa algum comportamento. Nesse caso ele vai definir uma variável contextual chamada &lt;code&gt;tab&lt;/code&gt; atribuindo o valor &lt;strong&gt;1, 2 ou 3&lt;/strong&gt; para essa variável, dependendo da aba clicada.&lt;/p&gt;
+
+&lt;p&gt;A &lt;a href=&#34;https://docs.angularjs.org/api/ng/directive/ngClass&#34;&gt;diretiva ng-class&lt;/a&gt; permite adicionar uma classe dinamicamente no elemento por meio de uma expressão. O valor que adicionamos ali é uma condicional: &lt;code&gt;{&#39;active&#39; : tab==1}&lt;/code&gt;. Adicione a classe &lt;strong&gt;active&lt;/strong&gt; se a variável &lt;strong&gt;tab&lt;/strong&gt; for igual a &lt;strong&gt;1&lt;/strong&gt;. Colocamos essa condição em todas as nossas tabs.&lt;/p&gt;
+
+&lt;p&gt;Agora, para fecharmos, vamos adicionar mais uma diretiva chamada &lt;code&gt;ng-show&lt;/code&gt; nos conteúdos das respectivas tabs. A &lt;a href=&#34;https://docs.angularjs.org/api/ng/directive/ngShow&#34;&gt;diretiva ng-show&lt;/a&gt; mostra ou esconde o elemento baseado em alguma expressão ou condicional. Nesse nosso caso a condicional é simples: &lt;code&gt;tab == 1&lt;/code&gt;. Se a variável &lt;strong&gt;tab&lt;/strong&gt; for igual a &lt;strong&gt;1&lt;/strong&gt;, mostra aquele elemento. Fazemos isso em todos os conteúdo das abas.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;tabs-container&#34;&amp;gt;
+    &amp;lt;div class=&#34;tab-content&#34; ng-show=&#34;tab == 1&#34;&amp;gt;
+        &amp;lt;h3&amp;gt;Primeira aba&amp;lt;/h3&amp;gt;
+        &amp;lt;p&amp;gt;Lorem ipsum...&amp;lt;/p&amp;gt;
+    &amp;lt;/div&amp;gt;
+
+    &amp;lt;div class=&#34;tab-content&#34; ng-show=&#34;tab == 2&#34;&amp;gt;
+        &amp;lt;h3&amp;gt;Segunda aba&amp;lt;/h3&amp;gt;
+        &amp;lt;p&amp;gt;Lorem ...&amp;lt;/p&amp;gt;
+    &amp;lt;/div&amp;gt;
+
+    &amp;lt;div class=&#34;tab-content&#34; ng-show=&#34;tab == 3&#34;&amp;gt;
+        &amp;lt;h3&amp;gt;Terceira aba&amp;lt;/h3&amp;gt;
+        &amp;lt;p&amp;gt;Lorem ...&amp;lt;/p&amp;gt;
+    &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Perceba que o AngularJS já começa a fazer a mágica aqui. O &lt;code&gt;ng-click&lt;/code&gt; cria a variável &lt;code&gt;tab&lt;/code&gt; e já atribui um valor. O &lt;code&gt;ng-class&lt;/code&gt; verifica essa variável, se for igual ao valor determinado, ele adiciona a classe. O &lt;code&gt;ng-show&lt;/code&gt; já faz o trabalho de mostrar ou não os conteúdos de acordo com a aba clicada, verificando o valor atual da variável &lt;code&gt;tab&lt;/code&gt;. Sem JavaScript, baby! Veja o exemplo completo abaixo:&lt;/p&gt;
+
+&lt;p&gt;Agora sua cabeça começa a fundir, porque as abas funcionam, perfeitamente e toda a lógica disso está no HTML. Isso é bom? Poxa, talvez sim, talvez não.&lt;/p&gt;
+
+&lt;p&gt;Opa! Faltou uma diretiva&amp;#8230; Essa se chama &lt;code&gt;ng-init&lt;/code&gt;. A &lt;a href=&#34;https://docs.angularjs.org/api/ng/directive/ngInit&#34;&gt;diretiva ng-init&lt;/a&gt; permite avaliar e modificar uma expressão dentro de um determinado escopo. O escopo, no caso desse exemplo, é tudo que está no &lt;code&gt;ng-app&lt;/code&gt;. Vamos colocar esse atributo junto com o ng-app: &lt;code&gt;ng-init=&amp;quot;tab=1&amp;quot;&lt;/code&gt;. Isso define o valor inicial de 1 para a variável &lt;strong&gt;tab&lt;/strong&gt;. Isso faz com que nossa primeira tab seja iniciada logo no load do documento.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;A primeira vez que mexi com AngularJS e fiz algo bem básico, logo pensei: essa coisa é mágica. E muitas vezes é. As diretivas são parte dos princípios do AngularJS. São elas que farão boa parte das mágicas. Mas preciso avisar: é a parte mais difícil de engolir do AngularJS. Ainda é muito difícil para mim assimilar que parte das funcionalidades não são tratadas no JavaScript como fazemos todos os dias, mas no HTML. Isso pode parecer bastante estranho logo no início por que a lógica das funcionalidades pode ficar bastante espalhada entre JS e HTML, mas vou voltar a falar sobre isso em outros artigos.&lt;/p&gt;
+
+&lt;p&gt;O exemplo das tabs e uma aplicação básica de ToDo que fiz com AngualrJS pode ser visto direto &lt;a href=&#34;https://github.com/diegoeis/angular-tests&#34;&gt;aqui no meu GitHub&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>O que é Node.js e saiba os primeiros passos</title>
+      <link>http://tableless.com.br/o-que-nodejs-primeiros-passos-com-node-js/</link>
+      <pubDate>Mon, 28 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/o-que-nodejs-primeiros-passos-com-node-js/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-é-node-js&#34;&gt;O que é Node.js?&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.nodejs.org/&#34; rel=&#34;noreferrer&#34;&gt;Node.js&lt;/a&gt; é uma plataforma para desenvolvimento de aplicações &lt;em&gt;server-side&lt;/em&gt; baseadas em rede utilizando &lt;strong&gt;JavaScript&lt;/strong&gt; e o &lt;strong&gt;V8 JavaScript Engine&lt;/strong&gt;, ou seja, com &lt;strong&gt;Node.js&lt;/strong&gt; podemos criar uma variedade de aplicações &lt;em&gt;Web&lt;/em&gt; utilizando apenas código em &lt;strong&gt;JavaScript&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Em uma primeira análise essa informação pode não parecer tão interessante, uma vez que existem diversas outras maneiras em que esses tipos de serviços podem ser implementados. Mas se pensarmos um pouco mais sobre as demandas de aplicações na internet e o modo em que o código em &lt;strong&gt;JavaScript&lt;/strong&gt; pode ser estruturado, vamos nos deparar com uma gama de novas possibilidades para desenvolvimento &lt;em&gt;Web&lt;/em&gt;, e provavelmente nos juntar à crescente comunidade que tem adotado essa plataforma.&lt;/p&gt;
+
+&lt;p&gt;Uma importante diferença está no fato do Node ser &lt;em&gt;single threaded&lt;/em&gt;. Embora isso possa parecer uma desvantagem em um primeiro momento, o que percebemos ao desenvolver com &lt;strong&gt;Node.js&lt;/strong&gt; é que isso simplifica extremamente a construção da aplicação, e por &lt;strong&gt;Node.js&lt;/strong&gt; utilizar uma abordagem não obstrutiva, essa diferença vai ser imperceptível na maioria dos casos.&lt;/p&gt;
+
+&lt;h3 id=&#34;v8-javascript-engine&#34;&gt;V8 JavaScript Engine&lt;/h3&gt;
+
+&lt;p&gt;É o interpretador de &lt;strong&gt;JavaScript&lt;/strong&gt; open source implementado pelo &lt;strong&gt;Google&lt;/strong&gt; em &lt;strong&gt;C++&lt;/strong&gt; e utilizado pelo &lt;strong&gt;Chrome&lt;/strong&gt;. O que sem dúvidas gera uma grande expectativa em relação ao desempenho do &lt;strong&gt;Node.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando-o-node-js&#34;&gt;Instalando o Node.js&lt;/h2&gt;
+
+&lt;p&gt;A instalação do &lt;strong&gt;Node.js&lt;/strong&gt; é extremamente simples graças ao fato de o &lt;strong&gt;V8 JavaScript Engine&lt;/strong&gt; ser completamente multi-plataforma, tudo que você precisa fazer é visitar a &lt;a href=&#34;http://www.nodejs.org/&#34; rel=&#34;noreferrer&#34;&gt;página oficial do Node.js&lt;/a&gt;, clicar em &amp;#8220;INSTALL&amp;#8221; e seguir as instruções.&lt;/p&gt;
+
+&lt;p&gt;&lt;img style=&#34;width: 100%&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/07/node_2.png&#34; alt=&#34;img node 2&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Após a instalação, basta executar o seguinte comando no seu terminal para verificar se foi instalado corretamente:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-plain&#34;&gt;$ node -v
+&amp;gt; v0.10.26
+&lt;/pre&gt;
+
+&lt;p&gt;deve retornar a versão do node que foi instalada, como por exemplo &lt;em&gt;v0.10.26&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-web-server-8216-olá-mundo&#34;&gt;O web server &amp;#8216;Olá mundo!’&lt;/h2&gt;
+
+&lt;p&gt;Ok, então vamos construir alguma coisa.&lt;/p&gt;
+
+&lt;p&gt;Nosso primeiro exemplo é um servidor que retorna a string &amp;#8216;Olá mundo&amp;#8217; para qualquer requisição. Para fazer isso utilizando Node você vai precisar de criar um arquivo &lt;strong&gt;JavaScript&lt;/strong&gt; que pode ser chamado &lt;em&gt;olanode.js&lt;/em&gt; e de três minutos do seu tempo.&lt;/p&gt;
+
+&lt;p&gt;Escreva o seguinte código no seu arquivo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var http = require(&#39;http&#39;);
+http.createServer(function(req,res) {
+  res.writeHead(200, { &#39;Content-Type&#39;: &#39;text/plain; charset=utf-8&#39; }); 
+  res.end(&#39;Olá mundo!&#39;);
+}).listen(3000);
+console.log(&#39;Servidor iniciado em localhost:3000. Ctrl+C para encerrar…&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Para executar o seu programa Node basta o seguinte comando no seu terminal:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-plain&#34;&gt;$ node olanode.js
+&lt;/pre&gt;
+
+&lt;p&gt;Para testar seu servidor você pode acessar &lt;em&gt;localhost:3000&lt;/em&gt; no seu navegador ou utilizar linha de comando com o comando &lt;code&gt;curl&lt;/code&gt; (em uma nova instância do terminal) como mostrado a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-plain&#34;&gt;$ curl http://0.0.0.0:3000/
+&amp;gt; Olá mundo!
+&lt;/pre&gt;
+
+&lt;p&gt;Caso você prefira retornar algum &lt;em&gt;html&lt;/em&gt; válido para o navegador, basta alterar &lt;code&gt;&#39;text/plain&#39;&lt;/code&gt; para &lt;code&gt;&#39;text/html&#39;&lt;/code&gt; no código acima e utilizar uma &lt;em&gt;tag html&lt;/em&gt; legal como &lt;code&gt;&amp;lt;h2&amp;gt;&lt;/code&gt;, como foi feito a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var http = require(&#39;http&#39;);
+
+http.createServer(function(req,res) { 
+  res.writeHead(200, { &#39;Content-Type&#39;: &#39;text/html; charset=utf-8&#39; }); 
+  res.end(&#39;&amp;lt;h2&amp;gt; Olá mundo! &amp;lt;/h2&amp;gt;&#39;);
+}).listen(3000);
+
+console.log(&#39;Servidor iniciado em localhost:3000. Ctrl+C para encerrar…’);
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;img style=&#34;width: 100%&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/07/node_1.png&#34; alt=&#34;img node 1&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora basta voltar ao seu navegador e ver o resultado.&lt;/p&gt;
+
+&lt;h2 id=&#34;orientado-a-eventos-e-não-obstrutivo&#34;&gt;Orientado a eventos e não obstrutivo&lt;/h2&gt;
+
+&lt;h3 id=&#34;orientado-a-eventos&#34;&gt;Orientado a eventos&lt;/h3&gt;
+
+&lt;p&gt;Vamos aproveitar este momento de euforia após a construção do seu primeiro servidor para aprender um pouco mais sobre &lt;strong&gt;Node.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Quando estamos desenvolvendo com &lt;strong&gt;Node.js&lt;/strong&gt; devemos utilizar uma abordagem orientada a eventos, isso quer dizer que o desenvolvedor precisa conhecer os eventos que serão emitidos em diferentes momentos da execução e também saber como ouvi-los para executar as operações necessárias.&lt;/p&gt;
+
+&lt;p&gt;Um bom exemplo de orientação a eventos está na construção de interfaces de usuário. Muitas vezes utilizamos elementos como por exemplo os botões que ao serem clicados emitem um evento do tipo &lt;em&gt;click&lt;/em&gt; ao qual podemos ouvir e executar alguma operação.&lt;/p&gt;
+
+&lt;p&gt;No nosso exemplo anterior utilizamos esse conceito quando chamamos método &lt;code&gt;listen&lt;/code&gt; do objeto do tipo &lt;em&gt;web server&lt;/em&gt; e passamos como parâmetro a porta 3000, com isso fizemos que a nossa aplicação ouvisse ao evento que é emitido sempre que alguém faz uma requisição no &lt;code&gt;localhost:3000&lt;/code&gt; e a nossa resposta foi servir a string ou a página html. Este evento é chamado &lt;em&gt;request&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para ilustrar estes conceitos, podemos escrever o nosso exemplo anterior em uma sintaxe alternativa da seguinte forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var http = require(&#39;http&#39;);
+
+var server = http.createServer();
+
+server.on(&#39;request&#39;, function(req,res) { 
+  res.writeHead(200, { &#39;Content-Type&#39;: &#39;text/html; charset=utf-8&#39; }); 
+  res.end(&#39;&amp;lt;h2&amp;gt; Olá mundo! &amp;lt;/h2&amp;gt;&#39;);
+});
+
+server.listen(3000);
+
+console.log(&#39;Servidor iniciado em localhost:3000. Ctrl+C para encerrar…’);
+&lt;/pre&gt;
+
+&lt;p&gt;Dessa forma podemos ver claramente a maneira em que o &lt;strong&gt;Node.js&lt;/strong&gt; opera para servir a sua página. Utilizamos o método &lt;code&gt;on&lt;/code&gt; do nosso objeto &lt;em&gt;server&lt;/em&gt; para ouvir ao evento &lt;em&gt;request&lt;/em&gt; e fazer as operações. E definimos que estamos servindo na porta 3000.&lt;/p&gt;
+
+&lt;h3 id=&#34;não-obstrutivo&#34;&gt;Não obstrutivo&lt;/h3&gt;
+
+&lt;p&gt;Todos os recursos presentes no &lt;strong&gt;Node.js&lt;/strong&gt; e também a maioria das bibliotecas feitas para ele adotaram um padrão não obstrutivo de escrever código, isso quer dizer que em &lt;strong&gt;Node.js&lt;/strong&gt; você geralmente vai conseguir estruturar seu código de uma maneira que operações que não dependem de nada que está sendo executado possam ser executadas de forma independente.&lt;/p&gt;
+
+&lt;p&gt;Para mostrar um pouco como isso funciona, vamos um programa que escreve duas frases no terminal, porém uma dessas frases precisa ser carregada da memória antes de ser impressa.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var frase;
+
+carregaFrase = function (callback) {  
+  setTimeout(function() {
+    //Simula leitura da frase no banco de dados.
+    frase = &#34;Minha frase obstrutiva&#34;;
+    callback();
+  }, 3000)
+}
+
+imprimeFrase = function () {
+  console.log(frase);
+}
+
+carregaFrase(imprimeFrase);
+
+console.log(“Olá&#34;);
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse exemplo foi criada uma função chamada &lt;code&gt;carregaFrase&lt;/code&gt; cujo objetivo é ler uma determinada frase de uma fonte de dados, e uma outra função chamada &lt;code&gt;imprimeFrase&lt;/code&gt; que imprime o valor de uma determinada variável no console. Como dependemos da leitura da frase na fonte de dados para imprimir o valor, passamos a função que imprime como parâmetro para a função de leitura para que possamos executar essa função quando a leitura for concluída. Esse tipo de função que é passada como parâmetro dessa maneira é chamada de &lt;em&gt;callback&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Ao executar este exemplo com &lt;strong&gt;Node.js&lt;/strong&gt; ou qualquer mecanismo &lt;strong&gt;JavaScript&lt;/strong&gt; você vai perceber que a frase &amp;#8220;Olá&amp;#8221; será impressa antes da outra frase mesmo estando posicionada depois no código, isso se deve ao fato de sua execução não depender de nada enquanto a execução da outra frase depende de uma operação que leva 3 segundos.&lt;/p&gt;
+
+&lt;p&gt;Este é um exemplo extremamente simples de como criar um código não obstrutivo, portanto use sua imaginação para imaginar cenários em que isso pode ser útil.&lt;/p&gt;
+
+&lt;p&gt;Observe que no nosso primeiro exemplo com &lt;strong&gt;Node.js&lt;/strong&gt; tanto a função &lt;code&gt;on&lt;/code&gt; quanto a função &lt;code&gt;createServer&lt;/code&gt; podem receber uma função de &lt;em&gt;callback&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Espero que este tutorial tenha sido o suficiente para provocar o seu interesse em aprender mais sobre &lt;strong&gt;Node.js&lt;/strong&gt;. Portanto visite a &lt;a href=&#34;http://nodejs.org/api/&#34; rel=&#34;noreferrer&#34;&gt;documentação do Node.js&lt;/a&gt; para obter mais informações e exemplos de aplicações dessa plataforma e também a página da &lt;a href=&#34;https://www.joyent.com&#34; rel=&#34;noreferrer&#34;&gt;Joyent&lt;/a&gt;, patrocinadora oficial do projeto.&lt;/p&gt;
+
+&lt;p&gt;E finalmente, &lt;strong&gt;Node.js&lt;/strong&gt; é um projeto &lt;em&gt;open source&lt;/em&gt;, portanto você pode visualizar o código fonte e contribuir no &lt;a href=&#34;https://github.com/joyent/node&#34; rel=&#34;noreferrer&#34;&gt;repositório do Node.js no GitHub&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Web Notifications API</title>
+      <link>http://tableless.com.br/web-notifications-api/</link>
+      <pubDate>Mon, 14 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/web-notifications-api/</guid>
+      <description>
+
+&lt;p&gt;Se você trabalha em um site de conteúdo ou em algum produto web, uma possibilidade interessante seria fazer com que o usuário recebesse uma notificação quando houvesse uma nova notícia ou, no caso de produtos, uma notificação do próprio serviço. Com a Notifications API agora é totalmente possível.&lt;/p&gt;
+
+&lt;p&gt;Caso você queira dar uma &lt;a href=&#34;http://www.w3.org/TR/notifications/&#34;&gt;olhada na documentação&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Outro detalhe importante: as notificações só podem ser ativadas por meio de uma interação do usuário, como clique de mouse, teclado e etc&amp;#8230; Logo, vamos usar um botão em nosso exemplo para poder ativar as notificações.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Notifications should only be presented when the user has indicated they are desired; without this they could create a negative experience for the user.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;verificando-suporte&#34;&gt;Verificando suporte&lt;/h2&gt;
+
+&lt;p&gt;A primeira coisa que nossa função precisa fazer é verificar se o browser suporta ou não notificações. Se ele não aceitar, ele fica em silêncio e pronto. No nosso exemplo ele vai logar uma mensagem no console, só para gente saber, ok?&lt;/p&gt;
+
+&lt;h2 id=&#34;pedindo-permissão&#34;&gt;Pedindo permissão&lt;/h2&gt;
+
+&lt;p&gt;Para não virar festa, é necessário que tenhamos a permissão do usuário para enviar as notificações via browser. Isso acontece também ao utilizar outras APIs, como a de Geolocation, por exemplo. A permissão terá três possíveis valores: um valor inicial de &lt;strong&gt;default&lt;/strong&gt;, que significa que o usuário ainda não negou nem permitiu receber notificações deste domínio. O &lt;strong&gt;denied&lt;/strong&gt; significa que o usuário negou receber e o &lt;strong&gt;granted&lt;/strong&gt; que significa que usuário aceitou receber as notificações.&lt;/p&gt;
+
+&lt;p&gt;Agora é só fazer uma condição verificando estes estágios:&lt;/p&gt;
+
+&lt;h2 id=&#34;preparando-a-notificação&#34;&gt;Preparando a notificação&lt;/h2&gt;
+
+&lt;p&gt;Se o usuário nos deu permissão para fazer a notificação, nosso domínio fica listado com permissão nas configurações do browser e aí poderemos enviar notificações até que o usuário bloqueie. Agora é hora de fazer a notificação. Para tanto, iremos executar pequena função quando a permissão for &amp;#8220;granted&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;O código fica assim:&lt;/p&gt;
+
+&lt;p&gt;Criamos um novo objeto &lt;strong&gt;Notification&lt;/strong&gt;, que recebe logo de cara um parâmetro que é o título da notificação. Depois há algumas opções que podemos preencher:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;body&lt;/strong&gt;: A mensagem da notificação.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;tag&lt;/strong&gt;: Identificador único da notificação. Uma string simples. Isso serve para não fazermos notificações duplicadas.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onshow&lt;/strong&gt;: Evento que é disparado quando a notificação aparece.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onclick&lt;/strong&gt;: Evento quando o usuário clica na notificação.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onclose&lt;/strong&gt;: Quando o usuário fecha a notificação.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onerror&lt;/strong&gt;: Quando há algum erro na notificação e ela não pode ser mostrada.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;E voilá! Faça um teste aí. Aqui usei o Chrome e Safari. No meu Safari só funcionou depois que coloquei na minha pasta onde sirvo o localhost (httpdocs, public, www, sei lá o que você usa aí localmente).&lt;/p&gt;
+
+&lt;h2 id=&#34;o-browser-pensa-assim&#34;&gt;O browser pensa assim&lt;/h2&gt;
+
+&lt;p&gt;O Browser tem um processo definido pela especificação do W3C que é basicamente assim:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Se a permissão para a notificação não foi positiva, cancele qualquer pedido de notificação e retorne um evento de erro na notificação, finalizando todos os passos. É aqui que o &lt;strong&gt;onerror&lt;/strong&gt; entra em ação.&lt;/li&gt;
+&lt;li&gt;Se existir uma notificação pendente na lista ou se na lista de notificações ativas existem tags iguais a notificação que está sendo chamada, rode os &lt;a href=&#34;http://www.w3.org/TR/notifications/#replace-steps&#34;&gt;passos de substituição&lt;/a&gt; e finalize as ações.&lt;/li&gt;
+&lt;li&gt;Se um dispositivo autorizar, as notificações podem ser mostradas imediatamente sem limitações no número de notificações concorrentes, rodando os &lt;a href=&#34;http://www.w3.org/TR/notifications/#display-steps&#34;&gt;passos de amostra&lt;/a&gt; e finalizando as tarefas.&lt;/li&gt;
+&lt;li&gt;Se o dispositivo tem limitações com o número de notificações concorrentes, chame imediatamente a plataforma alternativa que suporte enfileirar as notificações ou posicione as notificações em uma &lt;a href=&#34;http://www.w3.org/TR/notifications/#list-of-pending-notifications&#34;&gt;lista de pendências&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;É legal &lt;a href=&#34;http://www.w3.org/TR/notifications/&#34;&gt;ler a documentação do W3C&lt;/a&gt;, mesmo que boa parte das informações sobre essa API seja interessante para os fabricantes de browsers.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Mais pra estudar:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://zeropush.com/blog/implementing-safari-push-notifications-in-osx-mavericks&#34;&gt;Implementing Safari push notifications in OSX Mavericks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/API/Notification/Using_Web_Notifications&#34;&gt;Using Web Notifications &amp;#8211; MDN&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.apple.com/library/safari/documentation/AppleApplications/Conceptual/SafariJSProgTopics/Articles/SendingNotifications.html#//apple_ref/doc/uid/TP40001483-CH23-SW1&#34;&gt;Sending Notifications &amp;#8211; Apple&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://loopinfinito.com.br/2012/08/22/web-notifications-api/&#34;&gt;Artigo sobre o mesmo assunto no LoopInfinito&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

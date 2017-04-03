@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/deletando-registros-duplicados-banco-de-dados/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/deletando-registros-duplicados-banco-de-dados/">Deletando registros duplicados no banco de dados</a></h1>
+  <p class="tb-hero-p">
+    
+    Fazendo um script para apagar entradas duplicadas no MySQL.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/george-moura">George Moura</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      <p>Precisei fazer a migração de dados de algumas tabelas de cadastro (telefones, hobbies, interesses, formações e etc.) para uma única tabela diferenciando-os pelo id do usuário e o id do campo. O problema é que meu script acabou duplicando as informações. Para a minha sorte isso aconteceu em um banco de desenvolvimento, onde era possível apagar os dados da tabela, ajustar os scripts e refazer a migração. Eu não queria ter esse trabalho novamente e logo resolvi pesquisar um script sql que me ajudasse a apagar os registros duplicados, nesse caso deixando apenas o último registro gravado.</p>
+
+<p>Assumindo que você use o banco de dados MySql e tenha uma tabela chamada &#8220;nomes&#8221;, e que essa tabela tenha os campos id e nome. Essa sintaxe pode ser usada em outros bancos, utilizaremos o seguinte comando:</p>
+
+<pre class="lang-html">DELETE a FROM nomes AS a, nomes AS b WHERE a.nome=b.nome AND a.id &lt; b.id</pre>
+
+<p>Perceba que no comando sql após o <code>FROM</code> eu chamo duas vezes a tabela &#8220;nomes&#8221;, mas as diferencio pelas letras <strong>a</strong> e <strong>b</strong>. Você poderia dar o nome que quisesse. Note também que depois do <code>WHERE</code> eu faço a comparação entre as colunas, verificando a duplicidade e depois digo que o id de &#8220;a&#8221; deve ser menor que o de &#8220;b&#8221;. Dessa forma o MySql vai comparar todos os registros com o mesmo nome e apagar aqueles que contenham o menor id.</p>
+
+<p><strong>nomes</strong>: É a tabela com os registros duplicados.</p>
+
+<p><strong>nome</strong>: É o campo para comparação dos registros.</p>
+
+<p><strong>id</strong>: É a chave primária da tabela.</p>
+
+<p>Veja na prática como acontece:</p>
+
+<p>Tabelas com os registros duplicados</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2014/01/tableless-select-mysql.png"><img class="alignnone size-full wp-image-40122" alt="tableless-select-mysql" src="http://tableless.com.br/wp-content/uploads/2014/01/tableless-select-mysql.png" width="487" height="310" srcset="uploads/2014/01/tableless-select-mysql.png 487w, uploads/2014/01/tableless-select-mysql-263x168.png 263w" sizes="(max-width: 487px) 100vw, 487px" /></a></p>
+
+<p>Aplicando o script descrito acima:</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2014/01/tableless-mysql-script-delete.png"><img class="alignnone size-medium wp-image-40121" alt="tableless-mysql-script-delete" src="http://tableless.com.br/wp-content/uploads/2014/01/tableless-mysql-script-delete-588x205.png" width="588" height="205" srcset="uploads/2014/01/tableless-mysql-script-delete-588x205.png 588w, uploads/2014/01/tableless-mysql-script-delete-329x115.png 329w, uploads/2014/01/tableless-mysql-script-delete-660x231.png 660w, uploads/2014/01/tableless-mysql-script-delete.png 720w" sizes="(max-width: 588px) 100vw, 588px" /></a></p>
+
+<p>Caso queira apagar todos os registros duplicados, deixando apenas os registros únicos é só trocar o “&lt;” por “!=”</p>
+
+<p>veja um exemplo:</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2014/01/tableless-mysql-script-deletall.png"><img class="alignnone size-medium wp-image-40120" alt="tableless-mysql-script-deletall" src="http://tableless.com.br/wp-content/uploads/2014/01/tableless-mysql-script-deletall-410x310.png" width="410" height="310" srcset="uploads/2014/01/tableless-mysql-script-deletall-410x310.png 410w, uploads/2014/01/tableless-mysql-script-deletall-222x168.png 222w, uploads/2014/01/tableless-mysql-script-deletall.png 733w" sizes="(max-width: 410px) 100vw, 410px" /></a></p>
+
+<p>Pronto! É isso aí pessoal, muito simples né?</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

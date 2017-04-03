@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Daniel Campos on Tableless</title>
+    <link>http://tableless.com.br/author/daniel-campos/index.xml</link>
+    <description>Recent content in Daniel Campos on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/daniel-campos/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando uma aplicação de Chat simples com NodeJS e Socket.io</title>
+      <link>http://tableless.com.br/criando-uma-aplicacao-de-chat-simples-com-nodejs-e-socket-io/</link>
+      <pubDate>Thu, 05 Jan 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-uma-aplicacao-de-chat-simples-com-nodejs-e-socket-io/</guid>
+      <description>
+
+&lt;p&gt;Neste tutorial iremos abordar alguns conceitos do Socket.io criando um simples sistema de chat para browser.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/dericeira/Simple-Chat-Socket.io/master/example.gif&#34; alt=&#34;https://raw.githubusercontent.com/dericeira/Simple-Chat-Socket.io/master/example.gif&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-socket-io&#34;&gt;O que é Socket.io?&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://socket.io&#34;&gt;Socket.io&lt;/a&gt; é um uma biblioteca Javascript feita para construir aplicações real-time, possibilitando uma comunicação bi-direcional entre cliente e servidor. O socket.io utiliza as especificações de Web Sockets (para quem quer saber mais, recomendo dar uma olhada &lt;a href=&#34;https://www.html5rocks.com/pt/tutorials/websockets/basics/&#34;&gt;neste ótimo artigo&lt;/a&gt; da HTML5 Rocks).&lt;/p&gt;
+
+&lt;p&gt;O Socket.io roda, no lado do servidor, em NodeJS, e, no lado do cliente, ele roda diretamente no browser, possibilitando uma enorme gama de possibilidades de aplicações, como jogos, sistemas de notificações, real-time analytics e sistemas de chats e conversas em tempo real.&lt;/p&gt;
+
+&lt;h2 id=&#34;setando-o-projeto&#34;&gt;Setando o projeto&lt;/h2&gt;
+
+&lt;p&gt;Primeiramente, temos que instalar algumas bibliotecas que iremos utilizar no projeto, para isso usarei o &lt;a href=&#34;https://github.com/yarnpkg/yarn&#34;&gt;yarn&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Em primeiro lugar, vou adicionar ao projeto a biblioteca do Socket.io que rodará do lado do servidor.&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn add socketio&lt;/pre&gt;
+
+&lt;p&gt;Também iremos utilizar o express:&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn add express&lt;/pre&gt;
+
+&lt;p&gt;Também precisamos adicionar o Socket.io para o cliente (você pode utilizar a CDN oficial disponibilizada no site deles também):&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn add socket.io-client&lt;/pre&gt;
+
+&lt;p&gt;E, por último, usarei a biblioteca jQuery para manipular a DOM.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;yarn add jquery&lt;/pre&gt;
+
+&lt;h2 id=&#34;fazendo-o-html-css&#34;&gt;Fazendo o HTML+CSS&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar um arquivo index.html e já deixar preparado o nosso template do sistema de chat.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;en&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+ &amp;lt;meta charset=&#34;UTF-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Simple chat&amp;lt;/title&amp;gt;
+ &amp;lt;link rel=&#34;stylesheet&#34; href=&#34;assets/css.css&#34;&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;div class=&#34;nickname_container&#34; id=&#34;nick&#34;&amp;gt;
+
+ &amp;lt;span&amp;gt;Type your nickname:&amp;lt;/span&amp;gt;
+ &amp;lt;form id=&#34;submit&#34;&amp;gt;&amp;lt;input type=&#34;text&#34; id=&#34;nickname&#34; /&amp;gt;&amp;lt;/form&amp;gt;
+
+&amp;lt;/div&amp;gt;
+
+&amp;lt;div id=&#34;chat&#34; hidden&amp;gt;
+
+ &amp;lt;div class=&#34;menu&#34; =&amp;gt;
+ &amp;lt;div class=&#34;name&#34; id=&#34;name&#34;&amp;gt;Alex&amp;lt;/div&amp;gt;
+ &amp;lt;div class=&#34;last&#34; id=&#34;time&#34;&amp;gt;18:09&amp;lt;/div&amp;gt;
+ &amp;lt;/div&amp;gt;
+
+ &amp;lt;ol class=&#34;chat&#34;&amp;gt;
+ 
+ &amp;lt;/ol&amp;gt;
+ 
+ &amp;lt;input class=&#34;textarea&#34; type=&#34;text&#34; placeholder=&#34;Type here!&#34; id=&#34;textarea&#34; /&amp;gt;
+&amp;lt;/div&amp;gt;
+ &amp;lt;script src=&#34;node_modules/jquery/dist/jquery.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script src=&#34;node_modules/socket.io-client/socket.io.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script src=&#34;assets/js.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Repare que eu também criei o diretório assets, e criei os arquivos css.css e js.js.&lt;/p&gt;
+
+&lt;p&gt;Não entrarei na parte do CSS, pois o foco aqui é o javascript, mas você pode ver o resultado no &lt;a href=&#34;https://github.com/dericeira/Simple-Chat-Socket.io/blob/master/assets/css.css&#34;&gt;github&lt;/a&gt;. Eu utilizei como base &lt;a href=&#34;https://codepen.io/Varo/pen/gbZzgr&#34;&gt;este pen&lt;/a&gt; para construir o layout.&lt;/p&gt;
+
+&lt;h2 id=&#34;server-side&#34;&gt;Server-side&lt;/h2&gt;
+
+&lt;p&gt;Vamos iniciar com a criação da parte de servidor do Socket.io, ou seja, iremos lidar com os eventos server-side.&lt;/p&gt;
+
+&lt;p&gt;Iniciaremos criando um arquivo &lt;strong&gt;app.js&lt;/strong&gt; no diretório raíz e importaremos os módulos e faremos algumas operações iniciais:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var app = require(&#39;express&#39;)();
+var http = require(&#39;http&#39;).Server(app);
+var io = require(&#39;socket.io&#39;)(http);
+
+var clients = {};
+
+app.get(&#39;/&#39;, function(req, res){
+res.send(&#39;server is running&#39;);
+});
+
+//SocketIO vem aqui
+
+http.listen(3000, function(){
+console.log(&#39;listening on port 3000&#39;);
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Este script implementa um servidor Node utilizando os módulos http e express (para roteamento).&lt;/p&gt;
+
+&lt;p&gt;A variável clientes que está sendo criada servirá para armazenar nossa lista de clientes.&lt;/p&gt;
+
+&lt;p&gt;Agora iremos adicionar o nosso primeiro evento do Socket.io, que será o &lt;strong&gt;connection&lt;/strong&gt;, que dispara a cada vez que um cliente se conecta ao socket.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;io.on(&#34;connection&#34;, function (client) {
+    console.log(&#39;user connected&#39;);
+});&lt;/pre&gt;
+
+&lt;p&gt;Para nossa sala de chat, precisaremos implementar outros 3 eventos: &lt;strong&gt;join&lt;/strong&gt;, &lt;strong&gt;send&lt;/strong&gt; e &lt;strong&gt;disconnect&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;io.on(&#34;connection&#34;, function (client) {
+  client.on(&#34;join&#34;, function(name){
+    console.log(&#34;Joined: &#34; + name);
+    clients[client.id] = name;
+    client.emit(&#34;update&#34;, &#34;You have connected to the server.&#34;);
+    client.broadcast.emit(&#34;update&#34;, name + &#34; has joined the server.&#34;)
+  });
+
+  client.on(&#34;send&#34;, function(msg){
+    console.log(&#34;Message: &#34; + msg);
+    client.broadcast.emit(&#34;chat&#34;, clients[client.id], msg);
+  });
+
+  client.on(&#34;disconnect&#34;, function(){
+    console.log(&#34;Disconnect&#34;);
+    io.emit(&#34;update&#34;, clients[client.id] + &#34; has left the server.&#34;);
+    delete clients[client.id];
+  });
+});
+&lt;/pre&gt;
+
+&lt;p&gt;O evento join deverá ser disparado quando o cliente entrar no servidor, adicionando o id do cliente no array e emitindo dois novos eventos, nomeando-os de &lt;strong&gt;update&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Note que há uma diferença entre o método &lt;strong&gt;client.emit&lt;/strong&gt; e o &lt;strong&gt;client.broadcast.emit&lt;/strong&gt;. O client.emit enviará a notificação somente para o cliente atual, ou seja, o cliente que acabou de entrar na sala de chat. O &lt;strong&gt;client.broadcast.emit&lt;/strong&gt; irá emitir para todos os clientes conectados, com exceção do que está executando a ação. Se utilizássemos o método &lt;strong&gt;io.emit&lt;/strong&gt;, a mensagem seria enviada a todos os clientes conectados ao socket. Abaixo uma série de exemplos de métodos disponíveis:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// enviar apenas para o cliente atual
+client.emit(&#39;message&#39;, &#34;this is a test&#34;);
+
+// enviar para todos os clientes, inclusive o atual
+io.emit(&#39;message&#39;, &#34;this is a test&#34;);
+
+// enviar para todos os clientes, exceto o atual
+client.broadcast.emit(&#39;message&#39;, &#34;this is a test&#34;);
+
+// enviar para todos os clientes (com exceção do atual) para uma sala específica
+socket.broadcast.to(&#39;game&#39;).emit(&#39;message&#39;, &#39;nice game&#39;);
+
+// enviar para todos os clientes em uma sala específica
+io.in(&#39;game&#39;).emit(&#39;message&#39;, &#39;cool game&#39;);
+
+// enviar para o atual, caso ele esteja na sala
+client.to(&#39;game&#39;).emit(&#39;message&#39;, &#39;enjoy the game&#39;);
+
+// enviar para todos os clientes em um namespace &#39;namespace1&#39;
+io.of(&#39;namespace1&#39;).emit(&#39;message&#39;, &#39;gg&#39;);
+
+// enviando para um socketid individual
+client.broadcast.to(socketid).emit(&#39;message&#39;, &#39;for your eyes only&#39;);&lt;/pre&gt;
+
+&lt;p&gt;Com todos esses métodos, conseguiríamos implementar salas específicas, mensagens individuais, etc. Porém nosso foco é mostrar a parte mais básica e entender o funcionamento.&lt;/p&gt;
+
+&lt;h2 id=&#34;client-side&#34;&gt;Client-side&lt;/h2&gt;
+
+&lt;p&gt;Com nosso servidor concluido e rodando, vamos passar para a parte de client-side de nossa aplicação de chat. Vamos ao &lt;strong&gt;js.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Primeiramente, inicializaremos o socket.io e criaremos uma variável &lt;strong&gt;ready&lt;/strong&gt;, setada como false. Esta variável será responsável por indicar se o usuário já informou ou não o seu nickname.&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;$(document).ready(function(){
+    var socket = io.connect(&#34;http://localhost:3000&#34;);
+    var ready = false;
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Com esta implementação, já conseguimos disparar o evento &lt;strong&gt;connection&lt;/strong&gt; em nosso servidor. Porém, precisamos fazer com que o servidor receba a informação cada vez que um novo usuário entrar na sala informando o seu nickname.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#34;#submit&#34;).submit(function(e) {
+    e.preventDefault();
+    $(&#34;#nick&#34;).fadeOut();
+    $(&#34;#chat&#34;).fadeIn();
+    var name = $(&#34;#nickname&#34;).val();
+    var time = new Date();
+    $(&#34;#name&#34;).html(name);
+    $(&#34;#time&#34;).html(&#39;First login: &#39; + time.getHours() + &#39;:&#39; + time.getMinutes());
+
+    ready = true;
+    socket.emit(&#34;join&#34;, name);
+});
+&lt;/pre&gt;
+
+&lt;p&gt;A função jQuery acima captura a submissão do formulário de nickname, fecha a tela de seleção de nick, mostra a tela de chat, seta a variável ready para true e executa um comando de socket, o &lt;strong&gt;socket.emit&lt;/strong&gt;, que informa para o nosso servidor que um novo usuário acabou de entrar na sala.&lt;/p&gt;
+
+&lt;p&gt;Nada irá acontecer, pois ainda não temos o receptor do evento &lt;strong&gt;update&lt;/strong&gt;, que está sendo disparado no nosso servidor, então vamos criá-lo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;socket.on(&#34;update&#34;, function(msg) {
+    if (ready) {
+        $(&#39;.chat&#39;).append(&#39;&amp;lt;li class=&#34;info&#34;&amp;gt;&#39; + msg + &#39;&amp;lt;/li&amp;gt;&#39;)
+    }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Este código fará com que, a cada vez que o servidor emitir um update, o jQuery adicione uma nova linha no chat com a mensagem retornada.&lt;/p&gt;
+
+&lt;p&gt;Agora, iremos fazer com que nossa aplicação envie as mensagens ao servidor a cada vez que o cliente apertar o enter no input de texto:&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;$(&#34;#textarea&#34;).keypress(function(e){
+    if(e.which == 13) {
+         var text = $(&#34;#textarea&#34;).val();
+         $(&#34;#textarea&#34;).val(&#39;&#39;);
+         var time = new Date();
+         $(&#34;.chat&#34;).append(&#39;&amp;lt;li class=&#34;self&#34;&amp;gt;&amp;lt;div class=&#34;msg&#34;&amp;gt;&amp;lt;span&amp;gt;&#39;
+                      + $(&#34;#nickname&#34;).val() + &#39;:&amp;lt;/span&amp;gt;    &amp;lt;p&amp;gt;&#39; + text + &#39;&amp;lt;/p&amp;gt;&amp;lt;time&amp;gt;&#39; + 
+                      time.getHours() + &#39;:&#39; + time.getMinutes() + &#39;&amp;lt;/time&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;/li&amp;gt;&#39;);
+         socket.emit(&#34;send&#34;, text);
+    }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;E, para concluir, precisamos fazer com que o socket.io observe todas as mensagens referente ao chat em si, e adicione à DOM:&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;socket.on(&#34;chat&#34;, function(client,msg) {
+ if (ready) {
+    var time = new Date();
+    $(&#34;.chat&#34;).append(&#39;&amp;lt;li class=&#34;other&#34;&amp;gt;&amp;lt;div class=&#34;msg&#34;&amp;gt;&amp;lt;span&amp;gt;&#39; + 
+                 client + &#39;:&amp;lt;/span&amp;gt;&amp;lt;p&amp;gt;&#39; + msg + &#39;&amp;lt;/p&amp;gt;&amp;lt;time&amp;gt;&#39; + time.getHours() + &#39;:&#39; + 
+                 time.getMinutes() + &#39;&amp;lt;/time&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;/li&amp;gt;&#39;);
+ }
+});&lt;/pre&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Na minha opinião,  as sockets são uma das melhores funcionalidades do HTML5, e possuem uma infinidade de aplicação. O ganho de performance é espetacular se bem aplicado, uma vez que evita o uso de requisições HTTP em aplicações onde a necessidade de atualização é grande (baixa latência).&lt;/p&gt;
+
+&lt;p&gt;Disponibilizei o código do tutorial no &lt;a href=&#34;https://github.com/dericeira/Simple-Chat-Socket.io&#34;&gt;github&lt;/a&gt; para quem se interessar, e estou aberto a tirar dúvidas.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Angular 2, vale a pena?</title>
+      <link>http://tableless.com.br/angular-2-vale-pena/</link>
+      <pubDate>Fri, 02 Dec 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/angular-2-vale-pena/</guid>
+      <description>
+
+&lt;p&gt;Ultimamente, com o boom do JavaScript, os desenvolvedores front end se depararam com a difícil questão: qual framework e/ou biblioteca usar em meu projeto? A resposta é: depende do que você está procurando. Construir uma SPA completa? Uma aplicação híbrida? Ou apenas um simples formulário? O objetivo aqui não é enumerar as diferenças entre todas as várias ferramentas existentes no mercado, e sim focar no Angular, a que considero mais completa e que pode atender a todos os objetivos de um projeto.&lt;/p&gt;
+
+&lt;p&gt;O Angular, apesar de ter sido pensado inicialmente para lidar apenas com formulários, é hoje uma das ferramentas mais largamente utilizada para desenvolvimento front end, porém, sempre teve seus problemas, dentre eles, os problemas de performance. E é esse um dos principais motivos que levou a equipe do Angular a desenvolver, do zero, a sua versão 2.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;https://angular-2-training-book.rangle.io/handout/why_angular_2.html&#34; target=&#34;_blank&#34;&gt;rangle.io&lt;/a&gt; listou as principais diferenças entre o Angular 1 e o 2:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;“_Transitional Architecture_” se refere ao estilo de programação no Angular 1 de forma a se aproximar o máximo possível do Angular 2, mas com &lt;em&gt;Controllers&lt;/em&gt; e _Diretivas,_ ao invés de classes TypeScript.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-56319 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/Captura-de-Tela-2016-10-27-às-10.28.09.png&#34; alt=&#34;Comparação Angular 1 e 2 do rangle.io&#34; width=&#34;718&#34; height=&#34;274&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;mas-e-aí-vale-ou-não-a-pena&#34;&gt;Mas e aí, vale ou não a pena?&lt;/h2&gt;
+
+&lt;h3 id=&#34;adoção&#34;&gt;Adoção&lt;/h3&gt;
+
+&lt;p&gt;A preocupação da maioria das pessoas é simplesmente não saber se Angular 2 vai realmente “vingar”, e acabam ficando com receio de migrar. Fazendo uma simples pesquisa no Google Trends, é possível comparar a popularidade do termo Angular 2, comparado a VueJS e ReactJS, as ferramentas que estão mais em alta atualmente.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-56321 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/trends.jpg&#34; alt=&#34;Comparação entre AngularJS, VueJS e ReactJS&#34; width=&#34;1118&#34; height=&#34;357&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;mobile&#34;&gt;Mobile&lt;/h3&gt;
+
+&lt;p&gt;Se você pretende desenvolver aplicativos híbridos, cá está mais um excelente motivo para usar Angular 2, a equipe do Ionic está finalizando o desenvolvimento da sua segunda versão, que é totalmente escrita em Angular 2.&lt;/p&gt;
+
+&lt;h3 id=&#34;typescript&#34;&gt;TypeScript&lt;/h3&gt;
+
+&lt;p&gt;Uma vez que a maioria dos navegadores não estão habilitados para rodar ES6 e ES7, surgiram alguns pré-compiladores, que geram todo o código para o JavaScript “entendível” pelo navegador. Mas o Typescript vai um pouco mais longe.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-56324 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/v94tyy.jpg&#34; alt=&#34;Meme TypeScript&#34; width=&#34;512&#34; height=&#34;358&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;O TypeScript, criado pela Microsoft (isso mesmo), é um “_superset_” do JavaScript, que, além de implementar as funcionalidades do ES6+, traz uma série de “poderes” no desenvolvimento. Uma das coisas que eu gosto bastante, é a capacidade de &lt;em&gt;autocomplete&lt;/em&gt; nas IDEs (se você tiver uma que suporte, como o Sublime Text ou VSCode). Mas acredito que o mais interessante é a parte de organização do código. O TypeScript tem uma sintaxe muito mais clara e fácil de entender. Abaixo um mesmo código escrito em TypeScript e JavaScript:&lt;/p&gt;
+
+&lt;p&gt;TypeScript:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;class HelloWorld {
+  text: string;
+  constructor(text: string) {
+    this.text = text;
+  }
+}
+let txt = new HelloWorld(&#34;Olá mundo!&#34;);
+console.log(txt);
+&lt;/pre&gt;
+
+&lt;p&gt;JavaScript:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var HelloWorld = (function () {
+  function HelloWorld(text) {
+    this.text = text;
+  }
+return HelloWorld;
+}());
+var txt = new HelloWorld(&#34;Olá mundo!&#34;);
+console.log(txt);&lt;/pre&gt;
+
+&lt;h3 id=&#34;performance&#34;&gt;Performance&lt;/h3&gt;
+
+&lt;p&gt;Um ponto muito importante de destaque é a performance. O Angular 1, de fato, oferece uma experiência de baixa performance devido a excessivas interações com a DOM. O Angular 2 vem pra resolver esse problema de uma vez por todas. O gráfico abaixo, feito pela &lt;a href=&#34;https://auth0.com/blog/more-benchmarks-virtual-dom-vs-angular-12-vs-mithril-js-vs-the-rest/&#34; target=&#34;_blank&#34;&gt;auth0&lt;/a&gt;, mostra, na prática o resultado do &lt;em&gt;benchmark&lt;/em&gt; que eles realizaram:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-56328 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/angular2-grafico.png&#34; alt=&#34;angular2 grafico por auth0&#34; width=&#34;615&#34; height=&#34;338&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;O Angular 2 veio pra ficar, além de ser uma ferramenta que evoluiu, ter uma grande empresa como o Google por trás só ajuda. A adoção deste framework só tende a crescer mais, e, sim, vale muito a pena usar em seus projetos.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Yarn: A evolução do NPM</title>
+      <link>http://tableless.com.br/yarn-evolucao-do-npm/</link>
+      <pubDate>Thu, 03 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/yarn-evolucao-do-npm/</guid>
+      <description>
+
+&lt;p&gt;&lt;img class=&#34;aligncenter wp-image-56337&#34; style=&#34;text-align: center&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/yarn-kitten-full.png&#34; alt=&#34;yarn-kitten-full&#34; width=&#34;300&#34; height=&#34;135&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Nos primórdios do desenvolvimento web e afins, trabalhar com bibliotecas era uma tarefa árdua. Lembro que tínhamos que pesquisar pela biblioteca, escolher uma versão, baixar o zip e implementar em nosso projeto. Não parece nada de outro mundo ao se tratar de pequenos projetos, mas quando estamos falando de projetos um pouco maiores, isso se torna um transtorno.  A coisa se torna ainda mais complicada quando há a dependência entre bibliotecas.&lt;/p&gt;
+
+&lt;p&gt;Nesse contexto, entram os gerenciadores de pacotes, que chegaram para revolucionar a maneira como lidamos com as dependências de nosso projetos. Um dos principais gerenciadores de pacotes é o &lt;a href=&#34;https://www.npmjs.com/&#34;&gt;NPM&lt;/a&gt;, que inicialmente visava abastecer apenas os desenvolvedores de NodeJS, mas acabou se tornando um hub comum de dependências Javascript em geral. O NPM hoje conta com mais de 300mil bibliotecas em seu repositório central, as quais alcançam cerca  5 bilhões de downloads por mês, e é a ferramenta de gerenciamento de pacotes mais popular do mundo.&lt;/p&gt;
+
+&lt;p&gt;Apesar de ser uma excelente ferramenta, o NPM nunca conseguiu agradar a todos, e são comuns as reclamações de lentidão, a falta de um instalador offline, instalações em fila, etc.&lt;/p&gt;
+
+&lt;h2 id=&#34;yarn-package-manager&#34;&gt;Yarn Package Manager&lt;/h2&gt;
+
+&lt;p&gt;No dia 11 de outubro de 2016, o Facebook &lt;a href=&#34;https://code.facebook.com/posts/1840075619545360&#34;&gt;anunciou&lt;/a&gt; o seu novo gerenciador de pacotes para Javascript: o Yarn, que vem com a proposta de ser mais rápido, seguro e confiável que o NPM. O Yarn é open source, e nasceu com a colaboração, também, das empresas Exponent, Google, e Tilde.&lt;/p&gt;
+
+&lt;p&gt;O Yarn funciona exatamente como o NPM e o Bower, abrangendo, inclusive, as bibliotecas que estão presentes nestes gerenciadores. Uma das coisas mais interessantes, além da rapidez, é a possibilidade de instalação de pacotes offline. Quando você instala um pacote, ele cria um cache em sua máquina que possibilita a futura instalação deste sem precisar estar conectado à internet.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando-o-yarn&#34;&gt;Instalando o Yarn&lt;/h2&gt;
+
+&lt;p&gt;Para a instalação, você pode baixar no &lt;a href=&#34;https://yarnpkg.com/en/docs/install&#34;&gt;site oficial&lt;/a&gt;, mas também pode utilizar outro gerenciador, como o NPM (confesso que parece irônico, como quando utilizávamos o Internet Explorer para baixar o Chrome).&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;npm install -g yarn
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;utilizando-o-yarn&#34;&gt;Utilizando o Yarn&lt;/h2&gt;
+
+&lt;h3 id=&#34;inicialização&#34;&gt;Inicialização&lt;/h3&gt;
+
+&lt;p&gt;A utilização do Yarn é bastante semelhante com a do NPM. Para inicializar basta digitar, na linha de comando:&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn init
+&lt;/pre&gt;
+
+&lt;p&gt;Este comando irá gerar um arquivo &lt;strong&gt;package.json&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;{
+&#34;name&#34;: &#34;Yarn&#34;,
+&#34;version&#34;: &#34;1.0.0&#34;,
+&#34;main&#34;: &#34;index.js&#34;,
+&#34;license&#34;: &#34;MIT&#34;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O gerenciamento dos pacotes pode ser feito diretamente no &lt;em&gt;package.json&lt;/em&gt;, ou pela linha de comando.&lt;/p&gt;
+
+&lt;h3 id=&#34;adicionando-uma-dependência&#34;&gt;Adicionando uma dependência&lt;/h3&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn add [package]
+yarn add [package]@[version]
+yarn add [package]@[tag]
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;fazendo-update&#34;&gt;Fazendo update&lt;/h3&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn upgrade [package]
+
+yarn upgrade [package]@[version]
+yarn upgrade [package]@[tag]
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;desfazendo-as-coisas&#34;&gt;Desfazendo as coisas&lt;/h3&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn remove [package]
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;instalando-as-dependências&#34;&gt;Instalando as dependências&lt;/h3&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn
+&lt;/pre&gt;
+
+&lt;p&gt;ou&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn install
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;outras-funcionalidades&#34;&gt;Outras funcionalidades&lt;/h2&gt;
+
+&lt;h3 id=&#34;lock-file&#34;&gt;Lock file&lt;/h3&gt;
+
+&lt;p&gt;Além do package.json, o Yarn cria, na pasta raíz do projeto, um arquivo yarn.lock, que trata de listar as bibliotecas &amp;#8220;originais&amp;#8221; do projeto, um sistema bem semelhante ao do composer.&lt;/p&gt;
+
+&lt;h3 id=&#34;fazendo-uma-limpeza&#34;&gt;Fazendo uma limpeza&lt;/h3&gt;
+
+&lt;p&gt;Outro recurso interessante é o mecanismo de limpeza de dependências, ao executar o comando:&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn clean
+&lt;/pre&gt;
+
+&lt;p&gt;O Yarn vasculha as dependências e verifica tudo aquilo que não está sendo utilizado e exporta para um arquivo &lt;strong&gt;.yarnclean&lt;/strong&gt;. Caso você tenha este arquivo em sua pasta raíz, quando executar o &lt;strong&gt;yarn install&lt;/strong&gt;, ele vai instalar as dependências de forma mais limpa.&lt;/p&gt;
+
+&lt;h3 id=&#34;self-update&#34;&gt;Self-update&lt;/h3&gt;
+
+&lt;p&gt;Para atualizar o Yarn, basta digitar no console:&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn self-update
+&lt;/pre&gt;
+
+&lt;p&gt;ou, caso queira especificar a versão:&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn self-update 0.1.2
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;futuro&#34;&gt;Futuro&lt;/h2&gt;
+
+&lt;p&gt;Em todos os testes realizados, o Yarn se mostrou um gerenciador de pacotes bastante robusto e completo. De fato, o Yarn é extremamente rápido. Estou utilizando-o há cerca de uma semana, e, sinceramente, não penso em voltar a utilizar o NPM.&lt;/p&gt;
+
+&lt;p&gt;A sua equipe de desenvolvimento está incentivando todos a migrarem e contribuirem na sua página do &lt;a href=&#34;https://github.com/yarnpkg/yarn&#34;&gt;github&lt;/a&gt;, afinal todos só temos a ganhar com esta nova e excelente ferramenta.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

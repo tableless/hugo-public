@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/cache-busting-entrega-inteligente-de-assets/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/cache-busting-entrega-inteligente-de-assets/">Cache busting: entrega inteligente de assets</a></h1>
+  <p class="tb-hero-p">
+    
+    Sabe quando você faz o deploy com aquele ajuste no JS ou CSS e o usuário não consegue visualizar essas alterações por conta do cache do browser? Então, cache busting pode lhe poupar desse contratempo.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/james-cl%C3%A9bio">James Clébio</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<h2 id="definição">Definição</h2>
+
+<p>Cache busting nada mais é do que uma técnica para contornar o problema do carregamento de versões antigas dos assets armazenados em cache no navegador do cliente.</p>
+
+<h2 id="problema">Problema</h2>
+
+<p>Na verdade, essa é uma questão de longa data. Muitos desenvolvedores utilizam-se do incremento de variáveis com códigos aleatórios no final das chamadas (querystrings) dos assets para contornar o problema, o que, de acordo com <a href="http://stevesouders.com/">Steve Souders</a>, guru em performance de sites na web, não é uma boa prática.</p>
+
+<pre class="lang-html">&lt;link rel="stylesheet" href="assets/main.css?v=786523"&gt; &lt;!-- NÃO RECOMENDADO! --&gt;
+</pre>
+
+<p>Segundo Souders, <a href="http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/">o uso de querystrings não é bom</a> porque faz com que normalmente o browser recarregue o asset da origem. Para o ambiente de desenvolvimento isso seria o ideal. Para o usuário final isso não seria bom, pois o comportamento de seu navegador seria alterado em termos do número de conexões que são abertas, ignorando o uso do cache e comprometendo a performance de carregamento da página.</p>
+
+<h2 id="solução">Solução</h2>
+
+<p>Para resolver o problema sem a utilização de querystrings, o ideal é que todos os arquivos de assets que estão sendo requisitados na página sejam renomeados. Logicamente que as chamadas para esses assets renomeados também precisam ser atualizadas na página. Sabemos que fazer esse processo manualmente seria algo árduo, quase insano. Então como fazê-lo de forma elegante, automatizada?</p>
+
+<p>A fórmula mágica para que isso aconteça de maneira prática é o <a href="https://github.com/hollandben/grunt-cache-bust">grunt-cache-bust</a>, um plugin para o <a href="http://tableless.com.br/grunt-voce-deveria-estar-usando/">Grunt</a>.</p>
+
+<h3 id="show-me-the-code">Show me the code</h3>
+
+<p>Vou supor que você já conhece o <a href="http://gruntjs.com/">Grunt</a> e que há uma <em>index.html</em> na raiz de seu projeto, ok? Sendo assim, irei focar apenas na utilização do plugin.</p>
+
+<p>A princípio você só precisa seguir 4 passos básicos para usar o grunt-cache-bust:</p>
+
+<ol>
+<li>Instale o plugin usando o seguinte comando:</li>
+</ol>
+
+<pre class="lang-sh">npm install grunt-cache-bust --save-dev
+</pre>
+
+<ol>
+<li>Em seu <em>Gruntfile.js</em>, adicione a seguinte propriedade ao objeto passado como parâmetro em <em>grunt.initConfig</em>:</li>
+</ol>
+
+<pre class="lang-js">cacheBust: {
+  options: {
+    encoding: 'utf8',
+    length: 16
+  },
+  scripts: {
+    files: [{
+      src: ['index.html']
+    }]
+  }
+}
+</pre>
+
+<ol>
+<li>Ainda em seu <em>Gruntfile.js</em>, adicione a seguinte linha para ativar o plugin:</li>
+</ol>
+
+<pre class="lang-js">grunt.loadNpmTasks('grunt-cache-bust');
+</pre>
+
+<ol>
+<li>Tudo certo, agora é só rodar a task e voilà!</li>
+</ol>
+
+<pre class="lang-sh">grunt cacheBust
+</pre>
+
+<h3 id="resultado">Resultado</h3>
+
+<p>Lembra que na raíz de seu projeto há uma <em>index.html</em>? Então, basicamente a task vai varrer esse documento buscando por chamadas de assets (CSS, JS, imagens e favicons), copiar esses arquivos com um novo nome e atualizar o source de cada chamada encontrada com o novo nome do arquivo. Esse novo nome terá o formato {nome}.{hash}.{extensão}, onde {hash} seria um código aleatório.</p>
+
+<p><em>index.html</em> antes:</p>
+
+<pre class="lang-html">&lt;script src="assets/main.js"&gt;&lt;/script&gt;</pre>
+
+<p><em>index.html</em> depois:</p>
+
+<pre class="lang-html">&lt;script src="assets/main.6419373d85d7afe3.js"&gt;&lt;/script&gt;
+</pre>
+
+<p>Lindo, né?</p>
+
+<p>Vale lembrar que o plugin irá ignorar automaticamente chamadas que apontam para CDNs.</p>
+
+<p>A propriedade <a href="https://github.com/hollandben/grunt-cache-bust#options">options</a> do plugin oferece uma porção de possibilidades interessantes que flexibilizam a utilização do cache busting, como por exemplo manter ou não os arquivos originais dos assets requisitados, escolher o algoritmo e tamanho das hashes, ignorar chamadas de assets através de regex, etc. Enfim, considere dar uma boa olhada na <a href="https://github.com/hollandben/grunt-cache-bust#getting-started">documentação oficial do plugin</a>.</p>
+
+<h2 id="conclusão">Conclusão</h2>
+
+<p>Cache busting é algo realmente útil no ciclo de desenvolvimento web. Chega de <em>Cmd+Shift+R</em> ou <em>Ctrl+F5</em>, né?</p>
+
+<p>Se você tem alguma outra solução para essa questão, utilizando Gulp ou outra ferramenta, conta pra gente aqui nos comentários. A comunidade agradece! ;D</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

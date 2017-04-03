@@ -1,0 +1,333 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/multiplas-galerias-de-fotos-dinamicas-com-fancybox-ajax-e-json/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/multiplas-galerias-de-fotos-dinamicas-com-fancybox-ajax-e-json/">Múltiplas galerias de fotos dinâmicas com Fancybox, Ajax e JSON</a></h1>
+  <p class="tb-hero-p">
+    
+    Transferindo dados entre o PHP e Javascript do jeito certo.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/pdechery">pdechery</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<h3 id="introdução">Introdução</h3>
+
+<p>Ano passado trabalhei em um projeto que era um concurso de fotografia online, o <a href="http://www.prixphotoaliancafrancesa.com.br" target="_blank">Prix Photo Web</a>, onde cada fotógrafo podia se cadastrar, fazer upload de suas fotos e concorrer a um prêmio.</p>
+
+<p>O site tinha uma página de galeria, onde se podia ver os diversos trabalhos publicados a partir de <em>thumbnails</em>.</p>
+
+<p>Eu havia pego o código já quase todo pronto, mas resolvi atualizar algumas coisas e uma delas foi a tal galeria.</p>
+
+<p>No decorrer do processo acabei tendo que usar o <strong>JSON</strong> para trocar informações entre scripts PHP e JavaScript, e achei muito interessante a maneira como isso aconteceu.</p>
+
+<p>O resultado final pode ser conferido <a href="http://www.prixphotoaliancafrancesa.com.br/galeria" target="_blank">aqui</a>, e a seguir vou descrever o passo a passo do processo que percorri.</p>
+
+<h3 id="escopo">Escopo</h3>
+
+<p>O conteúdo do site era totalmente dinâmico, ou seja, vinha de consultas ao banco de dados feitas no carregamento da página. Veja abaixo como ficou a página da galeria, com os <em>thumbnails</em> clicáveis:</p>
+
+<p><a href="http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-1.png"><img class=" wp-image-43 size-large aligncenter" src="http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-1-1024x550.png" alt="galeria-prix-1" width="660" height="354" /></a></p>
+
+<p>Ao dar o clique em um dos <em>thumbs</em> se abria uma galeria de fotos em <em>lightbox</em>, usando o <em>plugin</em> jQuery <a href="http://fancyapps.com/fancybox/" target="_blank"><em>fancybox</em> </a>(um velho favorito meu):</p>
+
+<p><a href="http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-2.png"><img class=" size-large wp-image-42 aligncenter" src="http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-2-1024x550.png" alt="galeria-prix-2" width="660" height="354" /></a></p>
+
+<h4 id="o-problema">O problema</h4>
+
+<p>Eu já tinha toda a lógica para exibir os <em>thumbnails</em> na página e também as galerias em <em>lightbox</em>, mas achei o código meio &#8216;macarrônico&#8217; e me questionei se não podia ser mais simples e limpo.</p>
+
+<p>Para demonstrar o funcionamento do sistema existente de carregamento das galerias, segue um diagrama:</p>
+
+<p><a href="http://www.decheryweb.com.br/blog/wp-content/uploads/diagrama-prix.png"><img class=" size-full wp-image-68 aligncenter" src="http://www.decheryweb.com.br/blog/wp-content/uploads/diagrama-prix.png" alt="diagrama-prix" width="361" height="536" /></a></p>
+
+<p>Trata-se de um exemplo básico de uso de Ajax, aonde temos:</p>
+
+<ol>
+<li><strong>Página HTML</strong>: Renderiza a galeria de <em>thumbnails</em> e as galerias de fotos em <em>lightbox</em>.</li>
+<li><strong>Script JS</strong>: Ativado a cada clique em um <em>thumbnail</em>, faz a requisição de um arquivo PHP através de <em>Ajax</em>.</li>
+<li><strong>Arquivo PHP</strong>: Faz as consultas no banco de dados para pegar todas os dados necessários para exibição da galeria, e devolve estes dados ao script, que finalmente vai exibir a galeria, usando o plugin <em>fancybox</em>.</li>
+</ol>
+
+<p>O sistema como um todo funcionava, mas faltava um toque de agilidade, que foi dado ao acrescentar o JSON no sistema.</p>
+
+<p>Vamos então ver agora como isso foi feito.</p>
+
+<h3 id="o-código">O código</h3>
+
+<p>O HTML da galeria era mais ou menos assim:</p>
+
+<pre class="lang-html">&lt;div class="projetos"&gt;
+    &lt;a id="10"&gt;
+        &lt;img src="dir/nome-img.jpg"&gt;
+    &lt;/a&gt;
+    &lt;a id="11"&gt;
+        &lt;img src="dir/nome-img.jpg"&gt;
+    &lt;/a&gt;
+&lt;/div&gt;</pre>
+
+<p>E abaixo o código JS (usando jQuery) que fazia acontecer a mágica a cada clique nos <em>thumbnails</em>:</p>
+
+<pre class="lang-javascript">$(document).ready(function(){
+    $('.projetos &gt; a').click(function(){
+        var id = $(this).attr('id');
+        $.post('ajax-projetos.php',{'idp':id}, function(data){
+            fancyPrix(data);
+        },'text');
+    });
+});</pre>
+
+<p>Observando o script, vemos que ele aplica algumas ações ao evento <em>click</em> nos links, conforme indicado neste trecho: <code>$('.projetos &gt; a').click(function(){</code></p>
+
+<p>As ações basicamente são: a requisição do arquivo <code>ajax-projetos.php</code> usando o método do jQuery $.<code>post</code> (método do jQuery para chamadas Ajax), passando como parâmetro a variável <code>id</code>, cujo valor vem de um atributo em cada link. O retorno dado pelo arquivo php, representado na variável <code>data</code>, era em seguida passado pela função <code>fancyPrix</code>.</p>
+
+<p>Se ficou com dúvidas examine novamente o script até entender todo o processo.</p>
+
+<h3 id="usando-o-json">Usando o JSON</h3>
+
+<p>Agora que ficou claro (espero) o importante papel do script JS, vamos ao arquivo <code>ajax-projetos.php</code>. Como explicado no diagrama apresentado anteriormente, este arquivo fazia a consulta no banco de dados entregando ao final um <em>array</em> contendo os dados necessários para a renderização da galeria de imagens em <em>lightbox</em>.</p>
+
+<p>Ao final do processo, o array produzido tinha a seguinte estrutura:</p>
+
+<pre class="lang-javascript">$proj = array (
+    "candidato" =&gt; "Felisbério dos Santos",
+    "imgs"  =&gt; array ( 
+        0 =&gt; "http://localhost/projeto/diretorio/nome-arquivo.jpg",
+        1 =&gt; "http://localhost/projeto/diretorio/nome-arquivo.jpg",
+        2 =&gt; "http://localhost/projeto/diretorio/nome-arquivo.jpg",
+    ),
+    "projeto" =&gt; "Sombras Negras"
+);</pre>
+
+<p>Como se pode ver, o <em>array</em> tinha todos os dados necessários para criação da galeria: nome do candidato, nome do projeto e as imagens, como um <em>sub-array</em>.</p>
+
+<p>No código original, a grande falha no entanto era a forma como esses dados eram devolvidos ao script JS. Havia uma mistura de código JS como variáveis do php dentro do mesmo script que tornava tudo confuso e difícil de manter.</p>
+
+<p>Porque não passar o <em>array</em> de volta como um objeto <strong>JSON</strong>, que pode ser interpretado dentro do script JS original, abolindo assim o uso de código php macarrônico?</p>
+
+<p>Isto foi feito simplesmente adicionando-se ao código esta linha:</p>
+
+<pre class="lang-php">echo json_encode($proj);</pre>
+
+<p>A função nativa do PHP &#8216;<a href="http://php.net/manual/pt_BR/function.json-encode.php" target="_blank">json_encode</a>&#8216;, como diz o nome, converte o <em>array</em> <code>$proj</code> para um objeto JSON, que ficará assim:</p>
+
+<pre class="lang-javascript">{
+    "candidato":"Felisbério dos Santos",
+    "imgs":[
+        "http://path/da/imagem/136/000-1.jpg",
+        "http://path/da/imagem/136/000-2.jpg",
+        "http://path/da/imagem/136/000-3.jpg"
+        ],
+    "nome":"Sombras Negras"
+ }</pre>
+
+<p>Este objeto pode ser passado tranquilamente pela script JS, aonde será usado na já citada função <code>fancyPrix()</code>, que é quem vai pegar cada informação do objeto JSON e aplicar no _plugin <a href="http://fancyapps.com/fancybox/" target="_blank">fancybox</a>_, da seguinte maneira:</p>
+
+<pre class="lang-javascript">function fancyPrix(projeto) {
+    $.fancybox.open(projeto.imgs, {
+        padding: 0,
+        maxWidth : '680px',
+        maxHeight : '660px',
+        title: projeto.nome + " - "+ projeto.candidato,
+        loop : 'false',
+        prevEffect : 'none',
+        nextEffect : 'none'
+    });
+}</pre>
+
+<p>Vemos que o plugin <em>fancybox</em> possui um método que permite trabalhar com objetos JSON, o <code>fancybox.open</code>.</p>
+
+<p>Repare como foram passadas as imagens logo no início do código: <code>$.fancybox.open(projeto.imgs, {</code>. Com a simples propriedade <code>projeto.imgs</code> conseguimos passar <strong>todas</strong> as imagens que fazem parte da galeria. O restante das propriedades são usadas como opções dentro do plugin, como mostrado acima.</p>
+
+<p>Relembrando o script jQuery original podemos ver como a galeria toda é criada em apenas uma linha de código.</p>
+
+<pre class="lang-javascript">$(document).ready(function(){
+    $('.projetos a').click(function(){
+        var id = $(this).attr('id');
+        $.post('ajax-projetos.php',{'idp':id}, function(data){
+            <strong>fancyPrix(data);</strong>
+        },'text');
+    });
+});</pre>
+
+<h3 id="conclusão">Conclusão</h3>
+
+<p>Quando apliquei esta solução e vi tudo funcionando o orgulho (e o alívio) foram grandes, mas maior ainda foi a sensação de &#8216;uau&#8217; ao ver as diferentes linguagens da web conversando juntas e de maneira tão integrada.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

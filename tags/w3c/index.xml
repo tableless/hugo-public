@@ -1,0 +1,2018 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>W3c on Tableless</title>
+    <link>http://tableless.com.br/tags/w3c/index.xml</link>
+    <description>Recent content in W3c on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/w3c/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte III</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-iii/</link>
+      <pubDate>Mon, 05 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-iii/</guid>
+      <description>
+
+&lt;p&gt;Estamos entrando na terceira parte do tutorial, e quem está acompanhando até aqui já sabe então como funciona a comunicação entre cliente e servidor, envio de requisição pelo cliente e recebimento de resposta (na duvida só voltar e releia a &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/&#34; title=&#34;Criando seu próprio servidor HTTP do zero (ou quase) – Parte I&#34;&gt;Parte I&lt;/a&gt; e/ou &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/&#34; title=&#34;Criando seu próprio servidor HTTP do zero (ou quase) – Parte II&#34;&gt;Parte II&lt;/a&gt;), porém o que a gente quer é criar o servidor, receber as requisições e enviar a resposta ao cliente.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-servidor&#34;&gt;O Servidor&lt;/h2&gt;
+
+&lt;p&gt;A idéia do servidor é bem simples e estende a do cliente, como assim? Fácil, fácil. no post anterior vimos como criar um socket, no caso, nos criamos um socket já conectado ao site do google, mas o que internamente acontece é, criamos um socket, associamos esse socket a uma porta (lembrando que no caso do cliente a porta aberta é aleatória, so para que o servidor saiba onde deve retornar a resposta) e conectamos ao socket do servidor na porta especifica.&lt;/p&gt;
+
+&lt;p style=&#34;text-align: justify&#34;&gt;
+  Agora vamos pensar um pouco, no caso do servidor, temos que criar um socket, associar (bind) a uma porta especifica(para que todos os clientes saibam exatamente onde conectar) e ficamos aguardando alguém solicitar uma conexão (listen), se alguém solicitar conexão nós aceitamos (accept), resumindo o processo, temos como na imagem abaixo:
+&lt;/p&gt;
+
+&lt;div style=&#34;width: 369px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://3.bp.blogspot.com/_Gt5b2CU22sM/S4iS4lbeU5I/AAAAAAAAAUU/DBmariOce1o/s400/rzab6503.gif&#34;&gt;&lt;img src=&#34;http://3.bp.blogspot.com/_Gt5b2CU22sM/S4iS4lbeU5I/AAAAAAAAAUU/DBmariOce1o/s400/rzab6503.gif&#34; alt=&#34;&#34; width=&#34;359&#34; height=&#34;324&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Diagrama Cliente/Servidor
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Em Java já temos uma classe pronta que faz isso, que é o ServerSocket, que já cria um socket que está aguardando conexões, o que torna nossa vida bem mais simples, então vamos parar de teoria e ir pro código, para isso criamos uma classe chamada Servidor e nela faremos o seguinte:&lt;/p&gt;
+
+&lt;pre&gt;import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class Servidor {
+
+    public static void main(String[] args) throws IOException {
+        /* cria um socket &#34;servidor&#34; associado a porta 8000
+          já aguardando conexões
+        */
+        ServerSocket servidor = new ServerSocket(8000);
+        //aceita a primeita conexao que vier
+        Socket socket = servidor.accept();
+        //verifica se esta conectado  
+        if (socket.isConnected()) {
+            //imprime na tela o IP do cliente
+            System.out.println(&#34;O computador &#34;+ socket.getInetAddress() + &#34; se conectou ao servidor.&#34;);
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que estamos abrindo a porta 8000 e não a 80, isso por que embora essa seja a porta &amp;#8220;destinada/utilizada&amp;#8221; para servidores HTTP, ela é gerenciada pelo sistema operacional então não poderemos abri-la por enquanto (o SO não permitiria até por que em alguns sistemas linux já existe um servidor HTTP utilizando essa porta, em outros a porta está bloqueada pelo firewall, e teremos que abri-la manualmente mas veremos isso em breve), por isso vamos utilizar outra porta para testes, vamos compilar esse código e coloca-lo em execução, veja que ele permanecerá em execução até que ele receba pelo menos uma solicitação de conexão, que é o que vamos fazer, assim basta abrir o navegador e digitar o endereço &lt;a href=&#34;http://localhost:8000&#34;&gt;http://localhost:8000&lt;/a&gt; e ir para a página, veja que ao fazer isso sua linha de comando aparecerá a frase:&lt;/p&gt;
+
+&lt;pre&gt;java Server
+O computador /0:0:0:0:0:0:0:1 se conectou ao servidor.&lt;/pre&gt;
+
+&lt;p&gt;Veja  que este é o endereço IP do seu computador já no formato IPv6.  Note  que logo em seguida o programa foi finalizado, isso porque nosso servidor não está configurado para múltiplas conexões/requisições, porém vamos fazer isso já já, agora vamos ver qual foi a requisição que nosso navegador fez ao servidor, e para ler a entrada o conceito é o mesmo de ontem, vamos usar o InputStream para ler os dados enviados pelo cliente, então vamos adicionar o seguinte código logo após imprimir o IP:&lt;/p&gt;
+
+&lt;pre&gt;[...]
+            //cria um BufferedReader a partir do InputStream do cliente
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            System.out.println(&#34;Requisição: &#34;);
+            //Lê a primeira linha
+            String linha = buffer.readLine();
+            //Enquanto a linha não for vazia
+            while (!linha.isEmpty()) {
+                //imprime a linha
+                System.out.println(linha);
+                //lê a proxima linha
+                linha = buffer.readLine();
+            }
+[...]
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que agora utilizamos um BufferedReader ao invés do Scanner, isto por que o Scanner mesmo após ter terminado de ler a requisição ele espera que a a conexão seja encerrada, a fim de aguardar novas entradas, mas como não é interessante para gente esperar,  vamos usar o Buffer pois podemos verificar se a linha for vazia, se for, simplesmente encerra o programa sem ter que aguardar que a conexão seja encerrada. (Caso seja necessário continuar lendo a entrada antes da conexão encerras é so pegar o InputReader novamente e continuar lendo. Agora ao executarmos nosso servidor,  e acessar a página localhost:8000 no navegador teremos a seguinte saída na linha de comando:&lt;/p&gt;
+
+&lt;pre&gt;java Server
+O computador /0:0:0:0:0:0:0:1 se conectou ao servidor.
+Requisição: 
+GET / HTTP/1.1
+Host: localhost:8000
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:29.0) Gecko/20100101 Firefox/29.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Encoding: gzip, deflate
+DNT: 1
+Connection: keep-alive&lt;/pre&gt;
+
+&lt;p&gt;Veja que minha requisição foi originada de um navegador Firefox e que o formato da requisição é muito semelhante do que vimos na primeira parte do tutorial =D. Agora é so fazer o servidor tratar essas informações e devolver uma resposta ao cliente, nesse caso vamos devolver uma página HTML que é o que o navegador espera. Vamos criar duas páginas uma chamada índex.html e outra 404.html, e vamos armazena-las na mesma pasta que está colocando o código fonte do servidor com os seguintes códigos:&lt;/p&gt;
+
+&lt;p&gt;Arquivo index.html&lt;/p&gt;
+
+&lt;h1 id=&#34;funcionou&#34;&gt;Funcionou!!!!&lt;/h1&gt;
+
+&lt;p&gt;Arquivo 404.html&lt;/p&gt;
+
+&lt;pre&gt;Erro 404&lt;/pre&gt;
+
+&lt;h1 id=&#34;a-página-que-você-procura-não-foi-encontrada&#34;&gt;A página que você procura não foi encontrada&lt;/h1&gt;
+
+&lt;p&gt;Por convenção quando alguém solicita o arquivo &amp;#8220;/&amp;#8221; está solicitando a pagina inicial que geralmente é o índex.html, dependendo da configuração do servidor, no nosso caso queremos que nosso servidor retorne o índex.html, se o usuário pedir por qualquer coisa no formato &amp;#8220;/{nome da pagina}.html&amp;#8221; retornaremos esse arquivo, caso o arquivo não exista, retornaremos o erro 404 e a página de erro correspondente.&lt;/p&gt;
+
+&lt;p&gt;Sabemos que a primeira linha da requisição contem o método, o arquivo solicitado e o protocolo separados por um espaço em branco, para o nosso servidor o método não importa, então assumiremos sempre o GET, e o protocolo será sempre o HTTP/1.1, então o que nos importa é o arquivo solicitado. Vamos alterar o nosso código que deve ficar assim:&lt;/p&gt;
+
+&lt;pre&gt;[...]
+            /* Lê a primeira linha
+             contem as informaçoes da requisição
+             */
+            String linha = buffer.readLine();
+            //quebra a string pelo espaço em branco
+            String[] dadosReq = linha.split(&#34; &#34;);
+            //pega o metodo
+            String metodo = dadosReq[0];
+            //paga o caminho do arquivo
+            String caminhoArquivo = dadosReq[1];
+            //pega o protocolo
+            String protocolo = dadosReq[2];
+            //Enquanto a linha não for vazia
+            while (!linha.isEmpty()) {
+                //imprime a linha
+                System.out.println(linha);
+                //lê a proxima linha
+                linha = buffer.readLine();
+            }
+            //se o caminho foi igual a / entao deve pegar o /index.html
+            if (caminhoArquivo.equals(&#34;/&#34;)) {
+                caminhoArquivo = &#34;/index.html&#34;;
+            }
+            //abre o arquivo pelo caminho
+            File arquivo = new File(caminhoArquivo);
+            byte[] conteudo;
+            //status de sucesso - HTTP/1.1 200 OK
+            String status = protocolo + &#34; 200 OK\r\n&#34;;
+            //se o arquivo não existe então abrimos o arquivo de erro, e mudamos o status para 404
+            if (!arquivo.exists()) {
+                status = protocolo + &#34; 404 Not Found\r\n&#34;;
+                arquivo = new File(&#34;/404.html&#34;);
+            }
+            conteudo = Files.readAllBytes(arquivo.toPath());
+[...]
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que ainda não respondemos ao navegados com os dados, apenas montamos uma parte da resposta, para enviar a resposta precisaremos do OutputStream e montar uma string com a estrutura básica da resposta, dai vamos escrever esses dados no stream, semelhante ao que fizemos na parte II do nosso tutorial:&lt;/p&gt;
+
+&lt;pre&gt;//cria um formato para o GMT espeficicado pelo HTTP
+            SimpleDateFormat formatador = new SimpleDateFormat(&#34;E, dd MMM yyyy hh:mm:ss&#34;, Locale.ENGLISH);
+            formatador.setTimeZone(TimeZone.getTimeZone(&#34;GMT&#34;));
+            Date data = new Date();
+            //Formata a dara para o padrao
+            String dataFormatada = formatador.format(data) + &#34; GMT&#34;;
+            //cabeçalho padrão da resposta HTTP
+            String header = status
+                    + &#34;Location: http://localhost:8000/\r\n&#34;
+                    + &#34;Date: &#34; + dataFormatada + &#34;\r\n&#34;
+                    + &#34;Server: MeuServidor/1.0\r\n&#34;
+                    + &#34;Content-Type: text/html\r\n&#34;
+                    + &#34;Content-Length: &#34; + conteudo.length + &#34;\r\n&#34;
+                    + &#34;Connection: close\r\n&#34;
+                    + &#34;\r\n&#34;;
+            //cria o canal de resposta utilizando o outputStream
+            OutputStream resposta = socket.getOutputStream();
+            //escreve o headers em bytes
+            resposta.write(header.getBytes());
+            //escreve o conteudo em bytes
+            resposta.write(conteudo);
+            //encerra a resposta
+            resposta.flush();
+&lt;/pre&gt;
+
+&lt;p&gt;Agora é só compilar, rodar e ver o resultado =D&lt;/p&gt;
+
+&lt;p&gt;No caso de sucesso deve aparecer como na figura abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/sucesso.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51391&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/sucesso.png&#34; alt=&#34;200 - Sucesso&#34; width=&#34;1279&#34; height=&#34;707&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Caso a página não existe, deve aparecer assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/erro404.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51392&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/erro404.png&#34; alt=&#34;Erro 404&#34; width=&#34;1280&#34; height=&#34;709&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Temos um servidor funcional capaz de fornecer as páginas HTML para os clientes que solicitarem, mas perceba que nosso servidor atende a apenas uma requisição e se encerra logo em seguida, sem contar que nosso método main ficou gigante, mas fique tranquilo, isso será assunto para a próxima e ultima parte do tutorial, onde vamos organizar melhor nosso código, tratar alguns comandos do servidor importantes como manter a conexão viva e trabalhar com múltiplas requisições, conexões simultâneas e afins. Por hora fica o exercício, tente organizar o código a sua maneira, altere como desejar, crie mais páginas HTML e teste e veja se está sendo exibida corretamente, todo código feito até aqui está no final da página e está todo comentado para facilitar o entendimento.&lt;/p&gt;
+
+&lt;p&gt;Espero que estejam gostando e por favor deixem comentários com seu feedback: o que achou, dúvidas, se funcionou ou não, se a abordagem não estiver adequada ou mesmo erros que posso ter cometido pelo caminho.&lt;/p&gt;
+
+&lt;p&gt;Até o próximo post.&lt;/p&gt;
+
+&lt;p&gt;Download do código fonte: &lt;a href=&#34;https://github.com/thiguetta/ServidorHTTP&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/thiguetta/ServidorHTTP&#34;&gt;https://github.com/thiguetta/ServidorHTTP&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte II</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/</link>
+      <pubDate>Fri, 11 Sep 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/</guid>
+      <description>
+
+&lt;p&gt;Se chegou até aqui é por que você terminou de ler a primeira parte do tutorial (Caso não, leia a &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/&#34; title=&#34;Criando seu próprio servidor HTTP do zero (ou quase) – Parte I&#34;&gt;Parte I&lt;/a&gt; ), mas não desista, a parte legal vai chegar, mas antes de começar, falta mais um item de teoria &amp;#8211;  sim eu sei que é chato, mas juro que é importante &amp;#8211; os Sockets.&lt;/p&gt;
+
+&lt;h2 id=&#34;sockets-e-portas&#34;&gt;Sockets e portas&lt;/h2&gt;
+
+&lt;p&gt;Falamos muito de requisições e respostas no último post mas ainda não falamos de conexão e troca de informações. Bom, vamos lá, ligeiramente comentamos um pouco sobre os protocolos de rede, também disse que o protocolo web, o HTTP, está na camada mais alta do TCP/IP, a camada de aplicação, mas para este tutorial pouco importa o que acontece nas camadas inferiores  (se tiver curiosidade procure mais sobre), o que realmente importa é saber que esse tal de TCP/IP é responsável pela conexão entre dois pontos (dois computadores, ou no nosso caso, cliente e servidor).&lt;/p&gt;
+
+&lt;p&gt;Tanto o servidor quanto o cliente são computadores com seus respectivos sistemas operacionais (Linux, Windows, etc) e neles estão em execução diversas aplicações inclusive o navegador e o próprio servidor HTTP, mas nesse monte de aplicações em execução, como vamos saber que estamos enviando e recebendo dados da aplicação certa? precisamos de um algo que identifique cada aplicação (ou pelo menos que identifique uma aplicação que use a rede). Esses pontos de identificação, por assim dizer, são chamados de Socket (ou em português, soquete, tomada, encaixe, enfim algo que tenha uma “abertura/encaixe&amp;#8221; para conexão), resumindo é um ponto que permite conectar alguma coisa, no nosso caso, um outro computador através da rede. Para receber uma conexão, o Socket precisa de uma abertura, essa abertura é o que chamamos de porta, sei que para alguns o conceito parece ser trivial, mas para outros, inclusive profissionais de TI, esses conceitos podem embaralhar a cabeça.&lt;/p&gt;
+
+&lt;p&gt;Resumindo, um Socket é o ponto final da conexão, onde uma porta é aberta para que a aplicação possa enviar ou receber dados, cada porta é identificada por um número que é única no computador, sendo que se tentar abrir uma porta que já estiver sendo usado por outra aplicação, o sistema operacional irá barrar e retornar um erro de acesso negado ou informa que a porta está em uso.&lt;/p&gt;
+
+&lt;p&gt;Existe uma lista de portas conhecidas  que são utilizadas por algumas aplicações, as mais comuns são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;21 FTP &amp;#8211; Transferencia de arquivo&lt;/li&gt;
+&lt;li&gt;22 SSH &amp;#8211;  Secure Shell&lt;/li&gt;
+&lt;li&gt;25 SMTP &amp;#8211; Envio de Emails&lt;/li&gt;
+&lt;li&gt;80 HTTP &amp;#8211; Web&lt;/li&gt;
+&lt;li&gt;443 HTTPS &amp;#8211; Web “Segura&amp;#8221;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Uma porta ela é única por computador mas não é única na internet, quando você quer efetuar a conexão com uma determinada aplicação rodando em um computador remoto, a identificação do socket é composto pelo endereço de IP ou o nome canônico (domínio &amp;#8211; endereço do site) da máquina destino e a porta que essa aplicação usando, no seguinte formato {Endereço}:{Porta}.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;exemplo.com:80 ou
+ 192.168.1.224:1000     
+&lt;/pre&gt;
+
+&lt;p&gt;A maioria das aplicações que requerem conexão com algum serviço se conectam diretamente as portas especificas que cada uma delas usa, sendo necessário informar apenas o IP (ao menos que seja uma porta que a aplicação não conheça, o serviço está funcionando numa porta atípica ai será necessário informar, veremos mais na parte III). O que isso significa? isso significa que quando você digita o site &lt;a href=&#34;http://www.google.com.br&#34;&gt;http://www.google.com.br&lt;/a&gt; no seu navegador, ele sabe que os servidores HTTP estão executando na porta 80, então não é preciso identificar-la, pois o navegador irá &amp;#8220;converter&amp;#8221; para o formato correto, transparentemente, a mesma coisa acontece quando você acessa um site seguro utilizando &lt;a href=&#34;https://www.seubanco.com.br&#34;&gt;https://www.seubanco.com.br&lt;/a&gt; o navegador sabe que a porta de conexão segura no servidor é a 443, e tentará se conectar nela.&lt;/p&gt;
+
+&lt;p&gt;O que acontece é seu navegador irá se conectar ao site, ele sabe que o servidor está respondendo na porta 80 no endereço tal, para isso é necessário que o navegador abre uma porta local aleatória, para que assim o servidor possa saber para quem responder:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.raywenderlich.com/wp-content/uploads/2011/06/sockets.jpg&#34;&gt;&lt;img src=&#34;http://www.raywenderlich.com/wp-content/uploads/2011/06/sockets.jpg&#34; alt=&#34;&#34; width=&#34;600&#34; height=&#34;200&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto agora que entendemos o conceito (ou pelo menos espero que tenham entendido =D) vamos colocar as mãos na massa.&lt;/p&gt;
+
+&lt;p&gt;Vou partir do principio que já sabem criar uma classe e compilar um programa em Java (caso não lembre-se que o Google é nosso amigo =D). Se preferir, usando o mesmo conceito pode converter a ideia para a linguagem de sua preferência (só não esqueça de compartilhar com a galera =D).&lt;/p&gt;
+
+&lt;p&gt;Vamos lá, vou criar uma classe em Java chamada Cliente, será uma classe simples que vai se conectar a um servidor (neste caso vamos conectar no &lt;a href=&#34;http://google.com.br&#34;&gt;google.com.br&lt;/a&gt;) e ver se ele está conectado, se sim ele imprimirá na tela o IP do servidor.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import java.io.IOException;
+import java.net.Socket;
+
+public class Cliente {
+    public static void main(String[] args) throws IOException {
+        //cria um socket com o google na porta 80
+        Socket socket = new Socket(&#34;google.com.br&#34;, 80);
+        //verifica se esta conectado
+        if (socket.isConnected()) { 
+            //imprime o endereço de IP do servidor
+            System.out.println(&#34;Conectado a &#34; + socket.getInetAddress());
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao instanciar um novo objeto da classe Socket com os parâmetros domínio e porta, internamente a máquina virtual Java já abre uma porta aleatória em seu computador e em seguida conecta ao servidor google.com.br na porta 80. Veja que até então não sabemos o endereço de IP do servidor mas ao efetuar a conexão o socket já se atualiza com essa informação. Vamos compilar nossa classe e verificar o resultado que  deve ser algo desse tipo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ javac Cliente.java
+$ java Cliente
+Conectado a google.com.br/173.194.118.151&lt;/pre&gt;
+
+&lt;p&gt;Mas isso não é o suficiente queremos trocar informações com o servidor conectado, para isso nosso socket fornece 2 recursos  um para leitura dos dados recebidos (InputStream) do servidor e outro para enviar os dados que queremos para o servidor (OutputStream), é claro que para enviarmos algum dado para o servidor temos que saber como se comunicar com o servidor, como a gente já sabe, o servidor do google é um servidor HTTP que nos fornece as páginas de serviço do Google, certo? então sabemos que o servidor entende o protocolo HTTP. vamos enviar uma requisição HTTP simples a esse servidor e ver o que ele responde.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;/* veja que a requisição termina com \r\n que equivale a &amp;lt;CR&amp;gt;&amp;lt;LF&amp;gt;
+       para encerar a requisição tem uma linha em branco */
+    String requisicao = &#34;&#34;
+        + &#34;GET / HTTP/1.1\r\n&#34;
+        + &#34;Host: www.google.com.br\r\n&#34;
+        + &#34;\r\n&#34;;
+    //OutputStream para enviar a requisição
+    OutputStream envioServ = socket.getOutputStream();
+    //temos que mandar a requisição no formato de vetor de bytes
+    byte[] b = requisicao.getBytes();
+    //escreve o vetor de bytes no &#34;recurso&#34; de envio 
+    envioServ.write(b);
+    //marca a finalização da escrita
+    envioServ.flush();
+&lt;/pre&gt;
+
+&lt;p&gt;É claro que apenas isso não basta pois somente estamos enviando a requisição certo?, então precisaremos ler o InputStream logo após enviar os dados para ver o que o servidor responde, vamos facilitar as coisas afinal isto não é C, para ler o que o servidor responde vamos utilizar um Scanner, que ja faz a conversão o Input de bytes para String, assim a gente não tem que tratar esses trecos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//cria um scanner a partir do InputStream que vem do servidor
+    Scanner sc = new Scanner(socket.getInputStream());
+    //enquanto houver algo para ler
+    while (sc.hasNext()) {
+        //imprime uma linha da resposta
+        System.out.println(sc.nextLine());
+    }
+&lt;/pre&gt;
+
+&lt;p&gt;Agora se executarmos o programa podemos ler o que o servidor nos devolve e exibir na tela, logo teremos um resultado parecido com isso&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ javac Cliente.java 
+$ java Cliente
+Conectado a google.com.br/173.194.118.151 
+HTTP/1.1 200 OK
+Date: Tue, 17 Jun 2014 23:29:57 GMT
+Expires: -1
+Cache-Control: private, max-age=0
+Content-Type: text/html; charset=ISO-8859-1
+Set-Cookie: PREF=ID=fee5bb44e3822528:FF=0:TM=1403047797:LM=1403047797:S=BpVMDbzBHKUgdlRS; expires=Thu, 16-Jun-2016 23:29:57 GMT; path=/; domain=.google.com.br
+Set-Cookie: NID=67=CT9hDvtQnKCvGeox_lmn7IjB_gbZ6Z9m7YT2rM1LAw2hVDVbvas16qfTsH1Jc1TRhrynqE-j0fb3EPl_JvjttiV-kqVpJlYjmg7Qd_e8oHcnJM1L2xlHWtlKw2EcomUM; expires=Wed, 17-Dec-2014 23:29:57 GMT; path=/; domain=.google.com.br; HttpOnly
+P3P: CP=&#34;This is not a P3P policy! See http://www.google.com/support/accounts/bin/answer.py?hl=en&amp;answer=151657 for more info.&#34;
+Server: gws
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+Alternate-Protocol: 80:quic
+Transfer-Encoding: chunked
+
+8000
+&amp;lt;!doctype html&amp;gt;&amp;lt;html[...]um monte de HTML[...]
+
+0
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que o resultado é semelhante ao que vimos anteriormente sobre na nossa teoria de requisição e resposta, também há algumas outras propriedade que não vimos mas não importa para nós ao menos que queira se aprofundar no assunto. Veja também que seu programa também continua em execução, isso acontece porque o servidor do google ainda não encerrou a conexão, isso acontece porque no HTTP/1.1 a propriedade &amp;#8220;Connection: keep-alive&amp;#8221; é padrão mesmo que não enviamos na requisição, quem define esse tempo é o próprio servidor, por experiência própria eu sei que a conexão com o google se mantém ativa por aproximadamente 3 minutos, isso para dar tempo suficiente para que você faça todas as pesquisas sem ter que criar uma nova conexão para cada pesquisa que você faz, isso é importante no caso do google já que ele recebe milhares de requisições por segundo, sendo que varias delas são feitas pela mesma pessoa, então não convém criar uma nova conexão para cada nova requisição.&lt;/p&gt;
+
+&lt;p&gt;Você deve estar se perguntando, mas Thiago, isso não é o que o navegador faz?&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Sim, o que fizemos hoje foi implementar a parte mais básica de um navegados web.&lt;/p&gt;
+
+&lt;p&gt;Mas a proposta é fazer um servidor e não um navegador, certo?&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Certo, mas antes de avançarmos é importante entender bem qual é o trabalho do navegador antes de criar o servidor que irá responder as requisições dele, mas isso será assunto para a parte III.&lt;/p&gt;
+
+&lt;p&gt;Posso fazer em outra linguagem?&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Claro, socket é implementado em todas as linguagens, basta consultar a documentação da sua linguagem preferida para entender como replicar o conceito acima.&lt;/p&gt;
+
+&lt;p&gt;Por hoje ficamos por aqui pessoal, espero que tenham aproveitado bem nossa parte prática, no próximo começaremos definitivamente a criar nosso servidor.&lt;/p&gt;
+
+&lt;p&gt;Até Mais.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte I</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/</link>
+      <pubDate>Tue, 01 Sep 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/</guid>
+      <description>
+
+&lt;p&gt;Sou apaixonado por tecnologias livres e como sou extremamente curioso, gosto de saber como as coisas funcionam. Como também sou cinestésico, não me contento em apenas em entender, tenho que criar, recriar, escrever, rescrever, inventar, reinventar, enfim sentir realmente como se faz. Nesse vai e vem de aprendizado, minha última curiosidade foi entender como os servidores HTTP funcionam e criar um do zero (ou pelo menos quase).&lt;/p&gt;
+
+&lt;p&gt;É claro que para fazer isso eu não fui tão lá embaixo a ponto de utilizar C, utilizei da linguagem de programação da qual me sinto mais confortável e que já oferece algumas facilidades que em C teria que sangrar pra fazer o mesmo porém não impossível, mas enfim, optei por desenvolver em Java, os passos vou contar pra vocês aqui, mas utilizando os mesmo conceitos nada impede que utilize qualquer outra linguagem de programação.&lt;/p&gt;
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;Vamos ao que interessa! A grosso modo, um servidor HTTP é uma aplicação (software) que fornece páginas web (geralmente escritas em HTML), ou seja, ao digitar o endereço da página (URL) e dar um ENTER no seu navegador, ele envia uma requisição no servidor destino, o servidor processa essa informação e retorna o documento HTML correspondente, por fim o navegador renderiza o documento e exibe aquela página bonita (nem sempre!).&lt;/p&gt;
+
+&lt;div style=&#34;width: 510px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://www.tankonyvtar.hu/en/tartalom/tamop425/0027_ADW1/images/ADW100.png&#34;&gt;&lt;img src=&#34;http://www.tankonyvtar.hu/en/tartalom/tamop425/0027_ADW1/images/ADW100.png&#34; alt=&#34;Requisição HTTP&#34; width=&#34;500&#34; height=&#34;200&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Requisição HTTP
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Para isso vamos entender como a comunicação entre seu navegador e o servidor funciona, o protocolo, depois vamos entender como é feita a conexão, tratar e enviar documentos e por fim vamos deixar nosso servidor pronto para receber múltiplas conexões.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-protocolo-http&#34;&gt;O Protocolo HTTP&lt;/h2&gt;
+
+&lt;p&gt;É claro que nem so de Web a Internet é feita, existem uma serie de recursos que estão sobre a Internet, a web é uma delas, mas para que esses serviços sejam tratados como devem é necessário ter um linguagem comum que permita que o servidor entenda o que o navegador quer, e que o navegador saiba se a resposta do pedido está correta ou não, para isso estabelecem-se os protocolos, que são padrões estipulados por um órgão competente afim de uniformizar o “trafego” de informações de diferentes serviços na internet. Quem define esses padrões é a IETF (Internet Engineering Task Force, ou melhor, Força Tarefa de Engenharia da Internet). Para saber mais quem são eles, acesse &lt;a href=&#34;http://www.ietf.org&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt; (em Inglês)&lt;/p&gt;
+
+&lt;p&gt;O protocolo HTTP, ou Hyper Text Transfer Protocol, ou melhor ainda, protocolo de transferencia de hiper texto, direto e reto é o cara que define a troca de paginas HTML, pronto falei!. A versão mais atual (que é a que vamos adotar nesse tutorial por assim dizer) é a 1.1 que na minha opinião é a mais difundida também (pode ser que encontre por ai alguns utilizando a versão 1.0 ou até mesmo a 0.9), enfim , essa versão e seus padrões foram propostos no documento &lt;a href=&#34;http://www.ietf.org/rfc/rfc2068.txt&#34; target=&#34;_blank&#34;&gt;RFC 2068&lt;/a&gt; e atualizado e alterado por diversos outros RFCs, que não convém a gente falar aqui, mas se tiver curiosidade procura lá no site da IEFT acima que tem todos.&lt;/p&gt;
+
+&lt;p&gt;So para nos situar o HTTP está na camada mais alta do protocolo de comunicação de rede conhecido como TCP/IP (não vamos entrar em detalhes pois não é o foco), chamada camada de aplicação (Nada mais justo já que o servidor e o navegados são aplicações).&lt;/p&gt;
+
+&lt;div style=&#34;width: 430px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://static.thegeekstuff.com/wp-content/uploads/2011/10/tcp-ip.png&#34;&gt;&lt;img src=&#34;http://static.thegeekstuff.com/wp-content/uploads/2011/10/tcp-ip.png&#34; alt=&#34;Camadas de Rede (TCP/IP)&#34; width=&#34;420&#34; height=&#34;470&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Camadas de Rede (TCP/IP)
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;No nosso escopo, o servidor é um software que fica aguardando solicitações, falando em nível de aplicação, o processo é simples, o navegador (vamos chamar de cliente) envia uma requisição (request), o servidor processa e devolve uma resposta(response).&lt;/p&gt;
+
+&lt;h2 id=&#34;a-requisição&#34;&gt;A Requisição&lt;/h2&gt;
+
+&lt;p&gt;A requisição é um “documento” em texto plano composto por um cabeçalho (que define  a comunicação, requerido) e os dados (opcional, depende da aplicação).&lt;/p&gt;
+
+&lt;p&gt;O cabeçalho é bem simples, a primeira linha contém a informação principal da requisição, ou seja, qual a sua solicitação (método), o que está sendo solicitado (arquivo/página/recurso a ser acessado) e padrão de comunicação que no nosso caso é o HTTP/1.1, a segunda linha é o endereço de host do servidor que irá responder a sua solicitação, veja o exemplo:&lt;/p&gt;
+
+&lt;pre&gt;GET /index.html HTTP/1.1
+Host: &lt;a href=&#34;http://google.com&#34;&gt;google.com&lt;/a&gt;&lt;/pre&gt;
+
+&lt;p&gt;As linhas seguintes são informações pertinentes a conexão e podem conter informações de quem está solicitando, o formato dessas informações é do tipo &lt;propriedade&gt; : &lt;valor&gt; o final de cada linha é encerrado por um &lt;CR&gt;&lt;LF&gt; (cuidado, pois muitos confundem este comando com o ENTER, embora para windows esse comando corresponde ao ENTER, não é verdade para Linux e afins), o final da requisição deve ser uma linha em branco (ou seja apenas um &lt;CR&gt;&lt;LF&gt;)veja o exemplo de uma requisição completa&lt;/p&gt;
+
+&lt;pre&gt;GET /HTTP/1.1
+Host: www.google.com.br
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:29.0) Gecko/20100101 Firefox/29.0
+Accept: text/html,application/xhtml+xml,application/xml
+Accept-Language: pt-BR,pt,en-US,en
+Accept-Encoding: gzip, deflate
+Connection: keep-alive&lt;/pre&gt;
+
+&lt;p&gt;Traduzindo, queremos pegar (GET) a raiz ou página inicial ( / ) que está em “www.google.com.br”. Esta requisição está sendo enviada de um navegador (User-Agent) Firefox, que aceita (Accept) os seguintes formatos, html e xml de preferencia que estejam no idioma (Accept-Language) Português do Brasil (pt-BR) ou qualquer outro idioma a seguir (veja que é possível passar uma lista de idiomas na ordem em que gostaria que aparecessem, veja que caso o servidor não tenha nenhuma dessas páginas ou não trate essa propriedade, ele irá devolver a página no idioma padrão do html que ele encontrar correspondente a sua solicitação), o formato de compactação aceito pelo navegador  (Accept-Enconding) e por fim a persistência da conexão, ou seja se você quer que o servidor mantenha a conexão ativa, o que eu quero dizer é que para cada recurso dentro de uma pagina HTML, seja uma imagem, um estilo css, ou um javascript, que precisa ser carregado, o navegador faz uma nova requisição, não seria legal criar uma nova conexão para cada requisição ainda mais se elas acontecem em um curto espaço de tempo, então o keep-alive mantém a conexão “viva&amp;#8221; tempo pra que esses recursos sejam carregados. É claro que o protocolo define muito mais propriedades, como pode observar no documento RFC mencionado acima, porém cada servidor deve implementar essas funcionalidades, no nosso caso vamos implementar apenas as funcionalidades na requisição de exemplo e algumas mais que mencionaremos mais adiante.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-resposta&#34;&gt;A Resposta&lt;/h2&gt;
+
+&lt;p&gt;A resposta segue um formato bem parecido da requisição, a primeira linha contem o protocolo, o código e mensagem de retorno como segue:&lt;/p&gt;
+
+&lt;pre&gt;HTTP/1.1 200 OK&lt;/pre&gt;
+
+&lt;p&gt;Esse código é esperado quando a pagina solicitada foi encontrada e seu conteúdo está enviada logo abaixo do cabeçalho (veremos a diante). Existem diversos códigos de retorno de sucesso, e de erro também, quem aqui nunca recebeu um 404 Not Found ao tentar acessar uma página que não existe?, esses e outros detalhes iremos tratar na parte de implementação. Por fim as linhas seguintes da resposta contem algumas informações pertinentes ao navegador e por fim a pagina html solicitada, veja que o conteúdo é concatenado com a resposta:&lt;/p&gt;
+
+&lt;pre&gt;HTTP/1.1 200 OK
+Date: Tue, 17 Jun 2014 01:20:13 GMT
+Server: gws
+Location: https://www.google.com.br/
+Last-Modified: Tue, 17 Jun 2014 01:20:13 GMT
+Content-Encoding: gzip
+Content-Length: 234
+Connection: closeContent-Type: text/html
+
+
+&amp;lt;html&amp;gt;todo o html da página&amp;lt;/html&amp;gt; *&lt;/pre&gt;
+
+&lt;p&gt;*este conteúdo pode estar compactado&lt;/p&gt;
+
+&lt;p&gt;Nesta resposta o servidor retorna a data da resposta (Date), qual o nome/tipo/empresa que desenvolveu/sistema operacional do servidor que gerou a resposta, a localização atual (Location) importante caso seu site use caminho relativo em hiperlinks, imagens e outros (veremos com mais detalhes na implementação) ultima vez que o arquivo foi modificado (Last-Modified), importante caso o navegador permita cache de paginas, compactacao do conteúdo (Content-Enconding), para que o navegador saiba fazer a descompactacao se necessário, tamanho em bytes do  conteúdo,o estado da conexão, que neste caso o servidor informa que a conexão foi fechado, o tipo do conteúdo(Content-Type), que é um texto contendo html e por fim, é claro, o conteúdo da resposta, ou seja, aquilo que o navegador irá exibir pra gente.&lt;/p&gt;
+
+&lt;p&gt;Quer testar? Então abra o navegador de sua preferência, melhor que seja o firefox =D, em seguida abra o modo de desenvolvedor (geralmente é so apertar F12), e por fim clique na aba Rede, pronto agora é so digitar um site na barra de endereço, e acompanhar as requisições pelo console, se quiser mais detalhes clique em uma requisição e peça para exibir detalhes, se estiver usando o firefox, ele aparece esses detalhes logo na lateral da lista de requisições. analise as propriedades enviadas na requisição e veja qual foi a resposta. você irá percebem que existem mais propriedades do que comentamos aqui, mas para nós neste tutorial não será necessário, se quiser pode pesquisar mais sobre eles ou ler o documento RFC que ja falamos sobre ele.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_17&#34; style=&#34;width: 310px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://euamoaweb.com.br.md-54.webhostbox.net/arquivolivre.com.br/wp-content/uploads/2014/06/Screen-Shot-2014-06-17-at-12.00.06-AM.png&#34;&gt;&lt;img class=&#34;wp-image-17 size-medium&#34; src=&#34;http://blog-tsg0.rhcloud.com/wp-content/uploads/2014/06/Screen-Shot-2014-06-17-at-12.00.06-AM-300x165.png&#34; alt=&#34;Requisicao&#34; width=&#34;300&#34; height=&#34;165&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Requisicao
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div id=&#34;attachment_18&#34; style=&#34;width: 310px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://euamoaweb.com.br.md-54.webhostbox.net/arquivolivre.com.br/wp-content/uploads/2014/06/Screen-Shot-2014-06-17-at-12.00.34-AM.png&#34;&gt;&lt;img class=&#34;wp-image-18 size-medium&#34; src=&#34;http://blog-tsg0.rhcloud.com/wp-content/uploads/2014/06/Screen-Shot-2014-06-17-at-12.00.34-AM-300x166.png&#34; alt=&#34;Resposta&#34; width=&#34;300&#34; height=&#34;166&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Resposta
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Chegamos ao fim da primeira parte do nosso tutorial, sei que teoria é chato mas se faz necessário, mas prometo que na &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/&#34; target=&#34;_blank&#34;&gt;Parte II&lt;/a&gt; colocaremos as mãos a obra.&lt;/p&gt;
+
+&lt;p&gt;Então até a próxima.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Conheça os primeiros palestrantes da Webbr2015</title>
+      <link>http://tableless.com.br/conheca-os-primeiros-palestrantes-da-webbr2015/</link>
+      <pubDate>Fri, 31 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/conheca-os-primeiros-palestrantes-da-webbr2015/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/inscricoes&#34;&gt;&lt;img src=&#34;http://conferenciaweb.w3c.br/wp-content/themes/webbr2015/assets/img/logos/logo--webbr.svg&#34; alt=&#34;Logo da Conferência Web W3C Brasil 2015&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/inscricoes&#34;&gt;Lote de inscrições para a Webbr 2015 por R$ 80,00 termina segunda-feira, dia 3 de agosto!&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://conferenciaweb.w3c.br/wp-content/uploads/2015/07/Andrei-Sambra-220x300.jpeg&#34; alt=&#34;Foto de Andrei Sambra&#34; style=&#34;float:left;margin: 10px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A abertura do evento será sobre re-descentralizar da Web! que contará com &lt;a href=&#34;http://conferenciaweb.w3c.br/trends/#andreisambra&#34;&gt;&lt;strong&gt;Andrei Sambra&lt;/strong&gt;&lt;/a&gt;, Research Associate do W3C, para discutir o tema como keynote speaker da conferência. O pesquisador comentará os atuais esforços de padronização feitos pelo World Wide Web Consortium (W3C), além dos processos de tradução tecnológica do Massachusetts Institute of Technology (MIT) para construir aplicações e serviços descentralizados.&lt;/p&gt;
+
+&lt;p&gt;Além da participação do keynote internacional, diversos especialistas brasileiros abordarão temas importantes para manter a essência da Web aberta como seu principal aspecto.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/palestrantes2015.jpg&#34; alt=&#34;Imagem com foto dos primeiros palestrantes da Webbr2015&#34; width=&#34;750&#34; height=&#34;515&#34; class=&#34;aligncenter size-full wp-image-50520&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/trends/#sergiolopes&#34;&gt;&lt;strong&gt;Sérgio Lopes&lt;/strong&gt;&lt;/a&gt;, instrutor e desenvolvedor da Caellum, vai falar sobre as grandes melhorias do &lt;strong&gt;HTTP2&lt;/strong&gt; e como isso vai beneficiar tanto o usuário como o desenvolvedor. Nessa palestra, Sérgio vai mostrar os novos recursos do HTTP/2 e como eles simplificam o desenvolvimento, tornam obsoletas várias práticas atuais e deixam as páginas mais rápidas.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/trends/#jaydsongomes&#34;&gt;&lt;strong&gt;Jaydson Lopes&lt;/strong&gt;&lt;/a&gt;, desenvolvedor de software sênior do Terra, vai abordar as novidades do &lt;strong&gt;ECMAScript 6&lt;/strong&gt; e como elas podem influenciar o desenvolvimendo da Web e o futuro do JavaScript. Atualmente é impensável considerar a Web sem o uso do JavaScript e é por isso que essa tecnologia tem papel fundamental na Web que queremos no futuro.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/openweb/#cironunes&#34;&gt;&lt;strong&gt;Ciro Nunes&lt;/strong&gt;&lt;/a&gt;, front-end engineer na Questrade, fará uma palestra sobre &lt;strong&gt;AngularJS 2&lt;/strong&gt; e o futuro do desenvolvimento Front-end. Em 2012 o AngularJS foi criado e levou o desenvolvimento Front-end ao próximo nível, simplificando a criação de componentes e a testar o código JavaScript. A web evoluiu, chegaram os Web Components e as especificações da ES2015 e 16, possibilitando ao framework tirar proveito dessas novidades e ficar muito menor e mais rápido. Nessa palestra Ciro quer vai mostrar um pouco do que será o futuro do desenvolvimento Front-end com o Angular 2.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/openweb/#luizcortereal&#34;&gt;&lt;strong&gt;Luis Corte Real&lt;/strong&gt;&lt;/a&gt;, desenvolvedor de software da TecSinapse, vai mostrar como construindo uma experiência agradável na Web desde o começo com &lt;strong&gt;progressive enhancement&lt;/strong&gt;. Desenvolver sites e sistemas web que funcionem bem em todas as plataformas continua desafiador, mesmo com a evolução dos navegadores. Isso porque temos uma diversidade cada vez maior de dispositivos, navegadores e, também, usuários. Como proporcionar uma experiência de navegação agradável e funcional para todos? É sobre isso que fala o progressive enhancement. Nesta palestra serão explorados o conceito na prática, vendo problemas comuns de navegação, como aplicar progressive enhancement e quais benefícios essa técnica nos traz.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/trends/#alexandregaigalas&#34;&gt;&lt;strong&gt;Alexandre Gaigalas&lt;/strong&gt;&lt;/a&gt; vai dar uma palestra sobre &lt;strong&gt;Hipermídia para Serviços&lt;/strong&gt;. Mais especificamente sobre projetos de serviços REST do ponto de vista dos padrões (standards) e os papeis interessantes que diferentes especificações podem ter nessa arquitetura.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/openweb/#rafaelrinaldi&#34;&gt;&lt;strong&gt;Rafael Rinaldi&lt;/strong&gt;&lt;/a&gt;, Desenvolvedor da Netshoes, vai abordar de forma detalhada a &lt;strong&gt;arquitetura CSS&lt;/strong&gt;. A grande maioria dos desenvolvedores web tem uma relação de amor e ódio com CSS. Fato é que o ódio geralmente está ligado a não saber direito como as coisas funcionam e falta de organização. O objetivo é mostrar como a organização da arquitetura CSS é fundamental para qualquer projeto na Web e como isso impacta tanto o desenvolvedor como o usuário.&lt;/p&gt;
+
+&lt;p&gt;Além dos temas relacionados com a Open Web, haverá uma trilha exclusiva para abordar questões sobre &lt;strong&gt;Segurança e Privacidade&lt;/strong&gt;. Nessa trilha, &lt;a href=&#34;http://conferenciaweb.w3c.br/privacy/#fernandoike&#34;&gt;&lt;strong&gt;Fernando Ike&lt;/strong&gt;&lt;/a&gt;, Engenheiro de Solução da Exceda/Akamai, vai dar uma palestra sobre &lt;strong&gt;Docker&lt;/strong&gt; e falar sobre essa tal de container-revolução. Containers são usados há muito tempo, no entanto nos últimos anos tem sido usados massivamente tornando o mais novo buzzword junto&lt;/p&gt;
+
+&lt;p&gt;como microservices. Docker é o início dessa revolução, mas o que ele tem de tão especial para essa tal de container-revolução?&lt;/p&gt;
+
+&lt;p&gt;A conferência contará ainda com a palestra da &lt;a href=&#34;http://conferenciaweb.w3c.br/privacy/#camilagomes&#34;&gt;&lt;strong&gt;Camila Gomes&lt;/strong&gt;&lt;/a&gt;, administradora de sistemas e DevOps na empresa 7COMm Informática, sobre &lt;strong&gt;Tails – Privacidade para todos&lt;/strong&gt;, em todos os lugares. Não ser rastreado na internet é uma necessidade para os mais diferentes perfis de pessoas, mas nem todos possuem conhecimentos técnicos sobre segurança de informação para isso. Nesta palestra Camila vai apresentar o Tails, um sistema operacional livre, personalizado e recheado de ferramentas que tem por objetivo preservar a segurança e anonimato do usuário em qualquer lugar, pronto para navegar.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/privacy/#nandovieira&#34;&gt;&lt;strong&gt;Nando Vieira&lt;/strong&gt;&lt;/a&gt;, Web Developer no Heroku, vai falar dar uma palestra sobre &lt;strong&gt;Construindo Aplicações Web Mais Seguras&lt;/strong&gt;. Manter sua aplicação segura é tão importante quanto o desenvolvimento em si. Infelizmente nem todo desenvolvedor faz a sua parte para garantir que os riscos de ataques foram minimizados. Nessa palestra o usuário verá os problemas mais comuns, entenderá porque é importante manter seu aplicativo atualizado e conhecerá algumas boas práticas para minimizar as chances de ser hackeado.&lt;/p&gt;
+
+&lt;p&gt;A conferência também terá workshops e tutoriais. Já estão confirmados workshops de REST com &lt;a href=&#34;http://conferenciaweb.w3c.br/workshop/#leonardoruosso&#34;&gt;Leonardo Ruosso&lt;/a&gt; ,da Tata Consultancy Services, e Frameworks da moda, com &lt;a href=&#34;http://conferenciaweb.w3c.br/workshop/#hannelitavante&#34;&gt;Hanneli Tavante&lt;/a&gt;, da Codeminer. Também estão confirmados os tutoriais de WCAG e WAI-ARIA com &lt;a href=&#34;http://conferenciaweb.w3c.br/workshop/#talitapagani&#34;&gt;Talita Pagani&lt;/a&gt;, da UFSCar, e SVG com &lt;a href=&#34;http://conferenciaweb.w3c.br/workshop/#helderdarocha&#34;&gt;Helder da Rocha&lt;/a&gt;, da Argo Navis Informática.&lt;/p&gt;
+
+&lt;p&gt;As &lt;a href=&#34;http://conferenciaweb.w3c.br/inscricoes/&#34;&gt;inscrições estão abertas e o lote promocional a R$ 80,00&lt;/a&gt; vai até o dia 3 de agosto.&lt;/p&gt;
+
+&lt;p&gt;Participe! Fique atento ao &lt;a href=&#34;http://conferenciaweb.w3c.br/&#34;&gt;site da conferência&lt;/a&gt;. Em breve novos palestrantes serão divulgados.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Participe do Prêmio Nacional de Acessibilidade na Web 2014</title>
+      <link>http://tableless.com.br/participe-premio-nacional-de-acessibilidade-na-web/</link>
+      <pubDate>Tue, 02 Sep 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/participe-premio-nacional-de-acessibilidade-na-web/</guid>
+      <description>
+
+&lt;p&gt;&lt;a href=&#34;http://premio.w3c.br/inscricoes/&#34;&gt;As inscrições para a terceira edição do Prêmio Nacional de Acessibilidade na Web estão abertas&lt;/a&gt;. Mais uma vez o W3C Brasil abre as inscrições para essa premiação como objetivo promover nacionalmente a acessibilidade na web, de forma a conscientizar desenvolvedores e homenagear pessoas que se destacaram em atividades que visam promover o acesso a web e ações em prol do acesso de pessoas com deficiências na web.&lt;/p&gt;
+
+&lt;p&gt;Se você tem um trabalho de fomento a acessibilidade na Web, desenvolve sites que não criem barreiras para pessoas com deficiência ou desenvolveu uma tecnologia assistiva que possibilite o acesso a Web de pessoas com deficiência, essa é a hora de inscrever seu trabalho. &lt;strong&gt;As inscrições vão até 30 de setembro&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;são-três-as-categorias-da-premiação&#34;&gt;São três as categorias da premiação&lt;/h2&gt;
+
+&lt;h3 id=&#34;categoria-pessoas-instituições&#34;&gt;Categoria Pessoas / Instituições&lt;/h3&gt;
+
+&lt;p&gt;Prêmio à pessoa/entidade que fez um grande trabalho ou promoveu alguma ação para o fomento da acessibilidade na web nos últimos 12 meses&lt;/p&gt;
+
+&lt;h3 id=&#34;categoria-projetos-web-8211-premio-maq-de-acessibilidade-na-web&#34;&gt;Categoria Projetos Web &amp;#8211; Premio MAQ de Acessibilidade na Web&lt;/h3&gt;
+
+&lt;p&gt;Reconhecer publicamente websites que utilizem corretamente os padrões web, que apliquem as diretrizes de acessibilidade do W3C e não criem barreiras para que pessoas com deficiências os acessem. Serão consideradas as seguintes sub-categorias de projetos web:&lt;/p&gt;
+
+&lt;h4 id=&#34;governamentais&#34;&gt;Governamentais&lt;/h4&gt;
+
+&lt;p&gt;Destinado a inscrições de projetos web e serviços de órgãos públicos.&lt;/p&gt;
+
+&lt;h4 id=&#34;serviços-e-commerce&#34;&gt;Serviços / E-commerce&lt;/h4&gt;
+
+&lt;p&gt;Destinado a inscrições de websites de serviços prestados a sociedade, como sites de notícias e sites de comércio eletrônico.&lt;/p&gt;
+
+&lt;h4 id=&#34;instituições-entretenimento-cultura-educação-informação-blogs&#34;&gt;Instituições / Entretenimento / Cultura / Educação / Informação /Blogs&lt;/h4&gt;
+
+&lt;p&gt;Destinado a inscrições de páginas institucionais e projetos relacionados a promoção e/ou divulgação de entretenimento, cultura, educação, informação e páginas pessoais&lt;/p&gt;
+
+&lt;h3 id=&#34;categoria-aplicativos-e-tecnologias-assistivas&#34;&gt;Categoria Aplicativos e Tecnologias assistivas&lt;/h3&gt;
+
+&lt;p&gt;Premiar os melhores aplicativos e tecnologias assistivas (em produção ou protótipos funcionais) sem fins comerciais e de código aberto que permitam ou auxiliem o acesso à web de pessoas com deficiência.&lt;/p&gt;
+
+&lt;h2 id=&#34;premiação&#34;&gt;Premiação&lt;/h2&gt;
+
+&lt;h3 id=&#34;categoria-pessoas-institui-ccedil-otilde-es&#34;&gt;Categoria Pessoas / Institui&amp;ccedil;&amp;otilde;es&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;1&amp;ordm; Colocado:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;R$ 5.000,00 (Cinco mil reais)&lt;/li&gt;
+&lt;li&gt;Trof&amp;eacute;u&lt;/li&gt;
+&lt;li&gt;Participa&amp;ccedil;&amp;atilde;o na solenidade (despesas de transporte e hospedagem por conta do finalista)&lt;/li&gt;
+&lt;li&gt;Trabalho exibido em publica&amp;ccedil;&amp;atilde;o do W3C.br&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;2&amp;ordm; Colocado:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;R$ 3.000,00 (Tr&amp;ecirc;s mil reais)&lt;/li&gt;
+&lt;li&gt;Trof&amp;eacute;u&lt;/li&gt;
+&lt;li&gt;Participa&amp;ccedil;&amp;atilde;o na solenidade (despesas de transporte e hospedagem por conta do finalista)&lt;/li&gt;
+&lt;li&gt;Trabalho exibido em publica&amp;ccedil;&amp;atilde;o do W3C.br&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;3&amp;ordm; Colocado:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;R$ 1.500,00 (Hum mil e quinhentos reais)&lt;/li&gt;
+&lt;li&gt;Trof&amp;eacute;u&lt;/li&gt;
+&lt;li&gt;Participa&amp;ccedil;&amp;atilde;o na solenidade (despesas de transporte e hospedagem por conta do finalista)&lt;/li&gt;
+&lt;li&gt;Trabalho exibido em publica&amp;ccedil;&amp;atilde;o do W3C.br&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;categoria-projetos-web-prêmio-maq-de-acessibilidade-na-web&#34;&gt;Categoria Projetos Web: Prêmio MAQ de acessibilidade na Web&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;1&amp;ordm; Colocado:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;R$ 5.000,00 (Cinco mil reais)&lt;/li&gt;
+&lt;li&gt;Trof&amp;eacute;u&lt;/li&gt;
+&lt;li&gt;Participa&amp;ccedil;&amp;atilde;o na solenidade (despesas de transporte e hospedagem por conta do finalista).&lt;/li&gt;
+&lt;li&gt;Trabalho exibido em publica&amp;ccedil;&amp;atilde;o do W3C.br&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;2&amp;ordm; Colocado:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;R$ 3.000,00 (Tr&amp;ecirc;s mil reais)&lt;/li&gt;
+&lt;li&gt;Trof&amp;eacute;u&lt;/li&gt;
+&lt;li&gt;Participa&amp;ccedil;&amp;atilde;o na solenidade (despesas de transporte e hospedagem por conta do finalista).&lt;/li&gt;
+&lt;li&gt;Trabalho exibido em publica&amp;ccedil;&amp;atilde;o do W3C.br&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;3&amp;ordm; Colocado:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;R$ 1.500,00 (Mil e quinhentos reais)&lt;/li&gt;
+&lt;li&gt;Trof&amp;eacute;u&lt;/li&gt;
+&lt;li&gt;Participa&amp;ccedil;&amp;atilde;o na solenidade (despesas de transporte e hospedagem por conta do finalista).&lt;/li&gt;
+&lt;li&gt;Trabalho exibido em publica&amp;ccedil;&amp;atilde;o do W3C.br&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;categoria-aplicativos-e-tecnologias-assistivas-1&#34;&gt;Categoria Aplicativos e Tecnologias assistivas&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;1&amp;ordm; Colocado:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;R$ 5.000,00 (Cinco mil reais)&lt;/li&gt;
+&lt;li&gt;Trof&amp;eacute;u&lt;/li&gt;
+&lt;li&gt;Participa&amp;ccedil;&amp;atilde;o na solenidade (despesas de transporte e hospedagem por conta do finalista).&lt;/li&gt;
+&lt;li&gt;Trabalho exibido em publica&amp;ccedil;&amp;atilde;o do W3C.br&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;2&amp;ordm; Colocado:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;R$ 3.000,00 (Tr&amp;ecirc;s mil reais)&lt;/li&gt;
+&lt;li&gt;Trof&amp;eacute;u&lt;/li&gt;
+&lt;li&gt;Participa&amp;ccedil;&amp;atilde;o na solenidade (despesas de transporte e hospedagem por conta do finalista).&lt;/li&gt;
+&lt;li&gt;Trabalho exibido em publica&amp;ccedil;&amp;atilde;o do W3C.br&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;3&amp;ordm; Colocado:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;R$ 1.500,00 (Mil e quinhentos reais)&lt;/li&gt;
+&lt;li&gt;Trof&amp;eacute;u&lt;/li&gt;
+&lt;li&gt;Participa&amp;ccedil;&amp;atilde;o na solenidade (despesas de transporte e hospedagem por conta do finalista).&lt;/li&gt;
+&lt;li&gt;Trabalho exibido em publica&amp;ccedil;&amp;atilde;o do W3C.br&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Para maiores informações &lt;a href=&#34;http://premio.w3c.br/regulamento/&#34;&gt;leia o regulamento&lt;/a&gt; no site do prêmio: &lt;a href=&#34;http://premio.w3c.br/&#34;&gt;http://premio.w3c.br/&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Conferência Web.br 2014 e os 25 anos da Web</title>
+      <link>http://tableless.com.br/conferencia-web-w3c-2014-e-os-25-anos-da-web/</link>
+      <pubDate>Wed, 30 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/conferencia-web-w3c-2014-e-os-25-anos-da-web/</guid>
+      <description>
+
+&lt;p&gt;Em 2014 a Web completa 25 anos e o W3C 20 anos de existência. Para celebrar esses dois importantes momentos o W3C Brasil vai promover diversas ações durante a &lt;a href=&#34;http://conferenciaweb.w3c.br/&#34;&gt;Conferência Web W3C Brasil 2014&lt;/a&gt;. O evento já tem data e local definidos: 25 e 26 de setembro em São Paulo e &lt;a href=&#34;http://conferenciaweb.w3c.br/inscricoes/&#34;&gt;as inscrições estão abertas&lt;/a&gt;!&lt;/p&gt;
+
+&lt;h2 id=&#34;keynote-speakers-confirmados&#34;&gt;Keynote Speakers confirmados&lt;/h2&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignleft size-full&#34; src=&#34;http://conferenciaweb.w3c.br/wp-content/uploads/2014/07/fd.jpg&#34; alt=&#34;Foto de François Daoust&#34; width=&#34;150&#34; height=&#34;200&#34; style=&#34;float: left;padding: 10px&#34; /&gt;&lt;strong&gt;&lt;a href=&#34;https://twitter.com/tidoust&#34;&gt;François Daoust&lt;/a&gt;&lt;/strong&gt; é um dos líderes nas discussões e desenvolvimento da convergência entre Web e TV no W3C, com um foco específico em cenários multi-tela. Ele já contribui para projetos financiados pela União Européia, como o Mediascape e a parceria União Européia &amp;#8211; Brasil no projeto Global ITV.&lt;/p&gt;
+
+&lt;p&gt;François é um desenvolvedor de software com anos de experiência na construção de aplicações Web multi-plataforma. Ele se juntou a W3C em novembro de 2007, onde participou do &lt;a href=&#34;http://www.w3.org/2005/MWI/BPWG/&#34;&gt;Working Group Mobile Web Best Practices&lt;/a&gt;, do &lt;a href=&#34;http://www.w3.org/2011/webtv/&#34;&gt;Interest Group Web e TV&lt;/a&gt; e do &lt;a href=&#34;http://www.w3.org/2011/04/webrtc/&#34;&gt;Working Group Real Time Communications&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignleft size-full&#34; src=&#34;http://conferenciaweb.w3c.br/wp-content/uploads/2014/07/foto-doug.jpg&#34; alt=&#34;Foto de Doug Shepers&#34; width=&#34;150&#34; height=&#34;160&#34; style=&#34;float: left;padding: 10px&#34; /&gt;&lt;strong&gt;&lt;a href=&#34;https://github.com/shepazu&#34;&gt;Doug Schepers&lt;/a&gt;&lt;/strong&gt; é Developer Relation Lead do W3C. Desenvolve Websites desde 1998, e começou no desenvolvimento front-end em 2001 fazendo aplicações SVG e visualizações de dados. Trabalha no W3C desde 2007, coordenando e editando especificações para Working Groups, como o &lt;a href=&#34;http://www.w3.org/Graphics/SVG/&#34;&gt;SVG&lt;/a&gt;, &lt;a href=&#34;http://www.w3.org/2008/webapps/&#34;&gt;WebApps&lt;/a&gt;, &lt;a href=&#34;http://www.w3.org/2010/webevents/&#34;&gt;Web Events&lt;/a&gt;, &lt;a href=&#34;http://www.w3.org/2012/pointerevents/&#34;&gt;Pointer Events&lt;/a&gt; e &lt;a href=&#34;http://www.w3.org/2011/audio/&#34;&gt;Audio Working Group&lt;/a&gt;, e seus interesses atuais são a acessibilidade no SVG e Web Anotations. Coordenou a criação do site de documentação livre e multi-vendor &lt;a href=&#34;http://www.webplatform.org/&#34;&gt;WebPlatform.org&lt;/a&gt;. É apaixonado por ajudar desenvolvedores da Web e designers a terem voz na criação de padrões web.&lt;/p&gt;
+
+&lt;p&gt;A programação completa estará disponível em breve no site da conferência &lt;a href=&#34;http://conferenciaweb.w3c.br/&#34;&gt;http://conferenciaweb.w3c.br/&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;chamada-de-trabalhos-tutoriais-e-casos-de-uso&#34;&gt;Chamada de trabalhos, tutoriais e casos de uso&lt;/h2&gt;
+
+&lt;p&gt;Você também pode apresentar seu trabalho na Webbr2014. A &lt;a href=&#34;http://conferenciaweb.w3c.br/regulamento-cases/&#34;&gt;chamada de trabalhos, tutoriais e cases de uso&lt;/a&gt; para a conferência está aberta.&lt;/p&gt;
+
+&lt;p&gt;As inscrições poderão ser feitas até o dia 02 de agosto pelo link &lt;a href=&#34;http://conferenciaweb.w3c.br/regulamento-cases/&#34;&gt;http://conferenciaweb.w3c.br/regulamento-cases/&lt;/a&gt;. Os trabalhos devem ser relacionados à Internet das Coisas/Web das coisas, Novos Negócios e Dados na Web.&lt;/p&gt;
+
+&lt;h2 id=&#34;declare-seu-amor-pela-web&#34;&gt;Declare seu amor pela Web&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://webbr2014.tumblr.com/&#34;&gt;&lt;img src=&#34;http://38.media.tumblr.com/avatar_0d5c004a67b3_128.png&#34; alt=&#34;Declare seu amor pela Web&#34; style=&#34;float: left;padding: 10px&#34; /&gt;&lt;/a&gt;Como parte da celebração do aniversário da Web, o W3C Brasil está promovendo o Tumblr &amp;#8220;&lt;a href=&#34;http://webbr2014.tumblr.com/&#34;&gt;Declare seu amor pela Web&lt;/a&gt;&amp;#8220;. Esse Tumblr traz depoimentos de pessoas importantes para a Web e possibilita que qualquer pessoa possa enviar sua declaração de amor. Envie também seu vídeo de no máximo um minuto para o Tumblr. Os melhores vídeos ganharão cortesias para participar da conferência.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>CSS Filters – Aplicando filtros em imagens com CSS</title>
+      <link>http://tableless.com.br/css-filters-aplicando-filtros-em-imagens-com-css/</link>
+      <pubDate>Thu, 10 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/css-filters-aplicando-filtros-em-imagens-com-css/</guid>
+      <description>&lt;p&gt;A cada dia que passa o CSS tem virado de fato uma linguagem visual, para formatar como os elementos, imagens e qualquer outro tipo de informação aparece nos browsers, celulares e etc. Um bom exemplo disso são os CSS Filters, que permite aplicar filtros, antes vistos apenas em programas como Photoshop, diretamente no browser com CSS.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;A filter effect is a graphical operation that is applied to an element as it is drawn into the document. It is an image-based effect, in that it takes zero or more images as input, a number of parameters specific to the effect, and then produces an image as output.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;A possibilidade de aplicar filtros com CSS já é possível desde algo em torno de 2011, mas apenas para o motor WebKit. Agora essa possibilidade se transformou de fato em &lt;a href=&#34;http://www.w3.org/TR/filter-effects/&#34;&gt;rascunho do W3C&lt;/a&gt; para que um dia vire uma recomendação. O &lt;a href=&#34;http://caniuse.com/#feat=css-filters&#34;&gt;suporte ainda não é muito bom&lt;/a&gt;, mas, dependendo do seu público, você já pode usar agora.&lt;/p&gt;
+
+&lt;p&gt;A sintaxe é simples e bem fácil de entender:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;seletor {
+  filter: funcao(valor) | none
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Os valores possíveis por enquanto são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;blur()&lt;/li&gt;
+&lt;li&gt;brightness()&lt;/li&gt;
+&lt;li&gt;contrast()&lt;/li&gt;
+&lt;li&gt;drop-shadow()&lt;/li&gt;
+&lt;li&gt;grayscale()&lt;/li&gt;
+&lt;li&gt;sepia()&lt;/li&gt;
+&lt;li&gt;hue-rotate()&lt;/li&gt;
+&lt;li&gt;invert()&lt;/li&gt;
+&lt;li&gt;opacity()&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A imagem abaixo já está com contrast() aplicado e passando o mouse, fica com efeito blur():&lt;/p&gt;
+
+&lt;p&gt;Você pode passar uma ou várias funções em uma mesma propriedade &lt;code&gt;filter&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;p {
+  filter: blur(50px);
+}
+
+img {
+  filter: blur(50px) contrast(5);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Abaixo você pode ver alguns exemplos:&lt;/p&gt;
+
+&lt;p&gt;Existem algumas observações interessantes sobre a aplicação dos filtros. Por exemplo, se você quiser combinar os filtros sepia() e grayscale(), certifique-se de adicionar sepia() antes do grayscale(), caso contrário o resultado será apenas grayscale().&lt;/p&gt;
+
+&lt;p&gt;Você pode não entender o efeito de hue-rotate(), sugiro que &lt;a href=&#34;http://en.wikipedia.org/wiki/Hue&#34;&gt;leia mais sobre HUE aqui&lt;/a&gt;. Leia mais sobre &lt;a href=&#34;http://tableless.com.br/sobre-cor-e-webdesign/&#34;&gt;cores na web aqui&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>WebP, hora de brincar?</title>
+      <link>http://tableless.com.br/webp-hora-de-brincar/</link>
+      <pubDate>Fri, 28 Feb 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/webp-hora-de-brincar/</guid>
+      <description>&lt;p&gt;O Google sempre tenta ao máximo melhorar a qualidade e eficiência da web. Dessa vez ele tenta poupar alguns KB a mais nos formatos de imagens com o recente formato WebP, que foi anunciado em 2010 e ganhou visibilidade ao longo dos últimos anos, mas sem ter conseguido muita adesão ainda.&lt;/p&gt;
+
+&lt;p&gt;O WebP é um formato de imagem da Google que fornece a mesma qualidade de arquivos como PNG e JPG com tamanhos reduzidos. O novo formato é de até 26% menor se comparadas com PNG&amp;#8217;s, lembrando que a transparência é suportada. E pode chegar a 34% menor em comparação a JPEG, então já é hora de deixar os seus projetos mais velozes.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Acredito que a preparação dos projetos para esse novo formato não será uma perda de tempo, porém, brevemente o WebP será uma realidade em diversas plataformas.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Mas qual a vantagem real dessa nova extensão? A vantagem em usar WebP é que este formato reúne todos os privilégios dos outros formatos populares em uma única extensão. Com uma imagem WebP você pode criar animações, como os GIFs, usar transparência, como nas PNG, usar qualidade relativamente superior à um JPG. Atualmente o uso do WebP foi testado pelo Facebook que economizou mais de 20% do tráfego total na rede, sem perder a qualidade.&lt;/p&gt;
+
+&lt;p&gt;Então, precisa de algo mais significativo que isso? A aposta da Google é reunir todos os formatos em apenas um, com vários benefícios.&lt;/p&gt;
+
+&lt;p&gt;De acordo com o HTTPArchive, as imagens de um site representam 60% do tamanho total da página. Infelizmente, uma das desvantagens para WebP é que apenas Opera e Chrome suportam.&lt;/p&gt;
+
+&lt;p&gt;Mas isso pode estar prestes a mudar porque o Firefox está reconsiderando sua decisão de rejeitar WebP.&lt;/p&gt;
+
+&lt;p&gt;Recentemente utilizei em um projeto que desenvolvi (não posso informar por questões de privacidade) e a performance melhorou bastante.&lt;/p&gt;
+
+&lt;p&gt;A conversão das imagens para WebP é simples, e já consta com um tutorial rápido no site da google, nesse  &lt;a href=&#34;https://developers.google.com/speed/webp/docs/precompiled?hl=pt-BR&#34;&gt;link&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Então vamos lá, depois de converter as imagens abaixo, veja um fallback para as plataformas que ainda não suportam o formato Webp. A brincadeira foi realizada da seguinte forma no html:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;img alt=&#34;Informação da Imagem&#34; src=&#34;carregamento.gif&#34; /&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Acima temos no Source uma imagem de carregamento até o load ser concluído, no &amp;#8220;data-img&amp;#8221; teremos a url da imagem no formato comum onde serão apresentadas em navegadores sem suporte ao Webp, em seguida o &amp;#8220;data-webp&amp;#8221; com o link da imagem Webp. Obs.: A estrutura html acima obteve êxito na validação do W3C.&lt;/p&gt;
+
+&lt;p&gt;O segredo para facilitar essa brincadeira é utilizar a última versão do Modernizr junto a biblioteca Jquery.&lt;/p&gt;
+
+&lt;p&gt;Nesse caso o Modernizr informará na tag HTML que o navegador suporta ou não WebP (no caso o html possuirá a classe &amp;#8220;webp&amp;#8221;).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;body&amp;gt;
+    &amp;lt;img src=&#34;carregamento.gif&#34; data-img=&#34;imagem.png&#34; data-webp=&#34;imagem.webp&#34; alt=&#34;Informação da Imagem&#34; /&amp;gt;
+    &amp;lt;script src=&#39;jquery-1.10.2.min.js&#39;&amp;gt;&amp;lt;/script&amp;gt;
+    &amp;lt;script src=&#39;modernizr-latest.js&#39;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Incluído os itens acima iremos criar uma função simples para que no carregamento da página o Source da imagem se altere para o browser com suporte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(window).load( function(){ // Carregamento do site
+var item = $(&#39;html&#39;).hasClass(&#39;webp&#39;) ? &#39;webp&#39; : &#39;img&#39;; // Atribui o valor a variável item
+function getWebp(item) { // Nome da função recebendo a variável item
+    $(&#39;img&#39;).each( function(){ // Busca todas as imagens do site
+        $( this ).attr(&#39;src&#39;, $( this ).data( item ) ); // Trocará o Source da imagem
+    });
+}
+getWebp( item ); // Inicia a função passando a variável item como o parâmetro 
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Caso ocorra alguma chamada no css também ficaria simples a chamada Webp, seguindo a seguinte estrutura:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;html.webp tagComBackground{
+    background: url(imagem.webp);
+}
+html tagComBackground{
+    background: url(imagem.jpg);
+}&lt;/pre&gt;
+
+&lt;p&gt;Um ponto que se deve levar em consideração é que o ato de gravar imagens da web se tornou algo bem comum, mas neste novo formato os usuários não conseguirão ver ou editar sem recorrer a programas que reconhecem arquivos Webp.&lt;/p&gt;
+
+&lt;p&gt;Porém, acredito que quanto mais pessoas tiverem problemas com essa tecnologia, mais rápido os problemas irão ser consertados, fazendo que o WebP seja adquirido em todos os browsers e softwares de edição de imagens. Rumo a internet mais rápida!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Conferência W3C Web.br 2013 – Dia 2</title>
+      <link>http://tableless.com.br/conferencia-w3c-web-br-2013-dia-2/</link>
+      <pubDate>Wed, 27 Nov 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/conferencia-w3c-web-br-2013-dia-2/</guid>
+      <description>
+
+&lt;p&gt;No &lt;a href=&#34;http://tableless.com.br/conferencia-w3c-webbr-2013-primeiro-dia/&#34; title=&#34;Conferência W3C Web.br 2013 – Dia 1&#34;&gt;primeiro dia&lt;/a&gt; fizemos um passeio através da história da internet, aprendemos a importância do WAI-ARIA, ganhamos umas dicas sobre Design Responsivo e Games em HTML5, além de ficar por dentro das próximas novidades de CSS3. Mas muita coisa ainda estava por vir!&lt;/p&gt;
+
+&lt;h2 id=&#34;pushing-the-web-forward&#34;&gt;Pushing the Web Forward&lt;/h2&gt;
+
+&lt;p&gt;A abertura do evento ficou por conta do Kris Borchers, diretor executivo da jQuery Foundation. Kris explicou o processo criativo por traz de funções legais do jQuery como Touch Events e SimplePush, com uma demonstração super interessante utilizando os próprios slides da palestra que sincronizavam em tempo real em diversos tipos de dispositivos através de uma URL. Mas isto não foi tudo! Kris deu uma verdadeira aula sobre como as comunidades de desenvolvimento globais podem influenciar os futuros webstandarts e fazer da internet um lugar melhor.&lt;/p&gt;
+
+&lt;p&gt;Confira os slides da palestra em &lt;a href=&#34;http://pushtalk.herokuapp.com&#34; title=&#34;Push Talk&#34;&gt;Push Talk&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39616&#34; alt=&#34;10942790554_7fc663fe68_c&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/11/10942790554_7fc663fe68_c.jpg&#34; width=&#34;589&#34; height=&#34;597&#34; srcset=&#34;uploads/2013/11/10942790554_7fc663fe68_c.jpg 589w, uploads/2013/11/10942790554_7fc663fe68_c-165x168.jpg 165w, uploads/2013/11/10942790554_7fc663fe68_c-305x310.jpg 305w&#34; sizes=&#34;(max-width: 589px) 100vw, 589px&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;snippets&#34;&gt;Snippets&lt;/h3&gt;
+
+&lt;p&gt;&amp;#8211; Nossa visão: Um mundo onde todo o conteúdo da web é construído através de padrões abertos e é acessível a todos os usuários.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Menos código é melhor. São menos coisas que podem quebrar. Menos coisas para concertar. E é simplesmente bonito!&lt;/p&gt;
+
+&lt;h2 id=&#34;como-progredir-a-web&#34;&gt;Como progredir a Web?&lt;/h2&gt;
+
+&lt;p&gt;Após a abertura, Kris Borchers continuou no palco justamente com Nathália Sautchuk (CGI.br), Yasodara Córdova (W3C Brasil) e Sérgio Lopes (desenvolvedor na Caelum) para um debate acalorado sobre os rumos da Web. Os participantes (e a platéia) se revezaram respondendo e formulando perguntas instigantes como &amp;#8220;Como o desenvolvedor comum pode fazer a web progredir?&amp;#8221; ou &amp;#8220;Como fazer o usuário leigo entender e se envolver o processo de desenvolvimento e criação de padrões?&amp;#8221;. O debate passou por tópicos como as vantages e desvantagens da implantação do ensino de programação na escola, pequenos desenvolvedores vs. grandes corporações e a importância da comunidade Open Source. Ninguém saiu de lá com respostas absolutas para estes questionamentos, mas tenho certeza de estarmos fazendo as perguntas certas e é justamente através deste tipo de diálogo que a web pode progredir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39614&#34; alt=&#34;10943233685_602afa66f5_c&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/11/10943233685_602afa66f5_c.jpg&#34; width=&#34;589&#34; height=&#34;393&#34; srcset=&#34;uploads/2013/11/10943233685_602afa66f5_c.jpg 589w, uploads/2013/11/10943233685_602afa66f5_c-251x168.jpg 251w, uploads/2013/11/10943233685_602afa66f5_c-464x310.jpg 464w&#34; sizes=&#34;(max-width: 589px) 100vw, 589px&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;snippets-1&#34;&gt;Snippets&lt;/h3&gt;
+
+&lt;p&gt;&amp;#8211; O primeiro passo para fazer a web progredir é não deixar ela regredir.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; É importante abrir espaço para discussões sobre as dimensões legais, culturais, políticas e humanas como o março civil da internet.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Precisamos trazer a tecnologia para perto do usuário para que ele possa sentir as mudanças no seu dia-a-dia.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; A comunicação entre a comunidade também é fundamental para que a tecnologia evolua. Se cada um tentar uma solução em separado fica difícil chegar em um consenso.&lt;/p&gt;
+
+&lt;h2 id=&#34;digital-publishing&#34;&gt;Digital Publishing&lt;/h2&gt;
+
+&lt;p&gt;2 keynotes e um debate. Tudo para abordar, de todos os ângulos possíveis, o conceito de Digital Publishing ou Editoração Digital.&lt;/p&gt;
+
+&lt;h3 id=&#34;parte-i&#34;&gt;Parte I&lt;/h3&gt;
+
+&lt;p&gt;O primeiro a se apresentar foi Fernando Tavares da editora Simplíssimo. A palestra abordou os aspectos de produção de livros digitais em formato ePub e a dificuldades de autores e editoras nesta mudança de paradigmas. A comparação que Fernando utilizou foi a mudança de estado de sólido (o livro em seu objeto físico da natureza fixa) para o líquido (livros digitais fluídos). Fernando comentou que esta mudança radical de suporte, e o choque cultural inicial do mercado em lidar com ela, é semelhante ao que ocorreu no passado quando os livros manuscritos passaram a ser impressos. A palestra ainda abordou a anatomia de um ePub e mostrou que o desenvolvimento de livros digitais, essencialmente, é muito próximo a criação de páginas HTML.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; E necessário entender o livro não como um formato físico, mas sim como uma porção de conteúdo como começo, meio e fim.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; O EPUB3 é um HTML5 domestificado.&lt;/p&gt;
+
+&lt;h3 id=&#34;parte-ii&#34;&gt;Parte II&lt;/h3&gt;
+
+&lt;p&gt;A segunda etapa foi liderada pelo jornalista Rafael Kenski (Abril). O tema da palestra mais uma vez foi a mudança de paradigmas, mas desta vez no mercado do jornalismo. A idéia principal aqui é que é preciso esquecer. Esquecer os conceitos tradicionais de mídia já que a web abre portas para novos formatos de storytelling como os ARGs, por exemplo. Esquecer o conceito de público-alvo já que na internet é possível atingir uma audiência mais ampla. Esquecer o estereótipo de leitor passivo já que as pessoas interagem de maneira muito mais direta através de redes sociais ou até mesmo de jornalismo colaborativo. Esquecer o papel social da imprensa já que pequenos blogs indivíduaiss tem o mesmo poder de reframing que a mídia tradicional. Esquecer o conceito de publicação já que as marcas podem criar um ecossistema muito mais amplo de produtos e serviços. Esquecer até mesmo como vender, já que o BitCoin, por exemplo, tem o poder de modificar radicalmente a economia global. Rafael comentou ainda sobre as semelhanças entre o jornalismo aberto e as comunidades Open Source. Uma palestra tão inspiradora que quase deu vontade de largar tudo e virar jornalista.&lt;/p&gt;
+
+&lt;h4 id=&#34;snippets-2&#34;&gt;Snippets&lt;/h4&gt;
+
+&lt;p&gt;&amp;#8211; Ser jornalista é quase igual ser desenvolvedor: somos pagos para escrever milhares de linhas, trabalhar madrugada adentro bebendo café, o texto é vendido em formato aberto e é muito divertido.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Jornalismo precisa servir para alguma coisa, mas nem sempre é uma função engajada. As vezes a função é entreter, relaxar ou distrair em um momento de tédio.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Jornalismo é resolver um problema através da informação. Sem esquecer a comunicação clara e correta, rigor na informação e ética.&lt;/p&gt;
+
+&lt;h3 id=&#34;parte-iii&#34;&gt;Parte III&lt;/h3&gt;
+
+&lt;p&gt;A terceira parte foi um debate entre os dois apresentadores, moderados por Gustavo Faleiros (InfoAmazonia). As perguntas da platéia compreenderam temas como direitos autorais, DRM Social e diferenças entre o mercado nacional e internacional. Foram sugeridas ainda maneiras alternativas de monetização, como utilizar livros distribuídos gratuitamente como um marketing para a promoção de palestras e eventos.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39618&#34; alt=&#34;10945342453_e7354ac055_c&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/11/10945342453_e7354ac055_c.jpg&#34; width=&#34;589&#34; height=&#34;393&#34; srcset=&#34;uploads/2013/11/10945342453_e7354ac055_c.jpg 589w, uploads/2013/11/10945342453_e7354ac055_c-251x168.jpg 251w, uploads/2013/11/10945342453_e7354ac055_c-464x310.jpg 464w&#34; sizes=&#34;(max-width: 589px) 100vw, 589px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Direito autoral é uma corrida entre gato e rato onde o gato sempre vai perder.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; O DRM ainda é uma tecnologia muito cara. É como comprar um cofre de R$10.000 para proteger R$500.&lt;/p&gt;
+
+&lt;p&gt;Rafael Kenski, Fernando Tavares, Gustavo Faleiros.&lt;/p&gt;
+
+&lt;h2 id=&#34;w3c-trends&#34;&gt;W3C Trends&lt;/h2&gt;
+
+&lt;p&gt;A próxima palestra contou com a presença de três profissionais da W3C Brasil: Yaso Córdova (Developer Relations), Reinaldo Ferraz (Especialista em desenvolvimento web) e Vanessa Tonini ( Grupo de Trabalho em Acessibilidade). Cada um deu seus pitacos sobre padrões e tendências.&lt;/p&gt;
+
+&lt;h3 id=&#34;parte-i-1&#34;&gt;Parte I&lt;/h3&gt;
+
+&lt;p&gt;Reinaldo nos deu uma visão geral sobre as diferentes possibilidades da Open Web plataform em diferentes setores como: desenvolvimento voltado automóveis, games, sinalização digital, internet como plataforma de conexão entre governo e comunidade e publicações editoriais digitais. Sobre este último fomos apresentados a formatos inusitados como web novelas de até 100 palavras, criadas especialmente para serem lidas em celulares e muito populares no Japão. Ou a linguagem MathML que permite a marcação de fórmulas matemáticas. Ainda falando sobre o mercado editorial Reinaldo comentou sobre os próximos desafios como semântica, conteúdo colaborativo, maneiras alternativas de geração de receita como publicidade dentro de livros e micro transações.&lt;/p&gt;
+
+&lt;p&gt;[slideshare id=28420587&amp;amp;doc=publicaes-digitais-webbr2013-131119113038-phpapp01]&lt;/p&gt;
+
+&lt;h4 id=&#34;snippets-3&#34;&gt;Snippets&lt;/h4&gt;
+
+&lt;p&gt;&amp;#8211; A Web se tornou uma plataforma aberta. O conteúdo não é mais passivo.&lt;/p&gt;
+
+&lt;h3 id=&#34;parte-ii-1&#34;&gt;Parte II&lt;/h3&gt;
+
+&lt;p&gt;A palestra da Yaso começou com um esclarecimento. As W3C trends não são necessariamente modismos passageiros. Na verdade algumas destas tendências já estão em desenvolvimento a mais de 10 anos e vão agregar valor ao seu código. Então fomos apresentados a diversas idéias criativas de como a wev pode ser utilizada para a solução de problemas, economia de recursos, aprendizado coletivo e geração de novos negócios e serviços. A Yaso também comentou sobre a Web das Coisas e como é possível conectar pessoas e objetos para coletar dados e transformar a vida em sociedade.&lt;/p&gt;
+
+&lt;p&gt;[slideshare id=28414377&amp;amp;doc=webtrends-131119083444-phpapp01]&lt;/p&gt;
+
+&lt;h4 id=&#34;snippets-4&#34;&gt;Snippets&lt;/h4&gt;
+
+&lt;p&gt;&amp;#8211; A Open Web é uma nuvem infinita de pessoas onde podemos extrair informações para viver colaborativamente em sociedade.&lt;/p&gt;
+
+&lt;h3 id=&#34;parte-iii-1&#34;&gt;Parte III&lt;/h3&gt;
+
+&lt;p&gt;A última palestra foi apresentada pela Vanessa Tonini. A Vanessa comentou um pouco sobre dezenas de propostas, rascunhos, idéias e grupos dentro da W3C que estão trabalhando em conjunto para a resolução de desafios que a comunidade de desenvolvimento ainda enfrenta como otimização de performance, preocupação com a segurança, proteção da privacidade do usuário, internacionalização e inclusão de pessoas. Nos slides da palestra a Vanessa forneceu diversos links para que qualquer um que se interesse por estes temas possa se juntar aos grupos e propor soluções para estes problemas. A Vanessa adiantou ainda os planos da W3C para a comunidade de desenvolvimento brasileira como inclusão de casos de documentação, cursos online em português, concursos e premiação e até mesmo a criação de um laboratório da Web das Coisas.&lt;/p&gt;
+
+&lt;p&gt;[slideshare id=28423640&amp;amp;doc=w3ctendenciasedestaques-131119130735-phpapp01]&lt;/p&gt;
+
+&lt;h4 id=&#34;snippets-5&#34;&gt;Snippets&lt;/h4&gt;
+
+&lt;p&gt;&amp;#8211; A função do HTML5 é diminuir o abismo entre desktops e aplicativos móveis.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; O HTML5 se tornará recomendação oficial da W3C partir de 2014.&lt;/p&gt;
+
+&lt;h2 id=&#34;web-8217-s-got-talent&#34;&gt;Web&amp;#8217;s Got Talent&lt;/h2&gt;
+
+&lt;p&gt;O encerramento do evento ficou por conta do concurso Web&amp;#8217;s Got Talent, um reconhecimento merecido aos empreendedores brasileiros. Foram muitos projetos super interessantes (você pode ver a lista completa no &lt;a href=&#34;http://conferenciaweb.w3c.br/webs-got-talent/&#34;&gt;site da premiação&lt;/a&gt;), apresentados pelo empresário Edney Souza, também conhecido como Interney. Os grandes vencedores da noite foram &lt;a href=&#34;http://arteforadomuseu.com.br/&#34;&gt;Arte Fora do Museu&lt;/a&gt; em primeiríssimo lugar, seguidos de &lt;a href=&#34;http://web.prodeaf.net/&#34;&gt;ProDeaf&lt;/a&gt; e do &lt;a href=&#34;https://www.loggi.com/&#34;&gt;Loggi&lt;/a&gt;. Mas todos os finalistas da noite merecem o seu clique!&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39613&#34; alt=&#34;webgottallent&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/11/webgottallent.jpg&#34; width=&#34;589&#34; height=&#34;393&#34; srcset=&#34;uploads/2013/11/webgottallent.jpg 589w, uploads/2013/11/webgottallent-251x168.jpg 251w, uploads/2013/11/webgottallent-464x310.jpg 464w&#34; sizes=&#34;(max-width: 589px) 100vw, 589px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Ufa! Foi uma verdadeira maratona de palestras, debates, apresentações e cafézinhos. Mas o mais legal foi conhecer ao vivo as pessoas que trabalham diariamente para transformar a web em um lugar melhor. Cada um dentro da sua área lutando para que seja mais acessível, mais inclusivo, mais rápido, funcional ou interativo. Mas definitivamente melhor! Mal posso esperar pela próxima conferência!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Conferência W3C Web.br 2013 – Dia 1</title>
+      <link>http://tableless.com.br/conferencia-w3c-webbr-2013-primeiro-dia/</link>
+      <pubDate>Wed, 20 Nov 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/conferencia-w3c-webbr-2013-primeiro-dia/</guid>
+      <description>
+
+&lt;p&gt;Na segunda-feira 19 de novembro tive o prazer de acompanhar de perto a &lt;a href=&#34;http://conferenciaweb.w3c.br/&#34; title=&#34;Conferência Web W3C Brasil&#34;&gt;Conferência Web W3C Brasil&lt;/a&gt;. O evento, realizado no centro de convenções Rebouças em São Paulo contou com a presença de grandes especialistas web do Brasil e do mundo. Foram dois dias repletos de palestras, debates, cafézinhos, networking, premiações, bons conselhos e muito conhecimento. Se você esteva lá também, parabéns! Aposto que aprendeu alguma coisa nova. Se não foi, não tem problema! Confira (quase) tudo o que rolou no primeiro dia de evento neste artigo.&lt;/p&gt;
+
+&lt;p&gt;A conferência foi dividida em diversos auditórios &amp;#8211; header, section, canvas e input &amp;#8211; cada um com um conteúdo diferente. Era tanta coisa interessante rolando ao mesmo tempo que ficava difícil escolher uma das trilhas. Vou falar um pouco sobre as keynotes que eu assisti, mas não deixem de conferir mais informações sobre as outras palestras. Garanto que teve muita coisa bacana.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-evolução-dos-sistemas-de-informática-e-web-no-brasil&#34;&gt;A evolução dos sistemas de informática e Web no Brasil&lt;/h2&gt;
+
+&lt;p&gt;A primeira keynote do dia foi da Fernanda Weiden (Facebook). A Fernanda apresentou uma breve história da internet em um clima super descontraído, contando experiências pessoais e traçando um paralelo com a evolução da web e seu impacto na vida das pessoas. Se você viveu a internet nos anos 90 é impossível não se identificar com as situações como o primeiro número de ICQ (esqueço o telefone de muita gente mas lembro do meu UIN até hoje) ou entrar de madrugada usando conexão discada para navegar &amp;#8220;com um pulso só&amp;#8221;. Mas mais do que isto, foi interessante viajar na linha do tempo e ver de perto como a internet cresceu e democratizou o acesso ao conhecimento. Fernanda ainda comentou sobre os principais obstáculos a serem superados como acessibilidade, cuidados com a privacidade, infraestrutura e disponibilidade, impacto em outros setores, regulamentação, barateamento de equipamentos, inovação local e padronização de linguagens de desenvolvimento.&lt;/p&gt;
+
+&lt;h4 id=&#34;snippets&#34;&gt;Snippets&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Como seremos todos iguais se a tecnologia não inclui pessoas com necessidades especiais?&lt;/li&gt;
+&lt;li&gt;Se uma aplicação está muito complicada é porque está tudo errado.&lt;/li&gt;
+&lt;li&gt;A possibilidade de buscar a conteúdos a qualquer momento permite transformar informação em conhecimento.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;img-class-alignnone-size-large-wp-image-39548-alt-evolucao-sistemas-src-http-tableless-com-br-wp-content-uploads-2013-11-evolucao-sistemas-589x310-jpg-width-589-height-310-srcset-uploads-2013-11-evolucao-sistemas-589x310-jpg-589w-uploads-2013-11-evolucao-sistemas-319x168-jpg-319w-uploads-2013-11-evolucao-sistemas-588x310-jpg-588w-uploads-2013-11-evolucao-sistemas-jpg-660w-sizes-max-width-589px-100vw-589px&#34;&gt;&lt;img class=&#34;alignnone size-large wp-image-39548&#34; alt=&#34;evolucao-sistemas&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/11/evolucao-sistemas-589x310.jpg&#34; width=&#34;589&#34; height=&#34;310&#34; srcset=&#34;uploads/2013/11/evolucao-sistemas-589x310.jpg 589w, uploads/2013/11/evolucao-sistemas-319x168.jpg 319w, uploads/2013/11/evolucao-sistemas-588x310.jpg 588w, uploads/2013/11/evolucao-sistemas.jpg 660w&#34; sizes=&#34;(max-width: 589px) 100vw, 589px&#34; /&gt;&lt;/h2&gt;
+
+&lt;h2 id=&#34;processo-de-desenvolvimento-front-end-8211-do-caos-ao-sublime&#34;&gt;Processo de Desenvolvimento Front-End &amp;#8211; Do caos ao Sublime.&lt;/h2&gt;
+
+&lt;p&gt;Jaydson Gomes (Front-end Engineer do Terra) abriu os trabalhos com um aviso: &amp;#8220;Esta palestra não é técnica. E não é sobre o Sublime Text.&amp;#8221;. E não era mesmo! Em um dos bate-papos mais divertidos do evento, Jaydson exemplificou como a preguiça, a &lt;a href=&#34;http://jaydson.org/cultura-maldita-no-desenvolvimento-de-software/&#34; title=&#34;Cultura maldita no desenvolvimento de software&#34;&gt;cultura maldita&lt;/a&gt; e o complexo de vira-lata podem atrapalhar o processo de desenvolvimento, principalmente em grandes projetos onde existem dogmas a serem quebrados. Através de paralelos históricos, culturais, experiências pessoais e referências pop, Jaydson falou sobre a evolução, a importância da quebra de paradigmas e de tomar iniciativas. Recebemos ainda dicas de como documentar projetos e utilizar o versionamento para transformar o caos (do código) em algo sublime.&lt;/p&gt;
+
+&lt;h4 id=&#34;snippets-1&#34;&gt;Snippets&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Quando existe mais de um padrão, não existe padrão nenhum.&lt;/li&gt;
+&lt;li&gt;Documentação é fundamental para o legado tecnológico.&lt;/li&gt;
+&lt;li&gt;É necessário centralizar toda a informação para facilitar o acesso a ela.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;img-class-alignnone-size-large-wp-image-39547-alt-do-caos-ao-sublime-src-http-tableless-com-br-wp-content-uploads-2013-11-do-caos-ao-sublime-589x310-jpg-width-589-height-310-srcset-uploads-2013-11-do-caos-ao-sublime-589x310-jpg-589w-uploads-2013-11-do-caos-ao-sublime-319x168-jpg-319w-uploads-2013-11-do-caos-ao-sublime-588x310-jpg-588w-uploads-2013-11-do-caos-ao-sublime-jpg-660w-sizes-max-width-589px-100vw-589px-3&#34;&gt;&lt;a href=&#34;http://www.flickr.com/photos/nicbr/&#34;&gt;&lt;img class=&#34;alignnone size-large wp-image-39547&#34; alt=&#34;do-caos-ao-sublime&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/11/do-caos-ao-sublime-589x310.jpg&#34; width=&#34;589&#34; height=&#34;310&#34; srcset=&#34;uploads/2013/11/do-caos-ao-sublime-589x310.jpg 589w, uploads/2013/11/do-caos-ao-sublime-319x168.jpg 319w, uploads/2013/11/do-caos-ao-sublime-588x310.jpg 588w, uploads/2013/11/do-caos-ao-sublime.jpg 660w&#34; sizes=&#34;(max-width: 589px) 100vw, 589px&#34; /&gt;&lt;/a&gt;&lt;/h2&gt;
+
+&lt;h2 id=&#34;jogos-com-html5&#34;&gt;Jogos com HTML5&lt;/h2&gt;
+
+&lt;p&gt;A próxima palestra foi com a Talita Pagani, designer de interfaces e &lt;a href=&#34;http://tableless.com.br/author/talita-cpb/&#34;&gt;autora aqui do Tableless&lt;/a&gt;. A Talita deu uma introdução bem interessante e completa ao mundo do desenvolvimento de jogos desde a anatomia de um game até as principais tecnologias e etapas de criação de projetos em uma linguagem fácil de acompanhar até para quem, como eu, não entende absolutamente nada da área. Na verdade tudo foi muito mais familiar do que eu imaginava já que o toolkit básico para projetar este tipo de games todo desenvolvedor front-end já tem: HTML5, CSS, JavaScript e SVG. Foram discutidas as principais vantagens de desenvolvimento de jogos para a plataforma: ubiquidade, portabilidade, facilidade de distribuição e manutenção, independência de outras linguagens e tecnologias proprietárias. Confira os slides da palestra com o conteúdo completo incluindo muitos links e referências bacanas para você se inspirar.&lt;/p&gt;
+
+&lt;p&gt;[slideshare id=21563663&amp;amp;doc=html5-games-usc-130520231317-phpapp02]&lt;/p&gt;
+
+&lt;h4 id=&#34;snippets-2&#34;&gt;Snippets&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;span style=&#34;font-size: 1em&#34;&gt;Se a aplicação não está funcionando no navegador é porque a aplicação está errada.&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span style=&#34;font-size: 1em&#34;&gt;Você sabia que o Internet Explorer 9 e 10 possui uma boa aceleração de hardware? Não ao bullying de browsers!&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span style=&#34;font-size: 1em&#34;&gt;Você precisa ir mais fundo: um canvas dentro de um canvas.&lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;responsivo-na-prática&#34;&gt;Responsivo na prática&lt;/h2&gt;
+
+&lt;p&gt;Afinal, por que fazer design responsivo? Por que a galera bacana está fazendo? Por que teu chefe mandou? Por que está na moda? Bruno Azevedo (front-end e fundador da Marimbondo), durante a palestra Responsivo na Prática, respondeu a estas perguntas de maneira simples e objetiva: &amp;#8220;para entregar a melhor experiência possível ao teu usuário, independente do dispositivo.&amp;#8221; A apresentação, que teve como publico alvo profissionais iniciantes, contou com os conceitos teóricos e técnicos mais importantes da área: web única, media queries, medidas relativas, grids fixos e fluídos, fallbacks, etc. Foi uma palestra recheada de conteúdo de qualidade: boas práticas, dicas objetivas e ferramentas úteis para você começar a desenvolver sites responsivos hoje!&lt;/p&gt;
+
+&lt;h3 id=&#34;snippets-3&#34;&gt;Snippets&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A web é um canvas em branco.&lt;/li&gt;
+&lt;li&gt;Conteúdo é o que gira a web.&lt;/li&gt;
+&lt;li&gt;O design responsivo é como um bonde, se você correr dá para pegar ainda, mas daqui a 2, 3 anos pode ser tarde demais para a experimentação.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;img-class-alignnone-size-large-wp-image-39549-alt-responsivo-na-pratica-src-http-tableless-com-br-wp-content-uploads-2013-11-responsivo-na-pratica-589x310-jpg-width-589-height-310-srcset-uploads-2013-11-responsivo-na-pratica-589x310-jpg-589w-uploads-2013-11-responsivo-na-pratica-319x168-jpg-319w-uploads-2013-11-responsivo-na-pratica-588x310-jpg-588w-uploads-2013-11-responsivo-na-pratica-jpg-660w-sizes-max-width-589px-100vw-589px-3&#34;&gt;&lt;a href=&#34;http://www.flickr.com/photos/nicbr/&#34;&gt;&lt;img class=&#34;alignnone size-large wp-image-39549&#34; alt=&#34;responsivo-na-pratica&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/11/responsivo-na-pratica-589x310.jpg&#34; width=&#34;589&#34; height=&#34;310&#34; srcset=&#34;uploads/2013/11/responsivo-na-pratica-589x310.jpg 589w, uploads/2013/11/responsivo-na-pratica-319x168.jpg 319w, uploads/2013/11/responsivo-na-pratica-588x310.jpg 588w, uploads/2013/11/responsivo-na-pratica.jpg 660w&#34; sizes=&#34;(max-width: 589px) 100vw, 589px&#34; /&gt;&lt;/a&gt;&lt;/h2&gt;
+
+&lt;h2 id=&#34;wai-aria&#34;&gt;WAI-ARIA&lt;/h2&gt;
+
+&lt;p&gt;Você provavelmente já conhece os apresentadores desta palestra já que os dois são autores deste site: &lt;a href=&#34;http://tableless.com.br/author/diego-eis/&#34; title=&#34;Tableless - Autor - Diego Eis&#34;&gt;Diego Eis&lt;/a&gt; (também conhecido como o fundador do Tableless) e &lt;a href=&#34;http://tableless.com.br/author/deividmarques/&#34; title=&#34;Tableless - Autor - Deivid Marques&#34;&gt;Deivid Marques&lt;/a&gt;. Mas se você não conhece este tema super recomendo que comece a pesquisar. WAI-ARIA é uma especificação que possui como objetivo marcar interações e assim transmitir significado e informações apropriadas a pessoas com deficiência. A palestra se dividiu em duas etapas: uma teórica explicando as principais funcionalidades e a sintaxe do WAI-ARIA e uma demo ao vivo realizada pelo Deivid utilizando um leitor de voz. Não vou me alongar muito neste tema já que existe um &lt;a href=&#34;http://tableless.com.br/wai-aria-estendendo-o-significado-das-interacoes/#.Uowhg2TXQv4&#34; title=&#34;Wai-aria estendendo o significado das interacoes&#34;&gt;artigo do próprio Diego&lt;/a&gt; com os detalhes desta palestra, mas vou contar um spoiler: é uma aula inspiradora sobre acessibilidade.&lt;/p&gt;
+
+&lt;h4 id=&#34;snippets-4&#34;&gt;Snippets&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;span style=&#34;font-size: 1em&#34;&gt;Não podemos fazer conteúdo para apenas um tipo de público. É responsabilidade do desenvolvedor criar uma internet acessível para todos.&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span style=&#34;font-size: 1em&#34;&gt;Tente usar leitores de voz por uma hora por dia que você passará a se preocupar mais com acessibilidade.&lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;[slideshare id=28367511&amp;amp;doc=wai-aria-131118071824-phpapp01]&lt;/p&gt;
+
+&lt;h2 id=&#34;css-layout-o-ontem-o-hoje-e-o-depois&#34;&gt;CSS Layout: o ontem, o hoje e o depois.&lt;/h2&gt;
+
+&lt;p&gt;Já pensou como será o CSS de amanhã? E de depois de amanhã? E daqui há 10 anos? Ok, não tão longe&amp;#8230; Mas, dentro das novas documentações de CSS3, podemos ficar bem empolgados com o futuro. Almir Filho (Globo.com e Loop Infinito) apresentou nesta palestra um panorama sobre as principais técnicas de desenvolvimentos de layouts desde o HTML 1.0. Foi um grande resumo compreendendo as técnicas rudimentares do passado, até as dificuldades principais do padrão atual (box-model) e o futuro lindo e glorioso do CSS com &lt;a href=&#34;http://loopinfinito.com.br/2013/10/08/css-grid-isso-muda-tudo-de-novo/&#34; title=&#34;CSS Grid - Isso muda tudo de novo&#34;&gt;Grid Layouts&lt;/a&gt;, Flexbox, regions e exclusions. E de bônus levamos para casa alguns argumentos bacanas para convencer os amiguinhos que ainda utilizam tabelas para dados não-tabulares pararem de fazer esta besteira (render não incremental, problemas de acessibilidade, mistura de conteúdo e apresentação, etc).&lt;/p&gt;
+
+&lt;h4 id=&#34;snippets-5&#34;&gt;Snippets&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;2013. O Google já fez até um medidor de KI e ainda não superamos as tabelas.&lt;/li&gt;
+&lt;li&gt;CSS Shapes: o fim da tirania do retângulo.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Veja os &lt;a href=&#34;https://speakerdeck.com/loopinfinito/css-layout-o-ontem-o-hoje-e-o-depois&#34; title=&#34;CSS Layout: O ontem, o hoje e o depois&#34;&gt;slides desta palestra no Speaker Deck&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.flickr.com/photos/nicbr/&#34;&gt;&lt;img class=&#34;alignnone size-large wp-image-39546&#34; alt=&#34;css-layouts&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/11/css-layouts-589x310.jpg&#34; width=&#34;589&#34; height=&#34;310&#34; srcset=&#34;uploads/2013/11/css-layouts-589x310.jpg 589w, uploads/2013/11/css-layouts-319x168.jpg 319w, uploads/2013/11/css-layouts-588x310.jpg 588w, uploads/2013/11/css-layouts.jpg 660w&#34; sizes=&#34;(max-width: 589px) 100vw, 589px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;por-enquanto-é-só-8230&#34;&gt;Por enquanto é só&amp;#8230;&lt;/h3&gt;
+
+&lt;p&gt;E este foi apenas o primeiro dia de conferência! Aguarde o próximo artigo para acompanhar o final da minha saga na W3C Conf. Para saber mais sobre o evento acesse o &lt;a href=&#34;http://conferenciaweb.w3c.br/&#34; title=&#34;Conferência W3C Web Brasil&#34;&gt;site oficial&lt;/a&gt;  e acompanhe a hashtag #webbr2013 nas redes sociais. Até breve!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Por dentro da Web.br 2013: Web’s Got Talent</title>
+      <link>http://tableless.com.br/por-dentro-da-web-br-2013-webs-got-talent/</link>
+      <pubDate>Mon, 28 Oct 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/por-dentro-da-web-br-2013-webs-got-talent/</guid>
+      <description>
+
+&lt;p&gt;A quinta edição da &lt;a title=&#34;Site da Web.br&#34; href=&#34;http://conferenciaweb.w3c.br/&#34; target=&#34;_blank&#34;&gt;Web.br&lt;/a&gt;, conferência do W3C Brasil, ocorre nos dias 18 e 19 de novembro de 2013, em São Paulo, trazendo uma grande novidade nesta edição: o concurso &lt;a title=&#34;Web.br 2013: Web&#39;s Got Talent&#34; href=&#34;http://conferenciaweb.w3c.br/inscricoes-abertas-para-o-webs-got-talent/&#34; target=&#34;_blank&#34;&gt;&lt;strong&gt;Web&amp;#8217;s Got Talent&lt;/strong&gt;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O concurso tem o propósito de reconhecer as melhores aplicações web que visam fornecer serviços aos usuários. Com isso, pretende-se evidenciar, por meio do reconhecimento público, websites ou aplicativos que tenham sido desenvolvidos com uso das tecnologias da &lt;em&gt;Open Web&lt;/em&gt; para a prestação de serviços à população e estimular a troca de informações e experiências entre empreendedores e empresários do setor.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Se você tem uma aplicação/serviço/website desenvolvido ou prototipado com tecnologias da _Open Web Platform_ e CNPJ (sim, é necessário), não perca esta chance de divulgar a sua solução. As inscrições foram prorrogadas até quarta-feira (&lt;sup&gt;30&lt;/sup&gt;&amp;frasl;&lt;sub&gt;10&lt;/sub&gt;).&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;O Web&amp;#8217;s Got Talent contará com apresentação de &lt;a title=&#34;Twitter do Edney Souza (Interney)&#34; href=&#34;http://twitter.com/interney&#34; target=&#34;_blank&#34;&gt;Edney Souza (o Interney)&lt;/a&gt;, e jurados de peso do mundo do empreendedorismo na web como Martha Gabriel, Amyris Fernandez (Buscapé), Bob Wollheim (youPIX), entre outros.&lt;/p&gt;
+
+&lt;p&gt;De acordo com o regulamento do concurso, os critérios de avaliação incluirão:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Relevância do serviço prestado ao usuário;&lt;/li&gt;
+&lt;li&gt;Potencial de mercado do projeto apresentado;&lt;/li&gt;
+&lt;li&gt;Criatividade da interface (design, linguagem) da solução apresentada.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;premiação&#34;&gt;Premiação&lt;/h3&gt;
+
+&lt;p&gt;Não podemos esquecer da recompensa pelo trabalho, caso o seu projeto seja um dos grandes vencedores.&lt;/p&gt;
+
+&lt;p&gt;O &lt;strong&gt;primeiro colocado&lt;/strong&gt; receberá uma viagem para o representante do time com todas as despesas pagas, por dois  dias, para a cidade de Cambridge, nos Estados Unidos, para conhecer a sede do W3C Internacional no MIT, além de certificado emitido pelo CGI.br, camisetas HTML5 e entrada para a Web.br 2014 e prêmio-surpresa.&lt;/p&gt;
+
+&lt;p&gt;O &lt;strong&gt;segundo colocado&lt;/strong&gt; ganhará todos os benefícios acima excetuando o prêmio-surpresa.&lt;/p&gt;
+
+&lt;p&gt;E o &lt;strong&gt;terceiro colocado&lt;/strong&gt; receberá um aparelho kindle por cada membro da equipe, com limite de até três pessoas, além de certificado emitido pelo CGI.br, camisetas HTML5 e entrada para a Web.br 2014.&lt;/p&gt;
+
+&lt;h3 id=&#34;mais-informações&#34;&gt;Mais Informações&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a title=&#34;Regulamento do Web&#39;s Got Talent&#34; href=&#34;http://conferenciaweb.w3c.br/regulamento-do-premio-webs-got-talent/&#34; target=&#34;_blank&#34;&gt;Regulamento da Premiação&lt;/a&gt;;&lt;/li&gt;
+&lt;li&gt;&lt;a title=&#34;Ficha de Inscrição para o Web&#39;s Got Talent&#34; href=&#34;https://docs.google.com/forms/d/1qt2z5UHU0CjCebTtM9Wyuj1x_QOdAkM7onzrGaHmqDg/viewform&#34; target=&#34;_blank&#34;&gt;Ficha de Inscrição&lt;/a&gt;;&lt;/li&gt;
+&lt;li&gt;&lt;a title=&#34;Web&#39;s Got Talent: mais informações&#34; href=&#34;http://conferenciaweb.w3c.br/inscricoes-abertas-para-o-webs-got-talent/&#34; target=&#34;_blank&#34;&gt;Informações sobre o concurso e os jurados&lt;/a&gt;;&lt;/li&gt;
+&lt;li&gt;&lt;a title=&#34;Web&#39;s Got Talent: mais informações&#34; href=&#34;http://conferenciaweb.w3c.br/webs-got-talent-premiara-aplicacoes-web-que-prestam-servicos-aos-cidadaos-na-web-br-2013/&#34; target=&#34;_blank&#34;&gt;Outras informações (e inspirações)&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Boa sorte a todos os participantes! Nos vemos lá 😉&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Webkit to the people</title>
+      <link>http://tableless.com.br/webkit-to-the-people/</link>
+      <pubDate>Mon, 18 Mar 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/webkit-to-the-people/</guid>
+      <description>
+
+&lt;p&gt;Eu sei que a notícia é velha, mas o Opera &lt;a href=&#34;http://www.opera.com/press/releases/2013/02/13/&#34;&gt;anunciou que chegou aos 300 milhões de usuários&lt;/a&gt; em todo mundo.&lt;/p&gt;
+
+&lt;p&gt;Muita gente brinca que o Opera é o browser que ninguém usa. De fato os números do browser para desktop são bem pequenos quando comparamos com browsers como Firefox e Chrome. Mas o que ninguém pensa com muita frequencia é que o Opera está presente em uma série de outros dispositivos além do desktop. Há pessoas que dizem que o Opera nunca teve como foco principal os desktops. Eu não concordo. Mesmo assim, ele está presente em dispositivos como TVs, set-top-box e &lt;a href=&#34;http://techcrunch.com/2009/04/02/opera-browser-chosen-for-mobile-office-computer-in-ford-pickup-trucks/&#34;&gt;até em caminhões&lt;/a&gt;. &lt;a href=&#34;http://business.opera.com/press/releases/2009/04/02_2/&#34;&gt;Ou pelo menos estava&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Junto com a notícia dos 300 milhões de usuários, eles anunciaram que iniciarão uma transição de substituição do seu engine de renderização. Eles deixarão o Presto de lado e passarão a usar o WebKit! Yeah! 😉&lt;/p&gt;
+
+&lt;p&gt;Na verdade não é tão Yeah! assim. Existem prós e contras. Pra ser sincero eu ainda não decidi se isso é bom ou ruim. O assunto é mais &amp;#8220;profundo&amp;#8221; do que se imagina. É tão profundo que há pessoas como o Tim Berners-Lee contra vários browsers utilizarem o mesmo motor de renderização.&lt;/p&gt;
+
+&lt;h2 id=&#34;web-aberta&#34;&gt;Web aberta&lt;/h2&gt;
+
+&lt;p&gt;A web foi criada para ser aberta. Para termos realmente o direito de ir e vir. &lt;a href=&#34;http://pt.wikipedia.org/wiki/Neutralidade_da_rede&#34;&gt;A internet é neutra&lt;/a&gt;. Isso quer dizer que todas as informações que trafegam na web devem ser tratadas igualmente. Nada de bloqueios ou restrições de acesso a informação, seja ela qual for. Você deve ter o direito de acessar da forma que quiser qualquer informação disponibilizada na web. É por isso que todas as &lt;a href=&#34;http://tecnologia.terra.com.br/internet/google-e-casa-branca-somam-46-mi-de-assinaturas-contra-sopa,a6a8fe32cdbda310VgnCLD200000bbcceb0aRCRD.html&#34;&gt;iniciativas de controlar o que e como consumimos conteúdo&lt;/a&gt; na web não foram adiante. A web não é de ninguém, mas é de todo mundo ao mesmo tempo.&lt;/p&gt;
+
+&lt;p&gt;Isso é importante por um simples motivo: informação acessível. Toda informação que é publicada na web deve ser utilizada e reutilizada por qualquer um, quantas vezes quiser. O Google e outros sistemas de busca faz isso o tempo todo no seu buscador. Você faz isso quando twitta, quando posta no Facebook ou quando manda um simples artigo por email.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Admittedly, this news would have been considerably more worrying had Microsoft or Mozilla adopted Webkit. We still have three major HTML5 engines but the browser world has lost a little of its color today. &lt;a href=&#34;http://www.sitepoint.com/opera-switches-to-webkit-rendering-engine/&#34;&gt;Craig Buckler&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;O W3C tem lutado para que empresas e governos mantenham seus dados abertos e acessíveis. O Tim Berners-Lee, quando veio para a &lt;a href=&#34;http://revistagalileu.globo.com/Revista/Common/0,,EMI203321-17770,00-AL+GORE+E+TIM+BERNERS+LEE+FALAM+SOBRE+LIBERDADE+DE+INFORMACAO+NA+CAMPUS+PAR.html&#34;&gt;Campus Party aqui no Brasil em 2011&lt;/a&gt;, falou um pouco sobre este assunto.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Há governos e empresas que estão tentando controlar as informações ou cobrar por elas. É importante que todos nós lutemos para que a rede continue aberta e livre.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Para citar um exemplo besta: quem nunca entrou em algum website de notícias onde você não pode clicar com o botão direito por que ele é travado por um script? Uma decisão tão estúpida que chega a ser hilário.&lt;/p&gt;
+
+&lt;p&gt;Claro que não estamos dizendo aqui que toda e qualquer informação deva ser publicada para o uso de qualquer um. Se você já estudou sobre Web Semântica, deve saber que existe um termo utilizado chamado &lt;a href=&#34;http://www.w3.org/2005/Incubator/prov/wiki/What_Is_Provenance&#34;&gt;Provenance&lt;/a&gt;, que define de onde vem os dados e o que pode ser feito com eles. Os padrões da Web Semântica determina como você pode manipular esses dados e quais são seus direitos de acesso.&lt;/p&gt;
+
+&lt;p&gt;Tanto a utilização quanto a publicação de dados na internet deve ser feita com responsabilidade. Embora a internet seja um ambiente de livre acesso, ninguém quer que dados importantes da sua vida estejam livres para qualquer um manipular da maneira que bem entender.&lt;/p&gt;
+
+&lt;p&gt;Mas para que a web seja livre de verdade, a internet não pode ser controlada, de forma nenhuma, apenas por uma empresas, órgão, pessoa etc etc etc. Na época da guerra dos browsers esse cenário era muito clara: se uma empresa fizesse um browser que fosse muito utilizado, ela poderia ter possibilidade de tentar e até conseguir, controlar o que os usuários desse browser acessassem. Era isso que a Microsoft pensava, pelo menos. Eles viram que se a Netscape ganhasse a tal guerra, eles teriam muito &amp;#8220;poder&amp;#8221; nas mãos.&lt;/p&gt;
+
+&lt;p&gt;A mesma ideia pode se aplicar agora se todos os browsers decidirem migrar para o WebKit. Praticamente quem decidirá quais novidades dos padrões web devem ser implementados agora, será o grupo que cuida do WebKit e não os fabricantes browsers.&lt;/p&gt;
+
+&lt;p&gt;O desenvolvedor Robert O’Callahan disse por que a adoção em massa do WebKit pelos browsers pode não ser uma boa coisa:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;some people are wondering whether engine diversity really matters. &amp;#8220;Webkit is open source so if everyone worked together on it and shipped it, would that be so bad?&amp;#8221; Yes. Web standards would lose all significance and standards processes would be superseded by Webkit project decisions and politics. Webkit bugs would become the standard: there would be no way for developers to test on multiple engines to determine whether an unexpected behavior is a bug or intended.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Olha só o que o Tim Berners-Lee retuitou estes dias:&lt;/p&gt;
+
+&lt;blockquote class=&#34;twitter-tweet&#34;&gt;
+  &lt;p&gt;
+    If you think a WebKit monoculture is good for web developers or the Web, you’re incredibly short-sighted (and likely inexperienced), sorry.&amp;mdash; Lea Verou (@LeaVerou) &lt;a href=&#34;https://twitter.com/LeaVerou/status/301727973273391104&#34;&gt;February 13, 2013&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Não estou dizendo que ter todos os browsers sob um mesmo motor de renderização não iria melhorar nossas vidas, por que sem dúvida, iria. O problema é que isso não é bom para web, entende? Embora seus problemas de compatibilidade entre browsers diminuiriam para quase zero, a web não iria ter a liberdade que ela merece.&lt;/p&gt;
+
+&lt;p&gt;imagina se uma empresa que tem dinheiro infinito (posso pensar em pelo menos duas, uma delas tem um sistema de busca e a outra iniciou o projeto do Webkit), coloca centenas de desenvolvedores para &amp;#8220;ajudar&amp;#8221; a desenvolver o Webkit. Será, será mesmo, que uma empresa dessas estaria fazendo isso só para ajudar todo mundo? Don&amp;#8217;t be evil my ass, alguns diriam.&lt;/p&gt;
+
+&lt;p&gt;Tem pessoas que &lt;a href=&#34;http://braintrace.ru/posts/2013-02-14-opera-and-webkit-good-or-bad.html&#34;&gt;pensam que a monocultura de motores de renderização não é uma má ideia&lt;/a&gt; e defendem que os browsers não competem entre si apenas pela quantidade de padrões que cada um suporta. E eu concordo. Hoje em dia a experiência que o usuário tem com a interface de cada browser pode ser definitiva para a escolha. Há outros aspectos de decisão que podem ser explorados com mais vigor, como por exemplo a forma com que o browser gerencia suas senhas e contas ou como ele sincroniza seu perfil entre os dispositivos, gerenciamento de bookmarks ou sincronização com serviços e redes sociais. Há estes e vários outros campos onde os browsers podem competir e que talvez seriam mais interessantes para os usuários.&lt;/p&gt;
+
+&lt;p&gt;Eu mesmo já me peguei várias vezes desejando que todos os browsers tivessem o mesmo motor de renderização só por causa de um ou outro problema na hora do desenvolvimento. Imagina só, não precisaríamos nos preocupar em utilizar prefixos de browsers (&lt;a href=&#34;http://tableless.com.br/prefixos-dos-browsers-a-web-precisa-de-voce/&#34;&gt;esta é outra guerra&lt;/a&gt;). Também atingiríamos um número maior de browsers com um mesmo código, já que Chrome, Opera, Safari e suas respectivas versões mobiles estariam sob o mesmo motor de renderização. Sem falar em mobiles como Blackberry.&lt;/p&gt;
+
+&lt;p&gt;Essa história ainda vai dar o que falar quando o Opera anunciar sua primeira versão com Webkit. Qual é a sua opinião?&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>CSS e acessibilidade na web</title>
+      <link>http://tableless.com.br/css-e-acessibilidade-na-web/</link>
+      <pubDate>Tue, 12 Mar 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/css-e-acessibilidade-na-web/</guid>
+      <description>
+
+&lt;p&gt;&lt;img src=&#34;http://blog.w3c.br/wp-content/uploads/2013/03/css31-213x300.png&#34; alt=&#34;logo CSS3&#34; style=&#34;float: left; margin-right:15px; &#34; width=&#34;213&#34; height=&#34;300&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Temos abordado bastante a importância da acessibilidade na web na estrutura e semântica do código HTML: cabeçalhos, tabelas, textos alternativos e outros recursos para deixar o &lt;em&gt;markup&lt;/em&gt; robusto e acessível. Mas todos são elementos que podem ser manipulados pelo CSS e por isso devemos ter certos cuidados com a acessibilidade deles.&lt;/p&gt;
+
+&lt;p&gt;Softwares leitores de tela já são capazes de identificar elementos de formatação visual das páginas que não foram declaradas no HTML e sim no CSS, como tipo e cor de fonte por exemplo. Por esse motivo existem questões relacionadas a acessibilidade que estão diretamente ligadas ao CSS da sua página e vão muito além do uso de cores nas suas páginas Web.&lt;/p&gt;
+
+&lt;p&gt;Gostaria de elencar aqui alguns pontos importantes para a criação de páginas web acessíveis voltados diretamente ao uso do CSS, mas antes de começar vale lembrar da máxima de sempre separar as camadas de estrutura (HTML) da apresentação (CSS) da sua página web. Faça toda a formatação visual/layout dentro do CSS e deixe o HTML para a estrutura do seu documento.&lt;/p&gt;
+
+&lt;h3 id=&#34;contraste&#34;&gt;Contraste&lt;/h3&gt;
+
+&lt;p&gt;Sua paleta de cores deve prever o contraste adequado entre os elementos da página, e tudo isso deve ser considerado no seu CSS. Fundos e elementos devem um contraste de pelo menos 4,5:1 para uma visualização adequada. O E-mag publica em sua última página uma &lt;a href=&#34;http://emag.governoeletronico.gov.br/emag/#s7&#34;&gt;tabela de referência para textos em preto ou branco com fundos coloridos&lt;/a&gt; que auxilia muito essa tarefa.&lt;/p&gt;
+
+&lt;h3 id=&#34;pseudo-elementos-before-e-after&#34;&gt;Pseudo elementos :before e :after&lt;/h3&gt;
+
+&lt;p&gt;Servem para inserir conteúdo adicional antes e depois de determinados elementos em sua página web via CSS. Esse recurso deve ser utilizado com cuidado pois nem todas as tecnologias assistivas/leitores de tela conseguem ler os conteúdos inseridos antes ou depois do texto. O ideal é utilizar pseudo-elementos apenas para uso estético e design e não para inserir conteúdo importante da sua página web. Existe um ótimo &lt;a href=&#34;http://cssgallery.info/testing-the-accessibility-of-the-css-generated-content/&#34;&gt;artigo da Lucica Ibanescu explicando e mostrando como os leitores de tela interagem com pseudo-elementos&lt;/a&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Faça toda a formatação visual/layout dentro do CSS e deixe o HTML para a estrutura do seu documento.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&#34;links&#34;&gt;Links&lt;/h3&gt;
+
+&lt;p&gt;É importante que o seu usuário saiba que aquele texto em destaque é um link e não precise ficar vasculhando a página para procurar um texto com link para outra página. &lt;a href=&#34;http://www.nngroup.com/articles/guidelines-for-visualizing-links/&#34;&gt;Jacob Nielsen publicou em 2004 um artigo com orientações para a criação e customização de links em sua página&lt;/a&gt;, como por exemplo não sublinhar textos que não são links e usar cores diferentes para links visitados.&lt;/p&gt;
+
+&lt;h3 id=&#34;convulsões&#34;&gt;Convulsões&lt;/h3&gt;
+
+&lt;p&gt;O WCAG 2.0 deixa bem claro que devemos ter &lt;a href=&#34;http://www.w3.org/TR/WCAG/#seizure&#34;&gt;cuidado para não criar conteúdos que possam causar convulsões em usuários com fotossensibilidade&lt;/a&gt;, como telas que piscam muito rápido ou efeitos luminosos estroboscópicos. Com a possibilidade de fazer animações em CSS3, essa recomendação também serve para a criação de efeitos nas folhas de estilo.&lt;/p&gt;
+
+&lt;h3 id=&#34;conteúdo-invisível&#34;&gt;Conteúdo invisível&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://webaim.org/techniques/css/invisiblecontent/&#34;&gt;Existem diversas formas de esconder o conteúdo de uma página web&lt;/a&gt;. Alguns deles podem ser acessados por tecnologias assistivas por isso vale a pena verificar se o que você quer esconder em sua página deve ou não ser lido por softwares leitores de tela. &lt;a href=&#34;http://snook.ca/archives/html_and_css/hiding-content-for-accessibility&#34;&gt;Este artigo de Jonathan Snook explica bem cada uma das técnicas&lt;/a&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Softwares leitores de tela já são capazes de identificar elementos de formatação visual das páginas que não foram declaradas no HTML e sim no CSS&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&#34;foco-nos-elementos&#34;&gt;Foco nos elementos&lt;/h3&gt;
+
+&lt;p&gt;Localizar onde está o foco em uma navegação via teclado de uma página cheia de links é uma tarefa complicada quando o foco não dá destaque para o elemento selecionado. Destacar o foco dos elementos beneficia não só pessoas que navegam por links mas auxilia o preenchimento de formulários, facilitando a localização do foco em determinados campos.&lt;/p&gt;
+
+&lt;p&gt;Viu como acessibilidade no CSS vai muito além de questões com cores? Posicionamento de elementos, tamanho de fontes e linhas também devem ser considerados no seu projeto web. Vale lembrar que hoje desenvolvemos pensando em uma plataforma da web, a &lt;em&gt;Open Web Platform&lt;/em&gt; e não somente no HTML5 ou no CSS3. A Web de hoje vai muito além do código HTML e sua acessibilidade deve ser ampliada para toda a sua plataforma para que a web seja efetivamente para todos.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Seletores de CSS3 nível 4</title>
+      <link>http://tableless.com.br/seletores-de-css3-nivel-4/</link>
+      <pubDate>Tue, 29 Jan 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/seletores-de-css3-nivel-4/</guid>
+      <description>
+
+&lt;p&gt;Desde setembro de 2011 a W3C vem trabalhando nos seletores de &lt;strong&gt;CSS nível 4&lt;/strong&gt;. Calma! Isso não significa que eles estão criando o &lt;strong&gt;CSS4&lt;/strong&gt;, já que nem finalizaram o &lt;strong&gt;CSS3&lt;/strong&gt; ainda&amp;#8230; Apenas que um novo pacote de pseudo-classes e classes que podem substituir as atuais, ou expandir o seu uso. Claro que, por ser algo recente, não são todos os browsers que dão suporte&amp;#8230; Mas é bom tomar conhecimento. Afinal, é sempre bom estar um passo a frente do resto do mundo.&lt;/p&gt;
+
+&lt;p&gt;Como este conteúdo ainda está em discussão é bom sempre dar uma checada na documentação oficial da W3C de tempos e tempos para acompanhar o andamento do rascunho.&lt;/p&gt;
+
+&lt;p&gt;Vamos conhecer de perto alguns dos novos seletores de nível 4.&lt;/p&gt;
+
+&lt;h2 id=&#34;e&#34;&gt;!E&lt;/h2&gt;
+
+&lt;p&gt;Este super seletor determina qual será o elemento estilizado em relação ao seu elemento filho. Pode ser usado em qualquer lugar. Ele irá marcar exatamente qual elemento nós queremos selecionar.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div.menu !ul li.selecionada { … }&lt;/pre&gt;
+
+&lt;p&gt;Nesta declaração estou estilizando apenas a UL que está dentro da div &amp;#8220;menu&amp;#8221; e possui uma LI de classe &amp;#8220;selecionada&amp;#8221;. Ou seja, caso exista outra UL dentro da DIV de classe &amp;#8220;menu&amp;#8221; que não possua a LI &amp;#8220;.selecionada&amp;#8221;, esta UL não será estilizada.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;ul &amp;gt; !li &amp;gt; p { … }&lt;/pre&gt;
+
+&lt;p&gt;Aqui eu seleciono apenas as LI que tem um P como filho&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;!div ul.submenu { … }&lt;/pre&gt;
+
+&lt;p&gt;Agora estou selecionando apenas as DIVs que tem uma UL com a classe submenu.&lt;/p&gt;
+
+&lt;h2 id=&#34;pseudo-classe-de-localização-local-link-e-any-link&#34;&gt;Pseudo-Classe de Localização :local-link e :any-link&lt;/h2&gt;
+
+&lt;p&gt;Estas pseudo-classes servem para identificar se os links são internos, ou seja, levam para o mesmo site, ou externos.&lt;/p&gt;
+
+&lt;p&gt;A &lt;strong&gt;pseudo-classe :any-link&lt;/strong&gt; vai aplicar estilos a qualquer âncora do site, a:local-link seleciona os elementos que estão dentro do mesmo diretório e :local-link(0) vale para links dentro do mesmo host.&lt;/p&gt;
+
+&lt;p&gt;Uma forma de uso interessante é combinar os seletores, criando assim alvos mais complexos e precisos. É possível, por exemplo, juntar :any-link com a pseudo-classe :not() e criar um seletor apenas para links externos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;a:not(:local-link) {...}&lt;/pre&gt;
+
+&lt;h2 id=&#34;not&#34;&gt;:not()&lt;/h2&gt;
+
+&lt;p&gt;Por falar na pseudo-classe :not, já presente em versões mais antigas do CSS3, a novidade é que agora ela pode receber mais de um seletor.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div :not(a, ul) { … }&lt;/pre&gt;
+
+&lt;p&gt;No exemplo acima, ele seleciona todos os elementos da DIV, menos o  &lt;a&gt;e o&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;pseudo-classe-linguísticas&#34;&gt;Pseudo-classe linguísticas&lt;/h2&gt;
+
+&lt;h4 id=&#34;lang&#34;&gt;:lang&lt;/h4&gt;
+
+&lt;p&gt;Este seletor nos permite estilizar apenas os elementos de uma determinada língua. No exemplo abaixo selecionamos apenas páginas html em português brasileiro (pt-br).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;html:lang(pt-br)&lt;/pre&gt;
+
+&lt;p&gt;Podemos ainda combinar esta pseudo-classe com outros seletores. No exemplo abaixo selecionamos apenas citações em Alemão (de).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;:lang(de) &amp;gt; q&lt;/pre&gt;
+
+&lt;p&gt;Obviamente é necessário, primeiramente, que a marcação de linguagem seja realizada no código html.&lt;/p&gt;
+
+&lt;h4 id=&#34;dir&#34;&gt;:dir()&lt;/h4&gt;
+
+&lt;p&gt;Esta pseudo-classe identifica a direção de leitura do texto, normalmente aplicada pela classe dir no HTML ou direction no CSS.&lt;/p&gt;
+
+&lt;p&gt;Na pseudo classe :dir(rtl) iremos selecionar apenas os textos que estão com a sua leitura definida da direita para esquerda (rtl significa Right to Left) e podemos usar o :dir(ltr) para selecionar textos com a leitura da esquerda para direita.&lt;/p&gt;
+
+&lt;p&gt;Como estamos no ocidente e a maior parte dos textos (pra não dizer todos) são lidos da esquerda para a direita, acredito que isso pode ficar meio obscuro para nós. Mas, para o oriente ou países onde a leitura do texto se dá de maneira invertida parece ser uma pseudo-classe bem útil.&lt;/p&gt;
+
+&lt;h4 id=&#34;matches&#34;&gt;:matches()&lt;/h4&gt;
+
+&lt;p&gt;Esta ótima pseudo-classe poupa muitas linhas de código. Ela seleciona vários elementos ao mesmo tempo. Por exemplo, podemos selecionar todos e dentro de uma mesma div.artigo.&lt;/p&gt;
+
+&lt;p&gt;Atualmente, nós fazemos assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div.artigo h1, div.artigo h2 { … }&lt;/pre&gt;
+
+&lt;p&gt;Ou até mesmo escrevemos isso em linhas diferentes. Mas, com esta pseudo-classe podemos declarar tudo isso de uma vez:&amp;lt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div.artigo :matches(h1, h2) { … }&lt;/pre&gt;
+
+&lt;p&gt;Pronto! Selecionamos todas as H1 e H2 da div.artigo. Bem fácil e rápido.&lt;/p&gt;
+
+&lt;h2 id=&#34;pseudo-classes-de-tempo-dimensional&#34;&gt;Pseudo-classes de tempo dimensional&lt;/h2&gt;
+
+&lt;p&gt;São pseudo-classes que selecionam o elemento presente, passado ou futuro em um canvas de tempo multidimensional. O que este conjunto de pseudo-classes faz é te deixar controlar o elemento ativo atualmente, o que acabou de ser ativado e o próximo a ser ativado em uma timeline de renderização. Isto pode ser útil no caso de um software de leitura de tela, por exemplo.&lt;/p&gt;
+
+&lt;p&gt;(E não, infelizmente isto não te da super-poderes para alterar o tempo e o espaço&amp;#8230;)&lt;/p&gt;
+
+&lt;p&gt;A pseudo-classe :current seleciona o elemento que está sendo lido no momento. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;:current(p, li) { … }&lt;/pre&gt;
+
+&lt;p&gt;No código acima, estamos selecionando o parágrafo ou a lista que está sendo lida atualmente.&lt;/p&gt;
+
+&lt;p&gt;Sabendo disso, temos também a pseudo-classe :past e a :future que selecionam elementos que vem antes e depois da pseudo-classe :current&lt;/p&gt;
+
+&lt;h2 id=&#34;confira-a-tabela-de-seletores-nível-4&#34;&gt;Confira a tabela de seletores nível 4&lt;/h2&gt;
+
+&lt;p&gt;Abaixo segue uma tabela completa com todos os seletores novos. A versão base deste artigo é a de 16 de janeiro de 2013.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Obs. 1&lt;/strong&gt; &amp;#8211; Quando existirem mais de dois números para o item &amp;#8220;nível&amp;#8221; é por que não se trata de um novo seletor e sim de uma modificação estrututural de um seletor mais antigo.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Obs. 2&lt;/strong&gt; &amp;#8211; &amp;#8220;Foo&amp;#8221; e &amp;#8220;bar&amp;#8221; são variável metasintáticas. Isto é um termo fresco pra dizer que não significam nada na realidade. Entenda por uma palavra qualquer a sua escolha que serve apenas de exemplo para o conteúdo real.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Obs. 3&lt;/strong&gt; &amp;#8211; Substitua E por qualquer elemento da sua escolha. S, S1 e S2 por sua vez são os seletores que você deseja aplicar.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Obs. 4&lt;/strong&gt; &amp;#8211; Não existe observação 4. 🙂&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;strong&gt;Padrão&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;strong&gt;Significado&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;strong&gt;Tipo&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;strong&gt;Nível&lt;/strong&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:not(s1, s2)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E que não corresponde ao seletor composto s1 e s2
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#negation&#34;&gt;Negation pseudo-class&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      3/4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:matches(s1, s2)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E que corresponde ao seletor composto s1 e / ou s2
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#matches&#34;&gt;Matches-any pseudo-class&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E[foo=&amp;#8221;bar&amp;#8221; i]
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E cujo valor do atributo foo é exatamente igual ao do atributo bar em qualquer variação ASCII. (case-insensitive).
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#attribute-case&#34;&gt;Attribute selectors: Case-sensitivity&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:dir(ltr)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento do tipo E na direção de leitura da esquerda para a direita
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#dir-pseudo&#34;&gt;The :dir() pseudo-class&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:lang(zh, *-hant)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento do tipo E marcado como chinês ou escrito com caracteres chineses (pode ser susbtituido por qualquer outra linguagem)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#lang-pseudo&#34;&gt;The :lang() pseudo-class&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      2/4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:any-link
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E que atua como âncora fonte de um hyperlink
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#any-link-pseudo&#34;&gt;The hyperlink pseudo-class&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:local-link
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E que atua como âncora fonte de um hyperlink no documento atual
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#local-pseudo&#34;&gt;The local link pseudo-class&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:local-link(0)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E que atua como âncora fonte de um hyperlink no domínio atual
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#local-pseudo&#34;&gt;The local link pseudo-class&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:scope
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E dentro de uma referência contextual. Se a referência estiver vazia :scope corresponde a :root
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#scope-pseudo&#34;&gt;The scope pseudo-class&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:current
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E localizado no presente em um canvas de tempo dimensional
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#time-pseudos&#34;&gt;Time-dimensional Pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:current(s)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E :current que corresponde ao seletor s
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#time-pseudos&#34;&gt;Time-dimensional Pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:past
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E localizado no passado em um canvas de tempo dimensional
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#time-pseudos&#34;&gt;Time-dimensional Pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:future
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E localizado no futuro em um canvas de tempo dimensional
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#time-pseudos&#34;&gt;Time-dimensional Pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:indeterminate
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E que esta em um estado indeterminado (não corresponde a checked ou unchecked)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#indeterminate&#34;&gt;The indeterminate-value pseudo-class&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:default
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento da user interface E em seu estado padrão
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#default-pseudo&#34;&gt;The default option pseudo-class :default&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      3-UI/4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:in-range
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento da user interface E dentro do seu alcance
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#range-pseudos&#34;&gt;The validity pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      3-UI/4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:out-of-range
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento da user interface E fora do seu alcance (como a letra Z em um menu com as escolhas A, B e C)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#range-pseudos&#34;&gt;The validity pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      3-UI/4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:required
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento de formulário E obrigatório
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#opt-pseudos&#34;&gt;The optionality pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      3-UI/4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:optional
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento de formulário E opcional
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#opt-pseudos&#34;&gt;The optionality pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      3-UI/4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:read-only
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento da user interface E que pode ser apenas visualizado pelo usuário
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#rw-pseudos&#34;&gt;The mutability pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      3-UI/4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:read-write
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento da user interface E que pode ser alterado pelo usuário
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#rw-pseudos&#34;&gt;The mutability pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      3-UI/4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:nth-match(n of &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#selector&#34;&gt;selector&lt;/a&gt;)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E que corresponde ao n-th sibling do seletor
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#structural-pseudos&#34;&gt;Structural pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:nth-last-match(nof &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#selector&#34;&gt;selector&lt;/a&gt;)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E que corresponde ao n-th sibling do seletor, contado a partir da última correspondência
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#structural-pseudos&#34;&gt;Structural pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:column(&lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#selector&#34;&gt;selector&lt;/a&gt;)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E que representa uma célula em um grid/tabela pertencente a uma coluna correspondente ao seletor
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#table-pseudos&#34;&gt;Grid-Structural pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:nth-column(n)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E que representa um célula pertencente a coluna de número nth em um grid/tabela
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#table-pseudos&#34;&gt;Grid-Structural pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E:nth-last-column(n)
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E que representa uma céula pertencente a coluna de número nth em um grid/tabela, contando a partir da última correspondência
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#table-pseudos&#34;&gt;Grid-Structural pseudo-classes&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E /foo/ F
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento F referenciado com ID através do atributo foo de um elemento E
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#idref-combinators&#34;&gt;Reference combinator&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      E! &gt; F
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      um elemento E parent de um elemento F
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#subject&#34;&gt;Determining the subject of a selector&lt;/a&gt; +&lt;a href=&#34;http://dev.w3.org/csswg/selectors4/#child-combinators&#34;&gt;Child combinator&lt;/a&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      4
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&#34;existe-todo-o-futuro-pela-frente&#34;&gt;Existe todo o futuro pela frente!&lt;/h2&gt;
+
+&lt;p&gt;Vale lembrar que, embora tenha muita gente chamando isso de CSS4, estamos falando de CSS3. O que acontece é que o CSS3 está dividido em módulos, e este é o módulo nível 4.&lt;/p&gt;
+
+&lt;p&gt;Estes novos seletores de CSS3 ainda estão em fase inicial. Ou seja, ainda é um rascunho e muitas classes ainda não são suportadas pelos browsers atuais (se você quiser conferir quais já estão disponíveis para o seu navegador faça o &lt;a href=&#34;http://css4-selectors.com/browser-selector-test/&#34;&gt;teste aqui&lt;/a&gt;)&amp;#8230; Eu particularmente já estou ansiosa para utilizar alguns destes elementos. Agora o que nos resta é torcer para os browsers implementarem suporte rapidamente para testarmos na prática a utilidade cada um. É claro que muita coisa ainda pode ser modificada, mas quem estiver se preparando desde agora certamente estará ajudando a sedimentar o conhecimento do futuro.&lt;/p&gt;
+
+&lt;p&gt;Saiba mais:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://dev.w3.org/csswg/selectors4/&#34;&gt;W3C&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://css4-selectors.com/&#34;&gt;CSS4 Selectors&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Imagens em alta resolução utilizando SVG</title>
+      <link>http://tableless.com.br/imagens-em-alta-resolucao-utilizando-svg/</link>
+      <pubDate>Tue, 27 Nov 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/imagens-em-alta-resolucao-utilizando-svg/</guid>
+      <description>
+
+&lt;h2 id=&#34;scalable-vector-graphics-svg&#34;&gt;Scalable Vector Graphics (SVG)&lt;/h2&gt;
+
+&lt;p&gt;Uma das grandes tendências do momento quando se fala sobre desenvolvimento web é o formato SVG, principalmente com o advento do design responsivo e a consequente preocupação com dispositivos com densidade de pixel superior (HiDPI) como a tela retina da Apple, utilizada nos modelos mais recentes do iPhone, iPad e do Macbook Pro. Mas o que exatamente é um arquivo SVG? Qual é a diferença entre um vetor e um bitmap? E como e por que utilizar esta tecnologia a nosso favor?&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-svg&#34;&gt;O que é SVG?&lt;/h2&gt;
+
+&lt;p&gt;SVG é uma sigla para Scalable Vector Graphics ou, em português, Vetor Gráfico Redimensionável. O padrão foi proposto pelo W3C em 1999, inspirado em formatos proprietários como VML da Microsoft e PGML da Adobe. Em 2001 o SVG ganhou sua primeira versão oficial. A vantagem deste formato em relação aos anteriores é ele ser um padrão aberto (open source). Ou seja, todos podem utilizar sem ter que pagar dinheiro para nenhuma empresa&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Um arquivo SVG é basicamente um mapa em XML que descreve matematicamente uma figura gráfica bidimensional. Funciona como um conjunto de instruções numéricas para realizar um desenho, que são convertidas em imagens em um software capaz de interpreta-lo (como um browser, por exemplo). SVG é para uma imagem o que o HTML é para um texto.&lt;/p&gt;
+
+&lt;h2 id=&#34;vetor-vs-bitmap&#34;&gt;Vetor vs Bitmap&lt;/h2&gt;
+
+&lt;p&gt;Existem dois tipos principais de arquivos de imagens. Vetores e Bitmaps. Os arquivos do tipo vetor (como AI, EPS, CDR e o nosso novo melhor amigo SVG) são linhas, curvas e formas geometricas descritas matematicamente. Já os arquivos bitmaps (como JPG, PNG, GIF etc) são compostos por um grid de pixels.&lt;/p&gt;
+
+&lt;p&gt;As vantagens de se utilizar gráficos em vetor são incríveis. Primeiramente por que é possível redimensiona-los infinitamente sem perder qualidade ou nitidez. Na prática isto significa que um ícone, por exemplo, terá a mesma aparência sem distorções em um smartphone ou uma televisão de 42&amp;#8221;. Não importa qual é a quantidade de espaço que a imagem ocupa, o arquivo terá o mesmo peso. O que potencialmente economiza a quantidade de banda necessária para realizar o download, minimiza a quantidade de requisições para o servidor já que não são necessárias diversas imagens diferentes para servir todas as necessidades, etc&amp;#8230; A possibilidade de uso de medidas relativas também faz dos gráficos em SVG o formato ideal para se trabalhar com design responsivo.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-7315&#34; alt=&#34;SVG vs PNG&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/svg-versus-png.jpg&#34; width=&#34;720&#34; height=&#34;495&#34; srcset=&#34;uploads/2012/11/svg-versus-png.jpg 720w, uploads/2012/11/svg-versus-png-300x206.jpg 300w&#34; sizes=&#34;(max-width: 720px) 100vw, 720px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;onde-e-quando-aplicar&#34;&gt;Onde e quando aplicar&lt;/h2&gt;
+
+&lt;p&gt;Ultimamente o formato vem sendo utilizado para ícones, mas ele é útil para qualquer elemento gráfico que precisa ser redimensionado como botões, padrões de background, etc&amp;#8230; Uma boa dica é utilizar gráficos SVG para logotipos. Desta maneira o logo sempre ficará nítido e com uma boa qualidade em qualquer resolução ou tamanho de tela, deixando seu cliente muito mais feliz&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Existem ainda uma infinidade de outras possibilidades para este tipo de arquivo como filtros, animações, scripts e outros elementos interativos. Até alguns jogos simples, como este clone de &lt;a href=&#34;http://croczilla.com/bits_and_pieces/svg/samples/svgtetris/svgtetris.svg&#34; title=&#34;Mozila SVG Tetris&#34;&gt;Tetris&lt;/a&gt; pela Mozilla.&lt;/p&gt;
+
+&lt;p&gt;Mas é bom não abusar. Quanto mais complexa a imagem mais tempo levará para o browser renderiza-la. É inviável utilizar o formato para uma fotografia, por exemplo.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-fazer-um-arquivo-svg&#34;&gt;Como fazer um arquivo SVG&lt;/h2&gt;
+
+&lt;p&gt;Bem, se você gosta muito de matemática e hard coding você pode abrir um editor de texto e escrever manualmente. Se você deseja se aventurar existem alguns tutoriais bacanas nesta &lt;a href=&#34;http://docs.webplatform.org/wiki/svg/tutorials&#34;&gt;wiki&lt;/a&gt;. Existem ainda algumas bibliotecas de javascript, como a &lt;a href=&#34;http://raphaeljs.com/&#34;&gt;Raphael.js&lt;/a&gt;, que facilitam bastante o trabalho.&lt;/p&gt;
+
+&lt;p&gt;Mas para quem não é o super-herói da matemática e deseja uma solução mais prática é possível utilizar algumas ferramentas gráficas como o Adobe Illustrator, Corel Draw, Inkscape&amp;#8230; e simplesmente exportar outros arquivos vetoriais para o formato. Existe até um editor online chamado &lt;a href=&#34;http://svg-edit.googlecode.com/svn/branches/2.5.1/editor/svg-editor.html&#34;&gt;SVG Edit&lt;/a&gt;. Ele é bem simples, mas quebra um bom galho na falta de um outro software por perto.&lt;/p&gt;
+
+&lt;p&gt;É possível encontrar por aí até alguns programas que prometem converter automaticamente bitmap em SVG&amp;#8230; Mas isto não é nada recomendável e cria resultados com qualidade desastrosa.&lt;/p&gt;
+
+&lt;p&gt;Se você não é um grande designer, sem problemas. Você pode ainda encontrar diversos pacotes de ícones no formato sob licença creative commons. Uma boa fonte para quem gosta do estilo minimalista é o site &lt;a href=&#34;http://thenounproject.com/&#34;&gt;Noum Project&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;implementação&#34;&gt;Implementação&lt;/h2&gt;
+
+&lt;h4 id=&#34;uma-pequena-nota-sobre-medidas-relativas&#34;&gt;Uma pequena nota sobre medidas relativas&lt;/h4&gt;
+
+&lt;p&gt;Lembrando que para esta técnica funcionar corretamente no caso específico de design responsivo é necessário a utilização de medidas relativas como EM e porcentagem. Vamos utilizar para os exemplos práticos um pequeno icone de roldana. O tamanho &amp;#8220;padrão&amp;#8221; do nosso ícone de exemplo seria equivalente a 32px de altura e largura. Se considerarmos que a medida padrão de texto (1em) de um browser é equivalente a 16px, o tamanho padrão do nosso icone seria portanto 2em (16&amp;#215;2 = 32). Tomar este tipo de preocupação é fundamental para garantir a flexibilidade das imagens e dar ao desenvolvedor um controle muito maior sobre o conteúdo. Não se esqueça que esta medida será afetada de acordo com a porcentagem do font-size, ok? Para fins práticos vamos trabalhar neste artigo com a medida em 100%.&lt;/p&gt;
+
+&lt;p&gt;Hora de colocar a mão na massa e conhecer alguns métodos de desenvolvimento. Não existe uma solução perfeita, cada uma é boa para um tipo de situação. Vamos analisar algumas opções, juntamente com seus lados positivos e negativos.&lt;/p&gt;
+
+&lt;h4 id=&#34;1-object&#34;&gt;1. &amp;lt; object &amp;gt;&lt;/h4&gt;
+
+&lt;p&gt;[cc escaped=&amp;#8221;true&amp;#8221; lang=&amp;#8221;html&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;&lt;object data=&amp;#8217;icone.svg&amp;#8217; type=&amp;#8217;image/svg+xml&amp;#8217;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&amp;#8217;img/icone.png&amp;#8217;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;/object&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;pró:&lt;/strong&gt; É o metodo de aplicação mais utilizado, devido a facilidade para criar-se um fallback para as versões mais antigas do Internet Explorer.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;contra:&lt;/strong&gt; Não é a solução mais semântica, já que o W3C não recomenda a utilização desta tag para imagens. Pode gerar ainda alguns problemas de compatibilidade. A engine Safari/Webkit não renderiza corretamente elementos object com transparência, por exemplo.&lt;/p&gt;
+
+&lt;h4 id=&#34;2-svg&#34;&gt;2. &lt;strong&gt;&lt;svg&gt;&lt;/strong&gt;&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;svg xmlns=&#34;http://www.w3.org/2000/svg&#34; xmlns:xlink=&#34;http://www.w3.org/1999/xlink&#34;&amp;gt;
+&amp;lt;path fill=&#34;#231F20&#34; d=&#34;M32,17.969v-4l-4.781-1.992c-0.133-0.375-0.273-0.737-0.445-1.094l1.93-4.805L25.875,3.25l-4.763,1.961
+c-0.362-0.175-0.734-0.323-1.117-0.461L17.969,0h-4l-1.977,4.734c-0.398,0.141-0.781,0.289-1.161,0.469L6.078,3.294L3.25,6.122
+l1.938,4.711C5,11.219,4.847,11.614,4.703,12.021L0,14.031v4l4.706,1.961c0.146,0.406,0.302,0.802,0.489,1.188l-1.903,4.742
+L6.12,28.75l4.724-1.945c0.378,0.18,0.766,0.325,1.164,0.461L14.031,32h4l1.979-4.758c0.38-0.141,0.755-0.289,1.114-0.461
+l4.797,1.922l2.828-2.828l-1.969-4.773c0.167-0.359,0.305-0.722,0.438-1.094L32,17.969z M15.969,22c-3.312,0-6-2.688-6-6
+s2.688-6,6-6s6,2.688,6,6S19.281,22,15.969,22z&#34;/&amp;gt;
+&amp;lt;/svg&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;pró:&lt;/strong&gt; Esta tag de HTML5 foi criada especificamente para este fim, portanto esta é a solução mais moderna e semântica. É relativamente simples: basta colar o código SVG inline.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;contra:&lt;/strong&gt; Código muito extenso dificulta a manutenção (já que é preciso editar manualmente e não apenas substituir um arquivo), baixo grau de compatibilidade com browsers antigos.&lt;/p&gt;
+
+&lt;h4 id=&#34;3-img-img-alt&#34;&gt;3. &lt;img&gt;&lt;img alt=&#34;&#34; /&gt;&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;img src=&#39;img/icone.svg&#39;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;pró:&lt;/strong&gt; Aplicação simples. Melhor opção para imagem sem interação.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;contra:&lt;/strong&gt; Por motivos de segurança, alguns browsers podem desativar scripts em SVG e algumas opções interativas na tag &lt;img&gt;, como links.&lt;/p&gt;
+
+&lt;h4 id=&#34;4-background-images&#34;&gt;4. Background Images&lt;/h4&gt;
+
+&lt;p&gt;&lt;strong&gt;pró:&lt;/strong&gt; Esta opção utiliza apenas CSS. Muito útil para algumas combinações mais complexas como sprites responsivos.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;contra:&lt;/strong&gt; Fallback depende de javascript para funcionar corretamente (veja explicação mais detalhada abaixo).&lt;/p&gt;
+
+&lt;p&gt;.icone {&lt;/p&gt;
+
+&lt;p&gt;background: url(&amp;#8220;../img/icone.svg&amp;#8221;) no-repeat;&lt;/p&gt;
+
+&lt;p&gt;width: 2em;&lt;/p&gt;
+
+&lt;p&gt;height: 2em;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;h4 id=&#34;suporte&#34;&gt;Suporte&lt;/h4&gt;
+
+&lt;p&gt;Google Chrome 4+, Firefox 3+, Safari 3.2+, Opera 8+ e IE 9+.&lt;/p&gt;
+
+&lt;h2 id=&#34;métodos-de-fallback&#34;&gt;Métodos de Fallback&lt;/h2&gt;
+
+&lt;h4 id=&#34;background-images-em-css&#34;&gt;Background images em CSS&lt;/h4&gt;
+
+&lt;p&gt;As versões mais antigas do Internet Explorer (8 e anteriores) possuem diversas deficiências, dentre elas a falta de suporte para background em RGBA. Mas alguns males vem para o bem. É possível se aproveitar desta falha em nosso beneficio. Basta preparar duas imagens: uma versão em SVG para os navegadores mais atuais e outra em PNG para os navegadores antigos e, na classe do CSS, declaramos dois backgrouds. Em um chamamos a imagem em SVG e declaramos uma cor para o background dela usando RGBA. Os navegadores mais antigos irão ignorar esta linha pois, para eles, o RGBA é um erro e eles não irão ler este background. Para estes navegadores, colocamos outro background com a imagem em png. O contra é não é a solução mais semântica já que o usuário será obrigado a baixar duas vezes as imagens&amp;#8230; Mas existem algumas maneiras de contornar com a utilização de plugins que controlam a requisição de imagens HD do servidor como o &lt;a href=&#34;https://github.com/adamdbradley/foresight.js&#34;&gt;Foresight&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+font-size:100%;
+}
+
+.icone {
+background: url(&#34;../img/icone.png&#34;) no-repeat;
+background: rgba(0,0,0,0) url(&#34;../img/icone.svg&#34;) no-repeat;
+width: 2em;
+height: 2em;
+text-indent: -6000px;
+}&lt;/pre&gt;
+
+&lt;h4 id=&#34;comentário-condicional-para-ie&#34;&gt;Comentário condicional para IE&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!--[if lte IE 8]&amp;gt;&amp;lt;img src=&#39;img/icone.png&#39;&amp;gt;&amp;lt;![endif]--&amp;gt;
+&amp;lt;!--[if gt IE 8]&amp;gt;&amp;lt;img src=&#39;img/icone.svg&#39;&amp;gt;&amp;lt;![endif]--&amp;gt;
+&amp;lt;!--[if !IE]&amp;gt; --&amp;gt;&amp;lt;img src=&#39;img/icone.svg&#39;&amp;gt;&amp;lt;!-- &amp;lt;![endif]--&amp;gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;fallback-utilizando-modernizr&#34;&gt;Fallback utilizando Modernizr&lt;/h4&gt;
+
+&lt;p&gt;Pode-se utilizar a biblioteca &lt;a href=&#34;http://modernizr.com/&#34;&gt;Modernizr&lt;/a&gt; para detectar se existe um suporte ao elemento. O script funciona da seguinte maneira: se o navegador suporta o formato a classe .svg é adicionada ao html, em caso negativo a classe anexada é .no-svg. Isto possibilita a inclusão de um css alternativo. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.icone {
+width: 2em;
+height: 2em;
+text-indent: -6000px;
+}
+
+.icone.svg {
+background: url(icone.svg) no-repeat;
+
+}
+
+.icone.no-svg {
+background: url(icone.png) no-repeat;
+}&lt;/pre&gt;
+
+&lt;h2 id=&#34;considerações-finais&#34;&gt;Considerações Finais&lt;/h2&gt;
+
+&lt;p&gt;Fácil, rápido e indolor. Até o momento não existe nenhuma contra-indicação para o formato e os problemas de retro compatibilidade podem ser facilmente contornados com um pouco de criatividade e conhecimento&amp;#8230; Quem acha que gráficos em alta resolução são uma preocupação apenas para um futuro distante esta na hora de abrir a janela (do browser) e dizer olá para o presente.&lt;/p&gt;
+
+&lt;h2 id=&#34;saiba-mais&#34;&gt;Saiba mais:&lt;/h2&gt;
+
+&lt;h4 id=&#34;resolution-independence-with-sgv-8&#34;&gt;&lt;a href=&#34;http://coding.smashingmagazine.com/2012/01/16/resolution-independence-with-svg/&#34;&gt;Resolution Independence with SGV&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;Artigo bem completo da Smashing Magazine sobre o assunto.&lt;/p&gt;
+
+&lt;h4 id=&#34;w3c-svg-9&#34;&gt;&lt;a href=&#34;http://www.w3.org/Graphics/SVG/&#34;&gt;W3C SVG&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;O canal oficial do formato na W3C.&lt;/p&gt;
+
+&lt;h4 id=&#34;ways-to-embed-a-clickable-svg-logo-into-your-website-10&#34;&gt;&lt;a href=&#34;http://www.noupe.com/tutorial/svg-clickable-71346.html&#34;&gt;Ways to embed a Clickable SVG-Logo into Your Website&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;Uma lista extensiva com vantagens e desvantagens de cada método e exemplos de uso.&lt;/p&gt;
+
+&lt;h4 id=&#34;using-svg-for-flexible-scalable-and-fun-backgrounds-8211-part-i-11&#34;&gt;&lt;a href=&#34;http://www.alistapart.com/articles/using-svg-for-flexible-scalable-and-fun-backgrounds-part-i/&#34;&gt;Using SVG for flexible scalable and fun backgrounds &amp;#8211; Part I&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;Artigo do blog A List Apart &amp;#8211; Parte 1&lt;/p&gt;
+
+&lt;h4 id=&#34;using-svg-for-flexible-scalable-and-fun-backgrounds-8211-part-ii-12&#34;&gt;&lt;a href=&#34;http://www.alistapart.com/articles/using-svg-for-flexible-scalable-and-fun-backgrounds-part-ii/&#34;&gt;Using SVG for flexible scalable and fun backgrounds &amp;#8211; Part II&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;Artigo do blog A List Apart &amp;#8211; Parte 2&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

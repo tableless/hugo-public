@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Backend on Tableless</title>
+    <link>http://tableless.com.br/tags/backend/index.xml</link>
+    <description>Recent content in Backend on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/backend/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Features que sua API REST precisa ter desde o início</title>
+      <link>http://tableless.com.br/features-que-sua-api-rest-precisa-ter-desde-o-inicio/</link>
+      <pubDate>Thu, 17 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/features-que-sua-api-rest-precisa-ter-desde-o-inicio/</guid>
+      <description>
+
+&lt;p&gt;Eu tenho trabalhado com dados suavemente flutuando através do protocolo http por um tempo e agora eu tenho esse sentimento altruísta de que eu posso contribuir com os desenvolvedores mais jovens com algumas histórias sobre os desafios que enfrentei durante a minha jornada.&lt;/p&gt;
+
+&lt;p&gt;Este artigo basicamente tem o objetivo de listar e discutir sobre alguns pontos importantes que sua API, possivelmente, poderia abraçar desde o início do projeto, a fim de acelerar o processo de desenvolvimento para todos em sua equipe.&lt;/p&gt;
+
+&lt;h2 id=&#34;autenticação-e-autorização&#34;&gt;Autenticação e Autorização&lt;/h2&gt;
+
+&lt;p&gt;Se você se preocupa com quem vai acessar seus endpoints, é necessário prestar atenção sobre este tópico. Existem algumas especificações conhecidas para lidar com este assunto, principalmente &lt;a href=&#34;https://jwt.io/&#34;&gt;JWT&lt;/a&gt;, &lt;a href=&#34;https://oauth.net/&#34;&gt;OAuth&lt;/a&gt; e &lt;a href=&#34;https://oauth.net/2/&#34;&gt;OAuth2&lt;/a&gt;. Estas abordagens irão abranger a maioria dos cenários em seus aplicativos, mas às vezes você será desafiado a criar um novo tipo de camada de segurança para atender algum requisito específico, neste caso, tente não reinventar a roda e adapte suas necessidades em um desses listados.&lt;/p&gt;
+
+&lt;h2 id=&#34;query-filtering-sorting-e-pagination&#34;&gt;Query, Filtering, Sorting e Pagination&lt;/h2&gt;
+
+&lt;p&gt;Assim que o seu banco de dados cresce, você vai começar a notar que alguns recursos estão demorando muito para serem recuperados. As abordagens comuns para esta situação são: armazenar em cache seus objetos (próximo tópico) e / ou criar a paginação / filtragem. Se você pode obter o seu recurso com algo como:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;shiny.api.com/resources?query[type=2]&amp;limit=5&amp;start=1&amp;order=[name]&lt;/pre&gt;
+
+&lt;p&gt;&amp;#8230;seus clients serão capazes de selecionar apenas o que eles realmente precisam para processar uma página ou tela específica. É bom para dar uma certa autonomia para seus consumidores. Próximo nível deste assunto é &lt;a href=&#34;http://graphql.org/learn/&#34;&gt;GraphQL&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;cache&#34;&gt;Cache&lt;/h2&gt;
+
+&lt;p&gt;Uma boa maneira de recuperar seus recursos incrivelmente rápido é desenvolver alguma estratégia de cache. O custo de suas requisições serão menores uma vez que seus dados estarão prontos para serem consumidos em um banco de dados in-memory. Com algum esforço você pode lidar com isso usando &lt;a href=&#34;http://redis.io/&#34;&gt;Redis&lt;/a&gt; ou &lt;a href=&#34;https://memcached.org/&#34;&gt;Memcached&lt;/a&gt;. Boa sorte com sua expiração de cache. Confira algumas reflexões sobre este tema com o &lt;a href=&#34;http://blog.remarkablelabs.com/2012/12/russian-doll-caching-cache-digests-rails-4-countdown-to-2013&#34;&gt;Russian Doll Caching&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;wrappers-e-summarized-fields&#34;&gt;Wrappers e Summarized Fields&lt;/h2&gt;
+
+&lt;p&gt;Às vezes, você precisará fornecer alguns campos calculados &amp;#8211; ou quaisquer dados agregados em geral &amp;#8211; em suas respostas e para esse cenário, posso sugerir-lhe montar algo nessa linha:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;{
+  &#34;summay&#34;: {
+    &#34;total&#34;: 2
+    &#34;averageAge&#34;: 22
+  },
+  &#34;data&#34;:[
+  {
+    &#34;name&#34;: &#34;John&#34;,
+    &#34;age&#34;: 22
+  },
+  {
+    &#34;name&#34;: &#34;Mary&#34;,
+    &#34;age&#34;: 22
+  }
+  ]
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;hateos&#34;&gt;HATEOS&lt;/h2&gt;
+
+&lt;p&gt;HATEOAS significa &lt;em&gt;Hypermedia as the application state of the engine&lt;/em&gt;. É uma abordagem que permite que os clientes interpretem de forma autônima e dinâmica o estado atual de um recurso e as transições que podem ser iniciados decorrente deste mesmo estado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;{
+  &#34;id&#34;: 276,
+  &#34;amount&#34;: 90.00,
+  &#34;links&#34;: [
+  {
+    &#34;type&#34;: &#34;orders&#34;,
+    &#34;rel&#34;: &#34;self&#34;,
+    &#34;href&#34;: &#34;/orders/ 276&#34;
+  },
+  {
+    &#34;type&#34;: &#34;customer&#34;,
+    &#34;rel&#34;: &#34;order&#39;s customer&#34;,
+    &#34;href&#34;: &#34;/orders/276/customers&#34;
+  }
+  ]
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Sobre o JSON acima, você pode tirar as seguintes conclusões:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Dentro do array &amp;#8220;links&amp;#8221; são todas as &amp;#8216;transições&amp;#8217; possíveis com o recurso, neste caso, podem acessar o cliente que criou as ordens com o URI /orders/276/customers.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;rel:auto&lt;/strong&gt; significa que esta URI é a referência do estado atual, neste caso, a ordem com ID 276. &lt;strong&gt;rel&lt;/strong&gt;, em geral, representa a relação entre a ligação com o recurso atual.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;type&lt;/strong&gt; indica o tipo de recurso que é o link em questão.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ao padronizar seus serviços RESTful usando HATEOAS você permite que os clientes usem os recursos de maneiras mais fáceis, afinal de contas, as possibilidades de navegação entre os estados serão listadas em cada hit em seus recursos.&lt;/p&gt;
+
+&lt;p&gt;Conforme descrito em um &lt;a href=&#34;http://martinfowler.com/articles/richardsonMaturityModel.html&#34;&gt;post&lt;/a&gt; de Martin Fowler, HATEOAS em sua API é o último passo para atingir a &amp;#8216;Glória de REST&amp;#8221;, o estado da arte.&lt;/p&gt;
+
+&lt;h2 id=&#34;message-queue&#34;&gt;Message Queue&lt;/h2&gt;
+
+&lt;p&gt;Aposto que você tem algumas rotas em suas APIs que são síncronas mas não precisam necessariamente ser. Alguns casos de uso para uso de fila de mensagens são: enviar e-mails após alguma ação, redimensionamento de imagem, codificação de vídeo, etc. Uma prática comum para esta situação é colocar essas ações em uma fila de mensagens para serem processadas posteriormente de forma assíncrona. Dê uma olhada na &lt;a href=&#34;https://www.rabbitmq.com/&#34;&gt;RabbitMQ&lt;/a&gt; ou &lt;a href=&#34;https://kafka.apache.org/&#34;&gt;Kafka&lt;/a&gt;, ambas são grandes soluções.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211;&lt;/p&gt;
+
+&lt;p&gt;É isso aí. Pelo menos para mim estes são os principais aspectos que eu vi nos últimos anos no desenvolvimento de novos apis http/rpc/rest. Se você acha que existem alguns outros pontos importantes para mencionar, por favor deixe nos comentários e conversamos sobre 🙂&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Por que utilizar Go/Golang no seu backend?</title>
+      <link>http://tableless.com.br/por-que-utilizar-gogolang-no-seu-backend/</link>
+      <pubDate>Tue, 28 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/por-que-utilizar-gogolang-no-seu-backend/</guid>
+      <description>
+
+&lt;p&gt;O tempo passa e quando você é viciado no que faz, no meu caso, codar, a busca por se aprimorar ou descobrir novas maneiras de resolver os problemas da sua área nunca param, assim sendo, um belo dia, cheguei até o &lt;strong&gt;Go&lt;/strong&gt; e desde então não parei mais de aprender sobre a linguagem. A ideia é a cada semana fazer um post sobre, iniciando agora com uma simples introdução e sugestões de artigos para se animar.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter&#34; src=&#34;http://synflood.at/tmp/golang-slides/images/gophercolor.png&#34; alt=&#34;Imagem do gopher&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que--gogolang&#34;&gt;O que é Go/Golang?&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;Go&lt;/strong&gt; ou &lt;strong&gt;Golang&lt;/strong&gt; &amp;#8211; termo que facilita buscas no google &amp;#8211; é uma linguagem &lt;em&gt;open source&lt;/em&gt; criada em 2009 pelo &lt;strong&gt;Google&lt;/strong&gt;, mais especificamente por caras como &lt;em&gt;Rob Pike&lt;/em&gt; e &lt;em&gt;Ken Thompson&lt;/em&gt;. Caso você não conheça, são engenheiros renomados, que tiveram grande influência na história da computação e em projetos &lt;em&gt;open source&lt;/em&gt; de grande escala, pra citar um bem &amp;#8220;simples&amp;#8221;: &lt;strong&gt;Unix&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Só por esta constatação, você já poderia largar tudo e seguir os passos deles cegamente, afinal, Rob e Ken provavelmente não estariam trabalhando em algo meia boca. Brincadeiras à parte, a Go foi criada com objetivos simples, dentre os principais, ter a rapidez do C, mas ser um pouco mais legível e/ou fácil de programar. Inclusive, nos meus primeiros passos com a linguagem, pude sentir exatemente isso. &lt;a href=&#34;https://www.youtube.com/watch?v=FTl0tl9BGdc&#34; target=&#34;_blank&#34;&gt;Aqui&lt;/a&gt; tem um vídeo bem massa do Rob dizendo o porquê você deve aprender Go.&lt;/p&gt;
+
+&lt;h3 id=&#34;por-que-eu-usaria-go&#34;&gt;Por que eu usaria Go?&lt;/h3&gt;
+
+&lt;p&gt;Acima, eu disse algumas vantagens de utilizar a linguagem, porém, a lista é bem mais vasta. Tentarei compilar os pontos que mais me chamam atenção e que possivelmente seriam casos de uso para você utilizá-la:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Go é incrivelmente ‘leve’ em termos de uso de memória. Existe &lt;a href=&#34;http://www.iron.io/how-we-went-from-30-servers-to-2-go/&#34; target=&#34;_blank&#34;&gt;um caso conhecido&lt;/a&gt; de uma companhia que rodava um serviço em Ruby utilizando 50 servidores e foram para 2 com Go.&lt;/li&gt;
+&lt;li&gt;Concorrência é um dos pontos fortes da linguagem, se você precisar sobrecarregar um backend com diversos processamentos simultâneos, as &lt;code&gt;goroutines&lt;/code&gt; e &lt;code&gt;channels&lt;/code&gt; &lt;a href=&#34;https://matt.aimonetti.net/posts/2012/11/27/real-life-concurrency-in-go/&#34; target=&#34;_blank&#34;&gt;vão te ajudar bastante&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;Compila muito rápido.&lt;/li&gt;
+&lt;li&gt;Tem &lt;em&gt;garbage collector&lt;/em&gt;, você não precisa se preocupar tanto com memória como nos seus dias de C.&lt;/li&gt;
+&lt;li&gt;É fortemente tipada. (eu pelo menos acho isso bom, phpeiros)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;quem-est-usando-go&#34;&gt;Quem está usando Go?&lt;/h3&gt;
+
+&lt;p&gt;Existe uma infinidade de empresas que ao descobrirem os poderes mágicos de Go, foram migrando seus serviços/backend. Abaixo algumas grandes:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Uber &amp;#8211; &lt;a href=&#34;https://eng.uber.com/go-geofence/&#34; target=&#34;_blank&#34;&gt;How we built uber engineering’s highest query per second service using Go&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Docker &amp;#8211; &lt;a href=&#34;http://pt.slideshare.net/jpetazzo/docker-and-go-why-did-we-decide-to-write-docker-in-go&#34; target=&#34;_blank&#34;&gt;Why did we decide to write Docker in Go?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Dropbox &amp;#8211; &lt;a href=&#34;https://blogs.dropbox.com/tech/2014/07/open-sourcing-our-go-libraries/&#34; target=&#34;_blank&#34;&gt;Open sourcing our Go libraries&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;OpenShift &amp;#8211; &lt;a href=&#34;https://blog.gopheracademy.com/birthday-bash-2014/openshift-3-old-dogs-new-tricks/&#34; target=&#34;_blank&#34;&gt;OpenShift3 and Go &amp;#8211; Teaching Old Dogs New Tricks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Twitter &amp;#8211; &lt;a href=&#34;https://blog.twitter.com/2015/handling-five-billion-sessions-a-day-in-real-time&#34; target=&#34;_blank&#34;&gt;Handling five billion sessions a day – in real time&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Enfim, existem muito mais empresas que se importam e/ou tem necessidade de melhorar a performance de seus serviços e grande parte delas estão olhando para Go e outras linguagens com poderes maiores do que as ‘enterprise languages’ que vemos há anos por aí nas grandes empresas do país.&lt;/p&gt;
+
+&lt;p&gt;Espero que o post tenha sido informativo e inspirador para você descobrir mais sobre a linguagem Go.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Por que Python?</title>
+      <link>http://tableless.com.br/por-que-python/</link>
+      <pubDate>Tue, 29 Sep 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/por-que-python/</guid>
+      <description>
+
+&lt;p&gt;Eu sou apaixonado por &lt;a href=&#34;https://www.python.org/&#34;&gt;Python&lt;/a&gt;. Muito. Daquele tipo que fala de Python sempre que pode. E uma pergunta que sempre me fazem é: por quê? Vou tentar fazer uma lista dos motivos mais relevantes:&lt;/p&gt;
+
+&lt;h2 id=&#34;1-é-muito-bom-escrever-código-python&#34;&gt;1. É muito bom escrever código Python&lt;/h2&gt;
+
+&lt;p&gt;Geralmente, quando alguém cria uma linguagem de programação, tem em vista um objetivo. Por exemplo, Lisp foi escrita para programação funcional. Java foi escrita para que o mesmo código pudesse rodar em qualquer lugar. PHP foi criada para construir páginas web. E Python foi criada para ser produtiva e fácil de escrever.&lt;/p&gt;
+
+&lt;p&gt;Um programador experiente aprende a sintaxe do Python em algumas poucas horas. O jeito de escrever faz sentido.&lt;/p&gt;
+
+&lt;p&gt;Veja, por exemplo, essa função para calcular um número de &lt;a href=&#34;https://pt.wikipedia.org/wiki/Sequ%C3%AAncia_de_Fibonacci&#34;&gt;Fibonacci&lt;/a&gt;:&lt;/p&gt;
+
+&lt;pre&gt;def fib(n):
+    if n&amp;lt;3:
+        return n
+    return fib(n-1) + fib(n-2)&lt;/pre&gt;
+
+&lt;p&gt;Note como a sintaxe é simples. Mesmo nas decisões de design que são &amp;#8220;pouco ortodoxas&amp;#8221;, como os blocos baseados na indentação, a decisão foi tomada pensando em produtividade. O modelo de blocos do Python faz com que você precise digitar menos. Além disso, é impossível escrever código não indentado em Python.&lt;/p&gt;
+
+&lt;p&gt;Veja nesse outro exemplo, a função de Fibonacci em uma versão &lt;a href=&#34;https://en.wikipedia.org/wiki/Memoization&#34;&gt;memoized&lt;/a&gt;:&lt;/p&gt;
+
+&lt;pre&gt;memo = {0:0, 1:1}
+
+def fib(n):
+    if not n in memo:
+        memo[n] = fib(n-1) + fib(n-2)
+    return memo[n]&lt;/pre&gt;
+
+&lt;p&gt;Reparou como é simples? Ao trabalhar com Python, a linguagem nunca está entre você e seu problema. Você pode gastar seu tempo com a lógica de programação, que é o que realmente importa, e não com especificidades da linguagem que você está usando.&lt;/p&gt;
+
+&lt;h2 id=&#34;2-organizar-um-projeto-python-é-muito-fácil&#34;&gt;2. Organizar um projeto Python é muito fácil&lt;/h2&gt;
+
+&lt;p&gt;Vamos colocar nossa função de Fibonacci e salvar num arquivo, fib.py, incluindo um pouquinho de documentação. Chamamos cada arquivo Python de módulo:&lt;/p&gt;
+
+&lt;pre&gt;&#39;&#39;&#39;Fibonacci function, memoized for better performance.&#39;&#39;&#39;
+memo = {0:0, 1:1}
+
+def fib(n):
+    &#39;&#39;&#39;Returns the nth Fibonacci number.&#39;&#39;&#39;
+    if not n in memo:
+        memo[n] = fib(n-1) + fib(n-2)
+    return memo[n]&lt;/pre&gt;
+
+&lt;p&gt;Agora vamos importar esse arquivo no console do Python, e veja o que dá para fazer:&lt;/p&gt;
+
+&lt;div style=&#34;width: 490px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;&#34; src=&#34;http://elcio.com.br/wp-content/uploads/2015/09/fib.gif&#34; alt=&#34;&#34; width=&#34;480&#34; height=&#34;267&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Executando fib.py e ajuda.
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;É como PHPDoc ou Javadoc, mas completamente nativo, e com uma sintaxe muito simples. E tudo o que você precisa para ler a documentação é o próprio Python.&lt;/p&gt;
+
+&lt;h2 id=&#34;3-o-ecossistema-python-é-fantástico&#34;&gt;3. O ecossistema Python é fantástico&lt;/h2&gt;
+
+&lt;p&gt;Começando pela própria linguagem, que vem com uma excelente &lt;a href=&#34;https://docs.python.org/3/library/&#34;&gt;biblioteca padrão&lt;/a&gt;. Essa biblioteca é bastante extensa e possui excelentes módulos, bem documentados e fáceis de usar. Por exemplo, digamos que você queira baixar o código fonte desse artigo e gerar um arquivo GZip com ele, veja como é fácil:&lt;/p&gt;
+
+&lt;pre&gt;import urllib
+import gzip
+html=urllib.urlopen(&#39;http://tableless.com.br/por-que-python/&#39;).read()
+gzfile=gzip.open(&#39;por-que-python.html.gz&#39;,&#39;w&#39;)
+gzfile.write(html)&lt;/pre&gt;
+
+&lt;p&gt;Usamos os módulos urllib e gzip. Entre os recursos fornecidos pelos módulos que já vem com o Python, posso citar o controle de threads e processamento paralelo, a criação de webservices, bibliotecas para sockets, http, ftp, e-mail, a leitura e escrita de XML, JSON, CSV, o acesso a recursos do sistema operacional, matemática e estatística, criptografia, manipulação de arquivos de áudio, testes automatizados, etc.&lt;/p&gt;
+
+&lt;p&gt;Como é fácil escrever código bom e bem documentado, a comunidade Python tem feito um excelente em fornecer módulos para praticamente tudo o que você precisar fazer. Você pode encontrar, no &lt;a href=&#34;https://pypi.python.org/pypi&#34;&gt;Python Package Index&lt;/a&gt;, milhares de módulos prontos para coisas como ler e escrever arquivos Excel, trabalhar com imagens, acessar bancos de dados os mais diversos, trabalhar com automação residencial, enviar SMS, integrar seu software ao Gmail, falar com serviços de VoIP, conectar-se a redes sociais, criar um servidor de e-mails, desenvolver jogos 3D, e uma infinidade de outros recursos.&lt;/p&gt;
+
+&lt;h3 id=&#34;e-tem-mais-8230&#34;&gt;E tem mais&amp;#8230;&lt;/h3&gt;
+
+&lt;p&gt;Se você não programa em Python, espero tê-lo deixado pelo menos um pouquinho curioso. No próximo artigo, vamos falar um pouco mais da linguagem, mostrando algumas características da sintaxe e dos tipos de dados que a tornam tão interessante. Até lá, fique à vontade nos comentários. Sugestões, dúvidas, críticas e opiniões são muito bem vindas e vão me ajudar a preparar os próximos artigos.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JAVA – O caminho do aprendizado</title>
+      <link>http://tableless.com.br/java-o-caminho-aprendizado/</link>
+      <pubDate>Thu, 16 Apr 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/java-o-caminho-aprendizado/</guid>
+      <description>&lt;p&gt;Para entender o que é o Java, é preciso compreender três elementos que quando estão juntos, se torna possível o desenvolvimento de um sistema, são eles: Uma linguagem de programação, um ambiente de desenvolvimento e uma interface de programas aplicativos (Applications Programming Interface – API).&lt;/p&gt;
+
+&lt;p&gt;Uma linguagem é composta por um conjunto de palavras e símbolos utilizados pelos programadores para escrever cada parte de um programa. Além disso, ela também define regras de sintaxe que precisam ser observadas. No Java, a linguagem é utilizada para produzir diversos elementos de um programa, tais como: classes, interfaces, atributos, métodos, variáveis, constantes, estruturas de decisão e estruturas de repetição.&lt;/p&gt;
+
+&lt;p&gt;O ambiente de desenvolvimento é o conjunto de ferramentas necessárias para o desenvolvimento de softwares. O kit padrão do Java contém um conjunto de considerável de ferramentas, tais como: um compilador (javac), um interpretador de aplicativos (java), um visualizador de applets (appletviewer) e um gerador de documentação (javadoc). Também existem várias IDEs (Integrated Development Environment – Ambiente de Desenvolvimento Integrado) disponíveis que facilitam o processo de desenvolvimento de software, como a  IDE eclipse, que é uma das IDEs mais utilizadas pelos desenvolvedores.&lt;/p&gt;
+
+&lt;p&gt;Porém os softwares desenvolvidos em Java não resultam somente da junção de um ambiente de desenvolvimento e de uma linguagem de programação. A isso se soma um extenso conjunto de componentes, que formam sua API. O Java contém dois tipos fundamentais de componentes em sua API: as classes e as interfaces , uma pessoa que queira estudar Java, deverá passar a maior parte do seu tempo estudando a sua API do que aprender a lidar com a linguagem e com um ambiente de desenvolvimento.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;O termo interface não deve ser confundido com “Interface gráfica”. Do mesmo modo que uma classe, uma interface pode abrigar atributos e métodos. Para evitar mal entendidos, as referências à “Interface Gráfica” são feitas através da sigla GUI (Graphic User Interface – Interface Gráfica de Usuário).&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Como a API Java contém diversas classes e interfaces para o desenvolvimento de software, o desenvolvedor poderá se concentrar apenas na construção dos componentes que atenderão às necessidades do sistema que está sendo desenvolvido.&lt;/p&gt;
+
+&lt;p&gt;Sendo assim, pode-se dizer que existem três partes distintas para se aprender acerca do Java: A linguagem de programação, a segunda diz respeito ao funcionamento das ferramentas que compõem o seu ambiente de desenvolvimento, e a terceira é o extenso conjunto de classes e interfaces que compõem a sua API.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/04/imagem1.jpg&#34;&gt;&lt;img class=&#34;aligncenter wp-image-48148 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/04/imagem1.jpg&#34; alt=&#34;&#34; width=&#34;623&#34; height=&#34;456&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pode-se perceber claramente que “linguagem Java” é uma expressão que não representa todo o caminho a ser trilhado. Para se tornar um desenvolvedor Java, é preciso estudar tanto a linguagem quanto sua API e um ambiente de desenvolvimento. Assim, o mais adequado é assumir o conceito de Java como um conjunto de tecnologias que podem ser aplicadas ao desenvolvimento de software e não apenas como uma linguagem.&lt;/p&gt;
+
+&lt;p&gt;Ao tratar do Java tão somente como uma linguagem de programação, ignora-se o segredo de seu sucesso: a produtividade possibilitada por sua extensa API e um ambiente de execução que permite que seus programas sejam executados nos principais sistemas operacionais.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>PHP Slim Framework</title>
+      <link>http://tableless.com.br/php-slim-framework/</link>
+      <pubDate>Wed, 04 Jun 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/php-slim-framework/</guid>
+      <description>
+
+&lt;p&gt;O Slim Framework é um microframework PHP que facilita sua vida na hora de fazer pequenas APIs.&lt;/p&gt;
+
+&lt;p&gt;Vou falar sobre um problema que tive em um projeto em uma empresa que trabalho. Lá eu codifico com diferentes linguagens de programação em pequenos sistemas. Esses sistemas precisam ser acessados por 3 filiais e os usuários se logam com o mesmo login usado no E.R.P. que eles utilizam.&lt;/p&gt;
+
+&lt;p&gt;Para simplificar meu trabalho resolvi criar uma API simples para autenticar os usuários. Como eu queria usar uma estrutura REST e não queria fazer tudo na unha e nem queria colocar um framework grande como Rails, Laravel, Zend ou Django. Pesquisei sobre microframeworks PHP e cheguei ao &lt;a href=&#34;http://www.sinatrarb.com/&#34;&gt;Sinatra&lt;/a&gt;, que já conhecia, e o &lt;a href=&#34;http://flask.pocoo.org/&#34;&gt;Flask&lt;/a&gt; (Python). Então encontrei o &lt;a href=&#34;http://www.slimframework.com/&#34;&gt;Slim&lt;/a&gt; um microframework PHP.&lt;/p&gt;
+
+&lt;p&gt;Eu queria trabalhar com uma estrutura REST e o Slim já faz isso de forma muito simples criando rotas, como qualquer outro framework que trabalha com REST, a diferença é que um microframework é mais leve e não precisa de tantas configurações. É uma mão na roda para quem precisa escrever uma API. Para vocês terem ideia: em um dia consegui resolver meu problema de autenticação.&lt;/p&gt;
+
+&lt;h2 id=&#34;código&#34;&gt;Código&lt;/h2&gt;
+
+&lt;p&gt;Agora vamos ao código! O Slim pode ser instalado via &lt;a href=&#34;https://getcomposer.org/&#34;&gt;Composer&lt;/a&gt; ou fazendo o download do código fonte, para quem não conhece ele é um gerenciador de dependências para PHP assim como &lt;a href=&#34;http://bundler.io/&#34;&gt;Bundler&lt;/a&gt; é para o Ruby, nesse post vou mostrar a instalação via composer:&lt;/p&gt;
+
+&lt;h3 id=&#34;passo-1-8211-instalação-do-composer&#34;&gt;Passo 1 &amp;#8211; Instalação do composer&lt;/h3&gt;
+
+&lt;p&gt;Leia o post (&lt;a href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34;&gt;Composer para iniciantes&lt;/a&gt;) do &lt;a href=&#34;http://tableless.com.br/author/andrecardosodev/&#34;&gt;Andre Cardoso&lt;/a&gt;. Mas basicamente, para quem tem linux, é só abrir o terminal e digitar o código abaixo, se tiver windows, é só pegar o executável no site e instalar.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;curl -s https://getcomposer.org/installer | php&lt;/pre&gt;
+
+&lt;h3 id=&#34;passo-2-8211-criar-o-arquivo-composer-json&#34;&gt;Passo 2 &amp;#8211; Criar o arquivo composer.json&lt;/h3&gt;
+
+&lt;p&gt;Crie um diretorio para seu projeto(no meu caso eu chamei de api) e coloque um arquivo chamado composer.json dentro dela:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;mkdir api
+cd api
+&lt;/pre&gt;
+
+&lt;p&gt;No arquivo composer.json adicione as seguintes linhas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-json&#34;&gt;{
+    &#34;require&#34;: {
+        &#34;slim/slim&#34;: &#34;2.*&#34;
+    }
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;passo-3-8211-instalar-as-dependências&#34;&gt;Passo 3 &amp;#8211; Instalar as dependências&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;composer install&lt;/pre&gt;
+
+&lt;p&gt;Caso você não tenha o Composer, as suas variáveis de ambiente deverão ser assim:&lt;/p&gt;
+
+&lt;pre&gt;php composer.phar install&lt;/pre&gt;
+
+&lt;h3 id=&#34;passo-4-8211-criação-da-app&#34;&gt;Passo 4 &amp;#8211; Criação da app&lt;/h3&gt;
+
+&lt;p&gt;Crie um arquivo &lt;code&gt;index.php&lt;/code&gt; e dentro dele coloque:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+require &#39;vendor/autoload.php&#39;;
+
+//instancie o objeto
+$app = new \Slim\Slim();
+
+//defina a rota
+get(&#39;/&#39;, function () { 
+  echo &#34;Hello, World!&#34;; 
+}); 
+//rode a aplicação Slim 
+$app-&amp;gt;run();&lt;/pre&gt;
+
+&lt;p&gt;Se você acessar &lt;code&gt;http://localhost/api/&lt;/code&gt; você verá a mensagem &lt;strong&gt;&amp;#8220;Hello World!&amp;#8221;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mas não é isso que queremos, queremos uma API REST que retorne um JSON. Então vamos ver um exemplo bem simples. O Slim também trabalha com templates, então dentro do diretório da nossa aplicação vamos criar um diretório chamado de &lt;code&gt;templates&lt;/code&gt; e dentro dele criaremos um arquivo chamado &lt;code&gt;default.php&lt;/code&gt;, neste arquivo coloque o seguintes conteúdo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php 
+header(&#39;Content-Type: application/json; charset=utf-8&#39;);
+echo json_encode($data);
+&lt;/pre&gt;
+
+&lt;p&gt;Agora voltando ao nosso arquivo &lt;code&gt;index.php&lt;/code&gt; edite-o deixando da seguinte forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+require &#39;vendor/autoload.php&#39;;
+
+//instancie o objeto
+$app = new \Slim\Slim(array(
+&#39;templates.path&#39; =&amp;gt; &#39;templates&#39;
+));
+
+//defina a rota
+$app-&amp;gt;get(&#39;/&#39;, function () use ($app){ 
+  //defina
+  $data = array(&#34;data&#34;=&amp;gt;array(&#34;Hello&#34;=&amp;gt;&#34;World!&#34;)); 
+  //set o arquivo de template
+  $app-&amp;gt;render(&#39;default.php&#39;,$data,200); 
+}); 
+
+//rode a apliçicação Slim
+$app-&amp;gt;run();&lt;/pre&gt;
+
+&lt;p&gt;Quando você acessar a url novamente você verá algo como:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-json&#34;&gt;{&#34;Hello&#34;:&#34;World!&#34;}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora vamos incrementar mais. No mesmo arquivo &lt;code&gt;index.php&lt;/code&gt; antes de &lt;code class=&#34;lang-php&#34;&gt;$app-&amp;gt;run();&lt;/code&gt; adicione:&lt;/p&gt;
+
+&lt;pre&gt;$app-&amp;gt;group(&#39;/users&#39;,function() use ($app){
+
+  //rota para a home
+  $app-&amp;gt;get(&#39;/&#39;,function() use ($app){
+    //exemplo de lista de usuarios
+    $users = array(
+     &#39;users&#39;=&amp;gt;array(
+       &#39;jo&#39;=&amp;gt;&#39;senhadejo&#39;,
+       &#39;luca&#39;=&amp;gt;&#39;senhaluca&#39;,
+       &#39;yasmin&#39;=&amp;gt;&#39;senhayasmin&#39;,
+       &#39;eric&#39;=&amp;gt;&#39;seric&#39;
+     )
+    );
+    $data = array(
+      &#39;data&#39;=&amp;gt;$users
+      );
+    $app-&amp;gt;render(&#39;default.php&#39;,$data,200);
+  });
+
+  //rota para login
+  $app-&amp;gt;post(&#39;/login/&#39;,function() use ($app){
+    if(isset($_POST))
+    {
+      $data = $_POST;
+      $app-&amp;gt;render(&#39;default.php&#39;,$data,200);
+    }
+    else
+    {
+      $app-&amp;gt;render(404);
+    }
+  });
+
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Caso você esteja acessando o sistema por subdiretório crie um arquivo chamado &lt;code&gt;.htaccess&lt;/code&gt; com o seguinte conteúdo:&lt;/p&gt;
+
+&lt;pre&gt;RewriteEngine On
+RewriteBase /api/
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /api/index.php [L]
+&lt;/pre&gt;
+
+&lt;p&gt;Perceba que adicionei o método group no arquivo &lt;code&gt;index.php.&lt;/code&gt; O Slim trabalha também com grupos de rotas, então é possível criar vários grupos com rotas próprias, dessa forma podemos organizar o código e não ter que ficar digitando o mesmo código várias vezes. Com o grupo de rotas chamado /users tudo que tiver dentro dele deverá vir precedido de /users ex: (/users/login/, /users/update/).&lt;/p&gt;
+
+&lt;p&gt;Acessando &lt;code&gt;http://localhost/api/users/&lt;/code&gt; você verá uma lista de usuários, caso acesse &lt;code&gt;http://localhost/api/users/login/&lt;/code&gt; você verá uma página de erro. Isso ocorre porque setamos apenas uma rota POST para /users/login/ e como você acessou via GET o sistema redirecionou pois não existe a rota GET para /users/login/.&lt;/p&gt;
+
+&lt;p&gt;Daqui para frente é só continuar implementando coisas novas, criando uma classe para conectar ao banco de dados, utilizando outros verbos HTTP, novos templates e etc. Você pode criar classes e usá-las normalmente é só incluí-las com o require e instanciar o objeto;&lt;/p&gt;
+
+&lt;p&gt;O post termina aqui. O link para documentação do Slim é esse &lt;a href=&#34;http://docs.slimframework.com/&#34;&gt;http://docs.slimframework.com/&lt;/a&gt; divirtam-se e mãos a obra! ;D&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

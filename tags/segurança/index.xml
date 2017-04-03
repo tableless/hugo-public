@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Segurança on Tableless</title>
+    <link>http://tableless.com.br/tags/seguran%C3%A7a/index.xml</link>
+    <description>Recent content in Segurança on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/seguran%C3%A7a/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Proteja seu código usando o Webpack</title>
+      <link>http://tableless.com.br/proteja-seu-codigo-usando-o-webpack/</link>
+      <pubDate>Mon, 28 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/proteja-seu-codigo-usando-o-webpack/</guid>
+      <description>
+
+&lt;p&gt;Não é um eufemismo dizer que que as ferramentas de front-end avançam rapidamente. Por um tempo, &lt;a href=&#34;http://gruntjs.com/&#34; target=&#34;_blank&#34;&gt;Grunt&lt;/a&gt; foi o principal automatizador. E desde então a comunidade adotou o &lt;a href=&#34;http://gulpjs.com/&#34; target=&#34;_blank&#34;&gt;Gulp&lt;/a&gt;, uma alternativa de streaming. Embora essas ferramentas sejam ótimas, você ainda precisará trabalhar dura para manter o seu sistema. E é aí que entram os empacotadores como o &lt;a href=&#34;http://browserify.org/&#34; target=&#34;_blank&#34;&gt;Browserify&lt;/a&gt; e &lt;a href=&#34;https://webpack.github.io/&#34; target=&#34;_blank&#34;&gt;Webpack&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-usar-um-empacotador&#34;&gt;Como usar um empacotador&lt;/h2&gt;
+
+&lt;p&gt;Os empacotadores resolvem o problema fundamental no desenvolvimento front-end. Eles permitem que você transforme assets arbitrários em algo que possa ser consumido por um navegador. Se você está usando NPM, e deveria, você pode empacotar todos esses pacotes que está utilizando em seu aplicativo para poder usá-los no navegador. Mas há a possibilidade de você querer fazer muitas outras coisas além de empacotar, então você vai entrelaçar isso com alguma ferramenta de automação como o Grunt ou Gulp. Você pode até ignorar um task runner e implementar suas tarefas por meio da seção de &lt;strong&gt;scripts&lt;/strong&gt; &lt;code&gt;package.json&lt;/code&gt; (se estiver usando NPM) para configurar as transformações do Browserify.&lt;/p&gt;
+
+&lt;h2 id=&#34;conhecendo-o-webpack&#34;&gt;Conhecendo o Webpack&lt;/h2&gt;
+
+&lt;p&gt;Você pode alcançar resultados similares tanto com o Browserify quanto o Webpack. O Browserify está mais próximo da filosofia Unix. Ao usá-lo você está literalmente colando pequenos utilitários juntos. Como resultado, o Browserify é fácil de conseguir. Mas se você tem uma lista longa de transformações que deseja aplicar em seu código é melhor utilizar um task runner como Grunt ou Gulp para automatizar esse processo.&lt;/p&gt;
+
+&lt;p&gt;Por outro lado, se você usa Webpack pode nem precisar do Grunt ou Gulp. O Webpack presume que existem certas tarefas que você sempre deseja executar. É claro que você deseja mover os arquivos de uma pasta de origem para um diretório de compilação. Claro que você vai querer completar seu código fonte usando uma (geralmente longa) lista de transformações (aliás, elas são chamadas de &lt;strong&gt;loaders&lt;/strong&gt;, ou carregadores, no Webpack). É claro que você quer usar bibliotecas em diferentes formatos de módulo como CoomonJS, RequireJS ou os novos módulos ES6 se desejar.&lt;/p&gt;
+
+&lt;p&gt;Você pode até desejar lidar com diferentes formatos de arquivos. Para lhe dar um exemplo melhor do que isso significa na prática, considere os códigos abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;style.css&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    font-family: sans-serif;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;index.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// load style to the resulting bundle
+require(&#39;./style.css&#39;);
+
+// just print hello, normally we would do
+// something more involved and start the
+// application here
+console.log(&#39;hello world&#39;);&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;webpack.config.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var webpack = require(&#39;webpack&#39;);
+
+    module.exports = {
+    // this is the top level file or set of files
+    entry: &#39;./index.js&#39;,
+    // it will bundle everything inside this output path
+    output: {
+    path: __dirname,
+    filename: &#39;bundle.js&#39;
+},
+module: {
+loaders: [
+{
+    // 1. resolve @import and url() through css-loader
+    // 2. load the result to bundle using style-loader
+    // note that loaders are interpreted from right to left
+    test: /.css$/, // A regexp to test the require path
+    loaders: [&#39;style&#39;, &#39;css&#39;]
+}
+]
+},
+plugins: [
+    // minify output
+    new webpack.optimize.UglifyJsPlugin()
+]
+};&lt;/pre&gt;
+
+&lt;p&gt;O Webpack permite que você carregue o CSS da mesma forma que carrega outros códigos com &lt;a href=&#34;https://github.com/webpack/css-loader&#34; target=&#34;_blank&#34;&gt;css-loader&lt;/a&gt; e &lt;a href=&#34;https://github.com/webpack/style-loader&#34; target=&#34;_blank&#34;&gt;style-loader&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Por que você iria querer usar o require para o seu CSS em vez da mesma velha maneira que temos utilizado CSS? Bem, porque o Webpack é inteligente o suficiente para concatenar seu CSS quando ele é pequeno o bastante, caso contrário ele irá minificar o arquivo e dar a ele um nome único para fins de cache. O mesmo pode ser feito com imagens utilizando o &lt;a href=&#34;https://github.com/webpack/url-loader&#34; target=&#34;_blank&#34;&gt;url-loader&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se você executou o Webpack contra essa configuração, você irá acabar com um &lt;code&gt;bundle.js&lt;/code&gt; minificado que contém CSS inline. Pode parecer muito esforço para alcançar um simples resultado como esse. Isso está além do ponto. Considere o seguinte:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;E se você quisesse usar os novos recursos do Javascript em seu projeto? Você teria que configurar o &lt;a href=&#34;https://www.npmjs.com/package/babel-loader&#34; target=&#34;_blank&#34;&gt;babel-loader&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;E se você quisesse usar CSS compilado? Você precisaria configurar o &lt;a href=&#34;https://github.com/webpack/less-loader&#34; target=&#34;_blank&#34;&gt;less-loader&lt;/a&gt; ou o &lt;a href=&#34;https://github.com/jtangelder/sass-loader&#34; target=&#34;_blank&#34;&gt;sass-loader&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;E se você quisesse sourcemaps? Você teria que configurar a opção &lt;a href=&#34;https://webpack.github.io/docs/configuration.html#devtool&#34; target=&#34;_blank&#34;&gt;devtool&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;E se você quisesse uma saída UMD para sua biblioteca? É preciso configurar o &lt;a href=&#34;https://webpack.github.io/docs/configuration.html#output-librarytarget&#34; target=&#34;_blank&#34;&gt;output.libraryTarget&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;E se você quisesse um servidor de desenvolvimento &lt;em&gt;hot loading&lt;/em&gt;? Você precisaria configurar o &lt;a href=&#34;https://webpack.github.io/docs/webpack-dev-server.html&#34; target=&#34;_blank&#34;&gt;webpack-dev-server&lt;/a&gt; ou construir um sozinho baseado no Express, como mostrado no &lt;a href=&#34;https://github.com/gaearon/react-transform-boilerplate&#34; target=&#34;_blank&#34;&gt;react-transform-boilerplate&lt;/a&gt;. O recurso de &lt;em&gt;hot loading&lt;/em&gt; separa Webpack conforme atualiza seu navegador automaticamente enquanto mantém o estado do aplicativo.&lt;/li&gt;
+&lt;li&gt;E se você quisesse múltiplas metas (desenvolvimento, produção, teste)? Poderia usar uma solução como a &lt;a href=&#34;https://www.npmjs.com/package/webpack-merge&#34; target=&#34;_blank&#34;&gt;webpack-merge&lt;/a&gt; e conectar seu automatizador de tarefas com ela.&lt;/li&gt;
+&lt;li&gt;E se você quisesse carregar algumas dependências lentamente? Você precisaria configurar o &lt;a href=&#34;https://webpack.github.io/docs/code-splitting.html#require-ensure&#34; target=&#34;_blank&#34;&gt;require.ensure&lt;/a&gt;. O Webpack irá gerar pacotes separados para dividir os pontos e carregá-los sob demanda.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Basicamente, você pode desenvolver as configurações para várias direções baseado em suas necessidades. Há definitivamente uma curva de aprendizado e leva um tempo para entender todas as opções. Dito isso, a abordagem é poderosa uma vez que você entende.&lt;/p&gt;
+
+&lt;h2 id=&#34;conectando-o-webpack-com-jscrambler&#34;&gt;Conectando o Webpack com Jscrambler&lt;/h2&gt;
+
+&lt;p&gt;Se você quiser adicionar o Jscrambler para o seu processo de desenvolvimento e estiver usando o Webpack, nós temos uma boa notícia para você! O &lt;a href=&#34;https://github.com/jscrambler/jscrambler-loader&#34; target=&#34;_blank&#34;&gt;jscrambler-loader&lt;/a&gt; está disponível e é realmente fácil de configurar assim como a maioria dos loaders do Webpack.&lt;/p&gt;
+
+&lt;p&gt;Nós vamos lhe mostrar o quanto essa configuração é fácil utilizando o exemplo abaixo e adicionando o &lt;a href=&#34;https://github.com/jscrambler/jscrambler-loader&#34; target=&#34;_blank&#34;&gt;jscrambler-loader&lt;/a&gt; em nosso processo. Também vamos remover o &lt;strong&gt;UglifyJsPlugin&lt;/strong&gt;, já que o &lt;strong&gt;Jscrambler&lt;/strong&gt; pode desempenhar essa mesma função.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;webpack.config.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var webpack = require(&#39;webpack&#39;);
+
+    module.exports = {
+    // this is the top level file or set of files
+    entry: &#39;./index.js&#39;,
+    // it will bundle everything inside this output path
+    output: {
+    path: __dirname,
+    filename: &#39;bundle.js&#39;
+},
+module: {
+loaders: [
+{
+    // 1. resolve @import and url() through css-loader
+    // 2. load the result to bundle using style-loader
+    // note that loaders are interpreted from right to left
+    test: /.css$/, // A regexp to test the require path
+    loaders: [&#39;style&#39;, &#39;css&#39;]
+},
+{
+    test: /.js$/,
+    exclude: /node_modules/,
+    loader: &#39;jscrambler-loader&#39;
+}
+]
+}
+};&lt;/pre&gt;
+
+&lt;p&gt;Você também irá precisar criar um arquivo chamado &lt;strong&gt;.jscramblerrc&lt;/strong&gt; com suas credenciais da API.&lt;/p&gt;
+
+&lt;p&gt;Você irá encontrar elas no painel de controlo da sua conta Jscrambler.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;.jscramblerrc&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+    &#34;keys&#34;: {
+    &#34;accessKey&#34;: &#34;XXXXXX&#34;,
+    &#34;secretKey&#34;: &#34;XXXXXX&#34;
+},
+&#34;params&#34;: {
+    &#34;self_defending&#34;: &#34;%DEFAULT%&#34;
+    // there is a big set of transformations that you can use
+    // check https://jscrambler.com/en/help/javascript_obfuscation
+}
+}&lt;/pre&gt;
+
+&lt;p&gt;Pronto! Você está pronto para depurar o seu código protegido!&lt;/p&gt;
+
+&lt;p&gt;Há várias outras formas de conectar o Jscrambler com o seu sistema. Isso depende do seu task runner. Eu reuni as possíveis abordagens abaixo:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Grunt &amp;#8211; &lt;a href=&#34;https://www.npmjs.com/package/grunt-jscrambler&#34; target=&#34;_blank&#34;&gt;grunt-jscrambler&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Gulp &amp;#8211; &lt;a href=&#34;https://www.npmjs.com/package/gulp-jscrambler&#34; target=&#34;_blank&#34;&gt;gulp-jscrambler&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;package.json&lt;/em&gt; &amp;#8211; &lt;a href=&#34;https://www.npmjs.com/package/jscrambler&#34; target=&#34;_blank&#34;&gt;Jscrambler CLI tool&lt;/a&gt;. Para isso funcionar, crie um &lt;em&gt;script&lt;/em&gt; separado e depois passe sua versão minificada do Webpack através dele. É preferível manter uma versão local da ferramenta Jscrambler CLI (&lt;code&gt;npm i jscrambler --save-dev&lt;/code&gt;) dentro de seu projeto para que tudo funcione independentemente do ambiente.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;O Jscrambler tem um conjunto de ferramentas para proteger seu código (ofuscação + armadilhas no código + serviço de autoproteção de aplicativo, ou RASP em inglês), fazendo com que a engenharia reversa fique significantemente difícil, mas também tem alguns recursos de otimização de código para você tirar vantagem. Você pode até usá-lo para minificação ou compressão.&lt;/p&gt;
+
+&lt;p&gt;Saiba mais sobre o Jscrambler em &lt;a href=&#34;https://jscrambler.com?utm_medium=social&amp;utm_source=tableless&#34; target=&#34;_blank&#34;&gt;jscrambler.com&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Ainda que o Webpack não seja a ferramenta mais fácil de aprender, eu recomendo que você dê uma olhada nela. O livro &lt;a href=&#34;http://survivejs.com/&#34; target=&#34;_blank&#34;&gt;SurviveJS &amp;#8211; Webpack and React&lt;/a&gt;, que está em inglês, fala sobre essa ferramenta com mais detalhes. A maioria dos conteúdos está disponível gratuitamente e irá lhe ajudar a entender o Webpack e React a um nível mais profundo.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Keygen: Certificando suas paginas com HTML</title>
+      <link>http://tableless.com.br/keygen-certificando-suas-paginas-com-html/</link>
+      <pubDate>Wed, 13 Apr 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/keygen-certificando-suas-paginas-com-html/</guid>
+      <description>
+
+&lt;p&gt;Com a convergência tudo está indo para a web. Tudo. Por enquanto a grande maioria das apps e paginas estão abertas, mas a medida que o tempo passa, a web também evolui. Em um ambiente completamente social, aonde a relevância do conteúdo não está mais nas mãos de quem anuncia, mas sim na dos leitores, conteúdo cada vez mais segmentado vai surgir. E inevitavelmente, cada vez mais precisaremos de &lt;strong&gt;certificados&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-são-e-como-funcionam-os-certificados&#34;&gt;O que são e como funcionam os certificados?&lt;/h2&gt;
+
+&lt;p&gt;Em criptografia, um certificado de chave pública (também conhecido como um certificado digital ou certificado de identidade – aka SSL) é um documento eletrônico que usa uma assinatura digital para vincular uma chave pública com informações sobre a identidade do remetente – que pode ter informações como o nome de uma pessoa ou um organização, seu endereço e assim por diante. O certificado pode ser usado para verificar se uma chave pública pertence a um indivíduo. Vamos cada vez mais agregando valor ao conteúdo na web através de rating, comentários, presença online, etc. Mas ainda sim a web oferece brechas no sistema, permitindo que pessoas possam emitir valores e opiniões sem a devida validação. Essas brechas vao diminuindo a medida que os certificados vão sendo usados, e em uma web puramente social, é difícil se imaginar sem um destes certificados, e acho que no futuro próximo, isso será realidade mandatória para todos.&lt;/p&gt;
+
+&lt;p&gt;O uso mais comum dos certificados é de web sites baseados em HTTPS. Browsers validam certificados SSL de servidores web, para que o usuário pode se sentir seguro de que sua interação com o site não tem espiões e que o site é quem afirma ser. Na prática, um usuário obtém uma chave criptografada gerada pelo website, que validada com um fornecedor certificado (uma loja de certificado$) confirma a procedência do certificado. Durante a navegação, este certificado público é enviado a qualquer browser que se conecte ao site, mostrando para o usuário que o endereço é validado – e seguro.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_3480&#34; style=&#34;width: 662px&#34; class=&#34;wp-caption alignleft&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/04/certifi.png&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2011/04/certifi.png&#34; alt=&#34;Esta imagem é uma representacao grafica do ultimo paragrafo, mostrando a interacao que o usuario tem com servidor atraves de SSL&#34; width=&#34;652&#34; height=&#34;207&#34; class=&#34;size-full wp-image-3480&#34; srcset=&#34;uploads/2011/04/certifi.png 652w, uploads/2011/04/certifi-300x95.png 300w&#34; sizes=&#34;(max-width: 652px) 100vw, 652px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Intercação de usuário com website seguro atraves de certificados SSL
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Quem faz esta validação é chamado de &lt;strong&gt;entidade certificadora&lt;/strong&gt;, e poderíamos mencionar a &lt;strong&gt;Certisign&lt;/strong&gt;, &lt;strong&gt;Verisign&lt;/strong&gt; e &lt;strong&gt;Serasa&lt;/strong&gt; além de &lt;strong&gt;Federações e Sindicatos&lt;/strong&gt;, como a &lt;strong&gt;FENACON&lt;/strong&gt; e a &lt;strong&gt;PRODEMGE&lt;/strong&gt;. No Brasil por exemplo, manter uma chave publica pessoal para atestar sua identidade (&lt;a href=&#34;http://www.certisign.com.br/produtos-e-servicos/certificados-digitais/e-cpf&#34;&gt;e-CPF&lt;/a&gt;) custa em média R$130,00.&lt;/p&gt;
+
+&lt;h2 id=&#34;single-sign-on-x-certificados&#34;&gt;Single sign-on X Certificados&lt;/h2&gt;
+
+&lt;p&gt;É notório que o custo dos certificados são suas maiores barreiras. É visível o custo de manutenção de estruturas para manter servidores &lt;strong&gt;apenas&lt;/strong&gt; para validar certificados – e não são poucos. Mas mesmo assim, algo tão importante deveria ser mantido em regime de economia de escala &amp;#8211; e ser oferecido de maneira mais acessível a população.&lt;/p&gt;
+
+&lt;p&gt;Enquanto isso, vamos oferecendo soluções para os clientes que envolvem na maioria das vezes, &lt;a href=&#34;http://www.opengroup.org/security/sso/&#34;&gt;single-sign-on (SSO)&lt;/a&gt;. O conceito vem sendo pregado pelo &lt;a href=&#34;http://www.opengroup.org/security/sso/&#34;&gt;Open Group&lt;/a&gt; a muito tempo, e dele surgiu o &lt;a href=&#34;http://openid.net/get-an-openid/what-is-openid/&#34;&gt;OpenID&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O funcionamento de um &lt;strong&gt;OpenID&lt;/strong&gt; é simples, ele simplesmente valida a existência de um usuário baseado em serviços ja consolidados de login, que oferecem uma API bem documentada e incentivam o seu uso. &lt;a href=&#34;http://openid.net/get-an-openid/&#34;&gt;Google, Facebook e outras empresas oferecem estes servicos&lt;/a&gt;. “Cascatear” a validação, oferecendo a segurança de uma entidade como as mencionadas é algo que fortalece muito a segurança da sua aplicação e a confiança do usuário. Se você não existe em uma rede social (eis que chegamos na &lt;a href=&#34;http://pt.wikipedia.org/wiki/Reifica%C3%A7%C3%A3o_(marxismo)&#34;&gt;reificação&lt;/a&gt; do usuário através de sua existencia digital), não tem como logar, validar, navegar&amp;#8230; enfim, nada.&lt;/p&gt;
+
+&lt;p&gt;Mas ainda sim este método apresenta falhas. Alguém que tenha posse de seu user e senha pode facilmente se passar por você. Isso o single sign-on não pode evitar, mas certificados resolvem este problema. Mas também não são perfeitos. É importante conhecer os dois métodos pois dependendo do nível de segurança que você precisa oferecer a aplicação, qualquer uma das opções serão válidas. Quer apenas ter certeza que o usuário existe antes de postar um comentário em seu site? Ok, dá pra usar um single sign-on sem problemas. Precisa mostrar que seu site é &lt;strong&gt;realmente seguro&lt;/strong&gt; para garantir transações financeiras e honrar o cadeadinho na tray do navegador? Certificados são o que você deverá usar.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-requerer-um-certificado-pelo-método-usual&#34;&gt;Como requerer um certificado pelo método usual?&lt;/h2&gt;
+
+&lt;p&gt;Um certificado custa dinheiro. E não é barato. Talvez por isso eles ainda nao sejam amplamente utilizados. Bancos por exemplo costumam pagar para seus clientes seus certificados como ferramentas de fidelização. Certificados são temporais e muitas pessoas quando necessitam, compram por um ano ou tres o serviço. Existem leis em tramite no congresso em relação ao RIC, o registro de identidade civil, com vinculações ao e-cpf, o que virtualmente obriga todos a possuírem certificados digitais atrelados ao CPF no longo prazo.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-montar-um-certificado-apenas-com-8230-html&#34;&gt;Como montar um certificado apenas com&amp;#8230; HTML?&lt;/h2&gt;
+
+&lt;p&gt;Mas até ai nada novo. Na real, nada do que esta neste post é novo, apenas &lt;strong&gt;obscuro&lt;/strong&gt;. Desde a época do saudoso Netspace Navigator existe uma tag pouco utilizada, e da mesma maneira pouco conhecida &amp;#8211; &lt;keygen&gt; &lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;  &amp;lt;a href=&amp;quot;http://tableless.com.br/wp-content/uploads/2011/04/IC341506.gif&amp;quot;&amp;gt;&amp;lt;img src=&amp;quot;http://tableless.com.br/wp-content/uploads/2011/04/IC341506.gif&amp;quot; alt=&amp;quot;&amp;quot; width=&amp;quot;561&amp;quot; height=&amp;quot;200&amp;quot; class=&amp;quot;alignleft size-full wp-image-3481&amp;quot; /&amp;gt;&amp;lt;/a&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Quando a internet ainda engatinhava, a Netscape criou um meio dela mesma poder emitir – e validar – certificados, usando HTTP e HTML. Essa tag é suportada pela maioria dos browsers (exceção a Apple – Safari e iOS), porém nunca foi oficialmente colocada no pacote das especificações HTML. Vinha sendo usada de maneira tímida, mas voltou aos spots com o HTML5. Ou seja, embora muitas documentações mencionem ela como elemento HTML5 (inclusive a do Mozilla Developer Network), é quase mais velha que a especificação HTML4.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-funciona&#34;&gt;Como funciona?&lt;/h2&gt;
+
+&lt;p&gt;A sintaxe é simples e suporta atributos globais como o autofocus.&lt;/p&gt;
+
+&lt;pre lang=&#34;html&#34; line=&#34;1&#34;&gt;&amp;lt;keygen name=&#34;soureal&#34; challenge=&#34;String de verificacao&#34; keytype=&#34;tipo de chave&#34; keyparams=&#34;pqg-params&#34;&gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Challenge&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Uma seqüência de desafio que é apresentado juntamente com a chave pública. O padrão é uma string vazia se não for especificada.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Disabled&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Atributo booleano que indica que o controle de formulário não está disponível para interação.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Form&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Todo &lt;code&gt;keygen&lt;/code&gt; para funcionar depende de um form que processa a informação. Com isso, podemos dizer que por enquanto, adeus Ajax para fazer uso de keygen sem submeter formulários. Foi da tentativa de conseguir isso que resolvi criar este post. O elemento de form precisa existir associado ao &amp;lt;keygen&amp;amp;gt.&lt;/p&gt;
+
+&lt;dl&gt;
+&lt;dt&gt;keyType&lt;/dt&gt;
+&lt;dd&gt;O tipo de chave gerada. O valor padrão é o RSA.&lt;/dd&gt;
+&lt;dt&gt;Nome&lt;/dt&gt;
+&lt;dd&gt;O nome do campo&lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;p&gt;&lt;strong&gt;Name&lt;/strong&gt; e &lt;strong&gt;Challenge&lt;/strong&gt; são attributos obrigatórios. &lt;strong&gt;Keytype&lt;/strong&gt; especifica o tipo de chave (RSA-DSA e EC). Caso use chaves DSA ou EC você precisa especificar &lt;strong&gt;keyparams&lt;/strong&gt;. Para declará-los da seguinte maneira: &lt;strong&gt;keyparams=&amp;#8221;pqg-params&amp;#8221;&lt;/strong&gt; ou &lt;strong&gt;pqg=&amp;#8221;pqg-params&amp;#8221;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;O modo como o keygen é apresentado varia de navegador a navegador, desde os tempos de Netscape (a Microsoft acreditem – criou um suporte sensacional – porém atrelado a registro de DLL’s, te obrigando a ter um IIS, e por consequencia uma licença de Windows). A interface do usuário para pode ser um menu, botões de rádio, ou até abordagens que ainda não conhecemos. As opções de encriptação apresentam níveis, médio e alto. Se o navegador do usuário estiver configurado para suportar&lt;/p&gt;
+
+&lt;p&gt;hardware criptográfico (por exemplo, &amp;#8220;smart cards&amp;#8221;), o usuário também poderá escolher aonde salvar seu certificado, em um cartão inteligente ou em um software(browser) e armazenado no disco.&lt;/p&gt;
+
+&lt;h2 id=&#34;e-o-código&#34;&gt;E o código?&lt;/h2&gt;
+
+&lt;pre lang=&#34;html&#34; line=&#34;1&#34;&gt;&lt;/pre&gt;
+
+&lt;p&gt;Para ver o em ação, clique aqui: &lt;a href=&#34;http://koolbanana.com.br/usehtml/keygen.html&#34;&gt;http://koolbanana.com.br/usehtml/keygen.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;E pra quem achava que keygen era coisa de pirata&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Gostaria de agradecer o &lt;strong&gt;Gabriel Pereira Borges&lt;/strong&gt; por ter ajudado (e inspirado) este post. A dor de cabeça valeu a pena!&lt;/p&gt;
+
+&lt;h3 id=&#34;referências&#34;&gt;Referências&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Certificados SSL: &lt;a href=&#34;http://en.wikipedia.org/wiki/Ssl_certificate&#34;&gt;http://en.wikipedia.org/wiki/Ssl_certificate&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&#34;http://www.networksolutions.com/SSL-certificates/how-ssl-works.jsp&#34;&gt;http://www.networksolutions.com/SSL-certificates/how-ssl-works.jsp&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;e-cpf: &lt;a href=&#34;http://www.certisign.com.br/produtos-e-servicos/certificados-digitais/e-cpf&#34;&gt;http://www.certisign.com.br/produtos-e-servicos/certificados-digitais/e-cpf&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&#34;http://www.receita.fazenda.gov.br/atendvirtual/solicemrenrevcd.htm&#34;&gt;http://www.receita.fazenda.gov.br/atendvirtual/solicemrenrevcd.htm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Open Group: &lt;a href=&#34;http://www.opengroup.org/&#34;&gt;http://www.opengroup.org/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;SSO: &lt;a href=&#34;http://www.opengroup.org/security/sso/&#34;&gt;http://www.opengroup.org/security/sso/&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&#34;http://code.google.com/googleapps/marketplace/sso.html&#34;&gt;http://code.google.com/googleapps/marketplace/sso.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;SAML: &lt;a href=&#34;http://code.google.com/googleapps/domain/sso/saml_reference_implementation.html&#34;&gt;http://code.google.com/googleapps/domain/sso/saml_reference_implementation.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;OpenID: &lt;a href=&#34;http://openid.net/get-an-openid/&#34;&gt;http://openid.net/get-an-openid/&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&#34;http://openid.net/get-an-openid/what-is-openid/&#34;&gt;http://openid.net/get-an-openid/what-is-openid/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Reificação: &lt;a href=&#34;http://pt.wikipedia.org/wiki/Reifica%C3%A7%C3%A3o_(marxismo&#34;&gt;http://pt.wikipedia.org/wiki/Reifica%C3%A7%C3%A3o_(marxismo&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;RIC: &lt;a href=&#34;http://portal.mj.gov.br/ric&#34;&gt;http://portal.mj.gov.br/ric&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Keygen: &lt;a href=&#34;https://developer.mozilla.org/En/HTML/Element/keygen&#34;&gt;https://developer.mozilla.org/En/HTML/Element/keygen&lt;/a&gt;&lt;br /&gt;
+Obscure tags: &lt;a href=&#34;http://obscuretags.com/showcode.php?id=19&#34;&gt;http://obscuretags.com/showcode.php?id=19&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&#34;http://dev.w3.org/html5/markup/keygen.html&#34;&gt;http://dev.w3.org/html5/markup/keygen.html&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&#34;http://msdn.microsoft.com/en-us/library/cc249768(v=prot.13).aspx&#34;&gt;http://msdn.microsoft.com/en-us/library/cc249768(v=prot.13).aspx&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;documentacao de 1998(!!!): &lt;a href=&#34;http://devedge-temp.mozilla.org/library/manuals/1998/htmlguide/tags10.html#1615503&#34;&gt;http://devedge-temp.mozilla.org/library/manuals/1998/htmlguide/tags10.html#1615503&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Gerando chaves com Keygen em IIS: &lt;a href=&#34;http://forums.hostsearch.com/archive/index.php?t-2094.html&#34;&gt;http://forums.hostsearch.com/archive/index.php?t-2094.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;IIS suporte a keygen: &lt;a href=&#34;http://certs.ipsca.com/Support/CSRMicrosoft-Internet-Information-Server-4.0.asp&#34;&gt;http://certs.ipsca.com/Support/CSRMicrosoft-Internet-Information-Server-4.0.asp&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

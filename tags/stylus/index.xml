@@ -1,0 +1,1681 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Stylus on Tableless</title>
+    <link>http://tableless.com.br/tags/stylus/index.xml</link>
+    <description>Recent content in Stylus on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/stylus/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Analisando o código Stylus de um projeto</title>
+      <link>http://tableless.com.br/iniciando-com-o-pre-processador-stylus/</link>
+      <pubDate>Fri, 18 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/iniciando-com-o-pre-processador-stylus/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-é-um-pré-processador-css&#34;&gt;&lt;strong&gt;O que é um pré-processador CSS?&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Como o nome ja diz, é uma linguagem que precisa ser pré-processada por um &lt;em&gt;parser&lt;/em&gt; para assim gerar o arquivo de extensão &lt;strong&gt;.css&lt;/strong&gt; que será renderizado pelo browser. Atualmente há vários pré-processadores que você pode utilizar para facilitar a codificação e reaproveitamento de código, você pode estar utilizando SASS, LESS e Stylus que são os mais conhecidos no mercado. A diferença do &lt;a href=&#34;http://stylus-lang.com/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;Stylus&lt;/a&gt; para os outros pré-processadores que estão sendo utilizados no mercado é que ele já é baseado em &lt;a href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;NodeJS&lt;/a&gt; e não em ruby. Por conta disso não há necessidade de uma tecnologia intermediária em seu workflow para processá-lo.&lt;/p&gt;
+
+&lt;h2 id=&#34;vamos-começar&#34;&gt;Vamos começar!&lt;/h2&gt;
+
+&lt;p&gt;Tendo em mente que você ja conhece um pouco sobre pré-processadores e algumas de suas vantagens (variáveis, mixins, operadores, funções) vamos criar um projeto utilizando algumas dessas funcionalidades.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Faça o download do &lt;a href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;strong&gt;NodeJS&lt;/strong&gt;&lt;/a&gt; e efetue a instalação&lt;strong&gt;;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Considerando que tenha o node rodando em seu sistema, instale o &lt;strong&gt;Stylus &lt;/strong&gt;de forma global e execute o seguinte comando em seu terminal &lt;strong&gt;npm install -g stylus&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Vamos criar a estrutura de diretórios de nosso projeto:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/director.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Após ter seu diretório criado de acordo com a estrutura da imagem acima, você pode acessá-lo via terminal com o comando &lt;strong&gt;cd /seu-diretorio&lt;/strong&gt; e na sequência executar o compilador stylus da seguinte maneira:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;stylus -w a&lt;/code&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;parâmetros&#34;&gt;&lt;strong&gt;Parâmetros&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;-w (Observar alterações nos arquivos .styl e re-compilar gerando os arquivos resultantes .css);&lt;/li&gt;
+&lt;li&gt;-o (Após este parâmetro deve ser passado o caminho que deve ser salvo o arquivo compilado);&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;desmistificando-a-estrutura&#34;&gt;Desmistificando a Estrutura&lt;/h2&gt;
+
+&lt;h3 id=&#34;assets&#34;&gt;ASSETS&lt;/h3&gt;
+
+&lt;p&gt;Costumo sempre utilizar esta estrutura como raíz para os diretórios front-end principalmente pela facilidade em migrar para servidores independentes e também para evitar confusão entre o pessoal de back-end.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-css&#34;&gt;&lt;strong&gt;ASSETS/css&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;Arquivos gerados após executar o pré-processador, gerando assim os arquivos com extensão &lt;strong&gt;.css&lt;/strong&gt; prontos para utilização em seu código.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus&#34;&gt;ASSETS/stylus&lt;/h3&gt;
+
+&lt;p&gt;Neste diretório fica toda a nossa organização de diretórios e arquivos .styl (Extensão utilizada pelo &lt;strong&gt;Stylus&lt;/strong&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-base-tipografia-reset-variáveis-cores&#34;&gt;ASSETS/stylus/base (Tipografia, reset, variáveis, cores)&lt;/h3&gt;
+
+&lt;p&gt;O nome dos arquivos em si é bem descritivo, colors.styl para cores, variables.styl para variáveis reutilizáveis, typography.styl para definições de fonts e reset.styl (reset de elementos css).&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-components-pequenos-componentes&#34;&gt;ASSETS/stylus/components (Pequenos componentes)&lt;/h3&gt;
+
+&lt;p&gt;Utilizado para pequenos componentes como botões, formulários, modals e o que surgir de necessidade conforme o desenvolvimento de seu projeto.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-helpers-utilitários-para-seus-projetos&#34;&gt;ASSETS/stylus/helpers (Utilitários para seus projetos)&lt;/h3&gt;
+
+&lt;p&gt;Neste diretório geralmente são encontrados os seguintes arquivos: functions.styl, helpers.styl (classes utilitárias ex.: .pull-left, .show), mixins.styl (são blocos de códigos reutilizáveis semelhantes a funções).&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-layout-definições-do-seu-layout&#34;&gt;ASSETS/stylus/layout (Definições do seu layout)&lt;/h3&gt;
+
+&lt;p&gt;Você vai encontrar os arquivos com definições de estilo com a cara do seu layout, como header, footer e grid.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-theme-temas-do-projeto&#34;&gt;ASSETS/stylus/theme (Temas do projeto)&lt;/h3&gt;
+
+&lt;p&gt;Definições de temas do projeto. Caso o projeto tenha mais de um tema, é uma boa prática para manter a organização e facilidade de manutenção no código.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-main-styl&#34;&gt;ASSETS/stylus/main.styl&lt;/h3&gt;
+
+&lt;p&gt;Este é o arquivo primário que será lido pelo seu compilador, deve possuir todas as importações necessárias para gerar o arquivo .css resultante. Obs: Todos os arquivos all.styl servem para facilitar a importação no arquivo principal.&lt;/p&gt;
+
+&lt;h2 id=&#34;botando-a-mão-na-massa&#34;&gt;Botando a mão na massa&lt;/h2&gt;
+
+&lt;p&gt;Uma vez que você compreendeu a ideia dos diretórios criados e está com o compilador rodando corretamente, vamos ao código:&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-base&#34;&gt;assets/stylus/base&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;all.styl (Import de todos os arquivos do diretório)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;// Import all from base
+&amp;lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&amp;gt;@import&amp;lt;/a&amp;gt; ‘reset.styl’
+&amp;lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&amp;gt;@import&amp;lt;/a&amp;gt; ‘colors.styl’
+&amp;lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&amp;gt;@import&amp;lt;/a&amp;gt; ‘typography.styl’
+&amp;lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&amp;gt;@import&amp;lt;/a&amp;gt; ‘variables.styl’&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;colors.styl (Definições de cores do projeto)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;orange = #FF6347
+gray-darker = #AAAAAA
+gray-lighter = #EEEEEE
+lighter = #FFF
+darker = #444444
+blue = #0080FF
+blue-lighter = #1EC0FF
+yellow = #F9C00C
+red = #E71D36
+green = #3AC569
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;reset.styl (Foi utilizado o normalize.css)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://necolas.github.io/normalize.css/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;normalize.css&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;typography.styl (Definições de fonts)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;font-size-h1 = 40px
+font-size-h2 = 34px
+font-size-h3 = 28px
+line-height-h1 = 55px
+line-height-h2 = 46px
+line-height-h3 = 38px
+h1, h2, h3
+ color darker
+ font-weight bold
+h1
+ font-size font-size-h1
+ line-height line-height-h1
+ color darker
+ margin-bottom 30px
+h2
+ font-size font-size-h2
+ line-height line-height-h1
+h3
+ font-size font-size-h3
+ line-height line-height-h3
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;variables.styl (Variáveis reutilizáveis do projeto)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;// Font Weights
+light = 300
+regular = 400
+bold = 700&lt;/pre&gt;
+
+&lt;pre&gt;// Base Font
+base-font-family = ‘Open Sans’, sans-serif
+base-font-weight = light
+base-font-size = 20px
+base-line-height = 27px
+form-label-font-size = base-font-size
+form-field-font-size = 18px&lt;/pre&gt;
+
+&lt;pre&gt;// Buttons
+btn-font-weight = bold
+btn-default-border = gray-darker
+btn-default-color = darker
+btn-primary-color = lighter
+btn-success-color = lighter
+btn-danger-color = lighter
+btn-warning-color = lighter
+btn-info-color = lighter
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;assets-stylus-components&#34;&gt;assets/stylus/components&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;all.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;// Import all from components
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘buttons.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘forms.styl’&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;buttons.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;.btn
+ font-weight bold
+ padding 15px 27px
+ border 1px solid transparent
+ display inline-block
+ cursor pointer
+ border-radius(5px)
+&amp;-info
+ &amp;-primary
+ &amp;-success
+ &amp;-danger
+ color lighter
+&amp;-default
+ color darker
+ border-color gray-darker
+ background-color lighter
+&amp;-primary
+ background-color blue
+ border-color blue
+&amp;:hover
+ &amp;:focus
+ background-color darken(blue, 20%)
+ border-color darken(blue, 20%)
+&amp;-info
+ background-color blue-lighter
+ border-color blue-lighter
+&amp;:hover
+ &amp;:focus
+ background-color darken(blue-lighter, 20%)
+ border-color darken(blue-lighter, 20%)
+&amp;-warning
+ background-color yellow
+ border-color yellow
+&amp;:hover
+ &amp;:focus
+ background-color darken(yellow, 20%)
+ border-color darken(yellow, 20%)
+&amp;-success
+ background-color green
+ border-color green
+&amp;:hover
+ &amp;:focus
+ background-color darken(green, 20%)
+ border-color darken(green, 20%)
+&amp;-danger
+ background-color red
+ border-color red
+&amp;:hover
+ &amp;:focus
+ background-color darken(red, 20%)
+ border-color darken(red, 20%)&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;forms.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;.form
+ &amp;__group
+ margin-bottom 20px
+&amp;__label
+ color darker
+ font-size form-label-font-size
+ font-weight bold
+ margin-bottom 10px
+&amp;__field
+ display block
+ width 100%
+ padding 6px 18px
+ height 60px
+ border 1px solid gray-darker
+ color darker
+ font-size form-field-font-size
+ border-radius(3px)
+&amp;:hover
+ &amp;:focus
+ border-color orange&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;helpers.styl (Utilitários do projeto)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;all.styl (Import de todos os arquivos do diretório)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;// Import all from helpers
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘functions.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘helpers.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘mixins.styl’&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;functions.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;make-media-queries-breakpoints()
+ for screen-width in screen-desktop-large screen-desktop screen-tablet screen-mobile
+ &lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: screen-width)
+ if (screen-width == screen-desktop-large)
+ .container
+ width container-desktop
+ else if (screen-width == screen-desktop)
+ .container
+ width container-tablet
+ else if (screen-width == screen-tablet)
+ .container
+ .columns
+ width container-mobile !important
+make-row()
+ margin 0 (-(grid-gutter-width / 2))
+calc-container-padding()
+ padding 0 (grid-gutter-width / 2)
+make-columns()
+ for i in grid-columns..0
+ .col-{i}
+ width percentage(i, grid-columns)
+.col-offset-{i}
+ margin-left percentage(i, grid-columns)
+percentage(index, divider)
+ if index == 0
+ 0
+ else
+ unit((index * 100) / divider, “%”)&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;helpers.styl (Classes utilitárias para uso no html)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;.pull-left
+ float left
+.pull-right
+ float right
+.show
+ display block
+.hide
+ display none
+.text-center
+ text-align center
+.text-left
+ text-align left
+.text-right
+ text-align right
+.absolute
+ position absolute
+.relative
+ position relative
+.in-block
+ display inline-block
+.center-block
+ margin 0 auto
+ display block
+.img-responsive
+ max-width 100%
+.clearfix
+ &amp;:before
+ &amp;:after
+ content “ “
+ display table
+&amp;:after
+ clear both&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;mixins.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;vendor(prop, args)
+ -webkit-{prop} args
+ -moz-{prop} args
+ {prop} args
+border-radius()
+ vendor(‘border-radius’, arguments)
+box-shadow()
+ vendor(‘box-shadow’, arguments)
+opacity(n)
+ opacity n
+ filter unquote(‘progid:DXImageTransform.Microsoft.Alpha(Opacity=’ + round(n * 100) + ‘)’)&lt;/pre&gt;
+
+&lt;h3 id=&#34;assets-stylus-layout&#34;&gt;assets/stylus/layout&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;header.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.header
+ background-color orange
+ padding 30px 0
+.header__img
+ max-width 150px&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;footer.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.footer
+ padding 40px 0
+ background-color darker
+ color lighter
+&amp; a
+ color lighter
+ &amp;:hover
+ color orange
+&amp; p
+ font-size 16px
+ line-height 22px
+ margin 0 0 10px 0
+&amp; .fa
+ color #E84545
+ margin 0 2px
+&amp; img
+ max-width 150px
+ &amp;:hover
+ opacity(0.6)&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;grid.styl (Sistema de grids utilizado no projeto)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;// Media Queries Breakpoints
+screen-desktop-large = 1200px
+screen-desktop = 992px
+screen-tablet = 768px
+screen-mobile = 480px
+// Grid System
+grid-columns = 12
+grid-gutter-width = 30px
+// Container Sizes
+container-desktop-large = 1170px
+container-desktop = 940px
+container-tablet = 720px
+container-mobile = 100%
+.container
+ width container-desktop-large
+ calc-container-padding()
+ margin 0 auto
+.row
+.columns
+ box-sizing border-box
+.row
+ make-row()
+&amp;:before
+ &amp;:after
+ content “ “
+ display table
+&amp;:after
+ clear both
+.columns
+ &lt;a title=&#34;Twitter profile for @extend&#34; href=&#34;http://twitter.com/extend&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@extend&lt;/a&gt; .relative
+ &lt;a title=&#34;Twitter profile for @extend&#34; href=&#34;http://twitter.com/extend&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@extend&lt;/a&gt; .pull-left
+ padding 0 (grid-gutter-width / 2)
+make-media-queries-breakpoints()
+make-columns()&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;login.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.content
+ padding-top 60px
+ padding-bottom 60px
+ min-height 470px
+&amp;__login
+ padding 30px
+ border-radius(3px)
+ background-color gray-lighter
+ box-shadow(0 0 5px rgba(0,0,0,0.09))
+ max-width 530px
+ background-color darker
+&amp; .form__label
+ &amp; h3
+ color lighter
+&amp; h3
+ margin-bottom 20px&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;assets/stylus/themes (Temas do projeto admin, padrão e quais forem necessários)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;default.styl (Tema padrão)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;*
+ vendor(‘box-sizing’, border-box)
+body
+ font-family base-font-family
+ font-weight base-font-weight
+ font-size base-font-size
+ line-height base-line-height
+ background-color lighter
+a
+ text-decoration none&lt;/pre&gt;
+
+&lt;h3 id=&#34;assets-stylus-main-styl-arquivo-principal&#34;&gt;assets/stylus/main.styl (Arquivo principal)&lt;/h3&gt;
+
+&lt;p&gt;Neste arquivo você deve efetuar todas as importações necessárias do seu projeto. Em nosso tutorial o arquivo ficou assim:&lt;/p&gt;
+
+&lt;pre&gt;&lt;a title=&#34;Twitter profile for @charset&#34; href=&#34;http://twitter.com/charset&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@charset&lt;/a&gt; “UTF-8”
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘base/all.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘helpers/all.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘components/all.styl’
+// Imports from layout
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘layout/grid.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘layout/header.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘layout/footer.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘layout/login.styl’
+// Import themes
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘themes/default.styl’&lt;/pre&gt;
+
+&lt;p&gt;Por fim, crie um arquivo &lt;strong&gt;index.html&lt;/strong&gt; na raíz de seu projeto com o seguinte código:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=”en”&amp;gt;
+&amp;lt;head&amp;gt;
+ &amp;lt;meta charset=”UTF-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Iniciando com Stylus&amp;lt;/title&amp;gt;
+&amp;lt;link href=”&lt;a href=&#34;https://fonts.googleapis.com/css?family=Open+Sans:300,400,700&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;https://fonts.googleapis.com/css?family=Open+Sans:300,400,700&lt;/a&gt;&#34; rel=”stylesheet”&amp;gt;
+&amp;lt;link rel=”stylesheet” href=”&lt;a href=&#34;https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css&lt;/a&gt;&#34;&amp;gt;
+&amp;lt;link rel=”stylesheet” href=”assets/css/main.css”&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+ &amp;lt;header class=”header”&amp;gt;
+ &amp;lt;div class=”container”&amp;gt;
+ &amp;lt;img class=”header__img img-responsive center-block” src=”assets/images/stylus-logo.png” alt=”” /&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;/header&amp;gt;
+&amp;lt;div class=”content container”&amp;gt;
+ &amp;lt;h1 class=”text-center”&amp;gt;Iniciando com Stylus&amp;lt;/h1&amp;gt;
+&amp;lt;div class=”content__login center-block”&amp;gt;
+ &amp;lt;h3 class=”text-center”&amp;gt;Acesse sua conta&amp;lt;/h3&amp;gt;
+&amp;lt;form action=”#”&amp;gt;
+ &amp;lt;div class=”form__group”&amp;gt;
+ &amp;lt;label for=”name” class=”form__label show”&amp;gt;Nome&amp;lt;/label&amp;gt;
+&amp;lt;input type=”text” name=”name” id=”name” class=”form__field”&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=”form__group”&amp;gt;
+ &amp;lt;label for=”email” class=”form__label show”&amp;gt;Email&amp;lt;/label&amp;gt;
+&amp;lt;input type=”text” name=”email” id=”email” class=”form__field”&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=”submit text-right”&amp;gt;
+ &amp;lt;button type=”submit” class=”btn btn-success”&amp;gt;
+ Submit
+ &amp;lt;/button&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;/div&amp;gt;
+&amp;lt;footer class=”footer text-center”&amp;gt;
+ &amp;lt;div class=”container”&amp;gt;
+ &amp;lt;p&amp;gt;
+ Feito com &amp;lt;i class=”fa fa-heart”&amp;gt;&amp;lt;/i&amp;gt; por &amp;lt;a href=”&lt;a href=&#34;http://helderburato.com/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;http://helderburato.com/&lt;/a&gt;”&amp;gt;Helder Burato Berto&amp;lt;/a&amp;gt;
+ &amp;lt;/p&amp;gt;
+&amp;lt;a class=”in-block” href=”&lt;a href=&#34;http://uilab.com.br/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;http://uilab.com.br/&lt;/a&gt;&#34;&amp;gt;
+ &amp;lt;img class=”img-responsive” src=”assets/images/uilab-logo.png” alt=””&amp;gt;
+ &amp;lt;/a&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;/footer&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;compreendendo-a-linguagem-stylus&#34;&gt;Compreendendo a linguagem Stylus&lt;/h2&gt;
+
+&lt;p&gt;Você pode observar que foram utilizados algumas particularidades da linguagem, que não são comuns para quem está acostumado apenas com CSS, sendo elas: &lt;strong&gt;&amp;amp;:&lt;/strong&gt; Usado para referenciar parcialmente um elemento citado anteriormente, por exemplo:&lt;/p&gt;
+
+&lt;pre&gt;.foo
+ color #000
+ &amp; a
+ color #fff&lt;/pre&gt;
+
+&lt;p&gt;Será compilado para:&lt;/p&gt;
+
+&lt;pre&gt;.foo {
+ color: #000;
+}
+.foo a {
+ color: #fff;
+}&lt;/pre&gt;
+
+&lt;p&gt;Você percebe o quanto isso é poderoso e tem utilidade?&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;border-radius():&lt;/strong&gt; Mixin definido para ser reutilizado e com possibilidade de uso com parâmetros.&lt;/p&gt;
+
+&lt;p&gt;Exemplo de uso:&lt;/p&gt;
+
+&lt;pre&gt;.foo
+ border-radius(5px)&lt;/pre&gt;
+
+&lt;p&gt;Será compilado para:&lt;/p&gt;
+
+&lt;pre&gt;.foo {
+ border-radius: 5px;
+ -webkit-border-radius: 5px;
+ -moz-border-radius: 5px;
+}&lt;/pre&gt;
+
+&lt;p&gt;Observe que foi gerado o código ja com os prefixos para outros browsers, facilitando na escrita.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;IF&lt;/strong&gt; e &lt;strong&gt;FOR:&lt;/strong&gt; Vamos descrever o uso de IF e for com uma função que foi utilizado no tutorial chamada &lt;strong&gt;make-media-queries-breakpoints()&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre&gt;make-media-queries-breakpoints()
+ for screen-width in screen-desktop-large screen-desktop screen-tablet screen-mobile
+ &lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: screen-width)
+ if (screen-width == screen-desktop-large)
+ .container
+ width container-desktop
+ else if (screen-width == screen-desktop)
+ .container
+ width container-tablet
+ else if (screen-width == screen-tablet)
+ .container
+ .columns
+ width container-mobile !important&lt;/pre&gt;
+
+&lt;p&gt;Nós utilizamos o FOR para percorrer as variáveis declaradas posteriormente e IF para modificar a width de nosso container principal de acordo com a media queria utilizada.&lt;/p&gt;
+
+&lt;p&gt;O código acima após a compilação:&lt;/p&gt;
+
+&lt;pre&gt;&lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: 1200px) {
+ .container {
+ width: 1170px;
+ }
+}
+&lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: 992px) {
+ .container {
+ width: 720px;
+ }
+}
+&lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: 768px) {
+ .container,
+ .columns {
+ width: 100%;
+ }
+}&lt;/pre&gt;
+
+&lt;h3 id=&#34;sintaxe&#34;&gt;Sintaxe&lt;/h3&gt;
+
+&lt;p&gt;Você provavelmente deve ter percebido que com Stylus não temos a necessidade do uso de &lt;strong&gt;{}&lt;/strong&gt; e&lt;strong&gt;;&lt;/strong&gt; nas declarações CSS, isso em prática ajuda muito na produtividade.&lt;/p&gt;
+
+&lt;h3 id=&#34;variáveis&#34;&gt;Variáveis&lt;/h3&gt;
+
+&lt;p&gt;Você pode declarar variáveis sem o uso de &lt;strong&gt;$&lt;/strong&gt; mas caso você já utilizou outros pré;-processadores, fica a seu crité;rio o uso dele ou não.&lt;/p&gt;
+
+&lt;p&gt;Bom espero que tenha conseguido compartilhar um pouco do que é; esta grande ferramenta e que lhe seja útil na hora de pensar em usar um pré;-processador.&lt;/p&gt;
+
+&lt;p&gt;Um grande abraço, obrigado!&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Link do Projeto: &lt;a href=&#34;https://helderburato.github.io/iniciando-stylus/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://helderburato.github.io/iniciando-stylus/&#34;&gt;https://helderburato.github.io/iniciando-stylus/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Git do Projeto: &lt;a href=&#34;https://github.com/helderburato/iniciando-stylus&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://github.com/helderburato/iniciando-stylus&#34;&gt;https://github.com/helderburato/iniciando-stylus&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Layout: &lt;a href=&#34;https://github.com/helderburato/iniciando-stylus/tree/master/sketch&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://github.com/helderburato/iniciando-stylus/tree/master/sketch&#34;&gt;https://github.com/helderburato/iniciando-stylus/tree/master/sketch&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Sass vs. LESS vs. Stylus: Batalha dos Pré-processadores</title>
+      <link>http://tableless.com.br/sass-vs-less-vs-stylus-batalha-dos-pre-processadores/</link>
+      <pubDate>Mon, 28 Mar 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/sass-vs-less-vs-stylus-batalha-dos-pre-processadores/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;Pré-processadores CSS3 são linguagens criadas com um único propósito de adicionar funcionalidades legais e criativas para o CSS sem quebrar a compatibilidade entre browsers. Os pré-processadores disponibilizam milhares de funcionalidades, e nesse artigo iremos falar sobre as mais utilizadas e conhecidas e algumas nem tanto conhecidas. Vamos começar:&lt;/p&gt;
+
+&lt;h2 id=&#34;sintaxe&#34;&gt;Sintaxe&lt;/h2&gt;
+
+&lt;p&gt;A parte mais importante ao escrever códigos utilizando um pré-processador é entender a sua sintaxe. Felizmente para nós, a sintaxe é (ou pode ser) idêntica à do CSS puro para os três pré-processadores.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-e-less&#34;&gt;Sass e LESS&lt;/h3&gt;
+
+&lt;p&gt;Ambos utilizam o a sintaxe padrão do CSS. Isso faz com que seja extremamente fácil converter um arquivo CSS já existente para qualquer um deles. Sass utiliza arquivos com extensão .scss e LESS com extensão .less. Uma configuração básica de um arquivo Sass ou LESS pode ser como abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.scss ou style.less */
+h1 {
+    color: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ter notado, isso é apenas CSS puro, que compila perfeitamente em ambos pré-processadores (Sass e LESS).&lt;/p&gt;
+
+&lt;p&gt;É importante notar que Sass também tem uma sintaxe mais antiga, que omite ponto e vírgula e as chaves. Ainda pode ser usado, mas como é uma sintaxe antiga, não iremos utilizá-la depois deste exemplo. A sintaxe utiliza arquivos com a extensão .sass e são da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.sass */
+h1
+    color: #0982c1
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Observação pessoal:&lt;/strong&gt; Essa sintaxe não é por causa de ser mais antiga e sim pois no início o &lt;strong&gt;Sass&lt;/strong&gt; era parte de um outro pré-processador chamado &lt;strong&gt;Haml&lt;/strong&gt; criado por desenvolvedores &lt;strong&gt;Ruby&lt;/strong&gt;, e por causa disso as folhas de estilo escritas com &lt;strong&gt;Sass&lt;/strong&gt; utilizavam uma sintaxe como a do &lt;strong&gt;Ruby&lt;/strong&gt;, sem chaves, ponto e vírgula e controlado por identação.&lt;/p&gt;
+
+&lt;h3 id=&#34;stylus&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;p&gt;A sintaxe para o Stylus é muito mais adaptável. Utiliza arquivos com extensão .styl, aceita a sintaxe padrão do CSS, porém também aceita algumas variações onde chaves, dois-pontos e ponto e vírgula são todos opcionais. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.styl */
+h1 {
+    color: #0982c1;
+}
+/* omitindo chaves */
+h1
+    color: #0982c1;
+
+/* omitindo dois-pontos e ponto e vírgula
+h1
+    color: #0982c1
+&lt;/pre&gt;
+
+&lt;p&gt;Utilizar diferentes variações em um mesmo arquivo também é válido, então o seguinte código seria compilado sem erros.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;h1 {
+    color #0982c1
+}
+h2
+    font-size: 1.2em
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;variáveis&#34;&gt;Variáveis&lt;/h2&gt;
+
+&lt;p&gt;Variáveis podem ser declaradas e usadas através das folhas de estilo. Elas podem ter qualquer valor que seja um valor em CSS (por exemplo: cores, números [unidades também], ou texto), e podem ser referenciadas em qualquer lugar das nossas folhas de estilo.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;p&gt;Variáveis em Sass tem seu nome começado o símbolo &amp;#8220;$&amp;#8221; e o nome e o seu valor são separados com dois-pontos, assim como uma propriedade CSS.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;$mainColor: #0982c1;
+$siteWidth: 1024px;
+$borderStyle: dotted;
+
+body {
+    color: $mainColor;
+    border: 1px $borderStyle $mainColor;
+    max-width: $siteWidth;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;p&gt;Varíaves em LESS são praticamente iguais as variáveis no Sass, exceto por começarem seus nomes com o símbolo &amp;#8220;@&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mainColor: #0982c1;
+@siteWidth: 1024px;
+@borderStyle: dotted;
+
+body {
+    color: @mainColor;
+    border: 1px @borderStyle @mainColor;
+    max-width: @siteWidth;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-1&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;p&gt;Variáveis em Stylus não precisam começar com nenhum símbolo, porém ele permite a utilização do símbolo &amp;#8220;$&amp;#8221;. Como sempre, o ponto e vírgula para finalizar não é necessário, mas um sinal de igual entre o nome da variável e seu valor é. Uma coisa importante para se notar é que na versão 0.22.4 do Stylus variáveis com nome começados com o símbolo &amp;#8220;@&amp;#8221; são compiladas, porém não aplicam seu valor quando referenciadas. Em oturas palavras, não faça isso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;mainColor = #0982c1;
+siteWidth = 1024px;
+$borderStyle = dotted;
+
+body
+    color mainColor
+    border 1px $borderStyle mainColor
+    max-width siteWidth
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Cada um dos arquivos acima irão compilar no mesmo CSS. Você pode usar sua imaginação para ver quão úteis variáveis podem ser. Não precisaremos mais ao mudar uma cor reescrever a mesma vinte vezes, ou querer mudar a largura de nosso site e ter de procurar por todo o site para fazer isso. Aqui está o CSS depois de compilado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    color: #0982c1;
+    border: 1px dotted #0982c1;
+    max-width: 1024px.
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;aninhamento&#34;&gt;Aninhamento&lt;/h2&gt;
+
+&lt;p&gt;Se precisarmos referenciar múltiplos elementos com o mesmo pai em nosso CSS, pode ser entediante ficar digitanto o pai toda vez.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+}
+section nav {
+    height: 25px;
+}
+section nav a {
+    color: #0982c1;
+}
+section nav a:hover {
+    text-decoration: underline;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao invés disso, usando um pré-processador, podemos escrever os seletores filhos dentro das chaves do elemento pai. O símbolo &amp;#8220;&amp;amp;&amp;#8221; é usado para referenciar o seletor pai.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-less-e-stylus&#34;&gt;Sass, LESS e Stylus&lt;/h3&gt;
+
+&lt;p&gt;Todos os três pré-processdores utilizam a mesma sintaxe para aninhar seletores.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+
+    nav {
+        height: 25px;
+
+        a {
+            color: #0982c1;
+
+            &amp;:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-1&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Abaixo está o CSS compilado do código escrito acima. Está exatamente igual ao mostrado no começo &amp;#8211; que conveniente!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+}
+section nav {
+    height: 25px;
+}
+section nav a {
+    color: #0982c1;
+}
+section nav a:hover {
+    text-decoration: underline;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;mixins&#34;&gt;Mixins&lt;/h2&gt;
+
+&lt;p&gt;Mixins são funções que permitem reusar propriedades através de nossas folhas de estilo. Ao invés de procurar por todas nossas folhas de estilo e mudar uma propriedade várias vezes, podemos apenas mudar dentro de nosso mixin. Isso pode ser realmente útil para estilização de elementos específicos e para &amp;#8220;vendor prefixes&amp;#8221; (moz-*, o-*, etc). Quando os mixins são chamados de dentro de um seletor CSS, os argumentos são reconhecidos e os estilos dentro do mixin são aplicados ao seletor.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-1&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em Sass chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+@mixin error($borderWidth: 2px) {
+    border: $borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    @include error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    @include error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-1&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em LESS chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+.error(@borderWidth: 2px) {
+    border: @borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    .error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    .error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-2&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em Stylus chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+error(borderWidth = 2px) {
+    border: borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-2&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Todos pré-processadores irão compilar o mesmo código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.generic-error {
+    padding: 20px;
+    margin: 4px;
+    border: 2px solid #f00;
+    color: #f00;
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    border: 5px solid #f00;
+    color: #f00;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;herança&#34;&gt;Herança&lt;/h2&gt;
+
+&lt;p&gt;Quando estamos escrevendo CSS da velha maneira, nós usaríamos o seguinte código para aplicar o mesmo estilo para múltiplos elementos de uma só vez:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;p,
+u,
+ol {
+    /* estilos aqui */
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Isso funciona perfeitamente, mas se depois precisássemos de estilizar os elementos individualmente, outro seletor deveria ser criado para cada um e rapidamente poderia ficar cada vez mais bagunçado e difícil de manter. Podemos utilizar herança para resolver isso. Herança é a habilidade de outros seletores CSS herdarem as propriedades de outro seletor.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-e-stylus&#34;&gt;Sass e Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+
+p {
+    @extend .block; /* Herda estilos do seletor &#39;.block&#39; */
+    border: 1px solid #eee;
+}
+ul, ol {
+    @extend .block; /* Herda estilos do seletor &#39;.block&#39; */
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-sass-e-stylus&#34;&gt;CSS Compilado (Sass e Stylus)&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block, p, ul, ol {
+    margin: 10px 5px;
+    padding: 2px;
+}
+p {
+    border: 1px solid #eee;
+}
+ul, ol {
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-2&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;p&gt;LESS não tem suporte a herança de estilos como Sass e Stylus. Ao invés de adicionar diversos seletores para um grupo de propriedades, ele trata herança como um mixin sem argumentos e importa os estilos para dentro de seus próprios seletores. O problema disso é que propriedades são repetidas em sua folha de estilo compilada. Abaixo segue como deve-se utilizar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+ 
+p {
+    .block; /* Herda estilos do seletor &#39;.block&#39; */
+    border: 1px solid #eee;
+}
+ul, ol {
+    .block; /* Herda estilos do seletor &#39;.block&#39; */
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Observação pessoal:&lt;/strong&gt; Como mencionado nos comentários, o LESS tem suporte a herança e pode ser feita com a seguinte sintaxe:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;p {
+        &amp;:extend(.block);
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-less&#34;&gt;CSS Compilado (LESS)&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+p {
+    margin: 10px 5px;
+    padding: 2px;
+    border: 1px solid #eee;
+}
+ul,
+ol {
+    margin: 10px 5px;
+    padding: 2px;
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ver, os estilos do seletor .block foram inseridas nos seletores que queríamos aplicar a herança. É importante notar que a prioridade das propriedades pode se tornar um problema, então devemos ter bastante cautela.&lt;/p&gt;
+
+&lt;h2 id=&#34;importação&#34;&gt;Importação&lt;/h2&gt;
+
+&lt;p&gt;Na comunidade CSs, importar CSS é visto com maus olhos por utilizar diversas chamadas HTTP. Importar com um pré-processador funciona de forma diferente no entanto. Se você importar um arquivo com qualquer um dos três pré-processadores, ele irá literalmente pegar todo o conteúdo do arquivo durante a importação e gerar apenas um arquivo. Lembre-se que arquivos .css comuns importados compilam com o código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@import &#34;file.css&#34;;
+&lt;/pre&gt;
+
+&lt;p&gt;Lembre-se também que mixins e variáveis podem ser importadas e usadas em sua folha de estilo principal. Importação faz com que possamos criar arquivos separados para uma melhor organização.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-less-e-stylus-1&#34;&gt;Sass, LESS e Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* arquivo.{extensao} */
+body {
+    background: #eee;
+}
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@import &#34;reset.css&#34;;
+@import &#34;arquivo.{extensao}&#34;;
+ 
+p {
+    background: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-3&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;h2 id=&#34;introdução-1&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;-&amp;gt;Pré-processadores produzem CSS que funciona em todos os browsers&lt;/p&gt;
+
+&lt;p&gt;Pré-processadores CSS3 são linguagens criadas com um único propósito de adicionar funcionalidades legais e criativas para o CSS sem quebrar a compatibilidade entre browsers. Eles fazem isso compilando o código que escrevemos em CSS puro que pode ser usado em qualquer browser de agora até a era das pedras. Os pré-processadores disponibilizam milhares de funcionalidades, e nesse artigo iremos falar sobre as mais utilizadas e conhecidas e algumas nem tanto conhecidas. Vamos começar&lt;/p&gt;
+
+&lt;h2 id=&#34;sintaxe-1&#34;&gt;Sintaxe&lt;/h2&gt;
+
+&lt;p&gt;A parte mais importante ao escrever códigos utilizando um pré-processador CSS é entender a sua sintaxe. Felizmente para nós, a sintaxe é (ou pode ser) idêntica à do CSS puro para os três pré-processadores.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-e-less-1&#34;&gt;Sass e LESS&lt;/h3&gt;
+
+&lt;p&gt;Ambos utilizam o a sintaxe padrão do CSS. Isso faz com que seja extremamente fácil converter um arquivo CSS já existente para qualquer um deles. Sass utiliza arquivos com extensão .scss e LESS com extensão .less. Uma configuração básica de um arquivo Sass ou LESS pode ser como abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.scss ou style.less */
+h1 {
+    color: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ter notado, isso é apenas CSS puro, que compila perfeitamente em ambos pré-processadores (Sass e LESS).&lt;/p&gt;
+
+&lt;p&gt;É importante notar que Sass também tem uma sintaxe mais antiga, que omite ponto e vírgula e as chaves. Ainda pode ser usado, mas como é uma sintaxe antiga, não iremos utilizá-la depois deste exemplo. A sintaxe utiliza arquivos com a extensão .sass e são da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.sass */
+h1 {
+    color: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-3&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;p&gt;A sintaxe para o Stylus é muito mais adaptável. Utiliza arquivos com extensão .styl, aceita a sintaxe padrão do CSS, porém também aceita algumas variações onde chaves, dois-pontos e ponto e vírgula são todos opcionais. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.styl */
+h1 {
+    color: #0982c1;
+}
+/* omitindo chaves */
+h1
+    color: #0982c1;
+
+/* omitindo dois-pontos e ponto e vírgula
+h1
+    color: #0982c1
+&lt;/pre&gt;
+
+&lt;p&gt;Utilizar diferentes variações em um mesmo arquivo também é válido, então o seguinte código seria compilado sem erros.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;h1 {
+    color #0982c1
+}
+h2
+    font-size: 1.2em
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;variáveis-1&#34;&gt;Variáveis&lt;/h2&gt;
+
+&lt;p&gt;Variáveis podem ser declaradas e usadas através das folhas de estilo. Elas podem ter qualquer valor que seja um valor em CSS (por exemplo: cores, números [unidades também], ou texto), e podem ser referenciadas em qualquer lugar das nossas folhas de estilo.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-2&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;p&gt;Variáveis em Sass tem seu nome começado o símbolo &amp;#8220;$&amp;#8221; e o nome e o seu valor são separados com dois-pontos, assim como uma propriedade CSS.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;$mainColor: #0982c1;
+$siteWidth: 1024px;
+$borderStyle: dotted;
+
+body {
+    color: $mainColor;
+    border: 1px $borderStyle $mainColor;
+    max-width: $siteWidth;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-3&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;p&gt;Varíaves em LESS são praticamente iguais as variáveis no Sass, exceto por começarem seus nomes com o símbolo &amp;#8220;@&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mainColor: #0982c1;
+@siteWidth: 1024px;
+@borderStyle: dotted;
+
+body {
+    color: @mainColor;
+    border: 1px @borderStyle @mainColor;
+    max-width: @siteWidth;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-4&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;p&gt;Variáveis em Stylus não precisam começar com nenhum símbolo, porém ele permite a utilização do símbolo &amp;#8220;$&amp;#8221;. Como sempre, o ponto e vírgula para finalizar não é necessário, mas um sinal de igual entre o nome da variável e seu valor é. Uma coisa importante para se notar é que na versão 0.22.4 do Stylus variáveis com nome começados com o símbolo &amp;#8220;@&amp;#8221; são compiladas, porém não aplicam seu valor quando referenciadas. Em oturas palavras, não faça isso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;mainColor = #0982c1;
+siteWidth = 1024px;
+$borderStyle = dotted;
+
+body
+    color mainColor
+    border 1px $borderStyle mainColor
+    max-width siteWidth
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-4&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Cada um dos arquivos acima irão compilar no mesmo CSS. Você pode usar sua imaginação para ver quão úteis variáveis podem ser. Não precisaremos mais ao mudar uma cor reescrever a mesma vinte vezes, ou querer mudar a largura de nosso site e ter de procurar por todo o site para fazer isso. Aqui está o CSS depois de compilado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    color: #0982c1;
+    border: 1px dotted #0982c1;
+    max-width: 1024px.
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;aninhamento-1&#34;&gt;Aninhamento&lt;/h2&gt;
+
+&lt;p&gt;Se precisarmos referenciar múltiplos elementos com o mesmo pai em nosso CSS, pode ser entediante ficar digitanto o pai toda vez.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+}
+section nav {
+    height: 25px;
+}
+section nav a {
+    color: #0982c1;
+}
+section nav a:hover {
+    text-decoration: underline;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao invés disso, usando um pré-processador, podemos escrever os seletores filhos dentro das chaves do elemento pai. O símbolo &amp;#8220;&amp;amp;&amp;#8221; é usado para referenciar o seletor pai.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-less-e-stylus-2&#34;&gt;Sass, LESS e Stylus&lt;/h3&gt;
+
+&lt;p&gt;Todos os três pré-processdores utilizam a mesma sintaxe para aninhar seletores.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+
+    nav {
+        height: 25px;
+
+        a {
+            color: #0982c1;
+
+            &amp;:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-5&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Abaixo está o CSS compilado do código escrito acima. Está exatamente igual ao mostrado no começo &amp;#8211; que conveniente!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+}
+section nav {
+    height: 25px;
+}
+section nav a {
+    color: #0982c1;
+}
+section nav a:hover {
+    text-decoration: underline;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;mixins-1&#34;&gt;Mixins&lt;/h2&gt;
+
+&lt;p&gt;Mixins são funções que permitem reusar propriedades através de nossas folhas de estilo. Ao invés de procurar por todas nossas folhas de estilo e mudar uma propriedade várias vezes, podemos apenas mudar dentro de nosso mixin. Isso pode ser realmente útil para estilização de elementos específicos e para &amp;#8220;vendor prefixes&amp;#8221; (moz-*, o-*, etc). Quando os mixins são chamados de dentro de um seletor CSS, os argumentos são reconhecidos e os estilos dentro do mixin são aplicados ao seletor.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-3&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em Sass chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+@mixin error($borderWidth: 2px) {
+    border: $borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    @include error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    @include error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-4&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em LESS chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+.error(@borderWidth: 2px) {
+    border: @borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    .error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    .error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-5&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em Stylus chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+error(borderWidth = 2px) {
+    border: borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-6&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Todos pré-processadores irão compilar o mesmo código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.generic-error {
+    padding: 20px;
+    margin: 4px;
+    border: 2px solid #f00;
+    color: #f00;
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    border: 5px solid #f00;
+    color: #f00;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;herança-1&#34;&gt;Herança&lt;/h2&gt;
+
+&lt;p&gt;Quando estamos escrevendo CSS da velha maneira, nós usaríamos o seguinte código para aplicar o mesmo estilo para múltiplos elementos de uma só vez:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;p,
+u,
+ol {
+    /* estilos aqui */
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Isso funciona perfeitamente, mas se depois precisássemos de estilizar os elementos individualmente, outro seletor deveria ser criado para cada um e rapidamente poderia ficar cada vez mais bagunçado e difícil de manter. Podemos utilizar herança para resolver isso. Herança é a habilidade de outros seletores CSS herdarem as propriedades de outro seletor.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-e-stylus-1&#34;&gt;Sass e Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+
+p {
+    @extend .block; /* Herda estilos do seletor &#39;.block&#39; */
+    border: 1px solid #eee;
+}
+ul, ol {
+    @extend .block; /* Herda estilos do seletor &#39;.block&#39; */
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-sass-e-stylus-1&#34;&gt;CSS Compilado (Sass e Stylus)&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block, p, ul, ol {
+    margin: 10px 5px;
+    padding: 2px;
+}
+p {
+    border: 1px solid #eee;
+}
+ul, ol {
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-5&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;p&gt;LESS não tem suporte a herança de estilos como Sass e Stylus. Ao invés de adicionar diversos seletores para um grupo de propriedades, ele trata herança como um mixin sem argumentos e importa os estilos para dentro de seus próprios seletores. O problema disso é que propriedades são repetidas em sua folha de estilo compilada. Abaixo segue como deve-se utilizar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+ 
+p {
+    .block; /* Herda estilos do seletor &#39;.block&#39; */
+    border: 1px solid #eee;
+}
+ul, ol {
+    .block; /* Herda estilos do seletor &#39;.block&#39; */
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-less-1&#34;&gt;CSS Compilado (LESS)&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+p {
+    margin: 10px 5px;
+    padding: 2px;
+    border: 1px solid #eee;
+}
+ul,
+ol {
+    margin: 10px 5px;
+    padding: 2px;
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ver, os estilos do seletor .block foram inseridas nos seletores que queríamos aplicar a herança. É importante notar que a prioridade das propriedades pode se tornar um problema, então devemos ter bastante cautela.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@import &#34;reset.css&#34;;
+body {
+    background: #eee;
+}
+p {
+    background: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;funções-de-cores&#34;&gt;Funções de Cores&lt;/h2&gt;
+
+&lt;p&gt;Funções de cores são funções nativas que transformam uma cor por compilação. Podem ser extremamente úteis para criar gradientes, escurecer cores no &amp;#8220;hover&amp;#8221; de elementos e muito mais.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-4&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;lighten($color, 10%); /* retorna uma cor 10% mais clara que $color */
+darken($color, 10%);  /* retorna uma cor 10% mais escura $color */
+ 
+saturate($color, 10%);   /* retorna uma cor 10% mais saturada que $color */
+desaturate($color, 10%); /* retorna uma cor 10% menos saturada que $color */
+ 
+grayscale($color);  /* retorna $color na escala de cinza */
+complement($color); /* retorna cor complementar de $color */
+invert($color);     /* retorna cor inversa de $color */
+ 
+mix($color1, $color2, 50%); /* mistura $color1 com $color2 com um peso de 50% */
+&lt;/pre&gt;
+
+&lt;p&gt;Essas é apenas uma pequena lista de funções de cores disponíveis no Sass. A lista completa das funções de cores disponíveis no Sass pode ser encontrada na &lt;a href=&#34;http://sass-lang.com/documentation/Sass/Script/Functions.html&#34; target=&#34;_blank&#34;&gt;documentação do Sass&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Funções de cores podem ser usadas em qualquer lugar que uma cor é válida no CSS. Veja um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;$color: #0982C1;
+ 
+h1 {
+    background: $color;
+    border: 3px solid darken($color, 50%);
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-6&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;lighten(@color, 10%); /* retorna uma cor 10% mais clara que @color */
+darken(@color, 10%);  /* retorna uma cor 10% mais escura @color */
+ 
+saturate(@color, 10%);   /* retorna uma cor 10% mais saturada que @color */
+desaturate(@color, 10%); /* retorna uma cor 10% menos saturada que @color */
+ 
+spin(@color, 10); /* retorna uma cor 10 graus acima na matiz/tonalidade que @color */
+spin(@color, -10); /* retorna uma cor 10 graus abaixo na matiz/tonalidade que @color */
+ 
+mix(@color1, @color2); /* mistura @color1 com @color2 */
+&lt;/pre&gt;
+
+&lt;p&gt;A lista de todas as funções disponíveis no LESS pode encontrada na &lt;a href=&#34;http://lesscss.org/#-color-functions&#34; target=&#34;_blank&#34;&gt;documentação LESS&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Veja um exemplo de como usar uma função de cores no LESS:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@color: #0982C1;
+ 
+h1 {
+    background: @color;
+    border: 3px solid darken(@color, 50%);
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-6&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;lighten(color, 10%); /* retorna uma cor 10% mais clara que &#39;color&#39; */
+darken(color, 10%);  /* retorna uma cor 10% mais escura &#39;color&#39; */
+ 
+saturate(color, 10%);   /* retorna uma cor 10% mais saturada que &#39;color&#39; */
+desaturate(color, 10%); /* retorna uma cor 10% menos saturada que &#39;color&#39; */
+&lt;/pre&gt;
+
+&lt;p&gt;A lista completa de todas funções de cores disponíveis no Stylus pode ser encontrada na &lt;a href=&#34;http://stylus-lang.com/docs/bifs.html&#34; target=&#34;_blank&#34;&gt;documentação Stylus&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Veja um exemplo de como usar uma função de cores no Stylus:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;color = #0982C1
+ 
+h1
+    background color
+    border 3px solid darken(color, 50%)
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;operações&#34;&gt;Operações&lt;/h2&gt;
+
+&lt;p&gt;Fazer cálculos no CSS é bastante útil e agora totalmente possível. É bem simples e é dessa maneira que fazemos:&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-less-e-stylus-3&#34;&gt;Sass, LESS e Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    margin: (14px/2);
+    top: 50px + 100px;
+    right: 100px - 50px;
+    left: 10 * 10;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;aplicações-práticas&#34;&gt;Aplicações Práticas&lt;/h2&gt;
+
+&lt;p&gt;Nós falamos de diversas funcionalidades e novas coisas que pré-processadores podem fazer, mas não mostramos nada na prática ainda. Veja uma pequena lista de aplicações no mundo real em que um pré-processador é um salva-vidas.&lt;/p&gt;
+
+&lt;h3 id=&#34;vendor-prefixes&#34;&gt;Vendor Prefixes&lt;/h3&gt;
+
+&lt;p&gt;Essa é uma das principais razões para se usar um pré-processador e por um motivo bom &amp;#8211; economia gigante de tempo e lágrimas. Criar um mixin para cuidar dos vendor prefixes é fácil e nos salva de uma codificação repetitiva e dolorosa. Veja como fazer:&lt;/p&gt;
+
+&lt;h4 id=&#34;sass-5&#34;&gt;Sass&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mixin border-radius($values) {
+    -webkit-border-radius: $values;
+        -moz-border-radius: $values;
+            border-radius: $values;
+}
+ 
+div {
+    @include border-radius(10px);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;less-7&#34;&gt;LESS&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.border-radius(@values) {
+    -webkit-border-radius: @values;
+        -moz-border-radius: @values;
+            border-radius: @values;
+}
+ 
+div {
+    .border-radius(10px);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;stylus-7&#34;&gt;Stylus&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;border-radius(values) {
+    -webkit-border-radius: values;
+        -moz-border-radius: values;
+            border-radius: values;
+}
+ 
+div {
+    border-radius(10px);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;css-compilado-7&#34;&gt;CSS Compilado&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div {
+    -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+            border-radius: 10px;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;texto-3d&#34;&gt;Texto 3D&lt;/h3&gt;
+
+&lt;p&gt;Simular um texto 3D utilizando diversos text-shadows é uma grande ideia. O único problema é que mudar a cor depois de criar é difícil e incômodo. Usando mixins e funções de cores, podemos criar um texto 3D e mudar sua cor sem nenhuma dificuldade.&lt;/p&gt;
+
+&lt;h4 id=&#34;sass-6&#34;&gt;Sass&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mixin text3d($color) {
+    color: $color;
+    text-shadow: 1px 1px 0px darken($color, 5%),
+            2px 2px 0px darken($color, 10%),
+            3px 3px 0px darken($color, 15%),
+            4px 4px 0px darken($color, 20%),
+            4px 4px 2px #000;
+}
+ 
+h1 {
+    font-size: 32pt;
+    @include text3d(#0982c1);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;less-8&#34;&gt;LESS&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.text3d(@color) {
+    color: @color;
+    text-shadow: 1px 1px 0px darken(@color, 5%),
+            2px 2px 0px darken(@color, 10%),
+            3px 3px 0px darken(@color, 15%),
+            4px 4px 0px darken(@color, 20%),
+            4px 4px 2px #000;
+}
+ 
+span {
+    font-size: 32pt;
+    .text3d(#0982c1);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;stylus-8&#34;&gt;Stylus&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;text3d(color)
+    color: color
+    text-shadow: 1px 1px 0px darken(color, 5%), 2px 2px 0px darken(color, 10%), 3px 3px 0px darken(color, 15%), 4px 4px 0px darken(color, 20%), 4px 4px 2px #000
+span
+    font-size: 32pt
+    text3d(#0982c1)
+&lt;/pre&gt;
+
+&lt;p&gt;Escolhi escrever os &amp;#8220;text-shadows&amp;#8221; do Stylus em apenas uma linha pois omiti as chaves.&lt;/p&gt;
+
+&lt;h4 id=&#34;css-compilado-8&#34;&gt;CSS Compilado&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;span {
+    font-size: 32pt;
+    color: #0982c1;
+    text-shadow: 1px 1px 0px #097bb7, 
+            2px 2px 0px #0875ae, 
+            3px 3px 0px #086fa4, 
+            4px 4px 0px #07689a, 
+            4px 4px 2px #000;
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;resultado-final&#34;&gt;Resultado Final&lt;/h4&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://cdn.tutsplus.com/net/uploads/legacy/1144_preprocshootout/text3d.png&#34; alt=&#34;Texto 3D&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;colunas&#34;&gt;Colunas&lt;/h3&gt;
+
+&lt;p&gt;Usar operações numéricas e variáveis para colunas é uma ideia que tive da primeira vez que estava brincando com pré-processadores CSS. Declarando a largura desejada em uma variável, podemos facilmente alterá-la sem precisar de nenhum cálculo mental. Veja como fazer:&lt;/p&gt;
+
+&lt;h4 id=&#34;sass-7&#34;&gt;Sass&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;$siteWidth: 1024px;
+$gutterWidth: 20px;
+$sidebarWidth: 300px;
+ 
+body {
+    margin: 0 auto;
+    width: $siteWidth;
+}
+.content {
+    float: left;
+    width: $siteWidth - ($sidebarWidth+$gutterWidth);
+}
+.sidebar {
+    float: left;
+    margin-left: $gutterWidth;
+    width: $sidebarWidth;
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;less-9&#34;&gt;LESS&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@siteWidth: 1024px;
+@gutterWidth: 20px;
+@sidebarWidth: 300px;
+ 
+body {
+    margin: 0 auto;
+    width: @siteWidth;
+}
+.content {
+    float: left;
+    width: @siteWidth - (@sidebarWidth+@gutterWidth);
+}
+.sidebar {
+    float: left;
+    margin-left: @gutterWidth;
+    width: @sidebarWidth;
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;stylus-9&#34;&gt;Stylus&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;siteWidth = 1024px;
+gutterWidth = 20px;
+sidebarWidth = 300px;
+ 
+body {
+    margin: 0 auto;
+    width: siteWidth;
+}
+.content {
+    float: left;
+    width: siteWidth - (sidebarWidth+gutterWidth);
+}
+.sidebar {
+    float: left;
+    margin-left: gutterWidth;
+    width: sidebarWidth;
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;css-compilado-9&#34;&gt;CSS Compilado&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    margin: 0 auto;
+    width: 1024px;
+}
+.content {
+    float: left;
+    width: 704px;
+}
+.sidebar {
+    float: left;
+    margin-left: 20px;
+    width: 300px;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;peculiaridades-notáveis&#34;&gt;Peculiaridades Notáveis&lt;/h2&gt;
+
+&lt;p&gt;Existem algumas peculiaridades ao usar um pré-processador CSS. Irei falar de algumas engraçadas, mas se você está realmente interessado em encontrar todas elas eu recomendo você vasculhar toda a documentação, ou melhor, começar a usar um pré-processador na sua codificação diária.&lt;/p&gt;
+
+&lt;h3 id=&#34;relatório-de-erros&#34;&gt;Relatório de Erros&lt;/h3&gt;
+
+&lt;p&gt;Se você já escreveu CSS por uma boa quantia de tempo, tenho certeza que você já chegou a um ponto onde você tinha um erro em algum lugar e simplesmente não conseguia o encontrar. Se você é como eu, provavelmente passou a tarde toda arrancando os cabelos fora e comentando diversas coisas para caçar o erro.&lt;/p&gt;
+
+&lt;p&gt;Pré-processadores CSS relatam os erros. Simples assim. Se tem alguma coisa errada em seu códigom ele te fala onde e, se você estiver com sorte até mesmo o porquê. Você pode dar uma olhada &lt;a href=&#34;http://tjholowaychuk.com/post/5002088731/stylus-vs-sass-vs-less-error-reporting&#34; target=&#34;_blank&#34;&gt;nesse post&lt;/a&gt; caso esteja interessado em ver como os erros são relatados em diferentes pré-processadores.&lt;/p&gt;
+
+&lt;h3 id=&#34;comentários&#34;&gt;Comentários&lt;/h3&gt;
+
+&lt;p&gt;Quando um pré-processador CSS está compilando, qualquer comentário escrito com barras duplas &amp;#8220;//&amp;#8221; é excluído e qualquer comentários escrito com barra e asterisco &amp;#8220;/* */&amp;#8221; não é alterado. Dito isso, use comentários com barras duplas para comentários que você queira na versão não compilada e comentários com barra e asterisco para comentários que serão visíveis após a compilação.&lt;/p&gt;
+
+&lt;p&gt;Observação: Se você compilar os arquivos, minificando-os, todos comentários são excluídos.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Cada um dos pré-processadores que falamos (Sass, LESS e Stylus) possui um modo único de realizar a mesma tarefa &amp;#8211; dando a nós desenvolvedor a habilidade de usar funcionalidades úteis mantendo a compatibilidade entre browsers e um código limpo.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Mesmo não sendo uma exigência para o desenvolvimento, pré-processadores podem economizar muito tempo e tem funcionalidades bastante úteis.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Eu aconselho todos vocês a utilizar e testar a maior quantidade de pré-processadores possível, pois assim você poderá escolher efetivamente um favorito e saber o porquê ele é seu favorito dentre tantos outros. Se você ainda não testou usar nenhum pré-processador para escrever seu CSS, eu recomendo grandemente a você testar.&lt;/p&gt;
+
+&lt;p&gt;Você tem alguma funcionalidade de seu pré-processador favorito que não foi mencionada? Há algo que algum pré-processador possa fazer e outros não? Conte-nos nos comentários abaixo!&lt;/p&gt;
+
+&lt;p&gt;Traduzido e adaptado de: &lt;a href=&#34;http://code.tutsplus.com/tutorials/sass-vs-less-vs-stylus-preprocessor-shootout--net-24320&#34;&gt;http://code.tutsplus.com/tutorials/sass-vs-less-vs-stylus-preprocessor-shootout&amp;#8211;net-24320&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

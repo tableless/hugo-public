@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Vinicius Reis on Tableless</title>
+    <link>http://tableless.com.br/author/vinicius-reis/index.xml</link>
+    <description>Recent content in Vinicius Reis on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/vinicius-reis/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Trabalhando com serviços no Javascript</title>
+      <link>http://tableless.com.br/trabalhando-com-servicos-no-javascript/</link>
+      <pubDate>Tue, 08 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/trabalhando-com-servicos-no-javascript/</guid>
+      <description>
+
+&lt;p&gt;JavaScript é uma &lt;em&gt;linguagem multiparadigma&lt;/em&gt;. Pode-se “_emular_” várias técnicas de programação com ele, e isso é &lt;strong&gt;incrível&lt;/strong&gt; pois podemos decidir qual o melhor paradigma para a resolução dos problemas dos nossos projetos. Porém se por um lado isso pode parecer poderoso para a linguagem, também pode deixar os iniciantes bem confusos, é muito comum escolher a abordagem errada para o problema. Por esse motivo que o JavaScript em sido polêmico nos últimos anos.&lt;/p&gt;
+
+&lt;p&gt;Pensando nisso muitos desenvolvedores criam suas próprias soluções, uns pensando em ajudar e outros em forçar padrões.&lt;/p&gt;
+
+&lt;p&gt;Eu prefiro ensinar a pescar, pois JavaScript não tem que ser complexo. A &lt;strong&gt;versão 6 do JavaScript (ES6/ES2015)&lt;/strong&gt; tornou a linguagem muito mais expressiva, facilitando muito o entendimento.&lt;/p&gt;
+
+&lt;h3 id=&#34;encapsulando-lógicas&#34;&gt;Encapsulando lógicas&lt;/h3&gt;
+
+&lt;p&gt;Tudo em JavaScript são objetos (exceto &lt;em&gt;undefined&lt;/em&gt;), então &lt;strong&gt;serviços também são objetos&lt;/strong&gt;, dominando como criamos e trabalhamos com objetos todas as coisas ficam bem mais tranquilas.&lt;/p&gt;
+
+&lt;p&gt;O Jean Carlo Emer fez um artigo muito, &lt;a href=&#34;http://tableless.com.br/modularizacao-em-javascript/&#34;&gt;mas muito bom sobre Modularização no JavaScript&lt;/a&gt;. Sugiro que você leia, mas vou explicar um pouco sobre o assunto logo abaixo.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;size-medium aligncenter&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*hsXIPyBqqI7ZTh2QyLfizw.gif&#34; alt=&#34;i know JavaScript basics &#34; width=&#34;320&#34; height=&#34;237&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;scope-e-closures&#34;&gt;Scope e Closures&lt;/h4&gt;
+
+&lt;p&gt;JavaScript possui escopo léxico. Entre outras coisas isso permite que você crie &lt;em&gt;closures&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;De maneira resumida você cria um “ambiente controlado” onde há funções/variáveis que só podem ser acessadas naquele escopo, criando um enclausuramento (&lt;em&gt;closure&lt;/em&gt;).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const initPage = (root) =&amp;gt; {
+  const $root = $(root);
+  const $menu = $root.find(&#39;.menu&#39;);
+  const $profile = $menu.find(&#39;.profile&#39;);
+
+  const initProfile = () =&amp;gt; {
+    $.get(&#39;/me&#39;)
+      .then(response =&amp;gt; $profile.text(response.username));
+    // ...
+  };
+
+  const showProfileModal = e =&amp;gt; {
+   // ...
+  };
+
+  $profile.on(&#39;click&#39;, e =&amp;gt; showProfileModal(e));
+
+  initProfile();
+};
+
+initPage(&#39;body&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Este é um exemplo bem bobo, mas que ilustra bem como criamos &lt;em&gt;closures&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;As variáveis declaradas dentro de &lt;em&gt;initPage&lt;/em&gt; só existem naquele escopo.&lt;/p&gt;
+
+&lt;p&gt;No mesmo exemplo podemos refatorar esse código em uma &lt;strong&gt;IIFE (Immediately-Invoked Function Expression)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;((root) =&amp;gt; {
+  const $root = $(root);
+  const $menu = $root.find(&#39;.menu&#39;);
+  const $profile = $menu.find(&#39;.profile&#39;);
+
+  const initProfile = () =&amp;gt; {
+    $.get(&#39;/me&#39;)
+     .then(response =&amp;gt; $profile.text(response.username));
+    //  ...
+  };
+
+  const showProfileModal = e =&amp;gt; {
+    // ...
+  };
+
+  $profile.on(&#39;click&#39;, e =&amp;gt; showProfileModal(e));
+
+  initProfile();
+})(&#39;body&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse código declaramos uma função e a executamos imediatamente, passando um argumento. Isso é extremamente útil quando queremos fazer um processamento de uma informação que vai servir apenas para criar uma variável.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const timezones = (() =&amp;gt; {
+  const zones = [];
+  const min = -12;
+  const max = 13;
+  let simbol;
+
+  for (let i = min; i &amp;lt;= max; i++) {
+    simbol = (i &amp;lt; 0) ? &#39;&#39; : &#39;+&#39;;
+    zones.push(`GMT${simbol}${i}`);
+  }
+
+  return zones;
+})();
+&lt;/pre&gt;
+
+&lt;p&gt;Como você já pode perceber, é possível expor dados de uma &lt;em&gt;closure&lt;/em&gt; como no exemplo anterior. A variável zones é retornada, assim a variável &lt;em&gt;timezones&lt;/em&gt; agora possui como valor o resultado da &lt;em&gt;closure&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Nesse exemplo a &lt;em&gt;closure&lt;/em&gt; não usa dados externos a ela (&lt;em&gt;parent scope&lt;/em&gt;/escopo pai) porém dada a natureza do JavaScript isso é perfeitamente possível.&lt;/p&gt;
+
+&lt;p&gt;Isso é útil para não poluir o escopo principal com informações irrelevantes.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const makeCounter = (start = 0) =&amp;gt; {
+  let current = start;
+
+  const add = (value = 1) =&amp;gt; current += value;
+  const remove = (value = 1) =&amp;gt; add(value * -1);
+  const get = () =&amp;gt; current;
+
+  return { add, remove, get };
+};
+
+const counter = makeCounter(10);
+
+counter.add() // 11
+counter.add() // 12
+counter.add(8) // 20
+counter.remove(10) // 10
+&lt;/pre&gt;
+
+&lt;p&gt;Este é um exemplo bem interessante. Estamos combinando &lt;em&gt;closures&lt;/em&gt; com &lt;em&gt;factory&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Com isso podemos criar vários contadores, e trabalhar como melhor convir com estes contadores.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_56186&#34; style=&#34;width: 510px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;img class=&#34;wp-image-56186 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/wtf.gif&#34; alt=&#34;Só isso! Simples, né?&#34; width=&#34;500&#34; height=&#34;284&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Só isso! Simples, né?
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Se você entendeu como o exemplo do contador funciona, parabéns você já sabe criar serviços com javascript.&lt;/p&gt;
+
+&lt;p&gt;Isso mesmo, este contator é um serviço. Na verdade ele é um &lt;em&gt;factory&lt;/em&gt;, mas com pequenos ajustes ele vira um serviço de fácil reuso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// makeCounter.js -&amp;gt; factory
+const makeCounter = (start = 0) =&amp;gt; {
+  let current = start;
+
+  const add = (value = 1) =&amp;gt; current += value;
+  const remove = (value = 1) =&amp;gt; add(value * -1);
+  const get = () =&amp;gt; current;
+
+  return { add, remove, get };
+};
+
+export default makeCounter
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// counter.js -&amp;gt; service
+import makeCounter from &#39;./makeCounter.js&#39;;
+
+export default makeCounter(0);
+&lt;/pre&gt;
+
+&lt;p&gt;Agora temos dois arquivos, um contendo o &lt;em&gt;factory&lt;/em&gt; do contador, e outro contendo o serviço de contagem.&lt;/p&gt;
+
+&lt;h2 id=&#34;módulos-javascript&#34;&gt;Módulos JavaScript&lt;/h2&gt;
+
+&lt;p&gt;&lt;img class=&#34;size-full wp-image-56185 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/module.gif&#34; alt=&#34;module&#34; width=&#34;400&#34; height=&#34;250&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Como visto anteriormente, é bem simples criar serviços com JavaScript, basta antes entender alguns conceitos.&lt;/p&gt;
+
+&lt;p&gt;Porém isso não é tudo, se você esta criando um serviço é porque tem a intenção de reusar esta lógica em mais de um local da aplicação. Isto não é uma regra, talvez você queira apenas centralizar a lógica da operação.&lt;/p&gt;
+
+&lt;p&gt;Não importa o objetivo inicial, você vai acabar criando um módulo JavaScript para aquela sua operação/serviço. No exemplo do contador foram criados dois arquivos, o &lt;em&gt;contador&lt;/em&gt; e o &lt;em&gt;factory do contador&lt;/em&gt;. Nesse momento você precisa entender minimamente o que são módulos JavaScript.&lt;/p&gt;
+
+&lt;p&gt;Em resumo: um arquivo JavaScript é um módulo e um módulo JavaScript é um arquivo.&lt;/p&gt;
+
+&lt;p&gt;Você pode criar um módulo a partir de outros módulos, como é o exemplo do contador, ele é composto a partir do módulo &lt;em&gt;makeCouter&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Em geral a lógica dos módulo é encapsulada em &lt;em&gt;closures&lt;/em&gt; e o retorno delas é &lt;em&gt;cacheado&lt;/em&gt;, sendo assim, uma vez que você importa um módulo, ele será &lt;strong&gt;o mesmo sempre, compartilhando seu estado&lt;/strong&gt;. Saiba mais &lt;a href=&#34;http://www.vuejs-brasil.com.br/utilizando-vuex-na-forma-modular-2/#vamosentenderoqueaconteceu&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;usando-serviços&#34;&gt;Usando serviços&lt;/h3&gt;
+
+&lt;p&gt;Agora que você possui essas informações acredito que criar seus próprios serviços não será nenhum &lt;em&gt;bicho de sete cabeças&lt;/em&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Vale a pena dizer que tudo pode ser considerado um serviço, inclusive &lt;em&gt;factories&lt;/em&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Para reforçar vou deixar mais um exemplo de uso de serviços.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import Http from &#39;./http.js&#39;;
+import UsersService from &#39;./modules/users/service.js&#39;;
+
+Http.setToken(&#39;XPTO&#39;); // Define o token de autentificação
+
+// Cattega a primeira página de usuários
+// Exibe um alerta com o nome do primeiro usuário retornado pelo serviço
+
+UsersService
+  .getAll({ page: 1 })
+  .then(result =&amp;gt; result.data)
+  .then(data =&amp;gt; data[0])
+  .then(first =&amp;gt; {
+    alert(first.name);
+  });
+&lt;/pre&gt;
+
+&lt;p&gt;Para efeito de aprendizado uma sintaxe alternativa, com &lt;a href=&#34;https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Statements/import&#34;&gt;&lt;em&gt;import binding&lt;/em&gt;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import { setToken } from &#39;./http.js&#39;;
+import { getAll as getAllUsers } from &#39;./modules/users/service.js&#39;;
+
+setToken(&#39;XPTO&#39;); // Define o token de autentificação
+
+// Carrega a primeira página de usuários
+// Exibe um alerta com o nome do primeiro usuário retornado pelo serviço
+
+getAllUsers({ page: 1 })
+  .then(result =&amp;gt; result.data)
+  .then(data =&amp;gt; data[0])
+  .then(first =&amp;gt; {
+    alert(first.name);
+  });
+&lt;/pre&gt;
+
+&lt;p&gt;Este pode não parecer para alguns mas é um exemplo bem prático do uso de serviços.&lt;/p&gt;
+
+&lt;p&gt;O serviço de &lt;em&gt;Http&lt;/em&gt; também é usado pelo &lt;em&gt;serviço de usuários&lt;/em&gt;, por isso é possível definir o &lt;strong&gt;&lt;em&gt;token&lt;/em&gt;&lt;/strong&gt; de autentificação antes de efetivamente usar os serviços, pois eles vão compartilhar o mesmo estado/serviço.&lt;/p&gt;
+
+&lt;p&gt;Outra característica interessante é que esses serviços não estão ligados diretamente a nenhum contexto. Isso significa que não importa que ambiente você esteja ou que &lt;em&gt;framework&lt;/em&gt; você esta usando, os serviços são agnósticos. Eles podem ser usados no &lt;strong&gt;NodeJS, VueJS, ReactJS&lt;/strong&gt;, etc.&lt;/p&gt;
+
+&lt;p&gt;Este é um dos princípios do polimorfismos do JavaScript porém este é outro assunto.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Se quiser saber mais sobre meu trabalho visite meu blog&lt;a href=&#34;https://medium.com/@luizvinicius73&#34;&gt; https://medium.com/@luizvinicius73&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Este artigo foi originalmente postado no meu &lt;a href=&#34;https://medium.com/by-vinicius-reis/trabalhando-com-servicos-no-javascript-864310cf386c&#34;&gt;blog no medium&lt;/a&gt; em 31 de Julho de 2016&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

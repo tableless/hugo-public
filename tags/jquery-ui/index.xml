@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Jquery Ui on Tableless</title>
+    <link>http://tableless.com.br/tags/jquery-ui/index.xml</link>
+    <description>Recent content in Jquery Ui on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/jquery-ui/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Habilitando tags em fotos com jQuery</title>
+      <link>http://tableless.com.br/habilitando-tags-em-fotos-com-jquery/</link>
+      <pubDate>Mon, 20 Jun 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/habilitando-tags-em-fotos-com-jquery/</guid>
+      <description>
+
+&lt;p&gt;Marcar seus amigos nas fotos publicadas é um dos recursos mais populares do Facebook. Neste artigo você confere como implementar uma interface semelhante utilizando o plugin &lt;em&gt;imgAreaSelect&lt;/em&gt;. Veremos apenas a parte client-side, sem armazenar as informações das tags, portanto, sem nenhuma programação server-side.&lt;/p&gt;
+
+&lt;h3 id=&#34;nosso-html-css&#34;&gt;Nosso HTML/CSS&lt;/h3&gt;
+
+&lt;p&gt;O primeiro passo é criar um HTML com a foto de exemplo. Começamos adicionando ao &lt;em&gt;head&lt;/em&gt; chamadas para os scripts e as folhas de estilo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script type=&#34;text/javascript&#34; src=&#34;js/jquery.min.js&#34;&amp;gt;
+&amp;lt;script type=&#34;text/javascript&#34; src=&#34;js/jquery-ui-1.8.13.custom.min.js&#34;&amp;gt;
+&amp;lt;script type=&#34;text/javascript&#34; src=&#34;js/jquery.imgareaselect-0.9.6/scripts/jquery.imgareaselect.min.js&#34;&amp;gt;
+&amp;lt;link href=&#34;css/ui-lightness/jquery-ui-1.8.13.custom.css&#34; rel=&#34;stylesheet&#34; /&amp;gt;
+&amp;lt;link href=&#34;js/jquery.imgareaselect-0.9.6/css/imgareaselect-default.css&#34; rel=&#34;stylesheet&#34; /&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Além do &lt;em&gt;imgAreaSelect&lt;/em&gt;, também utilizamos a biblioteca de componentes para interface jQueryUI. Ela será responsável por mover (&lt;em&gt;draggable&lt;/em&gt;) e redimensionar (&lt;em&gt;resizable&lt;/em&gt;) as tags nas fotos.&lt;/p&gt;
+
+&lt;p&gt;A marcação HTML é bem simples, apenas com a imagem e um link para exibir/ocultar as tags. O formulário para adicionar uma tag será adicionado &lt;em&gt;on the fly&lt;/em&gt;, após selecionarmos uma área. E como o formulário terá posição absoluta, é importante definir, no CSS, o atributo &amp;#8220;position:relative&amp;#8221; para o container da imagem, no nosso caso o elemento &lt;em&gt;p&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;p&amp;gt;&amp;lt;img src=&#34;img/ramones.jpg&#34; /&amp;gt;&amp;lt;/p&amp;gt;
+&amp;lt;p&amp;gt;&amp;lt;a href=&#34;#&#34; class=&#34;toggle-tags&#34;&amp;gt;ocultar tags&amp;lt;/a&amp;gt;&amp;lt;/p&amp;gt;
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;p{
+  position:relative
+}
+div.form-tag{
+  position:absolute;
+  top:0;
+  left:0;
+  z-index:1000;
+}
+span.tag{
+  position:absolute;
+  border:1px solid #df0d32;
+  background-color:rgba(255, 255, 255, 0.2);
+  display:inline-block;
+  color:#df0d32;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;selecionando-áreas-na-foto&#34;&gt;Selecionando áreas na foto&lt;/h3&gt;
+
+&lt;p&gt;Passo a passo, esse será o fluxo da nossa interação:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Com o mouse, o usuário seleciona uma área da foto para marcação;&lt;/li&gt;
+&lt;li&gt;Feita a seleção, o script exibe uma caixa de texto para digitação do conteúdo da tag;&lt;/li&gt;
+&lt;li&gt;Ao pressionar a tecla enter, o script cria, visualmente, a tag.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Abaixo temos a chamada para o plugin &lt;em&gt;imgAreaSelect&lt;/em&gt;. Precisamos armazená-lo em uma variável global, chamada aqui de &amp;#8220;ias&amp;#8221;, porque posteriormente vamos alterar/limpar áreas de seleções de acordo com a interação do usuário (pressionado a tecla ESC). Por isso também utilizamos a opção &amp;#8220;instance: true&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;ias = $(&#39;img#foto&#39;).imgAreaSelect({
+  handles: true,
+  instance: true,
+  onSelectEnd: formTag,
+  onSelectStart: function(){
+    $(&#39;.form-tag&#39;).remove();
+  }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;O evento &amp;#8220;onSelectEnd&amp;#8221; representa o momento em que o usuário termina de marcar uma área &amp;#8211; e é nele que executamos a função &amp;#8220;formTag&amp;#8221; para exibir o campo de texto para preenchimento. Já o &amp;#8220;onSelectStart&amp;#8221; representa o início do movimento de seleção e, nesse caso, precisamos eliminar qualquer outro form presente para evitar confusão.&lt;/p&gt;
+
+&lt;h3 id=&#34;salvando-as-tags&#34;&gt;Salvando as tags&lt;/h3&gt;
+
+&lt;p&gt;Ok, hora de exibir o formulário para o usuário adicionar uma tag. Qualquer função no evento &amp;#8220;onSelectEnd&amp;#8221; pode (e deve) receber dois parâmetros: &lt;em&gt;img&lt;/em&gt; e &lt;em&gt;selection&lt;/em&gt;. O primeiro é um objeto que representa a imagem onde foi aplicada a seleção e o segundo contém todas as informações de tamanho e posicionamento. Os vértices X e Y, necessários para posicionar o formulário logo abaixo da marcação, são representados por &lt;em&gt;selection.x1&lt;/em&gt; e &lt;em&gt;selection.y1&lt;/em&gt;, respectivamente.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;var formTag = function(img, selection){
+  $(&#39;.form-tag&#39;).remove();
+  if(selection.width &amp;gt; 0 &amp;&amp; selection.height &amp;gt; 0){
+    $(&#39;&amp;lt;div class=&#34;form-tag&#34;&amp;gt;&amp;lt;input type=&#34;text&#34; size=&#34;20&#34; class=&#34;tag-name&#34; /&amp;gt;&amp;lt;/div&amp;gt;&#39;).insertAfter(img);
+    $(&#39;.form-tag&#39;)
+      .css({
+        top : (selection.y1 + selection.height),
+        left : selection.x1
+      })
+      .find(&#39;input.tag-name&#39;)
+        .focus()
+        .data(&#39;selection&#39;, selection);
+  }
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Notem que, antes de exibir o formulário verificamos com &lt;code class=&#34;lang-jquery&#34;&gt;if(selection.width &amp;gt; 0 &amp;amp;&amp;amp; selection.height &amp;gt; 0)&lt;/code&gt; se de fato a seleção existe ou se o usuário apenas clicou na área da foto (acredito ser uma falha do plugin, já que nenhuma seleção foi criada). E, ao adicionar o formulário, jogamos o foco do cursor para o campo de texto e armazenamos as posições, para usarmos mais tarde, no atributo data do input.&lt;/p&gt;
+
+&lt;p&gt;Agora precisamos identificar quando o usuário pressionar enter ou ESC no input. Pressionando enter, nosso script deve salvar e exibir a tag na foto, enquanto a tecla ESC representa o cancelamento da ação, ou seja, remove o formulário. Utilizamos o evento keyup no input com uma função recebendo o parâmetro &amp;#8220;e&amp;#8221; (o próprio evento keyup). Os atributos &amp;#8220;keyCode&amp;#8221; e &amp;#8220;which&amp;#8221; equivalem à tecla pressionada pelo usuário, onde 13 é o enter e 27 ESC. Precisamos utilizar ambos porque alguns navegadores utilizam keyCode e outros which.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$(&#39;input.tag-name&#39;).live(&#39;keyup&#39;, function(e){
+  if(e.keyCode == 13 || e.which == 13){ // enter
+    if($(this).val() != &#34;&#34;){
+      var selection = $(this).data(&#39;selection&#39;);
+      $(&#39;&amp;lt;span class=&#34;tag&#34;&amp;gt;&#39;+$(this).val()+&#39;&amp;lt;/span&amp;gt;&#39;).appendTo($(this).parent().parent());
+      $(&#39;.tag:last&#39;)
+        .css({
+          height: selection.height,
+          width: selection.width,
+          top: selection.y1,
+          left:selection.x1
+        })
+        .draggable({ containment: &#39;#foto&#39; })
+        .resizable({ containment: &#39;#foto&#39;, ghost: true });
+      limpaFormTag();
+    }
+  }else if(e.keyCode == 27 || e.which == 27){ // esc
+    limpaFormTag();
+  }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Primeiro validamos o conteúdo do input &amp;#8211; não pode ser vazio. Caso o usuário tenha informado o conteúdo da tag, adicionamos o elemento span com a classe tag ao parágrafo da imagem. Com a tag recém adicionada, buscamos as dimensões e posicionamento armazenadas no atributo data-selection do input e definimos o css do span. Para dar um toque especial à nossa interface, conforme mencionado anteriormente, a tag ainda recebe os efeitos &lt;em&gt;draggable&lt;/em&gt; e &lt;em&gt;resizable&lt;/em&gt;, da jQueryUI, permitindo assim mover ou alterar seu tamanho depois de criada.&lt;/p&gt;
+
+&lt;p&gt;A função &amp;#8220;limpaFormTag&amp;#8221; esconde o formulário e atualiza nossa instânce do plugin imgAreaSelect, removendo qualquer seleção em andamento.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;var limpaFormTag = function(){
+  $(&#39;.form-tag&#39;).remove();
+  ias.setOptions({hide:true});
+  ias.update();
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Com tudo pronto, falta definir a ação do link que exibe/oculta as tags. O método &amp;#8220;toggle&amp;#8221; automaticamente identifica se o seletor, nossas tags, estão visíveis ou não e executa a ação (exibir/ocultar) de acordo com o estado atual do elemento.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$(&#39;.toggle-tags&#39;).click(function(e){
+  $(&#39;.tag&#39;).toggle();
+  if($(&#39;.tag:visible&#39;).length &amp;gt; 0) {
+    $(this).text(&#39;ocultar tags&#39;);
+  } else {
+    $(this).text(&#39;exibir tags&#39;);
+  }
+  e.preventDefault();
+});
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;e-agora-para-onde-ir&#34;&gt;E agora, para onde ir?&lt;/h3&gt;
+
+&lt;p&gt;É claro que, para essa interface de fato funcionar, seria necessário armazenar as informações das tags em banco de dados. No nosso exemplo, ao atualizar a página, todas as essas informações serão perdidas. Logo, um dos próximos passos seria um script server-side executado quando o usuário pressionar a tecla enter no input.&lt;/p&gt;
+
+&lt;p&gt;Também seria legal desenvolver opções para edição do conteúdo e exclusão das tags.&lt;/p&gt;
+
+&lt;p&gt;E que tal &lt;a href=&#34;http://tableless.com.br/anatomia-de-um-plugin-jquery&#34; target=&#34;_blank&#34;&gt;transformar tudo em um plugin&lt;/a&gt;? Só não esqueça de compartilhá-lo com a gente!&lt;/p&gt;
+
+&lt;h3 id=&#34;downloads-referências&#34;&gt;Downloads &amp;amp; referências&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://jqueryui.com/&#34; target=&#34;_blank&#34;&gt;jQuery UI&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://odyniec.net/projects/imgareaselect/&#34; target=&#34;_blank&#34;&gt;plugin imgAreaSelect&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://tableless.github.io/exemplos/habilitando-tags-em-fotos-com-jquery/&#34; target=&#34;_blank&#34;&gt;Visualizar exemplo&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/tableless/exemplos/tree/gh-pages/habilitando-tags-em-fotos-com-jquery&#34; target=&#34;_blank&#34;&gt;Download do código fonte&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.cambiaresearch.com/c4/702b8cd1-e5b0-42e6-83ac-25f0306e3e25/javascript-char-codes-key-codes.aspx&#34; target=&#34;_blank&#34;&gt;Tabela com KeyCodes para JavaScript&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Carrinho de compras com drag and drop</title>
+      <link>http://tableless.com.br/carrinho-de-compras-com-drag-and-drop/</link>
+      <pubDate>Thu, 13 Jan 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/carrinho-de-compras-com-drag-and-drop/</guid>
+      <description>
+
+&lt;p&gt;Se você comprou alguma coisa recentemente no Submarino deve ter notado uma nova opção na interface do site: agora é possível arrastar os produtos exibidos na página para o seu carrinho, que fica exibido de forma permanente no topo do site.&lt;/p&gt;
+
+&lt;p&gt;De uma forma simples, vou tentar mostrar pra vocês como implementar uma solução parecida utilizando jQuery e sua biblioteca para interfaces, a &lt;a href=&#34;http://jqueryui.com/&#34; target=&#34;_blank&#34;&gt;jQuery UI&lt;/a&gt; &amp;#8211; é nela que encontramos os plugins draggable() e droppable(), responsáveis, como os nomes sugerem, por toda nossa operação de arrastar e soltar produtos.&lt;/p&gt;
+
+&lt;p&gt;Também veremos um pouco sobre o vasto universo de animações com jQuery através do método animate(). Diferente do Submarino, onde a barra superior é um novo elemento e não o próprio carrinho original, a nossa irá acompanhar de forma fluida o movimento do usuário na página.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/01/exemplo.zip&#34;&gt;Download do código-fonte&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://tableless.github.com/exemplos/carrinho-compras/&#34; target=&#34;_blank&#34;&gt;Visualizar o exemplo no navegador&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;estrutura-básica&#34;&gt;Estrutura básica&lt;/h2&gt;
+
+&lt;p&gt;Vamos começar com um pouco de HTML/CSS para apresentar nossa loja. A página terá os seguintes elementos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Barra localizada no topo (#carrinho-top) &amp;#8211; essa barra, no carregamento inicial, estará relativa ao corpo do site. Assim que o usuário mover o mouse abaixo da metade da altura da barra, ela será &amp;#8220;fixada&amp;#8221; e acompanhará a navegação.&lt;/li&gt;
+&lt;li&gt;Box do mini-carrinho (#carrinho-container) &amp;#8211; ficará dentro da barra no topo e é a área onde o usuário pode &amp;#8220;soltar&amp;#8221; os produtos.&lt;/li&gt;
+&lt;li&gt;Lista de produtos (#produtos) &amp;#8211; a listagem de produtos, contendo os elementos que podem ser arrastados para o carrinho.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div&amp;gt;
+    &amp;lt;div&amp;gt;
+        &amp;lt;p&amp;gt;Arraste produtos para esta área&amp;lt;/p&amp;gt;
+    &amp;lt;/div&amp;gt;
+    &amp;lt;div&amp;gt;
+        &amp;lt;ul&amp;gt;
+            &amp;lt;li class=&#34;adicione&#34;&amp;gt;Arraste produtos para esta área&amp;lt;/li&amp;gt;
+        &amp;lt;/ul&amp;gt;
+    &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+
+...
+
+&amp;lt;ul&amp;gt;
+     &amp;lt;li class=&#34;produto-dd&#34;&amp;gt;&amp;lt;h3&amp;gt;Livro 1&amp;lt;/h3&amp;gt;&amp;lt;p&amp;gt;&amp;lt;img src=&#39;_img/twa.jpg&#39; width=&#39;75&#39; height=&#39;90&#39; /&amp;gt;&amp;lt;/p&amp;gt;&amp;lt;p class=&#39;preco-de&#39;&amp;gt;De: R$31,00&amp;lt;/p&amp;gt;&amp;lt;p class=&#39;preco-por&#39;&amp;gt;Por: R$13,00&amp;lt;/p&amp;gt;&amp;lt;/li&amp;gt;
+    ...
+&amp;lt;/ul&amp;gt;
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div#carrinho-top{background-color:#C92D21;width:960px;color:#fff;border-bottom:1px dashed #fff;opacity:.8;position:relative;}
+div#carrinho-info{padding:10px;}
+div#carrinho-container{height:240px;position:absolute;width:240px;background-color:#fff;border:2px solid #c92d21;display:none;}
+div#carrinho-container ul{overflow:auto;height:200px;list-style:none;margin:10px;}
+div#carrinho-container ul li{color:#333;font-size:12px;border-bottom:1px dotted #ccc;text-align:center;margin:10px;}
+ul#produtos li{float:left;background-color:#fff;-moz-box-shadow:5px 5px 5px #ccc;-webkit-box-shadow:5px 5px 5px #ccc;box-shadow:5px 5px 5px #ccc;width:270px;text-align:center;margin:15px;padding:10px;}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;animando-a-barra-superior&#34;&gt;Animando a barra superior&lt;/h2&gt;
+
+&lt;p&gt;O primeiro passo da nossa implementação é fazer com que a barra superior acompanhe os movimentos do usuário, fazendo com que a área de &lt;em&gt;drop&lt;/em&gt; dos produtos fique sempre visível. Para tornar isso possível associaremos uma função ao evento scroll da janela (window).&lt;/p&gt;
+
+&lt;p&gt;Toda vez que a a distância do scroll para o topo for maior do que a metade da altura da barra, o CSS será alterado para que a barra fique sempre visível e uma leve animação levará a barra para onde for o scroll.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;// associando uma função ao evento scroll da janela
+$(window).scroll(function(){
+    // valor do scroll - distância entre a barrinha menor e o início do scroll
+    var wtop        = $(this).scrollTop();
+    // objeto da barra superior
+    var carrinho    = $(&#39;#carrinho-top&#39;);
+    // objeto container do site
+    var container   = $(&#39;#container&#39;);
+    // altura do carrinho
+    var cheight     = $(carrinho).height();
+    // distância do scroll é maior do que a altura da barra / 2 ?
+    if( wtop &amp;gt; ( cheight / 2 ) )
+    {
+        // adiciona uma margem ao container para evitar quebra do lay-out
+        $(container).css(&#39;margin-top&#39;, cheight+&#39;px&#39;);
+        // transforma a position da barra em absolute
+        $(carrinho)
+            .css({
+                position: &#39;absolute&#39;
+            })
+            // anima utilizando a propriedade marginTop, com velocidade de 100ms
+            .animate({
+                marginTop: ( wtop - cheight ) + &#39;px&#39;
+            }, 100);
+    }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;O funcionamento básico do método animate() segue o formato acima. O primeiro parâmetro é composto por um ou vários atributos CSS que farão a animação do elemento. No nosso caso, a barra será animada do valor original da sua margem superior até a especificada na função (a distância do scroll subtraída da altura da barra). Já o segundo parâmetro recebe um valor em milissegundos para efetuar a transição.&lt;/p&gt;
+
+&lt;p&gt;Precisamos agora de uma outra condição: quando o usuário voltar para o topo da página, nossa barra precisa recuperar o estado inicial, &amp;#8220;fixado&amp;#8221; no corpo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;// distância do scroll é menor do que a metade da altura da barra
+else
+{
+    $(container).css(&#39;margin-top&#39;, 0);
+    $(carrinho)
+        .stop(true, true)
+        .css({
+            position: &#39;relative&#39;,
+            marginTop: 0
+        });
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;definindo-as-áreas-de-drag-and-drop&#34;&gt;Definindo as áreas de drag and drop&lt;/h2&gt;
+
+&lt;p&gt;Utilizando a biblioteca jQuery UI vamos definir os elementos que podem ser arrastados (qualquer li dentro da lista #produtos) e a área que vai recebê-los, no nosso caso o div #carrinho-container.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$(&#39;#produtos li&#39;).draggable({
+    helper: &#39;clone&#39;,
+    start: function()
+    {
+        $(&#39;#carrinho-container&#39;).show();
+    }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Os produtos, que podem ser arrastados, recebem o método &lt;strong&gt;draggable&lt;/strong&gt;. Já ao box do carrinho é aplicado o método &lt;strong&gt;droppable&lt;/strong&gt;. A chamada dos ítens recebe apenas o parâmetro helper e o evento start. O parâmetro helper pode receber os valores &amp;#8216;original&amp;#8217;, &amp;#8216;clone&amp;#8217; ou uma função. Utilizaremos &amp;#8216;clone&amp;#8217; que, como o nome sugere, clona o elemento original na ação de arrastar.&lt;/p&gt;
+
+&lt;p&gt;Já evento &lt;em&gt;start&lt;/em&gt; acontece assim que o elemento começa a ser arrastado. Quando um produto sofre a ação de arrastar, precisamos exibir o carrinho, que é nossa área de drop.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$(&#39;#carrinho-produtos&#39;).droppable({
+    hoverClass: &#39;ui-state-hover&#39;,
+    drop: function( event, ui )
+    {
+        // remove a marcação &#34;arraste produtos para esta área&#34;
+        $(this).find(&#39;.adicione&#39;).remove();
+        // busca o ID do produto no campo hidden
+        var cod = ui.draggable.find(&#39;.produto-id&#39;).val();
+        // verifica se o produto existe
+        if( $(this).find(&#39;#clone-&#39;+cod).length == 0 )
+        {
+            // adiciona o elemento li à lista de produtos do carrinho
+            $(&#39;&amp;lt;li&amp;gt;&amp;lt;/li&amp;gt;&#39;).html(ui.draggable.html()).prependTo( this );
+            // animação para indicar que o produto foi adicionado
+            $(this).find(&#39;li:first&#39;).slideDown();
+            // atualiza total de produtos do carrinho
+            var total_produtos = $(this).find(&#39;li&#39;).length;
+            $(&#39;#carrinho-info&#39;).html(&#39;&amp;lt;p&amp;gt;&#39; + total_produtos + &#39; produto&#39; + ( total_produtos &amp;gt; 1 ? &#39;s&#39; : &#39;&#39; ) + &#39;&amp;lt;/p&amp;gt;&#39; );
+        }
+    }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;No método &lt;strong&gt;droppable&lt;/strong&gt; utilizaremos também um parâmetro e um evento. O parâmetro é o hoverClass, que especifica uma classe que será aplicada a àrea de drop quando um ítem estiver sendo arrastado (vamos utilizar o padrão da jQuery UI). E o evento drop é acionado toda vez que um elemento for &amp;#8220;solto&amp;#8221; no carrinho. Nossa função primeiro verifica se o produto já existe no carrinho. Caso não exista, cria um novo elemento li na lista com os dados do produto.&lt;/p&gt;
+
+&lt;p&gt;Para uma lista completa dos parâmetros e eventos visite &lt;a href=&#34;http://jqueryui.com/demos/draggable&#34; target=&#34;_blank&#34;&gt;jqueryui.com/demos/draggable&lt;/a&gt; e &lt;a href=&#34;http://jqueryui.com/demos/droppable&#34; target=&#34;_blank&#34;&gt;jqueryui.com/demos/droppable&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;melhorando-a-exibição-do-carrinho&#34;&gt;Melhorando a exibição do carrinho&lt;/h2&gt;
+
+&lt;p&gt;O código mostrado até agora tem um problema básico. Toda vez que o produto é adicionado o carrinho &amp;#8220;some&amp;#8221;. Seria legal que ele ficasse visível por uma certa quantidade detempo e só depois de um período de inatividade fosse escondido. Para isso vamos implementar um timer global na variável timerCarrinho.&lt;/p&gt;
+
+&lt;p&gt;Toda vez que o mouse estiver sobre o carrinho o timer é zerado. E, quando o mouse deixar a área, depois de 5 segundos, o carrinho é escondido.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;var timerCarrinho = &#39;&#39;;
+$(&#39;#produtos li&#39;).draggable({
+    helper: &#39;clone&#39;,
+    start: function()
+    {
+        clearTimeout( timerCarrinho );
+        $(&#39;#carrinho-container&#39;).show();
+    }
+});
+$(&#39;#carrinho-container&#39;).mouseenter(function(){
+    clearTimeout( timerCarrinho );
+});
+
+$(&#39;#carrinho-container&#39;).mouseleave(function(){
+    var carrinho = $(this);
+    timerCarrinho = setTimeout( function(){
+        $(carrinho).slideUp();
+    }, 5000 );
+});
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;dever-de-casa&#34;&gt;Dever de casa&lt;/h2&gt;
+
+&lt;p&gt;Essa é uma versão básica de um carrinho drag and drop que pode sofrer diversas melhorias. Segue abaixo uma lista de implementações e funcionalidades novas pra vocês praticarem um pouco:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Remover animação da barra, fazendo todo o posicionamento via CSS;&lt;/li&gt;
+&lt;li&gt;Ao adicionar um produto que já exista no carrinho, aumentar a quantidade ao invés de ignorar;&lt;/li&gt;
+&lt;li&gt;Adicionar funcionalidade para excluir produtos do carrinho;&lt;/li&gt;
+&lt;li&gt;Salvar em cookie o carrinho do usuário, ou via AJAX, ou com o &lt;a href=&#34;http://plugins.jquery.com/project/Cookie&#34; target=&#34;_blank&#34;&gt;plugin de cookies&lt;/a&gt; do jQuery.&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

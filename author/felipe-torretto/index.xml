@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Felipe Torretto on Tableless</title>
+    <link>http://tableless.com.br/author/felipe-torretto/index.xml</link>
+    <description>Recent content in Felipe Torretto on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/felipe-torretto/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Acelere o carregamento de seu site com PHP Caching</title>
+      <link>http://tableless.com.br/acelere-o-carregamento-de-seu-site-com-php-caching/</link>
+      <pubDate>Thu, 07 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/acelere-o-carregamento-de-seu-site-com-php-caching/</guid>
+      <description>
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Criar um site dinâmico, de fácil manutenção e que carregue rápido é o desejo de todo desenvolvedor, mas para isso não existe uma fórmula mágica, é necessário conciliar diferentes ferramentas e técnicas. &lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Mas muitos desenvolvedores iniciantes em PHP não conhecem as soluções existentes ou tem medo da curva de aprendizado que os frameworks exigem.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;O foco desse artigo é mostrar para esses desenvolvedores como uma técnica simples, utilizando apenas comandos básicos do PHP, pode acelerar o carregamento de seu site e evitar que ele fique caindo.&lt;/span&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;o-problema-a-ser-resolvido-processamento-desnecessário&#34;&gt;O problema a ser resolvido, processamento desnecessário&lt;/h3&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Para cada acesso a um site dinâmico, o servidor geralmente realiza consultas no banco de dados, executa blocos de códigos e entrega uma página pronta para exibição.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Mesmo que os acessos a uma página ocorram com poucos segundos de diferença e nada no conteúdo tenha sido alterado, o servidor irá fazer o mesmo processo para cada solicitação, quantas vezes for preciso.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Isto é um trabalho desnecessário e que exige muito processamento do servidor, principalmente em momentos de tráfego intenso, e se o servidor não der conta, o seu site ficará temporariamente fora do ar.&lt;/span&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;a-solução-php-caching&#34;&gt;A solução, PHP Caching&lt;/h3&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Também conhecido como Cache de Objetos, essa técnica executa uma página PHP e armazena o conteúdo gerado em um arquivo HTML, e para os próximos acessos, durante um certo período, o servidor irá entregar esse HTML gerado.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Sem a necessidade de consultar o banco de dados ou executar algum tipo de programação para montar a página, o servidor além de conseguir entregar uma página mais rapidamente, também suportará um número maior de acessos concorrentes.&lt;/span&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;qual-o-ganho-na-performance&#34;&gt;&lt;strong&gt;Qual o ganho na performance?&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Vai depender muito da programação do site, mas quanto mais ações forem realizadas no backend, maior será o ganho. Veja abaixo os resultados obtidos durante um teste:&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter wp-image-55365 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/phpcaching-benchmarks.jpg&#34; width=&#34;1180&#34; height=&#34;393&#34; /&gt;A versão dinâmica foi entregue em 318 ms e a versão cacheada em 14 ms, 23 vezes mais rápido.&lt;/p&gt;
+
+&lt;h2 id=&#34;desenvolvimento&#34;&gt;Desenvolvimento&lt;/h2&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Chega de teoria e vamos para a prática, criaremos juntos um exemplo que seja o mais simples possível.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Primeiro crie uma pasta no seu ambiente de desenvolvimento chamada &lt;code&gt;phpcaching&lt;/code&gt;, dentro dela crie outras duas pastas, uma chamada &lt;code&gt;paginas&lt;/code&gt; onde iremos armazenar as páginas dinâmicas em PHP e outra chamada &lt;code&gt;cache&lt;/code&gt; que irá armazenar os arquivos HTML.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Dentro da pasta &lt;code&gt;paginas&lt;/code&gt; crie um arquivo chamado &lt;code&gt;index.php&lt;/code&gt;, com o código:&lt;/span&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;html&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;head&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;    &amp;lt;title&amp;gt;PHP Caching&amp;lt;/title&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;body&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;    &amp;lt;p&amp;gt;Página gerada em: &amp;lt;?php echo date(&#39;H:i:s&#39;) ?&amp;gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;/body&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Teste a página que acabamos de criar, acessando ela pelo navegador, no meu caso o endereço é: &lt;code&gt;&lt;a href=&#34;http://localhost/phpcaching/paginas/index.php&#34;&gt;http://localhost/phpcaching/paginas/index.php&lt;/a&gt;&lt;/code&gt;&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Você verá uma página simples, que apenas mostra o horário atual toda vez que é acessada.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Agora vamos criar o nosso controlador de cache, que irá funcionar da seguinte maneira:&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter wp-image-55366 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/phpcaching-diagrama-de-atividades.jpg&#34; width=&#34;551&#34; height=&#34;551&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Sabendo a lógica de funcionamento, fica mais fácil programar nosso controlador. Crie na raiz do projeto um arquivo chamado &lt;code&gt;index.php&lt;/code&gt; com o seguinte código:&lt;/span&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+// Configurações
+$validadeEmSegundos = 60;
+$arquivoCache = &#39;cache/index.html&#39;;
+$urlDinamica = &#39;http://localhost/phpcaching/paginas/index.php&#39;;
+
+// Verifica se o arquivo cache existe e se ainda é válido
+if (file_exists($arquivoCache) &amp;&amp; (filemtime($arquivoCache) &amp;gt; time() - $validadeEmSegundos)) {
+
+    // Lê o arquivo cacheado
+    $conteudo = file_get_contents($arquivoCache);
+} else {
+
+    // Acessa a versão dinâmica
+    $conteudo = file_get_contents($urlDinamica);
+
+    // Cria o cache
+    file_put_contents($arquivoCache, $conteudo);
+}
+
+// Exibe o conteúdo da página
+echo $conteudo;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Vou explicar as funções utilizadas para caso você não conheça alguma delas:&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;file_exists&lt;/code&gt;: verifica se um arquivo existe&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;file_get_contents&lt;/code&gt;: lê o conteúdo de um arquivo&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;file_put_contents&lt;/code&gt;: escreve o conteúdo em um arquivo&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;filemtime&lt;/code&gt;: retorna o horário que o arquivo foi modificado&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;time&lt;/code&gt;: retorna o horário atual&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Agora acesse o site através do controlador de cache, no meu caso &lt;code&gt;&lt;a href=&#34;http://localhost/phpcaching/&#34;&gt;http://localhost/phpcaching/&lt;/a&gt;&lt;/code&gt;&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Repare que o horário aparece como anteriormente, mas se atualizarmos a página o horário não muda. Isto acontece porque a página exibida é a versão cacheada, que foi armazenada na pasta &lt;code&gt;cache&lt;/code&gt; com o nome &lt;code&gt;index.html&lt;/code&gt;.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto, nossa solução para cachear páginas está criada.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Esta técnica é uma maneira eficaz de aumentar a performance de seu site, sem precisar instalar algo no servidor ou algum framework no seu projeto e é recomendada para quem está iniciando no assunto.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;O código apresentado não é uma solução definitiva, mas uma base que podemos expandir de acordo com as necessidades de cada projeto, crie sua versão melhorada, faça um teste com um projeto que você já possua e analise a diferença no tempo de carregamento do site.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Eu utilizo essa técnica em um portal de notícias da minha região, e apesar do site já ter sido migrado de servidor algumas vezes, o código nunca precisou de alteração, essa é a vantagem de utilizar apenas comandos básicos do PHP.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Continuem os estudos e que a performance esteja com você.&lt;/span&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

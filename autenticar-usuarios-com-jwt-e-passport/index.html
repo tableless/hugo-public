@@ -1,0 +1,464 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/autenticar-usuarios-com-jwt-e-passport/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/autenticar-usuarios-com-jwt-e-passport/">API para Autenticar usuários com JWT e Passport</a></h1>
+  <p class="tb-hero-p">
+    
+    Neste artigo nós vamos explorar os principais conceitos e implementações da autenticação de usuário utilizando o mecanismo chamado JWT (JSON Web Token) por meio de um módulo Passport. Afinal, este é um importante passo para se certificar de que os usuários façam uma autenticação segura dentro de uma API baseada em REST.
+Antes de começarmos, vamos criar uma simples API em REST, que será utilizada ao longo deste post. Para simplificar nosso exemplo, nós vamos criar uma Express API.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/jscrambler">Jscrambler</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Neste artigo nós vamos explorar os principais conceitos e implementações da autenticação de usuário utilizando o mecanismo chamado JWT (<em><a href="https://jwt.io">JSON Web Token</a></em>) por meio de um módulo Passport. Afinal, este é um importante passo para se certificar de que os usuários façam uma autenticação segura dentro de uma API baseada em REST.</p>
+
+<p>Antes de começarmos, vamos criar uma simples API em REST, que será utilizada ao longo deste post. Para simplificar nosso exemplo, nós vamos criar uma Express API. Para começar, vamos configurar nosso projeto, abrir o terminal e digitar o seguinte comando:</p>
+
+<pre class="lang-bash">mkdir my-api
+cd my-api
+npm init</pre>
+
+<p>O <strong>npm init</strong> mostra um questionário simples para configurar algumas descrições e gerar o arquivo <strong>package.json</strong>, o principal arquivo que usaremos para instalar alguns módulos para nosso projeto. Você pode responder cada questão como preferir. Depois disso, instale o framework <strong>express</strong> e o módulo <strong>body-parser</strong> usando este comando:</p>
+
+<pre class="lang-bash">npm install express body-parser --save</pre>
+
+<p>Agora que temos o módulo Express instalado, vamos escrever nosso código para a API. Para isso, crie o arquivo <strong>index.js</strong> com o código abaixo:</p>
+
+<pre class="lang-js">// index.js
+var express = require("express");
+var bodyParser = require("body-parser");
+var app = express();
+
+app.use(bodyParser.json());
+
+app.get("/", function(req, res) {
+  res.json({status: "My API is alive!"});
+});
+
+app.listen(3000, function() {
+  console.log("My API is running...");
+});
+module.exports = app;
+</pre>
+
+<p>Neste post usaremos um array simples de dados de usuários para facilitar a implementação do JWT. No entanto, em aplicações reais é altamente recomendável usar um banco de dados em vez de um simples array. Então, usaremos esse array apenas para exemplo. Nós precisaremos de uma lista de dados de usuários a qual será utilizada para verificar se a solicitação é de um usuário autenticado. Para isso, crie o arquivo <strong>users.js</strong> com o código a seguir:</p>
+
+<pre class="lang-js">// users.js
+// Fake list of users to be used in the authentication
+var users = [
+{id: 1, name: "John", email: "john@mail.com", password: "john123"},
+{id: 2, name: "Sarah", email: "sarah@mail.com", password: "sarah123"}
+];
+
+module.exports = users;
+</pre>
+
+<p>Agora nós temos uma API simples o suficiente para explorar como implementar a autenticação JWT nas próximas sessões.</p>
+
+<h2 id="introdução-ao-passport-js-e-jwt">Introdução ao Passport.js e JWT</h2>
+
+<h3 id="sobre-o-passport-js">SOBRE O PASSPORT.JS</h3>
+
+<p>Há um módulo Node.js muito bacana e fácil de trabalhar com autenticação de usuários, e ele é chamado de <strong>Passport</strong>.</p>
+
+<p>Passport é um framework extremamente flexível e modular. Ele permite que você trabalhe com as principais estratégias de autenticação, que são: <strong>Basic &amp; Digest</strong>, <strong>OpenID</strong>, <strong>OAuth</strong>, <strong>OAuth 2.0</strong> e <strong>JWT</strong>. Além disso, ele também permite trabalhar com serviços de autenticação externos, como <strong>Facebook</strong>, <strong>Google+</strong>, <strong>Twitter</strong>, entre outros. Aliás, no site oficial da framework, <strong>há uma lista com mais de 300 estratégias de autenticação</strong>, criadas e mantidas por terceiros.</p>
+
+<p><img class="alignnone size-full wp-image-56151" src="http://tableless.com.br/wp-content/uploads/2016/10/site-passport.jpg" alt="site-passport" width="1135" height="617" /></p>
+
+<p>O site oficial do Passport é: <a href="http://passportjs.org">passportjs.org</a>.</p>
+
+<h3 id="sobre-a-jwt">SOBRE A JWT</h3>
+
+<p>JWT (<em>JSON Web Tokens</em>) é uma estratégia de autenticação para APIs em REST simples e segura. Trata-se de um padrão aberto para autenticações web e é totalmente baseada em requests JSON entre o cliente e servidor. Seu mecanismo de autenticação funciona da seguinte maneira:</p>
+
+<ol>
+<li>O cliente faz uma solicitação uma única vez ao enviar as credenciais de login e senha;</li>
+<li>O servidor valida as credenciais e, se tudo estiver certo, ele retorna para o cliente um JSON com um token que codifica dados de um usuário logado no sistema;</li>
+<li>Após receber o token, o cliente pode armazená-lo da forma que preferir, seja por LocalStorage, Cookie ou outros mecanismos de armazenamento do lado do cliente;</li>
+<li>Toda vez que o cliente acessa uma rota que requere autenticação, ele apenas envia esse token para a API para autenticar e liberar os dados de consumo;</li>
+<li>O servidor sempre valida esse token para permitir ou bloquear uma solicitação de cliente.</li>
+</ol>
+
+<p><img class="alignnone size-full wp-image-56152" src="http://tableless.com.br/wp-content/uploads/2016/10/site-jwt.jpg" alt="site-jwt" width="1135" height="609" /></p>
+
+<p>Para detalhes específicos sobre JWT, acesse <a href="http://jwt.io">jwt.io</a>.</p>
+
+<h2 id="instalando-passport-e-jwt">Instalando Passport e JWT</h2>
+
+<p>Para começar a diversão, nós utilizaremos os seguintes módulos:</p>
+
+<ul>
+<li><strong>passport</strong>: como um mecanismo de autenticação;</li>
+<li><strong>passport-jwt</strong>: como estratégia de autenticação JWT para Passport;</li>
+<li><strong>jwt-simple</strong>: como codificador e decodificador para tokens JSON;</li>
+</ul>
+
+<p>Agora, vamos instalar tudo isso rodando este comando:</p>
+
+<pre class="lang-bash">npm install passport passport-jwt jwt-simple --save</pre>
+
+<p>Para começar esta implementação, primeiro nós vamos criar um arquivo <strong>config.js</strong> para adicionar dois itens de configuração para o JWT (<strong>jwtSecret</strong> e <strong>jwtSession</strong>):</p>
+
+<pre class="lang-js">// config.js
+module.exports = {
+jwtSecret: "MyS3cr3tK3Y",
+jwtSession: {session: false}
+};</pre>
+
+<p>O campo <strong>jwtSecret</strong> mantém uma string de chave secreta que serve como base para <strong>codificar</strong> e <strong>decodificar</strong> os tokens. É altamente aconselhável utilizar uma string complexa com vários caracteres diferentes e <strong>nunca compartilhar essa chave secreta em público</strong>, pois se isso vazar, você deixará sua aplicação vulnerável, permitindo que qualquer pessoa má intencionada acesse o sistema e gerencie os tokens de usuários logados sem informar as credenciais corretas no processo de autenticação.</p>
+
+<p>Para finalizar, o último campo incluído é o <strong>jwtSession</strong>, que possui o objeto {session:false}. Esse item é utilizado para informar o Passport que a API não irá gerenciar a sessão.</p>
+
+<h2 id="implementando-a-autenticação-jwt">Implementando a autenticação JWT</h2>
+
+<p>Agora que já temos as configurações do Passport e JWT prontas, vamos implementar as principais regras sobre quais o cliente será autenticado em nossa API. Para começar, vamos implementar as regras de autenticação, que também terão funções intermediárias fornecidas pelo Passport para utilizar dentro das rotas da API. Este código terá duas funções principais e uma intermediária. A middleware (intermediária) será executada no momento em que a aplicação começa a rodar, e ela basicamente recebe em sua ligação uma <strong>payload</strong> (carga útil) que contém um <strong>JSON decodificado</strong>, o qual foi decodificado utilizando a chave secreta <strong>cfg.jwtSecret</strong>. Esse <strong>payload</strong> útil terá o <strong>ID</strong> atribuído, o qual será o <strong>ID</strong> do usuário para ser utilizado como argumento para procurar um usuário no banco de dados. No nosso caso, esse <strong>ID</strong> será utilizado para pegar um dado de usuário da array de usuários do arquivo <strong>users.js</strong>. Como essa função intermediária será acessada frequentemente, para evitar processos desnecessários, vamos enviar um simples objeto contendo apenas o <strong>ID</strong> do usuário com a seguinte função de retorno:</p>
+
+<pre class="lang-js">done(null, {id: user.id});</pre>
+
+<p>Essa middleware será injetada por meio da função <strong>passport.use(strategy)</strong>. Para finalizar, duas funções serão inclusas por meio do Passport para serem utilizadas na aplicação. São as funções <strong>initialize()</strong>, que aciona o Passport e a <strong>authenticate()</strong>, que é utilizada para autenticar o acesso para uma rota.</p>
+
+<p>Para entender melhor essa implementação, vamos criar na pasta raiz o arquivo <strong>auth.js</strong> com o seguinte código:</p>
+
+<pre class="lang-js">// auth.js
+var passport = require("passport");
+var passportJWT = require("passport-jwt");
+var users = require("./users.js");
+var cfg = require("./config.js");
+var ExtractJwt = passportJWT.ExtractJwt;
+var Strategy = passportJWT.Strategy;
+var params = {
+  secretOrKey: cfg.jwtSecret,
+  jwtFromRequest: ExtractJwt.fromAuthHeader()
+};
+
+module.exports = function() {
+  var strategy = new Strategy(params, function(payload, done) {
+    var user = users[payload.id] || null;
+    if (user) {
+      return done(null, {id: user.id});
+    } else {
+      return done(new Error("User not found"), null);
+    }
+  });
+  passport.use(strategy);
+  return {
+    initialize: function() {
+      return passport.initialize();
+    },
+    authenticate: function() {
+      return passport.authenticate("jwt", cfg.jwtSession);
+    }
+  };
+};</pre>
+
+<p>A validação da JWT começa quando uma nova estratégia é instanciada pelo <strong>new Strategy()</strong>. Esse objeto, então, recebe dois importantes argumentos:</p>
+
+<ul>
+<li><strong>secretOrkey</strong>: a chave secreta JWT</li>
+<li><strong>jwtFromRequest</strong>: define para onde os tokens serão enviados na resposta (header, querystring, body). Veja mais neste link: <a href="http://npmjs.com/package/passport-jwt#extracting-the-jwt-from-the-request">npmjs.com/package/passport-jwt#extracting-the-jwt-from-the-request</a>.</li>
+</ul>
+
+<p>Dentro dos callbacks da estratégia você pode fazer qualquer validação que preferir. No nosso caso, nós apenas estamos buscando pelo usuário correto se a solicitação enviar o <strong>payload.id</strong> correto. <strong>No mundo real, você pode escrever autenticações para encontrar usuários em uma base de dados.</strong></p>
+
+<p>Agora, para carregar o <strong>auth.js</strong> durante o tempo de boot (inicialização) do servidor e iniciar o middleware do Passport pelo <strong>app.use(auth.initialize())</strong>, edite o arquivo <strong>index.js</strong> da seguinte forma:</p>
+
+<pre class="lang-js">// index.js
+var express = require("express");
+var bodyParser = require("body-parser");
+var auth = require("./auth.js")();
+var app = express();
+
+app.use(bodyParser.json());
+app.use(auth.initialize());
+
+app.get("/", function(req, res) {
+  res.json({status: "My API is alive!"});
+});
+
+app.listen(3000, function() {
+  console.log("My API is running...");
+});
+
+module.exports = app;</pre>
+
+<h2 id="gerando-tokens-para-usuários-autenticados">Gerando tokens para usuários autenticados</h2>
+
+<p>Para finalizar a autenticação em JWT, nós vamos criar uma rota para gerar tokens de usuários que irão se autenticar utilizando seus e-mails e senhas no sistema, e vamos também fazer uma refatoração na rota principal para que seus acessos carreguem apropriadamente a autenticação dos dados de usuário. Ao fazer isso, nós finalizamos essa etapa de autenticação, tornando nossa aplicação mais confiável e segura.</p>
+
+<p>Agora, vamos criar o <strong>/token</strong> finalizador. Esta rota será responsável por gerar um token codificado com uma <strong>payload</strong>, dada ao usuário que envia o e-mail e senha corretos por meio da <strong>req.body.email</strong> e <strong>req.body.password</strong> na solicitação.</p>
+
+<p>O <strong>payload</strong> terá apenas o ID do usuário. A geração do token ocorre pelo módulo <strong>jwt-simple</strong> usando a função <strong>jwt.encode(payload, cfg.jwtSecret)</strong>, a qual obrigatoriamente utilizará a mesma chave secreta <strong>jwtSecret</strong>, criada dentro do arquivo <strong>config.js</strong>. Para simplificar o manipulador de erros desse endpoint, qualquer erro será criado utilizando o código de status <strong>HTTP 401 &#8211; Unauthorized</strong> a partir do uso da função <strong>res.sendStatus(401)</strong>.</p>
+
+<p>Para incluir essa regra de geração de tokens, vamos editar o arquivo <strong>index.js</strong> utilizando o seguinte código:</p>
+
+<pre class="lang-js">// index.js
+var express = require("express");
+var bodyParser = require("body-parser");
+var jwt = require("jwt-simple");
+var auth = require("./auth.js")();
+var users = require("./users.js");
+var cfg = require("./config.js");
+var app = express();
+
+app.use(bodyParser.json());
+app.use(auth.initialize());
+
+app.get("/", function(req, res) {
+  res.json({status: "My API is alive!"});
+});
+
+app.post("/token", function(req, res) {
+  if (req.body.email && req.body.password) {
+    var email = req.body.email;
+    var password = req.body.password;
+    var user = users.find(function(u) {
+      return u.email === email && u.password === password;
+    });
+    if (user) {
+      var payload = {id: user.id};
+      var token = jwt.encode(payload, cfg.jwtSecret);
+      res.json({token: token});
+    } else {
+      res.sendStatus(401);
+    }
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.listen(3000, function() {
+  console.log("My API is running...");
+});
+
+module.exports = app;</pre>
+
+<p>E para finalizar nossa API, vamos criar uma rota privada, a qual irá produzir o dado autenticado do usuário. Essa rota deve utilizar o middleware <strong>auth.authenticate()</strong> rodando antes da rota com a função <strong>app.get(“/user”)</strong>. Essa rota privada irá rodar apenas para token autenticado e você pode utilizar o objeto <strong>req.user.id</strong> dentro dela, pois esse dado estará disponível se você enviar o token correto, e com essa ID nós vamos produzir um JSON com o usuário autenticado por meio da função <strong>res.json(users[req.user.id])</strong>. Para criar esta rota, vamos editar o arquivo <strong>index.js</strong> novamente. Confira como ele fica:</p>
+
+<pre class="lang-js">// index.js
+var express = require("express");
+var bodyParser = require("body-parser");
+var jwt = require("jwt-simple");
+var auth = require("./auth.js")();
+var users = require("./users.js");
+var cfg = require("./config.js");
+var app = express();
+
+app.use(bodyParser.json());
+app.use(auth.initialize());
+
+app.get("/", function(req, res) {
+  res.json({status: "My API is alive!"});
+});
+
+app.get("/user", auth.authenticate(), function(req, res) {
+  res.json(users[req.user.id]);
+});
+
+app.post("/token", function(req, res) {
+  if (req.body.email && req.body.password) {
+    var email = req.body.email;
+    var password = req.body.password;
+    var user = users.find(function(u) {
+      return u.email === email && u.password === password;
+    });
+    if (user) {
+      var payload = {id: user.id};
+      var token = jwt.encode(payload, cfg.jwtSecret);
+      res.json({token: token});
+    } else {
+      res.sendStatus(401);
+    }
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.listen(3000, function() {
+  console.log("My API is running...");
+});
+
+module.exports = app;</pre>
+
+<h2 id="conclusão">Conclusão</h2>
+
+<p>Parabéns! Nós terminamos uma implementação extremamente importante para vários tipos de aplicações, que é o <strong>processo de autenticação</strong>. Graças à JWT, agora nós temos um mecanismo seguro para autenticação de usuários entre cliente e servidor utilizando apenas dados JSON. Antes de lançar a sua aplicação, não esqueça de garantir que ela não é adulterada, arruinando a experiência de utilização. Caso tenha interesse, você pode testar a versão <a href="https://jscrambler.com/account/signup/?ref=http://tableless.com.br/">trial gratuita</a> do Jscrambler que em poucos minutos você já configura sua aplicação na plataforma para aplicar proteção no código-fonte de seus projetos.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

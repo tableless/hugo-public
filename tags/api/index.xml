@@ -1,0 +1,1867 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Api on Tableless</title>
+    <link>http://tableless.com.br/tags/api/index.xml</link>
+    <description>Recent content in Api on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/api/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Teste de carga em APIs utilizando Artillery</title>
+      <link>http://tableless.com.br/teste-de-carga-em-apis-utilizando-artillery/</link>
+      <pubDate>Mon, 06 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/teste-de-carga-em-apis-utilizando-artillery/</guid>
+      <description>&lt;p&gt;Independente do produto que você esteja criando, é sempre importante assegurar a qualidade do mesmo fazendo uma bateria de testes antes de colocar no mercado. Se tratando de desenvolvimento de software, existem algumas métricas que são essenciais para deixar claro para todos os envolvidos no projeto, incluindo seus usuários, o quanto determinado sistema/aplicativo é confiável para suportar o uso do público.&lt;/p&gt;
+
+&lt;p&gt;Dentro da área de qualidade de software, existem diversos tipos de testes que visam atingir o objetivo citado acima, de mostrar a todos que o produto é estável e robusto, alguns deles: teste de integração, teste unitário, teste de penetração, teste de regressão e por aí vai.&lt;/p&gt;
+
+&lt;p&gt;Este post tem como objetivo falar um pouco sobre o teste de carga, que em sua essência foi criado para simular quantidades diferentes de tentativa de acesso a determinado sistema ou device, tendo como saída um relatório de como o software se comportou em determinado cenário.&lt;/p&gt;
+
+&lt;p&gt;Quando falamos de APIs e escalonamento de infra, é interessante saber o número exato de requisições que o servidor (ou servidores) consegue responder corretamente em um tempo aceitável para seus clientes.&lt;/p&gt;
+
+&lt;p&gt;Caso você já tenha tentado fazer algo do tipo, provavelmente se deparou com o JMeter, que é uma das ferramentas mais famosas e completas para esse tipo de trabalho. Porém, a curva de aprendizado com o JMeter é um pouco longa, pois existem muitas configurações/opções que o usuário acaba se perdendo no início, até encontrar o que realmente precisa para o seu caso.&lt;figure class=&#34;graf graf--figure&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;graf-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*1hZHPrQKHwCctBX7bFOPmw.png&#34; /&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;Na tentativa de tornar esse processo de teste de carga um pouco mais amigável ao usuário, foi criado o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://artillery.io/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Artillery&lt;/a&gt;, uma ferramenta que com poucos passos permite você simular diversos tipos de cenários para teste de serviços que estejam utilizando para comunicação http e/ou web sockets.&lt;/p&gt;
+
+&lt;p&gt;Basicamente você precisa ter o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;node&lt;/a&gt; e o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://www.npmjs.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;npm&lt;/a&gt; instalado para poder começar a brincadeira.&lt;/p&gt;
+
+&lt;p&gt;Para instalar o Artillery:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ npm install -g artillery&lt;/pre&gt;
+
+&lt;p&gt;Para testar sua instalação:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ artillery dino&lt;/pre&gt;
+
+&lt;p&gt;Caso tenha aparecido um dinossauro em seu terminal, está tudo certo e você pode seguir adiante.&lt;/p&gt;
+
+&lt;p&gt;Para começar a rodar seus testes de carga, é necessário criar um arquivo de configuração. Você pode dar qualquer nome a ele, mas para esse artigo, criarei um chamado &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;artillery.yml&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Neste cara que você colocará todas as informações referentes a sua API, como endpoint, rotas e cenários. Você pode tanto testar rotas/recursos isolados, quanto cenários mais complexos, como por exemplo um processo de compra em um ecommerce, que basicamente teria uma rota para buscar os produtos, outra pra fazer checkout e outra para pagamento.&lt;/p&gt;
+
+&lt;p&gt;Segue abaixo um exemplo desse arquivo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;config:
+  target: &#39;&lt;a class=&#34;markup--anchor markup--pre-anchor&#34; href=&#34;http://localhost:3000%27&#34; target=&#34;_blank&#34; rel=&#34;nofollow noopener noopener&#34;&gt;http://localhost:3000&#39;&lt;/a&gt;
+  phases:
+    - duration: 60
+      arrivalRate: 20
+scenarios:
+  -
+    name: &#39;Listagem de usuários&#39;
+    flow:
+    - get:
+        url: &#34;/users&#34;&lt;/pre&gt;
+
+&lt;p&gt;No arquivo acima colocamos o endpoint da nossa API, o atributo &lt;em&gt;duration&lt;/em&gt; representa a duração deste ciclo de teste em segundos e o &lt;em&gt;arrivalRate&lt;/em&gt; o número de novos usuários por segundo.&lt;/p&gt;
+
+&lt;p&gt;Para rodar o teste, rode o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ artillery run artillery.yml&lt;/pre&gt;
+
+&lt;p&gt;Após a execução, temos o seguinte resultado:&lt;figure class=&#34;graf graf--figure&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;graf-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*iuh0Z_BoqM4epjC2pOvt_A.png&#34; /&gt;&lt;figcaption class=&#34;imageCaption&#34;&gt;Output do Artillery&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;Todas as métricas de tempo são em milis, &lt;em class=&#34;markup--em markup--p-em&#34;&gt;RPS&lt;/em&gt; (request per second), &lt;em class=&#34;markup--em markup--p-em&#34;&gt;codes&lt;/em&gt; são os códigos HTTP e o número de respostas com o mesmo, no caso acima, tivemos 1200 (60&amp;#215;20, como configuramos) requisições em 60 segundos e todas retornaram 200. &lt;em class=&#34;markup--em markup--p-em&#34;&gt;Scenarios launched&lt;/em&gt; são os ‘usuários virtuais’ criados e &lt;em class=&#34;markup--em markup--p-em&#34;&gt;Scenarios completed&lt;/em&gt; são quantos deles conseguiram executar o cenário com sucesso.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;Importante: &lt;/strong&gt;Enquanto o teste estiver rodando, um preview do resultado vai sendo printado no terminal a cada 10 segundos, mas só no final você tem os números consolidados do teste completo.&lt;/p&gt;
+
+&lt;p&gt;Agora você pode ir alterando números de usuários concorrentes, quantidade de tempo do teste, novos cenários, simulando fluxos mais complexos e etc.&lt;/p&gt;
+
+&lt;p&gt;Vale a pena dar uma olhada na &lt;a href=&#34;https://artillery.io/docs/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;documentação&lt;/a&gt; que é super objetiva e simples de entender.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Features que sua API REST precisa ter desde o início</title>
+      <link>http://tableless.com.br/features-que-sua-api-rest-precisa-ter-desde-o-inicio/</link>
+      <pubDate>Thu, 17 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/features-que-sua-api-rest-precisa-ter-desde-o-inicio/</guid>
+      <description>
+
+&lt;p&gt;Eu tenho trabalhado com dados suavemente flutuando através do protocolo http por um tempo e agora eu tenho esse sentimento altruísta de que eu posso contribuir com os desenvolvedores mais jovens com algumas histórias sobre os desafios que enfrentei durante a minha jornada.&lt;/p&gt;
+
+&lt;p&gt;Este artigo basicamente tem o objetivo de listar e discutir sobre alguns pontos importantes que sua API, possivelmente, poderia abraçar desde o início do projeto, a fim de acelerar o processo de desenvolvimento para todos em sua equipe.&lt;/p&gt;
+
+&lt;h2 id=&#34;autenticação-e-autorização&#34;&gt;Autenticação e Autorização&lt;/h2&gt;
+
+&lt;p&gt;Se você se preocupa com quem vai acessar seus endpoints, é necessário prestar atenção sobre este tópico. Existem algumas especificações conhecidas para lidar com este assunto, principalmente &lt;a href=&#34;https://jwt.io/&#34;&gt;JWT&lt;/a&gt;, &lt;a href=&#34;https://oauth.net/&#34;&gt;OAuth&lt;/a&gt; e &lt;a href=&#34;https://oauth.net/2/&#34;&gt;OAuth2&lt;/a&gt;. Estas abordagens irão abranger a maioria dos cenários em seus aplicativos, mas às vezes você será desafiado a criar um novo tipo de camada de segurança para atender algum requisito específico, neste caso, tente não reinventar a roda e adapte suas necessidades em um desses listados.&lt;/p&gt;
+
+&lt;h2 id=&#34;query-filtering-sorting-e-pagination&#34;&gt;Query, Filtering, Sorting e Pagination&lt;/h2&gt;
+
+&lt;p&gt;Assim que o seu banco de dados cresce, você vai começar a notar que alguns recursos estão demorando muito para serem recuperados. As abordagens comuns para esta situação são: armazenar em cache seus objetos (próximo tópico) e / ou criar a paginação / filtragem. Se você pode obter o seu recurso com algo como:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;shiny.api.com/resources?query[type=2]&amp;limit=5&amp;start=1&amp;order=[name]&lt;/pre&gt;
+
+&lt;p&gt;&amp;#8230;seus clients serão capazes de selecionar apenas o que eles realmente precisam para processar uma página ou tela específica. É bom para dar uma certa autonomia para seus consumidores. Próximo nível deste assunto é &lt;a href=&#34;http://graphql.org/learn/&#34;&gt;GraphQL&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;cache&#34;&gt;Cache&lt;/h2&gt;
+
+&lt;p&gt;Uma boa maneira de recuperar seus recursos incrivelmente rápido é desenvolver alguma estratégia de cache. O custo de suas requisições serão menores uma vez que seus dados estarão prontos para serem consumidos em um banco de dados in-memory. Com algum esforço você pode lidar com isso usando &lt;a href=&#34;http://redis.io/&#34;&gt;Redis&lt;/a&gt; ou &lt;a href=&#34;https://memcached.org/&#34;&gt;Memcached&lt;/a&gt;. Boa sorte com sua expiração de cache. Confira algumas reflexões sobre este tema com o &lt;a href=&#34;http://blog.remarkablelabs.com/2012/12/russian-doll-caching-cache-digests-rails-4-countdown-to-2013&#34;&gt;Russian Doll Caching&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;wrappers-e-summarized-fields&#34;&gt;Wrappers e Summarized Fields&lt;/h2&gt;
+
+&lt;p&gt;Às vezes, você precisará fornecer alguns campos calculados &amp;#8211; ou quaisquer dados agregados em geral &amp;#8211; em suas respostas e para esse cenário, posso sugerir-lhe montar algo nessa linha:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;{
+  &#34;summay&#34;: {
+    &#34;total&#34;: 2
+    &#34;averageAge&#34;: 22
+  },
+  &#34;data&#34;:[
+  {
+    &#34;name&#34;: &#34;John&#34;,
+    &#34;age&#34;: 22
+  },
+  {
+    &#34;name&#34;: &#34;Mary&#34;,
+    &#34;age&#34;: 22
+  }
+  ]
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;hateos&#34;&gt;HATEOS&lt;/h2&gt;
+
+&lt;p&gt;HATEOAS significa &lt;em&gt;Hypermedia as the application state of the engine&lt;/em&gt;. É uma abordagem que permite que os clientes interpretem de forma autônima e dinâmica o estado atual de um recurso e as transições que podem ser iniciados decorrente deste mesmo estado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;{
+  &#34;id&#34;: 276,
+  &#34;amount&#34;: 90.00,
+  &#34;links&#34;: [
+  {
+    &#34;type&#34;: &#34;orders&#34;,
+    &#34;rel&#34;: &#34;self&#34;,
+    &#34;href&#34;: &#34;/orders/ 276&#34;
+  },
+  {
+    &#34;type&#34;: &#34;customer&#34;,
+    &#34;rel&#34;: &#34;order&#39;s customer&#34;,
+    &#34;href&#34;: &#34;/orders/276/customers&#34;
+  }
+  ]
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Sobre o JSON acima, você pode tirar as seguintes conclusões:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Dentro do array &amp;#8220;links&amp;#8221; são todas as &amp;#8216;transições&amp;#8217; possíveis com o recurso, neste caso, podem acessar o cliente que criou as ordens com o URI /orders/276/customers.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;rel:auto&lt;/strong&gt; significa que esta URI é a referência do estado atual, neste caso, a ordem com ID 276. &lt;strong&gt;rel&lt;/strong&gt;, em geral, representa a relação entre a ligação com o recurso atual.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;type&lt;/strong&gt; indica o tipo de recurso que é o link em questão.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ao padronizar seus serviços RESTful usando HATEOAS você permite que os clientes usem os recursos de maneiras mais fáceis, afinal de contas, as possibilidades de navegação entre os estados serão listadas em cada hit em seus recursos.&lt;/p&gt;
+
+&lt;p&gt;Conforme descrito em um &lt;a href=&#34;http://martinfowler.com/articles/richardsonMaturityModel.html&#34;&gt;post&lt;/a&gt; de Martin Fowler, HATEOAS em sua API é o último passo para atingir a &amp;#8216;Glória de REST&amp;#8221;, o estado da arte.&lt;/p&gt;
+
+&lt;h2 id=&#34;message-queue&#34;&gt;Message Queue&lt;/h2&gt;
+
+&lt;p&gt;Aposto que você tem algumas rotas em suas APIs que são síncronas mas não precisam necessariamente ser. Alguns casos de uso para uso de fila de mensagens são: enviar e-mails após alguma ação, redimensionamento de imagem, codificação de vídeo, etc. Uma prática comum para esta situação é colocar essas ações em uma fila de mensagens para serem processadas posteriormente de forma assíncrona. Dê uma olhada na &lt;a href=&#34;https://www.rabbitmq.com/&#34;&gt;RabbitMQ&lt;/a&gt; ou &lt;a href=&#34;https://kafka.apache.org/&#34;&gt;Kafka&lt;/a&gt;, ambas são grandes soluções.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211;&lt;/p&gt;
+
+&lt;p&gt;É isso aí. Pelo menos para mim estes são os principais aspectos que eu vi nos últimos anos no desenvolvimento de novos apis http/rpc/rest. Se você acha que existem alguns outros pontos importantes para mencionar, por favor deixe nos comentários e conversamos sobre 🙂&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>API para Autenticar usuários com JWT e Passport</title>
+      <link>http://tableless.com.br/autenticar-usuarios-com-jwt-e-passport/</link>
+      <pubDate>Wed, 19 Oct 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/autenticar-usuarios-com-jwt-e-passport/</guid>
+      <description>
+
+&lt;p&gt;Neste artigo nós vamos explorar os principais conceitos e implementações da autenticação de usuário utilizando o mecanismo chamado JWT (&lt;em&gt;&lt;a href=&#34;https://jwt.io&#34;&gt;JSON Web Token&lt;/a&gt;&lt;/em&gt;) por meio de um módulo Passport. Afinal, este é um importante passo para se certificar de que os usuários façam uma autenticação segura dentro de uma API baseada em REST.&lt;/p&gt;
+
+&lt;p&gt;Antes de começarmos, vamos criar uma simples API em REST, que será utilizada ao longo deste post. Para simplificar nosso exemplo, nós vamos criar uma Express API. Para começar, vamos configurar nosso projeto, abrir o terminal e digitar o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;mkdir my-api
+cd my-api
+npm init&lt;/pre&gt;
+
+&lt;p&gt;O &lt;strong&gt;npm init&lt;/strong&gt; mostra um questionário simples para configurar algumas descrições e gerar o arquivo &lt;strong&gt;package.json&lt;/strong&gt;, o principal arquivo que usaremos para instalar alguns módulos para nosso projeto. Você pode responder cada questão como preferir. Depois disso, instale o framework &lt;strong&gt;express&lt;/strong&gt; e o módulo &lt;strong&gt;body-parser&lt;/strong&gt; usando este comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;npm install express body-parser --save&lt;/pre&gt;
+
+&lt;p&gt;Agora que temos o módulo Express instalado, vamos escrever nosso código para a API. Para isso, crie o arquivo &lt;strong&gt;index.js&lt;/strong&gt; com o código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// index.js
+var express = require(&#34;express&#34;);
+var bodyParser = require(&#34;body-parser&#34;);
+var app = express();
+
+app.use(bodyParser.json());
+
+app.get(&#34;/&#34;, function(req, res) {
+  res.json({status: &#34;My API is alive!&#34;});
+});
+
+app.listen(3000, function() {
+  console.log(&#34;My API is running...&#34;);
+});
+module.exports = app;
+&lt;/pre&gt;
+
+&lt;p&gt;Neste post usaremos um array simples de dados de usuários para facilitar a implementação do JWT. No entanto, em aplicações reais é altamente recomendável usar um banco de dados em vez de um simples array. Então, usaremos esse array apenas para exemplo. Nós precisaremos de uma lista de dados de usuários a qual será utilizada para verificar se a solicitação é de um usuário autenticado. Para isso, crie o arquivo &lt;strong&gt;users.js&lt;/strong&gt; com o código a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// users.js
+// Fake list of users to be used in the authentication
+var users = [
+{id: 1, name: &#34;John&#34;, email: &#34;john@mail.com&#34;, password: &#34;john123&#34;},
+{id: 2, name: &#34;Sarah&#34;, email: &#34;sarah@mail.com&#34;, password: &#34;sarah123&#34;}
+];
+
+module.exports = users;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora nós temos uma API simples o suficiente para explorar como implementar a autenticação JWT nas próximas sessões.&lt;/p&gt;
+
+&lt;h2 id=&#34;introdução-ao-passport-js-e-jwt&#34;&gt;Introdução ao Passport.js e JWT&lt;/h2&gt;
+
+&lt;h3 id=&#34;sobre-o-passport-js&#34;&gt;SOBRE O PASSPORT.JS&lt;/h3&gt;
+
+&lt;p&gt;Há um módulo Node.js muito bacana e fácil de trabalhar com autenticação de usuários, e ele é chamado de &lt;strong&gt;Passport&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Passport é um framework extremamente flexível e modular. Ele permite que você trabalhe com as principais estratégias de autenticação, que são: &lt;strong&gt;Basic &amp;amp; Digest&lt;/strong&gt;, &lt;strong&gt;OpenID&lt;/strong&gt;, &lt;strong&gt;OAuth&lt;/strong&gt;, &lt;strong&gt;OAuth 2.0&lt;/strong&gt; e &lt;strong&gt;JWT&lt;/strong&gt;. Além disso, ele também permite trabalhar com serviços de autenticação externos, como &lt;strong&gt;Facebook&lt;/strong&gt;, &lt;strong&gt;Google+&lt;/strong&gt;, &lt;strong&gt;Twitter&lt;/strong&gt;, entre outros. Aliás, no site oficial da framework, &lt;strong&gt;há uma lista com mais de 300 estratégias de autenticação&lt;/strong&gt;, criadas e mantidas por terceiros.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-56151&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/site-passport.jpg&#34; alt=&#34;site-passport&#34; width=&#34;1135&#34; height=&#34;617&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;O site oficial do Passport é: &lt;a href=&#34;http://passportjs.org&#34;&gt;passportjs.org&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;sobre-a-jwt&#34;&gt;SOBRE A JWT&lt;/h3&gt;
+
+&lt;p&gt;JWT (&lt;em&gt;JSON Web Tokens&lt;/em&gt;) é uma estratégia de autenticação para APIs em REST simples e segura. Trata-se de um padrão aberto para autenticações web e é totalmente baseada em requests JSON entre o cliente e servidor. Seu mecanismo de autenticação funciona da seguinte maneira:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;O cliente faz uma solicitação uma única vez ao enviar as credenciais de login e senha;&lt;/li&gt;
+&lt;li&gt;O servidor valida as credenciais e, se tudo estiver certo, ele retorna para o cliente um JSON com um token que codifica dados de um usuário logado no sistema;&lt;/li&gt;
+&lt;li&gt;Após receber o token, o cliente pode armazená-lo da forma que preferir, seja por LocalStorage, Cookie ou outros mecanismos de armazenamento do lado do cliente;&lt;/li&gt;
+&lt;li&gt;Toda vez que o cliente acessa uma rota que requere autenticação, ele apenas envia esse token para a API para autenticar e liberar os dados de consumo;&lt;/li&gt;
+&lt;li&gt;O servidor sempre valida esse token para permitir ou bloquear uma solicitação de cliente.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-56152&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/site-jwt.jpg&#34; alt=&#34;site-jwt&#34; width=&#34;1135&#34; height=&#34;609&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para detalhes específicos sobre JWT, acesse &lt;a href=&#34;http://jwt.io&#34;&gt;jwt.io&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando-passport-e-jwt&#34;&gt;Instalando Passport e JWT&lt;/h2&gt;
+
+&lt;p&gt;Para começar a diversão, nós utilizaremos os seguintes módulos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;passport&lt;/strong&gt;: como um mecanismo de autenticação;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;passport-jwt&lt;/strong&gt;: como estratégia de autenticação JWT para Passport;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;jwt-simple&lt;/strong&gt;: como codificador e decodificador para tokens JSON;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Agora, vamos instalar tudo isso rodando este comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;npm install passport passport-jwt jwt-simple --save&lt;/pre&gt;
+
+&lt;p&gt;Para começar esta implementação, primeiro nós vamos criar um arquivo &lt;strong&gt;config.js&lt;/strong&gt; para adicionar dois itens de configuração para o JWT (&lt;strong&gt;jwtSecret&lt;/strong&gt; e &lt;strong&gt;jwtSession&lt;/strong&gt;):&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// config.js
+module.exports = {
+jwtSecret: &#34;MyS3cr3tK3Y&#34;,
+jwtSession: {session: false}
+};&lt;/pre&gt;
+
+&lt;p&gt;O campo &lt;strong&gt;jwtSecret&lt;/strong&gt; mantém uma string de chave secreta que serve como base para &lt;strong&gt;codificar&lt;/strong&gt; e &lt;strong&gt;decodificar&lt;/strong&gt; os tokens. É altamente aconselhável utilizar uma string complexa com vários caracteres diferentes e &lt;strong&gt;nunca compartilhar essa chave secreta em público&lt;/strong&gt;, pois se isso vazar, você deixará sua aplicação vulnerável, permitindo que qualquer pessoa má intencionada acesse o sistema e gerencie os tokens de usuários logados sem informar as credenciais corretas no processo de autenticação.&lt;/p&gt;
+
+&lt;p&gt;Para finalizar, o último campo incluído é o &lt;strong&gt;jwtSession&lt;/strong&gt;, que possui o objeto {session:false}. Esse item é utilizado para informar o Passport que a API não irá gerenciar a sessão.&lt;/p&gt;
+
+&lt;h2 id=&#34;implementando-a-autenticação-jwt&#34;&gt;Implementando a autenticação JWT&lt;/h2&gt;
+
+&lt;p&gt;Agora que já temos as configurações do Passport e JWT prontas, vamos implementar as principais regras sobre quais o cliente será autenticado em nossa API. Para começar, vamos implementar as regras de autenticação, que também terão funções intermediárias fornecidas pelo Passport para utilizar dentro das rotas da API. Este código terá duas funções principais e uma intermediária. A middleware (intermediária) será executada no momento em que a aplicação começa a rodar, e ela basicamente recebe em sua ligação uma &lt;strong&gt;payload&lt;/strong&gt; (carga útil) que contém um &lt;strong&gt;JSON decodificado&lt;/strong&gt;, o qual foi decodificado utilizando a chave secreta &lt;strong&gt;cfg.jwtSecret&lt;/strong&gt;. Esse &lt;strong&gt;payload&lt;/strong&gt; útil terá o &lt;strong&gt;ID&lt;/strong&gt; atribuído, o qual será o &lt;strong&gt;ID&lt;/strong&gt; do usuário para ser utilizado como argumento para procurar um usuário no banco de dados. No nosso caso, esse &lt;strong&gt;ID&lt;/strong&gt; será utilizado para pegar um dado de usuário da array de usuários do arquivo &lt;strong&gt;users.js&lt;/strong&gt;. Como essa função intermediária será acessada frequentemente, para evitar processos desnecessários, vamos enviar um simples objeto contendo apenas o &lt;strong&gt;ID&lt;/strong&gt; do usuário com a seguinte função de retorno:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;done(null, {id: user.id});&lt;/pre&gt;
+
+&lt;p&gt;Essa middleware será injetada por meio da função &lt;strong&gt;passport.use(strategy)&lt;/strong&gt;. Para finalizar, duas funções serão inclusas por meio do Passport para serem utilizadas na aplicação. São as funções &lt;strong&gt;initialize()&lt;/strong&gt;, que aciona o Passport e a &lt;strong&gt;authenticate()&lt;/strong&gt;, que é utilizada para autenticar o acesso para uma rota.&lt;/p&gt;
+
+&lt;p&gt;Para entender melhor essa implementação, vamos criar na pasta raiz o arquivo &lt;strong&gt;auth.js&lt;/strong&gt; com o seguinte código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// auth.js
+var passport = require(&#34;passport&#34;);
+var passportJWT = require(&#34;passport-jwt&#34;);
+var users = require(&#34;./users.js&#34;);
+var cfg = require(&#34;./config.js&#34;);
+var ExtractJwt = passportJWT.ExtractJwt;
+var Strategy = passportJWT.Strategy;
+var params = {
+  secretOrKey: cfg.jwtSecret,
+  jwtFromRequest: ExtractJwt.fromAuthHeader()
+};
+
+module.exports = function() {
+  var strategy = new Strategy(params, function(payload, done) {
+    var user = users[payload.id] || null;
+    if (user) {
+      return done(null, {id: user.id});
+    } else {
+      return done(new Error(&#34;User not found&#34;), null);
+    }
+  });
+  passport.use(strategy);
+  return {
+    initialize: function() {
+      return passport.initialize();
+    },
+    authenticate: function() {
+      return passport.authenticate(&#34;jwt&#34;, cfg.jwtSession);
+    }
+  };
+};&lt;/pre&gt;
+
+&lt;p&gt;A validação da JWT começa quando uma nova estratégia é instanciada pelo &lt;strong&gt;new Strategy()&lt;/strong&gt;. Esse objeto, então, recebe dois importantes argumentos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;secretOrkey&lt;/strong&gt;: a chave secreta JWT&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;jwtFromRequest&lt;/strong&gt;: define para onde os tokens serão enviados na resposta (header, querystring, body). Veja mais neste link: &lt;a href=&#34;http://npmjs.com/package/passport-jwt#extracting-the-jwt-from-the-request&#34;&gt;npmjs.com/package/passport-jwt#extracting-the-jwt-from-the-request&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Dentro dos callbacks da estratégia você pode fazer qualquer validação que preferir. No nosso caso, nós apenas estamos buscando pelo usuário correto se a solicitação enviar o &lt;strong&gt;payload.id&lt;/strong&gt; correto. &lt;strong&gt;No mundo real, você pode escrever autenticações para encontrar usuários em uma base de dados.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora, para carregar o &lt;strong&gt;auth.js&lt;/strong&gt; durante o tempo de boot (inicialização) do servidor e iniciar o middleware do Passport pelo &lt;strong&gt;app.use(auth.initialize())&lt;/strong&gt;, edite o arquivo &lt;strong&gt;index.js&lt;/strong&gt; da seguinte forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// index.js
+var express = require(&#34;express&#34;);
+var bodyParser = require(&#34;body-parser&#34;);
+var auth = require(&#34;./auth.js&#34;)();
+var app = express();
+
+app.use(bodyParser.json());
+app.use(auth.initialize());
+
+app.get(&#34;/&#34;, function(req, res) {
+  res.json({status: &#34;My API is alive!&#34;});
+});
+
+app.listen(3000, function() {
+  console.log(&#34;My API is running...&#34;);
+});
+
+module.exports = app;&lt;/pre&gt;
+
+&lt;h2 id=&#34;gerando-tokens-para-usuários-autenticados&#34;&gt;Gerando tokens para usuários autenticados&lt;/h2&gt;
+
+&lt;p&gt;Para finalizar a autenticação em JWT, nós vamos criar uma rota para gerar tokens de usuários que irão se autenticar utilizando seus e-mails e senhas no sistema, e vamos também fazer uma refatoração na rota principal para que seus acessos carreguem apropriadamente a autenticação dos dados de usuário. Ao fazer isso, nós finalizamos essa etapa de autenticação, tornando nossa aplicação mais confiável e segura.&lt;/p&gt;
+
+&lt;p&gt;Agora, vamos criar o &lt;strong&gt;/token&lt;/strong&gt; finalizador. Esta rota será responsável por gerar um token codificado com uma &lt;strong&gt;payload&lt;/strong&gt;, dada ao usuário que envia o e-mail e senha corretos por meio da &lt;strong&gt;req.body.email&lt;/strong&gt; e &lt;strong&gt;req.body.password&lt;/strong&gt; na solicitação.&lt;/p&gt;
+
+&lt;p&gt;O &lt;strong&gt;payload&lt;/strong&gt; terá apenas o ID do usuário. A geração do token ocorre pelo módulo &lt;strong&gt;jwt-simple&lt;/strong&gt; usando a função &lt;strong&gt;jwt.encode(payload, cfg.jwtSecret)&lt;/strong&gt;, a qual obrigatoriamente utilizará a mesma chave secreta &lt;strong&gt;jwtSecret&lt;/strong&gt;, criada dentro do arquivo &lt;strong&gt;config.js&lt;/strong&gt;. Para simplificar o manipulador de erros desse endpoint, qualquer erro será criado utilizando o código de status &lt;strong&gt;HTTP 401 &amp;#8211; Unauthorized&lt;/strong&gt; a partir do uso da função &lt;strong&gt;res.sendStatus(401)&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para incluir essa regra de geração de tokens, vamos editar o arquivo &lt;strong&gt;index.js&lt;/strong&gt; utilizando o seguinte código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// index.js
+var express = require(&#34;express&#34;);
+var bodyParser = require(&#34;body-parser&#34;);
+var jwt = require(&#34;jwt-simple&#34;);
+var auth = require(&#34;./auth.js&#34;)();
+var users = require(&#34;./users.js&#34;);
+var cfg = require(&#34;./config.js&#34;);
+var app = express();
+
+app.use(bodyParser.json());
+app.use(auth.initialize());
+
+app.get(&#34;/&#34;, function(req, res) {
+  res.json({status: &#34;My API is alive!&#34;});
+});
+
+app.post(&#34;/token&#34;, function(req, res) {
+  if (req.body.email &amp;&amp; req.body.password) {
+    var email = req.body.email;
+    var password = req.body.password;
+    var user = users.find(function(u) {
+      return u.email === email &amp;&amp; u.password === password;
+    });
+    if (user) {
+      var payload = {id: user.id};
+      var token = jwt.encode(payload, cfg.jwtSecret);
+      res.json({token: token});
+    } else {
+      res.sendStatus(401);
+    }
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.listen(3000, function() {
+  console.log(&#34;My API is running...&#34;);
+});
+
+module.exports = app;&lt;/pre&gt;
+
+&lt;p&gt;E para finalizar nossa API, vamos criar uma rota privada, a qual irá produzir o dado autenticado do usuário. Essa rota deve utilizar o middleware &lt;strong&gt;auth.authenticate()&lt;/strong&gt; rodando antes da rota com a função &lt;strong&gt;app.get(“/user”)&lt;/strong&gt;. Essa rota privada irá rodar apenas para token autenticado e você pode utilizar o objeto &lt;strong&gt;req.user.id&lt;/strong&gt; dentro dela, pois esse dado estará disponível se você enviar o token correto, e com essa ID nós vamos produzir um JSON com o usuário autenticado por meio da função &lt;strong&gt;res.json(users[req.user.id])&lt;/strong&gt;. Para criar esta rota, vamos editar o arquivo &lt;strong&gt;index.js&lt;/strong&gt; novamente. Confira como ele fica:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// index.js
+var express = require(&#34;express&#34;);
+var bodyParser = require(&#34;body-parser&#34;);
+var jwt = require(&#34;jwt-simple&#34;);
+var auth = require(&#34;./auth.js&#34;)();
+var users = require(&#34;./users.js&#34;);
+var cfg = require(&#34;./config.js&#34;);
+var app = express();
+
+app.use(bodyParser.json());
+app.use(auth.initialize());
+
+app.get(&#34;/&#34;, function(req, res) {
+  res.json({status: &#34;My API is alive!&#34;});
+});
+
+app.get(&#34;/user&#34;, auth.authenticate(), function(req, res) {
+  res.json(users[req.user.id]);
+});
+
+app.post(&#34;/token&#34;, function(req, res) {
+  if (req.body.email &amp;&amp; req.body.password) {
+    var email = req.body.email;
+    var password = req.body.password;
+    var user = users.find(function(u) {
+      return u.email === email &amp;&amp; u.password === password;
+    });
+    if (user) {
+      var payload = {id: user.id};
+      var token = jwt.encode(payload, cfg.jwtSecret);
+      res.json({token: token});
+    } else {
+      res.sendStatus(401);
+    }
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.listen(3000, function() {
+  console.log(&#34;My API is running...&#34;);
+});
+
+module.exports = app;&lt;/pre&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Parabéns! Nós terminamos uma implementação extremamente importante para vários tipos de aplicações, que é o &lt;strong&gt;processo de autenticação&lt;/strong&gt;. Graças à JWT, agora nós temos um mecanismo seguro para autenticação de usuários entre cliente e servidor utilizando apenas dados JSON. Antes de lançar a sua aplicação, não esqueça de garantir que ela não é adulterada, arruinando a experiência de utilização. Caso tenha interesse, você pode testar a versão &lt;a href=&#34;https://jscrambler.com/account/signup/?ref=http://tableless.com.br/&#34;&gt;trial gratuita&lt;/a&gt; do Jscrambler que em poucos minutos você já configura sua aplicação na plataforma para aplicar proteção no código-fonte de seus projetos.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>WP Rest API – O futuro do WordPress</title>
+      <link>http://tableless.com.br/rest-json-wp-api-e-o-futuro-do-wordpress/</link>
+      <pubDate>Mon, 07 Dec 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/rest-json-wp-api-e-o-futuro-do-wordpress/</guid>
+      <description>
+
+&lt;h2 id=&#34;tl-dr&#34;&gt;TL;DR&lt;/h2&gt;
+
+&lt;p&gt;O WP-API é a nova aposta do WordPress. Atualmente, funciona como um plugin do WordPress, a ser incorporado em duas etapas no Core, que expõe o conteúdo em uma arquitetura REST dispondo-o em formato JSON, pronto para consumo em outras linguagens/sites/aplicações/aplicativos.&lt;/p&gt;
+
+&lt;h2 id=&#34;índice&#34;&gt;Índice&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#conceito&#34;&gt;Conceito&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#prowp&#34;&gt;O que o API significa para o WordPress?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#futuro&#34;&gt;Se esse é o futuro, do que o WP-API é capaz?&lt;/a&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#php&#34;&gt;Romper laços com o PHP&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#mobile&#34;&gt;Fazer uma integração mobile de verdade.&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#frontend&#34;&gt;Front-End modular&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#backend&#34;&gt;Back-End com a sua assinatura&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#javascript&#34;&gt;Mais um incentivo para você entrar na vibe do JavaScript e seguir a nova ordem mundial&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#seguranca&#34;&gt;Ao expôr meu conteúdo, o WP-API não oferece nenhum risco à segurança?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#como&#34;&gt;Como funciona o WP-API&lt;/a&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#http&#34;&gt;Um pouco de HTTP&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#rest&#34;&gt;O que significa REST?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#api&#34;&gt;API? é tipo&amp;#8230; APP?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#instalacao&#34;&gt;Instalando o plugin e fazendo sua primeira requisição&lt;/a&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#posts&#34;&gt;Para obter uma lista de Posts&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#post&#34;&gt;Para visualizar um post específico&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#paginas&#34;&gt;Para obter uma lista de Páginas&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#pagina&#34;&gt;Para visualizar uma página especifica&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#catags&#34;&gt;Requisitando uma Categoria ou tag de determinado post&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#cat&#34;&gt;Obtendo uma lista de Categorias&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#tag&#34;&gt;Lista de Tags&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#cpt&#34;&gt;Lidando e visualizando conteúdo com Custom Post Types&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#acf&#34;&gt;Usando o ACF? Você ainda está na zona de conforto!&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#final&#34;&gt;Palavras finais&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;conceito&#34;&gt;Conceito&lt;/h2&gt;
+
+&lt;p&gt;Considerada a próxima grande aposta do WordPress (plataforma utilizada por ~25% dos sites em todo mundo), com a primeira fase prevista para a versão 4.4 em dezembro deste ano (2015) e integração total na versão 4.5, o WP-API (também conhecido como JSON API ou REST API) expõe as informações de um site feito em WordPress para que sites externos/aplicações/aplicativos consumam seus dados. Na data deste artigo, o WP-API está disponível como &lt;a href=&#34;https://wordpress.org/plugins/rest-api/&#34; target=&#34;_blank&#34;&gt;plugin&lt;/a&gt; e os desenvolvedores estão otimistas sobre a  &lt;a href=&#34;https://make.wordpress.org/core/tag/json-api/&#34; target=&#34;_blank&#34;&gt;integração com o core do WP&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O WP-API foi criado para facilitar a interação de sites em WordPress com outros sites/aplicações. O API permite que outros serviços sejam integrados ao WordPress e abre a possiblidade para que os mesmos criem, leiam, atualizem e deletem seu conteúdo (CRUD), sem necessariamente terem uma instalação local do WordPress.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Antes que você questione:&lt;/strong&gt; sem autenticação, apenas a leitura do conteúdo é possível. &lt;a href=&#34;#seguranca&#34;&gt;Mais abaixo&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Imagine &lt;a href=&#34;#php&#34;&gt;desenvolver seu blog em WordPress usando Rails? Django? Node? Java???&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Quê cara, tá maluco? Que post é esse?&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Essa realidade é possível porque a Web é feita de &lt;a href=&#34;#http&#34;&gt;HTTP&lt;/a&gt;, que tem equivalentes CRUD com seus verbos POST, GET, PUT e DELETE, e o &lt;a href=&#34;#api&#34;&gt;API&lt;/a&gt; é feito usando uma &lt;a href=&#34;#rest&#34;&gt;arquitetura REST&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;No momento, desenvolver em WordPress requer algum conhecimento em PHP. Com o API, o PHP se tornará algo estritamente opcional, habilitando o desenvolvedor a utilizar seus conhecimentos em HTML, CSS e JavaScript/Ruby/Python/C#/FORTRAN (ok, forcei), o que for, para desenvolver seus temas, integrações, aplicações mobile e tudo o que a juventude de agora gosta de desenvolver. &lt;em&gt;A saber&lt;/em&gt;: um API é uma porção de códigos que permite que outras aplicações acessem seus dados na web em uma forma mais simples (vide o API do YouTube, Facebook, Instagram e agora o WordPress).&lt;/p&gt;
+
+&lt;p&gt;Sendo um API RESTful, o WP-API permite que aplicações bem interessantes sejam criadas &lt;a href=&#34;#como&#34;&gt;utilizando uma interface JSON&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;prowp&#34;&gt;O que o API significa para o WordPress?&lt;/h2&gt;
+
+&lt;p&gt;VIDA. FUTURO. DOMINAÇÃO DO MERCADO. UM APLICATIVO DA SUA EMPRESA CONSUMINDO DATA DO SITE FEITO EM WORDPRESS.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;size-large wp-image-52378 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/11/wp.jpg&#34; alt=&#34;wp&#34; width=&#34;280&#34; height=&#34;157&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;O API evolui o WordPress como um CMS para uma aplicação completa. Veja: o API cria um padrão para que outras linguagens consigam interagir diretamente com seu conteúdo.&lt;/p&gt;
+
+&lt;h2 id=&#34;futuro&#34;&gt;Se esse é o futuro, do que o WP-API é capaz?&lt;/h2&gt;
+
+&lt;p&gt;Com a pretensão de usar a força da marca para incentivar desenvolvedores de outras linguagens a construir suas aplicações utilizando o WordPress, sejam elas plugins, temas, integrações, aplicações ou aplicativos, o WP-API amplifica o leque do WordPress à um nível inimáginável há alguns anos e talvez faça você perder seu preconceito. A ferramenta chega com as seguintes promessas:&lt;/p&gt;
+
+&lt;h3 id=&#34;php&#34;&gt;Romper laços com o PHP&lt;/h3&gt;
+
+&lt;p&gt;À parte da cultura da boca-torta criada no passado, o PHP ainda é a força-motriz por trás de 80% dos sites do mundo e tem o suporte de gigantes como Facebook, Wikipedia e o próprio WordPress. Entretanto, nos últimos anos houveram avanços significativos em linguagens como Ruby, Python, Go e claro, JavaScript, seja em termos de ferramentas, escalabilidade ou frameworks disponíveis.&lt;/p&gt;
+
+&lt;p&gt;O WP-API dá aos desenvolvedores dessas linguagens acesso imediato à todo o leque de funcionalidades do WordPress. Razão suficiente para captar a atenção dos desenvolvedores e proprietários de sites. Quando pensamos na grandiosidade do ecossistema do WordPress e nas possibilidades que os desenvolvedores tem de gerar receita com ele (sejam temas ou plugins), o potencial de portar sites inteiros feitos em WordPress para outras linguagens/plataformas é algo tentador em termos de experiência e, claro, receita.&lt;/p&gt;
+
+&lt;h3 id=&#34;mobile&#34;&gt;Fazer uma integração mobile de verdade.&lt;/h3&gt;
+
+&lt;p&gt;Com a popularização de frameworks como Foundation e Bootstrap, grande parte dos sites desenvolvidos nos últimos anos chegaram a um padrão aceitável em termos de visualização de conteúdo em dispositivos móveis, mas uma integração de verdade está longe de ser um padrão.&lt;/p&gt;
+
+&lt;p&gt;Estava.&lt;/p&gt;
+
+&lt;p&gt;Usando o WP-API, desenvolvedores mobile poderão lidar com sites em WordPress como lidariam com qualquer serviço de &lt;a href=&#34;https://en.wikipedia.org/wiki/Mobile_Backend_as_a_service&#34; target=&#34;_blank&#34;&gt;Mobile Back End as a Service (MBaaS ou BaaS)&lt;/a&gt;. Este ponto sozinho já é suficiente para habilitar um site em WordPress como uma possibilidade para servir de backend para aplicações mobile nativas e serve de fundação para todos os tipos de integrações no futuro.&lt;/p&gt;
+
+&lt;p&gt;Quando considerada a quantidade de sites rodando WP, que têm uma versão completamente distinta de suas versões mobile, o escopo para integrações futuras é imenso. O ideal de ter um banco de dados e diversas aplicações consumindo suas informações, agora é possível de forma genuína e descomplicada.&lt;/p&gt;
+
+&lt;h3 id=&#34;frontend&#34;&gt;Front-End modular&lt;/h3&gt;
+
+&lt;p&gt;Do ponto de vista do API, o front-end do WordPress é só mais uma aplicação externa consumindo seus dados. Aplicações MVW (model, view, whatever) como AngularJS, EmberJS, MeteorJS, BackboneJS, poderão facilmente fazer suas requisições e montar o workflow dos seus sonhos sem se preocupar com as entrelinhas de desenvolvimento em WP.&lt;/p&gt;
+
+&lt;p&gt;A expectativa é ver uma revolução em plugins e temas para desenvolvedores e donos de site ao redor do mundo (são 25% da web, considere).&lt;/p&gt;
+
+&lt;h3 id=&#34;backend&#34;&gt;Back-End com a sua assinatura&lt;/h3&gt;
+
+&lt;p&gt;A potencial integração do REST API no core abre a possibilidade de reimaginar o admin do WordPress. Imagine que todas as funcionalidades do core estão abertas à você, com nenhum visual para te limitar. Chega de editar cores e imagens para tentar deixar o admin &amp;#8220;do seu jeito&amp;#8221;, ou baixar o &lt;a href=&#34;https://wordpress.org/plugins/user-role-editor/&#34; target=&#34;_blank&#34;&gt;User Role Editor&lt;/a&gt; para proibir seus clientes de destruírem seu trabalho, ou usar uma função para injetar CSS com um &lt;tt&gt;&amp;ldquo;display: none&amp;rdquo;&lt;/tt&gt; em coisas que você não gostaria que estivessem visíveis. Com o API, o controle é todo seu.&lt;/p&gt;
+
+&lt;h3 id=&#34;javascript&#34;&gt;Mais um incentivo para você entrar na vibe do JavaScript e seguir a nova ordem mundial&lt;/h3&gt;
+
+&lt;p&gt;Convenhamos: o JavaScript está criando uma nova ordem mundial. É hype, é futuro, é presente, opiniões divergentes. Em comum: é JavaScript. Frameworks MV** e outros menos conhecidos estão ditando uma tendência, que acredito seguir linear por um bom tempo.&lt;/p&gt;
+
+&lt;p&gt;O WP-API faz do WordPress um companheiro ideal para essas tecnologias. Na visão de desenvolvedor, poder utilizar tecnologias de vanguarda mantendo sua bagagem em WordPress, é o mundo ideal.&lt;/p&gt;
+
+&lt;h2 id=&#34;seguranca&#34;&gt;Ao expôr meu conteúdo, o WP-API não oferece nenhum risco à segurança?&lt;/h2&gt;
+
+&lt;p&gt;Não. Não propriamente por conta do WP-API.&lt;/p&gt;
+
+&lt;p&gt;A informação que o API fornece é, naturalmente, o que um site WordPress dispõe por padrão publicamente. A única diferença entre o front-end de um site e o WP-API é a forma como as informações são apresentadas. Por padrão não é possível, sem autenticação, apagar, atualizar ou criar nada &amp;#8211; apenas ler o conteúdo (requisição GET).&lt;/p&gt;
+
+&lt;p&gt;Claro que novas funcionalidades expõem novos riscos. Porém, por ora, nenhuma vulnerabilidade foi encontrada e manter seu WordPress atualizado é um método simples e confiável de se manter seguro.&lt;/p&gt;
+
+&lt;h2 id=&#34;como&#34;&gt;Como funciona o WP-API&lt;/h2&gt;
+
+&lt;p&gt;O WP-API é acessado por HTTP e retorna requisições em formato JSON. Ambos fáceis de utilizar e com grande suporte pelas linguagens de programação mais populares, através de bibliotecas como Net::HTTP (Ruby), Requests (Phyton) e GoReq (Go), para citar alguns.&lt;/p&gt;
+
+&lt;p&gt;Eu poderia me limitar a dizer que o WP-API é uma REST API, o que ficaria abstrato e não é o objetivo do artigo. O WP-API é empolgante, mas se você não tem nenhuma base sobre o que significa uma arquitetura REST, HTTP e requisições em geral, procurei expôr os conceitos mais básicos abaixo.&lt;/p&gt;
+
+&lt;p&gt;Antes de falar de REST, é necessário entender alguns conceitos de HTTP.&lt;/p&gt;
+
+&lt;h3 id=&#34;http&#34;&gt;Um pouco de HTTP&lt;/h3&gt;
+
+&lt;p&gt;Ele assina pelo nome de Hypertext Transfer Protocol (HTTP) e é um conjunto de regras que determina como informações podem ser enviadas e recebidas e quais mensagens devem ser retornadas em resposta às requisições.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo, quando uma requisição é enviada pelo cliente e recebida com sucesso pelo servidor, a mensagem (conhecida como código de retorno, acompanhado de uma frase explicativa) é um variante de 200 (onde o número mais importante é a casa da centena, onde 2 significa sucesso na requisição). A mais famosa talvez seja a 404 &amp;#8211; Not Found, que retorna um valor inexistente para sua requisição (onde o primeiro número quatro significa &lt;em&gt;erro no cliente&lt;/em&gt;).&lt;/p&gt;
+
+&lt;p&gt;Outros protocolos bem conhecidos são o POP3 e o SMTP, que são usados para receber e enviar e-mails, respectivamente.&lt;/p&gt;
+
+&lt;p&gt;O HTTP tem duas funções distintas: servidor e cliente. Em geral, o cliente envia a requisição e o servidor responde. É feito basicamente do &lt;em&gt;header&lt;/em&gt; (que contém metadata e informações importantes para o HTTP) e do &lt;em&gt;body&lt;/em&gt; (que contém o conteúdo da mensagem).&lt;/p&gt;
+
+&lt;p&gt;Hypertext Transfer Protocol ou HTTP é a alma da web. É utilizado todas as vezes que você transfere um documento, ou faz uma solicitação AJAX.&lt;/p&gt;
+
+&lt;p&gt;Se quiser mais informações, o TutsPlus tem &lt;a href=&#34;http://code.tutsplus.com/tutorials/a-beginners-guide-to-http-and-rest--net-16340&#34; target=&#34;_blank&#34;&gt;um ótimo tutorial&lt;/a&gt;, que usei como referência, com uma &lt;a href=&#34;http://code.tutsplus.com/pt/tutorials/a-beginners-guide-to-http-and-rest--net-16340?ec_unit=dropdown-language&#34; target=&#34;_blank&#34;&gt;igualmente ótima tradução&lt;/a&gt; feita pelo &lt;a href=&#34;http://tutsplus.com/authors/thierry-rene&#34; target=&#34;_blank&#34;&gt;Thierry Rene&lt;/a&gt;. Vale cada palavra.&lt;/p&gt;
+
+&lt;p&gt;Concordo com o autor do link de referência sobre o conhecimento de HTTP não ser comum entre desenvolvedores, o que também considero importante e recomendo a leitura.&lt;/p&gt;
+
+&lt;h3 id=&#34;rest&#34;&gt;O que significa REST?&lt;/h3&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-medium wp-image-52376&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/11/rest.jpg&#34; alt=&#34;rest&#34; width=&#34;279&#34; height=&#34;157&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;REST é definido por &lt;em&gt;Representational State Transfer&lt;/em&gt;! Entendi tudo, deixa eu dormir agora, obrigado.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Arquitetura: De acordo com uma citação do &lt;cite&gt;&lt;a href=&#34;https://pt.wikipedia.org/wiki/Arquitetura&#34; target=&#34;_blank&#34;&gt;Wikipedia&lt;/a&gt;&lt;/cite&gt;: a arquitetura lidaria com qualquer problema de agenciamento, organização, estética e ordenamento de componentes em qualquer situação de arranjo espacial.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Uma arquitetura REST é uma uma forma de organizar as interações entre sistemas. Ele define padrões, o que pode e o que não se deve fazer. A arquitetura fornece uma forma padronizada de como acessar dados. Em geral, sistemas seguem um padrão de comandos. Execute informação X, receba informação Y. Em uma arquitetura REST, o acesso é fornecido por recursos. O que significa que, em uma URL, tudo o que é passado são recursos que podem ser consumidos, não existem comandos inseridos e procura-se utilizar uma URL &lt;em&gt;humanamente legível&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;exemplo-de-comando-em-uma-url&#34;&gt;Exemplo de comando em uma URL.&lt;/h4&gt;
+
+&lt;p&gt;Supondo que eu, ao acessar o site de minha empresa, gostaria de procurar por um vendedor admitido em 2015:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;http://siteincrivel.com.br/equipe.php?funcao=vendedor&amp;admissao=2015&lt;/pre&gt;
+
+&lt;p&gt;Repare na instrução ao servidor: busque por vendedores admitidos em 2015. Enquanto a instrução pode ser facilmente interpretada, &lt;em&gt;equipe&lt;/em&gt; não é um recurso.&lt;/p&gt;
+
+&lt;p&gt;Se a requisição fosse feita em uma arquitetura REST, minha URL seria:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;http://siteincrivel.com.br/equipe/admissao/2015/funcao/vendedor/&lt;/pre&gt;
+
+&lt;p&gt;A URL, sem parâmetros, identifica o recurso que você deseja manipular de forma que eu obtenha informações precisas em todas as camadas. Fazer a requisição em um diretório retorna uma lista de recursos. Por exemplo, retirar &amp;#8220;vendedor&amp;#8221; da URL poderia me fornecer informações sobre todas as funções contratadas no ano de 2015.&lt;/p&gt;
+
+&lt;p&gt;Veja: a arquitetura não abomina o uso de parâmetros na URL, que podem ser utilizados como uma espécie de filtro ou outra forma conveniente.&lt;/p&gt;
+
+&lt;p&gt;Por fim, os sistemas que seguem os princípios REST são chamados de RESTFul.&lt;/p&gt;
+
+&lt;h3 id=&#34;api&#34;&gt;API? é tipo&amp;#8230; APP?&lt;/h3&gt;
+
+&lt;p&gt;Não, não.&lt;/p&gt;
+
+&lt;p&gt;Um API (application programming interface) é uma forma simples de se comunicar com uma aplicação. Através de &lt;u&gt;endpoints*&lt;/u&gt; definidos, os desenvolvedores podem fazer seus programas e scripts interagirem com a aplicação.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Endpoints são definidos por suas funções, que podem ser acessados por HTTP. É a forma que o WP-API (que agora que você pegou a manha eu posso dizer: é um REST API) provê suas informações e permite seus desenvolvedores manipularem o WordPress, podendo ser a publicação de um post, atualização de uma página ou a exclusão de um comentário.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Certo, Cezar. Tudo isso parece mágico, linda teoria. Agora, como posso começar com o WP-API?&lt;/p&gt;
+
+&lt;h2 id=&#34;instalacao&#34;&gt;Instalando o plugin e fazendo sua primeira requisição&lt;/h2&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-52375&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/11/plugin_v2b.jpeg&#34; alt=&#34;plugin_v2b&#34; width=&#34;766&#34; height=&#34;343&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Os exemplos utilizados requerem a versão 2 do API. Para baixá-lo, vá ao repositório do WordPess: &lt;a href=&#34;https://wordpress.org/plugins/rest-api/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://wordpress.org/plugins/rest-api/&#34;&gt;https://wordpress.org/plugins/rest-api/&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Depois de baixado, basta fazer a instalação. A instalação ocorre da mesma forma que qualquer outro plugin do WordPress.&lt;/p&gt;
+
+&lt;h3 id=&#34;visualizando-o-conteúdo-like-a-boss-ou-a-primeira-requisição-a-gente-nunca-esquece&#34;&gt;Visualizando o conteúdo &lt;em&gt;like a boss&lt;/em&gt; ou A primeira requisição a gente nunca esquece&lt;/h3&gt;
+
+&lt;p&gt;Se você usa o Chrome, baixe a extensão do &lt;a href=&#34;https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop&#34; target=&#34;_blank&#34;&gt;Postman&lt;/a&gt;. O postman, dentre suas finalidades, vai servir para o propósito de visualizar o conteúdo da maneira correta.&lt;/p&gt;
+
+&lt;h4 id=&#34;para-todas-as-requisições-que-faremos-tome-nota-dessa-instrução&#34;&gt;Para todas as requisições que faremos, tome nota dessa instrução&lt;/h4&gt;
+
+&lt;p&gt;Para visualizar sua primeira requisição, abra o Postman (você pode digitar o endereço no browser diretamente, se você não se importar com um monte de código chapado na tela) e digite na URL (válido para todos os exemplos abaixo):&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;http://siteincrivel.com.br/wp-json/wp/v2/REQUISIÇÃO_AQUI.&lt;/pre&gt;
+
+&lt;p&gt;Onde &lt;em&gt;siteincrivel&lt;/em&gt; é o seu site e _REQUISIÇÃO&lt;em&gt;AQUI&lt;/em&gt; será a requisição que vocẽ deseja fazer, dentre as possibilidades:&lt;/p&gt;
+
+&lt;h3 id=&#34;posts&#34;&gt;Para obter uma lista de Posts&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;http://siteincrivel.com.br/wp-json/wp/v2/posts&lt;/pre&gt;
+
+&lt;h3 id=&#34;post&#34;&gt;Para visualizar um post específico&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;http://siteincrivel.com.br/wp-json/wp/v2/{id}&lt;/pre&gt;
+
+&lt;p&gt;Onde {id} é o ID do Post que você precisa.&lt;/p&gt;
+
+&lt;h3 id=&#34;paginas&#34;&gt;Para obter uma lista de Páginas&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;http://siteincrivel.com.br/wp-json/wp/v2/pages&lt;/pre&gt;
+
+&lt;h3 id=&#34;pagina&#34;&gt;Para visualizar uma página especifica:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;http://siteincrivel.com.br/wp-json/wp/v2/pages/{id}&lt;/pre&gt;
+
+&lt;p&gt;Onde {id} é o ID da página que você precisa.&lt;/p&gt;
+
+&lt;h3 id=&#34;para-visualizar-uma-lista-de-categorias-ou-tags&#34;&gt;Para visualizar uma lista de categorias ou tags&lt;/h3&gt;
+
+&lt;p&gt;Categorias e Tags são consideradas taxonomias. As taxonomias, diferente de posts e páginas, funcionam pelo slug e não pelo ID. O ID é necessário apenas para chamadas de Posts/Páginas.&lt;/p&gt;
+
+&lt;p&gt;Os elementos de uma categoria ou tag, são consideradas pelo WordPress como termos (terms). Portanto ao criar a categoria &lt;em&gt;Marketing&lt;/em&gt;, você está dizendo ao WordPress que a taxonomia Categoria tem um termo chamado &lt;em&gt;Marketing&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Sendo assim:&lt;/p&gt;
+
+&lt;h3 id=&#34;catags&#34;&gt;Requisitando uma Categoria ou tag de determinado post:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;http://demo.wp-api.org/wp-json/wp/v2/posts/{id_do_post}/terms/category/&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;http://demo.wp-api.org/wp-json/wp/v2/posts/{id_do_post}/terms/tag/&lt;/pre&gt;
+
+&lt;h3 id=&#34;cat&#34;&gt;Obtendo uma lista de Categorias&lt;/h3&gt;
+
+&lt;p&gt;Nossa categoria modelo (Marketing) deverá aparecer aqui&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;http://siteincrivel.com.br/wp-json/wp/v2/terms/category&lt;/pre&gt;
+
+&lt;h3 id=&#34;tag&#34;&gt;Lista de Tags&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;http://seusite.com.br/wp-json/wp/v2/terms/tag&lt;/pre&gt;
+
+&lt;h3 id=&#34;cpt&#34;&gt;Lidando e visualizando conteúdo com Custom Post Types:&lt;/h3&gt;
+
+&lt;p&gt;Por padrão, o WP-API não autoriza a visualização direta de CPT. Para autorizar a requisição, abra o arquivo onde você armazena as informações sobre CPT do seu tema (em geral no &lt;tt&gt;functions.php&lt;/tt&gt;, ou qualquer &lt;tt&gt;include&lt;/tt&gt; que você tenha feito) e adicione o argumento (dentro de &lt;tt&gt;$args&lt;/tt&gt;, por favor):&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;show_in_rest =&amp;gt; true&lt;/pre&gt;
+
+&lt;p&gt;Caso você tenha feito corretamente, o endereço abaixo vai listar os posts relacionados àquele CPT:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;http://siteincrivel.com.br/wp-json/wp/v2/{nome_do_cpt}&lt;/pre&gt;
+
+&lt;h3 id=&#34;acf&#34;&gt;Usando o ACF? Você ainda está na zona de conforto!&lt;/h3&gt;
+
+&lt;p&gt;A integração com o ACF é extensa para o objetivo do post, o que não importa muito, pois &lt;a href=&#34;https://wordpress.org/plugins/acf-to-wp-api/&#34; target=&#34;_blank&#34;&gt;existe um plugin excelente&lt;/a&gt; que cumpre a maioria das finalidades do ACF. Seja feliz.&lt;/p&gt;
+
+&lt;h2 id=&#34;final&#34;&gt;Palavras finais&lt;/h2&gt;
+
+&lt;p&gt;Vejo em muitos grupos e em alguns sites sobre o futuro do WordPress, que o sistema está em declínio e alguns absurdos também. O WP-API é uma grande aposta e suas promessas fazem merecer um olhar atento à nova funcionalidade.&lt;/p&gt;
+
+&lt;p&gt;Se quiser um &lt;em&gt;modelo&lt;/em&gt; para começar, pode tentar o &lt;a href=&#34;https://github.com/Automattic/picard&#34; target=&#34;_blank&#34;&gt;Picard&lt;/a&gt;, feito em ReactJS pela própria Automattic, ou se quiser uma ideia sobre mais possibilidades do API, o Make WordPress Core tem uma &lt;a href=&#34;https://make.wordpress.org/core/2015/07/23/rest-api-whos-using-this-thing/&#34; target=&#34;_blank&#34;&gt;thread&lt;/a&gt; sobre aplicações que desenvolvedores estão trabalhando.&lt;/p&gt;
+
+&lt;p&gt;E você, tem alguma opinião a respeito? Desenvolveu alguma aplicação com o WP-API? Deixe um comentário, eu adoraria saber!&lt;/p&gt;
+
+&lt;p&gt;&lt;cite&gt;Referências:&lt;/cite&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://wp-api.org/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://wp-api.org/&#34;&gt;http://wp-api.org/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://feelingrestful.com/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://feelingrestful.com/&#34;&gt;https://feelingrestful.com/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://observer.com/2015/07/wordpress-rest-api/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://observer.com/2015/07/wordpress-rest-api/&#34;&gt;http://observer.com/2015/07/wordpress-rest-api/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://jacklenox.com/2015/03/30/building-themes-with-the-wp-rest-api-wordcamp-london-march-2015/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://jacklenox.com/2015/03/30/building-themes-with-the-wp-rest-api-wordcamp-london-march-2015/&#34;&gt;http://jacklenox.com/2015/03/30/building-themes-with-the-wp-rest-api-wordcamp-london-march-2015/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://torquemag.io/client-side-applications-powered-by-the-wordpress-json-rest-api/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://torquemag.io/client-side-applications-powered-by-the-wordpress-json-rest-api/&#34;&gt;http://torquemag.io/client-side-applications-powered-by-the-wordpress-json-rest-api/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://premium.wpmudev.org/blog/wordpress-rest-api/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://premium.wpmudev.org/blog/wordpress-rest-api/&#34;&gt;https://premium.wpmudev.org/blog/wordpress-rest-api/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://wpengine.com/blog/josh-pollock-wordpress-rest-api-finely-tuned-consultant/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://wpengine.com/blog/josh-pollock-wordpress-rest-api-finely-tuned-consultant/&#34;&gt;https://wpengine.com/blog/josh-pollock-wordpress-rest-api-finely-tuned-consultant/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://premium.wpmudev.org/blog/using-wordpress-rest-api/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://premium.wpmudev.org/blog/using-wordpress-rest-api/&#34;&gt;http://premium.wpmudev.org/blog/using-wordpress-rest-api/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://apppresser.com/wp-api-post-submission/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://apppresser.com/wp-api-post-submission/&#34;&gt;https://apppresser.com/wp-api-post-submission/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://blog.nexcess.net/2015/06/04/what-does-the-new-rest-api-mean-for-wordpress/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://blog.nexcess.net/2015/06/04/what-does-the-new-rest-api-mean-for-wordpress/&#34;&gt;https://blog.nexcess.net/2015/06/04/what-does-the-new-rest-api-mean-for-wordpress/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.wpwhitesecurity.com/wordpress-security/wordpress-rest-api-and-the-security-worries/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.wpwhitesecurity.com/wordpress-security/wordpress-rest-api-and-the-security-worries/&#34;&gt;http://www.wpwhitesecurity.com/wordpress-security/wordpress-rest-api-and-the-security-worries/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.sitepoint.com/wp-api/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.sitepoint.com/wp-api/&#34;&gt;http://www.sitepoint.com/wp-api/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://1fix.io/blog/2015/07/20/query-vars-wp-api/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://1fix.io/blog/2015/07/20/query-vars-wp-api/&#34;&gt;https://1fix.io/blog/2015/07/20/query-vars-wp-api/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://code.tutsplus.com/tutorials/a-beginners-guide-to-http-and-rest--net-16340&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://code.tutsplus.com/tutorials/a-beginners-guide-to-http-and-rest&amp;amp;#8211;net-16340&#34;&gt;http://code.tutsplus.com/tutorials/a-beginners-guide-to-http-and-rest&amp;amp;#8211;net-16340&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://make.wordpress.org/core/2015/07/23/rest-api-whos-using-this-thing/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://make.wordpress.org/core/2015/07/23/rest-api-whos-using-this-thing/&#34;&gt;https://make.wordpress.org/core/2015/07/23/rest-api-whos-using-this-thing/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Assinatura de newsletter com PHP integrada à API do Mailchimp</title>
+      <link>http://tableless.com.br/assinatura-de-newsletter-com-php-integrada-a-api-do-mailchimp/</link>
+      <pubDate>Tue, 10 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/assinatura-de-newsletter-com-php-integrada-a-api-do-mailchimp/</guid>
+      <description>
+
+&lt;p&gt;O Mailchimp tem uma &lt;a href=&#34;https://apidocs.mailchimp.com/&#34; target=&#34;_blank&#34;&gt;API bem completa&lt;/a&gt;. Arrisco dizer que é possível fazer uma interface com muitas das funcionalidades de gerenciamento de listas, envios, etc usando a API — fica a dica para quem quiser desenvolver uma aplicação explorando alguma lacuna que o painel do Mailchimp deixa a desejar.&lt;/p&gt;
+
+&lt;p&gt;Eu sabia da existência da API faz algum tempo, mas usava uma função simples de exportação de CSV em alguns projetos. Mas dependendo da frequência de disparo das newsletters, exportar um arquivo e importar no Mailchimp começa a ser um tanto trabalhoso. Então esse é o meu caso de uso: um formulário de newsletter.&lt;/p&gt;
+
+&lt;p&gt;Aí alguém diz: “Mas você está reinventando a roda! O Mailchimp te dá um formulário pronto, você não precisa integrar com a API, basta gerar o código, copiar e colar.” E eu respondo: “Sim, existe essa possibilidade, mas e se além de enviar para o Mailchimp você precisa gravar na sua base de dados esses e-mails? E se a opção de assinatura da newsletter é um checkbox (opt-in) em um formulário de cadastro?” Acho que assim temos uma ideia melhor de quando usar a API para a captação de e-mails.&lt;/p&gt;
+
+&lt;p&gt;Então, vamos botar a mão no código:&lt;/p&gt;
+
+&lt;h2 id=&#34;1-chave-da-api&#34;&gt;1. Chave da API&lt;/h2&gt;
+
+&lt;p&gt;Mas, ops! Antes de ir para a programação, toda integração com a API precisa de uma chave para autenticação. Para gerar essa chave você precisa entrar na sua conta do Mailcimp (se você não tem uma conta, criar uma nova é bem simples e não tem custo), e seguir o seguinte caminho:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;no menu do usuário (canto direito superior), ir em &lt;strong&gt;“Account”&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;na aba &lt;strong&gt;“Extras”&lt;/strong&gt;, selecionar &lt;strong&gt;“API keys”&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;nessa tela você pode criar uma chave (&lt;strong&gt;“Create API key”&lt;/strong&gt;).&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;A chave gerada é sua forma de autenticação na API, então deve ser mantida em segurança.&lt;/p&gt;
+
+&lt;h2 id=&#34;2-instalação&#34;&gt;2 Instalação&lt;/h2&gt;
+
+&lt;p&gt;Existe um &lt;a href=&#34;https://bitbucket.org/mailchimp/mailchimp-api-php&#34; target=&#34;_blank&#34;&gt;SDK PHP oficial do Mailchimp&lt;/a&gt;. Você pode instalar &lt;a href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34; target=&#34;_blank&#34;&gt;usando o Composer&lt;/a&gt;, incluindo a seguinte dependência no seu arquivo &lt;strong&gt;composer.json&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&#34;mailchimp/mailchimp&#34;: &#34;2.0.*&#34;&lt;/pre&gt;
+
+&lt;p&gt;E executando o &lt;strong&gt;composer install&lt;/strong&gt; (ou &lt;strong&gt;update&lt;/strong&gt; se for um projeto já existente).&lt;/p&gt;
+
+&lt;p&gt;Mas se você não está usando o Composer (está desenvolvendo um tema ou plugin de WordPress, por exemplo) pode baixar o &lt;a href=&#34;https://bitbucket.org/mailchimp/mailchimp-api-php/get/master.zip&#34; target=&#34;_blank&#34;&gt;pacote com o SDK&lt;/a&gt;. Caso opte por esse tipo de instalação, provavelmente vai ser necessário incluir no seu código um &lt;strong&gt;require&lt;/strong&gt; para a classe principal: &lt;strong&gt;src/Mailchimp.php&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;3-integrando&#34;&gt;3 Integrando&lt;/h2&gt;
+
+&lt;p&gt;Vamos começar usando um formulário HTML simples, com apenas dois inputs: e-mail e cidade. Estou optando por usar esses dados, porque quero mostrar como usar campos personalizados com a API. O arquivo &lt;strong&gt;newsletter.php&lt;/strong&gt; deve ser algo assim:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;form action=&#34;mailchimp.php&#34; method=&#34;post&#34;&amp;gt;
+  &amp;lt;h1&amp;gt;Newsletter&amp;lt;/h1&amp;gt;
+  &amp;lt;label&amp;gt;E-mail&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&#34;email&#34; name=&#34;email&#34;&amp;gt;&amp;lt;br&amp;gt;
+  &amp;lt;label&amp;gt;Cidade&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&#34;text&#34; name=&#34;city&#34;&amp;gt;&amp;lt;br&amp;gt;
+  &amp;lt;button type=&#34;submit&#34;&amp;gt;Assinar!&amp;lt;/button&amp;gt;
+&amp;lt;/form&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Obs.: Como o foco é o uso da API, não estou me preocupando com a estética do formulário, ok? 😉&lt;/p&gt;
+
+&lt;p&gt;Seguindo vamos para o arquivo &lt;strong&gt;mailchimp.php&lt;/strong&gt;, que receberá os dados enviados pele formulário:&lt;/p&gt;
+
+&lt;p&gt;Primeiro começamos definindo algumas configurações, usando constantes:&lt;/p&gt;
+
+&lt;pre&gt;define(&#39;MAILCHIMP_API_KEY&#39;,  &#39;&#39;); // Sua chave da API
+define(&#39;MAILCHIMP_LIST_ID&#39;,  &#39;&#39;); // O ID da sua lista
+define(&#39;MAILCHIMP_CITY_TAG&#39;, &#39;&#39;); // A tag do campo personalizado que usaremos&lt;/pre&gt;
+
+&lt;p&gt;Tem duas informações novas aqui: o &lt;strong&gt;ID da lista&lt;/strong&gt; e a &lt;strong&gt;tag do campo&lt;/strong&gt; personalizado. Conseguimos esses dados no painel do Mailchimp, assim:&lt;/p&gt;
+
+&lt;h3 id=&#34;id-da-lista&#34;&gt;ID da lista&lt;/h3&gt;
+
+&lt;p&gt;Na lista para qual você quer adicionar as assinaturas (se você não tem nenhuma lista na sua conta, precisará criar uma antes de continuar), no menu &lt;strong&gt;“Settings”&lt;/strong&gt; vá até &lt;strong&gt;“List name and defaults”&lt;/strong&gt;. Nessa tela, do lado direto, existe uma pequena sessão com o título &lt;strong&gt;“List ID”&lt;/strong&gt;, dali você vai copiar um código, tipicamente formado por letras e números.&lt;/p&gt;
+
+&lt;h3 id=&#34;tag-do-campo&#34;&gt;Tag do campo&lt;/h3&gt;
+
+&lt;p&gt;Ainda na lista e novamente no menu &lt;strong&gt;“Settings”&lt;/strong&gt; você vai até o link &lt;strong&gt;“List fields and *|MERGE|* tags”&lt;/strong&gt;. Ali você vai copiar a tag correspondente ao campo usado no form, que no nosso exemplo é o &lt;strong&gt;“Cidade”&lt;/strong&gt;. O que você precisa é o valor que está no input, algo parecido com &lt;strong&gt;“MMERGE3”&lt;/strong&gt; — esse número no final muda de um campo para outro.&lt;/p&gt;
+
+&lt;p&gt;Caso você ainda não tenha criado nenhum campo personalizado, você pode criar um agora.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Continuando com o código&amp;#8230;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Para usar um nome mais claro no código (e evitar usar as globais do PHP), vou repassar o conteúdo recebido do form para uma nova variável:&lt;/p&gt;
+
+&lt;pre&gt;$form = $_POST;&lt;/pre&gt;
+
+&lt;p&gt;Na sequência vou fazer uma validação bem básica dos dados, apenas verificando se os campos foram preenchidos. Provavelmente você vai querer fazer algo mais eficaz, como verificar se o formato do e-mail é válido ou se o nome da cidade tem um mínimo de caracteres, por exemplo.&lt;/p&gt;
+
+&lt;pre&gt;if (!empty($form[&#39;email&#39;]) &amp;&amp; !empty($form[&#39;city&#39;])) {
+  $mailchimp = new Mailchimp(MAILCHIMP_API_KEY);
+  $lists = new Mailchimp_Lists($mailchimp);
+  $email = [
+    &#39;email&#39; =&amp;gt; $form[&#39;email&#39;],
+  ];
+  $merge = [
+    MAILCHIMP_CITY_TAG =&amp;gt; $form[&#39;city&#39;],
+  ];
+  $lists-&amp;gt;subscribe(
+    MAILCHIMP_LIST_ID, // ID da lista
+    $email,            // O e-mail do assinante
+    $merge,            // Campos personalizados
+    &#39;html&#39;,            // Tipo de e-mail recebido
+    false              // Confirmar assinatura por e-mail (opt-in duplo)?
+  );
+  echo &#39;Newsletter assinada!&#39;;
+} else {
+  echo &#39;Por favor preencha os campos. &amp;lt;a href=&#34;newsletter.php&#34;&amp;gt;Voltar&amp;lt;/a&amp;gt;&#39;;
+}&lt;/pre&gt;
+
+&lt;p&gt;Se você usou um e-mail que ainda não está na lista para testar o formulário, vai ver que ele funciona a primeira vez, mas nos envios seguintes o PHP indica uma exceção. Se o teste foi feito com um e-mail já cadastrado, nem o primeiro envio funcionou.&lt;/p&gt;
+
+&lt;p&gt;Isso acontece porque o SDK do Mailchimp usa exceções para indicar qualquer coisa que impeça a chamada à API de ser executada com sucesso, incluindo a tentativa de assinatura com um e-mail já cadastrado. Para tratar esses casos, vamos fazer a seguinte alteração no código que está dentro do &lt;strong&gt;if&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;try {
+    $mailchimp = …
+
+    ...
+
+    echo &#39;Newsletter assinada!&#39;;
+  } catch (Mailchimp_List_AlreadySubscribed $e) {
+    echo &#39;Você já assinou a newsletter.&#39;;
+  } catch (Mailchimp_Email_AlreadySubscribed $e) {
+    echo &#39;Você já assinou a newsletter.&#39;;
+  } catch (Mailchimp_Email_NotExists $e) {
+    echo &#39;O e-mail informado não existe.&#39;;
+  } catch (Mailchimp_Invalid_Email $e) {
+    echo &#39;O e-mail informado é inválido.&#39;;
+  } catch (Mailchimp_List_InvalidImport $e) {
+    echo &#39;Dados inválidos, provavelmente seu e-mail.&#39;;
+  } catch (Exception $e) {
+    echo $e-&amp;gt;getMessage(); // Não mostre isso para o usuário
+  }&lt;/pre&gt;
+
+&lt;p&gt;Dessa forma conseguimos tratar algumas exceções mais comuns que o SDK pode lançar e devolver um feedback para o usuário, assim ele é capaz de corrigir as informações e tentar novamente.&lt;/p&gt;
+
+&lt;p&gt;Para os outros casos, fazemos um tratamento genérico apenas exibindo a mensagem da exceção. Isso é o suficiente para um exemplo como esse aqui, mas não é o ideal para um código real que vai para produção, porque pode expôr bugs e informações sensíveis da sua aplicação. Então recomendo fazer um tratamento mais adequado, como gravar em um arquivo de log ou &lt;a href=&#34;http://tableless.com.br/rastreando-excecoes-no-php-com-o-airbrake/&#34; target=&#34;_blank&#34;&gt;usar um rastreador de bugs&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora quando você submeter o formulário com um e-mail já cadastrado, verá a mensagem: &lt;strong&gt;“Você já assinou a newsletter.”&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Essa integração é bem básica, mas dá uma ideia do que é possível fazer com a API do Mailchimp. Como falei no início, você pode ir muito mais além do que um formulário de captação de e-mails. E mesmo em se tratando da assinatura de listas, você pode refinar o código que apresentei e integrar em um formulário de cadastro do seu site, e até adicionar novos campos.&lt;/p&gt;
+
+&lt;p&gt;Caso tenha alguma dúvida ou encontre algum erro, fique a vontade para usar os comentários.&lt;/p&gt;
+
+&lt;p&gt;Ah! O código completo está disponível no GitHub: &lt;a href=&#34;https://github.com/straube/mailchimp-sample-form&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/straube/mailchimp-sample-form&#34;&gt;https://github.com/straube/mailchimp-sample-form&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Web Notifications API</title>
+      <link>http://tableless.com.br/web-notifications-api/</link>
+      <pubDate>Mon, 14 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/web-notifications-api/</guid>
+      <description>
+
+&lt;p&gt;Se você trabalha em um site de conteúdo ou em algum produto web, uma possibilidade interessante seria fazer com que o usuário recebesse uma notificação quando houvesse uma nova notícia ou, no caso de produtos, uma notificação do próprio serviço. Com a Notifications API agora é totalmente possível.&lt;/p&gt;
+
+&lt;p&gt;Caso você queira dar uma &lt;a href=&#34;http://www.w3.org/TR/notifications/&#34;&gt;olhada na documentação&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Outro detalhe importante: as notificações só podem ser ativadas por meio de uma interação do usuário, como clique de mouse, teclado e etc&amp;#8230; Logo, vamos usar um botão em nosso exemplo para poder ativar as notificações.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Notifications should only be presented when the user has indicated they are desired; without this they could create a negative experience for the user.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;verificando-suporte&#34;&gt;Verificando suporte&lt;/h2&gt;
+
+&lt;p&gt;A primeira coisa que nossa função precisa fazer é verificar se o browser suporta ou não notificações. Se ele não aceitar, ele fica em silêncio e pronto. No nosso exemplo ele vai logar uma mensagem no console, só para gente saber, ok?&lt;/p&gt;
+
+&lt;h2 id=&#34;pedindo-permissão&#34;&gt;Pedindo permissão&lt;/h2&gt;
+
+&lt;p&gt;Para não virar festa, é necessário que tenhamos a permissão do usuário para enviar as notificações via browser. Isso acontece também ao utilizar outras APIs, como a de Geolocation, por exemplo. A permissão terá três possíveis valores: um valor inicial de &lt;strong&gt;default&lt;/strong&gt;, que significa que o usuário ainda não negou nem permitiu receber notificações deste domínio. O &lt;strong&gt;denied&lt;/strong&gt; significa que o usuário negou receber e o &lt;strong&gt;granted&lt;/strong&gt; que significa que usuário aceitou receber as notificações.&lt;/p&gt;
+
+&lt;p&gt;Agora é só fazer uma condição verificando estes estágios:&lt;/p&gt;
+
+&lt;h2 id=&#34;preparando-a-notificação&#34;&gt;Preparando a notificação&lt;/h2&gt;
+
+&lt;p&gt;Se o usuário nos deu permissão para fazer a notificação, nosso domínio fica listado com permissão nas configurações do browser e aí poderemos enviar notificações até que o usuário bloqueie. Agora é hora de fazer a notificação. Para tanto, iremos executar pequena função quando a permissão for &amp;#8220;granted&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;O código fica assim:&lt;/p&gt;
+
+&lt;p&gt;Criamos um novo objeto &lt;strong&gt;Notification&lt;/strong&gt;, que recebe logo de cara um parâmetro que é o título da notificação. Depois há algumas opções que podemos preencher:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;body&lt;/strong&gt;: A mensagem da notificação.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;tag&lt;/strong&gt;: Identificador único da notificação. Uma string simples. Isso serve para não fazermos notificações duplicadas.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onshow&lt;/strong&gt;: Evento que é disparado quando a notificação aparece.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onclick&lt;/strong&gt;: Evento quando o usuário clica na notificação.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onclose&lt;/strong&gt;: Quando o usuário fecha a notificação.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onerror&lt;/strong&gt;: Quando há algum erro na notificação e ela não pode ser mostrada.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;E voilá! Faça um teste aí. Aqui usei o Chrome e Safari. No meu Safari só funcionou depois que coloquei na minha pasta onde sirvo o localhost (httpdocs, public, www, sei lá o que você usa aí localmente).&lt;/p&gt;
+
+&lt;h2 id=&#34;o-browser-pensa-assim&#34;&gt;O browser pensa assim&lt;/h2&gt;
+
+&lt;p&gt;O Browser tem um processo definido pela especificação do W3C que é basicamente assim:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Se a permissão para a notificação não foi positiva, cancele qualquer pedido de notificação e retorne um evento de erro na notificação, finalizando todos os passos. É aqui que o &lt;strong&gt;onerror&lt;/strong&gt; entra em ação.&lt;/li&gt;
+&lt;li&gt;Se existir uma notificação pendente na lista ou se na lista de notificações ativas existem tags iguais a notificação que está sendo chamada, rode os &lt;a href=&#34;http://www.w3.org/TR/notifications/#replace-steps&#34;&gt;passos de substituição&lt;/a&gt; e finalize as ações.&lt;/li&gt;
+&lt;li&gt;Se um dispositivo autorizar, as notificações podem ser mostradas imediatamente sem limitações no número de notificações concorrentes, rodando os &lt;a href=&#34;http://www.w3.org/TR/notifications/#display-steps&#34;&gt;passos de amostra&lt;/a&gt; e finalizando as tarefas.&lt;/li&gt;
+&lt;li&gt;Se o dispositivo tem limitações com o número de notificações concorrentes, chame imediatamente a plataforma alternativa que suporte enfileirar as notificações ou posicione as notificações em uma &lt;a href=&#34;http://www.w3.org/TR/notifications/#list-of-pending-notifications&#34;&gt;lista de pendências&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;É legal &lt;a href=&#34;http://www.w3.org/TR/notifications/&#34;&gt;ler a documentação do W3C&lt;/a&gt;, mesmo que boa parte das informações sobre essa API seja interessante para os fabricantes de browsers.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Mais pra estudar:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://zeropush.com/blog/implementing-safari-push-notifications-in-osx-mavericks&#34;&gt;Implementing Safari push notifications in OSX Mavericks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/API/Notification/Using_Web_Notifications&#34;&gt;Using Web Notifications &amp;#8211; MDN&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.apple.com/library/safari/documentation/AppleApplications/Conceptual/SafariJSProgTopics/Articles/SendingNotifications.html#//apple_ref/doc/uid/TP40001483-CH23-SW1&#34;&gt;Sending Notifications &amp;#8211; Apple&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://loopinfinito.com.br/2012/08/22/web-notifications-api/&#34;&gt;Artigo sobre o mesmo assunto no LoopInfinito&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Utilizando o MarkerClusterer no Google Maps</title>
+      <link>http://tableless.com.br/utilizando-o-markerclusterer-google-maps/</link>
+      <pubDate>Wed, 07 May 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/utilizando-o-markerclusterer-google-maps/</guid>
+      <description>
+
+&lt;p&gt;Seja você desenvolvedor ou não, temos que admitir o poder do Google Maps. É bem difícil encontrar alguém hoje em dia que não tenha acessado pelo menos uma vez o famoso &lt;em&gt;Maps&lt;/em&gt; para ver onde ficava um determinado lugar.&lt;/p&gt;
+
+&lt;p&gt;Esses dias me deparei novamente com o excelente artigo do Thulio Philipe sobre a &lt;a href=&#34;http://tableless.com.br/api-google-maps-v3/&#34;&gt;API do Google Maps V3&lt;/a&gt; e resolvi escrever um pouco sobre um recurso chamado &lt;strong&gt;MarkerClusterer&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-o-markerclusterer&#34;&gt;O que é o MarkerClusterer?&lt;/h2&gt;
+
+&lt;p&gt;Segundo o Google, trata-se de uma solução para o problema de muitos &lt;em&gt;pontos&lt;/em&gt; em um mapa. Indo direto ao ponto, ele agrupa pontos (&lt;em&gt;markers&lt;/em&gt;) que são muito próximos uns dos outros no mapa e renderiza um ponto diferente com o número de ícones agrupados.&lt;/p&gt;
+
+&lt;p&gt;Confuso? Visualmente fica mais fácil para explicar. Imagine que tivéssemos um mapa assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo-antes-MarkerClusterer.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-42294&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo-antes-MarkerClusterer.png&#34; alt=&#34;Exemplo de mapa simples sem a utilização do MarkerClusterer&#34; width=&#34;624&#34; height=&#34;424&#34; srcset=&#34;uploads/2014/04/exemplo-antes-MarkerClusterer.png 624w, uploads/2014/04/exemplo-antes-MarkerClusterer-400x271.png 400w&#34; sizes=&#34;(max-width: 624px) 100vw, 624px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Temos alguns pontos que são bem próximos uns dos outros enquanto outros são mais distantes. Aplicando o MarkerClusterer ficaria assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo-depois-MarkerClusterer.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-42295&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo-depois-MarkerClusterer.png&#34; alt=&#34;Exemplo de mapa simples com a utilização do MarkerClusterer&#34; width=&#34;624&#34; height=&#34;424&#34; srcset=&#34;uploads/2014/04/exemplo-depois-MarkerClusterer.png 624w, uploads/2014/04/exemplo-depois-MarkerClusterer-400x271.png 400w&#34; sizes=&#34;(max-width: 624px) 100vw, 624px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Você pode estar pensando a mesma coisa que pensei a primeira vez que vi o exemplo: &lt;em&gt;&amp;#8220;Ah, nem precisava agrupar os itens! Tem poucos no mapa!&amp;#8221;&lt;/em&gt; Pode ser. Agora imagine que tivéssemos um mapa assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo2-antes-MarkerClusterer.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-42292&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo2-antes-MarkerClusterer.png&#34; alt=&#34;Exemplo de mapa mais complexo com a utilização do MarkerClusterer&#34; width=&#34;624&#34; height=&#34;424&#34; srcset=&#34;uploads/2014/04/exemplo2-antes-MarkerClusterer.png 624w, uploads/2014/04/exemplo2-antes-MarkerClusterer-400x271.png 400w&#34; sizes=&#34;(max-width: 624px) 100vw, 624px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pois é! De acordo com o próprio Google, um mapa assim acaba por se tornar lento pelo fato de um ponto no mapa ser uma combinação de vários elementos no DOM. Logo, quanto mais pontos no mapa, maior o trabalho no navegador para renderização. O legal é que existe até um &lt;a href=&#34;http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/examples/speed_test_example.html?&#34;&gt;teste de velocidade&lt;/a&gt; comparando um mapa com e sem o uso do MarkerClusterer.&lt;/p&gt;
+
+&lt;p&gt;Como ficaria com a utilização do MarkerClusterer:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo2-depois-MarkerClusterer.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-42293&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo2-depois-MarkerClusterer.png&#34; alt=&#34;Exemplo de mapa mais complexo sem a utilização do MarkerClusterer&#34; width=&#34;624&#34; height=&#34;424&#34; srcset=&#34;uploads/2014/04/exemplo2-depois-MarkerClusterer.png 624w, uploads/2014/04/exemplo2-depois-MarkerClusterer-400x271.png 400w&#34; sizes=&#34;(max-width: 624px) 100vw, 624px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pode ser até que a questão da &lt;strong&gt;perfomance&lt;/strong&gt; não influencie tanto no seu projeto, mas um ponto que deve ser considerado é a &lt;strong&gt;usabilidade&lt;/strong&gt; e &lt;strong&gt;experiência do usuário&lt;/strong&gt; ao interagir com o mapa. &lt;strong&gt;Se colocar no lugar do usuário&lt;/strong&gt; nessa hora é fundamental. Pra localizar determinado ponto no mapa: fica mais fácil com todos visíveis próximos uns dos outros ou agrupados em grupos maiores? Logicamente não existe um certo ou errado pois isso vai variar de projeto para projeto, mas vale a discussão com os membros do time.&lt;/p&gt;
+
+&lt;p&gt;As imagens acima foram tiradas &lt;a href=&#34;https://developers.google.com/maps/articles/toomanymarkers?hl=pt-br#markerclusterer&#34;&gt;daqui&lt;/a&gt; onde também é possível ler mais a respeito desse recurso.&lt;/p&gt;
+
+&lt;p&gt;Peguei um exemplo do próprio Google pra podermos visualizar a diferença entre um mapa &lt;a href=&#34;http://codepen.io/raphaelfabeni/full/hdjgA&#34;&gt;sem a utilização do MarkerClusterer&lt;/a&gt; e &lt;a href=&#34;http://codepen.io/raphaelfabeni/full/zjcFd&#34;&gt;com a utilização do recurso&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Dando uma olhada no código do exemplo com a utilização do recurso temos o seguinte:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;HTML&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div id=&#34;map-container&#34;&amp;gt;&amp;lt;div id=&#34;map&#34;&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;/div&amp;gt;
+
+&amp;lt;!-- Scripts --&amp;gt;
+&amp;lt;script src=&#34;http://maps.google.com/maps/api/js?sensor=false&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;script src=&#34;http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/data.json&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;script src=&#34;http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;CSS&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body { margin: 0; }
+
+#map-container {
+  -webkit-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
+     -moz-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
+          box-shadow: rgba(64, 64, 64, 0.1) 0 2px 5px;
+  width: 600px;
+}
+
+#map {
+  width: 600px;
+  height: 400px;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;JS&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function initialize() {
+  var center = new google.maps.LatLng(48.091534, 15.5116439);
+  
+  var map = new google.maps.Map(document.getElementById(&#39;map&#39;), {
+    zoom: 3,
+    center: center,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  });
+
+  var markers = [];
+  for (var i = 0; i &amp;lt; 100; i++) {
+    var dataPhoto = data.photos[i];
+    var latLng = new google.maps.LatLng(dataPhoto.latitude,
+              dataPhoto.longitude);
+    var marker = new google.maps.Marker({
+      position: latLng
+    });
+    markers.push(marker);
+  }
+  var markerCluster = new MarkerClusterer(map, markers);
+}
+
+google.maps.event.addDomListener(window, &#39;load&#39;, initialize);
+&lt;/pre&gt;
+
+&lt;p&gt;A parte de HTML e CSS é bem tranquila e, se pararmos pra olhar, até a parte do JS é de fácil entendimento.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Primeiro é criado o objeto do mapa com seus parâmetros e ele é passado à variável &lt;code&gt;map&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Depois é criado um array vazio que vai armazenar todos os &lt;em&gt;markers.&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Logo após é executado um &lt;code&gt;for&lt;/code&gt; que vai iterar pelo JSON que contém as informações dos pontos e, adicionar cada ponto no array que criamos acima.&lt;/li&gt;
+&lt;li&gt;Nesse momento é criado o objeto &lt;em&gt;MarkerClusterer&lt;/em&gt; passando como parâmetros o array contendo todos os pontos do JSON e o mapa.&lt;/li&gt;
+&lt;li&gt;Por fim, o mapa é iniciado no &lt;em&gt;load&lt;/em&gt; da página.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;É isso pessoal, a idéia era dar uma passada geral sobre o recurso que pode ser útil para alguém que for mexer com mapas que possuem muitos pontos!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Web Storage  – HTML5</title>
+      <link>http://tableless.com.br/web-storage-html5/</link>
+      <pubDate>Tue, 28 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/web-storage-html5/</guid>
+      <description>
+
+&lt;h2 id=&#34;cookies-8211-o-passado&#34;&gt;Cookies &amp;#8211; o passado&lt;/h2&gt;
+
+&lt;p&gt;Para entendermos a vantagem obtida na utilização do WebStorage vamos compreender como uma aplicação trabalha(va) com cookies.&lt;/p&gt;
+
+&lt;p&gt;Os cookies são inseridos no cabeçalho HTTP, sendo assim, sua performance pode ser comprometida. E estando as informações no cabeçalho HTTP, podemos nos perguntar: o quão protegidas elas estão?&lt;/p&gt;
+
+&lt;p&gt;Outro desafio que se apresenta ao se trabalhar cookies é a capacidade de armazenamento: 4kB por cookies vezes no máximo 20 cookies é igual a capacidade de 80 kB. Essa restrição de capacidade por si só já é um problema, mas ela acarreta outro dificuldade, o gerenciamento destes cookies.&lt;/p&gt;
+
+&lt;p&gt;Pense que em uma aplicação que real seria muito útil armazenar mais do que 80 kB, para fazer isso com cookies seria necessário estabelecer um controle de validade dos cookies, essa seria uma maneira muito inteligente de utilizar cookies &amp;#8211; afinal ele precisar estar armazenado somente enquanto for necessário, mas o trabalho para controlar as datas de validade dos cookies seria um trabalho que requisitaria calcular seus tempos de validade, mais código.&lt;/p&gt;
+
+&lt;h2 id=&#34;webstorage-8211-o-presente-e-suas-vantagens&#34;&gt;WebStorage &amp;#8211; o presente e suas vantagens.&lt;/h2&gt;
+
+&lt;p&gt;As limitações dos cookies já foram citadas, mas o WebStorage é melhor no itens citados? SIM.&lt;/p&gt;
+
+&lt;p&gt;Vamos ver como o WebStorage é melhor.&lt;/p&gt;
+
+&lt;p&gt;Mas em primeiro lugar vamos falar de segurança.&lt;/p&gt;
+
+&lt;p&gt;Os pares de chave e valor gravados pela WebStorage não podem ser acessados por outros subdomínios. Isso garante que caso você use o WebStorage para gravar dados com sigilo. Isso faz com que ele não corra o risco de ser acessado por outro domínio.&lt;/p&gt;
+
+&lt;p&gt;Sobre a capacidade de armazenamento, temos o suficiente para trabalharmos bem. A API permite armazenamentos entre 2,5 MB até 10 MB. Esse espaço é suficiente para podermos trabalhar com folga, principalmente se compararmos com a capacidade permitida para se trabalhar com os cookies.&lt;/p&gt;
+
+&lt;p&gt;Com este espaço disponível talvez você não precise se preocupar com o controle de validade dos dados. Mas caso você queira controlar o período em que os dados estarão gravados no navegador do usuário, você pode fazer isto. Para tanto, temos que entender o desdobramento do conceito do WebStorage: localStorage e sessionStorage.&lt;/p&gt;
+
+&lt;p&gt;Este último manterá os dados salvos enquanto o navegador estiver aberto. Isso é muito útil, pois nem sempre queremos que os dados estejam sempre disponíveis. Enquanto o localStorage manterá o dado gravado até que ele seja removido diretamente, você poderá fechar o navegador, reiniciar o computador e os dados ainda estarão lá.&lt;/p&gt;
+
+&lt;h2 id=&#34;exemplo&#34;&gt;Exemplo&lt;/h2&gt;
+
+&lt;p&gt;Não há melhor maneira de aprender do que fazendo. Vamos construir uma calculadora em que seja possível salvarmos os valores calculados e visualizá-los ao lado, e sempre que o usuário desejar ver os resultados calculados ele poderá fazer isto, mesmo após ter fechada a sessão. Então vamos ao exemplo.&lt;/p&gt;
+
+&lt;p&gt;Primeiro vamos construir a estrutura do nosso documento html, nele usaremos a biblioteca jquery para facilitar a construção do nosso script. Também teremos uma tag input onde serão apresentados os dígitos clicados, em seguidas temos os botões com os numeros de 0 à 9, com as operações de SOMA, MULTIPLICAÇÃO, DIVISÃO e SUBTRAÇÃO, PARÊNTESES e os botões de SALVAR &amp;#8211; que irá salvar o valor da tag input no localStorage &amp;#8211; ,LISTAR que ira pegar todos os valores listados no localStorage e colocar em uma tabela e o botão APAGAR que deletará todos itens do localStorage, também temos a tabela onde serão colocados os valores encontrados no localStorage :&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!--Início - Documento .html-- gt;
+&amp;lt;html&amp;gt;    
+  &amp;lt;head&amp;gt;
+    &amp;lt;script src=&#34;http://code.jquery.com/jquery-1.10.2.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+  &amp;lt;/head&amp;gt;
+  &amp;lt;body&amp;gt;
+
+    &amp;lt;input id=&#34;inputResult&#34;&amp;gt;&amp;lt;/input&amp;gt;
+    &amp;lt;br&amp;gt;
+
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;1&#34;&amp;gt;1&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;2&#34;&amp;gt;2&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;3&#34;&amp;gt;3&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;4&#34;&amp;gt;4&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;5&#34;&amp;gt;5&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;6&#34;&amp;gt;6&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;7&#34;&amp;gt;7&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;8&#34;&amp;gt;8&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;9&#34;&amp;gt;9&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;0&#34;&amp;gt;0&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+
+    &amp;lt;button class=&#34;btnOperacao&#34; value=&#34;+&#34;&amp;gt;+&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnOperacao&#34; value=&#34;-&#34;&amp;gt; - &amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnOperacao&#34; value=&#34;*&#34;&amp;gt; * &amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnOperacao&#34; value=&#34;/&#34;&amp;gt; / &amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnOperacao&#34; value=&#34;(&#34;&amp;gt;(&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+
+    &amp;lt;button class=&#34;btnOperacao&#34; value=&#34;)&#34;&amp;gt;)&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnResult&#34; value=&#34;=&#34;&amp;gt;=&amp;lt;/button&amp;gt;
+    &amp;lt;button id=&#34;btnLimpar&#34; class=&#34;btnOperacao&#34; value=&#34;LIMPAR&#34;&amp;gt;LIMPAR&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+    &amp;lt;button class=&#34;btnSalvar&#34; value=&#34;SALVAR&#34;&amp;gt;SALVAR&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+    &amp;lt;button class=&#34;btnListar&#34; value=&#34;LISTAR&#34;&amp;gt;LISTAR VALORES&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+    &amp;lt;button class=&#34;btnApagar&#34; value=&#34;APAGAR&#34;&amp;gt;APAGAR VALORES&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+    &amp;lt;br&amp;gt;
+    &amp;lt;br&amp;gt;
+
+    &amp;lt;table id=&#34;tableResults&#34; class=&#34;tabela&#34; border=&#34;0&#34;&amp;gt;
+            &amp;lt;tr&amp;gt;
+                     &amp;lt;td&amp;gt;
+      Chave
+        &amp;lt;/td&amp;gt;
+                    &amp;lt;td&amp;gt;
+      Valor
+                    &amp;lt;/td&amp;gt;
+                 &amp;lt;/tr&amp;gt;
+
+    &amp;lt;/table&amp;gt;
+  &amp;lt;/body&amp;gt;
+
+&amp;lt;/html&amp;gt;
+&amp;lt;!--Fim - Documento .html--&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Criado o documento acima vamos construir nossa lógica.&lt;/p&gt;
+
+&lt;p&gt;O que queremos primeiramente é pegar o valor clicado nos números e colocá-los no input. Para isso vamos usar o evento clique que será atribuído aos botões dos números por meio da classe btnNumber, e dentro da função atribuída colocaremos o valor clicado mais o valor que ele terá.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.btnNumber&#39;).click(function(){  
+   $(&#39;#inputResult&#39;).val($(&#39;#inputResult&#39;).val()+this.value)
+});&lt;/pre&gt;
+
+&lt;p&gt;Agora o que queremos é fazer o mesmo para pegarmos as operações clicadas. A lógica é a mesma, mas adicionaremos uma tratativa para acaso o botão de operação clicado seja o LIMPAR. Se clicar no botão LIMPAR o valor da tag input será esvaziado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.btnOperacao&#39;).click(function(){  
+  if(this.value != &#39;LIMPAR&#39;){
+    $(&#39;#inputResult&#39;).val($(&#39;#inputResult&#39;).val()+this.value)
+  }
+  else{
+    $(&#39;#inputResult&#39;).val(&#39;&#39;)
+  }
+});&lt;/pre&gt;
+
+&lt;p&gt;Bem, isso é uma calculadora, então temos que calcular. É neste momento onde gosto de expressar o amor ao javascript, basta passarmos a string com a conta montada na tag input para o método eval( ), para que ele execute o cálculo. O código abaixo mostra a atribuição da função e a execução do calculo e em seguida coloca o valor na tag input.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.btnResult&#39;).click(function(){  
+    $(&#39;#inputResult&#39;).val(eval($(&#39;#inputResult&#39;).val()))
+});&lt;/pre&gt;
+
+&lt;p&gt;Finalmente vamos ao WebStorage, porque queremos gravar os valores e deixá-los disponíveis. Para gravarmos um valor no localStorage usamos o setItem(chave,valor), sempre gravaremos um par de chave e valor no WebStorage. Sabemos que queremos gravar o valor do resultado, mas a chave vamos deixar nas mãos do usuário. Quando ele clicar em salvar vamos dar ao usuário a opção dar um nome aquele resultado, e este nome será a chave a ser gravada com o valor.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.btnSalvar&#39;).click(function(){
+    var lS = prompt(&#34;De um nome ao resultado para salvar.&#34;,&#34;&#34;);
+    localStorage.setItem(lS,$(&#39;#inputResult&#39;).val());
+})&lt;/pre&gt;
+
+&lt;p&gt;Temos o botão LISTAR que pegará todos os valores salvos no localStorage e colocará na tabela abaixo da calculadora. Para pegarmos um valor usamos o getitem(chave), para sabermos quantos itens temos no localStorage usamos o localStorage.length e para pegar a chave usamos localStorage.key(index). Utilizando um while varremos localStorage e inserimos os valores na tabela.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.btnListar&#39;).click(function(){
+  var tamanho = localStorage.length;
+  var chave = &#39;&#39;;
+  var valor = &#39;&#39;;
+
+  if(document.getElementById(&#34;tableResults&#34;).rows.length &amp;gt; 1)  {
+    for(var t = document.getElementById(&#34;tableResults&#34;).rows.length; t &amp;gt; 1; t--){
+      document.getElementById(&#34;tableResults&#34;).deleteRow(1);
+    }
+  }
+
+  var numOfCols =  document.getElementById(&#34;tableResults&#34;).rows[document.getElementById(&#34;tableResults&#34;).rows.length-1].cells.length;
+
+  for(var c = 0; c &amp;lt; tamanho;c++){
+    chave = localStorage.key(c);
+    valor = localStorage.getItem(chave);
+    var newRow = document.getElementById(&#34;tableResults&#34;).insertRow(document.getElementById(&#34;tableResults&#34;).rows.length);
+
+    for (var j = 0; j &amp;lt; numOfCols; j++) {
+      newCell = newRow.insertCell(j);
+
+      if(j==0){
+       newCell.innerHTML = chave.toUpperCase();
+     }else if(j == 1){
+       newCell.innerHTML = valor;
+     }
+   }
+ }
+})&lt;/pre&gt;
+
+&lt;p&gt;A ultima lógica é a de limpar o localStorage com os dados salvos. Usamos o localStorage.clear() para limpar todos os itens. Veja como:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.btnApagar&#39;).click(function(){
+   localStorage.clear()                 
+})&lt;/pre&gt;
+
+&lt;p&gt;Estilo é importante, não é o nosso foco, mas é importante, então vamos implementar algum estilo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;button{
+  width:27.5px;
+}
+.btnListar,.btnSalvar,.btnApagar{
+  width:155px;
+}
+#btnLimpar{
+  width:90px; 
+}
+#inputResult{
+  text-align: center;
+}
+table.tabela tbody tr:nth-child(odd){
+  background-color: #E9E9E9;
+}&lt;/pre&gt;
+
+&lt;p&gt;Este é o código que temos.Vamos ver como o navegador (Chrome) nos possibilita inspecionar o elemento.&lt;/p&gt;
+
+&lt;p&gt;Execute o documento no navegador e aperte F12. Aparecerá a tela do lado direito aperte a seta à esquerda do Local Storage para visualizar os dados salvos pelo documento em execução. No caso abaixo, ainda não temos nenhum valor salvo.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws1.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40582&#34; alt=&#34;ws1&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws1-588x171.png&#34; width=&#34;588&#34; height=&#34;171&#34; srcset=&#34;uploads/2014/01/ws1-588x171.png 588w, uploads/2014/01/ws1-329x95.png 329w, uploads/2014/01/ws1-660x192.png 660w, uploads/2014/01/ws1.png 970w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Faça qualquer conta.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws2.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40583&#34; alt=&#34;ws2&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws2-226x310.png&#34; width=&#34;226&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/01/ws2-226x310.png 226w, uploads/2014/01/ws2-122x168.png 122w, uploads/2014/01/ws2.png 262w&#34; sizes=&#34;(max-width: 226px) 100vw, 226px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora clique em igual (=) para obter o resultado.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws3.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40584&#34; alt=&#34;ws3&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws3-237x310.png&#34; width=&#34;237&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/01/ws3-237x310.png 237w, uploads/2014/01/ws3-128x168.png 128w, uploads/2014/01/ws3.png 264w&#34; sizes=&#34;(max-width: 237px) 100vw, 237px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Clicando em salvar, abriremos um prompt para ser digitado o nome do resultado que será utilizado para identificar o valor.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws4.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40585&#34; alt=&#34;ws4&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws4-588x156.png&#34; width=&#34;588&#34; height=&#34;156&#34; srcset=&#34;uploads/2014/01/ws4-588x156.png 588w, uploads/2014/01/ws4-329x87.png 329w, uploads/2014/01/ws4-660x176.png 660w, uploads/2014/01/ws4.png 944w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Depois de clicar em OK, abra o inspetor de elementos Developer Tools clique no botão de refresh no rodapé e você verá o valor salvo.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws5.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40586&#34; alt=&#34;ws5&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws5-588x162.png&#34; width=&#34;588&#34; height=&#34;162&#34; srcset=&#34;uploads/2014/01/ws5-588x162.png 588w, uploads/2014/01/ws5-329x91.png 329w, uploads/2014/01/ws5-660x182.png 660w, uploads/2014/01/ws5.png 936w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Execute mais um calculo e salve seu valor. Agora clique em LISTAR VALORES e assim serão exibidos todos os valores no localStorage.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws6.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40587&#34; alt=&#34;ws6&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws6-242x310.png&#34; width=&#34;242&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/01/ws6-242x310.png 242w, uploads/2014/01/ws6-131x168.png 131w, uploads/2014/01/ws6.png 264w&#34; sizes=&#34;(max-width: 242px) 100vw, 242px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Clicando em APAGAR VALORES os dados sumirão e não serão mais visualizados no Developers Tools e não serão listados na tabela.&lt;/p&gt;
+
+&lt;p&gt;Para finalizarmos temos que esclarecer que a maneira de se usar o sessionStorage é a mesma do localStorage. O que deve ficar claro é que ao usar o sessionStorage todos os dados salvos serão perdidos ao se fechar o navegador. O exemplo acima pode ser adaptado ao sessionStorage sem problemas. Veja o exemplo funcionando: &lt;a title=&#34;EXEMPLO&#34; href=&#34;http://jsfiddle.net/bruiz/d5prC/&#34; target=&#34;_blank&#34;&gt;EXEMPLO&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Bons estudos e bom trabalho!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>API Google Maps V3</title>
+      <link>http://tableless.com.br/api-google-maps-v3/</link>
+      <pubDate>Fri, 10 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/api-google-maps-v3/</guid>
+      <description>
+
+&lt;p&gt;Neste post irei falar um pouco sobre a &lt;a title=&#34;API Google Maps V3&#34; href=&#34;https://developers.google.com/maps/documentation/javascript/?hl=pt-BR&#34; target=&#34;_blank&#34;&gt;API Google Maps V3&lt;/a&gt;, que sofreu atualizações e veio com algumas melhorias e recursos adicionais para dispositivos móveis e desktops.&lt;/p&gt;
+
+&lt;p&gt;No último projeto que participei, o designer incluiu no layout um mapa com width: 100%. Até ai nada demais, não é? Fui no Google Maps, digitei o endereço do local e incorporei o mapa ao meu projeto com aquele iframe lindo cheio de tags inúteis. Não é errado usar o embed do Google. É simples de incorporar no seu projeto, é relativamente fácil de manipular e deixar as dimensões do jeito que quiser, mas o código não é aquela coisa linda.&lt;/p&gt;
+
+&lt;p&gt;Vamos ao que interessa. Irei descrever abaixo o passo a passo de como eu cheguei &lt;a title=&#34;Resultado do mapa personalizado / Github&#34; href=&#34;http://thulioph.github.io/mapa/&#34; target=&#34;_blank&#34;&gt;neste resultado&lt;/a&gt;. Depois de ler este post você conseguirá brincar bastante, personalizando o quanto quiser o seu mapa.&lt;/p&gt;
+
+&lt;h2 id=&#34;html&#34;&gt;HTML&lt;/h2&gt;
+
+&lt;p&gt;No HTML eu criei uma div que receberá o mapa.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div id=&#34;mapa&#34;&amp;gt;&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;css&#34;&gt;CSS&lt;/h2&gt;
+
+&lt;p&gt;Estilizei minha div determinando uma largura, altura e uma borda para melhor visualizá-la.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;#mapa{
+  width: 100%; 
+  height: 500px; 
+  border: 1px solid #ccc;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Criei um arquivo com o nome de &lt;strong&gt;mapa.js&lt;/strong&gt; onde terá todas as configurações e parâmetros do mapa e executei a chamada no html, que agora está com essa cara:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!doctype html&amp;gt;
+ &amp;lt;html lang=”pt,BR”&amp;gt;
+  &amp;lt;head&amp;gt;
+   &amp;lt;meta charset=”UTF-8”&amp;gt;
+   &amp;lt;title&amp;gt;API Google Maps V3&amp;lt;/title&amp;gt;
+   &amp;lt;link rel=&#34;stylesheet&#34; href=&#34;css/mapa.css&#34; &amp;gt;
+   &amp;lt;script src=”js/mapa.js”&amp;gt;&amp;lt;/script&amp;gt;
+  &amp;lt;/head&amp;gt;
+
+&amp;lt;body&amp;gt;
+  &amp;lt;div id=”mapa”&amp;gt;&amp;lt;/div&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;js-criando-minha-chave-api&#34;&gt;JS/Criando minha chave API&lt;/h2&gt;
+
+&lt;p&gt;Para começar a brincar será preciso criar uma chave de API, de acordo com as normas do Google, esta chave é necessária para suas aplicações serem monitoradas e terem um “cadastro”, assim o google poderá entrar em contato com você com relação a sua aplicação caso seja necessário. Como crio uma chave?&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Entre no site de &lt;a href=&#34;https://code.google.com/apis/console/&#34; title=&#34;Console de APIs / Google&#34; target=&#34;_blank&#34;&gt;Console de APIs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Clique no lado esquerdo em &lt;strong&gt;Serviços&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Ative o serviço &lt;strong&gt;API do Google Maps v3&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;No menu esquerdo clique no link &lt;strong&gt;acesso á api&lt;/strong&gt;, a chave de acesso estará disponível nesta página na sessão &lt;strong&gt;Acesso Simples a API&lt;/strong&gt;;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;js-exibindo-um-mapa-simples&#34;&gt;JS/Exibindo um mapa simples&lt;/h2&gt;
+
+&lt;p&gt;Agora que você já tem uma chave pode iniciar a brincadeira, e a primeira coisa a se fazer é mostrar o mapa do local no html. Como funciona?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function initialize() {
+
+// Exibir mapa;
+  var myLatlng = new google.maps.LatLng(-8.0631495, -34.87131120000004);
+  var mapOptions = {
+  zoom: 17,
+  center: myLatlng,
+  mapTypeId: google.maps.MapTypeId.ROADMAP
+}
+
+// Exibir o mapa na div #mapa;
+  var map = new google.maps.Map(document.getElementById(“mapa”), mapOptions);
+
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O que foi feito?&lt;/p&gt;
+
+&lt;h3 id=&#34;initialize&#34;&gt;initialize()&lt;/h3&gt;
+
+&lt;p&gt;Função que engloba todos os parâmetros e configurações do mapa.&lt;/p&gt;
+
+&lt;h3 id=&#34;mylatlng&#34;&gt;myLatlng&lt;/h3&gt;
+
+&lt;p&gt;Variável onde passo a latitude, longitude (nesta ordem) do local do mapa.&lt;/p&gt;
+
+&lt;h3 id=&#34;var-mapoptions&#34;&gt;var mapOptions = {}&lt;/h3&gt;
+
+&lt;p&gt;Objeto onde contém as variáveis de inicialização do mapa.&lt;/p&gt;
+
+&lt;h3 id=&#34;zoom&#34;&gt;zoom&lt;/h3&gt;
+
+&lt;p&gt;Define a resolução inicial do mapa, o quanto perto ou longe ele será, os valores podem ir de 0 até qualquer número.&lt;/p&gt;
+
+&lt;h3 id=&#34;center&#34;&gt;center&lt;/h3&gt;
+
+&lt;p&gt;Define que o mapa será em um ponto específico, ponto este passado na variável &lt;strong&gt;myLatlng&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;maptypeid&#34;&gt;mapTypeId&lt;/h3&gt;
+
+&lt;p&gt;define o tipo de mapa que será exibido: &lt;strong&gt;ROADMAP&lt;/strong&gt; &lt;em&gt;mapa padrão&lt;/em&gt;, &lt;strong&gt;SATELLITE&lt;/strong&gt; &lt;em&gt;blocos fotográficos&lt;/em&gt;, &lt;strong&gt;HYBRID&lt;/strong&gt; &lt;em&gt;rodovias, cidades, etc..&lt;/em&gt;, &lt;strong&gt;TERRAIN&lt;/strong&gt; &lt;em&gt;exibe montanhas, rios, etc.&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;var-map&#34;&gt;var map&lt;/h3&gt;
+
+&lt;p&gt;Variável, atribui a ela um novo objeto &lt;strong&gt;Map&lt;/strong&gt; passando as opções definidas no &lt;strong&gt;mapOptions&lt;/strong&gt;;&lt;/p&gt;
+
+&lt;p&gt;Para o mapa aparecer de fato no seu projeto, é preciso inserir o script da api do google maps, mas não vou declarar no html o script vou inseri-lo no meu &lt;strong&gt;mapa.js&lt;/strong&gt; onde ele será carregado de forma assíncrona, melhorando o desempenho. Como faz?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Função para carregamento assíncrono
+  function loadScript() {
+  var script = document.createElement(“script”);
+  script.type = “text/javascript”;
+  script.src =”http://maps.googleapis.com/maps/api/js?key=SUA_API_KEY&amp;sensor=true_or_false&amp;callback=initialize”;
+
+  document.body.appendChild(script);
+}
+
+  window.onload = loadScript;
+
+&lt;/pre&gt;
+
+&lt;p&gt;O que foi feito?&lt;/p&gt;
+
+&lt;h3 id=&#34;loadscript&#34;&gt;loadScript&lt;/h3&gt;
+
+&lt;p&gt;Função que faz este procedimento, ela cria através do js a tag script no seu documento html com todos os parâmetros passados abaixo.&lt;/p&gt;
+
+&lt;p&gt;Criei um elemento script definindo o &lt;strong&gt;type&lt;/strong&gt; e o &lt;strong&gt;src&lt;/strong&gt; do mesmo.&lt;/p&gt;
+
+&lt;h3 id=&#34;atenção&#34;&gt;Atenção!&lt;/h3&gt;
+
+&lt;p&gt;para os parâmetros do &lt;strong&gt;script.src&lt;/strong&gt; onde em &lt;strong&gt;key&lt;/strong&gt; você terá que inserir a sua chave de API, em &lt;strong&gt;sensor=true/false&lt;/strong&gt; você informa se sua aplicação usa algum sensor para determinar a localização do usuário &lt;em&gt;gps&lt;/em&gt; e em &lt;strong&gt;callback=initialize&lt;/strong&gt; você instrui a api para só executar a função &lt;strong&gt;initialize()&lt;/strong&gt; após a api ser totalmente carregada.&lt;/p&gt;
+
+&lt;p&gt;Até agora você conseguiu mostrar o mapa na div que foi declarada no html e carregou de forma assíncrona a API do Google Maps, está duvidando? Veja como ficou o &lt;a href=&#34;https://gist.github.com/thulioph/8150735&#34; title=&#34;Trecho do código até este momento / Gist&#34; target=&#34;_blank&#34;&gt;código até aqui&lt;/a&gt; e teste na sua aplicação. \o/&lt;/p&gt;
+
+&lt;h2 id=&#34;js-modificando-os-controles-do-usuário&#34;&gt;JS/Modificando os controles do usuário&lt;/h2&gt;
+
+&lt;p&gt;Quando acessamos algum mapa no &lt;a href=&#34;https://www.google.com.br/maps/preview&#34; title=&#34;Link para o Google Maps / Google&#34; target=&#34;_blank&#34;&gt;Google Maps&lt;/a&gt; ele nos mostra alguns controles como: &lt;strong&gt;controle de zoom&lt;/strong&gt;, &lt;strong&gt;panorâmico&lt;/strong&gt;, &lt;strong&gt;controle de escala&lt;/strong&gt;, &lt;strong&gt;controle de giro&lt;/strong&gt; e &lt;strong&gt;mapa da visão geral&lt;/strong&gt;, mas você pode personalizar e escolher o que quer disponibilizar para seu usuário. Caso não queira personalizar nada e deixar seu usuário com todas as configurações padrão, possibilitando que o Google futuramente adicione mais controles, não especifique nada, se você se parece comigo e gosta de &amp;#8220;ser do contra&amp;#8221; &lt;em&gt;no bom sentido rsrs&lt;/em&gt; e quer personalizar, vamos lá!&lt;/p&gt;
+
+&lt;p&gt;Para desabilitar todas as configurações automáticas do Google Maps defina a propriedade &lt;strong&gt;disableDefaultUI: true&lt;/strong&gt; no objeto &lt;strong&gt;Map options&lt;/strong&gt;. Você também pode escolher quais controles seu usuário terá acesso, os controles só aceitam valores &lt;em&gt;boolean&lt;/em&gt; e todos definidos dentro de &lt;strong&gt;Map options&lt;/strong&gt;, esses controles são:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;panControl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Controle Panorâmico, seus valores são &lt;em&gt;true or false&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;zoomControl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Controle de zoom, seus valores são &lt;em&gt;true or false&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;mapTypeControl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Controle do tipo de mapa, seus valores são &lt;em&gt;true or false&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;scaleControl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Controle de Escala, seus valores são &lt;em&gt;true or false&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;streetViewControl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Controle do street view, seus valores são &lt;em&gt;true or false&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;overviewMapControl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Controle de visão geral do mapa, seus valores são &lt;em&gt;true or false&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;No meu exemplo eu desativei o controle panorâmico e agora meu &lt;strong&gt;mapOptions&lt;/strong&gt; ficou desta forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var mapOptions = {
+  zoom: 17,
+  center: myLatlng,
+  panControl: false,
+  mapTypeId: google.maps.MapTypeId.ROADMAP
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Até este momento, você já consegue visualizar o mapa e escolher quais controles seu usuário terá acesso. Não duvide, apenas &lt;a href=&#34;https://gist.github.com/thulioph/8151176&#34; title=&#34;Trecho do código até este momento / Gist.&#34; target=&#34;_blank&#34;&gt;veja como está ficando&lt;/a&gt; e teste! \o&lt;/p&gt;
+
+&lt;h2 id=&#34;js-inserindo-pin-personalizado&#34;&gt;JS/Inserindo Pin Personalizado&lt;/h2&gt;
+
+&lt;p&gt;O marcador do Google Maps é padrão, e você pode alterá-lo e inserir um pin personalizado e dar um efeito a ele. Imagine que você quer colocar no seu site pessoal um mapa do bairro onde você mora e marcar a sua casa com um pin que será uma imagem sua &lt;em&gt;pra que isso? rsrs&lt;/em&gt; vamos lá!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Marcador personalizado;
+  var image = ‘https://cdn1.iconfinder.com/data/icons/gpsmapicons/blue/gpsmapicons01.png’;
+  var marcadorPersonalizado = new google.maps.Marker({
+  position: myLatlng,
+  map: map,
+  icon: image,
+  title: ‘Marco Zero - Recife/PE’,
+  animation: google.maps.Animation.DROP
+});
+&lt;/pre&gt;
+
+&lt;p&gt;O que foi feito?&lt;/p&gt;
+
+&lt;h3 id=&#34;new-google-maps-marker&#34;&gt;new google.maps.Marker&lt;/h3&gt;
+
+&lt;p&gt;O construtor capaz de fazer isto.&lt;/p&gt;
+
+&lt;h3 id=&#34;marcadorpersonalizado&#34;&gt;marcadorPersonalizado&lt;/h3&gt;
+
+&lt;p&gt;Variável que recebe algumas propriedades:&lt;/p&gt;
+
+&lt;h4 id=&#34;position&#34;&gt;position&lt;/h4&gt;
+
+&lt;p&gt;especifica a localização do marcador e como eu quero que ele fique na minha localização, informo a variável que contém estas informações &lt;strong&gt;myLatlng&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;map&#34;&gt;map&lt;/h4&gt;
+
+&lt;p&gt;Especifica onde o marcador vai ser posicionado &lt;em&gt;não precisa ser declarado, valor opcional&lt;/em&gt;. Caso eu utilize o pin em mais algum local, criei uma variável &lt;strong&gt;image&lt;/strong&gt; informando o caminho do meu pin.&lt;/p&gt;
+
+&lt;h4 id=&#34;icon&#34;&gt;icon&lt;/h4&gt;
+
+&lt;p&gt;Especifica a imagem que será o marcador, aqui você inclui o caminho da imagem podendo ser absoluto ou relativo. A própria api irá redimensionar a imagem para o tamanho padrão.&lt;/p&gt;
+
+&lt;h4 id=&#34;title&#34;&gt;title&lt;/h4&gt;
+
+&lt;p&gt;Especifica o texto que irá aparecer ao encostar o mouse em cima do pin.&lt;/p&gt;
+
+&lt;h4 id=&#34;animation&#34;&gt;animation&lt;/h4&gt;
+
+&lt;p&gt;Define alguma animação já definida pela api do google maps, os possíveis valores são &lt;strong&gt;DROP&lt;/strong&gt; &lt;em&gt;o marcador “cai do céu” para o local indicado&lt;/em&gt; e &lt;strong&gt;BOUNCE&lt;/strong&gt; &lt;em&gt;o marcador fica pulando no local indicado&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Até aqui você está mostrando o mapa, personalizando os controles e modificando o pin para um de seu gosto e de quebra ainda consegue animá-los. &lt;a href=&#34;https://gist.github.com/thulioph/8151788&#34; title=&#34;Trecho do código até este momento / Gist&#34; target=&#34;_blank&#34;&gt;Veja como está ficando&lt;/a&gt; até agora. /o/&lt;/p&gt;
+
+&lt;h2 id=&#34;js-janela-de-informações-no-mapa&#34;&gt;JS/Janela de informações no mapa&lt;/h2&gt;
+
+&lt;p&gt;Em alguns mapas quando o usuário clica no pin do local é aberto uma espécie de balão de texto sobre aquele pin, com algumas informações tipo telefone, e-mail, ou qualquer coisa do gênero. Esta “janela” que se abre é chamada de janela de informações ou &lt;strong&gt;InfoWindow&lt;/strong&gt; &lt;em&gt;nome bastante óbvio rsrs&lt;/em&gt;, agora vamos inseri-la no nosso mapa. Dando continuidade ao exemplo anterior, agora você quer que quando o usuário clique na sua foto do mapa, apareça seus dados para contato, e-mail, telefone, etc. Mãos a obra!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Parâmetros do texto que será exibido no clique;
+  var contentString = ‘&amp;lt;h2&amp;gt;Marco Zero&amp;lt;/h2&amp;gt;’ + ‘&amp;lt;p&amp;gt;Praça Rio Branco, Recife/PE.&amp;lt;/p&amp;gt;’ + ‘&amp;lt;a href=”http://pt.wikipedia.org/wiki/Pra%C3%A7a_Rio_Branco_(Recife)” target=”_blank”&amp;gt;clique aqui para mais informações&amp;lt;/a&amp;gt;’;
+
+  var infowindow = new google.maps.InfoWindow({
+  content: contentString,
+  maxWidth: 700
+});
+
+// Exibir texto ao clicar no pin;
+google.maps.event.addListener(marcadorPersonalizado, ‘click’, function() {
+  infowindow.open(map,marcadorPersonalizado);
+});
+
+&lt;/pre&gt;
+
+&lt;p&gt;O que foi feito?&lt;/p&gt;
+
+&lt;h3 id=&#34;new-google-maps-infowindow&#34;&gt;new google.maps.InfoWindow&lt;/h3&gt;
+
+&lt;p&gt;Realiza toda a mágica.&lt;/p&gt;
+
+&lt;h3 id=&#34;content&#34;&gt;content&lt;/h3&gt;
+
+&lt;p&gt;Deverá ter uma string de texto ou nó no DOM para exibir na janela. Aqui dentro será inserido o conteúdo que você deseja que apareça no balão de informações. Caso queira utilizar esta string em outro local, criei uma variável com o nome &lt;strong&gt;contentString&lt;/strong&gt; onde inseri as informações do balão.&lt;/p&gt;
+
+&lt;h3 id=&#34;maxwidth&#34;&gt;maxWidth&lt;/h3&gt;
+
+&lt;p&gt;Especifica em pixels a largura máxima do balão de informações. Por padrão a janela se expande para incluir o conteúdo e o texto é quebrado automaticamente, quando se aplica um valor no &lt;strong&gt;maxWidth&lt;/strong&gt; você força um determinado tamanho para ela.&lt;/p&gt;
+
+&lt;h3 id=&#34;atenção-1&#34;&gt;Atenção!&lt;/h3&gt;
+
+&lt;p&gt;É preciso atribuir um evento ao método &lt;strong&gt;infowindow.open&lt;/strong&gt; caso contrário ele não será aberto no clique. O &lt;strong&gt;google.maps.event.addListener&lt;/strong&gt; adiciona um evento de ‘click’ ao &lt;strong&gt;marcadorPersonalizado&lt;/strong&gt;, isso irá disparar o método &lt;strong&gt;infowindow.open&lt;/strong&gt; no &lt;strong&gt;map&lt;/strong&gt; e no &lt;strong&gt;marcadorPersonalizado&lt;/strong&gt;. Agora quando você clicar no pin irá abrir o balão de informações com o conteúdo da variável &lt;strong&gt;contentString&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Mais um nível e esse foi tranquilo hein? Agora você já está mostrando o mapa, personalizando os controles e o pin, animando o pin e inseriu um balão de informações no clique do usuário. Confere &lt;a href=&#34;https://gist.github.com/thulioph/8152405&#34; title=&#34;Trecho do código até este momento / Gist&#34; target=&#34;_blank&#34;&gt;como está ficando&lt;/a&gt; o código e vamos para o último passo! \o\ /o/&lt;/p&gt;
+
+&lt;h2 id=&#34;js-modificando-a-cor-do-mapa&#34;&gt;JS/Modificando a cor do mapa&lt;/h2&gt;
+
+&lt;p&gt;Pra completar o design do seu site, você queria pintar o mapa do seu bairro com sua cor favorita que é azul, para isso você precisará criar seu estilo e para inserir um estilo personalizado no seu mapa você precisa saber como é a matriz de estilos padrão para quando combinar os estilos obter o resultado que deseja. Vamos lá?&lt;/p&gt;
+
+&lt;h3 id=&#34;featuretype&#34;&gt;featureType&lt;/h3&gt;
+
+&lt;p&gt;Especifica o tipo de mapa;&lt;/p&gt;
+
+&lt;h3 id=&#34;elementtype&#34;&gt;elementType&lt;/h3&gt;
+
+&lt;p&gt;Especifica o tipo de elemento que será exibido no mapa, os valores suportados são: &lt;strong&gt;geometry&lt;/strong&gt; &lt;em&gt;todos os elementos geométricos&lt;/em&gt;, &lt;strong&gt;geometry.fill&lt;/strong&gt; &lt;em&gt;seleciona apenas o preenchimento da geometria&lt;/em&gt;, &lt;strong&gt;geometry.stroke&lt;/strong&gt; &lt;em&gt;seleciona apenas a textura da geometria&lt;/em&gt;, &lt;strong&gt;labels&lt;/strong&gt; &lt;em&gt;seleciona apenas rótulos textuais&lt;/em&gt;, &lt;strong&gt;labels.icon&lt;/strong&gt; &lt;em&gt;seleciona apenas o ícone do rótulo&lt;/em&gt;, &lt;strong&gt;labels.text&lt;/strong&gt; &lt;em&gt;seleciona apenas o texto do rótulo&lt;/em&gt;, &lt;strong&gt;labels.text.fill&lt;/strong&gt; &lt;em&gt;seleciona apenas o preenchimento do rótulo&lt;/em&gt;, &lt;strong&gt;labels.text.stroke&lt;/strong&gt; &lt;em&gt;seleciona apenas a textura do texto&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;stylers&#34;&gt;stylers&lt;/h3&gt;
+
+&lt;p&gt;É desta combinação de estilos que a cor irá se originar, os valores que você pode trabalhar são:&lt;/p&gt;
+
+&lt;h4 id=&#34;hue&#34;&gt;hue&lt;/h4&gt;
+
+&lt;p&gt;String hexadecimal RGB que indicará a cor básica.&lt;/p&gt;
+
+&lt;h4 id=&#34;lightness&#34;&gt;lightness&lt;/h4&gt;
+
+&lt;p&gt;Indica o brilho do elemento, valores negativos aumentam a escuridão, este valor varia de -100 e 100.&lt;/p&gt;
+
+&lt;h4 id=&#34;saturation&#34;&gt;saturation&lt;/h4&gt;
+
+&lt;p&gt;Intensidade da cor básica a ser aplicada, este valor varia de -100 e 100.&lt;/p&gt;
+
+&lt;h4 id=&#34;gamma&#34;&gt;gamma&lt;/h4&gt;
+
+&lt;p&gt;Modificam a luminosidade das matizes, utilizados para modificar o contraste dos elementos, este valor varia entre 0.01 e 10.0.&lt;/p&gt;
+
+&lt;h4 id=&#34;inverse-lightness&#34;&gt;inverse_lightness&lt;/h4&gt;
+
+&lt;p&gt;Se true, inverte a luminosidade existente.&lt;/p&gt;
+
+&lt;h4 id=&#34;visibility&#34;&gt;visibility&lt;/h4&gt;
+
+&lt;p&gt;on, off ou simplified, indica como um elemento aparece no mapa.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Criando um array com os estilos
+var styles = [
+{
+  stylers: [
+   { hue: “#41a7d5” },
+   { saturation: 60 },
+   { lightness: -20 },
+   { gamma: 1.51 }
+  ]
+},
+ {
+  featureType: “road”,
+  elementType: “geometry”,
+  stylers: [
+   { lightness: 100 },
+   { visibility: “simplified” }
+  ]
+ },
+ {
+  featureType: “road”,
+  elementType: “labels”
+ }
+];
+&lt;/pre&gt;
+
+&lt;p&gt;O que foi feito?&lt;/p&gt;
+
+&lt;p&gt;Criei uma matriz de estilos &lt;em&gt;descrita acima&lt;/em&gt;, que nada mais é do que um array com os estilos do mapa, onde neste array é passado as cores e os estilos para exibição;&lt;/p&gt;
+
+&lt;p&gt;Agora crio um novo objeto &lt;strong&gt;google.maps.StyledMapType&lt;/strong&gt; passando a matriz que foi criada e um nome para o novo tipo de mapa;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var styledMap = new google.maps.StyledMapType(styles, {
+  name: “Mapa Style”
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Crie o objeto do mapa e nas opções do mapa &lt;strong&gt;mapOptions&lt;/strong&gt; inclua um identificador para o novo tipo de mapa &lt;strong&gt;map_style&lt;/strong&gt;. Isto irá possibilitar o usuário a visualizar o mapa tradicional do Google &lt;strong&gt;google.maps.MapTypeId.ROADMAP&lt;/strong&gt; e o seu mapa &lt;strong&gt;map_style&lt;/strong&gt;. Para visualizar isto, observe no canto superior direito do mapa, se você desejar só disponibilizar o seu tipo de mapa, é só em &lt;strong&gt;mapTypeIds&lt;/strong&gt; deixar o identificador do seu mapa;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;mapTypeControlOptions: {
+
+  mapTypeIds: [google.maps.MapTypeId.ROADMAP, ‘map_style’]
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Associe o estilo do mapa com o &lt;strong&gt;MapTypeId&lt;/strong&gt;;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;map.mapTypes.set(‘map_style’, styledMap);
+map.setMapTypeId(‘map_style’);
+&lt;/pre&gt;
+
+&lt;p&gt;E é isso, agora você já está apto para inserir um mapa, personalizar controles e pin, animar o pin e customizar as cores do seu mapa. Veja o &lt;a href=&#34;https://gist.github.com/thulioph/8153570&#34; title=&#34;Código completo do material / Gist&#34; target=&#34;_blank&#34;&gt;código completo aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O post ficou enorme, mas espero que eu tenha sido bastante claro e tenha conseguido transmitir da melhor forma este conteúdo pois a API não é difícil, consegui fazer isso tudo em um único dia e vocês também podem. Qualquer dúvida ou se acha que fiz algo de errado, entre em contato comigo ou deixa nos comentários.&lt;/p&gt;
+
+&lt;p&gt;Link de Referência:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://developers.google.com/maps/documentation/javascript/tutorial?hl=pt-br&#34; title=&#34;Link para visualziar a API do Google Maps / Google&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://developers.google.com/maps/documentation/javascript/tutorial?hl=pt-br&#34;&gt;https://developers.google.com/maps/documentation/javascript/tutorial?hl=pt-br&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Entendendo quais APIs (realmente) fazem parte do HTML5</title>
+      <link>http://tableless.com.br/entendendo-quais-apis-realmente-fazem-parte-do-html5/</link>
+      <pubDate>Wed, 02 May 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/entendendo-quais-apis-realmente-fazem-parte-do-html5/</guid>
+      <description>
+
+&lt;p&gt;Com o HTML5 ganhando força no mercado de desenvolvimento web, maior tem sido o interesse dos desenvolvedores em compreender seus recursos, novas APIs e tecnologias adjacentes. E é aí que acontece uma grande confusão.&lt;/p&gt;
+
+&lt;p&gt;Sabemos que o HTML5 não se trata apenas de marcação, mas também de um conjunto de novas funcionalidades encapsuladas em APIs que podem ser acessadas via JavaScript.&lt;/p&gt;
+
+&lt;p&gt;Porém, há APIs em processo de padronização pelo W3C que não fazem parte da especificação do HTML5. Elas são especificações relacionadas não intrínsecas ao HTML5, ou seja, a utilização delas não está estritamente atrelada ao uso da linguagem. Algumas, inclusive, faziam parte do &lt;em&gt;core&lt;/em&gt; do HTML5, mas hoje estão dissociadas e contam com uma especificação separada, como é o caso do &lt;a href=&#34;http://www.w3.org/TR/webstorage/&#34;&gt;Web Storage&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;As APIs próprias do HTML5 são mais específicas às funcionalidades que atuam no escopo da página e da manipulação de elementos. Elas se relacionam em grande parte com o &lt;a href=&#34;http://tableless.com.br/tenha-o-dom/&#34;&gt;DOM&lt;/a&gt;. Já as outras APIs geralmente trabalham com funcionalidades um pouco mais complexas, como armazenamento de dados e manipulação de arquivos, por exemplo.&lt;/p&gt;
+
+&lt;p&gt;Algumas das novas APIs que estão contidas na especificação do HTML5 são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Canvas&lt;/li&gt;
+&lt;li&gt;Validação de formulários&lt;/li&gt;
+&lt;li&gt;Controles de áudio e vídeo&lt;/li&gt;
+&lt;li&gt;Application cache / offline applications&lt;/li&gt;
+&lt;li&gt;Funcionalidade de markup editável (contenteditable)&lt;/li&gt;
+&lt;li&gt;Drag and drop&lt;/li&gt;
+&lt;li&gt;Novas funcionalidades para manipulação do histórico do navegador&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Algumas das novas APIs que são desenvolvidas em conjunto pelo WHATWG e W3C e trabalham muito bem com HTML5 mas que não são (mais) exclusivas dele:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Web Storage (localStorage e sessionStorage)&lt;/li&gt;
+&lt;li&gt;Web messaging&lt;/li&gt;
+&lt;li&gt;Microdata&lt;/li&gt;
+&lt;li&gt;Web Workers&lt;/li&gt;
+&lt;li&gt;Web Sockets&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;E algumas especificações relacionadas, que não são desenvolvidas pelo WHATWG e possuem especificações publicadas separamente pelo W3C:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Geolocation&lt;/li&gt;
+&lt;li&gt;File API&lt;/li&gt;
+&lt;li&gt;Indexed DB&lt;/li&gt;
+&lt;li&gt;File Writer&lt;/li&gt;
+&lt;li&gt;Notifications&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;O gráfico abaixo, desenvolvido por Sergey Mavrody fornece uma boa visão deste contexto e do relacionamento entre as novas APIs e o HTML, além de mostrar o status de desenvolvimento de cada uma destas especificações. Note que o Web Storage ainda está incluído junto à especificação do HTML5, mas isto já mudou.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_5982&#34; style=&#34;width: 650px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2012/04/800px-HTML5-APIs-and-related-technologies-by-Sergey-Mavrody.png&#34;&gt;&lt;img class=&#34; wp-image-5982 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2012/04/800px-HTML5-APIs-and-related-technologies-by-Sergey-Mavrody.png&#34; alt=&#34;HTML5 e as APIs relacionadas&#34; width=&#34;640&#34; height=&#34;434&#34; srcset=&#34;uploads/2012/04/800px-HTML5-APIs-and-related-technologies-by-Sergey-Mavrody.png 800w, uploads/2012/04/800px-HTML5-APIs-and-related-technologies-by-Sergey-Mavrody-300x203.png 300w&#34; sizes=&#34;(max-width: 640px) 100vw, 640px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    HTML5 e as APIs relacionadas por Sergey Mavrody
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Portanto, muitas vezes quando falamos das novas possibilidades do HTML5, na verdade estamos nos referindo à toda uma nova geração de tecnologias para a web.&lt;/p&gt;
+
+&lt;p&gt;O que podemos concluir disso tudo é que o HTML5, sozinho, não faz uma web melhor. Porém, ele ajudou a movimentar o mercado rumo ao desenvolvimento de novas tecnologias. Saímos da zona de conforto que já estávamos há alguns anos. O cenário que temos agora é de uma série de tecnologias web que, trabalhando em conjunto, fazem uma web melhor, para as pessoas e para os desenvolvedores 😉&lt;/p&gt;
+
+&lt;h3 id=&#34;referências&#34;&gt;Referências:&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.whatwg.org/specs/web-apps/current-work/multipage/introduction.html&#34;&gt;Especificação do HTML pelo WHATWG&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://dev.w3.org/html5/html4-differences/#apis&#34;&gt;W3C &amp;#8211; HTML5 differences from HTML4&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://en.wikipedia.org/wiki/HTML5&#34;&gt;HTML5 &amp;#8211; Wikipedia&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Shortcodes</title>
+      <link>http://tableless.com.br/shortcodes/</link>
+      <pubDate>Tue, 18 Jan 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/shortcodes/</guid>
+      <description>
+
+&lt;p&gt;Os shortcodes são abreviaturas no intuito de retornar o código desejado em uma única linha.&lt;/p&gt;
+
+&lt;h3 id=&#34;exemplos-de-shortcodes&#34;&gt;Exemplos de Shortcodes&lt;/h3&gt;
+
+&lt;p&gt;Um exemplo de shortcode:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;[botao]Meu primeiro botão[/botao]&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Um exemplo de shortcode com parâmetros:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;[botao cor=”vermelho” url=”http://tableless.com.br”]Site do Tableless[/botao]&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Essa é a melhor solução para quem desenvolve sites para terceiros e deseja criar elementos com rapidez.&lt;/p&gt;
+
+&lt;h3 id=&#34;criando-um-shortcode&#34;&gt;Criando um Shortcode&lt;/h3&gt;
+
+&lt;p&gt;Para criar um shortcode, adicione o seguinte código em &lt;strong&gt;functions.php&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;php&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;&amp;lt;?php&lt;/p&gt;
+
+&lt;p&gt;add_shortcode(&amp;#8216;botao&amp;#8217;, &amp;#8216;botao_shortcode&amp;#8217;);&lt;/p&gt;
+
+&lt;p&gt;function botao_shortcode( $atts, $content = null ) {&lt;/p&gt;
+
+&lt;p&gt;extract(shortcode_atts(array(&lt;/p&gt;
+
+&lt;p&gt;&amp;#8216;cor&amp;#8217; =&amp;gt; &amp;#8216;verde&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;&amp;#8216;url&amp;#8217; =&amp;gt; &amp;#8221;,&lt;/p&gt;
+
+&lt;p&gt;), $atts ) );&lt;/p&gt;
+
+&lt;p&gt;return &amp;#8216;&lt;a href=&#34;&#39;.esc_attr($url).&#39;&#34; title=&#34;&#39;.$content.&#39;&#34;&gt;&amp;#8216;.$content.&amp;#8217;&lt;/a&gt;{.botao&amp;rsquo;.esc_attr($cor).&amp;lsquo;}&amp;#8216;;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;?&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;No código, a função &lt;strong&gt;add_shortcode&lt;/strong&gt; registrar o shortcode e abriga dois parâmetros, o nome do shortcode (tag) e a função que vai manipular o shortcode respectivamente.&lt;/p&gt;
+
+&lt;p&gt;Após isso, criei a função que vai abrigar os parâmetros e retornar todo o shortcode. Analise bem esta parte, pois são elas que vão abrigar os parâmetros:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;php&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;extract(shortcode_atts(array(&lt;/p&gt;
+
+&lt;p&gt;&amp;#8216;cor&amp;#8217; =&amp;gt; &amp;#8216;verde&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;&amp;#8216;url&amp;#8217; =&amp;gt; &amp;#8221;,&lt;/p&gt;
+
+&lt;p&gt;), $atts ) );&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Nesta parte, a função shortcode_atts significa os atributos do shortcode, logo abaixo em um array, criaremos quais vão ser os parâmetros disponíveis. Por exemplo, criei um parâmetro de cor e outro de url, o valor que está atribuído ao parâmetro pode ser vazio ou um valor padrão, caso o parâmetro esteja vazio quando aplicarmos o shortcode.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;php&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;return &amp;#8216;&lt;a href=&#34;&#39;.esc_attr($url).&#39;&#34; title=&#34;&#39;.$content.&#39;&#34;&gt;&amp;#8216;.$content.&amp;#8217;&lt;/a&gt;{.botao&amp;rsquo;.esc_attr($cor).&amp;lsquo;}&amp;#8216;;&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Este código retorna o shortcode, cada parâmetro é uma variável dentro da função, para retorná-las use, $nomedoparametro, a função esc_attr é própria do WordPress e serve para codificar um texto.&lt;/p&gt;
+
+&lt;p&gt;Por último a variável $content, que serve para retornar o que está dentro da tag do shortcode, por exemplo:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;html&amp;#8221;][botao]Isso é o content[/botao][/cce]&lt;/p&gt;
+
+&lt;h3 id=&#34;retornando-um-shortcode&#34;&gt;Retornando um Shortcode&lt;/h3&gt;
+
+&lt;p&gt;Por fim, vamos retornar o shortcode:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;html&amp;#8221;][botao cor=”azul” url=”&lt;a href=&#34;http://tableless.com.br”]Site&#34;&gt;http://tableless.com.br”]Site&lt;/a&gt; Tableless[/botao][/cce]&lt;/p&gt;
+
+&lt;p&gt;Para adicionar esse código você precisa está no editor Visual, caso contrário ele não irá funcionar.&lt;/p&gt;
+
+&lt;p&gt;Caso você queria usar o shortcode em algum outro lugar diferente do post, é necessário usar uma função chamada do_shortcode, por exemplo:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;php&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;&amp;lt;?php echo do_shortcode(‘[botao cor=”azul” url=”&lt;a href=&#34;http://tableless.com.br”]Site&#34;&gt;http://tableless.com.br”]Site&lt;/a&gt; Tableless [/botao]’); ?&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;De brinde, vou disponibilizar o código em CSS, somente para que vocês tenham uma noção, caso precisem&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;.botaoverde{&lt;/p&gt;
+
+&lt;p&gt;background-color: green;&lt;/p&gt;
+
+&lt;p&gt;text-decoration: none;&lt;/p&gt;
+
+&lt;p&gt;color: #FFF;&lt;/p&gt;
+
+&lt;p&gt;padding: 5px;&lt;/p&gt;
+
+&lt;p&gt;margin: 0px 10px;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;.botaoazul{&lt;/p&gt;
+
+&lt;p&gt;background-color: blue;&lt;/p&gt;
+
+&lt;p&gt;text-decoration: none;&lt;/p&gt;
+
+&lt;p&gt;color: #FFF;&lt;/p&gt;
+
+&lt;p&gt;padding: 5px;&lt;/p&gt;
+
+&lt;p&gt;margin: 0px 10px;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

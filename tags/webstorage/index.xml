@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Webstorage on Tableless</title>
+    <link>http://tableless.com.br/tags/webstorage/index.xml</link>
+    <description>Recent content in Webstorage on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/webstorage/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Web Storage  – HTML5</title>
+      <link>http://tableless.com.br/web-storage-html5/</link>
+      <pubDate>Tue, 28 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/web-storage-html5/</guid>
+      <description>
+
+&lt;h2 id=&#34;cookies-8211-o-passado&#34;&gt;Cookies &amp;#8211; o passado&lt;/h2&gt;
+
+&lt;p&gt;Para entendermos a vantagem obtida na utilização do WebStorage vamos compreender como uma aplicação trabalha(va) com cookies.&lt;/p&gt;
+
+&lt;p&gt;Os cookies são inseridos no cabeçalho HTTP, sendo assim, sua performance pode ser comprometida. E estando as informações no cabeçalho HTTP, podemos nos perguntar: o quão protegidas elas estão?&lt;/p&gt;
+
+&lt;p&gt;Outro desafio que se apresenta ao se trabalhar cookies é a capacidade de armazenamento: 4kB por cookies vezes no máximo 20 cookies é igual a capacidade de 80 kB. Essa restrição de capacidade por si só já é um problema, mas ela acarreta outro dificuldade, o gerenciamento destes cookies.&lt;/p&gt;
+
+&lt;p&gt;Pense que em uma aplicação que real seria muito útil armazenar mais do que 80 kB, para fazer isso com cookies seria necessário estabelecer um controle de validade dos cookies, essa seria uma maneira muito inteligente de utilizar cookies &amp;#8211; afinal ele precisar estar armazenado somente enquanto for necessário, mas o trabalho para controlar as datas de validade dos cookies seria um trabalho que requisitaria calcular seus tempos de validade, mais código.&lt;/p&gt;
+
+&lt;h2 id=&#34;webstorage-8211-o-presente-e-suas-vantagens&#34;&gt;WebStorage &amp;#8211; o presente e suas vantagens.&lt;/h2&gt;
+
+&lt;p&gt;As limitações dos cookies já foram citadas, mas o WebStorage é melhor no itens citados? SIM.&lt;/p&gt;
+
+&lt;p&gt;Vamos ver como o WebStorage é melhor.&lt;/p&gt;
+
+&lt;p&gt;Mas em primeiro lugar vamos falar de segurança.&lt;/p&gt;
+
+&lt;p&gt;Os pares de chave e valor gravados pela WebStorage não podem ser acessados por outros subdomínios. Isso garante que caso você use o WebStorage para gravar dados com sigilo. Isso faz com que ele não corra o risco de ser acessado por outro domínio.&lt;/p&gt;
+
+&lt;p&gt;Sobre a capacidade de armazenamento, temos o suficiente para trabalharmos bem. A API permite armazenamentos entre 2,5 MB até 10 MB. Esse espaço é suficiente para podermos trabalhar com folga, principalmente se compararmos com a capacidade permitida para se trabalhar com os cookies.&lt;/p&gt;
+
+&lt;p&gt;Com este espaço disponível talvez você não precise se preocupar com o controle de validade dos dados. Mas caso você queira controlar o período em que os dados estarão gravados no navegador do usuário, você pode fazer isto. Para tanto, temos que entender o desdobramento do conceito do WebStorage: localStorage e sessionStorage.&lt;/p&gt;
+
+&lt;p&gt;Este último manterá os dados salvos enquanto o navegador estiver aberto. Isso é muito útil, pois nem sempre queremos que os dados estejam sempre disponíveis. Enquanto o localStorage manterá o dado gravado até que ele seja removido diretamente, você poderá fechar o navegador, reiniciar o computador e os dados ainda estarão lá.&lt;/p&gt;
+
+&lt;h2 id=&#34;exemplo&#34;&gt;Exemplo&lt;/h2&gt;
+
+&lt;p&gt;Não há melhor maneira de aprender do que fazendo. Vamos construir uma calculadora em que seja possível salvarmos os valores calculados e visualizá-los ao lado, e sempre que o usuário desejar ver os resultados calculados ele poderá fazer isto, mesmo após ter fechada a sessão. Então vamos ao exemplo.&lt;/p&gt;
+
+&lt;p&gt;Primeiro vamos construir a estrutura do nosso documento html, nele usaremos a biblioteca jquery para facilitar a construção do nosso script. Também teremos uma tag input onde serão apresentados os dígitos clicados, em seguidas temos os botões com os numeros de 0 à 9, com as operações de SOMA, MULTIPLICAÇÃO, DIVISÃO e SUBTRAÇÃO, PARÊNTESES e os botões de SALVAR &amp;#8211; que irá salvar o valor da tag input no localStorage &amp;#8211; ,LISTAR que ira pegar todos os valores listados no localStorage e colocar em uma tabela e o botão APAGAR que deletará todos itens do localStorage, também temos a tabela onde serão colocados os valores encontrados no localStorage :&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!--Início - Documento .html-- gt;
+&amp;lt;html&amp;gt;    
+  &amp;lt;head&amp;gt;
+    &amp;lt;script src=&#34;http://code.jquery.com/jquery-1.10.2.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+  &amp;lt;/head&amp;gt;
+  &amp;lt;body&amp;gt;
+
+    &amp;lt;input id=&#34;inputResult&#34;&amp;gt;&amp;lt;/input&amp;gt;
+    &amp;lt;br&amp;gt;
+
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;1&#34;&amp;gt;1&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;2&#34;&amp;gt;2&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;3&#34;&amp;gt;3&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;4&#34;&amp;gt;4&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;5&#34;&amp;gt;5&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;6&#34;&amp;gt;6&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;7&#34;&amp;gt;7&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;8&#34;&amp;gt;8&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;9&#34;&amp;gt;9&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnNumber&#34; value=&#34;0&#34;&amp;gt;0&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+
+    &amp;lt;button class=&#34;btnOperacao&#34; value=&#34;+&#34;&amp;gt;+&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnOperacao&#34; value=&#34;-&#34;&amp;gt; - &amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnOperacao&#34; value=&#34;*&#34;&amp;gt; * &amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnOperacao&#34; value=&#34;/&#34;&amp;gt; / &amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnOperacao&#34; value=&#34;(&#34;&amp;gt;(&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+
+    &amp;lt;button class=&#34;btnOperacao&#34; value=&#34;)&#34;&amp;gt;)&amp;lt;/button&amp;gt;
+    &amp;lt;button class=&#34;btnResult&#34; value=&#34;=&#34;&amp;gt;=&amp;lt;/button&amp;gt;
+    &amp;lt;button id=&#34;btnLimpar&#34; class=&#34;btnOperacao&#34; value=&#34;LIMPAR&#34;&amp;gt;LIMPAR&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+    &amp;lt;button class=&#34;btnSalvar&#34; value=&#34;SALVAR&#34;&amp;gt;SALVAR&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+    &amp;lt;button class=&#34;btnListar&#34; value=&#34;LISTAR&#34;&amp;gt;LISTAR VALORES&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+    &amp;lt;button class=&#34;btnApagar&#34; value=&#34;APAGAR&#34;&amp;gt;APAGAR VALORES&amp;lt;/button&amp;gt;
+    &amp;lt;br&amp;gt;
+    &amp;lt;br&amp;gt;
+    &amp;lt;br&amp;gt;
+
+    &amp;lt;table id=&#34;tableResults&#34; class=&#34;tabela&#34; border=&#34;0&#34;&amp;gt;
+            &amp;lt;tr&amp;gt;
+                     &amp;lt;td&amp;gt;
+      Chave
+        &amp;lt;/td&amp;gt;
+                    &amp;lt;td&amp;gt;
+      Valor
+                    &amp;lt;/td&amp;gt;
+                 &amp;lt;/tr&amp;gt;
+
+    &amp;lt;/table&amp;gt;
+  &amp;lt;/body&amp;gt;
+
+&amp;lt;/html&amp;gt;
+&amp;lt;!--Fim - Documento .html--&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Criado o documento acima vamos construir nossa lógica.&lt;/p&gt;
+
+&lt;p&gt;O que queremos primeiramente é pegar o valor clicado nos números e colocá-los no input. Para isso vamos usar o evento clique que será atribuído aos botões dos números por meio da classe btnNumber, e dentro da função atribuída colocaremos o valor clicado mais o valor que ele terá.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.btnNumber&#39;).click(function(){  
+   $(&#39;#inputResult&#39;).val($(&#39;#inputResult&#39;).val()+this.value)
+});&lt;/pre&gt;
+
+&lt;p&gt;Agora o que queremos é fazer o mesmo para pegarmos as operações clicadas. A lógica é a mesma, mas adicionaremos uma tratativa para acaso o botão de operação clicado seja o LIMPAR. Se clicar no botão LIMPAR o valor da tag input será esvaziado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.btnOperacao&#39;).click(function(){  
+  if(this.value != &#39;LIMPAR&#39;){
+    $(&#39;#inputResult&#39;).val($(&#39;#inputResult&#39;).val()+this.value)
+  }
+  else{
+    $(&#39;#inputResult&#39;).val(&#39;&#39;)
+  }
+});&lt;/pre&gt;
+
+&lt;p&gt;Bem, isso é uma calculadora, então temos que calcular. É neste momento onde gosto de expressar o amor ao javascript, basta passarmos a string com a conta montada na tag input para o método eval( ), para que ele execute o cálculo. O código abaixo mostra a atribuição da função e a execução do calculo e em seguida coloca o valor na tag input.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.btnResult&#39;).click(function(){  
+    $(&#39;#inputResult&#39;).val(eval($(&#39;#inputResult&#39;).val()))
+});&lt;/pre&gt;
+
+&lt;p&gt;Finalmente vamos ao WebStorage, porque queremos gravar os valores e deixá-los disponíveis. Para gravarmos um valor no localStorage usamos o setItem(chave,valor), sempre gravaremos um par de chave e valor no WebStorage. Sabemos que queremos gravar o valor do resultado, mas a chave vamos deixar nas mãos do usuário. Quando ele clicar em salvar vamos dar ao usuário a opção dar um nome aquele resultado, e este nome será a chave a ser gravada com o valor.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.btnSalvar&#39;).click(function(){
+    var lS = prompt(&#34;De um nome ao resultado para salvar.&#34;,&#34;&#34;);
+    localStorage.setItem(lS,$(&#39;#inputResult&#39;).val());
+})&lt;/pre&gt;
+
+&lt;p&gt;Temos o botão LISTAR que pegará todos os valores salvos no localStorage e colocará na tabela abaixo da calculadora. Para pegarmos um valor usamos o getitem(chave), para sabermos quantos itens temos no localStorage usamos o localStorage.length e para pegar a chave usamos localStorage.key(index). Utilizando um while varremos localStorage e inserimos os valores na tabela.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.btnListar&#39;).click(function(){
+  var tamanho = localStorage.length;
+  var chave = &#39;&#39;;
+  var valor = &#39;&#39;;
+
+  if(document.getElementById(&#34;tableResults&#34;).rows.length &amp;gt; 1)  {
+    for(var t = document.getElementById(&#34;tableResults&#34;).rows.length; t &amp;gt; 1; t--){
+      document.getElementById(&#34;tableResults&#34;).deleteRow(1);
+    }
+  }
+
+  var numOfCols =  document.getElementById(&#34;tableResults&#34;).rows[document.getElementById(&#34;tableResults&#34;).rows.length-1].cells.length;
+
+  for(var c = 0; c &amp;lt; tamanho;c++){
+    chave = localStorage.key(c);
+    valor = localStorage.getItem(chave);
+    var newRow = document.getElementById(&#34;tableResults&#34;).insertRow(document.getElementById(&#34;tableResults&#34;).rows.length);
+
+    for (var j = 0; j &amp;lt; numOfCols; j++) {
+      newCell = newRow.insertCell(j);
+
+      if(j==0){
+       newCell.innerHTML = chave.toUpperCase();
+     }else if(j == 1){
+       newCell.innerHTML = valor;
+     }
+   }
+ }
+})&lt;/pre&gt;
+
+&lt;p&gt;A ultima lógica é a de limpar o localStorage com os dados salvos. Usamos o localStorage.clear() para limpar todos os itens. Veja como:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.btnApagar&#39;).click(function(){
+   localStorage.clear()                 
+})&lt;/pre&gt;
+
+&lt;p&gt;Estilo é importante, não é o nosso foco, mas é importante, então vamos implementar algum estilo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;button{
+  width:27.5px;
+}
+.btnListar,.btnSalvar,.btnApagar{
+  width:155px;
+}
+#btnLimpar{
+  width:90px; 
+}
+#inputResult{
+  text-align: center;
+}
+table.tabela tbody tr:nth-child(odd){
+  background-color: #E9E9E9;
+}&lt;/pre&gt;
+
+&lt;p&gt;Este é o código que temos.Vamos ver como o navegador (Chrome) nos possibilita inspecionar o elemento.&lt;/p&gt;
+
+&lt;p&gt;Execute o documento no navegador e aperte F12. Aparecerá a tela do lado direito aperte a seta à esquerda do Local Storage para visualizar os dados salvos pelo documento em execução. No caso abaixo, ainda não temos nenhum valor salvo.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws1.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40582&#34; alt=&#34;ws1&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws1-588x171.png&#34; width=&#34;588&#34; height=&#34;171&#34; srcset=&#34;uploads/2014/01/ws1-588x171.png 588w, uploads/2014/01/ws1-329x95.png 329w, uploads/2014/01/ws1-660x192.png 660w, uploads/2014/01/ws1.png 970w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Faça qualquer conta.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws2.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40583&#34; alt=&#34;ws2&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws2-226x310.png&#34; width=&#34;226&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/01/ws2-226x310.png 226w, uploads/2014/01/ws2-122x168.png 122w, uploads/2014/01/ws2.png 262w&#34; sizes=&#34;(max-width: 226px) 100vw, 226px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora clique em igual (=) para obter o resultado.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws3.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40584&#34; alt=&#34;ws3&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws3-237x310.png&#34; width=&#34;237&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/01/ws3-237x310.png 237w, uploads/2014/01/ws3-128x168.png 128w, uploads/2014/01/ws3.png 264w&#34; sizes=&#34;(max-width: 237px) 100vw, 237px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Clicando em salvar, abriremos um prompt para ser digitado o nome do resultado que será utilizado para identificar o valor.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws4.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40585&#34; alt=&#34;ws4&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws4-588x156.png&#34; width=&#34;588&#34; height=&#34;156&#34; srcset=&#34;uploads/2014/01/ws4-588x156.png 588w, uploads/2014/01/ws4-329x87.png 329w, uploads/2014/01/ws4-660x176.png 660w, uploads/2014/01/ws4.png 944w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Depois de clicar em OK, abra o inspetor de elementos Developer Tools clique no botão de refresh no rodapé e você verá o valor salvo.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws5.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40586&#34; alt=&#34;ws5&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws5-588x162.png&#34; width=&#34;588&#34; height=&#34;162&#34; srcset=&#34;uploads/2014/01/ws5-588x162.png 588w, uploads/2014/01/ws5-329x91.png 329w, uploads/2014/01/ws5-660x182.png 660w, uploads/2014/01/ws5.png 936w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Execute mais um calculo e salve seu valor. Agora clique em LISTAR VALORES e assim serão exibidos todos os valores no localStorage.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws6.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40587&#34; alt=&#34;ws6&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/ws6-242x310.png&#34; width=&#34;242&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/01/ws6-242x310.png 242w, uploads/2014/01/ws6-131x168.png 131w, uploads/2014/01/ws6.png 264w&#34; sizes=&#34;(max-width: 242px) 100vw, 242px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Clicando em APAGAR VALORES os dados sumirão e não serão mais visualizados no Developers Tools e não serão listados na tabela.&lt;/p&gt;
+
+&lt;p&gt;Para finalizarmos temos que esclarecer que a maneira de se usar o sessionStorage é a mesma do localStorage. O que deve ficar claro é que ao usar o sessionStorage todos os dados salvos serão perdidos ao se fechar o navegador. O exemplo acima pode ser adaptado ao sessionStorage sem problemas. Veja o exemplo funcionando: &lt;a title=&#34;EXEMPLO&#34; href=&#34;http://jsfiddle.net/bruiz/d5prC/&#34; target=&#34;_blank&#34;&gt;EXEMPLO&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Bons estudos e bom trabalho!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,302 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/cakephp-convencoes-de-nomenclatura-e-o-poderoso-inflector/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/cakephp-convencoes-de-nomenclatura-e-o-poderoso-inflector/">CakePHP convenções de nomenclatura e o poderoso Inflector!</a></h1>
+  <p class="tb-hero-p">
+    
+    Entenda como funcionam as convenções de nomenclatura do CakePHP.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/lucas-macedo">Lucas Macedo</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Geralmente eu tenho problemas para encontrar os nomes corretos para os meus controllers, views, models e tabelas. Talvez a tarefa mais difícil de todo programador seja nomear as coisas. Quem nunca ficou indeciso por causa do nome de uma função ou de uma variável? Eu busco sempre permanecer o projeto todo em inglês.</p>
+
+<p>Bem, <strong>CakePHP</strong> faz um monte de trabalho tedioso e repetitivo para você, para que você possa se concentrar melhor nas regras do negocio. Mas o CakePHP depende de você! Ele se agarrar às suas convenções de nomenclatura, por isso é importante ter atenção em nomes de <strong>tabelas</strong>, <strong>controllers</strong>, <strong>models</strong>..</p>
+
+<p>Eu mesmo já tive diversos problemas com nomenclaturas e passei por muita dor de cabeça! Acredite.. O CakePHP espera que você converta corretamente esse problema entre singular, plural, etc 😉</p>
+
+<p>As Models são singular. Ex: <strong>BigPerson</strong> e <strong>ReallyBigPerson</strong> são exemplos de nomes de modelos convencionais. Os nomes das tabelas correspondentes a model do CakePHP são plurais e sublinhado. As tabelas para as models acima mencionadas seriam <strong>big_people</strong>, <strong>really_big_people</strong>, respectivamente.</p>
+
+<p>Aparentemente CakePHP converte substantivos irregulares corretamente e eu me pergunto: Como? Será que ela tem um look-up table enorme para todos eles? Bem, não! Em vez disso, ele faz algumas coisas muito sofisticadas em uma classe chamada <strong>cake/libs/ inflector.php,</strong></p>
+
+<p>com um monte de correspondências de regex e muito mais!</p>
+
+<h2 id="métodos">Métodos</h2>
+
+<ul>
+<li><strong>pluralize</strong>: Converte para o plural: Apple, Man → Apples, Men</li>
+<li><strong>singularize</strong>: Converte para o singular: Apples, Men → Apple, Man</li>
+<li><strong>camelize</strong>: Converte underscored hadron_collider → hadronCollider</li>
+<li><strong>underscore</strong>: Converte para underscored adronCollider → hadron_collider</li>
+<li><strong>humanize</strong>: Converte unserscore para stirng com Captalize devine_intervention → Devine Intervention</li>
+<li><strong>tableize</strong>: Converte para underscore e plural MajorFeatureThing → major_feature_things</li>
+<li><strong>classify</strong>: Converte para underscore com plural para string no singular major_feature_things → MajorFeatureThing</li>
+<li><strong>variable</strong>: Converte de underscored plural ou singular para singular e lowercase. major_feature_things → majorFeatureThing</li>
+<li><strong>slug</strong>: Converte caracteres especias/espaços em underscore de qualquer formatação. Este método é UTF-8 encoding! apple purée → apple_puree</li>
+</ul>
+
+<p>Agora que você tem uma ideia do que o Inflector pode fazer por você, vamos explorar cada um desses métodos em detalhes.</p>
+
+<p><strong>Inflector::pluralize();</strong></p>
+
+<p>O método pluralize () recebe uma palavra no singular (string) e retorna a versão plural da mesma. Aqui estão alguns exemplos:</p>
+
+<pre class="lang-php">Inflector::pluralize('Apple'); // returns "Apples"
+Inflector::pluralize('Menu'); // returns "Menus"
+Inflector::pluralize('News'); // returns "News"</pre>
+
+<p><strong>Inflector::singularize()</strong></p>
+
+<p>O método singularize() recebe uma palavra no plural (string) e retorna a versão no singular dele. Aqui estão alguns exemplos:</p>
+
+<pre class="lang-php">Inflector::singularize('Houses'); // returns "House"
+Inflector::singularize('Bananas'); // returns "Banana"
+Inflector::singularize('Men'); // returns "Man"</pre>
+
+<p><strong>Inflector::camelize ()</strong></p>
+
+<p>Você pode passar um método ou a ou uma palavra under_scored para o camelize () e ele</p>
+
+<p>irá retornar esta palavra FooBar ou fooBar(se você passar false como o segundo argumento). Alguns exemplos:</p>
+
+<pre class="lang-php">Inflector::camelize('foo_bar'); // returns "FooBar" 
+Inflector::camelize('foo_bar', false); // returns "fooBar"
+</pre>
+
+<p><strong>Inflector::underscore()</strong></p>
+
+<p>Este o nome já diz.</p>
+
+<p>O método underscore () tem basicamente uma palavra e converte os espaços dela em &#8220;_&#8221; , e também converte os caracteres especiais em caracteres normais. Ex:</p>
+
+<pre class="lang-php">Inflector::underscore('TestField') // returns test_field
+Inflector::underscore('FeineApfel') // returns feine_aepfel
+</pre>
+
+<p>Este é o meu preferido!</p>
+
+<p><strong>Inflector::slug()</strong></p>
+
+<p>O método slug () recebe uma string e cria uma representação &#8220;slugged&#8221; dele.</p>
+
+<p>Isto significa basicamente que todos os espaços serão substituídos por um determinado caractere (o padrão é &#8220;-&#8220;),</p>
+
+<p>o que não for palavra será removido e os caracteres com acentos como &#8220;áÁéÍÓÚ&#8221; será traduzida para a sua representação ASCII.</p>
+
+<p>Aqui estão alguns exemplos:</p>
+
+<pre class="lang-php">Inflector::slug('The truth - and- more- news'); // returns "the-truth-and-more-news"
+Inflector::slug('!@$#exciting stuff! - what !@-# was that?'); // returns "exciting-stuff-what-was-that"
+</pre>
+
+<p><strong>Inflector::humanize()</strong></p>
+
+<p>O método humanize () recebe uma palavra sublinhada, remove um determinado seperator (padrão para &#8220;_&#8221;) e uppercases os primeiros caracteres das palavras. Alguns exemplos dos testes principais:</p>
+
+<pre class="lang:php decode:true ">Inflector::humanize('posts'); // returns "Posts"
+Inflector::humanize('posts_tags'); // returns "Posts Tags"
+Inflector::humanize('file_systems'); // returns  "File Systems"</pre>
+
+<p>Estes são os que eu achei mais importante ..</p>
+
+<p>Mas se você quiser ver todos os métodos veja na <a href="http://book.cakephp.org/2.0/en/core-utility-libraries/inflector.html">documentação aqui</a>.</p>
+
+<p>Adicione suas próprias regras</p>
+
+<p>Se você precisar, você pode adicionar suas próprias regras e / ou substituir regras padrão. As regras inflector::method() é responsável por isso e funciona como um setter ou getter para todas as regras armazenados. Os testes básicos proporcionam um exemplo:</p>
+
+<pre lang="php">Inflector::rules('singular', array('/rata/' =&gt; '\1ratus'));
+</pre>
+
+<p>Você também pode adicionar transliterações que mapeia caracteres específicos ou acentuados de linguagem para os ASCII (que são usados ​​para criar slugs, por exemplo). Os teste no core também oferecem um bom exemplo:</p>
+
+<pre class="lang-php">$this-&gt;assertNotEqual(Inflector::slug('JØRGEN'), 'JORGEN');
+Inflector::rules('transliteration', array('/Ø/' =&gt; 'O'));
+$this-&gt;assertEqual(Inflector::slug('JØRGEN'), 'JORGEN');
+</pre>
+
+<p>Uma boa prática é armazenar suas regras personalizadas em um arquivo de inicialização, de modo que eles estão imediatamente disponíveis para a sua aplicação quando estiver totalmente carregado.</p>
+
+<p>Minha dica é criar dentro do arquivo Bootstrap =D ou até mesmo um helper..</p>
+
+<p>Agora, vá! Vá e diga a todos os seus amigos sobre a sua nova descoberta! \o/</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

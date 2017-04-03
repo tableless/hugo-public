@@ -1,0 +1,314 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/property-accessors-e-porque-voce-deveria-saber-usa-los/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/property-accessors-e-porque-voce-deveria-saber-usa-los/">Property accessors e porque você deveria saber usá-los</a></h1>
+  <p class="tb-hero-p">
+    
+    Notações diferentes para acessar as propriedades de um mesmo objeto em JavaScript
+    
+  </p>
+      <span class="tb-author">por <a href="/author/filipemerker">filipemerker</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Este é um artigo que se propõe a explicar uma forma mais eficaz de utilizar Objetos em JavaScript.</p>
+
+<p>Muitos talvez conheçam este conteúdo, outros tantos nunca ouviram falar, justamente por aprenderem jQuery antes de aprender JavaScript. Mas enfim, esperamos que todos possam tirar algum proveito desta matéria.</p>
+
+<h2 id="lidando-com-objetos-em-javascript">Lidando com objetos em JavaScript</h2>
+
+<p>Um objeto em JavaScript nada mais é do que um array associativo onde cada &#8220;associação&#8221; é uma propriedade do objeto. Isso dito, todo sabemos que para acessar um array, precisamos fornecer um índice. É nesse momento que entram os <em>property accessors</em>.</p>
+
+<p>Existem duas notações para acessar o índice desejado em um objeto JavaScript:</p>
+
+<pre class="lang-javascript">var meuObj = {indice1: 'foo', indice2: 'bar'};
+//Bracket Notation
+meuObj['indice1']; //retorna foo
+//Dot Notation
+meuObj.indice2;    //retorna bar
+</pre>
+
+<p>A notação que acabou se tornando o mais popular é a <em>Dot Notation</em> porque também ela é usada para encadeamento de métodos, por exemplo:</p>
+
+<pre class="lang-javascript">$('.myEl').addClass('sticky').stop().fadeIn();
+</pre>
+
+<p>Essa notação é muito poderosa e certamente deve ser adotada como padrão, mas há limitações e casos onde o mais aconselhado é utilizar <em>Bracket Notation</em>. Vamos a alguns exemplos:</p>
+
+<h3 id="acessando-múltiplas-propriedades">Acessando múltiplas propriedades:</h3>
+
+<p>Se você utiliza modularização de JavaScript, já deve ter deparado com o seguinte cenário:</p>
+
+<pre class="lang-javascript">var PROD = {};
+PROD.clients = {
+  init: function(){},
+  method1: function(){}
+};
+PROD.pages = {
+  init: function(){},
+  method1: function(){}
+};
+PROD.accounts = {
+  init: function(){},
+  method1: function(){}
+};
+
+//roda tudo
+PROD.clients.init();
+PROD.pages.init();
+PROD.accounts.init();
+</pre>
+
+<p>Ok, tudo certo, mas suponhamos que, ao invés de apenas <em>clients</em>, <em>pages</em> e <em>accounts</em>, como no exemplo acima, eu tenha 15 módulos para iniciar.</p>
+
+<pre class="lang-javascript">//roda tudo
+PROD.clients.init();
+PROD.pages.init();
+PROD.accounts.init();
+PROD.wow.init();
+PROD.such.init();
+PROD.code.init();
+PROD.much.init();
+PROD.lines.init();
+PROD.wowwow.init();
+PROD.ta.init();
+PROD.ficando.init();
+PROD.chato.init();
+PROD.isso.init();
+PROD.aqui.init();
+PROD.chega.init();
+</pre>
+
+<p>Mas isso é horrível! E se eu quiser rodar métodos de forma dinâmica? Quem poderá nos ajudar? Aí que entra a beleza do Bracket Notation. Vamos ver duas formas de fazer isso:</p>
+
+<pre class="lang-javascript">//roda tudo
+var keys = Object.keys(PROD);
+var len  = keys.length;
+for(var i = 0; i &lt; len; i++){
+  PROD[keys[i]].init();
+}
+</pre>
+
+<p>O código acima utiliza o método nativo <em>keys()</em> do objeto JavaScript. Esse método retorna um array com todos os índices do nosso objeto. Baseado nisso, fazemos um <em>for</em> para executar o método <em>init()</em> que definimos para cada um dos módulos.</p>
+
+<p>Outra forma de fazer isso é utilizando o <em>for&#8230;in</em>. Vejamos:</p>
+
+<pre class="lang-javascript">//roda tudo
+for(var key in PROD){
+  PROD[key].init();
+}
+</pre>
+
+<p>Muito melhor, não? Outra possibilidade é você executar apenas os módulos que deseja. Suponhamos que você queira carregar módulos por página, basta fazer:</p>
+
+<pre class="lang-javascript">//roda tudo
+var home = ['clients', 'pages', 'wow', 'chato'];
+for(var key in home){
+  PROD[home[key]].init();
+}
+</pre>
+
+<p>Quando o laço <em>for&#8230;in</em> é executado em um array, ele retorna como <em>key</em> sempre o índice numérico, logo, nosso código está rodando o método init de cada módulo que tem o nome naquele array. Isso é muito legal.</p>
+
+<h3 id="executando-métodos-de-forma-dinâmica">Executando métodos de forma dinâmica:</h3>
+
+<p>Quando entendemos o conceito, muitas possibilidades se abrem. Vamos a outro exemplo prático: um <em>sticky menu</em>. Esses dias me deparei com o seguinte código:</p>
+
+<pre class="lang-javascript">if($(window).scrollTop() &gt; 300){
+  $("#header").addClass('sticky');
+}else{
+  $("#header").removeClass('sticky');
+}
+</pre>
+
+<p>O que está errado? Nada. Mas poderíamos fazer isso de forma mais simples com <em>bracket notation</em> utilizando um ternário:</p>
+
+<pre class="lang-javascript">var action = ($(window).scrollTop() &gt; 300) ? 'addClass' : 'removeClass';
+$('#header')[action]('sticky');
+</pre>
+
+<p>Isso é possível porque um objeto jQuery tem as suas propriedades como qualquer outro objeto, logo, nós podemos acessá-las da forma como bem entendermos.</p>
+
+<p>Enfim, estes são apenas exemplos simples da liberdade que temos quando compreendemos de fato como funcionam os <em>property accessors</em>. Este simples conceito pode mudar a forma como desenvolvemos e nos fornecer uma liberdade incrível.</p>
+
+<p>E quanto a performance? Nunca tema usar a <em>Bracket Notation</em>: ela é mais performática. Veja em <a href="http://jsperf.com/filipe-property-accessors" target="_blank"><a href="http://jsperf.com/filipe-property-accessors">http://jsperf.com/filipe-property-accessors</a></a>.</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/08/property.jpg"><img class="alignnone wp-image-50898 size-full" src="http://tableless.com.br/wp-content/uploads/2015/08/property.jpg" alt="Comparação de performance usando brackets notation" width="683" height="438" /></a></p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

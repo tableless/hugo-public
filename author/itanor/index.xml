@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Itanor on Tableless</title>
+    <link>http://tableless.com.br/author/itanor/index.xml</link>
+    <description>Recent content in Itanor on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/itanor/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Um mix de orientação a objetos &#43; filter, map e reduce com Javascript.</title>
+      <link>http://tableless.com.br/um-mix-de-orientacao-objetos-filter-map-e-reduce-com-javascript/</link>
+      <pubDate>Tue, 24 Mar 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/um-mix-de-orientacao-objetos-filter-map-e-reduce-com-javascript/</guid>
+      <description>
+
+&lt;p&gt;Criei alguns objetos simples mas com propriedades usadas no nosso dia-a-dia. Estes objetos estão armazenados num vetor de projetos. Cada objeto representa um projeto e tem as propriedades id, objeto, valorTotal e investido.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var projetos = [
+    {id: 12, objeto: &#34;revitalização da ponte abc&#34;, valorTotal: 220000.25, investido: 10000.00},
+    {id: 14, objeto: &#34;duplicação da rodovia br-101&#34;, valorTotal: 747800.50, investido: 35000.00},
+    {id: 34, objeto: &#34;aterramento localidade xyz&#34;, valorTotal: 635405.70, investido: 16500.00}
+];&lt;/pre&gt;
+
+&lt;p&gt;Aqui temos uma função que age como um construtor. O objeto tem a responsabilidade de realizar o somatório de um determinado valor do objeto projeto. Ela recebe como parâmetros um array de projetos (linhas) e uma propriedade escolhida para ser somada (coluna). Além desses atributos, uma função de filtro (funcaoFiltro) é utilizada. Mais adiante ela será explicada.&lt;/p&gt;
+
+&lt;p&gt;O método &amp;#8216;total&amp;#8217; realiza o somatório de determinada coluna do objeto projeto. Nele, temos o uso de algumas funções de Array, do Javascript: map, filter e reduce. Na primeira linha do método total é utilizada a função map, que a partir do array de projetos recebe um projeto e mapeia apenas determinada propriedade do projeto. Digo determinada por que ela é parametrizada com com &amp;#8216;linha[coluna]&amp;#8217;. Esta é uma forma dinâmica do Javascript acessar uma propriedade de um objeto. Desta forma, conseguimos parametrizar qual propriedade do objeto projeto queremos usar no somatório. Como resultado da aplicação de map no array de projetos temos um array de valores especificados pelo parâmetro &amp;#8216;coluna&amp;#8217;.&lt;/p&gt;
+
+&lt;p&gt;Na segunda instrução do método total é verificada a existência da função de filtro, que é determinada pela variável &amp;#8216;funcaoFiltro&amp;#8217;. Para tal é disponibilizado um método aplicaFuncaoFiltro que recebe a função. Esta função será utilizada como parâmetro para a função filter, de Array. A instrução verifica se a função de filtro está definida, e se está é aplicada usando filter.&lt;/p&gt;
+
+&lt;p&gt;E, por último é utilizada a função reduce, também de Array. A partir dos valores mapeados e filtrados, a função passada para reduce realiza apenas a soma dos valores.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function SomadorDeColuna(linhas, coluna) {
+    this.linhas = linhas;
+    this.coluna = coluna;
+    this.funcaoFiltro = undefined;
+    this.total = function() {
+      var valores = this.linhas.map(function(linha) {
+    return linha[coluna];
+    });
+this.funcaoFiltro &amp;&amp; (valores = valores.filter(this.funcaoFiltro));
+
+return valores.reduce(function(anterior, atual) {
+    return anterior + atual;
+});
+};
+
+this.aplicaFuncaoFiltro = function(funcao) {
+    this.funcaoFiltro = funcao;
+};
+}&lt;/pre&gt;
+
+&lt;p&gt;Os dois objetos &amp;#8216;valorTotalAcimaDe500Mil&amp;#8217; e &amp;#8216;valorInvestidoAcimaDe15Mil&amp;#8217; definidos acima&lt;/p&gt;
+
+&lt;p&gt;são usados para informar em qual propriedade será feito o somatório e qual função utilizar&lt;/p&gt;
+
+&lt;p&gt;como filtro.&lt;/p&gt;
+
+&lt;p&gt;Para o objeto valorTotalAcimaDe500Mil a propriedade a ser somada será&lt;/p&gt;
+
+&lt;p&gt;&amp;#8216;valorTotal&amp;#8217; e a função para filtrar os valores a serem somados é somente os acima de 500000.00.&lt;/p&gt;
+
+&lt;p&gt;Para o objeto valorInvestidoAcimaDe15Mil a propriedade a ser somada será &amp;#8216;investido&amp;#8217;&lt;/p&gt;
+
+&lt;p&gt;e a função para filtrar os valores a serem somados é somente os acima de 15000.00.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var valorTotalAcimaDe500Mil = {
+    coluna: &#34;valorTotal&#34;,
+    funcao: function(valor) {return valor &amp;gt; 500000.00;}
+};&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var valorInvestidoAcimaDe15Mil = {
+    coluna: &#34;investido&#34;,
+    funcao: function(valor) {return valor &amp;gt; 15000.00;}
+};&lt;/pre&gt;
+
+&lt;p&gt;Aqui temos uma instência de SomadorDeColuna usando o array projetos e a&lt;/p&gt;
+
+&lt;p&gt;coluna valorTotal para realizar o somatório. Na sequência, para o objeto&lt;/p&gt;
+
+&lt;p&gt;é informada a função de filtro. Ambos propriedade e função passados como&lt;/p&gt;
+
+&lt;p&gt;parâemtros são definidos nos objetos declarados acima. Por fim é impresso&lt;/p&gt;
+
+&lt;p&gt;o total invocando o método total, do objeto.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var somador = new SomadorDeColuna(projetos, valorTotalAcimaDe500Mil.coluna);
+somador.aplicaFuncaoFiltro(valorTotalAcimaDe500Mil.funcao);
+console.log(somador.total());&lt;/pre&gt;
+
+&lt;h2 id=&#34;evoluindo-o-design-para-uso-de-duck-typing&#34;&gt;Evoluindo o design para uso de Duck Typing.&lt;/h2&gt;
+
+&lt;p&gt;Depois de implementar esta primeira versão, resolvi criar a ideia de regra de&lt;/p&gt;
+
+&lt;p&gt;filtro. Ao invés do construtor receber a coluna e a função de filtro ser&lt;/p&gt;
+
+&lt;p&gt;configurada em um método a parte, percebi que poderia usar a técnica de Duck Typing&lt;/p&gt;
+
+&lt;p&gt;para configurar a propriedade e a função de filtro ao mesmo tempo no objeto.&lt;/p&gt;
+
+&lt;p&gt;Abaixo está uma versão adaptada para usar a regra de filtro. A regra de filtro mantém&lt;/p&gt;
+
+&lt;p&gt;a propriedade e a função de filtro. Independente da propriedade e da função de filtro&lt;/p&gt;
+
+&lt;p&gt;que forem, o objeto SomadorDeColuna sabe aplicar a regra de filtro no somatório devido&lt;/p&gt;
+
+&lt;p&gt;ao &amp;#8220;contrato&amp;#8221; estabelecido para usar Duck Typing. Este contrato define que o objeto&lt;/p&gt;
+
+&lt;p&gt;para a regra de filtro deev definir um atributo &amp;#8216;coluna&amp;#8217; e um atributo &amp;#8216;funcao&amp;#8217;, que&lt;/p&gt;
+
+&lt;p&gt;representam a propriedade e a função, respectivamente.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var projetos = [
+    {id: 12, objeto: &#34;revitalização da ponte abc&#34;, valorTotal: 220000.25, investido: 10000.00},
+    {id: 14, objeto: &#34;duplicação da rodovia br-101&#34;, valorTotal: 747800.50, investido: 35000.00},
+    {id: 34, objeto: &#34;aterramento localidade xyz&#34;, valorTotal: 635405.70, investido: 16500.00}
+];&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function SomadorDeColuna(linhas, regraDeFiltro) {
+this.linhas = linhas;&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;this.total = function() {
+    var valores = this.linhas.map(function(linha) {
+    return linha[regraDeFiltro.coluna];
+});&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var valoresFiltrados = valores.filter(regraDeFiltro.funcao);
+return valoresFiltrados.reduce(function(anterior, atual) {
+    return anterior + atual;
+});
+}&lt;/pre&gt;
+
+&lt;p&gt;Caso não houver necessidade de possuir uma função de filtro, basta fornecer uma implementação que não filtra nenhum valor, ou seja, que retorne o próprio valor, na função de filtro. Os objetos &amp;#8216;valorTotal&amp;#8217; e &amp;#8216;valorInvestido&amp;#8217; explicitam esta ideia.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var valorTotalAcimaDe500Mil = {
+    coluna: &#34;valorTotal&#34;,
+    funcao: function(valor) {return valor &amp;gt; 500000.00;}
+};
+var valorTotal = {
+    coluna: &#34;valorTotal&#34;,
+    funcao: function(valor) {return valor;}
+};&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var valorInvestidoAcimaDe15Mil = {
+    coluna: &#34;investido&#34;,
+    funcao: function(valor) {return valor &amp;gt; 15000.00;}
+};
+var valorInvestido = {
+    coluna: &#34;investido&#34;,
+    funcao: function(valor) {return valor;}
+};&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var somador = new SomadorDeColuna(projetos, valorInvestido);
+console.log(somador.total());&lt;/pre&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Apensar da necessidade de somatório de diversos valores, não foi usado em nenhum momento o loop &amp;#8216;for&amp;#8217;. Reutilização de código sem introduzir possibilidade de novos bugs.&lt;/p&gt;
+
+&lt;p&gt;Uma modificação interessante para o objeto SomadorDeColuna seria incluir a desformatação de valores que estão representados como moeda (56.955,00) na tela. Uma boa biblioteca para isso é a &lt;a href=&#34;http://numeraljs.com&#34;&gt;numeraljs&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Apesar de ser um objeto simples, tem muita utilidade em caso de somatórios no dia-a-dia.&lt;/p&gt;
+
+&lt;p&gt;É quase sempre inerente!&lt;/p&gt;
+
+&lt;p&gt;Valeu!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,354 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/programacao-funcional-em-javascript-implementando-curry-e-compose-com-bind-e-reduce/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/programacao-funcional-em-javascript-implementando-curry-e-compose-com-bind-e-reduce/">Programação funcional em Javascript. Implementando Curry e Compose, com bind e reduce.</a></h1>
+  <p class="tb-hero-p">
+    
+    Nos últimos tempos só se fala em programação funcional, seus benefícios, funções puras, dados imutáveis, composição de funções, etc.
+Atualmente temos diversas libs que auxiliam o javascript na missão de ser funcional, Lodash, Underscore e Ramda são uma delas. Então porque estarei falando do Pareto.js? Simples como o Princípio de Pareto, a lib criada tem o objetivo de ser leve e resolver 80% dos seus problemas com 20% de código.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/bruno-gon%C3%A7alves">Bruno Gonçalves</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Nos últimos tempos só se fala em programação funcional, seus benefícios, funções puras, dados imutáveis, composição de funções, etc.</p>
+
+<p>Atualmente temos diversas libs que auxiliam o javascript na missão de ser funcional, Lodash, Underscore e Ramda são uma delas. Então porque estarei falando do <a href="https://github.com/concretesolutions/pareto.js">Pareto.js</a>? Simples como o Princípio de Pareto, a lib criada tem o objetivo de ser leve e resolver 80% dos seus problemas com 20% de código.</p>
+
+<p>Geralmente procuro aprender algo desmitificando a “mágica” por tras da implementação. Foi assim quando comecei a aprender Angular, e agora o mesmo está sendo aplicado à programação funcional. Por isso nesse post vamos avaliar as implementações de Curry e Compose do Pareto.js.</p>
+
+<h3 id="curry-graf-h3-graf-after-p">Curry {.graf&ndash;h3.graf-after&ndash;p}</h3>
+
+<p class="graf-after--h3">
+  Curry é a ação de pegar uma função que receba múltiplos argumentos e transforma-la em uma cadeia de funções, em que cada uma receba somente um parâmetro.
+</p>
+
+<pre class="lang-javascript">const curry = (fn, ...args) =&gt; {
+    if (args.length === fn.length) {
+        return fn(...args)
+    }
+    return curry.bind(this, fn, ...args)
+}</pre>
+
+<p>Vamos agora ver o teste dessa função:</p>
+
+<pre class="lang-javascript">describe('curry', () =&gt; {
+  it('returns the curried function', () =&gt; {
+      const add = (a, b) =&gt; a + b
+
+      expect(FunctionUtils.curry(add, 1, 2)).toBe(3)
+      expect(FunctionUtils.curry(add)(1)(2)).toBe(3)
+      expect(FunctionUtils.curry(add)(1, 2)).toBe(3)
+      expect(FunctionUtils.curry(add, 1)(2)).toBe(3)
+  })
+})
+
+</pre>
+
+<p>Para começarmos a desmitificar a mágica, temos duas perguntas a serem feitas:</p>
+
+<ul class="postList">
+  <li>
+    Como a nossa função curry irá armazenar os parâmetros já passados?
+  </li>
+  <li>
+    O que o Function.prototype.bind() tem a ver com isso?
+  </li>
+</ul>
+
+<h4 id="function-prototype-bind">Function.prototype.bind()</h4>
+
+<p>Comumente usamos .bind() para passarmos para uma função um contexto para sua execução, porém nos esquecemos de algo importante, como dito na documentação do <a href="https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Function/bind" rel="nofollow">developer.mozilla.org</a>:</p>
+
+<blockquote>
+<p>Partial Functions</p>
+
+<p>The next simplest use of bind() is to make a function with pre-specified initial arguments. These arguments (if any) follow the provided this value and are then inserted at the start of the arguments passed to the target function…</p>
+</blockquote>
+
+<p class="graf-after--blockquote">
+  Resumindo:
+</p><p Um dos usos de bind() é construir uma função 
+
+<strong class="markup--strong markup--p-strong">com argumentos iniciais pré-especificados</strong>. Esses argumentos, serão passados após o valor de <strong class="markup--strong markup--p-strong"><em class="markup--em markup--p-em">This</em></strong> e <strong class="markup--strong markup--p-strong">serão inseridos no inicio dos argumentos passados para a função de destino</strong>…</p> <p Difícil de entender? Então vamos a mais um exemplo (em ES5 para que você possa abrir o <em class="markup--em markup--p-em">devtools </em>e já testar).</p> 
+
+<pre class="lang-javascript">"use strict";
+
+function myNumbers(x, y, z){
+  console.log(x);
+  console.log(y);
+  console.log(z);
+}
+
+var foo = myNumbers.bind(this, 1);
+foo(); 
+// 1
+// undefined
+// undefined
+
+var bar = foo.bind(this, 2);
+bar();
+// 1
+// 2
+// undefined
+
+var baz = bar.bind(this, 3);
+baz();
+//1
+//2
+//3
+</pre>
+
+<p>Reparem que a função <strong class="markup--strong markup--p-strong">myNumbers </strong>espera três parâmetros, a cada vez que chamamos <strong class="markup--strong markup--p-strong">.bind(this, val)</strong>, a função retornada pelo método .bind() <strong class="markup--strong markup--p-strong">automagicamente </strong>guarda o argumento passado.&lt;p E com isso chegamos à implementação do curry no pareto.js, que irá chamar curry.bind(this, fn, &hellip;args), empilhando os parâmetros no</p>
+
+<p><em class="markup--em markup--p-em">spread operator &#8230;args </em>até que a quantidade de argumentos seja a mesma que a função espera <strong class="markup--strong markup--p-strong">(args.length === fn.length)</strong>. Caso não tenha entendido o que é <strong class="markup--strong markup--p-strong"><em class="markup--em markup--p-em">…args</em></strong><em class="markup--em markup--p-em">,</em> dê uma lida em <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator" rel="nofollow"><em class="markup--em markup--p-em">spread operator</em></a><em class="markup--em markup--p-em">.</em></p></p>
+
+<h3 id="compose-graf-h3-graf-after-p">Compose {.graf&ndash;h3.graf-after&ndash;p}</h3>
+
+<p class="graf-after--h3">
+  Como o próprio nome sugere, <strong class="markup--strong markup--p-strong"><em class="markup--em markup--p-em">Compose </em></strong>é construir funções mais complexas através de funções mais simples, compondo-as. Vamos à implementação no Pareto.js:
+</p>
+
+<pre class="lang-javascript">const compose = (...fns) =&gt; fns.reduce((f, g) =&gt; (...args) =&gt; f(g(...args)))
+
+</pre>
+
+<p>Vamos ao teste dessa função:</p>
+
+<pre class="lang-javascript">describe('compose', () =&gt; {
+    it('composes functions', () =&gt; {
+        const toUpperCase = x =&gt; x.toUpperCase()
+        const exclaim = x =&gt; `${x}!`
+        const moreExclaim = x =&gt; `${x}!!`
+
+        expect(FunctionUtils.compose(toUpperCase, exclaim)('test')).toBe('TEST!')
+        expect(FunctionUtils.compose(toUpperCase, exclaim, moreExclaim)('test')).toBe('TEST!!!')
+    })
+})
+
+</pre>
+
+<p>E assim temos uma pergunta:</p>
+
+<ul class="postList">
+  <li>
+    O que Array.prototype.reduce() está fazendo aí no meio ?
+  </li>
+</ul>
+
+<h4 id="array-prototype-reduce">Array.prototype.reduce()</h4>
+
+<p>Em geral pensamos no .reduce() como um acumulador, porém somente no sentido de soma de valores e não de <strong class="markup--strong markup--p-strong">composição</strong>. Sabemos que o .reduce() aplica uma função de callback sobre um <strong class="markup--strong markup--p-strong">acumulador</strong>, varrendo <strong class="markup--strong markup--p-strong">todos os elementos do array</strong>. Vamos começar a desconstrução do nosso compose:</p>
+
+<ul class="postList">
+  <li>
+    Sabemos que ele recebe um array de funções como argumentos, através do spread operator …args;
+  </li>
+  <li>
+    A função de <em class="markup--em markup--li-em">callback </em>do .reduce(), que será executada sobre cada item do nosso array, pode receber até 4 parâmetros, sendo eles: <strong class="markup--strong markup--li-strong"><em class="markup--em markup--li-em">previousValue, currentValue, index, array</em></strong>. Porém aqui só iremos utilizar os dois primeiros (<strong class="markup--strong markup--li-strong"><em class="markup--em markup--li-em">previousValue</em></strong> e <strong class="markup--strong markup--li-strong"><em class="markup--em markup--li-em">currentValue</em></strong>). Lembrando que na primeira chamada à nossa função de callback, <strong class="markup--strong markup--li-strong"><em class="markup--em markup--li-em">previousValue</em> será o valor do primeiro elemento do array e <em class="markup--em markup--li-em">currentValue</em> será o valor do elemento seguinte;</strong>
+  </li>
+  <li>
+    A nossa função de <em class="markup--em markup--li-em">callback</em> irá compor a função passada em <strong class="markup--strong markup--li-strong"><em class="markup--em markup--li-em">previousValue</em></strong> com a que está em <strong class="markup--strong markup--li-strong"><em class="markup--em markup--li-em">currentValue</em></strong>, adicionando na declaração da função que ela poderá receber <strong class="markup--strong markup--li-strong">N</strong> argumentos (…args). Resultando em <strong class="markup--strong markup--li-strong"><em class="markup--em markup--li-em">previousValue(currentValue(…args))</em>.</strong>
+  </li>
+</ul>
+
+<p>De acordo com o nosso testes, vamos observar os passos de execução em uma tabela:</p>
+
+<p><img class="alignnone size-full wp-image-53670" src="http://tableless.com.br/wp-content/uploads/2016/04/compose-print.png" alt="compose-print" width="737" height="83" /></p>
+
+<p>E com isso temos o resultado da função mais interna (<em class="markup--em markup--p-em">moreExclaim</em>) alimentando as funções mais externas (<em class="markup--em markup--p-em">exclaim</em> e depois <em class="markup--em markup--p-em">toUpperCase</em>).</p>
+
+<p>&lt;</p>
+
+<p>p E é isso pessoal. Espero que tenha ajudado à vocês a entenderem a relação de curry e compose com .bind() e .reduce(). Feedbacks são mais do que bem-vindos e incentivados. Até a proxima.</p>
+
+<p>Fontes:</p>
+
+<ul>
+<li><a href="https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Function/bind" rel="nofollow"><a href="https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Function/bind">https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Function/bind</a></a></li>
+<li><a href="https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Function/bind" rel="nofollow"><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce">https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce</a></a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator" rel="nofollow"><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator">https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator</a></a></li>
+
+<li><p>[<a href="https://medium.com/@matheusml/entendendo-programa%C3%A7%C3%A3o-funcional-em-javascript-de-uma-vez-c676489be08b#">https://medium.com/@matheusml/entendendo-programa%C3%A7%C3%A3o-funcional-em-javascript-de-uma-vez-c676489be08b#</a></p>
+
+<p><a href="https://github.com/concretesolutions/pareto.js][2">https://github.com/concretesolutions/pareto.js][2</a>]</p></li>
+</ul>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

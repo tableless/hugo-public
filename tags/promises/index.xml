@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Promises on Tableless</title>
+    <link>http://tableless.com.br/tags/promises/index.xml</link>
+    <description>Recent content in Promises on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/promises/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Provent – Promises e Eventos… combinados.</title>
+      <link>http://tableless.com.br/provent-promises-e-eventos-combinados/</link>
+      <pubDate>Wed, 07 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/provent-promises-e-eventos-combinados/</guid>
+      <description>&lt;p&gt;Hoje, quando não estamos usando jQuery para lidar com eventos no DOM, nós presenciamos muito este trecho de código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;document.querySelector(&#39;a&#39;).addEventListener(&#39;click&#39;, function() {
+// amazing stuff
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Embora funcione muito bem, nos trás alguns limites&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Dentro do parâmetro de callback, é onde você define toda a sua lógica&amp;#8230; Não tem uma maneira simples de adicionar mais callbacks dentro daquele evento de maneira dinâmica, sem que você salve algum tipo de estado dentro daquele callback&amp;#8230; por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;document.querySelector(&#39;a&#39;).addEventListener(&#39;click&#39;, function() {
+  if(condition) {
+    doSomething();
+  } else {
+    doSomethingElse();
+  }
+
+  // code
+});
+&lt;/pre&gt;
+
+&lt;p&gt;E se você usar o mesmo evento deste botão em algum módulo que está em outro arquivo? Provavelmente outro evento será adicionado a aquele mesmo botão.&lt;/p&gt;
+
+&lt;p&gt;Isso não parece ser muito prático nem escalável, e foi com esse problema que eu decidi criar um wrapper para lidar com eventos no DOM chamado &lt;em&gt;Provent&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Provent&lt;/em&gt; lida com eventos no DOM, mas com uma sintaxe parecida com a de promises, e com a mesma flexibilidade de encadear callbacks e mover a promise para qualquer lugar do seu código.&lt;/p&gt;
+
+&lt;p&gt;Então vamos ver como ficaria o primeiro exemplo de código, usando &lt;em&gt;Provent&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var linkClick = Provent(document.querySelector(&#39;a&#39;), &#39;click&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Até ai tudo bem, um evento foi adicionado ao elemento correspondente a querySelector, mas nenhum callback é chamado, podemos fazer isso usando o famoso &lt;em&gt;then&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;linkClick.then(function(event) {
+  console.log(this);
+  console.log(event);
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Os valores dentro desse callback são os mesmos que o callback default de um &lt;em&gt;addEventListener&lt;/em&gt;, o primeiro argumento aponta para o evento, e o &lt;em&gt;this&lt;/em&gt; aponta para o elemento que foi clicado.&lt;/p&gt;
+
+&lt;p&gt;Até ai é a mesma coisa que usar addEventListener, mas temos algumas flexibilidades a mais:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;linkClick.then(function(event) {
+  // some code
+});
+
+linkClick.then(function(event) {
+  // more code here
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Adicionamos mais um callback no mesmo evento de &lt;em&gt;click&lt;/em&gt;, sem precisar adicionar mais um evento no elemento, legal né?!&lt;/p&gt;
+
+&lt;p&gt;Podemos encadear varios &lt;em&gt;then&lt;/em&gt;, e passar o retorno de cada callback para o próximo da fila, assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;linkClick.then(function(param) {
+  console.log(param); // event
+  return true
+}).then(function(param) {
+  console.log(param); // true
+  return {};
+}).then(function(param) {
+  console.log(param); // {}
+});
+&lt;/pre&gt;
+
+&lt;p&gt;E você também consegue cancelar esses callbacks a qualquer momento usando o método &lt;em&gt;reject&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;linkClick.then(function(param) {
+  console.log(param); // event
+  return true
+});
+
+linkClick.reject();
+&lt;/pre&gt;
+
+&lt;p&gt;Executando o &lt;em&gt;reject&lt;/em&gt; sem passar nenhum parâmetro, você cancela todos os callbacks que foram adicionados aos &lt;em&gt;then&lt;/em&gt;, e também remove o eventListener do botão, prevenindo assim qualquer forma de memory leak indesejado.&lt;/p&gt;
+
+&lt;p&gt;O &lt;em&gt;reject&lt;/em&gt; também pode ser usado passando um ID, no caso de você definir um callback do &lt;em&gt;then&lt;/em&gt; usando o mesmo ID, da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;linkClick.then(function(param) {
+  // code
+}).then(&#39;123&#39;, function(param) { // essa linha mudou
+  // code
+}).then(function(param) {
+  // code
+});
+
+linkClick.reject(&#39;123&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse ultimo exemplo, todos os callbacks menos o que contem o id &lt;em&gt;123&lt;/em&gt; vai ser executado, e o evento no elemento também não será removido.&lt;/p&gt;
+
+&lt;p&gt;Resumindo.&lt;/p&gt;
+
+&lt;p&gt;Provent é uma lib que foi criada para facilitar a manipulação de eventos no DOM, diminuindo a complexidade de adicionar e remover callbacks a qualquer momento.&lt;/p&gt;
+
+&lt;p&gt;Você pode instalar o &lt;em&gt;Provent&lt;/em&gt; usando _npm _ou &lt;em&gt;bower&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre&gt;npm install provent
+bower install provent
+&lt;/pre&gt;
+
+&lt;p&gt;A documentação está no repositório do Github: &lt;a href=&#34;http://github.com/mauriciosoares/provent&#34;&gt;http://github.com/mauriciosoares/provent&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Deixem seu feedback e sugestões.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

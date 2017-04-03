@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/instalando-e-configurando-nginx-via-homebrew/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/instalando-e-configurando-nginx-via-homebrew/">Instalando e configurando NGINX via Homebrew</a></h1>
+  <p class="tb-hero-p">
+    
+    Instalando NGINX no Mac com Homebrew Faz um tempo que deixei de usar Apache como Web Server padrão, tanto no servidor do Tableless, quanto para projetos pessoais. Se você quiser instalar o NGINX no seu Mac, usando Homebrew, basta seguir os passos abaixo:
+brew install nginx  Feito isso, o NGINX já deve estar rodando. Para testar, rode o comando abaixo:
+sudo nginx  Agora entre em localhost:8080 pelo seu navegador.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/diego-eis">Diego Eis</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<h1 id="instalando-nginx-no-mac-com-homebrew">Instalando NGINX no Mac com Homebrew</h1>
+
+<p>Faz um tempo que deixei de usar Apache como Web Server padrão, tanto no servidor do Tableless, quanto para projetos pessoais. Se você quiser instalar o NGINX no seu Mac, usando Homebrew, basta seguir os passos abaixo:</p>
+
+<pre class="lang-bash">brew install nginx
+</pre>
+
+<p><img src="uploads/2017/01/first-command.png" alt="first-command" width="1172" height="670" class="aligncenter size-full wp-image-56786" /></p>
+
+<p>Feito isso, o NGINX já deve estar rodando. Para testar, rode o comando abaixo:</p>
+
+<pre class="lang-bash">sudo nginx
+</pre>
+
+<p>Agora entre em <strong>localhost:8080</strong> pelo seu navegador. Deve aparecer uma tela mais ou menos igual a essa:</p>
+
+<p><img src="uploads/2017/01/nginx-works.png" alt="nginx-works" width="976" height="668" class="aligncenter size-full wp-image-56787" /></p>
+
+<p>Feito isso, vamos agora configurar nosso NGINX. Primeiro, vamos querer mudar a porta onde o NGINX está respondendo que é <strong>8080</strong> para <strong>80</strong>. Para tanto, pare o servidor do NGINX:</p>
+
+<pre class="lang-bash">sudo nginx -s stop
+</pre>
+
+<p>Para que não dê alguma treta obscura, pare o Apache também.</p>
+
+<pre class="lang-bash">sudo apachectl stop
+</pre>
+
+<p>O arquivo de configuração do NGINX no Mac, via Homebrew fica nesse endereço <strong>/usr/local/etc/nginx/nginx.conf</strong>. Abra-o com seu editor de texto predileto.</p>
+
+<p>Você vai perceber que há uma série de configurações default. Provavelmente, na linha 36 vai estar o bloco <strong>server</strong>, com a opção da porta. Mude para 80. Salve e reinicie o NGINX.</p>
+
+<pre class="lang-bash">sudo nginx
+</pre>
+
+<p>Abra seu navegador no <strong>localhost</strong>. Deve estar funcionando.</p>
+
+<h2 id="mudando-o-path-default">Mudando o path default</h2>
+
+<p>Aqui no meu Mac, eu gosto de usar os projetos na pasta <strong>~/Sites</strong>. Por default, o Brew diz que a pasta default é <strong>/usr/local/Cellar/nginx/3.2.1/html</strong>, onde <strong>3.2.1</strong> é a versão do seu NGINX. Para descobrir a versão do seu NGINX, basta digitar <strong>nginx -v</strong> no seu terminal. O meu retornou <strong>nginx version: nginx/1.10.2</strong>.</p>
+
+<p>Abra novamente o <strong>nginx.conf</strong>. Provavelmente ali na linha 44, vai ter algo assim:</p>
+
+<pre class="lang-javascript">location / {
+    root   html;
+    index  index.html index.htm;
+}
+</pre>
+
+<p>Mude o <strong>root html</strong> para <strong>root [endereço da pasta]</strong>. Aqui no meu ficou assim:</p>
+
+<pre class="lang-javascript">location / {
+    root   /Users/diegoeis/Sites;
+    index  index.html index.htm;
+}
+</pre>
+
+<p>Tudo já deve estar funcionando agora.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

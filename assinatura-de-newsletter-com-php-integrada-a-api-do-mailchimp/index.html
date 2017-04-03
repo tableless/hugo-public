@@ -1,0 +1,322 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/assinatura-de-newsletter-com-php-integrada-a-api-do-mailchimp/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/assinatura-de-newsletter-com-php-integrada-a-api-do-mailchimp/">Assinatura de newsletter com PHP integrada à API do Mailchimp</a></h1>
+  <p class="tb-hero-p">
+    
+    O Mailchimp é um serviço bem bacana para gerenciar newsletters — e tem uma versão gratuita que atende muito bem quem tem até 2 mil assinantes. Vou dar uma ideia, através de um exemplo básico, do que é possível fazer com a API do serviço, usando PHP.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/gustavo-straube">Gustavo Straube</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>O Mailchimp tem uma <a href="https://apidocs.mailchimp.com/" target="_blank">API bem completa</a>. Arrisco dizer que é possível fazer uma interface com muitas das funcionalidades de gerenciamento de listas, envios, etc usando a API — fica a dica para quem quiser desenvolver uma aplicação explorando alguma lacuna que o painel do Mailchimp deixa a desejar.</p>
+
+<p>Eu sabia da existência da API faz algum tempo, mas usava uma função simples de exportação de CSV em alguns projetos. Mas dependendo da frequência de disparo das newsletters, exportar um arquivo e importar no Mailchimp começa a ser um tanto trabalhoso. Então esse é o meu caso de uso: um formulário de newsletter.</p>
+
+<p>Aí alguém diz: “Mas você está reinventando a roda! O Mailchimp te dá um formulário pronto, você não precisa integrar com a API, basta gerar o código, copiar e colar.” E eu respondo: “Sim, existe essa possibilidade, mas e se além de enviar para o Mailchimp você precisa gravar na sua base de dados esses e-mails? E se a opção de assinatura da newsletter é um checkbox (opt-in) em um formulário de cadastro?” Acho que assim temos uma ideia melhor de quando usar a API para a captação de e-mails.</p>
+
+<p>Então, vamos botar a mão no código:</p>
+
+<h2 id="1-chave-da-api">1. Chave da API</h2>
+
+<p>Mas, ops! Antes de ir para a programação, toda integração com a API precisa de uma chave para autenticação. Para gerar essa chave você precisa entrar na sua conta do Mailcimp (se você não tem uma conta, criar uma nova é bem simples e não tem custo), e seguir o seguinte caminho:</p>
+
+<ol>
+<li>no menu do usuário (canto direito superior), ir em <strong>“Account”</strong>;</li>
+<li>na aba <strong>“Extras”</strong>, selecionar <strong>“API keys”</strong>;</li>
+<li>nessa tela você pode criar uma chave (<strong>“Create API key”</strong>).</li>
+</ol>
+
+<p>A chave gerada é sua forma de autenticação na API, então deve ser mantida em segurança.</p>
+
+<h2 id="2-instalação">2 Instalação</h2>
+
+<p>Existe um <a href="https://bitbucket.org/mailchimp/mailchimp-api-php" target="_blank">SDK PHP oficial do Mailchimp</a>. Você pode instalar <a href="http://tableless.com.br/composer-para-iniciantes/" target="_blank">usando o Composer</a>, incluindo a seguinte dependência no seu arquivo <strong>composer.json</strong>:</p>
+
+<pre>"mailchimp/mailchimp": "2.0.*"</pre>
+
+<p>E executando o <strong>composer install</strong> (ou <strong>update</strong> se for um projeto já existente).</p>
+
+<p>Mas se você não está usando o Composer (está desenvolvendo um tema ou plugin de WordPress, por exemplo) pode baixar o <a href="https://bitbucket.org/mailchimp/mailchimp-api-php/get/master.zip" target="_blank">pacote com o SDK</a>. Caso opte por esse tipo de instalação, provavelmente vai ser necessário incluir no seu código um <strong>require</strong> para a classe principal: <strong>src/Mailchimp.php</strong>.</p>
+
+<h2 id="3-integrando">3 Integrando</h2>
+
+<p>Vamos começar usando um formulário HTML simples, com apenas dois inputs: e-mail e cidade. Estou optando por usar esses dados, porque quero mostrar como usar campos personalizados com a API. O arquivo <strong>newsletter.php</strong> deve ser algo assim:</p>
+
+<pre>&lt;form action="mailchimp.php" method="post"&gt;
+  &lt;h1&gt;Newsletter&lt;/h1&gt;
+  &lt;label&gt;E-mail&lt;/label&gt;
+  &lt;input type="email" name="email"&gt;&lt;br&gt;
+  &lt;label&gt;Cidade&lt;/label&gt;
+  &lt;input type="text" name="city"&gt;&lt;br&gt;
+  &lt;button type="submit"&gt;Assinar!&lt;/button&gt;
+&lt;/form&gt;</pre>
+
+<p>Obs.: Como o foco é o uso da API, não estou me preocupando com a estética do formulário, ok? 😉</p>
+
+<p>Seguindo vamos para o arquivo <strong>mailchimp.php</strong>, que receberá os dados enviados pele formulário:</p>
+
+<p>Primeiro começamos definindo algumas configurações, usando constantes:</p>
+
+<pre>define('MAILCHIMP_API_KEY',  ''); // Sua chave da API
+define('MAILCHIMP_LIST_ID',  ''); // O ID da sua lista
+define('MAILCHIMP_CITY_TAG', ''); // A tag do campo personalizado que usaremos</pre>
+
+<p>Tem duas informações novas aqui: o <strong>ID da lista</strong> e a <strong>tag do campo</strong> personalizado. Conseguimos esses dados no painel do Mailchimp, assim:</p>
+
+<h3 id="id-da-lista">ID da lista</h3>
+
+<p>Na lista para qual você quer adicionar as assinaturas (se você não tem nenhuma lista na sua conta, precisará criar uma antes de continuar), no menu <strong>“Settings”</strong> vá até <strong>“List name and defaults”</strong>. Nessa tela, do lado direto, existe uma pequena sessão com o título <strong>“List ID”</strong>, dali você vai copiar um código, tipicamente formado por letras e números.</p>
+
+<h3 id="tag-do-campo">Tag do campo</h3>
+
+<p>Ainda na lista e novamente no menu <strong>“Settings”</strong> você vai até o link <strong>“List fields and *|MERGE|* tags”</strong>. Ali você vai copiar a tag correspondente ao campo usado no form, que no nosso exemplo é o <strong>“Cidade”</strong>. O que você precisa é o valor que está no input, algo parecido com <strong>“MMERGE3”</strong> — esse número no final muda de um campo para outro.</p>
+
+<p>Caso você ainda não tenha criado nenhum campo personalizado, você pode criar um agora.</p>
+
+<p><strong>Continuando com o código&#8230;</strong></p>
+
+<p>Para usar um nome mais claro no código (e evitar usar as globais do PHP), vou repassar o conteúdo recebido do form para uma nova variável:</p>
+
+<pre>$form = $_POST;</pre>
+
+<p>Na sequência vou fazer uma validação bem básica dos dados, apenas verificando se os campos foram preenchidos. Provavelmente você vai querer fazer algo mais eficaz, como verificar se o formato do e-mail é válido ou se o nome da cidade tem um mínimo de caracteres, por exemplo.</p>
+
+<pre>if (!empty($form['email']) && !empty($form['city'])) {
+  $mailchimp = new Mailchimp(MAILCHIMP_API_KEY);
+  $lists = new Mailchimp_Lists($mailchimp);
+  $email = [
+    'email' =&gt; $form['email'],
+  ];
+  $merge = [
+    MAILCHIMP_CITY_TAG =&gt; $form['city'],
+  ];
+  $lists-&gt;subscribe(
+    MAILCHIMP_LIST_ID, // ID da lista
+    $email,            // O e-mail do assinante
+    $merge,            // Campos personalizados
+    'html',            // Tipo de e-mail recebido
+    false              // Confirmar assinatura por e-mail (opt-in duplo)?
+  );
+  echo 'Newsletter assinada!';
+} else {
+  echo 'Por favor preencha os campos. &lt;a href="newsletter.php"&gt;Voltar&lt;/a&gt;';
+}</pre>
+
+<p>Se você usou um e-mail que ainda não está na lista para testar o formulário, vai ver que ele funciona a primeira vez, mas nos envios seguintes o PHP indica uma exceção. Se o teste foi feito com um e-mail já cadastrado, nem o primeiro envio funcionou.</p>
+
+<p>Isso acontece porque o SDK do Mailchimp usa exceções para indicar qualquer coisa que impeça a chamada à API de ser executada com sucesso, incluindo a tentativa de assinatura com um e-mail já cadastrado. Para tratar esses casos, vamos fazer a seguinte alteração no código que está dentro do <strong>if</strong>:</p>
+
+<pre>try {
+    $mailchimp = …
+
+    ...
+
+    echo 'Newsletter assinada!';
+  } catch (Mailchimp_List_AlreadySubscribed $e) {
+    echo 'Você já assinou a newsletter.';
+  } catch (Mailchimp_Email_AlreadySubscribed $e) {
+    echo 'Você já assinou a newsletter.';
+  } catch (Mailchimp_Email_NotExists $e) {
+    echo 'O e-mail informado não existe.';
+  } catch (Mailchimp_Invalid_Email $e) {
+    echo 'O e-mail informado é inválido.';
+  } catch (Mailchimp_List_InvalidImport $e) {
+    echo 'Dados inválidos, provavelmente seu e-mail.';
+  } catch (Exception $e) {
+    echo $e-&gt;getMessage(); // Não mostre isso para o usuário
+  }</pre>
+
+<p>Dessa forma conseguimos tratar algumas exceções mais comuns que o SDK pode lançar e devolver um feedback para o usuário, assim ele é capaz de corrigir as informações e tentar novamente.</p>
+
+<p>Para os outros casos, fazemos um tratamento genérico apenas exibindo a mensagem da exceção. Isso é o suficiente para um exemplo como esse aqui, mas não é o ideal para um código real que vai para produção, porque pode expôr bugs e informações sensíveis da sua aplicação. Então recomendo fazer um tratamento mais adequado, como gravar em um arquivo de log ou <a href="http://tableless.com.br/rastreando-excecoes-no-php-com-o-airbrake/" target="_blank">usar um rastreador de bugs</a>.</p>
+
+<p>Agora quando você submeter o formulário com um e-mail já cadastrado, verá a mensagem: <strong>“Você já assinou a newsletter.”</strong></p>
+
+<h2 id="conclusão">Conclusão</h2>
+
+<p>Essa integração é bem básica, mas dá uma ideia do que é possível fazer com a API do Mailchimp. Como falei no início, você pode ir muito mais além do que um formulário de captação de e-mails. E mesmo em se tratando da assinatura de listas, você pode refinar o código que apresentei e integrar em um formulário de cadastro do seu site, e até adicionar novos campos.</p>
+
+<p>Caso tenha alguma dúvida ou encontre algum erro, fique a vontade para usar os comentários.</p>
+
+<p>Ah! O código completo está disponível no GitHub: <a href="https://github.com/straube/mailchimp-sample-form" target="_blank"><a href="https://github.com/straube/mailchimp-sample-form">https://github.com/straube/mailchimp-sample-form</a></a></p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

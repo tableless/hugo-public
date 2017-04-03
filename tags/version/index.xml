@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Version on Tableless</title>
+    <link>http://tableless.com.br/tags/version/index.xml</link>
+    <description>Recent content in Version on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/version/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>JPA Hibernate – Como funciona a anotação @version?</title>
+      <link>http://tableless.com.br/hibernate-como-funciona-anotacao-version/</link>
+      <pubDate>Sun, 19 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/hibernate-como-funciona-anotacao-version/</guid>
+      <description>&lt;p&gt;Recentemente um colega de trabalho me perguntou qual era função da anotação &lt;strong&gt;@version&lt;/strong&gt; presente nas entidades aqui do projeto. Achei interessante essa pergunta e resolvi fazer da resposta o meu primeiro post no blog.&lt;/p&gt;
+
+&lt;p&gt;Para responder essa de pergunta temos que lembrar que todo banco de dados possui um controle de concorrência entre transações (se necessário solicitem nos comentários que faço um post explicando a fundo sobre isso). Para esse post só precisamos conhecer o método de controle &lt;em&gt;Optimistic concurrency control&lt;/em&gt; (controle de concorrência otimista).&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;Optimistic concurrency control&lt;/em&gt; (OCC)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;_Optimistic concurrency control _ou controle de concorrência otimista é um método aplicado nas transações de bancos de dados relacionais. Nesse método se acredita que a probabilidade de que duas transações utilizarem o mesmo objeto é minima, logo nada é verificado enquanto a transação está sendo executada e isso faz com que o custo dela diminua.&lt;/p&gt;
+
+&lt;p&gt;Normalmente essa técnica funciona bem em Frameworks ORM porque eles conseguem escalonar as transações para que ocorra pouca ou nenhuma interferência. Mas no caso de ocorrer uma interferência o que acontece? Simples, alguma transação escolhida pelo Hibernate vai ser abortada e terá que ser recomeçada pelo cliente.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;A anotação @version&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora que sabemos superficialmente o que é um controle de concorrência e o método &lt;strong&gt;OCC &lt;/strong&gt;fica mais fácil compreender a importância do &lt;strong&gt;@version&lt;/strong&gt; em nossas entidades. Tenha em mente que ao adicionar um atributo com essa anotação não precisamos nos preocupar em alterar seu valor porque o Hibernate fica encarregado dessa função.&lt;/p&gt;
+
+&lt;p&gt;Para usarmos o método de concorrência otimista só precisamos declarar um atributo com o nome &lt;strong&gt;version&lt;/strong&gt; em nossa entidade. Normalmente ele é do tipo numérico e também pode ser do tipo data, mas não recomendo essa pratica e vou explicar o motivo no final deste post, abaixo temos um exemplo da classe Consulta.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;@Entity
+@Table(name = &#34;CONSULTAS&#34;, schema = &#34;tableless&#34;)
+public class Consultas{
+@Id
+@GeneratedValue(strategy = GenerationType.AUTO)
+@Column(name = &#34;ID_CONSULTA&#34;)
+private Integer numero;
+
+@Temporal(TemporalType.TIMESTAMP)
+@Column(name = &#34;DATA_CONSULTA&#34;)
+private Date dataConsulta;
+
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = &#34;PACIENTE_CODIGO&#34;)
+private Pacientes paciente;
+
+@Version
+private Integer version;
+
+//getter e setter
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Com esse mapeamento o Hibernate vai usar automaticamente o número da versão para verificar se o objeto utilizado na transição foi atualizado desde a ultima vez em que ele foi requisitado. Pelo código SQL a baixo podemos ver a presença do atributo version tanto no trecho do SET como na cláusula WHERE isso acontece porque o Hibernate vai buscar o objeto no banco de dados usando também o número da versão e vai incrementar esse número ao mesmo tempo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;UPDATE CONSULTAS 
+SET DATA_CONSULTA = ?, PACIENTE_CODIGO = ?, version = ?
+WHERE ID_CONSULTA = ? 
+AND version = ?&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;@version com Data&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Usar um tipo data no atributo version é uma prática que não recomendo porque no banco de dados a coluna será do tipo &lt;strong&gt;TIMESTAMP &lt;/strong&gt;e isso pode acabar permitindo que duas ou mais transações possam ser executadas com o mesmo objeto ao mesmo tempo dependendo da precisão do fuso horário configurada no banco de dados, c&lt;span style=&#34;line-height: 1.5&#34;&gt;aso essa situação acabe acontecendo vamos acabar tendo uma violação de normalização. Algumas pessoas preferem utilizar o tipo data para conseguirem visualizar &amp;#8220;quando&amp;#8221; aquele objeto foi alterado pela ultima vez, caso essa seja sua necessidade recomendo que crie um novo atributo em sua classe ao invés de utilizar a anotação &lt;strong&gt;@version&lt;/strong&gt; como data.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;
+  Por fim espero que esse post te ajude a trabalhar com controle de concorrência no Hibernate. Dúvidas, sugestões, correções, elogios nos comentários ou no meu twitter. Xablau!
+&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

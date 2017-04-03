@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Modularizacao Javascript on Tableless</title>
+    <link>http://tableless.com.br/tags/modularizacao-javascript/index.xml</link>
+    <description>Recent content in Modularizacao Javascript on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/modularizacao-javascript/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Modularização em JavaScript</title>
+      <link>http://tableless.com.br/modularizacao-em-javascript/</link>
+      <pubDate>Mon, 09 Dec 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/modularizacao-em-javascript/</guid>
+      <description>
+
+&lt;p&gt;Modularização implica na divisão das funcionalidades de um código em partes distintas. Os módulos compõe peças que podem ser adicionadas e removidas quando necessário, vejam: &lt;strong&gt;reuso de código&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Os frutos do &lt;strong&gt;encapsulamento&lt;/strong&gt; alcançado com a modularização são a &lt;strong&gt;redução da complexidade&lt;/strong&gt;, &lt;strong&gt;separação de interesses&lt;/strong&gt; e &lt;strong&gt;manutenção descomplicada&lt;/strong&gt;. Ainda, a definição de cada módulo força o programador a determinar quais os limites e responsabilidades de cada porção do código.&lt;/p&gt;
+
+&lt;p&gt;Acredito que estes argumentos já justificam a adoção de um sistema de módulos para seu código. Assumindo que estamos escrevendo código segundo a &lt;a href=&#34;http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf&#34;&gt;especificação ECMAScript 5&lt;/a&gt;, tudo começa por uma das palavras grifadas no início do texto: encapsulamento.&lt;/p&gt;
+
+&lt;h2 id=&#34;encapsulamento-em-javascript&#34;&gt;Encapsulamento em JavaScript&lt;/h2&gt;
+
+&lt;p&gt;Todo programador que se depara com um código, por menos complexo que seja, precisará entender o conceito de escopo. O &lt;a href=&#34;http://msdn.microsoft.com/pt-br/library/ie/bzt2dkta(v=vs.94).aspx&#34;&gt;escopo de uma variável&lt;/a&gt; ou função no JavaScript são as linhas de código em que estas são acessíveis.&lt;/p&gt;
+
+&lt;p&gt;Encapsulamento é um dos fundamentos da programação orientada a objetos tradicional. Considerando que não temos classes no JavaScript e se entendermos encapsulamento como uma forma de restringir acesso à informação, concluímos que a definição de escopo é o caminho para alcança-lo.&lt;/p&gt;
+
+&lt;p&gt;O JavaScript possui um escopo global, que quando em navegadores é &lt;code&gt;window&lt;/code&gt;, e aqueles criados a partir da &lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions_and_function_scope?redirectlocale=en-US&amp;amp;redirectslug=JavaScript%2FReference%2FFunctions_and_function_scope&#34;&gt;execução de uma função&lt;/a&gt;. A maneira mais fácil de alcançar encapsulamento é utilizando uma função anônima invocada imediatamente após sua definição:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&lt;code&gt;(function () {
+    var hideFromOutside = true;
+})();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Por favor, saiba que este &lt;em&gt;pattern&lt;/em&gt; chama-se &lt;a href=&#34;http://benalman.com/news/2010/11/immediately-invoked-function-expression&#34;&gt;Immediately-Invoked Function Expression (IIFE)&lt;/a&gt; e que os parênteses iniciais servem para que a instrução seja reconhecida como uma expressão.&lt;/p&gt;
+
+&lt;h2 id=&#34;módulos&#34;&gt;Módulos&lt;/h2&gt;
+
+&lt;p&gt;Mencionado já há mais de 10 anos, o mais simples dos padrões de escrita de módulos em JavaScript é o &lt;em&gt;module pattern&lt;/em&gt;. O padrão consiste de uma IIFE que retorna um objeto com valores e funções, veja:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&lt;code&gt;var counter = (function () {
+  var current = 0;
+  return {
+    name: &#34;counter&#34;,
+    next: function () {
+      return current + 1;
+    },
+    isFirst: function () {
+      return current == 0;
+    }
+  };
+})();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;revealing-module-pattern&#34;&gt;Revealing Module Pattern&lt;/h3&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://addyosmani.com/resources/essentialjsdesignpatterns/book/#modulepatternjavascript&#34;&gt;module pattern possui muitas variações&lt;/a&gt;, uma delas é o &lt;em&gt;revealing module pattern&lt;/em&gt;. Neste padrão, todas as funções e valores do módulo são &lt;strong&gt;acessíveis no escopo local&lt;/strong&gt; e apenas referências são retornadas na forma de objeto.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&lt;code&gt;var counter = (function () {
+  var current = 0;
+  function next() {
+    return current + 1;
+  }
+  function isFirst() {
+    return current == 0;
+  }
+
+  return {
+    next: next,
+    isFirst: isFirst
+  };
+})();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Apesar de mencionado no &lt;a href=&#34;http://christianheilmann.com/2007/08/22/again-with-the-module-pattern-reveal-something-to-the-world&#34;&gt;artigo que define o padrão&lt;/a&gt;, o ideal é retornar apenas referências a funções, &lt;a href=&#34;http://jsfiddle.net/J4Rkd/1&#34;&gt;retornar outros valores pode dar dor de cabeça&lt;/a&gt;. &lt;em&gt;Revealing module pattern&lt;/em&gt; é bastante interessante pela garantia de acesso descomplicado sem a necessidade de uso do &lt;code&gt;this&lt;/code&gt;, por exemplo. A propósito, este conceito será útil para a construção de módulos melhores em outros padrões.&lt;/p&gt;
+
+&lt;h3 id=&#34;namespace&#34;&gt;Namespace&lt;/h3&gt;
+
+&lt;p&gt;Os padrões que vimos até então poluem o escopo global da aplicação com a definição de uma série de variáveis. Uma solução é a criação de um &lt;em&gt;namespace&lt;/em&gt; de uso específico para os módulos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&lt;code&gt;window.App = {
+  modules: {}
+};
+
+App.modules.counter = (function () {
+  /* ... */
+})();
+
+App.modules.slider = (function () {
+  /* ... */
+})();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;módulos-robustos&#34;&gt;Módulos robustos&lt;/h2&gt;
+
+&lt;p&gt;É natural que módulos dependam uns dos outros. Uma característica importante de um sistema de módulos robusto é a possibilidade de &lt;strong&gt;indicar quais são as dependências&lt;/strong&gt; de um determinado módulo e traçar uma estratégia de carregamento caso esta não esteja disponível.&lt;/p&gt;
+
+&lt;h3 id=&#34;asyncronous-module-definition-amd&#34;&gt;Asyncronous Module Definition (AMD)&lt;/h3&gt;
+
+&lt;p&gt;Módulos AMD podem ser requisitados, definidos e utilizados a medida que necessários. Nosso contador, se reescrito em AMD, ficaria da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&lt;code&gt;define(&#39;counter&#39;, function () {
+  var current = 0;
+  function next() {
+    return current + 1;
+  }
+  function isFirst() {
+    return current == 0;
+  }
+  return {
+    next: next,
+    isFirst: isFirst
+  };
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Diferente de outros sistemas de módulos, as dependências de cada módulo AMD são indicadas na sua própria definição. Isto significa que as dependências não precisam estar prontas para o uso assim que o módulo seja definido, estas podem ser carregadas assincronamente condicionando a execução do módulo.&lt;/p&gt;
+
+&lt;p&gt;O trecho de código a seguir define um módulo com duas dependências:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&lt;code&gt;define(
+  [
+    &#39;dep1&#39;,
+    &#39;dep2&#39;
+  ], 
+
+  function (dep1, dep2) {
+    /* ... */
+  }
+);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Caso tenha achado estranho, saiba que a definição do módulo geralmente utiliza uma formatação de espaços bastante específica para facilitar a leitura e entendimento das dependências.&lt;/p&gt;
+
+&lt;p&gt;Em meio ao trecho de código, caso não tenha notado, não definimos o identificador deste módulo. Os módulos podem (e devem) ser definidos um em cada arquivo e, nestes casos, o nome do arquivo torna-se o identificador.&lt;/p&gt;
+
+&lt;h4 id=&#34;requisitando-módulos&#34;&gt;Requisitando módulos&lt;/h4&gt;
+
+&lt;p&gt;Toda aplicação terá um trecho principal de código que irá requisitar os módulos e fazer o &lt;em&gt;bootstrap&lt;/em&gt; da aplicação. O &lt;code&gt;require&lt;/code&gt; (sim, a semântica é lógica) não exige identificação e atende ao requisito, veja a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&lt;code&gt;require(
+  [
+    &#39;slider&#39;,
+    &#39;counter&#39;,
+    &#39;inputMask&#39;
+  ], 
+
+  function (slider, counter, inputMask) {
+     /* ... */
+  }
+);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Uma boa prática é criar uma interface comum para iniciar o comportamento de cada um dos módulos. Existem diferentes preferências, particularmente utilizo uma função &lt;code&gt;init&lt;/code&gt;. Desta forma, o corpo de código do &lt;code&gt;require&lt;/code&gt; conteria algo como &lt;code&gt;slider.init()&lt;/code&gt; e &lt;code&gt;counter.init()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;carregando-os-módulos&#34;&gt;Carregando os módulos&lt;/h4&gt;
+
+&lt;p&gt;Módulos AMD podem ser utilizados em qualquer navegador, porém sua definição não é suportada nativamente. O que significa que precisamos de uma biblioteca que provenha as tais funções &lt;code&gt;define&lt;/code&gt; e &lt;code&gt;require&lt;/code&gt;. O mais popular &lt;code&gt;loader&lt;/code&gt; de AMD é o &lt;a href=&#34;http://requirejs.org&#34;&gt;require.js&lt;/a&gt;. Desculpe decepcionar, mas &lt;a href=&#34;http://requirejs.org/docs/start.html#get&#34;&gt;sua configuração&lt;/a&gt; não está no escopo deste texto.&lt;/p&gt;
+
+&lt;h4 id=&#34;empacotando-os-módulos&#34;&gt;Empacotando os módulos&lt;/h4&gt;
+
+&lt;p&gt;Um dos principais argumentos contra o uso de AMD é a demora para o carregamento de todos os módulos e suas dependências. &lt;strong&gt;Apesar de possível, o carregamento assíncrono de cada um dos módulos é sumariamente não recomendado&lt;/strong&gt; levando em conta os &lt;a href=&#34;https://speakerdeck.com/jcemer/protocolos-de-comunicacao&#34;&gt;protocolos de rede&lt;/a&gt; que utilizamos atualmente.&lt;/p&gt;
+
+&lt;p&gt;Existem ferramentas como o &lt;a href=&#34;https://github.com/jrburke/r.js&#34;&gt;r.js&lt;/a&gt; que tem a função de empacotar os módulos e entregar um único arquivo para donwload no client-side. O r.js depende de Node.js e introduz uma etapa de análise e concatenação dos arquivos.&lt;/p&gt;
+
+&lt;p&gt;Caso já possua um &lt;a href=&#34;http://tableless.com.br/workflow-para-cuidar-dos-seus-assets&#34;&gt;workflow para cuidar do seus assets&lt;/a&gt;, concatenar os arquivos e utilizar o &lt;a href=&#34;https://github.com/jrburke/almond&#34;&gt;almond&lt;/a&gt; pode ser uma solução bem mais simples. O único detalhe é que você precisará atribuir um identificador para cada módulo. Mesmo que os módulos estejam definidos cada um em um arquivo, lembre-se que a biblioteca entrará em ação apenas após a concatenação.&lt;/p&gt;
+
+&lt;h4 id=&#34;motivação-para-o-uso&#34;&gt;Motivação para o uso&lt;/h4&gt;
+
+&lt;p&gt;Os módulos AMD já são utilizados nos mais famosos projetos escritos em JavaScript, basta acessar os repositórios: &lt;a href=&#34;https://github.com/jquery/jquery/blob/master/src/core.js&#34;&gt;jQuery&lt;/a&gt;, &lt;a href=&#34;https://github.com/flightjs/flight/blob/master/lib/index.js&#34;&gt;Flight&lt;/a&gt;, &lt;a href=&#34;https://github.com/lodash/lodash-amd/blob/master/compat/main.js&#34;&gt;Lo-Dash&lt;/a&gt;, &lt;a href=&#34;https://github.com/mout/mout/blob/master/src/index.js&#34;&gt;Mout&lt;/a&gt;; e muitos outros.&lt;/p&gt;
+
+&lt;p&gt;A definição permite ainda definir plugins para estender o comportamento de carregamento dos módulos e carregar outros conteúdos que não sejam unicamente JavaScript.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-futuro&#34;&gt;O futuro&lt;/h2&gt;
+
+&lt;p&gt;A especificação ECMAScript 6 já possui um rascunho de uma nova &lt;a href=&#34;http://wiki.ecmascript.org/doku.php?id=harmony:modules&#34;&gt;definição de módulos&lt;/a&gt;. Os assim chamados &lt;em&gt;ES6 modules&lt;/em&gt; são baseados em um sistema de módulos robusto da especificação CommonJS.&lt;/p&gt;
+
+&lt;h3 id=&#34;commonjs-modules&#34;&gt;CommonJS modules&lt;/h3&gt;
+
+&lt;p&gt;Os módulos CJS se tornaram bastante populares por serem a base do padrão adotado pelo &lt;a href=&#34;http://nodejs.org/api/modules.html&#34;&gt;Node.js&lt;/a&gt;. O principal impedimento para seu uso atualmente é o não suporte a este padrão nos navegadores. Existem ferramentas para viabilizar o seu uso em navegadores, inclusive módulos &lt;a href=&#34;http://requirejs.org/docs/api.html#cjsmodule&#34;&gt;AMD podem internamente utilizar a sintaxe proposta&lt;/a&gt; pela especificação de CommonJS.&lt;/p&gt;
+
+&lt;h3 id=&#34;es6-modules&#34;&gt;ES6 modules&lt;/h3&gt;
+
+&lt;p&gt;O sistema de módulos ES6 combina os dois melhores sistemas de módulos existentes. A definição dos módulos se parece muito com CJS e as mesmas características assíncronas da AMD são endereçadas pela especificação de um &lt;a href=&#34;http://wiki.ecmascript.org/doku.php?id=harmony:module_loaders&#34;&gt;&lt;em&gt;loader&lt;/em&gt; nativo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;[ES6 modules] permitirão a definição de dependências sem uso de &lt;em&gt;callbacks&lt;/em&gt; (como em CJS) mas serão assíncronos (como AMD). &amp;#8211; David Herman&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;considerações-finais&#34;&gt;Considerações finais&lt;/h2&gt;
+
+&lt;p&gt;Um sistema de módulos adequado é a saída para manter a sanidade do seu código JavaScript. A despeito das inúmeras soluções, saiba que a escolha de um sistema já padronizado garante o uso de uma solução otimizada para este problema comum.&lt;/p&gt;
+
+&lt;p&gt;Se me permite um conselho: &lt;strong&gt;prefira sempre um sistema de módulos robusto&lt;/strong&gt;, é difícil prever o quão complexa uma aplicação poderá se tornar. Em outras palavras, escolha entre: AMD, &lt;em&gt;CommonJS modules&lt;/em&gt; utilizando ferramentas como &lt;a href=&#34;http://browserify.org&#34;&gt;Browserify&lt;/a&gt; e até mesmo (por sua conta e risco) &lt;em&gt;ES6 modules&lt;/em&gt; com &lt;a href=&#34;https://github.com/ModuleLoader/es6-module-loader&#34;&gt;ES6 Module Loader&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

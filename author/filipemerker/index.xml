@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Filipemerker on Tableless</title>
+    <link>http://tableless.com.br/author/filipemerker/index.xml</link>
+    <description>Recent content in Filipemerker on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/filipemerker/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Property accessors e porque você deveria saber usá-los</title>
+      <link>http://tableless.com.br/property-accessors-e-porque-voce-deveria-saber-usa-los/</link>
+      <pubDate>Fri, 11 Sep 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/property-accessors-e-porque-voce-deveria-saber-usa-los/</guid>
+      <description>
+
+&lt;p&gt;Este é um artigo que se propõe a explicar uma forma mais eficaz de utilizar Objetos em JavaScript.&lt;/p&gt;
+
+&lt;p&gt;Muitos talvez conheçam este conteúdo, outros tantos nunca ouviram falar, justamente por aprenderem jQuery antes de aprender JavaScript. Mas enfim, esperamos que todos possam tirar algum proveito desta matéria.&lt;/p&gt;
+
+&lt;h2 id=&#34;lidando-com-objetos-em-javascript&#34;&gt;Lidando com objetos em JavaScript&lt;/h2&gt;
+
+&lt;p&gt;Um objeto em JavaScript nada mais é do que um array associativo onde cada &amp;#8220;associação&amp;#8221; é uma propriedade do objeto. Isso dito, todo sabemos que para acessar um array, precisamos fornecer um índice. É nesse momento que entram os &lt;em&gt;property accessors&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Existem duas notações para acessar o índice desejado em um objeto JavaScript:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var meuObj = {indice1: &#39;foo&#39;, indice2: &#39;bar&#39;};
+//Bracket Notation
+meuObj[&#39;indice1&#39;]; //retorna foo
+//Dot Notation
+meuObj.indice2;    //retorna bar
+&lt;/pre&gt;
+
+&lt;p&gt;A notação que acabou se tornando o mais popular é a &lt;em&gt;Dot Notation&lt;/em&gt; porque também ela é usada para encadeamento de métodos, por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.myEl&#39;).addClass(&#39;sticky&#39;).stop().fadeIn();
+&lt;/pre&gt;
+
+&lt;p&gt;Essa notação é muito poderosa e certamente deve ser adotada como padrão, mas há limitações e casos onde o mais aconselhado é utilizar &lt;em&gt;Bracket Notation&lt;/em&gt;. Vamos a alguns exemplos:&lt;/p&gt;
+
+&lt;h3 id=&#34;acessando-múltiplas-propriedades&#34;&gt;Acessando múltiplas propriedades:&lt;/h3&gt;
+
+&lt;p&gt;Se você utiliza modularização de JavaScript, já deve ter deparado com o seguinte cenário:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var PROD = {};
+PROD.clients = {
+  init: function(){},
+  method1: function(){}
+};
+PROD.pages = {
+  init: function(){},
+  method1: function(){}
+};
+PROD.accounts = {
+  init: function(){},
+  method1: function(){}
+};
+
+//roda tudo
+PROD.clients.init();
+PROD.pages.init();
+PROD.accounts.init();
+&lt;/pre&gt;
+
+&lt;p&gt;Ok, tudo certo, mas suponhamos que, ao invés de apenas &lt;em&gt;clients&lt;/em&gt;, &lt;em&gt;pages&lt;/em&gt; e &lt;em&gt;accounts&lt;/em&gt;, como no exemplo acima, eu tenha 15 módulos para iniciar.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//roda tudo
+PROD.clients.init();
+PROD.pages.init();
+PROD.accounts.init();
+PROD.wow.init();
+PROD.such.init();
+PROD.code.init();
+PROD.much.init();
+PROD.lines.init();
+PROD.wowwow.init();
+PROD.ta.init();
+PROD.ficando.init();
+PROD.chato.init();
+PROD.isso.init();
+PROD.aqui.init();
+PROD.chega.init();
+&lt;/pre&gt;
+
+&lt;p&gt;Mas isso é horrível! E se eu quiser rodar métodos de forma dinâmica? Quem poderá nos ajudar? Aí que entra a beleza do Bracket Notation. Vamos ver duas formas de fazer isso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//roda tudo
+var keys = Object.keys(PROD);
+var len  = keys.length;
+for(var i = 0; i &amp;lt; len; i++){
+  PROD[keys[i]].init();
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O código acima utiliza o método nativo &lt;em&gt;keys()&lt;/em&gt; do objeto JavaScript. Esse método retorna um array com todos os índices do nosso objeto. Baseado nisso, fazemos um &lt;em&gt;for&lt;/em&gt; para executar o método &lt;em&gt;init()&lt;/em&gt; que definimos para cada um dos módulos.&lt;/p&gt;
+
+&lt;p&gt;Outra forma de fazer isso é utilizando o &lt;em&gt;for&amp;#8230;in&lt;/em&gt;. Vejamos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//roda tudo
+for(var key in PROD){
+  PROD[key].init();
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Muito melhor, não? Outra possibilidade é você executar apenas os módulos que deseja. Suponhamos que você queira carregar módulos por página, basta fazer:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//roda tudo
+var home = [&#39;clients&#39;, &#39;pages&#39;, &#39;wow&#39;, &#39;chato&#39;];
+for(var key in home){
+  PROD[home[key]].init();
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Quando o laço &lt;em&gt;for&amp;#8230;in&lt;/em&gt; é executado em um array, ele retorna como &lt;em&gt;key&lt;/em&gt; sempre o índice numérico, logo, nosso código está rodando o método init de cada módulo que tem o nome naquele array. Isso é muito legal.&lt;/p&gt;
+
+&lt;h3 id=&#34;executando-métodos-de-forma-dinâmica&#34;&gt;Executando métodos de forma dinâmica:&lt;/h3&gt;
+
+&lt;p&gt;Quando entendemos o conceito, muitas possibilidades se abrem. Vamos a outro exemplo prático: um &lt;em&gt;sticky menu&lt;/em&gt;. Esses dias me deparei com o seguinte código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;if($(window).scrollTop() &amp;gt; 300){
+  $(&#34;#header&#34;).addClass(&#39;sticky&#39;);
+}else{
+  $(&#34;#header&#34;).removeClass(&#39;sticky&#39;);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O que está errado? Nada. Mas poderíamos fazer isso de forma mais simples com &lt;em&gt;bracket notation&lt;/em&gt; utilizando um ternário:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var action = ($(window).scrollTop() &amp;gt; 300) ? &#39;addClass&#39; : &#39;removeClass&#39;;
+$(&#39;#header&#39;)[action](&#39;sticky&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Isso é possível porque um objeto jQuery tem as suas propriedades como qualquer outro objeto, logo, nós podemos acessá-las da forma como bem entendermos.&lt;/p&gt;
+
+&lt;p&gt;Enfim, estes são apenas exemplos simples da liberdade que temos quando compreendemos de fato como funcionam os &lt;em&gt;property accessors&lt;/em&gt;. Este simples conceito pode mudar a forma como desenvolvemos e nos fornecer uma liberdade incrível.&lt;/p&gt;
+
+&lt;p&gt;E quanto a performance? Nunca tema usar a &lt;em&gt;Bracket Notation&lt;/em&gt;: ela é mais performática. Veja em &lt;a href=&#34;http://jsperf.com/filipe-property-accessors&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://jsperf.com/filipe-property-accessors&#34;&gt;http://jsperf.com/filipe-property-accessors&lt;/a&gt;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/08/property.jpg&#34;&gt;&lt;img class=&#34;alignnone wp-image-50898 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/08/property.jpg&#34; alt=&#34;Comparação de performance usando brackets notation&#34; width=&#34;683&#34; height=&#34;438&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

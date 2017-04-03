@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Web Notifications on Tableless</title>
+    <link>http://tableless.com.br/tags/web-notifications/index.xml</link>
+    <description>Recent content in Web Notifications on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/web-notifications/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Web Notifications API</title>
+      <link>http://tableless.com.br/web-notifications-api/</link>
+      <pubDate>Mon, 14 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/web-notifications-api/</guid>
+      <description>
+
+&lt;p&gt;Se você trabalha em um site de conteúdo ou em algum produto web, uma possibilidade interessante seria fazer com que o usuário recebesse uma notificação quando houvesse uma nova notícia ou, no caso de produtos, uma notificação do próprio serviço. Com a Notifications API agora é totalmente possível.&lt;/p&gt;
+
+&lt;p&gt;Caso você queira dar uma &lt;a href=&#34;http://www.w3.org/TR/notifications/&#34;&gt;olhada na documentação&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Outro detalhe importante: as notificações só podem ser ativadas por meio de uma interação do usuário, como clique de mouse, teclado e etc&amp;#8230; Logo, vamos usar um botão em nosso exemplo para poder ativar as notificações.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Notifications should only be presented when the user has indicated they are desired; without this they could create a negative experience for the user.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;verificando-suporte&#34;&gt;Verificando suporte&lt;/h2&gt;
+
+&lt;p&gt;A primeira coisa que nossa função precisa fazer é verificar se o browser suporta ou não notificações. Se ele não aceitar, ele fica em silêncio e pronto. No nosso exemplo ele vai logar uma mensagem no console, só para gente saber, ok?&lt;/p&gt;
+
+&lt;h2 id=&#34;pedindo-permissão&#34;&gt;Pedindo permissão&lt;/h2&gt;
+
+&lt;p&gt;Para não virar festa, é necessário que tenhamos a permissão do usuário para enviar as notificações via browser. Isso acontece também ao utilizar outras APIs, como a de Geolocation, por exemplo. A permissão terá três possíveis valores: um valor inicial de &lt;strong&gt;default&lt;/strong&gt;, que significa que o usuário ainda não negou nem permitiu receber notificações deste domínio. O &lt;strong&gt;denied&lt;/strong&gt; significa que o usuário negou receber e o &lt;strong&gt;granted&lt;/strong&gt; que significa que usuário aceitou receber as notificações.&lt;/p&gt;
+
+&lt;p&gt;Agora é só fazer uma condição verificando estes estágios:&lt;/p&gt;
+
+&lt;h2 id=&#34;preparando-a-notificação&#34;&gt;Preparando a notificação&lt;/h2&gt;
+
+&lt;p&gt;Se o usuário nos deu permissão para fazer a notificação, nosso domínio fica listado com permissão nas configurações do browser e aí poderemos enviar notificações até que o usuário bloqueie. Agora é hora de fazer a notificação. Para tanto, iremos executar pequena função quando a permissão for &amp;#8220;granted&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;O código fica assim:&lt;/p&gt;
+
+&lt;p&gt;Criamos um novo objeto &lt;strong&gt;Notification&lt;/strong&gt;, que recebe logo de cara um parâmetro que é o título da notificação. Depois há algumas opções que podemos preencher:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;body&lt;/strong&gt;: A mensagem da notificação.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;tag&lt;/strong&gt;: Identificador único da notificação. Uma string simples. Isso serve para não fazermos notificações duplicadas.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onshow&lt;/strong&gt;: Evento que é disparado quando a notificação aparece.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onclick&lt;/strong&gt;: Evento quando o usuário clica na notificação.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onclose&lt;/strong&gt;: Quando o usuário fecha a notificação.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onerror&lt;/strong&gt;: Quando há algum erro na notificação e ela não pode ser mostrada.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;E voilá! Faça um teste aí. Aqui usei o Chrome e Safari. No meu Safari só funcionou depois que coloquei na minha pasta onde sirvo o localhost (httpdocs, public, www, sei lá o que você usa aí localmente).&lt;/p&gt;
+
+&lt;h2 id=&#34;o-browser-pensa-assim&#34;&gt;O browser pensa assim&lt;/h2&gt;
+
+&lt;p&gt;O Browser tem um processo definido pela especificação do W3C que é basicamente assim:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Se a permissão para a notificação não foi positiva, cancele qualquer pedido de notificação e retorne um evento de erro na notificação, finalizando todos os passos. É aqui que o &lt;strong&gt;onerror&lt;/strong&gt; entra em ação.&lt;/li&gt;
+&lt;li&gt;Se existir uma notificação pendente na lista ou se na lista de notificações ativas existem tags iguais a notificação que está sendo chamada, rode os &lt;a href=&#34;http://www.w3.org/TR/notifications/#replace-steps&#34;&gt;passos de substituição&lt;/a&gt; e finalize as ações.&lt;/li&gt;
+&lt;li&gt;Se um dispositivo autorizar, as notificações podem ser mostradas imediatamente sem limitações no número de notificações concorrentes, rodando os &lt;a href=&#34;http://www.w3.org/TR/notifications/#display-steps&#34;&gt;passos de amostra&lt;/a&gt; e finalizando as tarefas.&lt;/li&gt;
+&lt;li&gt;Se o dispositivo tem limitações com o número de notificações concorrentes, chame imediatamente a plataforma alternativa que suporte enfileirar as notificações ou posicione as notificações em uma &lt;a href=&#34;http://www.w3.org/TR/notifications/#list-of-pending-notifications&#34;&gt;lista de pendências&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;É legal &lt;a href=&#34;http://www.w3.org/TR/notifications/&#34;&gt;ler a documentação do W3C&lt;/a&gt;, mesmo que boa parte das informações sobre essa API seja interessante para os fabricantes de browsers.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Mais pra estudar:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://zeropush.com/blog/implementing-safari-push-notifications-in-osx-mavericks&#34;&gt;Implementing Safari push notifications in OSX Mavericks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/API/Notification/Using_Web_Notifications&#34;&gt;Using Web Notifications &amp;#8211; MDN&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.apple.com/library/safari/documentation/AppleApplications/Conceptual/SafariJSProgTopics/Articles/SendingNotifications.html#//apple_ref/doc/uid/TP40001483-CH23-SW1&#34;&gt;Sending Notifications &amp;#8211; Apple&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://loopinfinito.com.br/2012/08/22/web-notifications-api/&#34;&gt;Artigo sobre o mesmo assunto no LoopInfinito&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

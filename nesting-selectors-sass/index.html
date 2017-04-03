@@ -1,0 +1,427 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/nesting-selectors-sass/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/nesting-selectors-sass/">Usando seletores aninhados do SASS com cuidado</a></h1>
+  <p class="tb-hero-p">
+    
+    Cuidado com o pesadelo das nesting selectors dos pré-processadores.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/diego-eis">Diego Eis</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      <p>Não é só por que você está usando um pré-processador que as boas práticas de escrita de CSS devem ser ignoradas. Imagine o código abaixo:</p>
+
+<pre class="lang-html">&lt;main class="wrap"&gt;
+    &lt;div class="content"&gt;
+        &lt;article&gt;
+            &lt;p&gt;Lorem &lt;strong&gt;ipsum dolor sit amet&lt;/strong&gt;. Officia rem sed fuga consequatur rerum.&lt;/p&gt;
+        &lt;/article&gt;
+    &lt;/div&gt;
+&lt;/main&gt;
+</pre>
+
+<p>E você já deve ter visto um seletor desse tipo:</p>
+
+<pre class="lang-css">.wrap .content article p strong {
+  color: #ccc;
+}
+</pre>
+
+<p>Escrever seletores assim é um tiro no pé. O CSS fica ruim de entender e o trabalho de cascata do CSS &#8211; que é o que faz o CSS tão especial &#8211; pode se perder, já que você vai precisar fazer um outro seletor, mais específico, para sobreescrever essa formatação caso necessário.</p>
+
+<p>Há outro exemplo mais comum, que é muito visto quando tentamos separar a estrutura e o estilo visual dos elementos. Fica algo assim:</p>
+
+<pre class="lang-html">&lt;div class="features"&gt;
+  &lt;div class="box rounded bordered bg-blue"&gt;
+    &lt;h1&gt;Título&lt;/h1&gt;
+    &lt;p&gt;Lorem &lt;strong&gt;ipsum dolor sit amet&lt;/strong&gt;. Officia rem sed fuga consequatur rerum.&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="box rounded bordered bg-blue"&gt;
+    &lt;h1&gt;Título&lt;/h1&gt;
+    &lt;p&gt;Lorem &lt;strong&gt;ipsum dolor sit amet&lt;/strong&gt;. Officia rem sed fuga consequatur rerum.&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="box rounded bordered bg-blue"&gt;
+    &lt;h1&gt;Título&lt;/h1&gt;
+    &lt;p&gt;Lorem &lt;strong&gt;ipsum dolor sit amet&lt;/strong&gt;. Officia rem sed fuga consequatur rerum.&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+<p>É claro que é muito difícil escrever um seletor e um código HTML dessa forma consciente. Você vai perceber que está fazendo alguma burrice e vai pensar duas vezes antes de continuar. Assim espero. Mas quando usamo um pré-processador, é bastante comum nessa armadilha por causa dos seletores aninhados, ou em um termo mais bonito em inglês <strong>nested selectors</strong>.</p>
+
+<p>Veja um exemplo de <strong>nested selector</strong>:</p>
+
+<pre class="lang-sass">.features {
+  background-color: #cccccc;
+  .box {
+    border-radius: 3px;
+    border: 1px solid #666666;
+    background-color: white;
+    p {
+      font-size: 1rem;
+      line-height: 1.2;
+      color: #333333;
+    }
+  }
+}
+</pre>
+
+<p>Coisa linda. Não é necessário repetir o início do seletor a cada elemento que você quer formatar dentro de <code>.features</code>, o SASS fará isso pra você. Veja o output desse código:</p>
+
+<pre class="lang-css">.features {
+  background-color: #ccc;
+}
+.features .box {
+  border-radius: 3px;
+  border: 1px solid #666;
+  background-color: white;
+}
+.features .box p {
+  font-size: 1rem;
+  line-height: 1.2;
+  color: #333;
+}
+</pre>
+
+<p>Até aqui tudo gerenciável. Mas suponha que você tenha o código abaixo:</p>
+
+<pre class="lang-html">&lt;div class="container"&gt;
+  &lt;div class="content"&gt;
+    &lt;div class="features"&gt;
+      &lt;div class="box rounded bordered bg-blue"&gt;
+        &lt;h1&gt;T&iacute;tulo&lt;/h1&gt;
+        &lt;p&gt;Lorem &lt;strong&gt;ipsum dolor sit amet&lt;/strong&gt;. Officia rem sed fuga consequatur rerum.&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;div class="box rounded bordered bg-blue"&gt;
+        &lt;h1&gt;T&iacute;tulo&lt;/h1&gt;
+        &lt;p&gt;Lorem &lt;strong&gt;ipsum dolor sit amet&lt;/strong&gt;. Officia rem sed fuga consequatur rerum.&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;div class="box rounded bordered bg-blue"&gt;
+        &lt;h1&gt;T&iacute;tulo&lt;/h1&gt;
+        &lt;p&gt;Lorem &lt;strong&gt;ipsum dolor sit amet&lt;/strong&gt;. Officia rem sed fuga consequatur rerum.&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+<p>Aí você faça algo assim usando SASS:</p>
+
+<pre class="lang-scss">.container {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .content {
+    padding: 0 20px;
+
+    .features {
+      background-color: #ccc;
+
+      .box {
+        border-radius: 5px;
+
+        p {
+          color: #333;
+
+          strong {
+            background-color: #fff;
+          }
+        }
+      }
+    }
+  }
+}
+</pre>
+
+<p>O código final será desse jeito:</p>
+
+<pre class="lang-css">.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.container .content {
+  padding: 0 20px;
+}
+
+.container .content .features {
+  background-color: #ccc;
+}
+
+.container .content .features .box {
+  border-radius: 5px;
+}
+
+.container .content .features .box p {
+  color: #333;
+}
+
+.container .content .features .box p strong {
+  background-color: #fff;
+}
+</pre>
+
+<p>Não é incomum acontecer isso quando você está aprendendo a usar pré-processadores, mas isso pode acontecer facilmente em grandes projetos. Existem muitos problemas ao produzirmos código assim, mas os principais motivos são a geração de código inútil, aumentando o tamanho do seu arquivo final e principalmente a quebra da especificidade e a herança do código CSS. A briga de <code>!important</code> vai acontecer e você vai passar a metade do tempo resolvendo conflitos de formatação. Isso pode sempre ficar pior conforme você aninha cada vez mais os seletores. <strong>O segredo aqui é usar no máximo 3 aninhamentos</strong>. Há lugares que <a href="http://thesassway.com/beginner/the-inception-rule">aconselham até 4 aninhamentos</a>, mas aí eu acho muito. Um código bem feito naturalmente vai ter entre 2 ou 3 aninhamentos. Você não precisa começar a formatar os elementos iniciando seu seletor sempre do elemento pai. No nosso exemplo, tudo ficaria mais higienizado se fizessemos um código assim:</p>
+
+<pre class="lang-scss">.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.content {
+  padding: 0 20px;
+}
+
+.features {
+  background-color: #ccc;
+
+  .box {
+    border-radius: 5px;
+
+    p {
+      color: #333;
+
+      strong {
+        background-color: #fff;
+      }
+    }
+  }
+}
+</pre>
+
+<p>O código gerado ficaria assim:</p>
+
+<pre class="lang-css">.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.content {
+  padding: 0 20px;
+}
+
+.features {
+  background-color: #ccc;
+}
+
+.features .box {
+  border-radius: 5px;
+}
+
+.features .box p {
+  color: #333;
+}
+
+.features .box p strong {
+  background-color: #fff;
+}
+</pre>
+
+<p>Dependendo do caso, talvez até daria para tirar o aninhamento de <code>.features</code>. Ficaria assim:</p>
+
+<pre class="lang-scss">.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.content {
+  padding: 0 20px;
+}
+
+.features {
+  background-color: #ccc;
+}
+
+.box {
+  border-radius: 5px;
+
+  p {
+    color: #333;
+
+    strong {
+      background-color: #fff;
+    }
+  }
+}
+</pre>
+
+<p>Se você seguir as boas práticas de CSS que já falamos <a href="http://tableless.com.br/oocss-smacss-bem-dry-css-afinal-como-escrever-css/" title="OOCSS, SMACSS, BEM, DRY CSS: afinal, como escrever CSS?">aqui</a> e <a href="http://tableless.com.br/6-estrategias-para-melhorar-a-organizacao-do-seu-css-2/" title="6 estratégias para melhorar a organização do seu CSS">aqui</a> você estará a salvo.</p>
+
+<p>Sugiro duas ferramentas interessantes para testar códigos SASS. Um deles é o <a href="http://sassmeister.com/">SaasMeister</a>, que converte código SASS em código CSS normal. E o outro é o <a href="http://sasstoscss.com/">ScssConverter</a>, que converte código SASS para SCSS.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

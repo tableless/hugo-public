@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Raspagem De Dados on Tableless</title>
+    <link>http://tableless.com.br/tags/raspagem-de-dados/index.xml</link>
+    <description>Recent content in Raspagem De Dados on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/raspagem-de-dados/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Raspagem de dados com Node.js</title>
+      <link>http://tableless.com.br/raspagem-de-dados-com-node-js/</link>
+      <pubDate>Wed, 12 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/raspagem-de-dados-com-node-js/</guid>
+      <description>
+
+&lt;p&gt;Raspagem de dados, ou &lt;em&gt;Web scraping&lt;/em&gt;, é uma técnica de extração de dados onde é possível recuperar informações de websites.&lt;/p&gt;
+
+&lt;p&gt;Existem diversas maneiras de fazer raspagem de dados: pode ser feito manualmente copiando e colando, utilizando uma ferramenta online, usando uma extensão para o navegador Google Chrome (como o &lt;a href=&#34;https://chrome.google.com/webstore/detail/web-scraper/jnhgnonknehpejjnehehllkliplmbmhn&#34; target=&#34;_blank&#34;&gt;Webscrapper&lt;/a&gt;), etc. Neste artigo será mostrado um passo-a-passo de como fazer raspagem de dados no site Portal da Transparência. O site &lt;a href=&#34;http://www.portaldatransparencia.gov.br/&#34; target=&#34;_blank&#34;&gt;Portal da Transparência&lt;/a&gt; é mantido pelo Tribunal de Contas da União, órgão que fiscaliza as contas do governo. Informações de gastos com aquisição e contratação de obras e compras governamentais, diárias pagas, cartões de pagamento do Governo Federal, entre outras são exemplos que podem ser encontrado.&lt;/p&gt;
+
+&lt;p&gt;Para fazer a aplicação raspar dados, usaremos as seguintes ferramentas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://nodejs.org/&#34; target=&#34;_blank&#34;&gt;Node.js&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://expressjs.com/&#34; target=&#34;_blank&#34;&gt;Express&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/request/request&#34; target=&#34;_blank&#34;&gt;Request&lt;/a&gt; &amp;#8211; Para fazer chamadas HTTP&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/cheeriojs/cheerio&#34; target=&#34;_blank&#34;&gt;Cheerio&lt;/a&gt; &amp;#8211; Para acessar o DOM externo e extrair os dados&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;configuração&#34;&gt;Configuração&lt;/h2&gt;
+
+&lt;p&gt;Primeiro devemos configurar as dependências necessárias no arquivo package.json:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+{
+    &#34;name&#34;: &#34;node-scrap-govbr&#34;,
+    &#34;repository&#34;: {
+        &#34;type&#34;: &#34;git&#34;,
+        &#34;url&#34;: &#34;git://github.com/rennan/node-scrap-govbr.git&#34;
+    },
+    &#34;version&#34;: &#34;0.0.1&#34;,
+    &#34;description&#34;: &#34;Exemplo simples de raspagem de dados em um site do Governo Federal Brasileiro com Node.js.&#34;,
+    &#34;main&#34;: &#34;server.js&#34;,
+    &#34;author&#34;: &#34;Rennan Martini &#34;,
+    &#34;license&#34;: &#34;MIT&#34;,
+    &#34;dependencies&#34;: {
+        &#34;express&#34;: &#34;latest&#34;,
+        &#34;request&#34;: &#34;latest&#34;,
+        &#34;cheerio&#34;: &#34;latest&#34;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Com o arquivo &lt;strong&gt;package.json&lt;/strong&gt; pronto, é só instalar as dependências com o comando &lt;code&gt;npm install&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora que as dependências foram instaladas, iremos definir o que deve ser criado. Neste exemplo, iremos fazer uma requisição na página de &lt;a href=&#34;http://www.portaldatransparencia.gov.br/PortalComprasDiretasOEOrgaoSuperior.asp?Ano=2015&amp;Valor=86726995548647&amp;Pagina=1&#34; target=&#34;_blank&#34;&gt;Gastos Diretos por Órgão Executor&lt;/a&gt;. Nesta página teremos acesso aos gastos que o governo teve em 2015, separado por Ministério. Uma vez que tivermos acesso a estas informações, podemos escolher o que salvar em um arquivo JSON no computador.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-aplicação&#34;&gt;A aplicação&lt;/h2&gt;
+
+&lt;p&gt;O resumo da raspagem de dados funcionará da seguinte forma:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Nossa app vai fazer uma requisição a URL que iremos raspar&lt;/li&gt;
+&lt;li&gt;A requisição irá capturar o HTML da página e fornecer ele para o nosso server&lt;/li&gt;
+&lt;li&gt;Pelo server, iremos acessar o DOM e extrair as informações específicas (no caso a tabela de gastos)&lt;/li&gt;
+&lt;li&gt;Em seguida, nossa app vai criar um arquivo .json com os dados extraídos e salvar na pasta do projeto.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Toda a a estrutura lógica ficará em um arquivo &lt;strong&gt;server.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var express = require(&#39;express&#39;),
+    fs = require(&#39;fs&#39;),
+    request = require(&#39;request&#39;),
+    cheerio = require(&#39;cheerio&#39;),
+    app = express();
+
+// Passo 1
+app.get(&#39;/raspagem&#39;, function(req, res) {
+    ...
+})
+
+app.listen(&#39;8081&#39;)
+console.log(&#39;Executando raspagem de dados na porta 8081...&#39;);
+exports = module.exports = app;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;fazendo-a-requisição&#34;&gt;Fazendo a requisição&lt;/h2&gt;
+
+&lt;p&gt;A requisição externa deve ser realizada dentro do escopo do método &lt;code&gt;app.get()&lt;/code&gt; através da função &lt;code&gt;&amp;lt;b&amp;gt;request()&amp;lt;/b&amp;gt;&lt;/code&gt;. O método &lt;code&gt;request&lt;/code&gt; deve receber dois parâmetros: a &lt;code&gt;url&lt;/code&gt; e o &lt;code&gt;callback&lt;/code&gt;. No parâmetro &lt;code&gt;url&lt;/code&gt; colocamos a página do Portal da Transparência e no &lt;code&gt;callback&lt;/code&gt; iremos declarar três novos parâmetros: &lt;code&gt;error&lt;/code&gt;, &lt;code&gt;response&lt;/code&gt; e o &lt;code&gt;html&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;app.get(&#39;/raspagem&#39;, function(req, res) {
+    // Passo 2
+    url = &#39;http://www.portaldatransparencia.gov.br/PortalComprasDiretasOEOrgaoSuperior.asp?Ano=2015&amp;Valor=86726995548647&amp;Pagina=1&#39;;
+    request(url, function(error, response, html) {
+        ...
+    })
+})
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;acessando-o-dom-da-url-externa&#34;&gt;Acessando o DOM da URL externa&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/DOM.gif&#34; alt=&#34;DOM&#34; width=&#34;1104&#34; height=&#34;1040&#34; class=&#34;alignleft size-full wp-image-50467&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Inspecionamos o código-fonte para ver o seletor da tabela que iremos fazer a raspagem. O cheerio é uma biblioteca que nos dá permissão de manipular facilmente o DOM dos elementos da url. Se você já utilizou jQuery, está familiarizado com a estrutura dos seletores. Depois de encontrar o seletor, iremos manipular os elementos filhos da &lt;code&gt;div#listagem&lt;/code&gt;, no caso a tabela.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;...
+// Assegurar que não tenha erros para fazer a raspagem de dados com sucesso
+if (!error) {
+    var $ = cheerio.load(html);
+
+    // Objeto que irá armazenar a tabela
+    var resultado = [];
+
+    // Passo 3
+    // Manipulando o seletor específico para montar nossa estrutura
+    // Escolhi não selecionar a primeira linha porque faz parte do header da tabela
+    $(&#39;#listagem tr:not(:first-child)&#39;).each(function(i) {
+        // Obtendo as propriedades da tabela. 
+        // O método .trim() garante que irá remover espaço em branco
+        var codigo = $(this).find(&#39;td&#39;).eq(0).text().trim(),
+            orgao = $(this).find(&#39;td&#39;).eq(1).text().trim(),
+            valorTotal = $(this).find(&#39;td&#39;).eq(2).text().trim();
+        
+        // Inserindo os dados obtidos no nosso objeto
+        resultado.push({
+            codigo: codigo,
+            orgao: orgao,
+            total: valorTotal
+        });
+    });
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;formatando-e-extraindo&#34;&gt;Formatando e Extraindo&lt;/h2&gt;
+
+&lt;p&gt;Nós armazenamos os dados extraídos em uma variável chamada &lt;code&gt;resultado&lt;/code&gt;. Agora é necessário colocar as mãos na API do NodeJS chamada &lt;strong&gt;Fyle System&lt;/strong&gt;. Esta biblioteca nos dá acesso pra várias coisas legais, dentre elas a possibilidade de &lt;a href=&#34;escrever arquivos&#34; target=&#34;_blank&#34;&gt;escrever arquivos&lt;/a&gt;. No método &lt;code&gt;writeFile()&lt;/code&gt; passaremos dois parâmetros: o &lt;strong&gt;arquivo .json&lt;/strong&gt; que será gerado e o &lt;strong&gt;objeto&lt;/strong&gt; que será exportado neste arquivo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Passo 4
+fs.writeFile(&#39;resultado.json&#39;, JSON.stringify(resultado, null, 4), function(err) {
+    console.log(&#39;JSON escrito com sucesso! O arquivo está na raiz do projeto.&#39;)
+})
+&lt;/pre&gt;
+
+&lt;p&gt;Assim, quando executarmos o comando &lt;code&gt;node server.js&lt;/code&gt; no terminal a nossa aplicação irá fazer a raspagem na URL e gerar o arquivo &lt;strong&gt;resultado.json&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/resultado.json_.png&#34; alt=&#34;resultado.json&#34; width=&#34;1110&#34; height=&#34;974&#34; class=&#34;alignleft size-full wp-image-50472&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;validando&#34;&gt;Validando&lt;/h2&gt;
+
+&lt;p&gt;É sempre importante validar o que você está fazendo. Podemos verificar se o nosso arquivo .json é válido com a ferramenta &lt;a href=&#34;http://jsonlint.com/&#34; target=&#34;_blank&#34;&gt;JSONLint&lt;/a&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/valid_json.png&#34; alt=&#34;valid_json&#34; width=&#34;961&#34; height=&#34;631&#34; class=&#34;alignleft size-full wp-image-50473&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;considerações-finais&#34;&gt;Considerações finais&lt;/h2&gt;
+
+&lt;p&gt;Vimos neste exemplo que o processo de raspagem de dados pode ser bem simples, porém é uma técnica poderosa que aliada a outros serviços é possível construir ótimas aplicações. O código completo utilizado como exemplo neste post está versionado no &lt;a href=&#34;https://github.com/rennan/node-scrap-govbr/&#34; target=&#34;_blank&#34;&gt;GitHub do autor&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;porquê-escolhi-um-site-do-governo&#34;&gt;Porquê escolhi um site do governo&lt;/h3&gt;
+
+&lt;p&gt;Decidi escolher um site do governo porquê trata-se de um Portal com todas informações disponíveis ao cidadão, que por uma série de fatores acaba passando despercebido. É importante evidenciar que o Governo incentiva o manuseio de suas informações com &lt;a href=&#34;http://dados.gov.br/dados-abertos/&#34; target=&#34;_blank&#34;&gt;dados abertos&lt;/a&gt;. Para se ter uma noção sobre esta iniciativa, existem &lt;a href=&#34;http://br.okfn.org/projetos/&#34; target=&#34;_blank&#34;&gt;diversos projetos&lt;/a&gt; que trabalham com os dados governamentais, através de raspagem e bots automatizadores de tarefas. O &lt;a href=&#34;http://databr.io/&#34;&gt;DataBR&lt;/a&gt;, por exemplo, é um conjunto de API&amp;#8217;s que possibilita desenvolvedores, jornalistas, analistas e demais interessados, trabalhar com dados governamentais brasileiros.&lt;/p&gt;
+
+&lt;p style=&#34;text-align: center&#34;&gt;
+  ***
+&lt;/p&gt;
+
+&lt;p&gt;Espero que tenha aproveitado a leitura.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

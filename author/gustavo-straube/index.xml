@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Gustavo Straube on Tableless</title>
+    <link>http://tableless.com.br/author/gustavo-straube/index.xml</link>
+    <description>Recent content in Gustavo Straube on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/gustavo-straube/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Assinatura de newsletter com PHP integrada à API do Mailchimp</title>
+      <link>http://tableless.com.br/assinatura-de-newsletter-com-php-integrada-a-api-do-mailchimp/</link>
+      <pubDate>Tue, 10 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/assinatura-de-newsletter-com-php-integrada-a-api-do-mailchimp/</guid>
+      <description>
+
+&lt;p&gt;O Mailchimp tem uma &lt;a href=&#34;https://apidocs.mailchimp.com/&#34; target=&#34;_blank&#34;&gt;API bem completa&lt;/a&gt;. Arrisco dizer que é possível fazer uma interface com muitas das funcionalidades de gerenciamento de listas, envios, etc usando a API — fica a dica para quem quiser desenvolver uma aplicação explorando alguma lacuna que o painel do Mailchimp deixa a desejar.&lt;/p&gt;
+
+&lt;p&gt;Eu sabia da existência da API faz algum tempo, mas usava uma função simples de exportação de CSV em alguns projetos. Mas dependendo da frequência de disparo das newsletters, exportar um arquivo e importar no Mailchimp começa a ser um tanto trabalhoso. Então esse é o meu caso de uso: um formulário de newsletter.&lt;/p&gt;
+
+&lt;p&gt;Aí alguém diz: “Mas você está reinventando a roda! O Mailchimp te dá um formulário pronto, você não precisa integrar com a API, basta gerar o código, copiar e colar.” E eu respondo: “Sim, existe essa possibilidade, mas e se além de enviar para o Mailchimp você precisa gravar na sua base de dados esses e-mails? E se a opção de assinatura da newsletter é um checkbox (opt-in) em um formulário de cadastro?” Acho que assim temos uma ideia melhor de quando usar a API para a captação de e-mails.&lt;/p&gt;
+
+&lt;p&gt;Então, vamos botar a mão no código:&lt;/p&gt;
+
+&lt;h2 id=&#34;1-chave-da-api&#34;&gt;1. Chave da API&lt;/h2&gt;
+
+&lt;p&gt;Mas, ops! Antes de ir para a programação, toda integração com a API precisa de uma chave para autenticação. Para gerar essa chave você precisa entrar na sua conta do Mailcimp (se você não tem uma conta, criar uma nova é bem simples e não tem custo), e seguir o seguinte caminho:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;no menu do usuário (canto direito superior), ir em &lt;strong&gt;“Account”&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;na aba &lt;strong&gt;“Extras”&lt;/strong&gt;, selecionar &lt;strong&gt;“API keys”&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;nessa tela você pode criar uma chave (&lt;strong&gt;“Create API key”&lt;/strong&gt;).&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;A chave gerada é sua forma de autenticação na API, então deve ser mantida em segurança.&lt;/p&gt;
+
+&lt;h2 id=&#34;2-instalação&#34;&gt;2 Instalação&lt;/h2&gt;
+
+&lt;p&gt;Existe um &lt;a href=&#34;https://bitbucket.org/mailchimp/mailchimp-api-php&#34; target=&#34;_blank&#34;&gt;SDK PHP oficial do Mailchimp&lt;/a&gt;. Você pode instalar &lt;a href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34; target=&#34;_blank&#34;&gt;usando o Composer&lt;/a&gt;, incluindo a seguinte dependência no seu arquivo &lt;strong&gt;composer.json&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&#34;mailchimp/mailchimp&#34;: &#34;2.0.*&#34;&lt;/pre&gt;
+
+&lt;p&gt;E executando o &lt;strong&gt;composer install&lt;/strong&gt; (ou &lt;strong&gt;update&lt;/strong&gt; se for um projeto já existente).&lt;/p&gt;
+
+&lt;p&gt;Mas se você não está usando o Composer (está desenvolvendo um tema ou plugin de WordPress, por exemplo) pode baixar o &lt;a href=&#34;https://bitbucket.org/mailchimp/mailchimp-api-php/get/master.zip&#34; target=&#34;_blank&#34;&gt;pacote com o SDK&lt;/a&gt;. Caso opte por esse tipo de instalação, provavelmente vai ser necessário incluir no seu código um &lt;strong&gt;require&lt;/strong&gt; para a classe principal: &lt;strong&gt;src/Mailchimp.php&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;3-integrando&#34;&gt;3 Integrando&lt;/h2&gt;
+
+&lt;p&gt;Vamos começar usando um formulário HTML simples, com apenas dois inputs: e-mail e cidade. Estou optando por usar esses dados, porque quero mostrar como usar campos personalizados com a API. O arquivo &lt;strong&gt;newsletter.php&lt;/strong&gt; deve ser algo assim:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;form action=&#34;mailchimp.php&#34; method=&#34;post&#34;&amp;gt;
+  &amp;lt;h1&amp;gt;Newsletter&amp;lt;/h1&amp;gt;
+  &amp;lt;label&amp;gt;E-mail&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&#34;email&#34; name=&#34;email&#34;&amp;gt;&amp;lt;br&amp;gt;
+  &amp;lt;label&amp;gt;Cidade&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&#34;text&#34; name=&#34;city&#34;&amp;gt;&amp;lt;br&amp;gt;
+  &amp;lt;button type=&#34;submit&#34;&amp;gt;Assinar!&amp;lt;/button&amp;gt;
+&amp;lt;/form&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Obs.: Como o foco é o uso da API, não estou me preocupando com a estética do formulário, ok? 😉&lt;/p&gt;
+
+&lt;p&gt;Seguindo vamos para o arquivo &lt;strong&gt;mailchimp.php&lt;/strong&gt;, que receberá os dados enviados pele formulário:&lt;/p&gt;
+
+&lt;p&gt;Primeiro começamos definindo algumas configurações, usando constantes:&lt;/p&gt;
+
+&lt;pre&gt;define(&#39;MAILCHIMP_API_KEY&#39;,  &#39;&#39;); // Sua chave da API
+define(&#39;MAILCHIMP_LIST_ID&#39;,  &#39;&#39;); // O ID da sua lista
+define(&#39;MAILCHIMP_CITY_TAG&#39;, &#39;&#39;); // A tag do campo personalizado que usaremos&lt;/pre&gt;
+
+&lt;p&gt;Tem duas informações novas aqui: o &lt;strong&gt;ID da lista&lt;/strong&gt; e a &lt;strong&gt;tag do campo&lt;/strong&gt; personalizado. Conseguimos esses dados no painel do Mailchimp, assim:&lt;/p&gt;
+
+&lt;h3 id=&#34;id-da-lista&#34;&gt;ID da lista&lt;/h3&gt;
+
+&lt;p&gt;Na lista para qual você quer adicionar as assinaturas (se você não tem nenhuma lista na sua conta, precisará criar uma antes de continuar), no menu &lt;strong&gt;“Settings”&lt;/strong&gt; vá até &lt;strong&gt;“List name and defaults”&lt;/strong&gt;. Nessa tela, do lado direto, existe uma pequena sessão com o título &lt;strong&gt;“List ID”&lt;/strong&gt;, dali você vai copiar um código, tipicamente formado por letras e números.&lt;/p&gt;
+
+&lt;h3 id=&#34;tag-do-campo&#34;&gt;Tag do campo&lt;/h3&gt;
+
+&lt;p&gt;Ainda na lista e novamente no menu &lt;strong&gt;“Settings”&lt;/strong&gt; você vai até o link &lt;strong&gt;“List fields and *|MERGE|* tags”&lt;/strong&gt;. Ali você vai copiar a tag correspondente ao campo usado no form, que no nosso exemplo é o &lt;strong&gt;“Cidade”&lt;/strong&gt;. O que você precisa é o valor que está no input, algo parecido com &lt;strong&gt;“MMERGE3”&lt;/strong&gt; — esse número no final muda de um campo para outro.&lt;/p&gt;
+
+&lt;p&gt;Caso você ainda não tenha criado nenhum campo personalizado, você pode criar um agora.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Continuando com o código&amp;#8230;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Para usar um nome mais claro no código (e evitar usar as globais do PHP), vou repassar o conteúdo recebido do form para uma nova variável:&lt;/p&gt;
+
+&lt;pre&gt;$form = $_POST;&lt;/pre&gt;
+
+&lt;p&gt;Na sequência vou fazer uma validação bem básica dos dados, apenas verificando se os campos foram preenchidos. Provavelmente você vai querer fazer algo mais eficaz, como verificar se o formato do e-mail é válido ou se o nome da cidade tem um mínimo de caracteres, por exemplo.&lt;/p&gt;
+
+&lt;pre&gt;if (!empty($form[&#39;email&#39;]) &amp;&amp; !empty($form[&#39;city&#39;])) {
+  $mailchimp = new Mailchimp(MAILCHIMP_API_KEY);
+  $lists = new Mailchimp_Lists($mailchimp);
+  $email = [
+    &#39;email&#39; =&amp;gt; $form[&#39;email&#39;],
+  ];
+  $merge = [
+    MAILCHIMP_CITY_TAG =&amp;gt; $form[&#39;city&#39;],
+  ];
+  $lists-&amp;gt;subscribe(
+    MAILCHIMP_LIST_ID, // ID da lista
+    $email,            // O e-mail do assinante
+    $merge,            // Campos personalizados
+    &#39;html&#39;,            // Tipo de e-mail recebido
+    false              // Confirmar assinatura por e-mail (opt-in duplo)?
+  );
+  echo &#39;Newsletter assinada!&#39;;
+} else {
+  echo &#39;Por favor preencha os campos. &amp;lt;a href=&#34;newsletter.php&#34;&amp;gt;Voltar&amp;lt;/a&amp;gt;&#39;;
+}&lt;/pre&gt;
+
+&lt;p&gt;Se você usou um e-mail que ainda não está na lista para testar o formulário, vai ver que ele funciona a primeira vez, mas nos envios seguintes o PHP indica uma exceção. Se o teste foi feito com um e-mail já cadastrado, nem o primeiro envio funcionou.&lt;/p&gt;
+
+&lt;p&gt;Isso acontece porque o SDK do Mailchimp usa exceções para indicar qualquer coisa que impeça a chamada à API de ser executada com sucesso, incluindo a tentativa de assinatura com um e-mail já cadastrado. Para tratar esses casos, vamos fazer a seguinte alteração no código que está dentro do &lt;strong&gt;if&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;try {
+    $mailchimp = …
+
+    ...
+
+    echo &#39;Newsletter assinada!&#39;;
+  } catch (Mailchimp_List_AlreadySubscribed $e) {
+    echo &#39;Você já assinou a newsletter.&#39;;
+  } catch (Mailchimp_Email_AlreadySubscribed $e) {
+    echo &#39;Você já assinou a newsletter.&#39;;
+  } catch (Mailchimp_Email_NotExists $e) {
+    echo &#39;O e-mail informado não existe.&#39;;
+  } catch (Mailchimp_Invalid_Email $e) {
+    echo &#39;O e-mail informado é inválido.&#39;;
+  } catch (Mailchimp_List_InvalidImport $e) {
+    echo &#39;Dados inválidos, provavelmente seu e-mail.&#39;;
+  } catch (Exception $e) {
+    echo $e-&amp;gt;getMessage(); // Não mostre isso para o usuário
+  }&lt;/pre&gt;
+
+&lt;p&gt;Dessa forma conseguimos tratar algumas exceções mais comuns que o SDK pode lançar e devolver um feedback para o usuário, assim ele é capaz de corrigir as informações e tentar novamente.&lt;/p&gt;
+
+&lt;p&gt;Para os outros casos, fazemos um tratamento genérico apenas exibindo a mensagem da exceção. Isso é o suficiente para um exemplo como esse aqui, mas não é o ideal para um código real que vai para produção, porque pode expôr bugs e informações sensíveis da sua aplicação. Então recomendo fazer um tratamento mais adequado, como gravar em um arquivo de log ou &lt;a href=&#34;http://tableless.com.br/rastreando-excecoes-no-php-com-o-airbrake/&#34; target=&#34;_blank&#34;&gt;usar um rastreador de bugs&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora quando você submeter o formulário com um e-mail já cadastrado, verá a mensagem: &lt;strong&gt;“Você já assinou a newsletter.”&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Essa integração é bem básica, mas dá uma ideia do que é possível fazer com a API do Mailchimp. Como falei no início, você pode ir muito mais além do que um formulário de captação de e-mails. E mesmo em se tratando da assinatura de listas, você pode refinar o código que apresentei e integrar em um formulário de cadastro do seu site, e até adicionar novos campos.&lt;/p&gt;
+
+&lt;p&gt;Caso tenha alguma dúvida ou encontre algum erro, fique a vontade para usar os comentários.&lt;/p&gt;
+
+&lt;p&gt;Ah! O código completo está disponível no GitHub: &lt;a href=&#34;https://github.com/straube/mailchimp-sample-form&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/straube/mailchimp-sample-form&#34;&gt;https://github.com/straube/mailchimp-sample-form&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Rastreando exceções no PHP com o Airbrake</title>
+      <link>http://tableless.com.br/rastreando-excecoes-no-php-com-o-airbrake/</link>
+      <pubDate>Mon, 15 Sep 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/rastreando-excecoes-no-php-com-o-airbrake/</guid>
+      <description>
+
+&lt;p&gt;Identificar erros, e suas causas, em uma aplicação web pode se tornar uma tarefa complicada. Ter algumas ferramentas à mão pode simplificar bastante essa missão.&lt;/p&gt;
+
+&lt;p&gt;Algo que provavelmente ajuda a rastrear uma falha são os logs da aplicação ou do servidor onde ela está sendo executada, mas não é fácil encontrar algo específico, especialmente se o volume de registros é grande.&lt;/p&gt;
+
+&lt;p&gt;Outra situação desagradável é quando os erros acontecem em situações específicas, difíceis de reproduzir.&lt;/p&gt;
+
+&lt;p&gt;Ainda pode haver um cenário em que as exceções acontecem com os usuários, mas nunca são reportadas aos desenvolvedores. E como verificar logs proativamente é algo muito improvável, esses erros ficam no esquecimento.&lt;/p&gt;
+
+&lt;p&gt;Pensando nesses obstáculos, o &lt;a title=&#34;Airbrake&#34; href=&#34;https://airbrake.io/&#34; target=&#34;_blank&#34;&gt;Airbrake&lt;/a&gt; pode facilitar muito a vida de quem desenvolve e mantém software para web. Conheci ele usando o &lt;a title=&#34;Codebase&#34; href=&#34;https://www.codebasehq.com/&#34; target=&#34;_blank&#34;&gt;Codebase&lt;/a&gt; (também uma excelente ferramenta, porém para gerenciamento de projetos), que tem integração na parte de tickets/rastreamento de bugs.&lt;/p&gt;
+
+&lt;h2 id=&#34;1-qual-é-a-mágica&#34;&gt;1. Qual é a mágica?&lt;/h2&gt;
+
+&lt;p&gt;O princípio do funcionamento do Airbrake é bem simples: toda vez que uma exceção ou erro são gerados, as informações sobre a requisição, sessão do usuário e ambiente são enviadas para o servidor através da API. A partir dessas informações, são gerados relatórios e é possível realizar buscas no histórico. Uma grande vantagem é que os erros são agrupados, então se um mesmo acontece com frequência não “sujará” o log.&lt;/p&gt;
+
+&lt;p&gt;A cada novo erro na sua aplicação, uma notificação é enviada por e-mail.&lt;/p&gt;
+
+&lt;h2 id=&#34;2-configurando-o-serviço&#34;&gt;2. Configurando o serviço&lt;/h2&gt;
+
+&lt;p&gt;Para iniciar, você deve ter uma conta no &lt;a title=&#34;Airbrake&#34; href=&#34;https://airbrake.io/&#34; target=&#34;_blank&#34;&gt;Airbrake&lt;/a&gt;. Não há plano gratuito, mas existe um período de testes de 30 dias.&lt;/p&gt;
+
+&lt;p&gt;Ainda existe a opção de usar uma alternativa open source compatível com a mesma API, que é o &lt;a title=&#34;Errbit&#34; href=&#34;https://github.com/errbit/errbit&#34; target=&#34;_blank&#34;&gt;Errbit&lt;/a&gt;, mas nesse caso você precisa instalar o serviço em um servidor próprio. Caso opte pelo Errbit, as instruções de instalação estão disponíveis no repositório do GitHub: &lt;a title=&#34;Repositório do Errbit no GitHub&#34; href=&#34;https://github.com/errbit/errbit&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/errbit/errbit&#34;&gt;https://github.com/errbit/errbit&lt;/a&gt;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;3-instalação&#34;&gt;3. Instalação&lt;/h2&gt;
+
+&lt;p&gt;Como minha linguagem do dia-a-dia é PHP, vou seguir com as instruções focando nela, mas a lógica de instalação não muda muito de uma linguagem para outra. Caso precise, no site do Airbrake existem &lt;a title=&#34;Integração do Airbrake com linguagens&#34; href=&#34;https://airbrake.io/languages&#34; target=&#34;_blank&#34;&gt;instruções para outras linguagens&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se você já estiver usando o &lt;a href=&#34;https://getcomposer.org/&#34; target=&#34;_blank&#34;&gt;Composer&lt;/a&gt;, basta adicionar a dependência no arquivo &lt;strong&gt;composer.json&lt;/strong&gt; do seu projeto:&lt;/p&gt;
+
+&lt;pre&gt;{ 
+    &#34;require&#34;: {
+        &#34;dbtlr/php-airbrake&#34;: &#34;dev-master&#34;
+    }
+}&lt;/pre&gt;
+
+&lt;p&gt;Se não usa o Composer, essa é uma ótima oportunidade para começar. O Andre Cardoso escreveu sobre ele aqui no Tableless: &lt;a title=&#34;Composer para iniciantes&#34; href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34; target=&#34;_blank&#34;&gt;Composer para iniciantes&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Caso não esteja usando um framework, provavelmente precisará adicionar a chamada ao class loader do Composer:&lt;/p&gt;
+
+&lt;pre&gt;require_once &#39;vendor/autoload.php&#39;;&lt;/pre&gt;
+
+&lt;h2 id=&#34;4-integração&#34;&gt;4. Integração&lt;/h2&gt;
+
+&lt;p&gt;Agora você precisa fazer com que as exceções e erros do PHP sejam enviadas para a o Airbrake, para isso você tem pelo menos dois caminhos possíveis de acordo com a estrutura do seu projeto:&lt;/p&gt;
+
+&lt;h3 id=&#34;sem-framework-ou-com-um-framework-que-não-tem-manipulação-de-exceções&#34;&gt;Sem framework ou com um framework que não tem manipulação de exceções&lt;/h3&gt;
+
+&lt;p&gt;Nesse caso, basta usar a manipulação de exceções da própria API, assim:&lt;/p&gt;
+
+&lt;pre&gt;Airbrake\EventHandler::start(&#39;API_KEY’);&lt;/pre&gt;
+
+&lt;p&gt;Lembrando de substituir o &lt;strong&gt;API_KEY&lt;/strong&gt; pela sua própria chave da API do Airbrake.&lt;/p&gt;
+
+&lt;p&gt;Adicionando essa chamada logo no início do seu script ou em um dos pontos de entrada da sua aplicação as funções set_exception_handler e set_error_handler, do PHP, são chamadas.&lt;/p&gt;
+
+&lt;h3 id=&#34;com-framework-que-tem-manipulação-de-exceções&#34;&gt;Com framework que tem manipulação de exceções&lt;/h3&gt;
+
+&lt;p&gt;Para registrar a API, basta usar o seguinte trecho de código junto ao manipulador de exceções do seu framework:&lt;/p&gt;
+
+&lt;pre&gt;$config = new Airbrake\Configuration(&#39;API_KEY&#39;);
+$client = new Airbrake\Client($config);
+$client-&amp;gt;notifyOnException($exception);&lt;/pre&gt;
+
+&lt;p&gt;Para facilitar, para alguns, vou dar o exemplo em dois frameworks que tenho usado:&lt;/p&gt;
+
+&lt;h4 id=&#34;com-laravel&#34;&gt;Com Laravel&lt;/h4&gt;
+
+&lt;p&gt;Edite o arquivo &lt;strong&gt;app/start/global.php&lt;/strong&gt;, da seguinte maneira:&lt;/p&gt;
+
+&lt;pre&gt;App::error(function (Exception $exception, $code)
+{
+    Log::error($exception);
+
+    // Airbrake
+    $config = new Airbrake\Configuration(&#39;API_KEY&#39;);
+    $client = new Airbrake\Client($config);
+    $client-&amp;gt;notifyOnException($exception);
+
+});&lt;/pre&gt;
+
+&lt;h4 id=&#34;com-slim-framework&#34;&gt;Com Slim Framework&lt;/h4&gt;
+
+&lt;p&gt;Edite o arquivo &lt;strong&gt;public/index.php&lt;/strong&gt;, e adicione o seguinte trecho depois de ter instanciado a aplicação:&lt;/p&gt;
+
+&lt;pre&gt;$app-&amp;gt;error(function (\Exception $e) use ($app) {
+    $app-&amp;gt;getLog()-&amp;gt;error($e);
+
+    // Airbrake
+    $config = new Airbrake\Configuration(&#39;API_KEY&#39;);
+    $client = new Airbrake\Client($config);
+    $client-&amp;gt;notifyOnException($e);
+
+});&lt;/pre&gt;
+
+&lt;h2 id=&#34;5-um-pequeno-exemplo-funcional&#34;&gt;5. Um pequeno exemplo funcional&lt;/h2&gt;
+
+&lt;p&gt;Caso você queira fazer um teste rápido, pode usar o seguinte script e executá-lo (depois de ter instalado a dependência com Composer).&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+require_once &#39;vendor/autoload.php&#39;;
+Airbrake\EventHandler::start(&#39;API_KEY&#39;);
+
+throw new Exception(&#39;Testando o Airbrake&#39;);&lt;/pre&gt;
+
+&lt;p&gt;A cada execução desse script, um novo registro de exceção deve ser gravado na sua conta no Airbrake.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;O Airbrake não é a única opção disponível para gerenciar e rastrear as exceções da sua aplicação (apenas para citar mais uma opção, tenho usado o &lt;a title=&#34;Sentry&#34; href=&#34;https://www.getsentry.com/&#34; target=&#34;_blank&#34;&gt;Sentry&lt;/a&gt; com sucesso em pelo menos um projeto), mas pode ser um ponto de partida interessante para que você tenha uma visão diferente, e mais prática, sobre os erros do seu código.&lt;/p&gt;
+
+&lt;p&gt;Caso você opte por usar o Errbit, talvez precise de algumas configurações mais avançadas (como determinar o host ou resource do serviço, por exemplo), então a documentação oficial da bilbioteca para PHP pode te ajudar: &lt;a title=&#34;Opções de configurações do PHP Airbrake&#34; href=&#34;https://github.com/dbtlr/php-airbrake#configuration-options&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/dbtlr/php-airbrake#configuration-options&#34;&gt;https://github.com/dbtlr/php-airbrake#configuration-options&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>PHP na linha de comando</title>
+      <link>http://tableless.com.br/php-na-linha-de-comando/</link>
+      <pubDate>Thu, 24 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/php-na-linha-de-comando/</guid>
+      <description>
+
+&lt;p&gt;Quem conhece um pouco de alguma linguagem de programação, acaba se acostumando a escrever trechos de código para automatizar tarefas simples ou resolver problemas. Para aqueles mais íntimos do PHP, se torna habitual escrever aplicações com uma interface simples em HTML, mas com isso deixamos de aproveitar algumas vantagens da linha de comando em conjunto com o nosso script para resolver essas questões triviais (ou nem tanto). Também existe benefício de não depender de um servidor web e um navegador.&lt;/p&gt;
+
+&lt;h2 id=&#34;1-hello-terminal&#34;&gt;1. Hello terminal!&lt;/h2&gt;
+
+&lt;p&gt;Para dar os primeiros passos na execução de scripts a partir do interpretador é interessante começar entendendo como funciona a chamada. Então, que tal um “Hello terminal!”? Segue o código do nosso primeiro script:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+echo &#34;Hello terminal!\n&#34;;&lt;/pre&gt;
+
+&lt;p&gt;A partir da linha de comando, no diretório onde você salvou o seu script, execute (considerando que você salvou o arquivo como &lt;strong&gt;script.php&lt;/strong&gt;):&lt;/p&gt;
+
+&lt;pre&gt;$ php script.php
+Hello terminal!&lt;/pre&gt;
+
+&lt;p&gt;No Windows, você deverá usar o executável do PHP — &lt;strong&gt;php.exe script.php&lt;/strong&gt; —, mas tenha certeza de que ele está no PATH do sistema.&lt;/p&gt;
+
+&lt;p&gt;Isso deverá imprimir a frase “&lt;strong&gt;Hello terminal!&lt;/strong&gt;” na saída padrão do terminal, como mostrado acima. Você vai ver que se não incluir a quebra de linha no final da string (\n), o seu prompt vai ficar na mesma linha que a saída do script. Isso não prejudica a execucão do script e nem dos próximos comandos, mas pode dificultar a leitura do resultado.&lt;/p&gt;
+
+&lt;h2 id=&#34;2-usando-parâmetros&#34;&gt;2. Usando parâmetros&lt;/h2&gt;
+
+&lt;p&gt;Quando usamos o navegador para executar um script PHP e precisamos passar algum parâmetro para ele, incluímos uma query no final da URL, por exemplo: &lt;strong&gt;?param1=abc&amp;amp;param2=123&lt;/strong&gt;. Usando a linha de comando é possível fazer algo semelhante, passando argumentos na chamada do interpretador, logo em seguida ao nome do script, assim:&lt;/p&gt;
+
+&lt;pre&gt;$ php script.php abc 123&lt;/pre&gt;
+
+&lt;p&gt;Nesse exemplo estamos passando dois argumentos: “&lt;strong&gt;abc&lt;/strong&gt;” e “&lt;strong&gt;123&lt;/strong&gt;”. O seu script pode lidar com esses dados através das variáveis &lt;strong&gt;$argc&lt;/strong&gt; e &lt;strong&gt;$argv&lt;/strong&gt;. A primeira contém um número inteiro com a quantidade de argumentos passados para o interpretador. Atenção: o nome do script é o primeiro parâmetro, então &lt;strong&gt;$argc&lt;/strong&gt; sempre vai ser no mínimo 1, no nosso exemplo ele teria o valor 3. A segunda variável contém um array com os valores dos argumentos. Assim como acontece para a &lt;strong&gt;$argc&lt;/strong&gt;, o primeiro valor é o nome do script.&lt;/p&gt;
+
+&lt;p&gt;Se imprimirmos, usando a função &lt;strong&gt;var_dump&lt;/strong&gt;, o conteúdo das variáveis &lt;strong&gt;$argc&lt;/strong&gt; e &lt;strong&gt;$argv&lt;/strong&gt;, do último exemplo, teríamos:&lt;/p&gt;
+
+&lt;pre&gt;int(3)
+array(3) {
+  [0]=&amp;gt;
+  string(10) &#34;script.php&#34;
+  [1]=&amp;gt;
+  string(3) &#34;abc&#34;
+  [2]=&amp;gt;
+  string(3) &#34;123&#34;
+}&lt;/pre&gt;
+
+&lt;p&gt;Você vai notar que &lt;strong&gt;$argc&lt;/strong&gt; sempre carrega o mesmo valor que o resultado da chamada &lt;strong&gt;count($argv)&lt;/strong&gt;, em todo caso &lt;strong&gt;$argc&lt;/strong&gt; é o padrão usado e é alguns milisegundos mais rápido por já estar na memória (se isso fizer alguma diferença na performance do seu script).&lt;/p&gt;
+
+&lt;p&gt;Sabendo disso, como exemplo, podemos escrever um utilitário simples para ajudar em redações: listar as palavras de um texto em ordem alfabética seguidas de sua posição no texto, assim podemos verificar como as palavras se repetem no texto e ajustar o vocabulário, se for o caso. Vamos lá!&lt;/p&gt;
+
+&lt;p&gt;Esperamos que o nome do arquivo (para simplificar vamos usar um TXT simples) seja passado como argumento para o script.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+
+/*
+ * Esperamos 1 parâmetro (lembrando que o nome do script
+ * também conta) com o nome do TXT.
+ */
+if ($argc &amp;lt; 2) {
+  echo &#34;O nome do arquivo TXT deve ser passado para o script.\n&#34;;
+
+  /*
+   * Passamos um código de erro (qualquer número inteiro
+   * entre 1 e 254) para indicar que o programa encerrou com erro.
+   */
+  exit(1);
+}
+$file = $argv[1];
+
+/*
+ * Verificamos se a extensão do arquivo é txt.
+ */
+if (&#34;.txt&#34; !== strtolower(substr($file, -4)) {
+  echo &#34;O script aceita somente arquivos TXT.\n&#34;;
+  exit(1);
+}
+
+// Pegamos o conteúdo do arquivo.
+$contents = file_get_contents($file);
+
+// Separamos as palavras em um array.
+$words = preg_split(&#34;/[\s+,\.!\?\(\):]/&#34;, $contents, null, PREG_SPLIT_NO_EMPTY);
+
+// Ordenamos alfabeticamente.
+natcasesort($words);
+
+foreach ($words as $position =&amp;gt; $word) {
+
+  /*
+   * Imprimimos cada palavra e sua respectiva posição
+   * dentro do texto.
+   */
+  echo &#34;{$word} ({$position})\n&#34;;
+
+}&lt;/pre&gt;
+
+&lt;p&gt;Feito!&lt;/p&gt;
+
+&lt;p&gt;Agora se criarmos um TXT chamado &lt;strong&gt;sobre.txt&lt;/strong&gt;, no mesmo diretório que nosso script, contendo a primeira frase do artigo da Wikipédia sobre o PHP, teremos o resultado abaixo:&lt;/p&gt;
+
+&lt;pre&gt;$ php script.php sobre.txt
+acrônimo (2)
+apenas (19)
+aplicações (24)
+atuantes (27)
+capazes (32)
+[...]
+usada (17)
+Web (40)
+Wide (39)
+World (38)
+é (12)&lt;/pre&gt;
+
+&lt;h2 id=&#34;3-mesclando-o-uso-com-outros-comandos&#34;&gt;3. Mesclando o uso com outros comandos&lt;/h2&gt;
+
+&lt;p&gt;Falando um pouco das utilidades que o terminal oferece e que podemos combinar com o nosso script, temos, por exemplo, o &lt;strong&gt;grep&lt;/strong&gt;, que executa buscas através de expressões regulares (alternativamente, no Windows você pode usar o &lt;strong&gt;findstr&lt;/strong&gt;: &lt;a title=&#34;http://technet.microsoft.com/en-us/library/bb490907.aspx&#34; href=&#34;http://technet.microsoft.com/en-us/library/bb490907.aspx&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://technet.microsoft.com/en-us/library/bb490907.aspx&#34;&gt;http://technet.microsoft.com/en-us/library/bb490907.aspx&lt;/a&gt;&lt;/a&gt;). Se quisermos filtrar o resultado do nosso script para exibir apenas uma palavra específica, sem alterar o código, poderíamos executá-lo assim:&lt;/p&gt;
+
+&lt;pre&gt;$ php script.php sobre.txt | grep originalmente
+originalmente (18)
+originalmente (8)&lt;/pre&gt;
+
+&lt;p&gt;O grep é apenas um dos comandos disponíveis que podem ser agregados a execução do seu script, mas a idéia é apresentar apenas o básico sobre a execução de programas PHP via linha de comando.&lt;/p&gt;
+
+&lt;p&gt;Ficou com alguma dúvida? Fique a vontade para usar o espaço de comentários.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

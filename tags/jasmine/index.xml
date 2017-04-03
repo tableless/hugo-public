@@ -1,0 +1,716 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Jasmine on Tableless</title>
+    <link>http://tableless.com.br/tags/jasmine/index.xml</link>
+    <description>Recent content in Jasmine on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/jasmine/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Teste automatizado de API com frisby e jasmine</title>
+      <link>http://tableless.com.br/teste-automatizado-de-api-com-frisby-e-jasmine/</link>
+      <pubDate>Thu, 27 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/teste-automatizado-de-api-com-frisby-e-jasmine/</guid>
+      <description>
+
+&lt;p&gt;O &lt;a href=&#34;http://frisbyjs.com/&#34;&gt;Frisby&lt;/a&gt; é um framework para teste de API REST que roda em cima do nodejs. Seu principal apelo é a facilidade em se fazer testes automatizados de API com o apoio do framework de teste BDD jasmine.&lt;/p&gt;
+
+&lt;h3 id=&#34;instalação&#34;&gt;Instalação:&lt;/h3&gt;
+
+&lt;p&gt;Pré requisitos: nodejs, npm.&lt;/p&gt;
+
+&lt;p&gt;1) jasmine-node. Instalação global.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;sudo npm install -g jasmine-node&lt;/pre&gt;
+
+&lt;p&gt;2) frisby. Instalação local no projeto.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;sudo nam install --save-dev frisby&lt;/pre&gt;
+
+&lt;h3 id=&#34;hello-world&#34;&gt;Hello, World!&lt;/h3&gt;
+
+&lt;p&gt;Para o uso devemos instanciar seu módulo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;var frisby = require (&#39;frisby&#39;);&lt;/pre&gt;
+
+&lt;p&gt;No seu uso mais básico, passamos como parâmetro a url a ser chamada e a resposta esperada.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;frisby.create(&#39;Teste BDD&#39;).get(&#39;http://www.teste.com/pessoa/1&#39;).expectStatus(200).toss();&lt;/pre&gt;
+
+&lt;p&gt;Com o comando acima, estamos testando a API sendo que seu sucesso depende do código de retorno HTTP 200.&lt;/p&gt;
+
+&lt;p&gt;Por convenção devemos salvar este arquivo de teste com o sufixo &amp;#8216;-spec.js&amp;#8217;. Ex: &amp;#8216;pessoa-spec.js&amp;#8217;&lt;/p&gt;
+
+&lt;p&gt;Para execução do teste e para que o mesmo gere relatório no formato &amp;#8216;junitreport&amp;#8217; devemos executar o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;jasmine-node pessoa-spec.js --junitreport --output specTestReportJasmine&lt;/pre&gt;
+
+&lt;p&gt;Na prática apontamos para um pasta de teste para que todos sejam executados. Ex:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;jasmine-node spec/ --junitreport --output specTestReportJasmine&lt;/pre&gt;
+
+&lt;p&gt;Já temos o essencial para integração do teste de api com alguma ferramenta de CI como o Jenkins(&lt;a href=&#34;https://jenkins-ci.org/&#34;&gt;https://jenkins-ci.org/&lt;/a&gt;) com relatório padronizado.&lt;/p&gt;
+
+&lt;h3 id=&#34;hello-universe&#34;&gt;Hello, Universe!&lt;/h3&gt;
+
+&lt;p&gt;O framework oferece alguns recursos interessantes e de fácil implementação para testar a resposta da API REST.&lt;/p&gt;
+
+&lt;p&gt;1) Testar se a resposta HTTP contém um cabeçalho específico.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;frisby.create(&#39;Teste BDD&#39;).get(&#39;http://www.teste.com/pessoa/1&#39;)
+   .expectStatus(200)
+   .expectHeaderContains(&#39;Content-Type&#39;, &#39;json&#39;)
+   .toss();
+
+&lt;/pre&gt;
+
+&lt;p&gt;2) Testar se a resposta HTTP contém um objeto com um conteúdo específico.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;frisby.create(&#39;Teste BDD&#39;).get(&#39;http://www.teste.com/pessoa/1&#39;)
+   .expectStatus(200)
+   .expectHeaderContains(&#39;Content-Type&#39;, &#39;json&#39;)
+   .expectJSON({codigo:1,nome:&#34;fulano&#34;})
+   .toss();&lt;/pre&gt;
+
+&lt;p&gt;3) Testar se a resposta HTTP contém um objeto com um tipo específico.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;frisby.create(&#39;Teste BDD&#39;).get(&#39;http://www.teste.com/pessoa/1&#39;)
+   .expectStatus(200)
+   .expectHeaderContains(&#39;Content-Type&#39;, &#39;json&#39;)
+   .expectJSONTypes({codigo: Number})
+   .toss();&lt;/pre&gt;
+
+&lt;p&gt;4) Realizar um teste que depende da conclusão de um teste anterior.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;frisby.create(&#39;Teste BDD&#39;).get(&#39;http://www.teste.com/pessoa/1&#39;)
+   .expectStatus(200)
+   .expectHeaderContains(&#39;Content-Type&#39;, &#39;json&#39;)
+   .expectJSONTypes({codigo: Number})
+   .after(function(){
+      frisby.create(&#39;Teste BDD&#39;).delete(&#39;http://www.teste.com/pessoa/1&#39;).expectStatus(200).toss();
+   })
+   .toss();&lt;/pre&gt;
+
+&lt;p&gt;No teste acima, caso tenha sucesso ao obter informações de uma pessoa será feito um teste da exclusão da mesma.&lt;/p&gt;
+
+&lt;h4 id=&#34;integração-com-gulp-projetos-em-nodejs&#34;&gt;Integração com GULP(Projetos em nodejs)&lt;/h4&gt;
+
+&lt;p&gt;Quando a aplicação backend é feita em nodejs é interessante configurar o gulpjs(&lt;a href=&#34;http://gulpjs.com/&#34;&gt;http://gulpjs.com/&lt;/a&gt;) para o gerenciamento dos testes. No exemplo abaixo o gulp é configurado para iniciar a aplicação backend, disparar os testes e finalizar a aplicação:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;gulp.task(&#39;spec&#39;, function() {
+   var jasmine = spawn(&#39;jasmine-node&#39;, [&#39;spec/&#39;,&#39;--junitreport&#39;,&#39;--output&#39;,&#39;specTestReportJasmine&#39;]);
+   var serverApp = require(&#39;./server&#39;);
+   var resumeText = &#34;&#34;;
+ 
+   serverApp.init(8082);
+ 
+   jasmine.stdout.on(&#39;data&#39;, function (data) {
+      var texto = data.toString().trim();
+      resumeText += texto;
+   });
+   jasmine.stderr.on(&#39;data&#39;, function (data) {
+      console.log(&#39;erro: &#39; + data);
+   });
+   jasmine.on(&#39;close&#39;, function (code) {
+      console.log(&#39;*********************\n&#39; + resumeText);
+      serverApp.close();
+      process.exit();
+   });
+});&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Jasmine: entendendo os matchers</title>
+      <link>http://tableless.com.br/jasmine-entendendo-os-matchers/</link>
+      <pubDate>Mon, 30 Mar 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/jasmine-entendendo-os-matchers/</guid>
+      <description>
+
+&lt;p&gt;Uma parte legal do &lt;strong&gt;Jasmine&lt;/strong&gt; e que adianta muito o nosso lado são os &lt;em&gt;matchers&lt;/em&gt;: de um modo resumido e direto, um _matcher_ implementa uma comparação _booleana_ entre o valor atual e o valor esperado. É responsável em passar para o _framework_ se o que  &lt;em&gt;esperamos&lt;/em&gt; através do nosso teste é _verdadeiro_ ou &lt;em&gt;falso&lt;/em&gt;. Com base nisso, o _Jasmine_ vai passar ou falhar a &lt;em&gt;spec&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;toequal&#34;&gt;toEqual&lt;/h2&gt;
+
+&lt;p&gt;Esse talvez seja o mais básico e um dos que mais iremos usar. Simplemente verifica se duas coisas são iguais (e não necessariamente o mesmo objeto). Por exemplo, as seguintes _expects_ iriam passar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(true).toEqual(true);
+expect([1, 2, 3]).toEqual([1, 2, 3]);
+&lt;/pre&gt;
+
+&lt;p&gt;Da mesma forma, as seguintes iriam falhar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(5).toEqual(12);
+expect([1, 2, 3]).toEqual([11, 12, 13]);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobe&#34;&gt;toBe&lt;/h2&gt;
+
+&lt;p&gt;O _matcher_ &lt;code&gt;toBe&lt;/code&gt; a princípio parece ser igual ao anterior &lt;code&gt;toEqual&lt;/code&gt;. A diferença é que &lt;code&gt;toBe&lt;/code&gt; verifica não só se os dois valores são iguais, mas também como se eles são do mesmo objeto.&lt;/p&gt;
+
+&lt;p&gt;Pra podermos ver a diferença entre os dois:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var bob = { model: &#34;Camaro&#34; };
+var john = { model: &#34;Camaro&#34; };
+
+expect(bob).toEqual(john); // passa =&amp;gt; são equivalentes
+expect(bob).toBe(john); // falha =&amp;gt; não é o mesmo objeto
+&lt;/pre&gt;
+
+&lt;p&gt;Apesar de &lt;em&gt;bob&lt;/em&gt; e &lt;em&gt;john&lt;/em&gt; serem similares, eles não são o mesmo objeto, o que faz a &lt;em&gt;spec&lt;/em&gt; passar se for usado o &lt;em&gt;matcher&lt;/em&gt; &lt;strong&gt;toEqual&lt;/strong&gt; mas falha se for usado o &lt;em&gt;matcher&lt;/em&gt; &lt;code&gt;toBe&lt;/code&gt;. O mesmo acontece para arrays:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var group = [100, 101, 102];
+expect(group).toEqual([100, 101, 102]); // passa =&amp;gt; são equivalentes
+expect(group).toBe([100, 101, 102]); // falha =&amp;gt; não é o mesmo array
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobetruthy-e-tobefalsy&#34;&gt;toBeTruthy e toBeFalsy&lt;/h2&gt;
+
+&lt;p&gt;Para testar se algum valor é avaliado commo &lt;strong&gt;&lt;em&gt;true&lt;/em&gt;&lt;/strong&gt; ou &lt;strong&gt;&lt;em&gt;false&lt;/em&gt;&lt;/strong&gt;, podemos usar respectivamente os _matchers_ &lt;code&gt;toBeTruthy&lt;/code&gt; e &lt;code&gt;toBeFalsy&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(true).toBeTruthy();
+expect(1000).toBeTruthy();
+expect({}).toBeTruthy();
+
+expect(&#34;&#34;).toBeFalsy();
+expect(null).toBeFalsy();
+expect(false).toBeFalsy();
+&lt;/pre&gt;
+
+&lt;p&gt;Se pararmos pra olhar com calma o exemplo anterior podemos notar que a avaliação dos _matchers_ &lt;code&gt;toBeTruthy&lt;/code&gt; e &lt;code&gt;toBeFalsy&lt;/code&gt; é idêntica ao &lt;em&gt;JavaScript&lt;/em&gt;. Então temos alguns valores específicos que são considerados _falsy_ e todo o restante é avaliado como &lt;em&gt;truthy&lt;/em&gt;. Pra nossa referência, uma lista dos valores que são avaliados como &lt;em&gt;falsy&lt;/em&gt; pelo &lt;em&gt;Jasmine&lt;/em&gt;:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;&lt;em&gt;false&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;****&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&lt;strong&gt;&amp;#8220;&amp;#8221;&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;&lt;em&gt;undefined&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&lt;strong&gt;null&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&lt;strong&gt;NaN&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;not&#34;&gt;not&lt;/h2&gt;
+
+&lt;p&gt;Muitas vezes podemos inverter um _matcher_  pra termos certeza de que ele não é um valor &lt;strong&gt;&lt;em&gt;true&lt;/em&gt;&lt;/strong&gt;. Podemos fazer isso facilmente adicionando o prefixo &lt;code&gt;.not&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(&#39;Fabeni&#39;).not.toEqual(&#39;Finelli&#39;);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tocontain&#34;&gt;toContain&lt;/h2&gt;
+
+&lt;p&gt;Conseguimos também verificar se um elemento _está contido_ em um _array_ ou &lt;strong&gt;&lt;em&gt;string&lt;/em&gt;&lt;/strong&gt; por exemplo, como o &lt;em&gt;matcher&lt;/em&gt; &lt;code&gt;toContain&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect([10, 11, 12, 13, 14, 15]).toContain(13);
+expect(&#39;Raphael Fabeni&#39;).toContain(&#39;Fabeni&#39;);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobedefined-e-tobeundefined&#34;&gt;toBeDefined e toBeUndefined&lt;/h2&gt;
+
+&lt;p&gt;Da mesma maneira que vimos os &lt;em&gt;matchers&lt;/em&gt; &lt;code&gt;toBeTruthy&lt;/code&gt; e &lt;code&gt;toBeFalsy&lt;/code&gt;, _Jasmine_ também nos oferece os benditos &lt;code&gt;toBeDefined&lt;/code&gt; e &lt;code&gt;toBeUndefined&lt;/code&gt; que verificam se um valor é &lt;strong&gt;&lt;em&gt;defined&lt;/em&gt;&lt;/strong&gt; ou &lt;strong&gt;&lt;em&gt;undefined&lt;/em&gt;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var iAmUndefined;
+expect(null).toBeDefined(); // passa
+expect(&#39;Fabeni&#39;).toBeDefined(); // passa
+expect(iAmUndefined).toBeDefined(); // falha
+
+expect(iAmUndefined).toBeUndefined(); // passa
+expect(12).toBeUndefined(); // falha
+expect(null).toBeUndefined(); // falha
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobenull&#34;&gt;toBeNull&lt;/h2&gt;
+
+&lt;p&gt;Direto ao ponto, esse brother simplesmente avalia se um valor é &lt;strong&gt;&lt;em&gt;null&lt;/em&gt;&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(null).toBeNull(); // passa
+expect(false).toBeNull(); // falha
+expect(1).toBeNull(); // falha
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobenan&#34;&gt;toBeNaN&lt;/h2&gt;
+
+&lt;p&gt;Sem muitas delongas, esse _matcher_ verifica se um valor é &lt;strong&gt;&lt;em&gt;NaN&lt;/em&gt;&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(0).toBeNaN(); // falha
+expect(10).not.toBeNaN(); // passa
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobegreatherthan-e-tobelessthan&#34;&gt;toBeGreatherThan e toBeLessThan&lt;/h2&gt;
+
+&lt;p&gt;Esses dois &lt;em&gt;matchers&lt;/em&gt; verificam se um valor é maior ou menor que um outro valor passado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(10).toBeGreatherThan(1); // passa
+expect(10).toBeLessThan(20); // passa
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobecloseto&#34;&gt;toBeCloseTo&lt;/h2&gt;
+
+&lt;p&gt;Esse _matcher_ permite que possamos verificar se um certo número está próximo de um outro número, dado uma certa precisão decimal como segundo argumento. Poderíamos por exemplo, verificar se um número é próximo de _25.23_ com um ponto decimal, poderíamos fazer algo assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(25.23).toBeCloseTo(25.2, 1); // passa
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tomatch&#34;&gt;toMatch&lt;/h2&gt;
+
+&lt;p&gt;Esse cara verifica se algum valor está de acordo com base em uma &lt;strong&gt;&lt;em&gt;expressão regular&lt;/em&gt;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(&#39;Yes, we can!&#39;).toMatch(/we/); // passa
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tothrow&#34;&gt;toThrow&lt;/h2&gt;
+
+&lt;p&gt;Esse _matcher_ permite que verifiquemos se uma função lançou um erro. Como exemplo, vamos imaginar que temos uma função &lt;code&gt;onlyNumbers&lt;/code&gt; que deve &lt;strong&gt;&lt;em&gt;lançar uma exceção&lt;/em&gt;&lt;/strong&gt; caso o argumento passado seja uma _string_ e não um número. Podemos usar aqui uma _função anônima_ para nos facilitar a vida:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(function() {
+    onlyNumbers(&#39;argumento errado&#39;)
+}).toThrow();
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;ufa-8230&#34;&gt;Ufa&amp;#8230;&lt;/h2&gt;
+
+&lt;p&gt;Deu pra ver que o _framework_ nos oferece um monte de opção para utilizarmos em nossos testes. É ainda é possível fazer nossos &lt;em&gt;matchers&lt;/em&gt; customizados, mas vou deixar isso para um próximo post. Se você se interessar mais pelo assunto, recomendo o livro &lt;a href=&#34;http://shop.oreilly.com/product/0636920028277.do&#34; target=&#34;_blank&#34;&gt;JavaScript Testing with Jasmine&lt;/a&gt; que inclusive li recentemente e tive a idéia de escrever o post.&lt;/p&gt;
+
+&lt;p&gt;Acho que é isso. Se encontrar algum erro ou melhoria no post, pode postar no comentário ou pode me chamar no &lt;a href=&#34;https://twitter.com/raphaelfabeni&#34; target=&#34;_blank&#34;&gt;twitter&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Testando seu código jQuery com Jasmine – Parte 2</title>
+      <link>http://tableless.com.br/testando-seu-codigo-jquery-com-jasmine-parte-2/</link>
+      <pubDate>Tue, 04 Oct 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/testando-seu-codigo-jquery-com-jasmine-parte-2/</guid>
+      <description>
+
+&lt;p&gt;Jasmine é um framework para testes focado em BDD (&lt;em&gt;Behavior Driven Development&lt;/em&gt;). Na &lt;a href=&#34;http://tableless.com.br/testando-seu-codigo-jquery-com-jasmine-parte-1/&#34;&gt;primeira parte&lt;/a&gt; deste artigo aprendemos seus métodos básicos e realizamos alguns testes simples. Agora chegou a hora de ir um pouco além e conhecer técnicas mais avançadas.&lt;/p&gt;
+
+&lt;p&gt;Vale lembrar que, em nossos exemplos, utilizamos uma versão modificada da biblioteca, adaptada para jQuery: &lt;a href=&#34;https://github.com/velesin/jasmine-jquery&#34;&gt;jasmine-jquery&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Utilizaremos os dados de um outro artigo, &lt;a href=&#34;http://tableless.com.br/conteudo-sob-demanda-com-jquery/&#34;&gt;Conteúdo sob demanda com jQuery&lt;/a&gt;. O objetivo é testar as solicitações AJAX do carregamento da lista de tweets do Tableless.&lt;/p&gt;
+
+&lt;h3 id=&#34;fixtures&#34;&gt;Fixtures&lt;/h3&gt;
+
+&lt;p&gt;Antes dos testes propriamente ditos vamos conhecer uma forma prática de carregar nosso conteúdo HTM. Fixtures são arquivos carregados através do método &lt;strong&gt;loadFixtures&lt;/strong&gt;. Esta funcionalidade, aliás, está disponível apenas no jasmine-jquery.&lt;/p&gt;
+
+&lt;p&gt;Vamos salvar o código HTML abaixo no arquivo &lt;strong&gt;tweets.html&lt;/strong&gt;, dentro do diretório de fixtures.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;xml&amp;#8221;]&lt;/p&gt;
+
+&lt;div id=&amp;#8221;container&amp;#8221;&gt;
+    
+&lt;h1&gt;Tweets do Tableless&lt;/h1&gt;
+    
+&lt;ul id=&amp;#8221;lista-tweets&amp;#8221;&gt;&lt;/ul&gt;
+    
+&lt;p&gt;&lt;a href=&amp;#8221;#&amp;#8221; id=&amp;#8221;carrega-tweets&amp;#8221; data-pagina=&amp;#8221;1&amp;#8243;&gt;Mais!&lt;/a&gt;&lt;/p&gt;
+  
+&lt;/div&gt;
+  
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Por padrão, o jasmine-jquery procura as fixtures no diretório &lt;strong&gt;spec/javascripts/fixtures&lt;/strong&gt;. Como na primeira parte do artigo indicamos uma estrutura diferente, utilizando o diretório &lt;strong&gt;spec/fixtures&lt;/strong&gt;, precisamos atualizar a propriedade fixturesPath nas configurações do Jasmine.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;jasmine.getFixtures().fixturesPath = &amp;#8216;spec/fixtures/&amp;#8217;;&lt;/p&gt;
+
+&lt;p&gt;describe(&amp;#8216;Exibição dos últimos tweets do Tableless&amp;#8217;, function(){&lt;/p&gt;
+
+&lt;p&gt;beforeEach(function(){&lt;/p&gt;
+
+&lt;p&gt;loadFixtures(&amp;#8216;tweets.html&amp;#8217;);&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;it(&amp;#8216;Deve carregar na primeira página&amp;#8217;, function(){&lt;/p&gt;
+
+&lt;p&gt;expect($(&amp;#8216;#carrega-tweets&amp;#8217;).data(&amp;#8216;pagina&amp;#8217;)).toEqual(1);&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Outra forma de utilizarmos fixtures é carregando diretamente no código, sem a necessidade de um arquivo HTML. Esse caso é mais indicado para templates mais simples, com poucos elementos.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;setFixtures(&amp;#8216;&lt;ul id=&amp;#8221;lista-tweets&amp;#8221; /&gt;&amp;#8217;);&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;h3 id=&#34;testando-código-assíncrono&#34;&gt;Testando código assíncrono&lt;/h3&gt;
+
+&lt;p&gt;Testar código AJAX pode ser um pouco mais complicado. No nosso exemplo, como acessamos uma URL externa à nossa aplicação, o tempo de resposta vai depender de vários fatores, como velocidade da conexão, estabilidade do Twitter etc.&lt;/p&gt;
+
+&lt;p&gt;Os métodos &lt;strong&gt;runs&lt;/strong&gt; e &lt;strong&gt;waits&lt;/strong&gt; são úteis para tentar simular esse tempo de carregamento. O &lt;strong&gt;runs&lt;/strong&gt; executa os testes e funções um escopo próprio e, além disso, são executados em sequência (quando um termina, o outro começa). Já o método &lt;strong&gt;waits&lt;/strong&gt; funciona como uma espécie de pausa/sleep e recebe como parâmetro o tempo em milissegundos.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;it(&amp;#8216;Deve carregar os últimos 20 tweets&amp;#8217;, function(){&lt;/p&gt;
+
+&lt;p&gt;runs(function(){&lt;/p&gt;
+
+&lt;p&gt;Tableless.retorna_tweets(1);&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;waits(1500);&lt;/p&gt;
+
+&lt;p&gt;runs(function(){&lt;/p&gt;
+
+&lt;p&gt;expect($(&amp;#8216;#lista-tweets li&amp;#8217;).length).toEqual(20);&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;h3 id=&#34;espionando-métodos&#34;&gt;Espionando métodos&lt;/h3&gt;
+
+&lt;p&gt;Às vezes precisamos testar se um método de um objeto é chamado (e com que parâmetros) &amp;mdash; e não testar apenas seu resultado. O Jasmine oferece a função &lt;strong&gt;spyOn&lt;/strong&gt; para capturar e validar essas chamadas. O &lt;strong&gt;spyOn&lt;/strong&gt; recebe dois parâmetros: o objeto e o nome do método.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;it(&amp;#8216;Deve executar função para retornar tweets&amp;#8217;, function(){&lt;/p&gt;
+
+&lt;p&gt;spyOn(Tableless, &amp;#8216;retorna_tweets&amp;#8217;);&lt;/p&gt;
+
+&lt;p&gt;Tableless.retorna_tweets(1);&lt;/p&gt;
+
+&lt;p&gt;expect(Tableless.retorna_tweets).toHaveBeenCalledWith(1);&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Acima testamos se o método foi chamado com o parâmetro 1 (página). Poderíamos ter utilizado também &lt;strong&gt;toHaveBeenCalled&lt;/strong&gt;, testando apenas a chamada. As funções de spy podem ainda ser combinadas com o not, por exemplo:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;expect(Tableless.retorna_tweets).not.toHaveBeenCalled();&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;h3 id=&#34;matchers-personalizados&#34;&gt;Matchers personalizados&lt;/h3&gt;
+
+&lt;p&gt;Outra funcionalidade poderosa do Jasmine é a possibilidade de criação de matchers personalizados. Os matchers são asserts para seus tests. No exemplo abaixo, criamos o matcher &lt;strong&gt;toBeATweet&lt;/strong&gt; para validar se um elemento possui a classe &amp;#8220;tweet&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;beforeEach(function(){&lt;/p&gt;
+
+&lt;p&gt;this.addMatchers({&lt;/p&gt;
+
+&lt;p&gt;toBeATweet: function(){&lt;/p&gt;
+
+&lt;p&gt;return this.actual.hasClass(&amp;#8216;tweet&amp;#8217;);&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;expect($(&amp;#8216;#lista-tweets li:first&amp;#8217;)).toBeATweet();&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;O método addMatchers deve ser executado dentro do beforeEach, utilizando o Jasmine como contexto. Notem que ele recebe um objeto que pode conter um ou mais matchers personalizados. No código, &lt;strong&gt;this.actual&lt;/strong&gt; representa a variável, elemento, ou objeto que estará sendo passado ao &lt;strong&gt;expect&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;outros-projetos-utilizando-jasmine&#34;&gt;Outros projetos utilizando Jasmine&lt;/h3&gt;
+
+&lt;p&gt;Nesses dois artigos vocês conheceram o jasmine-jquery, mas existem diversos outros projetos baseados no framework Jasmine, incluindo adaptações para NodeJS, Rails e iPhone e snippets para Vim e TextMate. A lista completa você confere no &lt;a href=&#34;https://github.com/pivotal/jasmine/wiki/Related-projects&#34;&gt;wiki do projeto no Github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;referências&#34;&gt;Referências&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/tableless/exemplos/tree/gh-pages/jasmine-parte-2&#34;&gt;Código fonte dos exemplos deste artigo&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://tableless.github.com/exemplos/jasmine-parte-2/tests/SpecRunner.html&#34;&gt;SpecRunner dos exemplos rodando no browser&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://f.souza.cc/2011/05/testing-jquery-plugins-with-jasmine/&#34;&gt;Testing jQuery plugins with Jasmine&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://testdrivenwebsites.com/2010/07/29/html-fixtures-in-jasmine-using-jasmine-jquery/&#34;&gt;HTML fixtures in Jasmine (using jasmine-jquery)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Testando seu código jQuery com Jasmine – Parte 1</title>
+      <link>http://tableless.com.br/testando-seu-codigo-jquery-com-jasmine-parte-1/</link>
+      <pubDate>Mon, 12 Sep 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/testando-seu-codigo-jquery-com-jasmine-parte-1/</guid>
+      <description>
+
+&lt;p&gt;Durante muito tempo testar/debugar JavaScript era uma tarefa árdua (infelizmente, em alguns navegadores, ainda é). Quem aí se lembra do tempo em que não existia Firebug, por exemplo? E o tamanho dos scripts? Um simples menu drop-drown possuía umas 1.500 linhas de código. Não existia jQuery ou qualquer outro tipo de framework. Tempos difíceis.&lt;/p&gt;
+
+&lt;p&gt;Hoje a tarefa do desenvolvedor é muito mais fácil. Para debug temos o já citado Firebug e o Developer Tools do Chrome, entre outros. Nos testes, além do &lt;a href=&#34;http://pivotal.github.com/jasmine/&#34; target=&#34;_blank&#34;&gt;Jasmine&lt;/a&gt;, outro framework bem legal é o &lt;a href=&#34;http://docs.jquery.com/Qunit&#34;&gt;QUnit&lt;/a&gt;. O Jasmine, por focar em BDD, possui uma sintaxe mais fluida. Quem programa em Ruby/Rails vai notar a enorme semelhança com a ferramenta RSpec.&lt;/p&gt;
+
+&lt;p&gt;Nos exemplos vou utilizar uma versão modificada do Jasmine, jasmine-jquery. Ela possui alguns métodos próprios para o framework além de funções para carregar fixtures (templates).&lt;/p&gt;
+
+&lt;h3 id=&#34;baby-steps&#34;&gt;Baby steps&lt;/h3&gt;
+
+&lt;p&gt;Começar a trabalhar com uma cultura de testar sempre antes de desenvolver é bem difícil, principalmente para quem já está acostumado a programar antes e testar depois (manualmente). Comece devagar, sem medo. No início as coisas serão um pouco confusas, mas depois de adotar essa prática, você vai se perguntar como era possível programar sem testes.&lt;/p&gt;
+
+&lt;p&gt;O que testar e que testes escrever? Isso também vem com o tempo. Comece testando uma ou outra funcionalidade principal de um aplicativo já existente. Entenda como funciona a sua ferramenta de testes. Depois de um tempo comece a acreditar e confiar na sua intuição.&lt;/p&gt;
+
+&lt;p&gt;Procure sempre utilizar um conjunto variado de possibilidades, desde as mais óbvias até as mais inusitadas. Pense nos diferentes contextos, em tudo que interage com seu aplicativo: navegadores, sistemas operacionais, usuários, dados de entrada, scripts de terceiros etc.&lt;/p&gt;
+
+&lt;p&gt;Testes não evitam que seu software, uma vez finalizado, tenha bugs; não são a solução para todos os seus problemas de &lt;em&gt;deploy&lt;/em&gt;, mas facilitam bastante essas etapas.&lt;/p&gt;
+
+&lt;h3 id=&#34;red-rarr-green-rarr-refactor&#34;&gt;Red &amp;rarr; Green &amp;rarr; Refactor&lt;/h3&gt;
+
+&lt;p&gt;O padrão básico a ser seguido é o seguinte:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Escreva o teste &amp;mdash; naturalmente, ele vai falhar;&lt;/li&gt;
+&lt;li&gt;Escreva, sem se preocupar muito com qualidade, o código mais simples, que faça o teste passar;&lt;/li&gt;
+&lt;li&gt;Reescreva seu código, implementando melhorias de performance, escalabilidade e removendo duplicidades.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;configurando-o-jasmine-jquery&#34;&gt;Configurando o jasmine-jquery&lt;/h3&gt;
+
+&lt;p&gt;Baixe a última versão do &lt;a href=&#34;https://github.com/velesin/jasmine-jquery&#34; target=&#34;_blank&#34;&gt;jasmine-jquery&lt;/a&gt; e vamos começar com nossos primeiros testes. A estrutura de pastas do nosso aplicativo deve ficar da seguinte maneira:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;xml&amp;#8221;]- /&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; /tests&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; /lib&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; /spec&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; /fixtures&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; /suites&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; saudacao-spec.js&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; /vendor&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; SpecRunner.html&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; tableless.js&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Note que criamos um diretório &amp;#8220;tests&amp;#8221; onde ficarão todos os arquivos dos nossos testes, incluindo a biblioteca Jasmine. O arquivo SpecRunner.html é o responsável por executar e exibir os resultados dos testes, basta abri-lo no navegador. Dentro do diretório “tests/spec” ficarão nossos conjuntos de testes (suites) e nossos templates HTML (fixtures).&lt;/p&gt;
+
+&lt;p&gt;No início do SpecRunner ficam as chamadas para os testes:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;script type=&amp;#8221;text/javascript&amp;#8221; src=&amp;#8221;spec/suites/saudacao-spec.js&amp;#8221;&gt;&lt;/script&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Você também pode incluir aqui qualquer javascript personalizado necessário para os testes. No nosso caso vamos incluir o arquivo tableless.js, que fica na raiz do nosso aplicativo.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;script type=&amp;#8221;text/javascript&amp;#8221; src=&amp;#8221;../tableless.js&amp;#8221;&gt;&lt;/script&gt;[/cce]&lt;/p&gt;
+
+&lt;h3 id=&#34;nosso-primeiro-teste&#34;&gt;Nosso primeiro teste&lt;/h3&gt;
+
+&lt;p&gt;Vamos supor o seguinte: uma página deve exibir uma mensagem de boas-vindas para o usuário que varia de acordo com o horário. De 5 da manhã ao meio-dia, exibe &amp;#8220;Bom dia!&amp;#8221;; de meio-dia até 6 da tarde, exibe &amp;#8220;Boa tarde!&amp;#8221;; de 6 à meia-noite, exibe &amp;#8220;Boa noite!&amp;#8221;; e, por fim, de meia-noite até 6 da manhã exibe &amp;#8220;Dormir é para os fracos!&amp;#8221;. A mensagem fica sempre dentro de um elemento div com id &amp;#8220;mensagem&amp;#8221;. Os horários vão desde a hora inicial (incluída) até a hora final. A função pode receber como parâmetro uma hora no formato hh:mm ou, caso não receba nada, exibe a mensagem de acordo com a hora do usuário.&lt;/p&gt;
+
+&lt;p&gt;Esse é um bom começo para seus testes, tente escrever, em um parágrafo, o que deve ser executado e o que é esperado. Trabalhe sempre com um pedaço de papel por perto, para rascunhos.&lt;/p&gt;
+
+&lt;p&gt;Vejamos como ficaria o desenho inicial dos nossos testes. Crie o arquivo /tests/spec/suites/saudacao-spec.js e digite o seguinte código:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]describe(&amp;#8216;Exibição da mensagem de boas-vindas&amp;#8217;, function(){&lt;/p&gt;
+
+&lt;p&gt;beforeEach(function(){&lt;/p&gt;
+
+&lt;p&gt;setFixtures(&amp;#8216;&lt;div id=&amp;#8221;mensagem&amp;#8221; /&gt;&amp;#8217;);&lt;/p&gt;
+
+&lt;p&gt;this.mensagem = $(&amp;#8216;#mensagem&amp;#8217;);&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;afterEach(function(){&lt;/p&gt;
+
+&lt;p&gt;this.horas = [];&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;it(&amp;#8220;Deve exibir &amp;#8216;Bom-dia!&amp;#8217; entre 5:00 e 11:59&amp;#8221;, function(){&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;it(&amp;#8220;Deve exibir &amp;#8216;Boa-tarde!&amp;#8217; entre 12:00 e 17:59&amp;#8221;, function(){&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;it(&amp;#8220;Deve exibir &amp;#8216;Boa-noite!&amp;#8217; entre 18:00 e 23:59&amp;#8221;, function(){&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;it(&amp;#8220;Deve exibir &amp;#8216;Dormir é para os fracos!&amp;#8217; de 00:00 a 04:59&amp;#8221;, function(){&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;it(&amp;#8220;Deve exibir, por padrão, a mensagem de acordo com a hora do cliente&amp;#8221;, function(){&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;});[/cce]&lt;/p&gt;
+
+&lt;p&gt;Na raiz do aplicativo, crie um arquivo chamado &amp;#8220;tableless.js&amp;#8221;. Nele nós escreveremos nossa função para exibir a mensagem de acordo com a hora. Sua estrutura inicial é a seguinte:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]function saudacao(hora_atual){&lt;/p&gt;
+
+&lt;p&gt;var hora;&lt;/p&gt;
+
+&lt;p&gt;}[/cce]&lt;/p&gt;
+
+&lt;p&gt;Os conceitos básicos dos nossos testes giram em torno de três funções: &lt;strong&gt;describe&lt;/strong&gt;, &lt;strong&gt;it&lt;/strong&gt; e &lt;strong&gt;expect&lt;/strong&gt;. Outras funções úteis, mas que nem sempre estarão presentes, são as funções &lt;strong&gt;beforeEach&lt;/strong&gt; e &lt;strong&gt;afterEach&lt;/strong&gt;. Também trabalhamos com uma função do jasmine-jquery, a &lt;strong&gt;setFixtures&lt;/strong&gt; &amp;mdash; falarei mais sobre ela na parte 2, por enquanto você só precisa saber que ela define templates/elementos no DOM.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;describe&lt;/strong&gt; &amp;mdash; representa um conjunto de testes/comportamentos. Podem existir situações dentro de situações, por exemplo:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]describe(&amp;#8216;Login&amp;#8217;, function(){&lt;/p&gt;
+
+&lt;p&gt;describe(&amp;#8216;Sucesso&amp;#8217;, function(){&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+describe(&amp;#8216;Falha&amp;#8217;, function(){&lt;/p&gt;
+
+&lt;p&gt;});&lt;/p&gt;
+
+&lt;p&gt;});[/cce] &lt;/li&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;it&lt;/strong&gt; &amp;mdash; define um teste, uma ação. Por exemplo, &amp;#8220;It should validate the username&amp;#8221;, ou, &amp;#8220;Deve validar o nome do usuário&amp;#8221;, seria uma boa situação para nosso teste de login.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;expect&lt;/strong&gt; &amp;mdash; espera que alguma variável ou retorno de função seja igual a alguma coisa, ou verdadeiro, ou falso etc. Nos testes acima utilizamos apenas um tipo de validação, o matcher &amp;#8220;toEqual&amp;#8221;. Todo o teste deve ser chamado com a função expect, utilizando um dos matchers disponíveis (mais sobre eles na parte 2). Os principais são: toEqual, toContains, toBeTruthy e toBeFalsy.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;beforeEach&lt;/strong&gt; &amp;mdash; executada antes de cada teste dentro de um conjunto, muito útil para configurar elementos.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;afterEach&lt;/strong&gt; &amp;mdash; executada depois de cada teste dentro de um conjunto, ideal para reiniciar variáveis.&lt;/ul&gt;
+&lt;br /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;escrevendo-os-testes&#34;&gt;Escrevendo os testes&lt;/h3&gt;
+
+&lt;p&gt;Agora chegou a hora de preencher os nossos testes. Os testes que verificam a mensagem entre uma hora e outra seguirão um mesmo padrão. Dado um conjunto de horas válidas, a função saudacao deve retornar a mensagem correta.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]it(&amp;#8220;Deve exibir &amp;#8216;Bom-dia!&amp;#8217; entre 5:00 e 11:59&amp;#8221;, function(){&lt;/p&gt;
+
+&lt;p&gt;this.horas = [&amp;#8217;05:00&amp;#8242;, &amp;#8217;09:33&amp;#8242;, &amp;#8217;10:22&amp;#8242;, &amp;#8217;11:59&amp;#8242;];&lt;/p&gt;
+
+&lt;p&gt;for(i in this.horas){&lt;/p&gt;
+
+&lt;p&gt;saudacao(this.horas[i]);&lt;/p&gt;
+
+&lt;p&gt;expect(this.mensagem.text()).toEqual(&amp;#8216;Bom-dia!&amp;#8217;);&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;});[/cce]&lt;/p&gt;
+
+&lt;p&gt;O teste que valida o retorno da função saudacao sem passagem de parâmetro busca a hora do cliente e exibe a mensagem de acordo com ela.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]it(&amp;#8220;Deve exibir, por padrão, a mensagem de acordo com a hora do cliente&amp;#8221;, function(){&lt;/p&gt;
+
+&lt;p&gt;var data = new Date;&lt;/p&gt;
+
+&lt;p&gt;data.setTime(data.getTime());&lt;/p&gt;
+
+&lt;p&gt;var hora = data.getHours();&lt;/p&gt;
+
+&lt;p&gt;saudacao();&lt;/p&gt;
+
+&lt;p&gt;var texto = this.mensagem.text();&lt;/p&gt;
+
+&lt;p&gt;if(hora &amp;lt; 5)&lt;/p&gt;
+
+&lt;p&gt;expect(texto).toEqual(&amp;lsquo;Dormir é para os fracos!&amp;rsquo;);&lt;/p&gt;
+
+&lt;p&gt;if(hora &amp;lt; 12)&lt;/p&gt;
+
+&lt;p&gt;expect(texto).toEqual(&amp;lsquo;Bom-dia!&amp;rsquo;);&lt;/p&gt;
+
+&lt;p&gt;else if(hora &amp;lt; 18)&lt;/p&gt;
+
+&lt;p&gt;expect(texto).toEqual(&amp;lsquo;Boa-tarde!&amp;rsquo;);&lt;/p&gt;
+
+&lt;p&gt;else&lt;/p&gt;
+
+&lt;p&gt;expect(texto).toEqual(&amp;lsquo;Boa-noite!&amp;rsquo;);&lt;/p&gt;
+
+&lt;p&gt;});[/cce]&lt;/p&gt;
+
+&lt;p&gt;Nesse momento, abrindo o SpecRunner no navegador, todos os nossos testes estarão falhando. Lembra da nossa regra? Red (falhou), Green (passou) e Refactor.&lt;/p&gt;
+
+&lt;h3 id=&#34;a-função-saudacao&#34;&gt;A função saudacao()&lt;/h3&gt;
+
+&lt;p&gt;Abaixo segue a minha implementação da função saudacao(). Não me preocupei muito com repetições e performance. Meu objetivo principal era fazer o teste passar.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]function saudacao(hora_atual){&lt;/p&gt;
+
+&lt;p&gt;var hora;&lt;/p&gt;
+
+&lt;p&gt;if(typeof hora_atual == &amp;#8216;undefined&amp;#8217;){&lt;/p&gt;
+
+&lt;p&gt;var data = new Date;&lt;/p&gt;
+
+&lt;p&gt;data.setTime(data.getTime());&lt;/p&gt;
+
+&lt;p&gt;hora = data.getHours();&lt;/p&gt;
+
+&lt;p&gt;}else{&lt;/p&gt;
+
+&lt;p&gt;hora = hora_atual.split(&amp;#8216;:&amp;#8217;);&lt;/p&gt;
+
+&lt;p&gt;hora = parseInt(hora[0].replace(/^0/, &amp;#8221;));&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;if(hora &amp;lt; 5)&lt;/p&gt;
+
+&lt;p&gt;$(&amp;lsquo;#mensagem&amp;rsquo;).text(&amp;lsquo;Dormir é para os fracos!&amp;rsquo;);&lt;/p&gt;
+
+&lt;p&gt;else if(hora &amp;lt; 12)&lt;/p&gt;
+
+&lt;p&gt;$(&amp;lsquo;#mensagem&amp;rsquo;).text(&amp;lsquo;Bom-dia!&amp;rsquo;);&lt;/p&gt;
+
+&lt;p&gt;else if(hora &amp;lt; 18)&lt;/p&gt;
+
+&lt;p&gt;$(&amp;lsquo;#mensagem&amp;rsquo;).text(&amp;lsquo;Boa-tarde!&amp;rsquo;);&lt;/p&gt;
+
+&lt;p&gt;else&lt;/p&gt;
+
+&lt;p&gt;$(&amp;lsquo;#mensagem&amp;rsquo;).text(&amp;lsquo;Boa-noite!&amp;rsquo;);&lt;/p&gt;
+
+&lt;p&gt;}[/cce]&lt;/p&gt;
+
+&lt;p&gt;Atualizando nossa SpecRunner veremos agora que todos os testes estão passando. Você pode (e deve) desenvolver aos poucos. Valide um teste de cada vez. Desenvolva com calma.&lt;/p&gt;
+
+&lt;h3 id=&#34;melhorando-nosso-código&#34;&gt;Melhorando nosso código&lt;/h3&gt;
+
+&lt;p&gt;Como de praxe, vou deixar um dever de casa para vocês: a etapa de refactoring. O que podemos melhorar na nossa função saudacao()? E se o usuário passar uma hora atualmente inválida para nossa função, como &amp;#8220;meio-dia&amp;#8221;, &amp;#8220;nove horas&amp;#8221; etc. E se quisermos mudar o id do elemento #mensagem? E se quisermos exibir a saudação em mais de um elemento? Podemos melhorar algum nome de variável? Podemos reduzir o tamanho da nossa função? Nossa função está cumprindo seu objetivo? Tem algum código/texto repetido? E nossos testes? Estão cobrindo tudo? Prevendo todos os cenários?&lt;/p&gt;
+
+&lt;p&gt;O que não falta é opção para um bom refactoring.&lt;/p&gt;
+
+&lt;p&gt;Na segunda parte veremos a função spy, além de mais sobre fixtures, matchers personalizados e outros recursos avançados.&lt;/p&gt;
+
+&lt;h3 id=&#34;referências&#34;&gt;Referências&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/tableless/exemplos/tree/gh-pages/jasmine-parte-1&#34;&gt;Código fonte dos exemplos deste artigo&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://tableless.github.com/exemplos/jasmine-parte-1/tests/SpecRunner.html&#34;&gt;SpecRunner do exemplo rodando no github&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://pivotal.github.com/jasmine/&#34; target=&#34;_blank&#34;&gt;Jasmine BDD&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/velesin/jasmine-jquery&#34; target=&#34;_blank&#34;&gt;jasmine-jquery&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://pt.wikipedia.org/wiki/Behavior_Driven_Development&#34; target=&#34;_blank&#34;&gt;BDD segundo a Wikipedia&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

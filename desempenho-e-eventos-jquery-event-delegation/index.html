@@ -1,0 +1,276 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/desempenho-e-eventos-jquery-event-delegation/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/desempenho-e-eventos-jquery-event-delegation/">Desempenho e eventos jQuery: event delegation</a></h1>
+  <p class="tb-hero-p">
+    
+    Como a utilização de event delegation com o jQuery pode ser otimizada.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/leobetosouza">leobetosouza</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Todo mundo que leva a experiência de uso da sua página um pouco a sério já se pegou pensando &#8220;uso um plugin pronto ou faço eu mesmo?&#8221; e caso cogite usar algo já pronto, acaba em dúvida sobre quais das várias opções usar.</p>
+
+<p>Esses dias eu resolvi estudar o código de algumas opções disponíveis. Fiquei com medo.</p>
+
+<p>Existem algumas falhas que nós desenvolvedores cometemos no desenvolvimento usando jQuery que são críticas e comuns. Hoje eu quero falar sobre uma delas em especial:</p>
+
+<h1 id="excesso-de-event-listeners-pela-página">Excesso de <em>event listeners</em> pela página</h1>
+
+<p>Acho que todo mundo já escreveu um código similar a este:</p>
+
+<pre class="lang-javascript">$( '.foo' ).click( callback );</pre>
+
+<p>Você sabe o que esse código faz? Ele coloca em todos os elementos com a classe <em>foo</em> da sua página um <em>event listener</em> que dispara um <em>callback handler</em> sempre que o usuário clicar nele. No caso esse <em>listener</em> dispara a função <em>callback</em>. Legal e útil, né?</p>
+
+<p>Agora imagine que você tenha 100 elementos com a classe <em>foo</em>. Serão 100 <em>event listeners</em> para o navegador tomar conta. Imagine que você coloque outros <em>listeners</em> para outros eventos e seletores. Dá pra perceber que essa conta não escala muito bem, né?</p>
+
+<p>A melhor maneira de resolver isso é com <em>event delegation</em>.</p>
+
+<h1 id="event-delegation">Event Delegation</h1>
+
+<p>Vamos supor que nossa class <em>foo</em> seja aplicada à <code>&lt;tr&gt;</code> de um tipo de tabela específica. Algo assim:</p>
+
+<pre class="lang-javascript">&lt;table class="tar"&gt;
+    &lt;tr class="foo"&gt;...&lt;/tr&gt;
+    &lt;tr class="foo"&gt;...&lt;/tr&gt;
+    ...
+&lt;/table&gt;</pre>
+
+<p>Se a gente colocar um <em>listener</em> diretamente na class da tabela (.<em>tar</em>) mandando ele ouvir os eventos internos que ocorrerem nos elementos (.<em>foo</em>), vamos reduzir o número de <em>listeners</em> espalhados pela página.</p>
+
+<p>Como se faz isso, Léo?</p>
+
+<p>Assim:</p>
+
+<pre class="lang-javascript">$( '.tar' ).on( 'click', '.foo', callback );</pre>
+
+<p>Essa linha de código basicamente diz: sempre que houver um evento de clique nos elementos com classe <em>tar</em> selecionados, verifique se esse evento foi disparado por um elemento interno com a classe <em>foo</em>. Se sim, execute a função <em>callback</em>.</p>
+
+<p>Isso pode ser feito pois os eventos do DOM normalmente são transmitidos (ou propagam) (ou propagam) à todos os seus elementos pais na árvore <a href="https://developer.mozilla.org/pt-BR/docs/Glossario/DOM">DOM</a>. Esse é o caso do evento de clique.</p>
+
+<p>Logo, o exemplo acima teria quase o mesmo efeito caso fosse escrito desse jeito:</p>
+
+<pre class="lang-javascript">$( document ).on( 'click', '.foo', callback );</pre>
+
+<p>Você pode adicionar um <em>event listener</em> para responder a cliques no documento inteiro e só executar o <em>callback</em> caso o clique tenha ocorrido em elementos especificados, nesse caso ‘_.foo_’.</p>
+
+<p>Lembra que a gente está falando de melhora de desempenho? Se você forçar o navegador a ouvir todos os cliques na sua página e só executar em casos específicos, você estará disperdiçando recursos. Não faça isso, a não ser que seja extremamente necessário. Busque sempre  fixar seus eventos em elementos <em>wrappers</em>, como aquele <table> do exemplo.</p>
+
+<h2 id="elementos-adicionados-dinâmicamente"><strong>Elementos adicionados dinâmicamente</strong></h2>
+
+<p>Usar <em>event delegation</em> ainda garante um bônus: ter <em>event handlers</em> disparados por elementos que foram adicionados dinamicamente à página.</p>
+
+<p>Digamos que o <em>listener</em> seja criado durante o <a href="http://api.jquery.com/ready/">document ready</a>, como tradicionalmente é feito:</p>
+
+<pre class="lang-javascript">$( document ).ready(function () {
+    $( '.foo' ).on( 'click', callback );
+});</pre>
+
+<p>O <em>handler</em> será anexado somente aos elementos com a classe <em>foo</em> existentes no momento em que o documento for carregado.</p>
+
+<p>Se posteriormente você criar novos elementos com a classe <em>foo</em> (como respostas à ações do usuário, AJAX, etc.), eles não vão ter o <em>event listener</em> e não ocorrerá o efeito desejado quando o usuário clica-los.</p>
+
+<p>Se nós delegarmos isso para um elemento pai das <tr class=&#8221;foo&#8221;>, como no caso o <table class=&#8221;tar&#8221;>, não teremos esse problema.</p>
+
+<h1 id="as-devtools-são-suas-amigas">As <em>DevTools</em> são suas amigas</h1>
+
+<p>É possível inspecionar o documento através do <em>DevTools</em> do seu navegador e identificar quais <em>event listeners</em> estão anexados em cada elemento. Essa pode ser uma boa estratégia inicial para auditar a sua página e verificar quais eventos podem ser anexados em elementos mais específicos, além de eliminar possíveis excessos no <em>document</em>.</p>
+
+<div id="attachment_49318" style="width: 1450px" class="wp-caption alignnone">
+  <a href="http://tableless.com.br/wp-content/uploads/2015/06/devtools-chrome-evtdelegation.jpg"><img class="size-full wp-image-49318" src="http://tableless.com.br/wp-content/uploads/2015/06/devtools-chrome-evtdelegation.jpg" alt="Screenshot de uma janela do Google Chrome mostrando a aba de eventos do inspector" width="1440" height="223" /></a>
+  
+  <p class="wp-caption-text">
+    Aba de eventos do Chrome DevTools
+  </p>
+</div>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/06/devtools-firefox-evtdelegation.jpg"><img class="alignnone size-full wp-image-49319" src="http://tableless.com.br/wp-content/uploads/2015/06/devtools-firefox-evtdelegation.jpg" alt="Screenshot de uma janela do Mozilla Firefoz Developer Edition mostrando os de eventos no inspector" width="1440" height="296" /></a></p>
+
+<h1 id="conclusão">Conclusão</h1>
+
+<p>Cada <em>event listener</em> que criamos é incluído na memória utilizada pelo navegador, o excesso deles pode causar um uso excessivo de memória e deixar a sua página bem pesada. Assim como não é recomendável observar os eventos em muitos elementos, não é para fixar tudo em um único elemento pai, como o próprio <em>document</em>, pois você corre o risco de ter muitos <em>listeners</em> sendo disparados ao mesmo tempo atoa, o que pode deixar as interações de sua página bem lentas.</p>
+
+<p>Nem muito específico, nem muito genérico. O importante é observar que a utilização de <em>event delegation</em> com o jQuery pode ser otimizada e que se deve tomar cuidado para não trocar uma má prática por outra.</p>
+
+<p>No próximo artigo vou falar sobre como evitar colisão e duplicação de eventos.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

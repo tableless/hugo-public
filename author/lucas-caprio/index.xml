@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Lucas Caprio on Tableless</title>
+    <link>http://tableless.com.br/author/lucas-caprio/index.xml</link>
+    <description>Recent content in Lucas Caprio on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/lucas-caprio/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Introdução ao AMD com Require.js</title>
+      <link>http://tableless.com.br/introducao-ao-amd-com-requirejs/</link>
+      <pubDate>Fri, 14 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/introducao-ao-amd-com-requirejs/</guid>
+      <description>
+
+&lt;p&gt;Antes de entrarmos no foco do artigo, é importantíssimo tocar no assunto &lt;strong&gt;&lt;em&gt;modularização&lt;/em&gt;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;A modularização é um conceito muito antigo em termos computacionais, em poucas palavras, é a &lt;strong&gt;separação de funcionalidades&lt;/strong&gt;, &lt;strong&gt;redução de complexidade&lt;/strong&gt; e principalmente, o &lt;strong&gt;reuso de código&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://jcemer.com/&#34; target=&#34;_blank&#34;&gt;Jean Carlo Emer&lt;/a&gt; postou um um artigo aqui mesmo muito bom sobre _Modularização em JavaScript._ Recomendo fortemente ler o &lt;a href=&#34;http://tableless.com.br/modularizacao-em-javascript/&#34; target=&#34;_blank&#34;&gt;artigo na íntegra&lt;/a&gt;. Nele, o autor também dá um exemplo com AMD e fala dos pontos fracos e fortes do uso.&lt;/p&gt;
+
+&lt;h3 id=&#34;amd&#34;&gt;AMD&lt;/h3&gt;
+
+&lt;p&gt;Buscando a modularização do código JavaScript, um dos padrões mais falados ultimamente é o Asyncronous Module Definition (AMD), consiste basicamente de que nossos módulos escritos podem ser requisitados assincronamente quando necessários.&lt;/p&gt;
+
+&lt;h3 id=&#34;require-js&#34;&gt;Require.js&lt;/h3&gt;
+
+&lt;p&gt;O &lt;em&gt;script loader&lt;/em&gt; mais famoso da internet, o RequireJS é o cara responsável por carregar os nossos scripts assincronamente. A &lt;a href=&#34;http://requirejs.org/&#34; target=&#34;_blank&#34;&gt;página do projeto&lt;/a&gt; dá muito mais informações sobre compatibilidade e benefícios de seu uso.&lt;/p&gt;
+
+&lt;h2 id=&#34;exemplificando&#34;&gt;Exemplificando&lt;/h2&gt;
+
+&lt;p&gt;Para exemplificar o AMD com RequireJS, vamos criar uma aplicação simples que usa o jQuery para pegar os números de dois inputs da tela, passa para outro módulo que faz apenas a soma desses números, e devolve para a aplicação principal.&lt;/p&gt;
+
+&lt;p&gt;Sim, apenas isso&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;A intenção deste artigo é introduzir à estruturação, e como aplicar o AMD utilizando o RequireJS.&lt;/p&gt;
+
+&lt;h3 id=&#34;1º-passo-adicione-o-require-js-ao-seu-projeto&#34;&gt;1º Passo: Adicione o require.js ao seu projeto&lt;/h3&gt;
+
+&lt;p&gt;Faça o download no &lt;a href=&#34;http://requirejs.org/docs/download.html&#34; target=&#34;_blank&#34;&gt;site oficial&lt;/a&gt; (ou use CDN), e incorpore-o na aplicação:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script data-main=&#34;js/app&#34; src=&#34;//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js&#34;&amp;gt;
+    &amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;O atributo &lt;code&gt;data-main&lt;/code&gt; diz ao RequireJS carregar o arquivo app.js, logo após que carregar o require.js.&lt;/p&gt;
+
+&lt;h3 id=&#34;2º-passo-configuração&#34;&gt;2º Passo: Configuração&lt;/h3&gt;
+
+&lt;p&gt;Dentro do arquivo &lt;em&gt;app.js&lt;/em&gt;, vamos configurar da seguinte forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;requirejs.config({
+    &#34;baseUrl&#34;: &#34;js/modules&#34;,
+    &#34;paths&#34;: {
+        &#34;jquery&#34;: &#34;//code.jquery.com/jquery-2.1.1.min&#34;,
+        &#34;main&#34;: &#34;../main&#34;
+    }
+});
+
+// Chamando módulo principal para iniciar a aplicação
+requirejs([&#34;main&#34;]);
+&lt;/pre&gt;
+
+&lt;p&gt;A propriedade &lt;code&gt;baseUrl&lt;/code&gt; diz de onde os módulos serão carregados, exceto os que passamos em &lt;code&gt;paths&lt;/code&gt;. Onde que o &lt;em&gt;main&lt;/em&gt; está em um diretório anterior de acordo com o diretório configurado no &lt;em&gt;baseUrl&lt;/em&gt;. E o jQuery que vem por CDN.&lt;/p&gt;
+
+&lt;p&gt;Mais abaixo, chamamos o nosso módulo &lt;em&gt;main&lt;/em&gt;, que será o módulo principal da aplicação.&lt;/p&gt;
+
+&lt;h3 id=&#34;3º-passo-criando-nosso-módulo&#34;&gt;3º Passo: Criando nosso módulo&lt;/h3&gt;
+
+&lt;p&gt;No arquivo &lt;em&gt;modules/myModule.js&lt;/em&gt; criamos nosso simples módulo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Ou podemos declarar o nome explicitamente...
+// define(&#39;myModule&#39;, function () {
+define(function () {
+    return {
+        sum: function (a, b) {
+            return (+a) + (+b);
+        }
+    }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;O grande &lt;a href=&#34;http://addyosmani.com/&#34; target=&#34;_blank&#34;&gt;Addy Osmani&lt;/a&gt;, publicou um &lt;a href=&#34;http://addyosmani.com/writing-modular-js/&#34; target=&#34;_blank&#34;&gt;artigo muito bom&lt;/a&gt; sobre JavaScript Modular, onde demonstra outras formas de declarar módulos AMD.&lt;/p&gt;
+
+&lt;h3 id=&#34;4º-passo-criando-o-main-js&#34;&gt;4º Passo: Criando o main.js&lt;/h3&gt;
+
+&lt;p&gt;Neste arquivo é onde controlamos nossa aplicação, tendo como &lt;strong&gt;dependência&lt;/strong&gt; dois módulos, &lt;em&gt;jquery&lt;/em&gt; e &lt;em&gt;myModule&lt;/em&gt;. Ou seja, para iniciar o módulo main, temos que primeiro carregar suas dependências.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;define(
+    [&#34;jquery&#34;, &#34;myModule&#34;],
+    function ( $, myModule ) {
+        $(function () {
+            $(&#39;.btn&#39;).on(&#39;click&#39;, function () {
+                var number1 = $(&#39;#number1&#39;).val();
+                var number2 = $(&#39;#number2&#39;).val();
+                alert(myModule.sum(number1, number2));
+            });
+        });
+    }
+);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;concluindo&#34;&gt;Concluindo&lt;/h2&gt;
+
+&lt;p&gt;Finalizamos por aqui pessoal, apesar do exemplo ser tão simples, acho que consegui introduzir o conceito necessário.&lt;/p&gt;
+
+&lt;p&gt;Disponibilizei o código do exemplo no &lt;a href=&#34;http://plnkr.co/edit/OdLRwo62uV4KJPKSL4zh&#34; target=&#34;_blank&#34;&gt;Plunker&lt;/a&gt;, dá uma olhada lá caso precise 😉&lt;/p&gt;
+
+&lt;p&gt;Abraço!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Upload de arquivos com PHP</title>
+      <link>http://tableless.com.br/upload-de-arquivos-com-php/</link>
+      <pubDate>Tue, 01 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/upload-de-arquivos-com-php/</guid>
+      <description>
+
+&lt;p&gt;Neste artigo vamos aprender como fazer upload de arquivos com PHP. Porém, com alguns recursos adicionais em cada exemplo.&lt;/p&gt;
+
+&lt;p&gt;No primeiro exemplo, iremos fazer um upload básico de apenas um arquivo, assim conseguimos pegar o jeito da coisa.&lt;/p&gt;
+
+&lt;p&gt;No segundo exemplo, vamos fazer um upload de múltiplas imagens, e utilizaremos a classe WideImage para tratá-las (redimensionar, cortar e salvar).&lt;/p&gt;
+
+&lt;p&gt;E por fim, no último exemplo, vamos fazer o upload por AJAX, utilizando o Jquery Form Plugin.&lt;/p&gt;
+
+&lt;h2 id=&#34;upload-básico&#34;&gt;Upload Básico&lt;/h2&gt;
+
+&lt;p&gt;Primeiro vamos fazer um upload clássico e rápido de apenas um arquivo. Por ser apenas um exemplo, resolvi escrever o código php na mesma página do HTML, para ficar de simples compreensão, por isso, na &lt;strong&gt;action&lt;/strong&gt; do formulário temos #.&lt;/p&gt;
+
+&lt;p&gt;Um dos atributos que não podemos esquecer para fazer upload, é o que seta o &lt;strong&gt;enctype&lt;/strong&gt; ao nosso formulário.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+   &amp;lt;title&amp;gt;Basic Upload&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+   &amp;lt;form action=&#34;#&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+      &amp;lt;input type=&#34;file&#34; name=&#34;fileUpload&#34;&amp;gt;
+      &amp;lt;input type=&#34;submit&#34; value=&#34;Enviar&#34;&amp;gt;
+   &amp;lt;/form&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+&amp;lt;?php
+   if(isset($_FILES[&#39;fileUpload&#39;]))
+   {
+      date_default_timezone_set(&#34;Brazil/East&#34;); //Definindo timezone padrão
+
+      $ext = strtolower(substr($_FILES[&#39;fileUpload&#39;][&#39;name&#39;],-4)); //Pegando extensão do arquivo
+      $new_name = date(&#34;Y.m.d-H.i.s&#34;) . $ext; //Definindo um novo nome para o arquivo
+      $dir = &#39;uploads/&#39;; //Diretório para uploads
+
+      move_uploaded_file($_FILES[&#39;fileUpload&#39;][&#39;tmp_name&#39;], $dir.$new_name); //Fazer upload do arquivo
+   }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora passamos ao código PHP, primeiro verificamos se o arquivo foi enviado através do &lt;strong&gt;isset&lt;/strong&gt;. Se sim, seguimos para o upload do arquivo.&lt;/p&gt;
+
+&lt;p&gt;Primeiro definimos o timezone da aplicação, para podemos usar a função date sem problemas.&lt;/p&gt;
+
+&lt;p&gt;Como &amp;#8220;boa prática&amp;#8221; definimos uma variável com o ano, mês, dia, hora, minuto e segundo e concatenamos com a extensão do arquivo pega acima.&lt;/p&gt;
+
+&lt;p&gt;Para finalmente fazer o upload do arquivo, usamos a função &lt;strong&gt;move_uploaded_file&lt;/strong&gt;, passando dois parâmetros, primeiro o nome temporário do arquivo armazenado pelo servidor, e o novo nome do arquivo, já com diretório padrão.&lt;/p&gt;
+
+&lt;p&gt;Se você deseja pegar alguma outra informação do arquivo, a variável $_FILES contém algumas outras informações que não são usadas no exemplo, como:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;name&amp;#8217;]&lt;/strong&gt; O nome original do arquivo no computador do usuário&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;type&amp;#8217;]&lt;/strong&gt; O tipo mime do arquivo, se o browser deu esta informação (ex.: &amp;#8220;image/gif&amp;#8221;)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;size&amp;#8217;]&lt;/strong&gt; O tamanho, em bytes, do arquivo&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;tmp_name&amp;#8217;]&lt;/strong&gt; O nome temporário do arquivo, como foi guardado no servidor&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;error&amp;#8217;]&lt;/strong&gt; O código de erro associado a este upload de arquivo (adicionado no PHP 4.2.0)&lt;/p&gt;
+
+&lt;h2 id=&#34;upload-múltiplo&#34;&gt;Upload Múltiplo&lt;/h2&gt;
+
+&lt;p&gt;Para o segundo exemplo faremos o upload de múltiplas imagens. Porém, nesse exemplo utilizaremos a classe &lt;a href=&#34;http://wideimage.sourceforge.net/&#34; title=&#34;WideImage&#34; target=&#34;_blank&#34;&gt;WideImage&lt;/a&gt;, para tratarmos as imagens que foram enviadas.&lt;/p&gt;
+
+&lt;p&gt;O segredo do múltiplo upload é a adição do atributo &lt;strong&gt;multiple&lt;/strong&gt; à tag do input type=&amp;#8221;file&amp;#8221; e adicionar &lt;strong&gt;[ ]&lt;/strong&gt; ao name da tag.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+   &amp;lt;title&amp;gt;Multiple Upload&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+   &amp;lt;form action=&#34;#&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+      &amp;lt;input type=&#34;file&#34; name=&#34;fileUpload[]&#34; multiple&amp;gt;
+      &amp;lt;input type=&#34;submit&#34; value=&#34;Enviar&#34;&amp;gt;
+   &amp;lt;/form&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+&amp;lt;?php
+   if(isset($_FILES[&#39;fileUpload&#39;]))
+   {
+      require &#39;WideImage/WideImage.php&#39;; //Inclui classe WideImage à página
+
+      date_default_timezone_set(&#34;Brazil/East&#34;);
+
+      $name     = $_FILES[&#39;fileUpload&#39;][&#39;name&#39;]; //Atribui uma array com os nomes dos arquivos à variável
+      $tmp_name = $_FILES[&#39;fileUpload&#39;][&#39;tmp_name&#39;]; //Atribui uma array com os nomes temporários dos arquivos à variável
+
+      $allowedExts = array(&#34;.gif&#34;, &#34;.jpeg&#34;, &#34;.jpg&#34;, &#34;.png&#34;, &#34;.bmp&#34;); //Extensões permitidas
+
+      $dir = &#39;uploads/&#39;;
+
+      for($i = 0; $i &amp;lt; count($tmp_name); $i++) //passa por todos os arquivos
+      {
+         $ext = strtolower(substr($name[$i],-4));
+
+         if(in_array($ext, $allowedExts)) //Pergunta se a extensão do arquivo, está presente no array das extensões permitidas
+         {
+            $new_name = date(&#34;Y.m.d-H.i.s&#34;) .&#34;-&#34;. $i . $ext;
+
+            $image = WideImage::load($tmp_name[$i]); //Carrega a imagem utilizando a WideImage
+
+            $image = $image-&amp;gt;resize(170, 180, &#39;outside&#39;); //Redimensiona a imagem para 170 de largura e 180 de altura, mantendo sua proporção no máximo possível
+            $image = $image-&amp;gt;crop(&#39;center&#39;, &#39;center&#39;, 170, 180); //Corta a imagem do centro, forçando sua altura e largura
+
+            $image-&amp;gt;saveToFile($dir.$new_name); //Salva a imagem
+         }
+      }
+   }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;O código PHP deste exemplo muda um pouco comparado ao primeiro. Como neste exemplo estamos utilizando a classe WideImage, temos que inclui-la ao projeto. Em seguida, colocamos todos os nomes de arquivos enviados dentro da variável $name e todos os nomes temporários dentro da variável $tmp_name.&lt;/p&gt;
+
+&lt;p&gt;Para fazer a consistência que iremos salvar apenas imagens, criei uma array de possíveis extensões para imagens. Logo adiante, passamos por cada arquivo dentro do for, e realizamos a pergunta se a extensão do arquivo que estou pegando no for se encontra no array de extensões permitidas, se sim, continuaremos para salva-la no servidor, mas antes, redimensiono a mesma com o WideImage (sem perder a proporção), e depois corto a mesma para ter imagens apenas com as dimensões que forcei.&lt;/p&gt;
+
+&lt;h2 id=&#34;upload-com-ajax&#34;&gt;Upload com AJAX&lt;/h2&gt;
+
+&lt;p&gt;Neste último exemplo, vamos utilizar o mesmo código PHP de cima para salvar as imagens, porém, com alguns truques HTML e utilizando o &lt;a href=&#34;http://malsup.com/jquery/form/&#34; title=&#34;Jquery Form Plugin&#34; target=&#34;_blank&#34;&gt;Jquery Form Plugin&lt;/a&gt; para fazer o upload via AJAX.&lt;/p&gt;
+
+&lt;p&gt;Não repare na utilização de css inline, ou javascript incorporado ao exemplo, procurei o máximo de agilidade possível e foco no ajax.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+   &amp;lt;title&amp;gt;Multiple Upload Ajax&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+   &amp;lt;form id=&#34;formImage&#34; style=&#34;display:none&#34;&amp;gt;
+      &amp;lt;input type=&#34;file&#34; id=&#34;fileUpload&#34; name=&#34;fileUpload[]&#34; multiple onchange=&#34;saveImages()&#34;&amp;gt;
+   &amp;lt;/form&amp;gt;
+
+   &amp;lt;div id=&#34;btnFake&#34; style=&#34;background:#CCC; width:100px; height:100px; cursor:pointer;&#34;&amp;gt;&amp;lt;/div&amp;gt;
+
+   &amp;lt;script src=&#34;//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+   &amp;lt;script src=&#34;//malsup.github.io/jquery.form.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+
+   &amp;lt;script&amp;gt;
+      document.getElementById(&#39;btnFake&#39;).addEventListener(&#39;click&#39;, function(){
+         document.getElementById(&#39;fileUpload&#39;).click();
+      });
+
+      function saveImages()
+      {
+         $(&#39;#formImage&#39;).ajaxSubmit({
+            url  : &#39;multiple-upload-ajax.php&#39;,
+            type : &#39;POST&#39;
+         });
+      }
+   &amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Criei um botão &amp;#8220;personalizado&amp;#8221; para não ficarmos com aquele padrão do input type=&amp;#8221;file&amp;#8221;, que é muito feio, e escondi o form todo porque não usamos ele para mais nada além de fazer upload de imagens. Porém, no javascript eu adiciono um evento de click ao meu &lt;strong&gt;btnFake&lt;/strong&gt;, para quando clicarmos nele, o fileUpload ser clicado também, assim mascaramos o nosso botão de upload.&lt;/p&gt;
+
+&lt;p&gt;Na tag do input type=&amp;#8221;file&amp;#8221; adicionei um novo atributo, o de &lt;strong&gt;onchange&lt;/strong&gt;, para assim que selecionados os arquivos que desejo fazer upload, eles sejam enviados ao servidor, sem a necessidade de previamente clicarmos em outro botão para apenas enviar.&lt;/p&gt;
+
+&lt;p&gt;A função saveImages ativa a função ajaxSubmit do plugin jquery form, enviando o formulário completo (no caso o de id &lt;strong&gt;formImage&lt;/strong&gt;), para uma url especificada e com um método de envio do tipo POST.&lt;/p&gt;
+
+&lt;p&gt;Como disse mais acima, o código PHP é o mesmo do exemplo anterior:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+   if(isset($_FILES[&#39;fileUpload&#39;]))
+   {
+      require &#39;WideImage/WideImage.php&#39;;
+
+      date_default_timezone_set(&#34;Brazil/East&#34;);
+
+      $name     = $_FILES[&#39;fileUpload&#39;][&#39;name&#39;];
+      $tmp_name = $_FILES[&#39;fileUpload&#39;][&#39;tmp_name&#39;];
+
+      $allowedExts = array(&#34;.gif&#34;, &#34;.jpeg&#34;, &#34;.jpg&#34;, &#34;.png&#34;, &#34;.bmp&#34;);
+
+      $dir = &#39;uploads/&#39;;
+
+      for($i = 0; $i &amp;lt; count($tmp_name); $i++)
+      {
+         $ext = strtolower(substr($name[$i],-4));
+
+         if(in_array($ext, $allowedExts))
+         {
+            $new_name = date(&#34;Y.m.d-H.i.s&#34;) .&#34;-&#34;. $i . $ext;
+
+            $image = WideImage::load($tmp_name[$i]);
+
+            $image = $image-&amp;gt;resize(170, 180, &#39;outside&#39;);
+            $image = $image-&amp;gt;crop(&#39;center&#39;, &#39;center&#39;, 170, 180);
+
+            $image-&amp;gt;saveToFile($dir.$new_name);
+         }
+      }
+   }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Bom, é isso aí pessoal. Apesar de ser algo simples, muitos quando começam a conhecer PHP tem dúvidas desse tipo.&lt;/p&gt;
+
+&lt;p&gt;Espero que todos consigam. Bons estudos!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando uma aplicação Single Page com AngularJS</title>
+      <link>http://tableless.com.br/criando-uma-aplicacao-single-page-com-angularjs/</link>
+      <pubDate>Sun, 22 Jun 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-uma-aplicacao-single-page-com-angularjs/</guid>
+      <description>
+
+&lt;p&gt;Um dos melhores conceitos que o AngularJS oferece é o de &amp;#8220;Single Page&amp;#8221;, onde os recursos apropriados são dinamicamente carregados e adicionados à página, conforme necessário, geralmente em resposta a ações do usuário.&lt;/p&gt;
+
+&lt;p&gt;Para isto acontecer o framework oferece módulos que te possibilitam ter apenas uma página index, com outras páginas de conteúdo (views) sendo carregadas de acordo com uma específica rota (route).&lt;/p&gt;
+
+&lt;p&gt;Deste modo, você consegue separar bem as responsabilidades do seu projeto, e ficando de fácil manutenção e codificação dos elementos.&lt;/p&gt;
+
+&lt;p&gt;Vamos parar de enrolação e ver como isso funciona em um rápido exemplo&amp;#8230;&lt;/p&gt;
+
+&lt;h2 id=&#34;estrutura-de-pastas&#34;&gt;Estrutura de pastas&lt;/h2&gt;
+
+&lt;p&gt;Primeiro criamos uma estrutura de pastas simples para o exemplo:&lt;/p&gt;
+
+&lt;pre&gt;app
+    controllers
+        controllers.js
+    views
+        home.html
+        sobre.html
+        contato.html
+    app.js
+index.html
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;configurando-a-aplicação&#34;&gt;Configurando a aplicação&lt;/h2&gt;
+
+&lt;p&gt;É aqui que o show acontece, no arquivo app.js, primeiro, carregamos o módulo ngRoute que é usado para &lt;strong&gt;deep-linking URLs&lt;/strong&gt; para controllers e views. Este módulo observa qual é url ($location.url()) e tenta mapear o caminho de acordo com alguma rota pré-definida, assim ele consegue executar o controller e a view correspondente para cada url.&lt;/p&gt;
+
+&lt;p&gt;Para setarmos uma configuração no AngularJS, precisamos usar a função &lt;strong&gt;config&lt;/strong&gt;, que pode receber diversas propriedades já existentes do angular.&lt;/p&gt;
+
+&lt;pre lang=&#34;javascript&#34;&gt;var app = angular.module(&#39;app&#39;,[&#39;ngRoute&#39;]);
+
+app.config(function($routeProvider, $locationProvider)
+{
+   // remove o # da url
+   $locationProvider.html5Mode(true);
+
+   $routeProvider
+
+   // para a rota &#39;/&#39;, carregaremos o template home.html e o controller &#39;HomeCtrl&#39;
+   .when(&#39;/&#39;, {
+      templateUrl : &#39;app/views/home.html&#39;,
+      controller     : &#39;HomeCtrl&#39;,
+   })
+
+   // para a rota &#39;/sobre&#39;, carregaremos o template sobre.html e o controller &#39;SobreCtrl&#39;
+   .when(&#39;/sobre&#39;, {
+      templateUrl : &#39;app/views/sobre.html&#39;,
+      controller  : &#39;SobreCtrl&#39;,
+   })
+
+   // para a rota &#39;/contato&#39;, carregaremos o template contato.html e o controller &#39;ContatoCtrl&#39;
+   .when(&#39;/contato&#39;, {
+      templateUrl : &#39;app/views/contato.html&#39;,
+      controller  : &#39;ContatoCtrl&#39;,
+   })
+
+   // caso não seja nenhum desses, redirecione para a rota &#39;/&#39;
+   .otherwise ({ redirectTo: &#39;/&#39; });
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Neste exemplo recebemos duas propriedades, $locationProvider e $routeProvider.&lt;/p&gt;
+
+&lt;p&gt;O &lt;strong&gt;$routeProvider&lt;/strong&gt; é usado para configurar as rotas, que é exatamente o que estamos fazendo, quando usamos o &lt;strong&gt;.when()&lt;/strong&gt;, definimos a rota (url) e depois um objeto com o templateUrl (url da view) e qual nome do controller correspondente.&lt;/p&gt;
+
+&lt;p&gt;O &lt;strong&gt;$locationProvider&lt;/strong&gt; é usado para configurar como a aplicação com os chamados &amp;#8220;deep-linking&amp;#8221; irão ser armazenados, no nosso caso nós usamos a propriedade para definir true o modo de html5 (html5Mode), isso faz com que não fique com # nas URLs.&lt;/p&gt;
+
+&lt;h2 id=&#34;definindo-os-controllers&#34;&gt;Definindo os controllers&lt;/h2&gt;
+
+&lt;p&gt;Para criar um controller no angular, podemos usar a instância do módulo, que definimos anteriormente como &amp;#8220;app&amp;#8221;, deste modo definimos um controller mais modular (é como prefiro :]) ou de forma tradicional como sempre criamos funções no JavaScript (function HomeCtrl($rootScope, $location){ //do stuff&amp;#8230; }).&lt;/p&gt;
+
+&lt;p&gt;Por ser apenas um exemplo, coloquei todos meus controllers no mesmo arquivo, mas se você quiser pode colocar em arquivos diferentes, só não esqueça de linka-los à index.&lt;/p&gt;
+
+&lt;p&gt;Criaremos o primeiro controller com o nome de &amp;#8216;HomeCtrl&amp;#8217;, igual ao que definimos nas rotas mais acima, estamos passando para ele dois parâmetros, $rootScope e $location, já definidos no Angular.&lt;/p&gt;
+
+&lt;pre lang=&#34;javascript&#34;&gt;app.controller(&#39;HomeCtrl&#39;, function($rootScope, $location)
+{
+   $rootScope.activetab = $location.path();
+});
+
+app.controller(&#39;SobreCtrl&#39;, function($rootScope, $location)
+{
+   $rootScope.activetab = $location.path();
+});
+
+app.controller(&#39;ContatoCtrl&#39;, function($rootScope, $location)
+{
+   $rootScope.activetab = $location.path();
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Note que para cada controller, realizamos a mesma funcionalidade, para saber em qual página estou, criei uma variável no $rootScope, o que a torna global na página, podendo ser acessada de qualquer local.&lt;/p&gt;
+
+&lt;p&gt;Para a variável activetab atribuímos o caminho da localização que estamos, no caso, seria atribuído &amp;#8216;/&amp;#8217; logo quando acessamos o exemplo.&lt;/p&gt;
+
+&lt;h2 id=&#34;eis-a-single-page&#34;&gt;Eis a Single Page!&lt;/h2&gt;
+
+&lt;p&gt;Aqui está nossa index, ela servirá para carregar os nossos templates definidos previamente nas rotas.&lt;/p&gt;
+
+&lt;p&gt;Nesta página contemos algumas &lt;strong&gt;diretivas&lt;/strong&gt; (directives) do próprio angular, mas o que é uma diretiva?&lt;/p&gt;
+
+&lt;p&gt;Basicamente, diretivas em angular são atributos de tags HTMLs que definem o comportamento do mesmo. O próprio angular já oferece muitas diretivas, mas você pode criar a sua própria se desejar.&lt;/p&gt;
+
+&lt;p&gt;O recomendado quando se usa AngularJS e você deseja fazer alterações no DOM, é criar uma diretiva personalizada para tal&amp;#8230;&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!doctype html&amp;gt;
+&amp;lt;html ng-app=&#34;app&#34;&amp;gt;
+   &amp;lt;head&amp;gt;
+      &amp;lt;meta http-equiv=&#34;Content-Type&#34; content=&#34;text/html; charset=utf-8&#34; /&amp;gt;
+      &amp;lt;meta http-equiv=&#34;content-language&#34; content=&#34;pt-br&#34; /&amp;gt;
+      &amp;lt;title&amp;gt;AngularJS: Single Page com ngView e ngRoute&amp;lt;/title&amp;gt;
+      &amp;lt;link rel=&#34;stylesheet&#34; href=&#34;//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css&#34; /&amp;gt;
+   &amp;lt;/head&amp;gt;
+
+   &amp;lt;body&amp;gt;
+      &amp;lt;ul class=&#34;nav nav-tabs&#34;&amp;gt;
+         &amp;lt;li ng-class=&#34;{active: activetab == &#39;/&#39;}&#34;&amp;gt;&amp;lt;a href=&#34;#/home&#34;&amp;gt;Home&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+         &amp;lt;li ng-class=&#34;{active: activetab == &#39;/sobre&#39;}&#34;&amp;gt;&amp;lt;a href=&#34;#/sobre&#34;&amp;gt;Sobre&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+         &amp;lt;li ng-class=&#34;{active: activetab == &#39;/contato&#39;}&#34;&amp;gt;&amp;lt;a href=&#34;#/contato&#34;&amp;gt;Contato&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+      &amp;lt;/ul&amp;gt;
+
+      &amp;lt;div ng-view&amp;gt;&amp;lt;/div&amp;gt;
+
+      &amp;lt;script src=&#34;//ajax.googleapis.com/ajax/libs/angularjs/1.2.8/angular.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+      &amp;lt;script src=&#34;//ajax.googleapis.com/ajax/libs/angularjs/1.2.0rc1/angular-route.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+
+      &amp;lt;script src=&#34;app/app.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+      &amp;lt;script src=&#34;app/controllers/controllers.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+   &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Note que a linha mais importante de código aqui é a que contém a diretiva &lt;strong&gt;ng-view&lt;/strong&gt;, é ali que seus templates irão carregar, aquilo que você definiu previamente nas rotas, irão ser abertas dentro desta div.&lt;/p&gt;
+
+&lt;p&gt;Para usarmos o conceito de Single Page no angular, é necessário usarmos a diretiva ng-view. Ela é a responsável por renderizar suas devidas &amp;#8216;views&amp;#8217; à sua index principal.&lt;/p&gt;
+
+&lt;p&gt;Para cada rota, definimos uma view anteriormente, certo?&lt;/p&gt;
+
+&lt;p&gt;Àquelas views serão carregadas dentro desta div, dependendo da rota que o usuário estiver.&lt;/p&gt;
+
+&lt;p&gt;Mesmo não sendo o foco do artigo, coloquei uma diretiva &lt;strong&gt;ng-class&lt;/strong&gt; para adicionar a classe active ao elemento &lt;li&gt; se a condição for verdadeira. Ou seja, quando o controller é ativado pelo angular, ele atribui na variável activetab a sua localização atual.&lt;/p&gt;
+
+&lt;p&gt;Se estivermos na rota &amp;#8216;/&amp;#8217; a classe active irá ser adicionada ao primeiro elemento &lt;li&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se estivermos na rota &amp;#8216;/sobre&amp;#8217; a classe active irá ser adicionada ao segundo elemento &lt;li&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se estivermos na rota &amp;#8216;/contato&amp;#8217; a classe active irá ser adicionada ao terceiro elemento &lt;li&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-as-views&#34;&gt;Criando as views&lt;/h2&gt;
+
+&lt;p&gt;Como é apenas um exemplo, procurei agilidade, então, os templates são praticamente iguais.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!-- home.html --&amp;gt;
+&amp;lt;div class=&#34;page-header&#34;&amp;gt;
+   &amp;lt;h1&amp;gt;Página Home!&amp;lt;/h1&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;pre&gt;&amp;lt;!-- sobre.html --&amp;gt;
+&amp;lt;div class=&#34;page-header&#34;&amp;gt;
+   &amp;lt;h1&amp;gt;Página Sobre!&amp;lt;/h1&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;pre&gt;&amp;lt;!-- contato.html --&amp;gt;
+&amp;lt;div class=&#34;page-header&#34;&amp;gt;
+   &amp;lt;h1&amp;gt;Página Contato!&amp;lt;/h1&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Finalizamos por aqui pessoal, a ideia era de passar exatamente como criamos uma aplicação Single Page com AngularJS, espero que todos consigam!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

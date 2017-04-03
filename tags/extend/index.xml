@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Extend on Tableless</title>
+    <link>http://tableless.com.br/tags/extend/index.xml</link>
+    <description>Recent content in Extend on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/extend/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Afinal, como usar herança no CSS?</title>
+      <link>http://tableless.com.br/afinal-como-usar-heranca-no-css/</link>
+      <pubDate>Sun, 11 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/afinal-como-usar-heranca-no-css/</guid>
+      <description>
+
+&lt;p&gt;Herança surgiu para ajudar desenvolvedores a escreverem mesmo e produzirem mais. Vamos ver aqui como esse conceito básico das folhas de estilo pode nos ajudar no dia-a-dia.&lt;/p&gt;
+
+&lt;p&gt;Geralmente quando alguém começa a desenvolver interfaces web, o processo é aos trancos e barrancos. Nessa situação, iniciantes buscam aprender como se faz aquela borda arredondada ou como aplicar transparência. Por fim, acabam deixando de lado conceitos básicos de CSS. Levando isso em conta, precisamos primeiramente aprender sobre &lt;strong&gt;especificidade&lt;/strong&gt; e &lt;strong&gt;efeito cascata&lt;/strong&gt;. Esses dois pontos são essenciais para aprendermos como escrever folhas de estilo usando herança.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-especificidade-de-seletores&#34;&gt;A especificidade de seletores&lt;/h2&gt;
+
+&lt;p&gt;Um documento web possui derivadas fontes de estilo, sendo elas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;a folha de CSS servida pela página;&lt;/li&gt;
+&lt;li&gt;configurações setadas pelo usuário;&lt;/li&gt;
+&lt;li&gt;o estilo &lt;em&gt;default&lt;/em&gt; aplicado pelo &lt;em&gt;user agent&lt;/em&gt; (ex: navegadores).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A primeira é a mais importante. A folha de estilo pode sobrescrever as configurações do usuário, que por sua vez pode sobrescrever os estilos aplicados &lt;em&gt;user agent&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Apesar do CSS servido pela página web ser mais específico, é importante lembrar que o usuário tem a opção de forçar o estilo desejado por ele. Porém, isso &lt;strong&gt;não vale para regras&lt;/strong&gt; que recebem &lt;code&gt;!important&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;A &lt;a href=&#34;http://www.w3.org/TR/css3-selectors/#specificity&#34; target=&#34;_blank&#34;&gt;W3C criou uma forma de calcular a especificidade de seletores&lt;/a&gt;. Para entender de forma simples, basicamente distribuímos pesos diferentes as regras aplicadas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CSS inline: 1000 pontos;&lt;/li&gt;
+&lt;li&gt;ID: 100 pontos;&lt;/li&gt;
+&lt;li&gt;Classes, pseudo-classe e atributos: 10 pontos;&lt;/li&gt;
+&lt;li&gt;Elementos: 1 ponto.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Na prática, podemos fazer cálculos como os exemplos a seguir:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;p.foobar&lt;/code&gt;: 1 classe + 1 elemento = 11 pontos.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;div#foobar .foo .bar&lt;/code&gt;: 1 ID + 1 elemento + 3 classes = 131&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A especificidade pode dar grandes dores de cabeça em projetos complexos, ainda mais quando o número de desenvolvedores é maior. Não é rara a aplicação com um grande número de uso do &lt;code&gt;!important&lt;/code&gt;. Isso funciona como uma forma de quebrar a especificidade para sobrescrever uma regra.&lt;/p&gt;
+
+&lt;pre&gt;header h1 {
+  color: red;
+}
+
+/* Essa regra será mais específica. */
+
+h1 {
+  color: red !important;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Evite ao máximo usar &lt;code&gt;!important&lt;/code&gt;. Os 5 minutos que você economiza fazendo uso dele podem se tornar horas no futuro. Fica a dica:&lt;/p&gt;
+
+&lt;blockquote class=&#34;twitter-tweet&#34; lang=&#34;pt&#34;&gt;
+  &lt;p dir=&#34;ltr&#34; lang=&#34;en&#34;&gt;
+    Easy way to tell how screwed you are when dealing with CSS from a legacy project: `grep -rin &amp;#8216;!important&amp;#8217; assets/sass/ | wc -l`
+  &lt;/p&gt;
+  
+  &lt;p&gt;
+    — Rafael Rinaldi (@rafaelrinaldi) &lt;a href=&#34;https://twitter.com/rafaelrinaldi/status/586216597913739264&#34;&gt;9 abril 2015&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;efeito-cascata-o-coração-do-css&#34;&gt;Efeito cascata: o coração do CSS&lt;/h2&gt;
+
+&lt;p&gt;Não é a toa que o a palavra &lt;em&gt;cascade&lt;/em&gt; está no nome nas folhas de estilo. Essa técnica é utilizada para definir o estilo a um seletor mesmo em caso de conflitos.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Pergunta: você sabe o que acontece quando existem duas regras para um mesmo seletor?&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;A cascata define o peso de uma regra através das seguintes características:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;importância;&lt;/li&gt;
+&lt;li&gt;origem;&lt;/li&gt;
+&lt;li&gt;especificidade;&lt;/li&gt;
+&lt;li&gt;ordem de declaração.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Saber como o efeito cascata funciona irá lhe poupar boas horas de trabalho.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Mas e como o navegador lida com conflitos de regras?&lt;/em&gt; Primeiramente, ele vasculha &lt;strong&gt;todas as regras&lt;/strong&gt; que se aplicam ao elemento. Como segundo passo, ele irá classificar os &lt;strong&gt;níveis de importância&lt;/strong&gt; e suas &lt;strong&gt;origens&lt;/strong&gt;. Depois disso, irá ocorrer um &lt;em&gt;match&lt;/em&gt; das declarações com o &lt;strong&gt;mesmo nível de importância&lt;/strong&gt;. Por último, se houver duas regras com o mesmo peso, a que é &lt;strong&gt;declarada por último&lt;/strong&gt; ganhará.&lt;/p&gt;
+
+&lt;p&gt;Você já deve ter percebido que quanto mais fácil esse processo para o navegador, mais performática será sua aplicação.&lt;/p&gt;
+
+&lt;p&gt;Caso queira saber mais sobre efeito cascata e herança, &lt;a href=&#34;http://tableless.com.br/efeito-cascata-e-especificidade-do-css/&#34; target=&#34;_blank&#34;&gt;recomendo esse post do Tableless de 2009&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-herança&#34;&gt;A herança&lt;/h2&gt;
+
+&lt;p&gt;A palavra herança rapidamente remete ao paradigma de &lt;a href=&#34;https://pt.wikipedia.org/wiki/Orienta%C3%A7%C3%A3o_a_objetos&#34; target=&#34;_blank&#34;&gt;Orientação a Objetos&lt;/a&gt;. Caso você acompanhe discussões sobre &lt;em&gt;front-end&lt;/em&gt;, já deve saber que o termo &amp;#8220;&lt;em&gt;orientação a objetos&lt;/em&gt;&amp;#8221; não é bem visto tratando-se de CSS.&lt;/p&gt;
+
+&lt;p&gt;Assim como você herda métodos e atributos de objetos, no CSS você herda as regras de um elemento pai.&lt;/p&gt;
+
+&lt;pre&gt;/* 
+ * Todo o conteúdo textual do documento
+ * terá 16px de tamanho, pois herdam do
+ * `body`.
+ */
+
+body {
+  font-size: 16px;
+}&lt;/pre&gt;
+
+&lt;p&gt;É importante lembrar que nem todas as propriedades serão herdadas por elementos filho. Geralmente as propriedades que se referem ao &lt;em&gt;box-model&lt;/em&gt; (&lt;code&gt;height&lt;/code&gt;, &lt;code&gt;width&lt;/code&gt;, &lt;code&gt;margin&lt;/code&gt;, &lt;code&gt;padding&lt;/code&gt;) não aceitam herança. Caso você queira forçar a herança, pode usar o valor &lt;code&gt;inherit&lt;/code&gt;. Aliás, você sabe a &lt;a href=&#34;http://tableless.com.br/entendendo-os-valores-initial-e-inherit-do-css/&#34; target=&#34;_blank&#34;&gt;diferença entre initial e inherit&lt;/a&gt;?&lt;/p&gt;
+
+&lt;p&gt;Podemos fazer um uso inteligente de herança para economizar várias linhas de código. É muito mais fácil especificar valores para elementos pais e utilizá-los em seus filhos do que especificar um por um. Se você der uma olhada em códigos de &lt;em&gt;frameworks&lt;/em&gt; de CSS, irá notar que herança é fortemente usada para melhorar a manutenção do projeto.&lt;/p&gt;
+
+&lt;h2 id=&#34;herança-com-sass&#34;&gt;Herança com Sass&lt;/h2&gt;
+
+&lt;p&gt;Pré-processadores deram super poderes para desenvolvedores escreverem CSS. Em nosso contexto, &lt;code&gt;@extend&lt;/code&gt; e &lt;em&gt;mixins&lt;/em&gt; nos trazem benefícios, mas que devem ser usados com bastante cautela.&lt;/p&gt;
+
+&lt;h3 id=&#34;extend&#34;&gt;@extend&lt;/h3&gt;
+
+&lt;p&gt;Podemos extender &lt;em&gt;placeholders&lt;/em&gt; (&lt;code&gt;%placeholder&lt;/code&gt;) e classes. Muitos autores desencorajam desenvolvedores a usarem esse recurso. O motivo é o CSS gerado.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo, digamos que temos uma classe &lt;code&gt;.error&lt;/code&gt; e queremos usar os estilos dela em outra classe.&lt;/p&gt;
+
+&lt;pre&gt;.error {
+  color: red;
+}
+
+.icon--error {
+  @extend .error;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O CSS gerado será o seguinte:&lt;/p&gt;
+
+&lt;pre&gt;.error, .icon--error {
+  color: red;
+}&lt;/pre&gt;
+
+&lt;p&gt;Ou seja, o Sass não &lt;em&gt;&amp;#8220;copia&amp;#8221;&lt;/em&gt; os valores, ele apenas separa o valor em uma &lt;em&gt;mesma regra&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora digamos que em outro contexto precisamos reescrever a cor de erro para um tom mais forte.&lt;/p&gt;
+
+&lt;pre&gt;.other_context .error {
+  color: darken(red, 10%);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Além de criar a regra para a classe &lt;code&gt;.error&lt;/code&gt;, o pré-processador irá aplicar a regra para as outras &lt;em&gt;&amp;#8220;instâncias&amp;#8221;&lt;/em&gt; da classe:&lt;/p&gt;
+
+&lt;pre&gt;.other_context .error, .other_context .icon--error {
+  color: #cc0000;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Isso é péssimo&lt;/strong&gt;. Além de tirar o controle do desenvolvedor, isso irá gerar &lt;strong&gt;código desnecessário&lt;/strong&gt; e prejudicar outras áreas de uma interface. Lembre-se: tome cuidado com o &lt;em&gt;bug&lt;/em&gt; dos &lt;a href=&#34;http://blogs.msdn.com/b/ieinternals/archive/2011/05/14/10164546.aspx&#34; target=&#34;_blank&#34;&gt;4095 seletores&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Usando &lt;em&gt;placeholders&lt;/em&gt;, o Sass irá realmente &amp;#8220;copiar&amp;#8221; os estilos para a classe que possui o &lt;code&gt;@extend&lt;/code&gt;. Porém, se o &lt;em&gt;placeholder&lt;/em&gt; for alterado em um contexto, isso também irá gerar uma regra para as classes que o estenderam.&lt;/p&gt;
+
+&lt;pre&gt;%error,
+.error {
+  color: red;
+}
+
+.icon--error {
+  @extend %error;
+}
+
+.other_context .error {
+  color: darken(red, 10%);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O output será esse:&lt;/p&gt;
+
+&lt;pre&gt;.error {
+  color: red;
+}
+
+.icon--error {
+  color: red;
+}
+
+.other_context .error {
+  color: #cc0000;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Perceba que dessa vez a instância de &lt;code&gt;.error&lt;/code&gt;, a classe &lt;code&gt;.icon--error&lt;/code&gt; &lt;strong&gt;não herdou as regras&lt;/strong&gt; em outro contexto.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Resumindo: evite o &lt;code&gt;@extend&lt;/code&gt;. Se for usar, vá de &lt;em&gt;placeholders&lt;/em&gt;.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;mixins&#34;&gt;Mixins&lt;/h3&gt;
+
+&lt;p&gt;Outra forma criar herança é usando &lt;em&gt;mixins&lt;/em&gt;. Com eles você pode realmente &lt;em&gt;copiar&lt;/em&gt; propriedades e valores para uma classe.&lt;/p&gt;
+
+&lt;pre&gt;@mixin error {
+  color: red;
+}
+
+.icon--error {
+  @include error;
+}
+
+.label--error {
+  @include error;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O problema com essa abordagem é que ela não será tão performática, levando em conta que ela gerará duas regras com o mesmo código:&lt;/p&gt;
+
+&lt;pre&gt;.icon--error {
+  color: red;
+}
+
+.label--error {
+  color: red;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Porém, mixins são eficientes se você precisar de parâmetros.&lt;/p&gt;
+
+&lt;p&gt;Vamos continuar com nosso exemplo. Se precisarmos de uma cor mais forte, poderemos passar essa opção por parâmetro.&lt;/p&gt;
+
+&lt;pre&gt;@mixin error($critical: false) {
+  @if $critical {
+    color: darken(red, 10%);
+  } @else {
+    color: red;
+  }
+}
+
+.icon--error {
+  @include error;
+}
+
+.icon--critical-error {
+  @include error($critical: true);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O Sass irá gerar o vermelho mais escuro quando passarmos o valor &lt;code&gt;true&lt;/code&gt; para a variável &lt;code&gt;$critical&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;.icon--error {
+  color: red;
+}
+
+.icon--critical-error {
+  color: #cc0000;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;concatenação-de-classes&#34;&gt;Concatenação de classes&lt;/h2&gt;
+
+&lt;p&gt;Se você é purista e não gosta de pré-processadores ou prefere não usar as &amp;#8220;mágicas&amp;#8221; do Sass, você pode fazer uso da concatenação/composição de classes no HTML. O &lt;a href=&#34;http://getbootstrap.com/&#34; target=&#34;_blank&#34;&gt;Bootstrap&lt;/a&gt; usa essa abordagem.&lt;/p&gt;
+
+&lt;p&gt;Basicamente você terá estilo padrão em uma classe e usará outras, se necessário, para alterar o layout.&lt;/p&gt;
+
+&lt;p&gt;No HTML com um elemento de botão, teríamos a classe &lt;code&gt;.button&lt;/code&gt;. Se precisarmos criar um botão de sucesso, usamos a classe &lt;code&gt;.button--success&lt;/code&gt; juntamente com &lt;code&gt;.button&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;.button {
+  display: inline-block;
+  padding: 10px;
+  color: black;
+  background-color: white;
+}
+
+.button--success {
+  color: white;
+  background-color: green;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Na minha opinião essa é a forma mais correta de usarmos herança. Sempre opte por usar &lt;em&gt;features&lt;/em&gt; nativas do CSS ao invés das mágicas do Sass.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Herança é uma abordagem extremamente necessária para começar a entender o desenvolvimento de CSS escalável. Depois de entender bem o conceito, estude &lt;a href=&#34;http://tableless.com.br/oocss-smacss-bem-dry-css-afinal-como-escrever-css/&#34; target=&#34;_blank&#34;&gt;padrões de escrita&lt;/a&gt;. Olhe o código fonte de &lt;em&gt;frameworks&lt;/em&gt; para entender a arquitetura usada.&lt;/p&gt;
+
+&lt;p&gt;Nunca saia escrevendo CSS até dar certo. Entenda as regras e planeja seus passos. Pensar antes de começar sem dúvidas será mais produtivo.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

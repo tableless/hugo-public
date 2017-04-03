@@ -1,0 +1,429 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/jaime-o-garoto-quer-make/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/jaime-o-garoto-quer-make/">O básico sobre o automatizador de tarefas Make</a></h1>
+  <p class="tb-hero-p">
+    
+    Vocês trocariam seu Gruntfile (ou semelhantes) por um Makefile?
+    
+  </p>
+      <span class="tb-author">por <a href="/author/cristiano-santos">Cristiano Santos</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>O trabalho no client-side é cercado por tarefas pequenas e frequentes. Por causa dessas tarefas frequentes, surgiram ferramentas fantásticas como Grunt, Gulp e vários outros.</p>
+
+<p>Mas se voltarmos um pouco no tempo, vamos encontrar um cara chamado <strong>MAKE</strong>. Quem já instalou algum programa em alguma distribuição unix-like sabe bem do quem estou falando.</p>
+
+<p>Esse era o processo básico pra instalar o programa.</p>
+
+<pre class="lang-bash">$ ./configure
+$ make
+$ make install
+</pre>
+
+<p>Mas junto com isso, você precisava resolver uma série de problemas de dependências, caminhos de arquivos, permissões, versão e em último caso, ligava ou chamava quele amigo que manjava muito de Linux e implorava por ajuda.</p>
+
+<p>Muitos podem ver esses problemas como algo ruim, mas observando melhor, isso faz com que você entenda para onde os arquivos estão indo e que para um programa funcionar, ele depende de outros programas e outras bibliotecas, que podem ter uma permissão especial para serem usados.</p>
+
+<p>Tá mas que diabos é o Make e qual a relação dele com o Grunt ou Glup?</p>
+
+<h2 id="make">Make</h2>
+
+<p>Basicamente o MAKE é um atomatizador de tarefas em ambientes unix que foi e é muito usado para compilar programas.</p>
+
+<p>No processo básico de instalação que falei acima o que acontecia era o seguinte:</p>
+
+<ol>
+<li><code>$ ./configure</code> era um script que depois de executado com sucesso criava o arquivo <code>Makefile</code></li>
+<li><code>Makefile</code> é o arquivo que dizia ao <strong>make</strong> quais eram as tarefas a serem realizadas para compilar o programa, essas tarefas eram feitas numa ordem topologica respeitando as dependências dos arquivos.</li>
+<li><code>$ make install</code> esse comando chamava uma tarefa que estava definida no makefile e que tinha como objetivo fazer a instalação do programa compilado anteriormente.</li>
+</ol>
+
+<p><img class="aligncenter" src="http://cristianounix.github.io/img/posts/graph.png" alt="" width="420" height="273" /></p>
+
+<p>Veja mais sobre ordenação topologica <a href="https://en.wikipedia.org/wiki/Topological_sorting" target="_blank">aqui</a></p>
+
+<p>O Make é nativo das plataformas Linux, mas caso não tenha basta instalar o pacote <code>build-essential</code></p>
+
+<pre class="lang-shell">$ apt-get install build-essential</pre>
+
+<p>Antes de brincarmos com o Make, seria bom criar uma pasta em qualquer lugar de sua preferência, e dentro dela vamos criar nosso arquivo <code>Makefile</code>. Neste arquivo vamos colocar esse conteúdo (respeitando as tabulações):</p>
+
+<pre class="lang-bash">string = "Finalizando..."
+
+all: task_all
+task_all: dep1 dep2 dep3
+  @echo $(string)
+  @echo "Pronto !!"
+dep1:
+  @echo "Dependencia 1 "
+dep2:
+  @echo "Dependencia 2 "
+dep3:
+  @echo "Dependencia 3 "
+  @echo
+</pre>
+
+<p>Agora, via terminal e dentro dessa pasta, execute o make:</p>
+
+<pre class="lang-bash">$ make
+----------------
+Dependencia 1
+Dependencia 2
+Dependencia 3
+
+Finalizando...
+Pronto !!
+</pre>
+
+<p>Legal, né?</p>
+
+<p>Se quiser mudar a ordem de execução só alterar a linha abaixo:</p>
+
+<pre class="lang-bash">task_all: dep1 dep2 dep3</pre>
+
+<p>Para:</p>
+
+<pre class="lang-bash">task_all: dep3 dep2 dep1</pre>
+
+<p>Execute o make e observe a saída novamente. Percebeu que a ordem mudou?!</p>
+
+<p>Você também pode chamar uma tarefa especifica, assim:</p>
+
+<pre class="lang-bash">$ make dep2</pre>
+
+<h3 id="vamos-fazer-algo-útil">Vamos fazer algo útil</h3>
+
+<p>Agora que sabemos o básico do make, vamos pensar em como poderiamos substituir uma tarefa simples do grunt, nosso problema será esse:</p>
+
+<ol>
+<li>Compilar nossos arquivos stylus</li>
+<li>Concatenar todos os arquivos</li>
+<li>Minificar</li>
+</ol>
+
+<pre class="lang-bash"># Compila, concatena e minifica todos os arquivos de estilo
+# Obs: verifica se você tem disponivel os executaveis globalmente,
+#     senão terá que colocar o path deles
+
+PATH_STYL=styl/*.styl
+PATH_CSS=css
+STYLUS_CMD=stylus
+CONCAT_CMD=cat 
+CONCAT_PATH=styl/header.css styl/body.css styl/footer.css &gt; css/style.css
+UGLIFY_CMD=uglify
+UGLIFY_PATH=-s ./css/style.css -o ./css/style.min.css -c
+
+all: task_all
+task_all: compile concat minify clean
+  @echo "Pronto !!"
+compile:
+  $(STYLUS_CMD) $(PATH_STYL)
+  @echo "Stylus compilado..."
+concat:
+  $(CONCAT_CMD) $(CONCAT_PATH)
+  @echo "Concatenando..."
+minify:
+  $(UGLIFY_CMD) $(UGLIFY_PATH)
+  @echo "Minificando..."
+clean:
+  rm styl/*.css
+  @echo "Limpando a bagunça..."
+</pre>
+
+<p>A saída desse cara que nós acabamos de fazer vai ser algo assim:</p>
+
+<p><img class="aligncenter" src="http://cristianounix.github.io/img/posts/gif-make-makefile-front.gif" alt="" width="550" height="321" /></p>
+
+<h4 id="vamos-tentar-deixar-um-pouco-mais-legal">Vamos tentar deixar um pouco mais legal.</h4>
+
+<pre class="lang-bash"># Compila, concatena e minifica todos os arquivos de estilo
+# Obs: verifica se você tem disponivel os executaveis globalmente,
+#     senão terá que colocar o path deles
+
+CSS_FINAL = css/style.min.css
+STYLUS_FILES = styl/header.styl \
+                 styl/body.styl \
+                 styl/footer.styl
+
+CSS_MIN = $(STYLUS_FILES:.styl=.min.css) 
+
+all: $(CSS_FINAL)
+ 
+$(CSS_FINAL): $(CSS_MIN)
+  cat $^ &gt;$@
+  rm -f $(CSS_MIN)
+
+%.min.css: %.styl
+  stylus --compress &lt;$&lt; &gt;$@
+
+clean:
+  rm -f $(CSS_FINAL)
+</pre>
+
+<h4 id="existem-alguns-variavéis-do-make-que-devemos-saber">Existem alguns variavéis do Make que devemos saber:</h4>
+
+<p><code>$@</code> &#8211; isso mostra o nome target atual:</p>
+
+<pre class="lang-bash">all: blabla
+  @echo "Ei"
+blabla:
+  @echo $@
+# Saída será:
+# blabla
+# Ei
+</pre>
+
+<p><code>$&lt;</code> &#8211; isso mostra o nome da primeira dependência:</p>
+
+<pre class="lang-bash">all: blabla vixi
+  @echo "A dependencia desse target é" $&lt;
+blabla:
+
+vixi:
+
+# Saída será:
+# A dependência desse target é blabla
+</pre>
+
+<p><code>[$^]</code> &#8211; isso mostra a lsita das dependências do target:</p>
+
+<pre class="lang-bash">all: blabla vixi
+  @echo "As dependências desse target são" $^
+blabla:
+
+vixi:
+
+# Saída será:
+# As dependências desse target são blabla vixi
+</pre>
+
+<p><code>[$?]</code> &#8211; Lista de todos arquivos de dependências mais recentes que a regra, a lista de arquivos é separada por espaço:</p>
+
+<p>Crie 2 ou mais arquivos *.txt na pasta que irá ficar esse teste do makefile e coloquei qualquer texto dentro deles.</p>
+
+<pre class="lang-bash">HEAD_CMD=head
+FILES=$(shell find . -name '*.o')
+
+show: $(FILES)
+       $(HEAD_CMD) $?
+
+# Saída será:
+# head file1.txt file2.txt file3.txt [...]
+# ==&gt; file1.txt  file2.txt &lt;==
+# [CABECALHO_2]
+</pre>
+
+<p><code>[$*]</code> &#8211; Nome do arquivo sem a extensão:</p>
+
+<pre class="lang-bash">CSS_FINAL = css/style.min.css
+STYLUS_FILES = styl/header.styl  \
+                 styl/body.styl \
+                 styl/footer.styl 
+CSS_MIN = $(STYLUS_FILES:.styl=.min.css)
+
+all: $(CSS_FINAL)
+
+$(CSS_FINAL): $(CSS_MIN)
+
+%.min.css: %.styl
+@echo "Arquivo -&gt;" $*
+
+# Saída será:
+# Arquivo -&gt; styl/header
+# Arquivo -&gt; styl/body
+# Arquivo -&gt; styl/footer
+</pre>
+
+<p>Muita coisa legal dá pra fazer com o Make.</p>
+
+<p>Dá para por exemplo você se conectar via ssh ou ftp e fazer o upload ou download de arquivos, rodar um shell script com diversas rotinas, você pode criar todo o setup da sua máquina colocando o make para instalar tudo que vc usa precisa: vim, mongodb, git, nodejs, sublime, brew, ou até mesmo configurar o deploy de sua aplicação, etc etc.</p>
+
+<p>Isso só foi o ponto de partida, foi o básico do básico do básico e mais um pouco básico do que o make faz.</p>
+
+<blockquote>
+<p>Vocês trocariam seu Gruntfile (ou semelhantes) por um Makefile?</p>
+</blockquote>
+
+<p>(E por favor, não estou dizendo que as outras ferramentas são ruins, ou que você não deve usá-las. Quero apenas chamar a atenção para as ferramentas que já estão aqui há muito mais tempo e não conhecemos tão bem quanto pensamos.)</p>
+
+<p>Referência suprema: <a href="http://www.gnu.org/software/make/manual/make.html" target="_blank">Manual Make</a></p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

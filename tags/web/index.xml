@@ -1,0 +1,801 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Web on Tableless</title>
+    <link>http://tableless.com.br/tags/web/index.xml</link>
+    <description>Recent content in Web on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/web/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte III</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-iii/</link>
+      <pubDate>Mon, 05 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-iii/</guid>
+      <description>
+
+&lt;p&gt;Estamos entrando na terceira parte do tutorial, e quem está acompanhando até aqui já sabe então como funciona a comunicação entre cliente e servidor, envio de requisição pelo cliente e recebimento de resposta (na duvida só voltar e releia a &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/&#34; title=&#34;Criando seu próprio servidor HTTP do zero (ou quase) – Parte I&#34;&gt;Parte I&lt;/a&gt; e/ou &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/&#34; title=&#34;Criando seu próprio servidor HTTP do zero (ou quase) – Parte II&#34;&gt;Parte II&lt;/a&gt;), porém o que a gente quer é criar o servidor, receber as requisições e enviar a resposta ao cliente.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-servidor&#34;&gt;O Servidor&lt;/h2&gt;
+
+&lt;p&gt;A idéia do servidor é bem simples e estende a do cliente, como assim? Fácil, fácil. no post anterior vimos como criar um socket, no caso, nos criamos um socket já conectado ao site do google, mas o que internamente acontece é, criamos um socket, associamos esse socket a uma porta (lembrando que no caso do cliente a porta aberta é aleatória, so para que o servidor saiba onde deve retornar a resposta) e conectamos ao socket do servidor na porta especifica.&lt;/p&gt;
+
+&lt;p style=&#34;text-align: justify&#34;&gt;
+  Agora vamos pensar um pouco, no caso do servidor, temos que criar um socket, associar (bind) a uma porta especifica(para que todos os clientes saibam exatamente onde conectar) e ficamos aguardando alguém solicitar uma conexão (listen), se alguém solicitar conexão nós aceitamos (accept), resumindo o processo, temos como na imagem abaixo:
+&lt;/p&gt;
+
+&lt;div style=&#34;width: 369px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://3.bp.blogspot.com/_Gt5b2CU22sM/S4iS4lbeU5I/AAAAAAAAAUU/DBmariOce1o/s400/rzab6503.gif&#34;&gt;&lt;img src=&#34;http://3.bp.blogspot.com/_Gt5b2CU22sM/S4iS4lbeU5I/AAAAAAAAAUU/DBmariOce1o/s400/rzab6503.gif&#34; alt=&#34;&#34; width=&#34;359&#34; height=&#34;324&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Diagrama Cliente/Servidor
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Em Java já temos uma classe pronta que faz isso, que é o ServerSocket, que já cria um socket que está aguardando conexões, o que torna nossa vida bem mais simples, então vamos parar de teoria e ir pro código, para isso criamos uma classe chamada Servidor e nela faremos o seguinte:&lt;/p&gt;
+
+&lt;pre&gt;import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class Servidor {
+
+    public static void main(String[] args) throws IOException {
+        /* cria um socket &#34;servidor&#34; associado a porta 8000
+          já aguardando conexões
+        */
+        ServerSocket servidor = new ServerSocket(8000);
+        //aceita a primeita conexao que vier
+        Socket socket = servidor.accept();
+        //verifica se esta conectado  
+        if (socket.isConnected()) {
+            //imprime na tela o IP do cliente
+            System.out.println(&#34;O computador &#34;+ socket.getInetAddress() + &#34; se conectou ao servidor.&#34;);
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que estamos abrindo a porta 8000 e não a 80, isso por que embora essa seja a porta &amp;#8220;destinada/utilizada&amp;#8221; para servidores HTTP, ela é gerenciada pelo sistema operacional então não poderemos abri-la por enquanto (o SO não permitiria até por que em alguns sistemas linux já existe um servidor HTTP utilizando essa porta, em outros a porta está bloqueada pelo firewall, e teremos que abri-la manualmente mas veremos isso em breve), por isso vamos utilizar outra porta para testes, vamos compilar esse código e coloca-lo em execução, veja que ele permanecerá em execução até que ele receba pelo menos uma solicitação de conexão, que é o que vamos fazer, assim basta abrir o navegador e digitar o endereço &lt;a href=&#34;http://localhost:8000&#34;&gt;http://localhost:8000&lt;/a&gt; e ir para a página, veja que ao fazer isso sua linha de comando aparecerá a frase:&lt;/p&gt;
+
+&lt;pre&gt;java Server
+O computador /0:0:0:0:0:0:0:1 se conectou ao servidor.&lt;/pre&gt;
+
+&lt;p&gt;Veja  que este é o endereço IP do seu computador já no formato IPv6.  Note  que logo em seguida o programa foi finalizado, isso porque nosso servidor não está configurado para múltiplas conexões/requisições, porém vamos fazer isso já já, agora vamos ver qual foi a requisição que nosso navegador fez ao servidor, e para ler a entrada o conceito é o mesmo de ontem, vamos usar o InputStream para ler os dados enviados pelo cliente, então vamos adicionar o seguinte código logo após imprimir o IP:&lt;/p&gt;
+
+&lt;pre&gt;[...]
+            //cria um BufferedReader a partir do InputStream do cliente
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            System.out.println(&#34;Requisição: &#34;);
+            //Lê a primeira linha
+            String linha = buffer.readLine();
+            //Enquanto a linha não for vazia
+            while (!linha.isEmpty()) {
+                //imprime a linha
+                System.out.println(linha);
+                //lê a proxima linha
+                linha = buffer.readLine();
+            }
+[...]
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que agora utilizamos um BufferedReader ao invés do Scanner, isto por que o Scanner mesmo após ter terminado de ler a requisição ele espera que a a conexão seja encerrada, a fim de aguardar novas entradas, mas como não é interessante para gente esperar,  vamos usar o Buffer pois podemos verificar se a linha for vazia, se for, simplesmente encerra o programa sem ter que aguardar que a conexão seja encerrada. (Caso seja necessário continuar lendo a entrada antes da conexão encerras é so pegar o InputReader novamente e continuar lendo. Agora ao executarmos nosso servidor,  e acessar a página localhost:8000 no navegador teremos a seguinte saída na linha de comando:&lt;/p&gt;
+
+&lt;pre&gt;java Server
+O computador /0:0:0:0:0:0:0:1 se conectou ao servidor.
+Requisição: 
+GET / HTTP/1.1
+Host: localhost:8000
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:29.0) Gecko/20100101 Firefox/29.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Encoding: gzip, deflate
+DNT: 1
+Connection: keep-alive&lt;/pre&gt;
+
+&lt;p&gt;Veja que minha requisição foi originada de um navegador Firefox e que o formato da requisição é muito semelhante do que vimos na primeira parte do tutorial =D. Agora é so fazer o servidor tratar essas informações e devolver uma resposta ao cliente, nesse caso vamos devolver uma página HTML que é o que o navegador espera. Vamos criar duas páginas uma chamada índex.html e outra 404.html, e vamos armazena-las na mesma pasta que está colocando o código fonte do servidor com os seguintes códigos:&lt;/p&gt;
+
+&lt;p&gt;Arquivo index.html&lt;/p&gt;
+
+&lt;h1 id=&#34;funcionou&#34;&gt;Funcionou!!!!&lt;/h1&gt;
+
+&lt;p&gt;Arquivo 404.html&lt;/p&gt;
+
+&lt;pre&gt;Erro 404&lt;/pre&gt;
+
+&lt;h1 id=&#34;a-página-que-você-procura-não-foi-encontrada&#34;&gt;A página que você procura não foi encontrada&lt;/h1&gt;
+
+&lt;p&gt;Por convenção quando alguém solicita o arquivo &amp;#8220;/&amp;#8221; está solicitando a pagina inicial que geralmente é o índex.html, dependendo da configuração do servidor, no nosso caso queremos que nosso servidor retorne o índex.html, se o usuário pedir por qualquer coisa no formato &amp;#8220;/{nome da pagina}.html&amp;#8221; retornaremos esse arquivo, caso o arquivo não exista, retornaremos o erro 404 e a página de erro correspondente.&lt;/p&gt;
+
+&lt;p&gt;Sabemos que a primeira linha da requisição contem o método, o arquivo solicitado e o protocolo separados por um espaço em branco, para o nosso servidor o método não importa, então assumiremos sempre o GET, e o protocolo será sempre o HTTP/1.1, então o que nos importa é o arquivo solicitado. Vamos alterar o nosso código que deve ficar assim:&lt;/p&gt;
+
+&lt;pre&gt;[...]
+            /* Lê a primeira linha
+             contem as informaçoes da requisição
+             */
+            String linha = buffer.readLine();
+            //quebra a string pelo espaço em branco
+            String[] dadosReq = linha.split(&#34; &#34;);
+            //pega o metodo
+            String metodo = dadosReq[0];
+            //paga o caminho do arquivo
+            String caminhoArquivo = dadosReq[1];
+            //pega o protocolo
+            String protocolo = dadosReq[2];
+            //Enquanto a linha não for vazia
+            while (!linha.isEmpty()) {
+                //imprime a linha
+                System.out.println(linha);
+                //lê a proxima linha
+                linha = buffer.readLine();
+            }
+            //se o caminho foi igual a / entao deve pegar o /index.html
+            if (caminhoArquivo.equals(&#34;/&#34;)) {
+                caminhoArquivo = &#34;/index.html&#34;;
+            }
+            //abre o arquivo pelo caminho
+            File arquivo = new File(caminhoArquivo);
+            byte[] conteudo;
+            //status de sucesso - HTTP/1.1 200 OK
+            String status = protocolo + &#34; 200 OK\r\n&#34;;
+            //se o arquivo não existe então abrimos o arquivo de erro, e mudamos o status para 404
+            if (!arquivo.exists()) {
+                status = protocolo + &#34; 404 Not Found\r\n&#34;;
+                arquivo = new File(&#34;/404.html&#34;);
+            }
+            conteudo = Files.readAllBytes(arquivo.toPath());
+[...]
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que ainda não respondemos ao navegados com os dados, apenas montamos uma parte da resposta, para enviar a resposta precisaremos do OutputStream e montar uma string com a estrutura básica da resposta, dai vamos escrever esses dados no stream, semelhante ao que fizemos na parte II do nosso tutorial:&lt;/p&gt;
+
+&lt;pre&gt;//cria um formato para o GMT espeficicado pelo HTTP
+            SimpleDateFormat formatador = new SimpleDateFormat(&#34;E, dd MMM yyyy hh:mm:ss&#34;, Locale.ENGLISH);
+            formatador.setTimeZone(TimeZone.getTimeZone(&#34;GMT&#34;));
+            Date data = new Date();
+            //Formata a dara para o padrao
+            String dataFormatada = formatador.format(data) + &#34; GMT&#34;;
+            //cabeçalho padrão da resposta HTTP
+            String header = status
+                    + &#34;Location: http://localhost:8000/\r\n&#34;
+                    + &#34;Date: &#34; + dataFormatada + &#34;\r\n&#34;
+                    + &#34;Server: MeuServidor/1.0\r\n&#34;
+                    + &#34;Content-Type: text/html\r\n&#34;
+                    + &#34;Content-Length: &#34; + conteudo.length + &#34;\r\n&#34;
+                    + &#34;Connection: close\r\n&#34;
+                    + &#34;\r\n&#34;;
+            //cria o canal de resposta utilizando o outputStream
+            OutputStream resposta = socket.getOutputStream();
+            //escreve o headers em bytes
+            resposta.write(header.getBytes());
+            //escreve o conteudo em bytes
+            resposta.write(conteudo);
+            //encerra a resposta
+            resposta.flush();
+&lt;/pre&gt;
+
+&lt;p&gt;Agora é só compilar, rodar e ver o resultado =D&lt;/p&gt;
+
+&lt;p&gt;No caso de sucesso deve aparecer como na figura abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/sucesso.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51391&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/sucesso.png&#34; alt=&#34;200 - Sucesso&#34; width=&#34;1279&#34; height=&#34;707&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Caso a página não existe, deve aparecer assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/erro404.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51392&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/erro404.png&#34; alt=&#34;Erro 404&#34; width=&#34;1280&#34; height=&#34;709&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Temos um servidor funcional capaz de fornecer as páginas HTML para os clientes que solicitarem, mas perceba que nosso servidor atende a apenas uma requisição e se encerra logo em seguida, sem contar que nosso método main ficou gigante, mas fique tranquilo, isso será assunto para a próxima e ultima parte do tutorial, onde vamos organizar melhor nosso código, tratar alguns comandos do servidor importantes como manter a conexão viva e trabalhar com múltiplas requisições, conexões simultâneas e afins. Por hora fica o exercício, tente organizar o código a sua maneira, altere como desejar, crie mais páginas HTML e teste e veja se está sendo exibida corretamente, todo código feito até aqui está no final da página e está todo comentado para facilitar o entendimento.&lt;/p&gt;
+
+&lt;p&gt;Espero que estejam gostando e por favor deixem comentários com seu feedback: o que achou, dúvidas, se funcionou ou não, se a abordagem não estiver adequada ou mesmo erros que posso ter cometido pelo caminho.&lt;/p&gt;
+
+&lt;p&gt;Até o próximo post.&lt;/p&gt;
+
+&lt;p&gt;Download do código fonte: &lt;a href=&#34;https://github.com/thiguetta/ServidorHTTP&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/thiguetta/ServidorHTTP&#34;&gt;https://github.com/thiguetta/ServidorHTTP&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte II</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/</link>
+      <pubDate>Fri, 11 Sep 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/</guid>
+      <description>
+
+&lt;p&gt;Se chegou até aqui é por que você terminou de ler a primeira parte do tutorial (Caso não, leia a &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/&#34; title=&#34;Criando seu próprio servidor HTTP do zero (ou quase) – Parte I&#34;&gt;Parte I&lt;/a&gt; ), mas não desista, a parte legal vai chegar, mas antes de começar, falta mais um item de teoria &amp;#8211;  sim eu sei que é chato, mas juro que é importante &amp;#8211; os Sockets.&lt;/p&gt;
+
+&lt;h2 id=&#34;sockets-e-portas&#34;&gt;Sockets e portas&lt;/h2&gt;
+
+&lt;p&gt;Falamos muito de requisições e respostas no último post mas ainda não falamos de conexão e troca de informações. Bom, vamos lá, ligeiramente comentamos um pouco sobre os protocolos de rede, também disse que o protocolo web, o HTTP, está na camada mais alta do TCP/IP, a camada de aplicação, mas para este tutorial pouco importa o que acontece nas camadas inferiores  (se tiver curiosidade procure mais sobre), o que realmente importa é saber que esse tal de TCP/IP é responsável pela conexão entre dois pontos (dois computadores, ou no nosso caso, cliente e servidor).&lt;/p&gt;
+
+&lt;p&gt;Tanto o servidor quanto o cliente são computadores com seus respectivos sistemas operacionais (Linux, Windows, etc) e neles estão em execução diversas aplicações inclusive o navegador e o próprio servidor HTTP, mas nesse monte de aplicações em execução, como vamos saber que estamos enviando e recebendo dados da aplicação certa? precisamos de um algo que identifique cada aplicação (ou pelo menos que identifique uma aplicação que use a rede). Esses pontos de identificação, por assim dizer, são chamados de Socket (ou em português, soquete, tomada, encaixe, enfim algo que tenha uma “abertura/encaixe&amp;#8221; para conexão), resumindo é um ponto que permite conectar alguma coisa, no nosso caso, um outro computador através da rede. Para receber uma conexão, o Socket precisa de uma abertura, essa abertura é o que chamamos de porta, sei que para alguns o conceito parece ser trivial, mas para outros, inclusive profissionais de TI, esses conceitos podem embaralhar a cabeça.&lt;/p&gt;
+
+&lt;p&gt;Resumindo, um Socket é o ponto final da conexão, onde uma porta é aberta para que a aplicação possa enviar ou receber dados, cada porta é identificada por um número que é única no computador, sendo que se tentar abrir uma porta que já estiver sendo usado por outra aplicação, o sistema operacional irá barrar e retornar um erro de acesso negado ou informa que a porta está em uso.&lt;/p&gt;
+
+&lt;p&gt;Existe uma lista de portas conhecidas  que são utilizadas por algumas aplicações, as mais comuns são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;21 FTP &amp;#8211; Transferencia de arquivo&lt;/li&gt;
+&lt;li&gt;22 SSH &amp;#8211;  Secure Shell&lt;/li&gt;
+&lt;li&gt;25 SMTP &amp;#8211; Envio de Emails&lt;/li&gt;
+&lt;li&gt;80 HTTP &amp;#8211; Web&lt;/li&gt;
+&lt;li&gt;443 HTTPS &amp;#8211; Web “Segura&amp;#8221;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Uma porta ela é única por computador mas não é única na internet, quando você quer efetuar a conexão com uma determinada aplicação rodando em um computador remoto, a identificação do socket é composto pelo endereço de IP ou o nome canônico (domínio &amp;#8211; endereço do site) da máquina destino e a porta que essa aplicação usando, no seguinte formato {Endereço}:{Porta}.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;exemplo.com:80 ou
+ 192.168.1.224:1000     
+&lt;/pre&gt;
+
+&lt;p&gt;A maioria das aplicações que requerem conexão com algum serviço se conectam diretamente as portas especificas que cada uma delas usa, sendo necessário informar apenas o IP (ao menos que seja uma porta que a aplicação não conheça, o serviço está funcionando numa porta atípica ai será necessário informar, veremos mais na parte III). O que isso significa? isso significa que quando você digita o site &lt;a href=&#34;http://www.google.com.br&#34;&gt;http://www.google.com.br&lt;/a&gt; no seu navegador, ele sabe que os servidores HTTP estão executando na porta 80, então não é preciso identificar-la, pois o navegador irá &amp;#8220;converter&amp;#8221; para o formato correto, transparentemente, a mesma coisa acontece quando você acessa um site seguro utilizando &lt;a href=&#34;https://www.seubanco.com.br&#34;&gt;https://www.seubanco.com.br&lt;/a&gt; o navegador sabe que a porta de conexão segura no servidor é a 443, e tentará se conectar nela.&lt;/p&gt;
+
+&lt;p&gt;O que acontece é seu navegador irá se conectar ao site, ele sabe que o servidor está respondendo na porta 80 no endereço tal, para isso é necessário que o navegador abre uma porta local aleatória, para que assim o servidor possa saber para quem responder:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.raywenderlich.com/wp-content/uploads/2011/06/sockets.jpg&#34;&gt;&lt;img src=&#34;http://www.raywenderlich.com/wp-content/uploads/2011/06/sockets.jpg&#34; alt=&#34;&#34; width=&#34;600&#34; height=&#34;200&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto agora que entendemos o conceito (ou pelo menos espero que tenham entendido =D) vamos colocar as mãos na massa.&lt;/p&gt;
+
+&lt;p&gt;Vou partir do principio que já sabem criar uma classe e compilar um programa em Java (caso não lembre-se que o Google é nosso amigo =D). Se preferir, usando o mesmo conceito pode converter a ideia para a linguagem de sua preferência (só não esqueça de compartilhar com a galera =D).&lt;/p&gt;
+
+&lt;p&gt;Vamos lá, vou criar uma classe em Java chamada Cliente, será uma classe simples que vai se conectar a um servidor (neste caso vamos conectar no &lt;a href=&#34;http://google.com.br&#34;&gt;google.com.br&lt;/a&gt;) e ver se ele está conectado, se sim ele imprimirá na tela o IP do servidor.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import java.io.IOException;
+import java.net.Socket;
+
+public class Cliente {
+    public static void main(String[] args) throws IOException {
+        //cria um socket com o google na porta 80
+        Socket socket = new Socket(&#34;google.com.br&#34;, 80);
+        //verifica se esta conectado
+        if (socket.isConnected()) { 
+            //imprime o endereço de IP do servidor
+            System.out.println(&#34;Conectado a &#34; + socket.getInetAddress());
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao instanciar um novo objeto da classe Socket com os parâmetros domínio e porta, internamente a máquina virtual Java já abre uma porta aleatória em seu computador e em seguida conecta ao servidor google.com.br na porta 80. Veja que até então não sabemos o endereço de IP do servidor mas ao efetuar a conexão o socket já se atualiza com essa informação. Vamos compilar nossa classe e verificar o resultado que  deve ser algo desse tipo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ javac Cliente.java
+$ java Cliente
+Conectado a google.com.br/173.194.118.151&lt;/pre&gt;
+
+&lt;p&gt;Mas isso não é o suficiente queremos trocar informações com o servidor conectado, para isso nosso socket fornece 2 recursos  um para leitura dos dados recebidos (InputStream) do servidor e outro para enviar os dados que queremos para o servidor (OutputStream), é claro que para enviarmos algum dado para o servidor temos que saber como se comunicar com o servidor, como a gente já sabe, o servidor do google é um servidor HTTP que nos fornece as páginas de serviço do Google, certo? então sabemos que o servidor entende o protocolo HTTP. vamos enviar uma requisição HTTP simples a esse servidor e ver o que ele responde.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;/* veja que a requisição termina com \r\n que equivale a &amp;lt;CR&amp;gt;&amp;lt;LF&amp;gt;
+       para encerar a requisição tem uma linha em branco */
+    String requisicao = &#34;&#34;
+        + &#34;GET / HTTP/1.1\r\n&#34;
+        + &#34;Host: www.google.com.br\r\n&#34;
+        + &#34;\r\n&#34;;
+    //OutputStream para enviar a requisição
+    OutputStream envioServ = socket.getOutputStream();
+    //temos que mandar a requisição no formato de vetor de bytes
+    byte[] b = requisicao.getBytes();
+    //escreve o vetor de bytes no &#34;recurso&#34; de envio 
+    envioServ.write(b);
+    //marca a finalização da escrita
+    envioServ.flush();
+&lt;/pre&gt;
+
+&lt;p&gt;É claro que apenas isso não basta pois somente estamos enviando a requisição certo?, então precisaremos ler o InputStream logo após enviar os dados para ver o que o servidor responde, vamos facilitar as coisas afinal isto não é C, para ler o que o servidor responde vamos utilizar um Scanner, que ja faz a conversão o Input de bytes para String, assim a gente não tem que tratar esses trecos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//cria um scanner a partir do InputStream que vem do servidor
+    Scanner sc = new Scanner(socket.getInputStream());
+    //enquanto houver algo para ler
+    while (sc.hasNext()) {
+        //imprime uma linha da resposta
+        System.out.println(sc.nextLine());
+    }
+&lt;/pre&gt;
+
+&lt;p&gt;Agora se executarmos o programa podemos ler o que o servidor nos devolve e exibir na tela, logo teremos um resultado parecido com isso&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ javac Cliente.java 
+$ java Cliente
+Conectado a google.com.br/173.194.118.151 
+HTTP/1.1 200 OK
+Date: Tue, 17 Jun 2014 23:29:57 GMT
+Expires: -1
+Cache-Control: private, max-age=0
+Content-Type: text/html; charset=ISO-8859-1
+Set-Cookie: PREF=ID=fee5bb44e3822528:FF=0:TM=1403047797:LM=1403047797:S=BpVMDbzBHKUgdlRS; expires=Thu, 16-Jun-2016 23:29:57 GMT; path=/; domain=.google.com.br
+Set-Cookie: NID=67=CT9hDvtQnKCvGeox_lmn7IjB_gbZ6Z9m7YT2rM1LAw2hVDVbvas16qfTsH1Jc1TRhrynqE-j0fb3EPl_JvjttiV-kqVpJlYjmg7Qd_e8oHcnJM1L2xlHWtlKw2EcomUM; expires=Wed, 17-Dec-2014 23:29:57 GMT; path=/; domain=.google.com.br; HttpOnly
+P3P: CP=&#34;This is not a P3P policy! See http://www.google.com/support/accounts/bin/answer.py?hl=en&amp;answer=151657 for more info.&#34;
+Server: gws
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+Alternate-Protocol: 80:quic
+Transfer-Encoding: chunked
+
+8000
+&amp;lt;!doctype html&amp;gt;&amp;lt;html[...]um monte de HTML[...]
+
+0
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que o resultado é semelhante ao que vimos anteriormente sobre na nossa teoria de requisição e resposta, também há algumas outras propriedade que não vimos mas não importa para nós ao menos que queira se aprofundar no assunto. Veja também que seu programa também continua em execução, isso acontece porque o servidor do google ainda não encerrou a conexão, isso acontece porque no HTTP/1.1 a propriedade &amp;#8220;Connection: keep-alive&amp;#8221; é padrão mesmo que não enviamos na requisição, quem define esse tempo é o próprio servidor, por experiência própria eu sei que a conexão com o google se mantém ativa por aproximadamente 3 minutos, isso para dar tempo suficiente para que você faça todas as pesquisas sem ter que criar uma nova conexão para cada pesquisa que você faz, isso é importante no caso do google já que ele recebe milhares de requisições por segundo, sendo que varias delas são feitas pela mesma pessoa, então não convém criar uma nova conexão para cada nova requisição.&lt;/p&gt;
+
+&lt;p&gt;Você deve estar se perguntando, mas Thiago, isso não é o que o navegador faz?&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Sim, o que fizemos hoje foi implementar a parte mais básica de um navegados web.&lt;/p&gt;
+
+&lt;p&gt;Mas a proposta é fazer um servidor e não um navegador, certo?&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Certo, mas antes de avançarmos é importante entender bem qual é o trabalho do navegador antes de criar o servidor que irá responder as requisições dele, mas isso será assunto para a parte III.&lt;/p&gt;
+
+&lt;p&gt;Posso fazer em outra linguagem?&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Claro, socket é implementado em todas as linguagens, basta consultar a documentação da sua linguagem preferida para entender como replicar o conceito acima.&lt;/p&gt;
+
+&lt;p&gt;Por hoje ficamos por aqui pessoal, espero que tenham aproveitado bem nossa parte prática, no próximo começaremos definitivamente a criar nosso servidor.&lt;/p&gt;
+
+&lt;p&gt;Até Mais.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Conheça os primeiros palestrantes da Webbr2015</title>
+      <link>http://tableless.com.br/conheca-os-primeiros-palestrantes-da-webbr2015/</link>
+      <pubDate>Fri, 31 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/conheca-os-primeiros-palestrantes-da-webbr2015/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/inscricoes&#34;&gt;&lt;img src=&#34;http://conferenciaweb.w3c.br/wp-content/themes/webbr2015/assets/img/logos/logo--webbr.svg&#34; alt=&#34;Logo da Conferência Web W3C Brasil 2015&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/inscricoes&#34;&gt;Lote de inscrições para a Webbr 2015 por R$ 80,00 termina segunda-feira, dia 3 de agosto!&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://conferenciaweb.w3c.br/wp-content/uploads/2015/07/Andrei-Sambra-220x300.jpeg&#34; alt=&#34;Foto de Andrei Sambra&#34; style=&#34;float:left;margin: 10px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A abertura do evento será sobre re-descentralizar da Web! que contará com &lt;a href=&#34;http://conferenciaweb.w3c.br/trends/#andreisambra&#34;&gt;&lt;strong&gt;Andrei Sambra&lt;/strong&gt;&lt;/a&gt;, Research Associate do W3C, para discutir o tema como keynote speaker da conferência. O pesquisador comentará os atuais esforços de padronização feitos pelo World Wide Web Consortium (W3C), além dos processos de tradução tecnológica do Massachusetts Institute of Technology (MIT) para construir aplicações e serviços descentralizados.&lt;/p&gt;
+
+&lt;p&gt;Além da participação do keynote internacional, diversos especialistas brasileiros abordarão temas importantes para manter a essência da Web aberta como seu principal aspecto.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/palestrantes2015.jpg&#34; alt=&#34;Imagem com foto dos primeiros palestrantes da Webbr2015&#34; width=&#34;750&#34; height=&#34;515&#34; class=&#34;aligncenter size-full wp-image-50520&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/trends/#sergiolopes&#34;&gt;&lt;strong&gt;Sérgio Lopes&lt;/strong&gt;&lt;/a&gt;, instrutor e desenvolvedor da Caellum, vai falar sobre as grandes melhorias do &lt;strong&gt;HTTP2&lt;/strong&gt; e como isso vai beneficiar tanto o usuário como o desenvolvedor. Nessa palestra, Sérgio vai mostrar os novos recursos do HTTP/2 e como eles simplificam o desenvolvimento, tornam obsoletas várias práticas atuais e deixam as páginas mais rápidas.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/trends/#jaydsongomes&#34;&gt;&lt;strong&gt;Jaydson Lopes&lt;/strong&gt;&lt;/a&gt;, desenvolvedor de software sênior do Terra, vai abordar as novidades do &lt;strong&gt;ECMAScript 6&lt;/strong&gt; e como elas podem influenciar o desenvolvimendo da Web e o futuro do JavaScript. Atualmente é impensável considerar a Web sem o uso do JavaScript e é por isso que essa tecnologia tem papel fundamental na Web que queremos no futuro.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/openweb/#cironunes&#34;&gt;&lt;strong&gt;Ciro Nunes&lt;/strong&gt;&lt;/a&gt;, front-end engineer na Questrade, fará uma palestra sobre &lt;strong&gt;AngularJS 2&lt;/strong&gt; e o futuro do desenvolvimento Front-end. Em 2012 o AngularJS foi criado e levou o desenvolvimento Front-end ao próximo nível, simplificando a criação de componentes e a testar o código JavaScript. A web evoluiu, chegaram os Web Components e as especificações da ES2015 e 16, possibilitando ao framework tirar proveito dessas novidades e ficar muito menor e mais rápido. Nessa palestra Ciro quer vai mostrar um pouco do que será o futuro do desenvolvimento Front-end com o Angular 2.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/openweb/#luizcortereal&#34;&gt;&lt;strong&gt;Luis Corte Real&lt;/strong&gt;&lt;/a&gt;, desenvolvedor de software da TecSinapse, vai mostrar como construindo uma experiência agradável na Web desde o começo com &lt;strong&gt;progressive enhancement&lt;/strong&gt;. Desenvolver sites e sistemas web que funcionem bem em todas as plataformas continua desafiador, mesmo com a evolução dos navegadores. Isso porque temos uma diversidade cada vez maior de dispositivos, navegadores e, também, usuários. Como proporcionar uma experiência de navegação agradável e funcional para todos? É sobre isso que fala o progressive enhancement. Nesta palestra serão explorados o conceito na prática, vendo problemas comuns de navegação, como aplicar progressive enhancement e quais benefícios essa técnica nos traz.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/trends/#alexandregaigalas&#34;&gt;&lt;strong&gt;Alexandre Gaigalas&lt;/strong&gt;&lt;/a&gt; vai dar uma palestra sobre &lt;strong&gt;Hipermídia para Serviços&lt;/strong&gt;. Mais especificamente sobre projetos de serviços REST do ponto de vista dos padrões (standards) e os papeis interessantes que diferentes especificações podem ter nessa arquitetura.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/openweb/#rafaelrinaldi&#34;&gt;&lt;strong&gt;Rafael Rinaldi&lt;/strong&gt;&lt;/a&gt;, Desenvolvedor da Netshoes, vai abordar de forma detalhada a &lt;strong&gt;arquitetura CSS&lt;/strong&gt;. A grande maioria dos desenvolvedores web tem uma relação de amor e ódio com CSS. Fato é que o ódio geralmente está ligado a não saber direito como as coisas funcionam e falta de organização. O objetivo é mostrar como a organização da arquitetura CSS é fundamental para qualquer projeto na Web e como isso impacta tanto o desenvolvedor como o usuário.&lt;/p&gt;
+
+&lt;p&gt;Além dos temas relacionados com a Open Web, haverá uma trilha exclusiva para abordar questões sobre &lt;strong&gt;Segurança e Privacidade&lt;/strong&gt;. Nessa trilha, &lt;a href=&#34;http://conferenciaweb.w3c.br/privacy/#fernandoike&#34;&gt;&lt;strong&gt;Fernando Ike&lt;/strong&gt;&lt;/a&gt;, Engenheiro de Solução da Exceda/Akamai, vai dar uma palestra sobre &lt;strong&gt;Docker&lt;/strong&gt; e falar sobre essa tal de container-revolução. Containers são usados há muito tempo, no entanto nos últimos anos tem sido usados massivamente tornando o mais novo buzzword junto&lt;/p&gt;
+
+&lt;p&gt;como microservices. Docker é o início dessa revolução, mas o que ele tem de tão especial para essa tal de container-revolução?&lt;/p&gt;
+
+&lt;p&gt;A conferência contará ainda com a palestra da &lt;a href=&#34;http://conferenciaweb.w3c.br/privacy/#camilagomes&#34;&gt;&lt;strong&gt;Camila Gomes&lt;/strong&gt;&lt;/a&gt;, administradora de sistemas e DevOps na empresa 7COMm Informática, sobre &lt;strong&gt;Tails – Privacidade para todos&lt;/strong&gt;, em todos os lugares. Não ser rastreado na internet é uma necessidade para os mais diferentes perfis de pessoas, mas nem todos possuem conhecimentos técnicos sobre segurança de informação para isso. Nesta palestra Camila vai apresentar o Tails, um sistema operacional livre, personalizado e recheado de ferramentas que tem por objetivo preservar a segurança e anonimato do usuário em qualquer lugar, pronto para navegar.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://conferenciaweb.w3c.br/privacy/#nandovieira&#34;&gt;&lt;strong&gt;Nando Vieira&lt;/strong&gt;&lt;/a&gt;, Web Developer no Heroku, vai falar dar uma palestra sobre &lt;strong&gt;Construindo Aplicações Web Mais Seguras&lt;/strong&gt;. Manter sua aplicação segura é tão importante quanto o desenvolvimento em si. Infelizmente nem todo desenvolvedor faz a sua parte para garantir que os riscos de ataques foram minimizados. Nessa palestra o usuário verá os problemas mais comuns, entenderá porque é importante manter seu aplicativo atualizado e conhecerá algumas boas práticas para minimizar as chances de ser hackeado.&lt;/p&gt;
+
+&lt;p&gt;A conferência também terá workshops e tutoriais. Já estão confirmados workshops de REST com &lt;a href=&#34;http://conferenciaweb.w3c.br/workshop/#leonardoruosso&#34;&gt;Leonardo Ruosso&lt;/a&gt; ,da Tata Consultancy Services, e Frameworks da moda, com &lt;a href=&#34;http://conferenciaweb.w3c.br/workshop/#hannelitavante&#34;&gt;Hanneli Tavante&lt;/a&gt;, da Codeminer. Também estão confirmados os tutoriais de WCAG e WAI-ARIA com &lt;a href=&#34;http://conferenciaweb.w3c.br/workshop/#talitapagani&#34;&gt;Talita Pagani&lt;/a&gt;, da UFSCar, e SVG com &lt;a href=&#34;http://conferenciaweb.w3c.br/workshop/#helderdarocha&#34;&gt;Helder da Rocha&lt;/a&gt;, da Argo Navis Informática.&lt;/p&gt;
+
+&lt;p&gt;As &lt;a href=&#34;http://conferenciaweb.w3c.br/inscricoes/&#34;&gt;inscrições estão abertas e o lote promocional a R$ 80,00&lt;/a&gt; vai até o dia 3 de agosto.&lt;/p&gt;
+
+&lt;p&gt;Participe! Fique atento ao &lt;a href=&#34;http://conferenciaweb.w3c.br/&#34;&gt;site da conferência&lt;/a&gt;. Em breve novos palestrantes serão divulgados.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Nós quebramos a web</title>
+      <link>http://tableless.com.br/nos-quebramos-web/</link>
+      <pubDate>Mon, 04 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/nos-quebramos-web/</guid>
+      <description>
+
+&lt;p&gt;Depois das grandes evoluções que tivemos na web (HTML5, CSS3 e novas APIs JavaScript), junto vieram alguns problemas, aquela história de &lt;em&gt;&amp;#8220;Com grandes poderes vem grandes responsabilidades&amp;#8221;&lt;/em&gt;. As novas features da Open Web são fantásticas. Lembro-me bem quando nós eramos cautelosos no usar certos recursos com medo de não conseguir entregar o conteúdo ao usuário. No fim, surgiram (e surgem) &lt;em&gt;polyfills&lt;/em&gt; e n maneiras de darmos &lt;em&gt;fallback&lt;/em&gt; ao usuário com menos recursos. Sendo assim, conseguimos entregar um conteúdo rico para usuários com recursos modernos, e o conteúdo com uma experiência mais simples à usuários com recursos simples.&lt;/p&gt;
+
+&lt;p&gt;Tudo perfeito? Na teoria sim, na prática não.&lt;/p&gt;
+
+&lt;h2 id=&#34;ao-menos-tente-aplicar-progressive-enhancement&#34;&gt;Ao menos tente aplicar Progressive Enhancement&lt;/h2&gt;
+
+&lt;p&gt;Em poucas palavras, &lt;strong&gt;Progressive Enhancement&lt;/strong&gt; é uma maneira de desenvolver aplicações de forma a suportar browser antigos, conexões lentar, etc. Se você não sabe o que é esse termo, vá atrás porque passou da hora. _(Recomendo esse post do &lt;a title=&#34;Diego Eis no Twitter&#34; href=&#34;https://twitter.com/diegoeis&#34; target=&#34;_blank&#34;&gt;@diegoeis&lt;/a&gt; sobre o assunto: &lt;a title=&#34;Fault Tolerance: a base do Progressive Enhancement&#34; href=&#34;http://tableless.com.br/faut-tolerant-base-progressive-enhancement/&#34; target=&#34;_blank&#34;&gt;Fault Tolerance: a base do Progressive Enhancement&lt;/a&gt;)_&lt;/p&gt;
+
+&lt;p&gt;Há pouco tempo eu era um hater de aplicações e frameworks que não davam suporte ao PE (Progressive Enhancement) ou dificultavam esse tipo de abordagem. Mas o extremismo nunca é saudável. Em um comentário que fiz em um tweet do &lt;a title=&#34;Daniel Filho no Twitter&#34; href=&#34;https://twitter.com/danielfilho&#34; target=&#34;_blank&#34;&gt;@danielfilho&lt;/a&gt;, ele respondeu algo que me fez mudar de opinião:&lt;/p&gt;
+
+&lt;blockquote class=&#34;twitter-tweet&#34; lang=&#34;pt&#34;&gt;
+  &lt;p dir=&#34;ltr&#34; lang=&#34;en&#34;&gt;
+    &lt;a href=&#34;https://twitter.com/fernahh&#34;&gt;@fernahh&lt;/a&gt; it might not support it. but you need to be aware that it’s not everyone who lives on the 1st world &amp; have blazing fast connection.
+  &lt;/p&gt;
+  
+  &lt;p&gt;
+    — Daniel Filho (@danielfilho) &lt;a href=&#34;https://twitter.com/danielfilho/status/585604385440432129&#34;&gt;8 abril 2015&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;strong&gt;É isso!&lt;/strong&gt; Nem todo mundo tem uma internet rápida ou o último release do navegador mais moderno. A ideia da web sempre foi ser inclusiva e entregar o conteúdo a todos. Mas por que não fizemos isso? Por que estamos usando o HTML só pra carregar uma tag &lt;code&gt;&amp;lt;script&amp;gt;&lt;/code&gt;? Ao menos tente aplicar Progressive Enhancement. Tudo depende de onde sua aplicação irá rodar, quem serão os usuários dela, mas se estiver na &amp;#8220;web pública&amp;#8221;, considere (muito) o PE.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-web--acessvel&#34;&gt;A web é acessível&lt;/h2&gt;
+
+&lt;p&gt;A web em sua forma mais simples é acessível. Veja &lt;a title=&#34;Exemplo de uma página acessível&#34; href=&#34;http://codepen.io/fernahh/pen/OVJNWB&#34; target=&#34;_blank&#34;&gt;esse exemplo no Codepen&lt;/a&gt;, só usei &lt;a href=&#34;http://necolas.github.io/normalize.css/&#34;&gt;Normalize&lt;/a&gt; e HTML.&lt;/p&gt;
+
+&lt;p&gt;Contraste perfeito. Links legíveis. Botões que parecem botões. Um leitor de tela provavelmente se daria bem lendo o conteúdo dessa página, mesmo sem uma extensão com &lt;a href=&#34;http://tableless.com.br/wai-aria-estendendo-o-significado-das-interacoes/&#34;&gt;WAI-ARAI&lt;/a&gt;. Um usuário provavelmente interpretaria rápido a informação com elementos expressados dessa forma.&lt;/p&gt;
+
+&lt;p&gt;Mas se a web na sua forma mais crua é acessível, por que desenvolvedores fazem isso?&lt;/p&gt;
+
+&lt;div style=&#34;width: 510px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://sighjavascript.tumblr.com/&#34; target=&#34;_blank&#34;&gt;&lt;img class=&#34;&#34; src=&#34;http://41.media.tumblr.com/49748cc0168a329867f45fcc807ae650/tumblr_mslkvjXcmX1sgju96o1_1280.png&#34; alt=&#34;Instagram sem JavaScript não funciona.&#34; width=&#34;500&#34; height=&#34;400&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Exemplo do tumblr &amp;#8220;Sign, JavaScript&amp;#8221; (http://sighjavascript.tumblr.com/)
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Todos tem a resposta para a pergunta acima na ponta da língua: desenvolvedores fazem isso pelo &lt;em&gt;hype&lt;/em&gt; de usar novas tecnologias, mas esquecem de atender todos os usuários, &lt;strong&gt;quebrando a web&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-reencontro-com-o-caminho-para-uma-web-inclusiva&#34;&gt;O reencontro com o caminho para uma web inclusiva&lt;/h2&gt;
+
+&lt;p&gt;Estamos seguindo o embalo das novas tecnologias deixando de lado o mais básico que um desenvolvedor web deve saber, que consiste em aprender protocolos, algoritimos, HTML, CSS e JavaScript. Apenas com esses caras já conseguimos entregar o conteúdo com uma experiência bacana ao usuário.&lt;/p&gt;
+
+&lt;p&gt;Estude padrões.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Frameworks&lt;/em&gt;, bibliotecas e pré-processadores são fantásticos, mas primeiro vamos fazer o que a web se propôs a fazer desde seu início: &lt;strong&gt;ser inclusiva&lt;/strong&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Tendências Web 2015 para desenvolvedores</title>
+      <link>http://tableless.com.br/tendencias-web-2015-para-desenvolvedores/</link>
+      <pubDate>Thu, 09 Apr 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/tendencias-web-2015-para-desenvolvedores/</guid>
+      <description>
+
+&lt;p&gt;O mundo dos desenvolvedores web está cada vez mais inovador e fantástico. Em 2015 teremos ferramentas mais qualificadas e conceitos que nos ajudarão na jornada de desenvolver um material super satisfatório. Pois não trará vantagens somente para nossos clientes, mas também nos poupará tempo, e para quem trabalha nessa área sabe que tempo é MUITO PRECIOSO.&lt;/p&gt;
+
+&lt;h2 id=&#34;flat-design&#34;&gt;FLAT DESIGN&lt;/h2&gt;
+
+&lt;p&gt;Sites com sombras, diversas fontes e cores para ressaltar o realismo da página ficou no passado, agora o que manda é a simplicidade. Design de empresas como Google, Twitter, Facebook e Windows 8 são exemplos fortíssimos de que isso deu certo e não vai sair de cena por muito tempo. Lembre-se: menos é mais!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/04/flat-design.png&#34;&gt;&lt;img class=&#34; size-full wp-image-48161 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/04/flat-design.png&#34; alt=&#34;flat-design&#34; width=&#34;730&#34; height=&#34;400&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pense que interessante seria se essa moda aparecesse nos tempos de IE6, quando transparencia, bordas arredondadas e gradientes não funcionavam. Era só colocar um botão com cor chapada de fundo, letra branca e pronto. Funcionaria em todos os browsers. Flat to save the devs.&lt;/p&gt;
+
+&lt;h2 id=&#34;motion-ui&#34;&gt;MOTION UI&lt;/h2&gt;
+
+&lt;p&gt;A moderna forma de atrair o interesse dos usuários de forma leve e dinâmica está em alta. Frameworks te ajudam na missão de implementar mais animação em suas páginas sem fazer com que seu site fique pesado. Visite &lt;a href=&#34;http://foundation.zurb.com/apps/docs/#!/motion-ui&#34; target=&#34;_blank&#34;&gt;Foundation for APPs&lt;/a&gt; ou &lt;a href=&#34;http://daneden.github.io/animate.css/&#34; target=&#34;_blank&#34;&gt;Animate.css&lt;/a&gt; e veja os efeitos incríveis em ação.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/04/motion-ui.png&#34;&gt;&lt;img class=&#34; size-full wp-image-48162 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/04/motion-ui.png&#34; alt=&#34;motion-ui&#34; width=&#34;730&#34; height=&#34;400&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/materialup-uma-colecao-de-conceitos-usando-material-design/&#34;&gt;Há um post aqui no Tableless&lt;/a&gt; que fala um pouco sobre as inspirações que o Material Design do Google teve em diversos designs.&lt;/p&gt;
+
+&lt;h2 id=&#34;responsividade&#34;&gt;RESPONSIVIDADE&lt;/h2&gt;
+
+&lt;p&gt;A preocupação em se adaptar a todos os dispositivos utilizados pelos usuários hoje em dia está ficando cada vez maior entre as empresas, por isso, para não perder mais tempo, utilize de uma ajudinha amiga como &lt;a href=&#34;http://getbootstrap.com/&#34; target=&#34;_blank&#34;&gt;Bootstrap&lt;/a&gt;, &lt;a href=&#34;http://foundation.zurb.com/&#34; target=&#34;_blank&#34;&gt;Foundation&lt;/a&gt; e o novo &lt;del&gt;porém não menos interessante&lt;/del&gt; &lt;a href=&#34;http://semantic-ui.com/&#34; target=&#34;_blank&#34;&gt;Semantic UI&lt;/a&gt;. Todos os frameworks são simples e contam com ótimos tutoriais disponíveis no próprio site.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/04/design-responsivo.png&#34;&gt;&lt;img class=&#34; size-full wp-image-48163 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/04/design-responsivo.png&#34; alt=&#34;design-responsivo&#34; width=&#34;730&#34; height=&#34;400&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;single-pages&#34;&gt;SINGLE PAGES&lt;/h2&gt;
+
+&lt;p&gt;Já viu aqueles sites em que você tem todo conteúdo em uma só página? Pois é, as single pages estão entre as tendências web 2015 e com razão. Além de visualmente serem mais agradáveis, são super práticas para usuários que odeiam se perder em milhares de páginas só para achar tal conteúdo que havia se interessado. Essa tecnologia fica ainda mais legal quando aplicada em mobiles! Olha um &lt;a href=&#34;http://www.twitch.tv/year/2014&#34; target=&#34;_blank&#34;&gt;exemplo bem legal aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/04/single-page.png&#34;&gt;&lt;img class=&#34;aligncenter size-full wp-image-48164&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/04/single-page.png&#34; alt=&#34;Single Pages&#34; width=&#34;730&#34; height=&#34;400&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;A ideia de Single Pages Application é bem interessante e cada vez mais há ferramentas que nos ajudam nesse trabalho. Veja por exemplo &lt;a href=&#34;http://sennajs.com/&#34;&gt;o caso do SennaJS&lt;/a&gt;, idealizado pelo nosso amigo Eduardo Lundgreen.&lt;/p&gt;
+
+&lt;h2 id=&#34;vídeos&#34;&gt;VÍDEOS&lt;/h2&gt;
+
+&lt;p&gt;Os vídeos estão tendo muita receptividade pelos usuários hoje em dia e podem facilmente conseguir mais atenção para seu site se você utilizá-lo como forma de apresentação de sua empresa ou produto, por exemplo. Além de ser rápido e prático, é um meio de comunicação muito mais esclarecedor e satisfatório para o usuário que ao assistir irá receber e entender todo o assunto tratado.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/04/videos.png&#34;&gt;&lt;img class=&#34;aligncenter size-full wp-image-48165&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/04/videos.png&#34; alt=&#34;Vídeos&#34; width=&#34;730&#34; height=&#34;400&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Há outras formas de uso de vídeos por meio dos designers. Dá uma olhada em sites como &lt;a href=&#34;http://www.dadaabstories.org/&#34;&gt;Dadaab&lt;/a&gt; ou &lt;a href=&#34;http://www.barrelny.com/recap/2012/&#34;&gt;Barrel&lt;/a&gt; que fazem uso bem criativo de vídeos como parte do design do site.&lt;/p&gt;
+
+&lt;p&gt;Junte todas essas armas para montar o site dos sonhos de seu cliente. 🙂&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Palestra sobre como se tornar um dev front-end</title>
+      <link>http://tableless.com.br/palestra-sobre-como-se-tornar-um-dev-front-end/</link>
+      <pubDate>Thu, 24 Apr 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/palestra-sobre-como-se-tornar-um-dev-front-end/</guid>
+      <description>&lt;p&gt;Fiz um artigo há um tempo atrás escrevi &lt;a href=&#34;http://tableless.com.br/tornar-dev-front-end/&#34; title=&#34;Como se tornar um dev front-end&#34;&gt;um artigo sobre como se tornar um desenvolvedor front-end&lt;/a&gt;. Fiz uma palestra em Florianópolis estes dias e transformei este artigo em uma apresentação. Não deixe de ler o artigo, lá tem mais detalhes do que apenas a palestra. Veja os slides abaixo:&lt;/p&gt;
+
+&lt;div style=&#34;margin-bottom:5px&#34;&gt;
+  &lt;strong&gt; &lt;a href=&#34;https://www.slideshare.net/diegoeis/como-tornardevfrontend&#34; title=&#34;O que você precisa saber para se tornar um dev front-end&#34; target=&#34;_blank&#34;&gt;O que você precisa saber para se tornar um dev front-end&lt;/a&gt; &lt;/strong&gt; from &lt;strong&gt;&lt;a href=&#34;http://www.slideshare.net/diegoeis&#34; target=&#34;_blank&#34;&gt;Diego Eis&lt;/a&gt;&lt;/strong&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>WebPlatform.org – Por uma Web documentada!</title>
+      <link>http://tableless.com.br/webplatform-org-por-uma-web-documentada/</link>
+      <pubDate>Tue, 09 Oct 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/webplatform-org-por-uma-web-documentada/</guid>
+      <description>
+
+&lt;p style=&#34;text-align: left&#34;&gt;
+  &lt;img class=&#34;aligncenter&#34; style=&#34;border: 10px solid black&#34; src=&#34;http://cdn.thetechjournal.com/wp-content/uploads/2012/10/webplatform.org_.jpg&#34; alt=&#34;webpatform.org&#34; width=&#34;610&#34; height=&#34;342&#34; /&gt;&lt;br /&gt; É bem comum aos desenvolvedores Web, frequentemente recorrer a fontes de informações e referencias em sua rotina de trabalho. Além de o conteúdo ser extenso demais para ser decorado com precisão, ainda está em constante atualização. Muitas vezes as fontes de referencia são descentralizadas fazendo que recorramos a sites diferentes para consultar essas informações.
+&lt;/p&gt;
+
+&lt;h3 id=&#34;webplatform-org&#34;&gt;webplatform.org&lt;/h3&gt;
+
+&lt;p&gt;Pensando em solucionar este problema a comunidade &lt;strong&gt;webplatform.org&lt;/strong&gt; trás a simples proposta de documentar a web. Um pouco pretencioso certo!? Nem tanto: Essa “biblioteca“ será alimentada por uma comunidade de desenvolvedores assim como você. Qualquer um pode contribuir, bem como em um Wiki. Dessa forma poderemos acompanhar as atualizações, normas para web (Web Standards), referencias, sintaxe e outras informações em um único lugar.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;“We are an open community of developers building resources for a better web, regardless of brand, browser or platform. Anyone can contribute and each person who does makes us stronger. Together we can continue to drive innovation on the Web to serve the greater good. It starts here, with you.”&lt;/p&gt;
+
+&lt;p align=&#34;right&#34;&gt;
+  Fonte: &lt;a href=&#34;http://www1.webplatform.org/&#34; target=&#34;_blank&#34;&gt;webplatform.org&lt;/a&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;strong&gt;Tradução:&lt;/strong&gt; “Nós somos uma comunidade aberta de desenvolvedores de recursos para uma web melhor, independentemente do navegador, da marca, ou plataforma. Qualquer um pode contribuir e cada pessoa que o faz, torna-nos mais fortes. Juntos, podemos continuar a impulsionar a inovação na Web para servir ao bem maior. Tudo começa aqui, com você.”&lt;/p&gt;
+
+&lt;p&gt;Com essa definição ficou clara a proposta da comunidade &lt;strong&gt;webplatform.org&lt;/strong&gt; e a sua importância nesse processo. Nesse link: &lt;strong&gt;&lt;a href=&#34;http://docs.webplatform.org/wiki/WPD:Getting_Started&#34; target=&#34;_blank&#34;&gt;Getting_Started&lt;/a&gt;&lt;/strong&gt; você descobre como pode contribuir com a comunidade.&lt;/p&gt;
+
+&lt;p&gt;A ferramenta é nova e está em fase Alpha, portanto ainda não conta com um vasto conteúdo, mas se você tem algum conhecimento pertinente faça a sua parte e contribua!&lt;/p&gt;
+
+&lt;p&gt;Uma pergunta que deve estar lhe ocorrendo: “Como confiar totalmente no conteúdo uma vez que se trata de uma comunidade aberta?”. Por trás dessa ferramenta temos apenas: W3C, Adobe, Google, Microsoft, HP, Mozilla, Opera, Apple e outros&amp;#8230; E agora, se sente mais seguro?&lt;/p&gt;
+
+&lt;h4 id=&#34;fontes&#34;&gt;Fontes:&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://thetechjournal.com/internet/big-players-join-hands-to-build-single-knowledge-repository-for-web-developers-and-designers.xhtml&#34;&gt;http://thetechjournal.com/internet/big-players-join-hands-to-build-single-knowledge-repository-for-web-developers-and-designers.xhtml&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.webmonkey.com/2012/10/w3c-helps-you-build-a-better-web-with-web-platform-docs/&#34;&gt;http://www.webmonkey.com/2012/10/w3c-helps-you-build-a-better-web-with-web-platform-docs/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://docs.webplatform.org/wiki/Main_Page&#34;&gt;http://docs.webplatform.org/wiki/Main_Page&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>História da Web – Uma timeline</title>
+      <link>http://tableless.com.br/historia-da-web-uma-timeline/</link>
+      <pubDate>Wed, 03 Oct 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/historia-da-web-uma-timeline/</guid>
+      <description>&lt;p&gt;Se você trabalha com web deve pelo menos ter a curiosidade de como tudo isso surgiu. Não foi algo criado subitamente, houve um processo, uma evolução que levou a web a ficar do jeito que é hoje. Essa história é muito longa e complicada. Por conta disso um cara chamado John Allsopp passou algum tempo ajudando a formar e entender como aconteceu a história da web e lançou agora o &lt;a href=&#34;http://webdirections.org/history/#0&#34;&gt;The Web History Timeline Project&lt;/a&gt; para ajudar a mapear todos estes momentos.&lt;/p&gt;
+
+&lt;p&gt;A grande questão da história da web é: onde tudo começou? Quão antiga é a ideia de web?&lt;/p&gt;
+
+&lt;p&gt;Mas a ideia do projeto não é mapear a história completa da web. Allsopp está interessado em apontar os pontos mais importantes da história como a publicação de padrões importantes, lançamentos de softwares como o primeiro Browser, a fundação do W3C e outras coisas.&lt;/p&gt;
+
+&lt;p&gt;Interessante é perceber que no começo da &lt;a href=&#34;http://webdirections.org/history/#0&#34;&gt;Timeline&lt;/a&gt; parece que o foco dos antigos pesquisadores e pensadores era entender em como organizar uma grande massa de informação, de forma que essa informação pudesse ser reutilizada. A história do Hipertexto é recheada de ideias interessantes sobre como fazer isso. Daí surgem assuntos que levam ao &lt;a href=&#34;http://www.tipografos.net/internet/vanevar-bush.html&#34;&gt;Vannevar Bush&lt;/a&gt; com &lt;a href=&#34;http://en.wikipedia.org/wiki/Memex&#34;&gt;Memex&lt;/a&gt;, &lt;a href=&#34;http://en.wikipedia.org/wiki/Ted_Nelson&#34;&gt;Ted Nelson&lt;/a&gt; com o &lt;a href=&#34;http://xanadu.com&#34;&gt;projeto Xanadu&lt;/a&gt; e outras histórias mais. Perceba como perto de 1990 um monte de coisas começaram a surgir mudando a forma como desenvolvíamos para internet.&lt;/p&gt;
+
+&lt;p&gt;A foto de destaque deste post é do &lt;a href=&#34;http://en.wikipedia.org/wiki/Mundaneum&#34;&gt;The Mundaneum&lt;/a&gt;, fundado pelo Paul Otlet &amp;#8211; que cunhou o conceito de uma rede de computadores conectada em 1934 &amp;#8211; e o Henri La Fontaine. O The Mundaneum tinha o objetivo de recolher todo conhecimento do mundo e classificá-lo de acordo com o sistema que eles desenvolveram chamado de Classificação Decimal Universal &amp;#8211; Universal Decimal Classification.&lt;/p&gt;
+
+&lt;p&gt;O projeto foi construído com a biblioteca Javascript &lt;a href=&#34;http://timeline.verite.co&#34;&gt;Timeline.js&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Eu não sou uma máquina</title>
+      <link>http://tableless.com.br/eu-nao-sou-uma-maquina/</link>
+      <pubDate>Thu, 30 Aug 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/eu-nao-sou-uma-maquina/</guid>
+      <description>&lt;p&gt;&lt;img class=&#34;alignleft size-medium wp-image-6719&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2012/08/captcha-300x193.jpg&#34; alt=&#34;Imagem ilustrando um captcha impossível de ser solucionado&#34; width=&#34;300&#34; height=&#34;193&#34; srcset=&#34;uploads/2012/08/captcha-300x193.jpg 300w, uploads/2012/08/captcha.jpg 366w&#34; sizes=&#34;(max-width: 300px) 100vw, 300px&#34; /&gt;Por trás de uma máquina, alguém faz perguntas sem sentido, com a intenção de descobrir se você é uma pessoa ou robô. Não estou falando do interrogatório do caçador de andróides, entre Rick Deckard e Rachael durante uma sequência do filme &lt;a href=&#34;http://www.imdb.com/title/tt0083658/&#34;&gt;Blade Runner&lt;/a&gt;, de 1982. Estou falando de uma pessoa que está fazendo uma compra em uma loja online em 2012. Estou falando do CAPTCHA.&lt;/p&gt;
+
+&lt;p&gt;O CAPTCHA, acrônimo de “_Completely Automated Public Turing test to tell Computers and Humans Apart_” é um teste cognitivo criado para evitar que robôs preencham campos de formulários, especialmente para o envio de spams. Segundo a &lt;a href=&#34;http://pt.wikipedia.org/wiki/CAPTCHA&#34;&gt;definição da Wikipedia&lt;/a&gt;, “Como os computadores são incapazes de resolver o CAPTCHA, todo usuário que incorpora uma solução correta é presumidamente humano”, significa que quem passar no teste do formulário é um humano, certo? Errado.&lt;/p&gt;
+
+&lt;p&gt;Em 2011, &lt;a href=&#34;http://elie.im/publication/text-based-Captcha-strengths-and-weaknesses#.UDzNQ8FlSk8&#34;&gt;uma equipe da Universidade de Standford desenvolveu técnicas para quebrar os mais conhecidos CAPTCHAs disponíveis na web&lt;/a&gt;, e o resultado foi assustador: 66% dos “Captchas” usados pelo Authorize.net foram quebrados pela técnica e quase todos os desafios do site da CNN foram solucionados. Resumindo, estamos permitindo que robôs acessem o conteúdo que devia estar disponível somente para as pessoas.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://acessodigital.net/art_captcha-heroi-ou-vilao.html&#34;&gt;Esse artigo da Lêda Spelta e do Horácio Soares da Digital Acesso explica com detalhes as diversas barreiras que os CAPTCHAs criam em nome da segurança&lt;/a&gt;. São várias técnicas ineficazes criadas para proteger o sistema de invasores e robôs que estão barrando o acesso de seus usuários. Nesse mesmo artigo os autores abordam com mais profundidade detalhes sobre outras pesquisas e estudos e comentam sobre a decisão da BBC de abolir o CAPTCHA de suas páginas.&lt;/p&gt;
+
+&lt;p&gt;Além da grande barreira de acessibilidade, já que os CAPTCHAs tradicionais não costumam ser acessíveis, novas modalidades de CAPTCHA mais difíceis vem sendo criados para evitar que robôs consigam acessar seus formulários, mas alguns exemplos mostram que isso está se tornando mais difícil para o usuário tambem.&lt;/p&gt;
+
+&lt;p&gt;É o caso &lt;a href=&#34;http://areyouahuman.com/demo/&#34;&gt;desse exemplo&lt;/a&gt;, desenvolvido em um formato de “jogo” para facilitar a conclusão das tarefas. Ele é inacessível para um usuário que não consegue utilizar um mouse, como uma pessoa com deficiência visual ou tetraplegia. Para minimizar essa questão, os desenvolvedores criaram um ícone de acessibilidade, que pede para o usuário escutar um som incompreensível e digitar alguma palavra em uma caixa de texto.&lt;/p&gt;
+
+&lt;p&gt;Enquanto algumas empresas buscam técnicas cada vez mais complexas para evitar que robôs acessem o conteúdo da sua página, algumas optam por fazer o mais simples e acessível. É o caso do formulário de contato do &lt;a href=&#34;http://www.faberludens.com.br/pt-br/contact&#34;&gt;Instituto Faber Ludens&lt;/a&gt;, que utiliza uma pergunta simples em modo texto para verificar se não somos robôs preenchendo um campo de formulário. Um usuário que utiliza um software leitor de tela, por exemplo, consegue facilmente preencher esse campo. A mesma criatividade para desenvolver CAPTCHAs inacessíveis pode trazer ótimas soluções para garantir a segurança dos sistemas sem barrar o acesso das pessoas.&lt;/p&gt;
+
+&lt;p&gt;A web é feita de pessoas e para pessoas. O acesso a informação de qualquer lugar é uma vitória que hoje nós temos que comemorar. Estamos construindo uma web para as pessoas que deve ser segura, mas que não deve criar barreiras de acesso para os seres humanos. Quem sabe, muito antes desse futuro não tão distante previsto por Ridley Scott, eu não tenha mais que provar para uma máquina que eu sou um ser humano.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Drops 10 – Web Apps ou Instaláveis no dispositivos?</title>
+      <link>http://tableless.com.br/drops-10-web-apps-ou-instalaveis-no-dispositivos/</link>
+      <pubDate>Fri, 22 Jun 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/drops-10-web-apps-ou-instalaveis-no-dispositivos/</guid>
+      <description>&lt;p&gt;Você fará uma aplicação. Essa aplicação será instalada no dispositivo ou será baseada em web?&lt;/p&gt;
+
+&lt;p&gt;Essa é uma discussão antiga e não dá para dizer o que é certo e errado por enquanto. Eu sou do time do pessoal que acha que web apps são o melhor caminho. Tenho alguns motivos para pensar assim e quero compartilhar com vocês nesse Drops. O que você acha sobre isso?&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/podcast/drops10.mp3&#34;&gt;Link direto do arquivo&lt;/a&gt;. &lt;a href=&#34;feed://tableless.com.br/categoria/podcasts/feed/&#34;&gt;RSS direto do podcast&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Adobe: The Expressive Web</title>
+      <link>http://tableless.com.br/adobe-the-expressive-web/</link>
+      <pubDate>Fri, 11 May 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/adobe-the-expressive-web/</guid>
+      <description>&lt;p&gt;Essa é antiga, mas muita gente ainda não viu!&lt;/p&gt;
+
+&lt;p&gt;Mais uma iniciativa da Adobe para divulgar as maravilhas do CSS3 e HTML5. O The Expressive Web é um sitezinho maneiro onde a Adobe mostra alguns exemplos das novas features do HTML5 e do CSS3 com exemplos sensacionais.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://bit.ly/IYBclM&#34;&gt;The Expressive Web&lt;/a&gt;, by &lt;a href=&#34;http://adobe.com/&#34;&gt;Adobe&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Cada uma das features tem uma pequena descrição, e o mais importante, eles mostram uma porcentagem de quantos usuários veriam aquela feature. CANVAS, por exemplo, seria visto por 75% dos usuários, obviamente, dos usuários que usarem browsers novos, como IE9, Safari, Chrome e etc&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Não vá ver isso em um Internet Explorer ruim ou um browser antigo. Estamos falando de web de verdade, aqui. 😉&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>WebIntents – Framework para WebApps</title>
+      <link>http://tableless.com.br/webintents-framework-para-webapps/</link>
+      <pubDate>Fri, 06 Jan 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/webintents-framework-para-webapps/</guid>
+      <description>&lt;p&gt;O Chrome e o Firefox estão trabalhando juntos em um framework open-source que fazem aplicações web trabalhem juntas sem que uma precise dar informações sobre seus respectivos sistemas. O nome deste framework é &lt;a href=&#34;http://www.webintents.com/?utm_source=TablelessComBr&amp;amp;utm_medium=postLink&amp;amp;utm_campaign=link&#34;&gt;WebIntents&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O problema a ser resolvido é que se quisermos criar um sistema que utilize algumas facilidades de outros sistemas, nós precisamos aprender a API deste determinado sistema. Acontece que as APIs não são iguais. Se você quer utilizar um sistema de localização como Foursquare ou Gowalla, você precisa aprender como a API de cada um funciona e então escolher entre um dos dois ou utilizar os dois no seu sistema. Nesse caso, você tem o dobro do trabalho para manter seu sistema. Os dois podem modificar partes da sua API e você tem que ficar atento para que seu sistema não quebre. O WebIntents faz com que você consiga usar um comando para os dois serviços.&lt;/p&gt;
+
+&lt;p&gt;Web Intents, based on an existing capability in Google&amp;#8217;s Android mobile OS, will let Web apps express a simple call for an action, like &amp;#8216;share&amp;#8217; or &amp;#8216;edit,&amp;#8217; which receiving apps will be designed to use, without either app needing to have specific knowledge of the APIs of the other. This way, instead of having to code for each specific Web app one might want to access, developers can just use these simple requests, which will be built into the browser. The Chrome and Firefox teams are each building this functionality for their own browser, but they&amp;#8217;re combining their proposals to use a single API for Web app developers to reach both platforms.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://paul.kinlan.me/&#34;&gt;Paul Kinlan&lt;/a&gt;, o dono da ideia e desenvolvedor do Google, explica no em um &lt;a href=&#34;http://paul.kinlan.me/web-intents-a-fresh-look&#34;&gt;post no seu blog&lt;/a&gt; o que é o WebIntents:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&amp;#8220;If I built an image gallery application and I wanted to let users edit an image so that they can remove red-eye from a photo I either have to build an application that edits the images, or integrate with a 3rd party solution. Doing this is hard and stops you from building an awesome image gallery; and what happens if the user has a favorite service that they already use to remove red-eye? Simple, you have a frustrated user.&amp;#8221;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Não é de hoje que iniciativas de desenvolvedores e grandes empresas tomam forma para que o desenovlvimento web fique cada vez mais fácil e menos trabalhoso. Isso aconteceu com muitos grupos de desenvolvedores, como o pessoal da &lt;a href=&#34;http://webstandards.org/?utm_source=TablelessComBr&amp;amp;utm_medium=link&amp;amp;utm_campaign=postLink&#34;&gt;WaSP&lt;/a&gt;, o pessoal da &lt;a href=&#34;http://www.whatwg.org/?utm_source=TablelessComBr&amp;amp;utm_medium=link&amp;amp;utm_campaign=postLink&#34;&gt;WHATWG&lt;/a&gt; e mais uma vez agora com o pessoal do &lt;a href=&#34;http://www.webintents.com/?utm_source=TablelessComBr&amp;amp;utm_medium=link&amp;amp;utm_campaign=postLink&#34;&gt;WebIntents&lt;/a&gt;. Claro, existem outras iniciativas anônimas que nos fizeram chegar até aqui.&lt;/p&gt;
+
+&lt;p&gt;Eu gosto muito muito de uma frase do pessoal da WaSP utiliza há tempos: &lt;strong&gt;If not now, when? If not you, who?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/PaulKinlan/WebIntents&#34;&gt;Veja aqui o GitHub do Framework.&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Porque é a web que comanda</title>
+      <link>http://tableless.com.br/porque-e-a-web-que-comanda/</link>
+      <pubDate>Wed, 27 Jan 2010 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/porque-e-a-web-que-comanda/</guid>
+      <description>&lt;p&gt;A AppStore fez sucesso. Bastante. Por vários motivos: um deles foi por conta da remuneração do desenvolvedor. Teve gente que ganhou milhares de dólares sozinho vendendo aplicações por 99 centavos. Obviamente isso chamou a atenção de muita gente, que começou a fazer aplicações enlouquecidamente para ganhar alguns trocados. Consequentemente um grande números de aplicações que não precisam ser instaláveis no aparelho, apareceram. Vários desenvolvedores não perceberam que dependendo do seu sistema, ele não precisa ser desenvolvido exclusivamente para ser instalado na plataforma do iPhone.&lt;/p&gt;
+
+&lt;p&gt;Hoje, aparelhos como o iPhone, que tem um browser com um bom suporte a HTML 5 e CSS 3, possibilitam criar sistemas e aplicativos baseados em web, com características, designs e comportamentos idênticos aos de aplicações instaláveis nos aparelhos. E o melhor, podem ser utilizados de qualquer lugar, pela web. Outro ponto negativo é que desenvolver para iPhone/iPod Touch é um bocado burocrático. Você precisa ter o SDK que só funciona no OS X, e você precisa aprender Objective C para programar os Apps para Apple. Em contrapartida, para fazer um App baseado em Web, onde seus clientes acessarão o sistema diretamente pelo browser do aparelho, é preciso saber Javascript, HTML 5 e CSS 3. Se você já é desenvolvedor Web, você já sabe desenvolver para iPhone, iPod Touch, Android e qualquer outro dispositivo similar.&lt;/p&gt;
+
+&lt;p&gt;Se você gosta dos efeitos de transição dos aparelhos, você pode fazê-los sem problemas utilizando JQuery ou CSS 3. Há até um &lt;a href=&#34;http://www.jqtouch.com/&#34;&gt;plugin de JQuery chamado JQTouch&lt;/a&gt;, que permite fazer efeitos idênticos ao do iPhone. Esse plugin foi pensado exatamente para funcionar em Mobile Safari e outros aparelhos com browsers avançados, como no Android.&lt;/p&gt;
+
+&lt;p&gt;Um caso sobre o que estamos falando é a aplicação do Itaú. Se você tem um iPhone, baixe o aplicativo pela AppStore. Ao abrir o aplicativo, perceba que o sistema não faz nada além de mostrar o site do Itaú. É muito mais interessante e barato ensinar o usuário a visitar o site em vez de procurar um aplicativo e instalar. Não é necessário nem divulgar um endereço mobile do site &amp;#8211; esse aliás é outra discussão.&lt;/p&gt;
+
+&lt;p&gt;Obviamente, há exceções. A maioria dos jogos, se não todos, e alguns sistemas disponíveis funcionam melhor (ainda) se forem instalados no aparelho. Mas a grande maioria dos sistemas, principalmente aqueles que o usuário simplesmente insere ou verifca informações e dados, podem ser servidos diretamente pela web.&lt;/p&gt;
+
+&lt;p&gt;No caso do iPhone, os sistemas que utilizam recursos do aparelho, como por exemplo fazer o aparelho vibrar, bluetooth, bateria, GPS e etc, precisam ser instalados. Isso não se aplica a alguns mobiles da Nokia que são baseados na plataforma WRT.&lt;/p&gt;
+
+&lt;p&gt;A plataforma WRT permite que você desenvolva aplicativos utilizando Javascript, HTML e CSS. E por meio de Javascript, você pode ativar os recursos que ter utilizar no aparelho. Nesse caso, há uma vantagem em cima do iPhone: você não precisa aprender Objective C. Basta saber Javascript, CSS e HTML.&lt;/p&gt;
+
+&lt;p&gt;O cenário de hoje é interessante. Tudo o que o desenvolvedor sempre sonhou em utilizar de HTML 5 e CSS 3 pode ser aplicado no desenvolvimento para web mobile. Os browsers estão mais espertos e a cada dia trazem novidades interessantes para melhorar o desenvolvimento dos padrões e da web. Realmente, daqui pra frente, é um novo mundo que se forma. Um mundo tão ou mais complexo que o desenvolvimento web para desktops como conhecemos hoje. Pra mim, é mais apaixonante.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://developer.apple.com/iphone/library/documentation/UserExperience/Conceptual/MobileHIG/Introduction/Introduction.html&#34;&gt;Guidelines de User Experience&lt;/a&gt; da Apple.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.forum.nokia.com/Technology_Topics/Web_Technologies/Web_Runtime/&#34;&gt;Forum Nokia &amp;#8211; Web Runtime&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>1a. Conferência Web W3C Brasil</title>
+      <link>http://tableless.com.br/1a-conferencia-web-w3c-brasil/</link>
+      <pubDate>Fri, 28 Aug 2009 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/1a-conferencia-web-w3c-brasil/</guid>
+      <description>
+
+&lt;p&gt;A Conferência Web W3C Brasil foi criada para oferecer ao público brasileiro um amplo fórum anual de discussão e debate sobre a evolução da Web, a padronização de suas tecnologias e o impacto dessas tecnologias na sociedade e na cultura. A Conferência reunirá pesquisadores, desenvolvedores, usuários, empresas, agências digitais, mídia e todos aqueles que são apaixonados pela Web e que têm algo a oferecer, usar e debater.&lt;/p&gt;
+
+&lt;p&gt;A 1a. Conferência Web W3C Brasil 2009 será realizada em São Paulo, SP, nos dia 23 e 24 de novembro, no Blue Tree Towers Morumbi no bairro do Brooklin. Acesse os links para obter informações sobre o &lt;a href=&#34;http://conferenciaweb.w3c.br/mapa-do-local&#34;&gt;local&lt;/a&gt;, &lt;a href=&#34;http://conferenciaweb.w3c.br/hoteis&#34;&gt;hotéis da região&lt;/a&gt;, &lt;a href=&#34;http://conferenciaweb.w3c.br/chamada-de-trabalhos&#34;&gt;chamada de trabalhos&lt;/a&gt; ou sobre como &lt;a href=&#34;http://conferenciaweb.w3c.br/inscricoes&#34;&gt;se inscrever para participar da conferência da web brasileira&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;chamada-para-trabalhos&#34;&gt;Chamada para trabalhos&lt;/h3&gt;
+
+&lt;p&gt;Você pode ser um palestrante da 1a. Conferência Web W3C Brasil! Se você tem um caso prático e inovador de uso da web, ou fez uma pesquisa cujos resultados merecem ser compartilhados com toda a comunidade web brasileira, ou ainda tem o &amp;#8220;pulo do gato&amp;#8221; para ensinar em um tutorial, então atenda a nossa Chamada de &amp;#8216;Papers&amp;#8217;, Casos de uso e Tutoriais.&lt;/p&gt;
+
+&lt;p&gt;O Comitê de Programa vai selecionar as submissões mais relevantes para compor a programação da Conferência. Mais detalhes em &lt;a href=&#34;http://conferenciaweb.w3c.br/chamada-de-trabalhos&#34;&gt;Chamada de trabalhos&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Entre na &lt;a href=&#34;http://www.facebook.com/reqs.php#/group.php?gid=122287968751&amp;amp;ref=mf&#34;&gt;comunidade da conferência no Facebook&lt;/a&gt; e fique por dentro.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Propriedade do CSS: nth-child</title>
+      <link>http://tableless.com.br/nth-child/</link>
+      <pubDate>Thu, 16 Jul 2009 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/nth-child/</guid>
+      <description>
+
+&lt;p&gt;Se você é um cara muito técnico, que adora matemática e números, prefiro que você &lt;a href=&#34;http://www.w3.org/TR/css3-selectors/#nth-child-pseudo&#34;&gt;leia a documentação do W3C&lt;/a&gt; sobre &lt;code&gt;nth-child&lt;/code&gt;. Ela é mais rica em detalhes sobre o cálculo que essa pseudo-classe faz. Este artigo é para os pobres mortais.&lt;/p&gt;
+
+&lt;p&gt;Você já precisou de criar uma tabela zebrada? Eu já, muitas vezes. Provavelmente se você não sabe programar, você precisa chamar um programador para escrever duas ou três linhas de código Javascript ou até mesmo usando JQuery, para fazer a mágica para você. A idéia do CSS, é que nós, designers, possamos controlar a aparência dos elementos HTML. Isso inclui conseguirmos fazer uma maldita tabela zebrada também. Para isso e para outros problemas parecidos, podemos utilizar a pseudo-classe &lt;code&gt;nth-child&lt;/code&gt;. Com esta pseudo-classe é possível selecionar um determinado elemento dentro de uma árvore de elementos. Por exemplo, podemos selecionar todas as linhas ímpares das tabela. Legal, hein?&lt;/p&gt;
+
+&lt;h4 id=&#34;cálculo-básico&#34;&gt;Cálculo básico&lt;/h4&gt;
+
+&lt;p&gt;O cálculo utilizado pelo &lt;code&gt;nth-child&lt;/code&gt; é bastante simples. Você vai usar na maioria das vezes soma. Lembra? A fómula será a seguinte: &lt;em&gt;an+b&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;table tbody tr:nth-child(2n+1) {&lt;/p&gt;
+
+&lt;p&gt;background:lightgray;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;O funcionamento é o seguinte: o browser aplica o estilo a cada 2 &lt;code&gt;tr&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;O código abaixo, aplica o estilo a cada 3 &lt;code&gt;tr&lt;/code&gt;. E assim por diante.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;table tbody tr:nth-child(3n+1) {&lt;/p&gt;
+
+&lt;p&gt;background:lightgray;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Você pode facilitar, utilizando as palavras &lt;em&gt;odd&lt;/em&gt; ou &lt;em&gt;even&lt;/em&gt;, para selecionar os elementos ímpares ou pares da árvore.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;table tbody tr:nth-child(odd) {&lt;/p&gt;
+
+&lt;p&gt;background:lightgray;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Caso você queira pegar 9º, 19º, 29º e assim por diante:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;table tbody tr:nth-child(10n-1) {&lt;/p&gt;
+
+&lt;p&gt;background:lightgray;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Se o valor de &lt;em&gt;a&lt;/em&gt; (an+b) é igual 0, você não precisa colocar a fórmula, apenas o número referente a ordem do elemento. Exemplo:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;table tbody tr:nth-child(1) {&lt;/p&gt;
+
+&lt;p&gt;background:lightgray;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Neste código, o browser iá colorir o background apenas do primeiro &lt;code&gt;tr&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2009/07/nth-child-ex1.html&#34;&gt;Veja o exemplo.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;A propriedade &lt;code&gt;nth-child&lt;/code&gt; faz parte dos seletores do CSS 3 e já pode ser utilizado em browsers atuais.&lt;/p&gt;
+
+&lt;p&gt;Se você ainda não leu sobre seletores do CSS, leia estes artigos abaixo:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://tableless.com.br/seletores-agrupados-e-encadeados&#34;&gt;Seletores encadeados e agrupados&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://tableless.com.br/pseudo-classes-css&#34;&gt;Seletores do CSS &amp;#8211; Pseudo-classes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://tableless.com.br/seletores-complexos-do-css&#34;&gt;Seletores Complexos do CSS&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

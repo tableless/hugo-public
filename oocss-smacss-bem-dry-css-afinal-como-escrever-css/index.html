@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/oocss-smacss-bem-dry-css-afinal-como-escrever-css/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/oocss-smacss-bem-dry-css-afinal-como-escrever-css/">OOCSS, SMACSS, BEM, DRY CSS: afinal, como escrever CSS?</a></h1>
+  <p class="tb-hero-p">
+    
+    Conheça os principais estilos de escrita de CSS e aprenda o que você pode extrair deste mar de siglas para escrever código melhor.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/jean-carlo-emer">Jean Carlo Emer</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Já sabemos que se tratando de CSS, apesar da escrita ser muito simples, há uma série de armadilhas. Começamos não utilizando <code>!important</code> ou <code>tags</code> para estilização, <a href="http://josh.github.io/css-explain">considerando o peso dos seletores</a> e adotando um <em>code standard</em>. Mas ainda não damos tanta atenção para a arquitetura que está intimamente ligada a futuros conflitos. Um conflito de CSS é fruto de código mal escrito que cancela regras ou as aplicada em porções inadequadas do <em>layout</em>.</p>
+
+<p>Saiba que não se trata de aprender algumas técnicas a mais, antes que alguém deixe um dos muito comentários infelizes que figuram em outros textos do assunto, trata-se essencialmente de reconhecer soluções para um problema pertinente e comum. <strong>É preciso pensar como organizar nosso código CSS</strong>. Melhor ainda, devemos planejar qual será a <strong>o estilo de arquitetura</strong> da nossa folha de estilo.</p>
+
+<h2 id="conceitos-básicos">Conceitos básicos</h2>
+
+<p>A experiência nos mostra aquilo que Phil Karlton já dizia: uma das tarefas mais árduas da computação é a de nomear coisas. E isto é o que fazemos o tempo todo quando escrevemos CSS, definir quais serão nossos seletores. Esta tarefa envolve organização, padronização, planejar reutilização e uma série de outras disciplinas.</p>
+
+<p>Um ponto pertinente é compreendermos o significado de semântica, que define a relação entre símbolos e seu significado, neste contexto. Nicolas Gallagher escreveu um texto sensacional sobre <a href="http://nicolasgallagher.com/about-html-semantics-front-end-architecture">semântica no HTML e sua não relação com semântica da arquitetura do front-end</a>. A semântica das <em>tags</em> do HTML e Microdata está muito bem definida nas especificações e deve ser respeitada. Através dela é possível para humanos e máquinas melhor interpretar as informações contidas em um documento.</p>
+
+<p>Por outro lado, ao contrário daquilo que muitos pensam, não há nenhuma semântica a ser seguida quando atribuímos classes a um elemento. <strong>Não existe classe não semântica</strong>, já que seu significado deve ser estabelecido em cada projeto.</p>
+
+<h2 id="object-oriented-css">Object Oriented CSS</h2>
+
+<p>O conteúdo de um website geralmente é bem específico em cada uma das páginas. É pouco comum que o mesmo conteúdo se manifeste em diferentes seções de um projeto. Portanto, <strong>classes nomeadas com base no conteúdo são bastante difíceis de serem reusadas</strong>.</p>
+
+<p>Segundo o OOCSS, um <em>objeto de CSS</em> é todo <strong>padrão visual</strong> que pode se repetir no projeto e é identificado através de uma classe. O estilo enfatiza a separação de propriedades de estrutura e de <em>skin</em>. Propriedades como <code>background</code>, <code>color</code> e <code>border</code>, quando fizerem parte da identidade visual do projeto, são consideras parte do <em>skin</em> e devem ser agrupadas em classes próprias. Observe a classe de <em>skin</em> <code>anchor-icon</code>, que define um <code>background</code>, utilizada juntamente com duas classes de estrutura: <code>&lt;button class=&quot;button anchor-icon&quot;&gt;Abrir&lt;/button&gt;</code> e <code>&lt;a class=&quot;link anchor-icon&quot;&gt;Tableless&lt;/a&gt;</code>.</p>
+
+<p>O uso dos objetos ao longo do projeto não deve causar surpresas, o que significa que sua localização não deve interferir na sua apresentação. Isto significa não utilizar <em>nesting</em> de seletores. Caso sejam necessárias variações, objetos podem estender outros diretamente no HTML: <code>&lt;div class=&quot;graph graph-big&quot;&gt;</code>.</p>
+
+<p>Classes como <code>.wrapper</code>, <code>.image-replacement</code> e <code>.clearfix</code> aparecem em alguns exemplos que aplicam este sistema. O argumento é que se tratam de classes de estrutura com um padrão que pode ser reusado. Um exemplo: <code>&lt;div class=&quot;graph graph-big clearfix wrapper&quot;&gt;</code>.</p>
+
+<p>O maior ensinamento é o de utilizar classes baseadas na aparência ao invés de conteúdo ou até mesmo funcionalidade, que até pouco eu acreditava ser o ideal. Apesar dos demais conceitos serem interessantes, a documentação é vaga e não há um padrão de nomenclatura que diferencie classes de estruturação e de <em>skins</em>.</p>
+
+<h2 id="smacss">SMACSS</h2>
+
+<p>O sistema estabelece e é bastante baseado em cinco categorias de regras de CSS: <em>base</em>, <em>layout</em>, <em>module</em>, <em>state</em> e a pouco importante <em>theme</em>. As regras de <em>base</em> são as do tipo que não utilizam seletores com classes ou ids, as encontramos em um <em>CSS Reset</em> ou <em>normalize.css</em>. O sistema alerta sobre a <a href="http://stackoverflow.com/a/8357635">agressividade dos <em>CSS Resets</em></a> mas não alerta sobre as regras deste tipo definidas no próprio projeto, ainda mais quando aplicadas a <em>divs</em>, <em>spans</em> ou <em>headings</em>. <strong>Regras cujos seletores não utilizam classes são globais e qualquer decisão tomada neste nível irá perpetuar por todo o projeto, cuidado</strong>.</p>
+
+<p>As categorias de <em>layout</em> e <em>module</em> são bastante semelhantes. Pense no <em>layout</em> como elementos agregadores e geralmente únicos como <em>header</em>, <em>footer</em> e <em>sidebar</em>. O sistema propõe que regras de <em>layout</em> tenham ids ou classes com o prefixo <code>.l-</code> como seletores.</p>
+
+<p>As regras da categoria <em>module</em> englobam os demais componentes da página. O sistema não encoraja o uso de elementos nos seletores, preferindo <code>.box .title</code> ao invés de <code>.box h2</code>. Ainda, o seletores como <code>.box-title</code> são defendidos para facilitar a leitura do HTML.</p>
+
+<p>Assim como o OOCSS, o sistema repudia regras do tipo <code>#sidebar .media</code> onde a localização do elemento passa a ser relevante para sua apresentação. O SMACSS reforça que seja adicionada uma classe para abrigar as variações. O elemento da <em>sidebar</em> passa a ter a classe do módulo e também a do sub-módulo: <code>&lt;div class=&quot;media media-sidebar&quot;&gt;</code>.</p>
+
+<p>A categoria de <em>state</em> engloba regras responsáveis por gerenciar estado de componentes enquanto o usuário estiver navegando. Regras desta categorias são as únicas que podem e talvez precisem utilizar <code>!important</code>. O padrão indica que as classes possuam o prefixo <code>.is-</code>. Com certeza, algum dos seus projetos já precisou de uma classe como <code>.is-active</code>, <code>.is-collapsed</code> ou <code>is-current</code>.</p>
+
+<p>O SMACSS é mais uma série de tutoriais de como escrever um bom código que propriamente um sistema de CSS. Contra os padrões, <strong>não concordo com qualquer aparição de #id em folhas de estilos</strong> por ir contra os preceitos de reuso. O atributo id na realidade serve mais como um destino de navegação, por isto a necessidade de ser único. Considero um pouco estranho também o prefixo <code>l-</code> para as classes de <em>layout</em>, o que me atreve a desconsiderar totalmente a categoria e a gerir suas regras como se pertencessem a categoria <em>module</em>. Não existe necessidade desta distinção nos seletores, apenas separar as regras em um arquivo <code>layout.css</code> já é suficiente.</p>
+
+<p>A categoria de <em>state</em> é a mais interessante, o padrão fica muito conveniente para ser utilizado em código JavaScript. Quando o estado de um componente demanda regras muito específicas, o SMACSS sugere o seletor <code>.is-tab-active</code>. Desta maneira, o JavaScript perde um tanto da sua modularidade, seletores aninhados como <code>.tab.is-active</code> podem ser uma melhor jogada.</p>
+
+<p>Por fim, mesmo sendo <a href="http://www.smashingmagazine.com/2012/04/20/decoupling-html-from-css">bastante válido</a>, o SMACSS não soluciona alguns desafios típicos do <em>design</em> de componentes de médio porte pois em nenhum momento endereça como nomear adequadamente elementos descendentes.</p>
+
+<h2 id="bem">BEM</h2>
+
+<p>O BEM &#8211; sigla para <em>block</em>, <em>element</em>, <em>modifier</em> &#8211; é uma metodologia com várias versões cujo o preceito de esclarecer o desenvolvedor mais sobre o <em>markup</em> através de suas classes. <strong>Este sistema permite escrever sites de maneira rápida, auto-explicativa e com manutenção descomplicada</strong>. Esqueça seus preconceitos com os caracteres duplos de hifen, eu já deixei o meu de lado, e reflita a seguir o quanto mais de informação a classe <code>.report-graph__bar_size_big</code> oferece em relação as tradicionais <code>.bar</code>, <code>.report-graph-bar</code> ou <code>.graph-bar</code>.</p>
+
+<p>O <em>block</em> é uma entidade independente da aplicação, podendo ser o mais alto nível de abstração (<em>header</em>, <em>footer</em>) ou componente (<em>graph</em>, <em>tabs</em>). O <em>element</em> é um descendente dependente de um <em>block</em> que possui uma certa função. Para permitir nomes compostos e evitar ambiguidades, o padrão estabelece o controverso <code>__</code> como separador. Desmembrando a classe <code>report-graph__bar</code>, identificamos <em>bar</em> como <em>element</em> e sabemos da existência do elemento pai <em>report-graph</em>, que é o <em>block</em>.</p>
+
+<p>O estilo define o <em>modifier</em> como uma propriedade de um <em>block</em> ou <em>element</em> que altera sua aparência. Desta maneira, o <em>block</em> <code>.menu</code> poderia ser acrescido da classe <code>.menu_size_big</code>, note o uso de <code>_</code>.</p>
+
+<p>A fim de deixar o padrão um pouco mais claro, veja um exemplo:</p>
+
+<pre><code>  &lt;div class=&quot;report-graph&quot;&gt;
+    &lt;div class=&quot;report-graph__bar&quot;&gt;...&lt;/div&gt;
+    &lt;div class=&quot;report-graph__bar report-graph__bar_size_big&quot;&gt;...&lt;/div&gt;
+  &lt;/div&gt;
+</code></pre>
+
+<p>As classes <code>.report-graph</code>, <code>report-graph__bar</code> e <code>report-graph__bar_size_big</code> são, respectivamente, <em>block</em>, <em>element</em> e <em>modifier</em>. Neste ponto você já deve ter refletido e concluído que sim, há muito mais informação numa classes nomeada neste padrão.</p>
+
+<p>Uma das falhas do estilo é não possuir categorias como as do SMACSS. Segundo o padrão, o estado de um componente deve ser endereçado como um <em>modifier</em>, não há uma categoria de <em>state</em>. Conforme citei anteriormente, classes <em>modifier</em> como <code>.menu__item_state_current</code> tiram a modularidade do JavaScript fazendo com que o código dependa do componente. Alguns desenvolvedores também podem sentir falta do estilo não versar nada sobre regras aplicadas diretamente a elementos (categoria <em>base</em> do SMACSS) e boas práticas de CSS.</p>
+
+<p>O grande trunfo do padrão é mesmo sugerir uma nomenclatura adequada para elementos descendentes. Outro aspecto interessante é o padrão de <a href="http://bem.info/method/filesystem">organização de arquivos</a>.</p>
+
+<h2 id="dry-css">DRY CSS</h2>
+
+<p>O princípio consiste em não repetir propriedades com mesmos valores em seu código. De maneira simples, a todo momento que isto for necessário, estas propriedades devem ser agrupadas e endereçadas por vários seletores. O sistema define que o agrupamento seja nomeado através de um primeiro seletor, algo como <code>#MEDIUM-WHITE-BACKGROUND</code> para um agrupamento de <code>background</code> e <code>border</code> brancas. As custas deste primeiro seletor, muitos desenvolvedores confundem que o <em>pattern</em> sugere que este seletor seja usado no HTML, o que não é verdade.</p>
+
+<p>A técnica, assim como outros sistemas, sugere que seu código seja pensando em termos de padrões de aparência. O problema está no fato da técnica não sugerir melhor uso das classes de CSS. Segundo o sistema, sempre que a aparência de um elemento mudar, sua classe precisará ser movida para outros agrupamentos nas folhas de estilo. Sistemas como SMACSS e BEM endereçam mudanças de aparência com a criação de um submódulo ou modificador que será adicionado ao HTML evidenciando a alteração e permitindo manter a antiga aparência.</p>
+
+<p>Não entenda mal, os conceitos por trás do DRY CSS são válidos. Inclusive, já <a href="http://tableless.com.br/css-steroids">sugeri uma variação da técnica em conjunto com <em>placeholders</em> do SASS</a> para nomear propriedades que definem um elemento da aparência do seu projeto. Os <em>placeholders</em> carregam os conceitos de DRY CSS e ainda permitem basear sua arquitetura em outros sistemas mais poderosos.</p>
+
+<h2 id="afinal-como-escrever-css">Afinal, como escrever CSS</h2>
+
+<p>Como você deve ter reparado, todas os sistemas possuem conceitos e abordagens para escrever código melhor e acredito um pouco em cada um deles. Não vai adiantar muito pular para esta conclusão em busca de repostas, os conceitos já foram todos explorados.</p>
+
+<p>Saiba também que não é por nada que <em>Atomic CSS</em> não aparece no texto, sem levar em conta a metodologia e apesar das <a href="http://www.smashingmagazine.com/2013/10/21/challenging-css-best-practices-atomic-approach">tentativas em convencer</a>, não enxergo valor em classes como <code>.mt-20</code> e códigos como o do site <a href="https://my.yahoo.com">My Yahoo!</a>.</p>
+
+<p>Voltando ao ponto, por incrível que pareça, o ideal é mesmo misturar os sistemas. Uma boa referência é a <a href="https://github.com/suitcss/suit/blob/master/doc/naming-conventions.md">convenção do projeto SUIT CSS</a>. O projeto convenciona três categorias de classes: utilitárias, componentes e estado; cada uma seguindo um sistema. Classes utilitárias (OCSS) são estruturais, de baixo nível e possuem prefixo <code>.u-</code>: <code>.u-clearfix</code>, <code>u-row</code>, <code>u-span2</code>. Os componentes definem uma variação de BEM que introduz os sinais <code>--</code> para designar os <code>modifiers</code>. Vale a nota que este uso dos hifens é erroneamente atribuído ao BEM, que na realidade define unicamente <em>underscores</em>. Por fim, o sistema define classes de estado dos componentes seguindo o padrão do SMACSS.</p>
+
+<p>O projeto <a href="https://github.com/suitcss">SUIT CSS</a>, mantido por ninguém menos que Nicolas Gallagher, criador do normalize.css, é uma fonte incrível para se observar como definir classes seguindo esta mistura mágica de <em>pattenrs</em>. Um pequeno ponto contra a nomenclatura do projeto é o uso de classes em <code>CamelCase</code>. Portanto, deixarei logo abaixo uma pequena variação em <code>lowercase</code> para facilitar o entendimento e servir como um guia simples:</p>
+
+<pre><code>/* Utility */
+.u-utility-name {}
+
+/* Component */
+.block-name {}
+.block-name__element-name {}
+.block-name--modifier-name {}
+
+/* State */
+.is-global-state {}
+
+/* Component state (scoped to component) */
+.block-name.is-state-of-component {}
+</code></pre>
+
+<p>Acima de tudo, é essencial evoluirmos nosso entendimento sobre a importância da busca por um sistema para evitar conflitos de código e facilitar reuso até mesmo entre diferentes projetos. A adoção de um sistema abstrai o raciocínio repetitivo de buscar nomes para as classes e permite escrever CSS com um pouco menos de culpa.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

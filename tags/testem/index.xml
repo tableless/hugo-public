@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Testem on Tableless</title>
+    <link>http://tableless.com.br/tags/testem/index.xml</link>
+    <description>Recent content in Testem on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/testem/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Introdução de como executar testes unitários em diferentes tipos de navegadores</title>
+      <link>http://tableless.com.br/introducao-de-como-executar-testes-unitarios-em-diferentes-tipos-de-navegadores/</link>
+      <pubDate>Wed, 04 Dec 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/introducao-de-como-executar-testes-unitarios-em-diferentes-tipos-de-navegadores/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://saucelabs.com/&#34; title=&#34;SauceLabs&#34;&gt;SauceLabs&lt;/a&gt; é uma plataforma de teste que possibilita realizar testes automáticos ou manuais em aplicações móveis e web (incluindo navegadores como Internet Explorer, Opera, Safari, Android, iPhone, Chrome etc). Essa plataforma permite executar os testes em diversas linguagem de programação, porém, em nosso exemplo, iremos utilizar o NodeJS (JavaScript).&lt;/p&gt;
+
+&lt;p&gt;O NodeJS e o Gerenciador de Pacotes do Node (traduzido do inglês Node Package Manager &amp;#8211; NPM) podem ser baixados no &lt;a href=&#34;http://nodejs.org/download/&#34; title=&#34;site oficial NodeJS&#34;&gt;site oficial&lt;/a&gt;. Esse gerenciador de pacotes permite a interação com um repositório online via linha de comando, facilitando a instalação de várias ferramentas.&lt;/p&gt;
+
+&lt;p&gt;Nesse exemplo, será utilizado uma ferramenta chamada &lt;a href=&#34;https://github.com/airportyh/testem&#34; title=&#34;documentação do Test&#39;em&#34;&gt;Test&amp;#8217;em&lt;/a&gt;, que é gerenciada e instalada pelo NPM. Essa ferramenta permite rodar os testes unitários de JavaScript localmente em diferentes plataformas, tornando a execução mais fácil e divertida. Test&amp;#8217;em suporta vários frameworks de teste, tais como: Jasmine, QUnit e Mocha. Para instalar, basta digitar no terminal:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-ssh&#34;&gt;npm install testem -g&lt;/pre&gt;
+
+&lt;p&gt;No exemplo, será utilizado o framework Jasmine. Mesmo código do &lt;a href=&#34;https://saucelabs.com/docs/javascript-unit-testing-tutorial&#34; title=&#34;tutorial oficial do SauceLabs&#34;&gt;tutorial oficial do SauceLabs&lt;/a&gt;. As especificações do código estão descritas no arquivo PastaSpec.js e a implementação no arquivo Pasta.js. Ambos arquivos encontra-se abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;PastaSpec.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;describe(&#34;Pasta&#34;, function() { 
+  it(&#34;should make spaghetti bolognese&#34;, function() { 
+    var pasta = new Pasta(); 
+    pasta.add(&#34;tomatoes&#34;); 
+    pasta.add(&#34;garlic&#34;); 
+    pasta.add(&#34;olive&#34;); 
+    pasta.add(&#34;herbs&#34;); 
+    pasta.add(&#34;meat&#34;); 
+    expect(pasta.getType()).toEqual(&#34;bolognese&#34;); 
+    expect(pasta.isTasty()).toEqual(true); 
+  }); 
+
+  it(&#34;should make pasta with no sauce&#34;, function() { 
+    var pasta = new Pasta(); 
+    pasta.add(&#34;meat&#34;); 
+    expect(pasta.getType()).toEqual(undefined); 
+    // pasta with no sauce? yeah that&#39;s not too tasty 
+    expect(pasta.isTasty()).toEqual(false); 
+  }); 
+});&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Pasta.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function Pasta() { 
+  // recipes for good pasta sauces 
+  this.sauces = { 
+    &#39;bolognese&#39;: [&#34;tomatoes&#34;, &#34;garlic&#34;, &#34;olive&#34;, &#34;herbs&#34;, &#34;meat&#34;] 
+  }; 
+  this.sauceIngredients = []; 
+} 
+
+Pasta.prototype.add = function (ingredient) { 
+  this.sauceIngredients.push(ingredient); 
+}; 
+
+Pasta.prototype.getType = function () { 
+  for (var posssibleSauce in this.sauces) { 
+    var ingredientsValid = true; 
+    // checking if arrays are equal 
+    if (!(this.sauceIngredients.sort() &amp;gt; this.sauces[posssibleSauce].sort() || 
+          this.sauceIngredients.sort() &amp;lt; this.sauces[posssibleSauce].sort())) { 
+      return posssibleSauce; 
+    } 
+  } 
+  return undefined; 
+}; 
+
+Pasta.prototype.isTasty = function () { 
+  if (this.getType() !== undefined) { return true; } 
+  return false; 
+};&lt;/pre&gt;
+
+&lt;p&gt;Uma vez criado o arquivo de especificação &amp;#8216;PastaSpec.js&amp;#8217; e a implementação &amp;#8216;Pasta.js&amp;#8217;, é preciso criar um arquivo de configuração &amp;#8216;&lt;em&gt;testem.json&lt;/em&gt;&amp;#8216;. Necessário apenas informar o framework utilizado e os arquivos JavaScript. Conforme escrito abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;testem.json&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;{ 
+  &#34;framework&#34;: &#34;jasmine&#34;, 
+  &#34;src_files&#34;: [ 
+    &#34;Pasta.js&#34;, 
+    &#34;PastaSpec.js&#34; 
+  ] 
+}&lt;/pre&gt;
+
+&lt;p&gt;O Test&amp;#8217;em usa como padrão a porta 7357. O parâmetro &amp;#8216;&amp;#8211;port&amp;#8217; serve para especificar uma outra. Nesse caso, vamos utilizar a 8080, digitando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-ssh&#34;&gt;testem --port=8080&lt;/pre&gt;
+
+&lt;p&gt;Após a execução do comando, o resultado dos testes pode ser visto pela url &lt;strong&gt;&lt;a href=&#34;http://localhost:8080/&#34;&gt;http://localhost:8080/&lt;/a&gt;&lt;/strong&gt;. Caso a url seja aberta no Chrome, os testes serão executados no navegador Chrome. Caso aberta no Safari, será executado no Safari. Como ilustra a figura seguinte.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://camo.githubusercontent.com/4c25f04b60b6f6aaff1b50a0069ca0f5487860be/687474703a2f2f7332312e706f7374696d672e6f72672f6e72393273783469762f6a61736d696e655f74657374735f6f6e5f74657374656d2e706e67&#34; alt=&#34;testing Jasmine code on Test&#39;em&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para testar o código em diversos navegadores ou diversos sistemas operacionais, não é necessário ter máquinas virtuais nem mesmo outros dispositivos, como celulares ou tablet. O Sauce Labs prover o conector &lt;a href=&#34;http://saucelabs.com/downloads/Sauce-Connect-latest.zip&#34; title=&#34;Sauce Connect&#34;&gt;Sauce Connect&lt;/a&gt;. Com ele é possível criar uma conexão entre a nossa máquina e os servidores do SauceLabs, assim é possível rodar os testes dentro do firewall do Sauce Labs Cloud. Cloud que disponibiliza mais de &lt;a href=&#34;https://saucelabs.com/docs/platforms&#34; title=&#34;plataformas SauceLabs&#34;&gt;200 plataformas&lt;/a&gt;, que inclui dispositivos móveis, diversos SO e navegadores. Uma vez baixado o Sauce Connect, essa conexão é feita pelo comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-ssh&#34;&gt;java -jar Sauce-Connect.jar --tunnel-identifier &#34;tabless&#34; $SAUCE_USERNAME $SAUCE_ACCESS_KEY&lt;/pre&gt;
+
+&lt;p&gt;Vale ressaltar que _$SAUCE&lt;em&gt;USERNAME&lt;/em&gt; e &lt;em&gt;$SAUCE_ACCESS_KEY&lt;/em&gt; são variáveis de ambientes. Método recomendado para evitar a divulgação de dados privados. Para obter dados de acesso, acesse a &lt;a href=&#34;https://saucelabs.com/signup&#34; title=&#34;página de cadastro do SauceLabs&#34;&gt;página de cadastro&lt;/a&gt;. Após a criação da conta, uma chave de acesso já é fornecida, conforme é ilustrado na figura abaixo.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://camo.githubusercontent.com/b29a04372bbe9224392df879736467128316054e/687474703a2f2f7332312e706f7374696d672e6f72672f63673666346a786e722f73617563656c6162735f6163636f756e745f706167652e706e67&#34; alt=&#34;página inicial da conta SauceLabs&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Na página inicial, o botão &lt;strong&gt;New Interactive Session&lt;/strong&gt; permite a criação de uma instância de navegador. Uma popup (ilustrada na imagem abaixo) será exibida ao clicar no botão, com várias opções de sistema operacional e de navegador.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://camo.githubusercontent.com/7de3c788dc9a56a153bada645514034a442ae6d4/687474703a2f2f7332312e706f7374696d672e6f72672f736f693230616834372f6e65775f696e7465726163746976655f73657373696f6e5f706f7075702e706e67&#34; alt=&#34;popup para a criação de uma nova instância de navegador do SauceLabs&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Ao instanciar o navegador, é possível visualizar o resultado dos testes no terminal (ilustração na imagem abaixo). Os testes sempre serão executados novamente caso haja alguma alteração tanto no código quanto nas especificações, possibilitando assim a prática de TDD ou BDD, utilizando qualquer tipo de navegador.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://camo.githubusercontent.com/404afe58a076603719c0448fbc1a41ca92c85e0c/687474703a2f2f7332312e706f7374696d672e6f72672f74687a39366e6369762f697061645f73617563656c6162735f73657373696f6e2e706e67&#34; alt=&#34;instancia de um iPad do SauceLabs&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Esse exemplo contempla apenas a execução de testes de forma manual. Essas ferramentas que foram utilizadas também oferecem suporte para a automatização de testes, mas isso ficará para um próximo capítulo. Para quem se interessar, todo código está disponível em um &lt;a href=&#34;https://gist.github.com/igorlima/7649954&#34; title=&#34;gist do exemplo&#34;&gt;gist&lt;/a&gt;. Muito obrigado.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

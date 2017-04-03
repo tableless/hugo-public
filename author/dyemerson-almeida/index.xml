@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Dyemerson Almeida on Tableless</title>
+    <link>http://tableless.com.br/author/dyemerson-almeida/index.xml</link>
+    <description>Recent content in Dyemerson Almeida on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/dyemerson-almeida/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Paginação com JavaScript e jQuery</title>
+      <link>http://tableless.com.br/paginacao-com-javascript-e-jquery/</link>
+      <pubDate>Wed, 29 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/paginacao-com-javascript-e-jquery/</guid>
+      <description>&lt;p&gt;Algumas vezes, vamos deparar com uma situação onde é preciso fazer uma paginação sem a ajuda de uma linguagem de backend. É exatamente isso que vou ensinar aqui: fazer um sistema de paginação utilizando JavaScript , jQuery e Bootstrap.&lt;/p&gt;
+
+&lt;p&gt;Vamos primeiramente criar a nossa estrutura HTML e chamar as bibliotecas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums prettyprinted&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;script src=&#34;http://tableless.com.br/jquery/1.11.3/jquery.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;link rel=&#34;stylesheet&#34;href=&#34;/css/bootstrap.min.css&#34;&amp;gt;
+// somente para ficar mais &#34;bonito o layout&#34; vamos dar um padding-bottom no select
+&amp;lt;style type=&#34;text/css&#34;&amp;gt;
+.col-lg-12{
+   padding-bottom: 20px;
+  } 
+&amp;lt;/style&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;div class=&#34;col-lg-12&#34;&amp;gt;
+    &amp;lt;p&amp;gt;itens por pagina&amp;lt;/p&amp;gt;
+      &amp;lt;select id=&#34;qtd&#34;  class=&#34;form-control input-sm input-order&#34;&amp;gt;
+        &amp;lt;option value=&#34;1&#34;&amp;gt;1&amp;lt;/option&amp;gt;
+        &amp;lt;option value=&#34;2&#34;&amp;gt;2&amp;lt;/option&amp;gt;
+         &amp;lt;option value=&#34;3&#34;&amp;gt;3&amp;lt;/option&amp;gt;
+       &amp;lt;/select&amp;gt;
+     &amp;lt;/div&amp;gt;
+&amp;lt;div class=&#34;all&#34; id=&#34;conteudo&#34;&amp;gt;
+  &amp;lt;div class=&#34;col-lg-3 col-md-6&#34;&amp;gt;
+    &amp;lt;div class=&#34;panel panel-primary &#34;&amp;gt;
+        &amp;lt;p&amp;gt;Tabless 1&amp;lt;/p&amp;gt;
+      &amp;lt;/div&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;div class=&#34;col-lg-3 col-md-6&#34;&amp;gt;
+    &amp;lt;div class=&#34;panel panel-primary &#34;&amp;gt;
+        &amp;lt;p&amp;gt;Tabless 2&amp;lt;/p&amp;gt;
+      &amp;lt;/div&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;div class=&#34;col-lg-3 col-md-6&#34;&amp;gt;
+    &amp;lt;div class=&#34;panel panel-primary &#34;&amp;gt;
+        &amp;lt;p&amp;gt;Tabless 3&amp;lt;/p&amp;gt;
+      &amp;lt;/div&amp;gt;
+    &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+&amp;lt;div id=&#34;pagi&#34;&amp;gt;&amp;lt;/div&amp;gt; //div responsável por mostrar a paginação
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Reparem que eu escrevi 3 vezes a mesma div. Vocês podem repetir quantas vezes quiserem ou até coloca-lá em &lt;em&gt;loop&lt;/em&gt; (&lt;em&gt;foreach&lt;/em&gt; do PHP, por exemplo). É exatamente essa repetição que vamos paginar. Vamos agora criar as funções em JavaScript:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript &#34;&gt;&amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+//acionamos o jquery para iniciar a paginação quando o documento estiver &#34;pronto&#34;
+$(document).ready(function() {
+    //Pegamos o valor selecionado default no select id=&#34;qtd&#34;
+     var mostrar_por_pagina = $(&#39;#qtd&#39;).val(); 
+    //quantidade de divs
+      var numero_de_itens = $(&#39;#conteudo&#39;).children(&#39;.col-lg-3&#39;).size();
+     //fazemos uma calculo simples para saber quantas paginas existiram
+      var numero_de_paginas = Math.ceil(numero_de_itens / mostrar_por_pagina)
+    //Colocamos a div class controls dentro da div id pagi
+    $(&#39;#pagi&#39;).append(&#39;&amp;lt;div class=controls&amp;gt;&amp;lt;/div&amp;gt;
+      &amp;lt;input id=current_page type=hidden&amp;gt;&amp;lt;input id=mostrar_por_pagina type=hidden&amp;gt;&#39;);
+      $(&#39;#current_page&#39;).val(0);
+      $(&#39;#mostrar_por_pagina&#39;).val(mostrar_por_pagina);
+      //Criamos os links de navegação
+      var nevagacao = &#39;&amp;lt;li&amp;gt;&amp;lt;a class=&#34;prev&#34; onclick=&#34;anterior()&#34;&amp;gt;Prev&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&#39;;
+      var link_atual = 0;
+      while (numero_de_paginas &amp;gt; link_atual) {
+          nevagacao += &#39;&amp;lt;li&amp;gt;&amp;lt;a class=&#34;page&#34; onclick=&#34;ir_para_pagina(&#39; + link_atual + &#39;)&#34; longdesc=&#34;&#39; 
+          + link_atual + &#39;&#34;&amp;gt;&#39; + (link_atual + 1) + &#39;&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&#39;;
+          link_atual++;
+      }
+      nevagacao += &#39;&amp;lt;li&amp;gt;&amp;lt;a class=&#34;proxima&#34; onclick=&#34;proxima()&#34;&amp;gt;proxima&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&#39;;
+      //colocamos a nevegação dentro da div class controls
+      $(&#39;.controls&#39;).html(&#34;&amp;lt;div class=&#39;paginacao&#39;&amp;gt;\
+        &amp;lt;ul class=&#39;pagination pagination-sm&#39;&amp;gt;&#34;+nevagacao+&#34;&amp;lt;/ul&amp;gt;&amp;lt;/div&amp;gt;&#34;);
+      //atribuimos ao primeiro link a class active
+      $(&#39;.controls .page:first&#39;).addClass(&#39;active&#39;);
+      $(&#39;#conteudo&#39;).children().css(&#39;display&#39;, &#39;none&#39;);
+      $(&#39;#conteudo&#39;).children().slice(0, mostrar_por_pagina).css(&#39;display&#39;, &#39;block&#39;);
+  });
+&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Até aqui, a paginação já é mostrada, porém, ao clicar nos links, nada acontece. Vamos criar as seguintes funções em JavaScript para que funcione:  &lt;em&gt;ir_para_pagina()&lt;/em&gt;, _anterior()_ e &lt;em&gt;proxima()&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Então mãos à obra:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+function ir_para_pagina(numero_da_pagina) {
+      //Pegamos o número de itens definidos que seria exibido por página
+      var mostrar_por_pagina = parseInt($(&#39;#mostrar_por_pagina&#39;).val(), 0);
+      //pegamos  o número de elementos por onde começar a fatia
+      inicia = numero_da_pagina * mostrar_por_pagina;
+     //o número do elemento onde terminar a fatia
+      end_on = inicia + mostrar_por_pagina;
+     $(&#39;#conteudo&#39;).children().css(&#39;display&#39;, &#39;none&#39;).slice(inicia, end_on).css(&#39;display&#39;, &#39;block&#39;);
+     $(&#39;.page[longdesc=&#39; + numero_da_pagina+ &#39;]&#39;).addClass(&#39;active&#39;)
+       .siblings(&#39;.active&#39;).removeClass(&#39;active&#39;);
+    $(&#39;#current_page&#39;).val(numero_da_pagina);
+  }
+
+ function anterior() {
+     nova_pagina = parseInt($(&#39;#current_page&#39;).val(), 0) - 1;
+      //se houver um item antes do link ativo atual executar a função
+      if ($(&#39;.active&#39;).prev(&#39;.page&#39;).length == true) {
+          ir_para_pagina(nova_pagina);
+      }
+  }
+
+function proxima() {
+      nova_pagina = parseInt($(&#39;#current_page&#39;).val(), 0) + 1;
+      //se houver um item após o link ativo atual executar a função
+      if ($(&#39;.active&#39;).next(&#39;.page&#39;).length == true) {
+          ir_para_pagina(nova_pagina);
+      }
+  }
+&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Pronto, agora temos um sistema de paginação baseado em div&amp;#8217;s com JavaScript + jQuery, porém, precisamos pegar a quantidade de itens por página que o usuário escolher e remontar toda a paginação. Para isso, vamos usar a função &lt;em&gt;change&lt;/em&gt; do jQuery:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+// Pegamos o evento change do select id=&#34;qtd&#34; e remontamos toda a paginação default
+  $( &#34;#qtd&#34; ).change(function() {
+    //Removemos os &#34;controles&#34; de paginação
+      $(&#34;.controls&#34;).remove();
+    //Pegamos o valor selecionado
+      var mostrar_por_pagina = this.value;
+     //remontamos a paginação
+      var numero_de_itens = $(&#39;#conteudo&#39;).children(&#39;.col-lg-3&#39;).size();
+      var numero_de_paginas = Math.ceil(numero_de_itens / mostrar_por_pagina);
+      //Colocamos a div class controls dentro da div id pagi
+    $(&#39;#pagi&#39;).append(&#39;&amp;lt;div class=controls&amp;gt;&amp;lt;/div&amp;gt;
+      &amp;lt;input id=current_page type=hidden&amp;gt;&amp;lt;input id=mostrar_por_pagina type=hidden&amp;gt;&#39;);
+      $(&#39;#current_page&#39;).val(0);
+      $(&#39;#mostrar_por_pagina&#39;).val(mostrar_por_pagina);
+  //Criamos os links de navegação
+      var nevagacao = &#39;&amp;lt;li&amp;gt;&amp;lt;a class=&#34;prev&#34; onclick=&#34;previous()&#34;&amp;gt;Prev&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&#39;;
+      var link_atual = 0;
+      while (numero_de_paginas &amp;gt; link_atual) {
+          nevagacao += &#39;&amp;lt;li&amp;gt;&amp;lt;a class=&#34;page&#34; onclick=&#34;ir_para_pagina(&#39; + link_atual + &#39;)&#34; longdesc=&#34;&#39; 
+          + link_atual + &#39;&#34;&amp;gt;&#39; + (link_atual + 1) + &#39;&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&#39;;
+          link_atual++;
+      }
+      nevagacao += &#39;&amp;lt;li&amp;gt;&amp;lt;a class=&#34;next&#34; onclick=&#34;next()&#34;&amp;gt;Next&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&#39;;
+   //colocamos a navegação dentro da div class controls
+      $(&#39;.controls&#39;).html(&#34;&amp;lt;div class=&#39;paginacao&#39;&amp;gt;
+        &amp;lt;ul class=&#39;pagination pagination-sm&#39;&amp;gt;&#34;+nevagacao+&#34;&amp;lt;/ul&amp;gt;&amp;lt;/div&amp;gt;&#34;);
+      $(&#39;.controls .page:first&#39;).addClass(&#39;active&#39;);
+      $(&#39;#conteudo&#39;).children().css(&#39;display&#39;, &#39;none&#39;);
+      $(&#39;#conteudo&#39;).children().slice(0, mostrar_por_pagina).css(&#39;display&#39;, &#39;block&#39;);
+    
+  });
+&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Nosso sistema de paginação completo, totalmente no HTML, é uma das vantagens dessa paginação. O ganho de performance, claro, depende da quantidade de dados.&lt;/p&gt;
+
+&lt;p&gt;Adaptado de &lt;a href=&#34;http://web.enavu.com/tutorials/making-a-jquery-pagination-system/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://web.enavu.com/tutorials/making-a-jquery-pagination-system/&#34;&gt;http://web.enavu.com/tutorials/making-a-jquery-pagination-system/&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

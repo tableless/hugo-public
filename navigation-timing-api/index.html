@@ -1,0 +1,720 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/navigation-timing-api/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/navigation-timing-api/">Medindo performance e latência com a Navigation Timing API</a></h1>
+  <p class="tb-hero-p">
+    
+    A Navigation Timing API é uma nova especificação do W3C para lidar com aferição de performance de modo mais efetivo em páginas web.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/talita-pagani">Talita Pagani</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Performance e latência são alguns dos requisitos de qualidade e experiência do usuário mais desafiadores em desenvolvimento web, especialmente quanto à <a href="http://tableless.com.br/performance-frontend-parte1/#.UTYrNTDFSSo">performance <em>client-side</em></a>.Sabemos como aplicar <a href="http://tableless.com.br/como-perder-peso-no-browser/#.UT4quRzFSSo">técnicas que melhoram muito a performance da página</a>, mas medir o desempenho adequadamente já não é tão trivial à nossa rotina de desenvolvimento. Pensando nisso, o W3C tem uma nova recomendação chamada <a href="http://www.w3.org/TR/navigation-timing/">Navigation Timing API</a>. Com isso, é possível obter métricas e estatísticas detalhadas de modo nativo sobre tempo de carregamento, navegação entre páginas e carregamento de eventos.</p>
+
+<p>A vantagem desta API sobre ferramentas externas e outras técnicas de aferição de latência via JavaScript é a quantidade de informações que podem ser obtidas sobre o tempo de carregamento da página em diferentes fases, proporcionando a medição em um escopo maior (<em>end-to-end</em>). Ferramentas como o <a href="https://developers.google.com/speed/pagespeed/insights">PageSpeed</a> e o <a href="http://www.webpagetest.org/">WebPageTest</a> já têm utilizado dados da Navigation Timing API na análise de carregamento de páginas.</p>
+
+<h2 id="suporte">Suporte</h2>
+
+<p>Até o momento da escrita deste artigo, a <a href="http://caniuse.com/#feat=nav-timing">Navigation Timing é suportada</a> pelo Chrome 24.0+, Firefox 18.0+ e IE 9+. A especificação já é recomendação do W3C desde dezembro de 2012 e a versão 2 da API já está em desenvolvimento.</p>
+
+<h2 id="utilizando-o-objeto-window-performance">Utilizando o objeto window.performance</h2>
+
+<p>Os parâmetros de carregamento da página são acessados através das propriedades <strong><em>navigation</em></strong> e <strong><em>timing</em></strong> do objeto <strong><em>[window.]performance</em></strong>. A propriedade <em><strong>navigation</strong></em> contém informações sobre como o usuário chegou à página e a propriedade <em><strong>timing</strong></em> apresenta as informações sobre carregamento da página.</p>
+
+<p>É possível testar o <em><strong>window.performance</strong></em> diretamente no console do navegador. Supondo que estamos utilizando o Chrome, basta abrir a Developer Tools &gt; Console e digitar <em><strong>performance</strong></em> no prompt. Abaixo, um exemplo do que você poderá obter. Note que o Chrome adiciona mais uma propriedade chamada <em><strong>memory</strong></em>, que pode ser acessada pelo <em><strong>performance.memory</strong></em>, apresentando informações sobre a utilização de memória pelo JavaScript.</p>
+
+<div id="attachment_15833" style="width: 413px" class="wp-caption aligncenter">
+  <a href="http://tableless.com.br/wp-content/uploads/2013/03/Capturar.png"><img class="size-full wp-image-15833" alt="Detalhes das propriedades do Navigation Timing API" src="http://tableless.com.br/wp-content/uploads/2013/03/Capturar.png" width="403" height="512" srcset="uploads/2013/03/Capturar.png 403w, uploads/2013/03/Capturar-132x168.png 132w, uploads/2013/03/Capturar-244x310.png 244w" sizes="(max-width: 403px) 100vw, 403px" /></a>
+  
+  <p class="wp-caption-text">
+    Detalhes das propriedades do Navigation Timing API
+  </p>
+</div>
+
+<p>Cada uma destas propriedades do timing expressa o tempo de um determinado evento em milisegundos a partir das 00:00 do dia 1º de Janeiro de 1970 (UTC). Quando o valor de algum dos atributos é zero, significa que este evento não ocorreu.</p>
+
+<h2 id="os-tipos-de-navegação-ou-como-cheguei-até-esta-página">Os tipos de navegação ou “como cheguei até esta página?”</h2>
+
+<p>A <em><strong>window.performance.navigation</strong></em> armazena dois atributos que pode ser utilizados para detectar como o usuário chegou à página atual, por exemplo, via um redirecionamento, botões de navegação do histórico do navegador ou entrada normal por URL na barra de endereço. Os atributos são:</p>
+
+<ul>
+<li><strong><em>redirectCount</em></strong><strong>:</strong> o número de redirecionamentos que ocorreram até que a página final fosse carregada;</li>
+<li><strong><em>type</em></strong><strong>:</strong> a forma como o usuário chegou à página.</li>
+</ul>
+
+<p>O atributo type é uma constante do tipo enumerada e pode apresentar os seguintes valores:</p>
+
+<table border="1" cellspacing="0" cellpadding="0">
+  <tr>
+    <td valign="top" width="157">
+      <b>Constante</b>
+    </td>
+    
+    <td valign="top" width="48">
+      <b>Valor</b>
+    </td>
+    
+    <td valign="top" width="376">
+      <b>Descrição</b>
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="157">
+      <code>TYPE_NAVIGATENEXT</code>
+    </td>
+    
+    <td valign="top" width="48">
+    </td>
+    
+    <td valign="top" width="376">
+      Navegação iniciada por click em um link, entrada de URL na barra de endereço do navegador, submissão de formulário ou por uma operação de script.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="157">
+      <code>TYPE_RELOAD</code>
+    </td>
+    
+    <td valign="top" width="48">
+      1
+    </td>
+    
+    <td valign="top" width="376">
+      Recarregamento de página (por botão de <i>refresh</i> ou location.reload()).
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="157">
+      <code>TYPE_BACK_FORWARD</code>
+    </td>
+    
+    <td valign="top" width="48">
+      2
+    </td>
+    
+    <td valign="top" width="376">
+      Navegação através dos botões de avançar/voltar do navegador ou por operações de navegação no histórico através de script (ex.: history.back()).
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="157">
+      <code>TYPE_UNDEFINED</code><code></code>
+    </td>
+    
+    <td valign="top" width="48">
+      255
+    </td>
+    
+    <td valign="top" width="376">
+      Qualquer tipo de navegação que não se enquadre nos valores acima.
+    </td>
+  </tr>
+</table>
+
+<h2 id="os-atributos-de-tempo-de-carregamento">Os atributos de tempo de carregamento</h2>
+
+<p>A propriedade <em><strong>window.performance.timing</strong></em> armazena os dados relevantes sobre o tempo de carregamento desde o momento em que o navegador dispara a requisição para obter a página até o momento em que o carregamento de todo o documento é finalizado. A tabela abaixo mostra uma breve descrição destes eventos na ordem em que eles ocorrem:</p>
+
+<table border="1" cellspacing="0" cellpadding="0">
+  <tr>
+    <td valign="top" width="90">
+      <b>Estágio</b>
+    </td>
+    
+    <td valign="top" width="222">
+      <b>Atributo</b>
+    </td>
+    
+    <td valign="top" width="269">
+      <b>Descrição</b>
+    </td>
+  </tr>
+  
+  <tr>
+    <td rowspan="11" width="90">
+      <p align="center">
+        Rede
+      </p>
+    </td>
+    
+    <td valign="top" width="222">
+      navigationStart
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo depois de o documento anterior ter iniciado o evento de <i>unload</i>.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      unloadEventStart
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo imediatamente antes do evento de unload ser disparado.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      unloadEventEnd
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo após o documento anterior ter completado o unload, ou seja, ter sido descarregado para que o próximo documento seja carregado.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      redirectStart
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo da busca que iniciou o redirecionamento.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      redirectEnd
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo após a ocorrência do último redirecionamento.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      fetchStart
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo em que o recurso começa a ser buscado.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      domainLookupStart
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo imediatamente antes de iniciar a resolução de nome do domínio.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      domainLookupEnd
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo após finalizar a resolução de nome do domínio.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      connectStart
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo imediatamente antes de iniciar a conexão com o servidor para solicitar o recurso.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      connectEnd
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo em que a conexão com o servidor é finalizada.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      secureConnectionStart
+    </td>
+    
+    <td valign="top" width="269">
+      Para os browsers onde este atributo existe (o IE não o possui no momento), ele retorna o tempo em que foi iniciada uma conexão HTTPS.
+    </td>
+  </tr>
+  
+  <tr>
+    <td rowspan="3" width="90">
+      <p align="center">
+        Servidor
+      </p>
+    </td>
+    
+    <td valign="top" width="222">
+      requestStart
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo imediatamente antes da requisição do documento ao servidor.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      responseStart
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo imediatamente após o recebimento do primeiro byte de resposta do servidor.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      responseEnd
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo após a finalização da resposta (recebimento do último byte) ou conexão com o servidor.
+    </td>
+  </tr>
+  
+  <tr>
+    <td rowspan="7" width="90">
+      <p align="center">
+        Browser
+      </p>
+    </td>
+    
+    <td valign="top" width="222">
+      domLoading
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo em que o status do documento passa a ser “loading”.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      domInteractive
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo em que o status do documento passa a ser “interactive” (DOM completamente interpretado pelo <i>parser</i> do <i>user agent</i>).
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      domContentLoadedEventStart
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo em que o evento DOMContentLoaded é disparado no documento.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      domContentLoadedEventEnd
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo após finalizar o evento DOMContentLoaded.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      domComplete
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo em que o status do documento passa a ser “complete”. O status “complete” difere do “interactive” pois engloba a execução de scripts.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      loadEventStart
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo em que inicia a execução do evento de <i>load</i> da página.
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="222">
+      loadEventEnd
+    </td>
+    
+    <td valign="top" width="269">
+      Tempo em que finaliza a execução do evento de <i>load</i> da página.
+    </td>
+  </tr>
+</table>
+
+<p>Conforme a developer <a href="http://66.7percentangel.com/2011/12/breaking-down-onload-event-performance-bookmarklet/">Kasia explica em um artigo de seu blog</a>, os eventos de Rede envolvem tudo que acontecem antes do browser enviar a requisição do documento e pode ajudar a medir latência de rede; os eventos de Servidor são referentes aos tempos de requisição e resposta do documento, ajudando a medir quanto tempo o servidor leva para processar a página; por fim, os eventos do Browser ocorrem a partir do momento que o documento é criado até o momento em que o evento de <em><strong>onload</strong></em> é disparado, auxiliando a medir de fato a performance <strong><em>client-side</em></strong>.</p>
+
+<p>Na timeline abaixo, <a href="http://www.w3.org/TR/navigation-timing/#processing-model">retirada da documentação da API</a>, é possível ver o fluxo de execução destes eventos.****</p>
+
+<p>&nbsp;</p>
+
+<div style="width: 576px" class="wp-caption aligncenter">
+  <a href="http://www.w3.org/TR/navigation-timing/timing-overview.png"><img class="   " alt="Modelo de Processo da Navigation Timing API" src="http://www.w3.org/TR/navigation-timing/timing-overview.png" width="566" height="338" /></a>
+  
+  <p class="wp-caption-text">
+    Modelo de Processo da Navigation Timing API
+  </p>
+</div>
+
+<h2 id="como-utilizar-todos-estes-dados-para-extrair-as-informações-que-nos-interessam">Como utilizar todos estes dados para extrair as informações que nos interessam?</h2>
+
+<p>Depois de toda esta fundamentação teórica, chegamos de fato no ponto que nos interessa, o pulo do gato: como utilizar estes dados para obter as métricas de performance. Geralmente, a forma de obter estas informações se dá pelo cálculo da diferença entre alguns atributos.</p>
+
+<p>Compilando alguns exemplos apresentados pelo <a href="http://www.html5rocks.com/en/tutorials/webperformance/basics/">Sam Dutton do HTML5Rocks</a>, <a href="http://www.sitepoint.com/profiling-page-loads-with-the-navigation-timing-api/">Colin Ihrig do SitePoint</a> e a <a href="https://developer.mozilla.org/en-US/docs/Navigation_timing">documentação de JS da Mozilla</a>, temos as seguintes combinações (mas é possível obter muito mais):</p>
+
+<table border="1" cellspacing="0" cellpadding="0">
+  <tr>
+    <td valign="top" width="234">
+      <b>Informação</b>
+    </td>
+    
+    <td valign="top" width="342">
+      <b>Cálculo</b>
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="234">
+      Tempo total de latência de rede
+    </td>
+    
+    <td valign="top" width="342">
+      responseEnd &#8211; fetchStart
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="234">
+      Tempo de carregamento da página a partir do momento que a página é retornada do servidor
+    </td>
+    
+    <td valign="top" width="342">
+      loadEventEnd &#8211; responseEnd
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="234">
+      Tempo total de carregamento da página
+    </td>
+    
+    <td valign="top" width="342">
+      loadEventEnd &#8211; navigationStart
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="234">
+      Tempo de resposta a uma requisição feita ao servidor
+    </td>
+    
+    <td valign="top" width="342">
+      responseEnd &#8211; requestStart
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="234">
+      Tempo de redirecionamento
+    </td>
+    
+    <td valign="top" width="342">
+      redirectEnd &#8211; redirectStart
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="234">
+      Tempo de resolução do DNS
+    </td>
+    
+    <td valign="top" width="342">
+      domainLookupEnd &#8211; domainLookupStart
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="234">
+      Tempo de conexão com o servidor
+    </td>
+    
+    <td valign="top" width="342">
+      connectEnd &#8211; connectStart
+    </td>
+  </tr>
+</table>
+
+<p>Acrescento também alguns testes que fiz com outros cálculos:</p>
+
+<table border="1" cellspacing="0" cellpadding="0">
+  <tr>
+    <td valign="top" width="234">
+      <b>Informação</b>
+    </td>
+    
+    <td valign="top" width="342">
+      <b>Cálculo</b>
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="234">
+      Tempo para renderizar o DOM (realizar a interpretação – <i>parser</i> – de todo o HTML)
+    </td>
+    
+    <td valign="top" width="342">
+      domInteractive &#8211; domLoading
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="234">
+      Tempo total para carregar a página, incluindo a requisição de todos os arquivos externos, principalmente scripts
+    </td>
+    
+    <td valign="top" width="342">
+      domComplete &#8211; domLoading
+    </td>
+  </tr>
+  
+  <tr>
+    <td valign="top" width="234">
+      Tempo de carregamento de scripts no evento <i>onload</i>
+    </td>
+    
+    <td valign="top" width="342">
+      loadEventEnd &#8211; loadEventStart
+    </td>
+  </tr>
+</table>
+
+<h2 id="exemplos">Exemplos</h2>
+
+<p>No site <a href="http://webtimingdemo.appspot.com/">Web Timing Demo</a> é possível ter uma prévia de como estes dados podem ser visualizados graficamente. Além disso, a aplicação mostra o valor de todas as propriedades da <em><strong>window.performance</strong></em> para aquela página.</p>
+
+<p>Outra aplicação mais completa é o <a href="http://kaaes.github.com/timing/">bookmarket desenvolvido pela Kasia</a>, citada anteriormente neste artigo. Basta arrastá-lo para a barra de favoritos do browser e clicar nele em qualquer página que deseja analisar.</p>
+
+<h2 id="referências-e-mais-recursos">Referências e mais recursos</h2>
+
+<p>Can I Use… <strong>Navigation Timing API</strong>. Disponível em: <a href="http://caniuse.com/#feat=nav-timing">http://caniuse.com/#feat=nav-timing</a></p>
+
+<p>Colin Ihrig. <strong>Profiling Page Loads with the Navigation Timing API</strong>. Disponível em: <a href="http://www.sitepoint.com/profiling-page-loads-with-the-navigation-timing-api/">http://www.sitepoint.com/profiling-page-loads-with-the-navigation-timing-api/</a></p>
+
+<p>Internet Explorer Developer Center. <strong>Navigation timing (Windows)</strong>. Disponível em: <a href="http://msdn.microsoft.com/en-us/library/ie/hh673552(v=vs.85).aspx">http://msdn.microsoft.com/en-us/library/ie/hh673552(v=vs.85).aspx</a></p>
+
+<p>Kasia Drzyzga. Breaking Down OnLoad Event – Performance Bookmarklet. Disponível em: <a href="http://66.7percentangel.com/2011/12/breaking-down-onload-event-performance-bookmarklet/">http://66.7percentangel.com/2011/12/breaking-down-onload-event-performance-bookmarklet/</a></p>
+
+<p>Leigh Shevchik. <strong>It’s All in the Timing: How to Use the Navigation Timing Specification to Improve Web Performance</strong>. Disponível em: <a href="http://blog.newrelic.com/2012/05/16/its-all-in-the-timing-how-to-use-the-navigation-timing-specification-to-improve-web-performance/">http://blog.newrelic.com/2012/05/16/its-all-in-the-timing-how-to-use-the-navigation-timing-specification-to-improve-web-performance/</a></p>
+
+<p>Microsoft MSDN. <strong>performanceTiming object</strong>. Disponível em: <a href="http://msdn.microsoft.com/en-us/library/ff975075">http://msdn.microsoft.com/en-us/library/ff975075</a></p>
+
+<p>Mozilla Developer Network. <strong>Navigation Timing</strong>. Disponível em: <a href="https://developer.mozilla.org/en-US/docs/Navigation_timing">https://developer.mozilla.org/en-US/docs/Navigation_timing</a></p>
+
+<p>Sam Dutton. <strong>Measuring Page Load Speed with Navigation Timing</strong>. Disponível em: <a href="http://www.html5rocks.com/en/tutorials/webperformance/basics/">http://www.html5rocks.com/en/tutorials/webperformance/basics/</a></p>
+
+<p>W3C. <strong>HTML5: A vocabulary and associated APIs for HTML and XHTML</strong>. Disponível em: <a href="http://www.w3.org/TR/html5/syntax.html">http://www.w3.org/TR/html5/syntax.html</a></p>
+
+<p>W3C. <strong>Navigation Timing</strong>. Disponível em: <a href="http://www.w3.org/TR/navigation-timing/">http://www.w3.org/TR/navigation-timing/</a></p>
+
+<p>&nbsp;</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

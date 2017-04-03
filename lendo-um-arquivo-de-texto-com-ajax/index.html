@@ -1,0 +1,316 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/lendo-um-arquivo-de-texto-com-ajax/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/lendo-um-arquivo-de-texto-com-ajax/">Lendo um arquivo de texto com AJAX</a></h1>
+  <p class="tb-hero-p">
+    
+    Inicio mostrando como realizar uma requisição de arquivos de texto com AJAX.
+Em tempos de Web 2.0, não podemos pensar mais em sites que usem requisições síncronas para rotinas de interação com o usuário.
+Uma das técnicas mais utilizadas para esse fim é o AJAX &#8211; Assynchronous Javascript and XML.
+De uma forma resumida e sem muito &#8220;tecniquês&#8221;, AJAX é a captura de informações sem a necessidade de recarregamento da estrutura do documento HTML a cada requisição ao servidor web.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/moacyr-min%C3%A9ro">Moacyr Minéro</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      <p>Inicio mostrando como realizar uma requisição de arquivos de texto com AJAX.</p>
+
+<p>Em tempos de Web 2.0, não podemos pensar mais em sites que usem requisições síncronas para rotinas de interação com o usuário.</p>
+
+<p>Uma das técnicas mais utilizadas para esse fim é o AJAX &#8211; Assynchronous Javascript and XML.</p>
+
+<p>De uma forma resumida e sem muito &#8220;tecniquês&#8221;, AJAX é a captura de informações sem a necessidade de recarregamento da estrutura do documento HTML a cada requisição ao servidor web.</p>
+
+<p>E para poder fazer conexão assíncrona com o servidor web temos que criar um objeto com as propriedades e métodos AJAX .</p>
+
+<p>Porém, como a web não é um ambiente perfeito, temos que criar um objeto AJAX para os browsers Firefox, Chrome, Opera, Safari, chamado de XMLHttpRequest. E para o IE um objeto ActiveX que faça referencia ao objeto XMLHTTP.</p>
+
+<p>Como padrão de desenvolvimento, vamos criar um arquivo que faça essa identificação e criação chamado de xhr.js.</p>
+
+<p>Para a criação desse arquivo, abra o editor de código de sua preferência e digite o seguinte código:</p>
+
+<p><strong>Arquivo xhr.js</strong>&#8230;</p>
+
+<pre class="lang-javascript">//Declarando variaveis globais
+var xhr;
+var txt ;
+
+function ajax(){
+//Verificando se os browsers aceitam o objeto XMLHttpRequest
+if(window.XMLHttpRequest){
+xhr  = new XMLHttpRequest();
+}
+//Verificando se o browser IE versão &gt; 6
+else if(window.ActiveXObject){
+try{
+xhr = new ActiveXObject(Msxml2.XMLHTTP);
+}
+catch(e){
+try{
+xhr =  new ActiveXObject(Microsoft.XMLHTTP);
+}
+catch(er){
+txt = "Seu browser não aceita AJAX!";
+alert(txt);
+}
+}
+}
+return xhr;
+}
+...
+</pre>
+
+<p>Em seguida, vamos criar o arquivo HTML e fazer referência ao objeto AJAX criado pelo arquivo <strong>xhr.js</strong>.</p>
+
+<p>Para isso use a  tag script no head da página html. Exemplo: <strong><script type=&#8221;text/javascript&#8221; src=&#8221;caminho/xhr.js&#8221;></script></strong></p>
+
+<p><strong>Arquivo ajax_txt.html</strong></p>
+
+<pre class="lang-javascript">//Declarando variáveis globais
+var xhr;
+var valor;
+
+//Função para pegar os arquivos de texto
+function pegaTextos{
+//Instancia o objeto ajax e guarda na var xhr
+xhr = ajax();
+//Captura o elemento select  via DOM
+var txt = document.getElementById("textos");
+//Pega o valor da opção escolhida na lista do campo select
+valor = txt.options[txt.selectedIndex].value;
+//Monta a url da chamada AJAX
+var url = "texto"+valor+".txt";
+//Abre a conexão com o servidor web via AJAX
+xhr.open("GET",url,false);
+//Confirma o envio dos dados
+xhr.send(null);
+//Verifica a mudança de estado do servidor web e dispara a função para mostrar os textos
+xhr.onreadystatechange = mostraTextos;
+}
+
+//Função para mostras os textos
+function mostraTextos(){
+//Verifica o status do retorno do servidor web
+if(xhr.readyState == 4 && xhr.status == 200){
+//Pega a resposta do servidor web
+var resposta = xhr.responseText;
+//Captura a div Box para mostrar os textos
+var box  = document.getElementById("box");
+//Escreve os textos na div Box
+box.innerHTML = resposta;
+//Aplica um estilo de borda na div Box
+box.style.border = "1px dotted #333";
+}
+}
+
+</pre>
+
+<p>Aplicando um estilo CSS na div Box</p>
+
+<pre class="lang-css">#box{
+width: 450px;
+height: auto;
+padding: 10px;
+margin-top: 25px;
+}
+
+</pre>
+
+<p>Montamos agora o HTML com o combo dos textos.</p>
+
+<pre class="lang-html">&lt;body&gt;
+&lt;p&gt;Selecionando textos com AJAX&lt;/p&gt;&lt;br/&gt;
+&lt;select id="textos" onchange="pegaTextos()"&gt;
+&lt;option value="" selected="selected"&gt;selecione&lt;/option&gt;
+&lt;option value="1"&gt;Texto 1&lt;/option&gt;
+&lt;option value="2"&gt;Texto 2&lt;/option&gt;
+&lt;option value="3"&gt;Texto 3&lt;/option&gt;
+&lt;/select&gt;
+&lt;div id="box"&gt;&lt;/div&gt;
+&lt;/body&gt;
+</pre>
+
+<p>Para que a chamada AJAX funcione, temos que criar os arquivos de textos com os respectivos nomes: texto1.txt,texto2.txt e texto3.txt.</p>
+
+<p>Em seguida salve os arquivos na mesma pasta onde se encontram os <strong>arquivos xhr.js</strong> e <strong>ajax_txt.html</strong>.</p>
+
+<p>Agora é so testar!</p>
+
+<p>Lembrando que para uma requisição AJAX funcionar, ela tem que passar por um servidor. No nosso caso o <strong>localhost</strong>.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

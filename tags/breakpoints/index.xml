@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Breakpoints on Tableless</title>
+    <link>http://tableless.com.br/tags/breakpoints/index.xml</link>
+    <description>Recent content in Breakpoints on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/breakpoints/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Turbinando as Media Queries</title>
+      <link>http://tableless.com.br/turbinando-media-queries/</link>
+      <pubDate>Thu, 12 Dec 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/turbinando-media-queries/</guid>
+      <description>
+
+&lt;p&gt;Media Queries são uma das ferramenta mais importante do CSS pra quem se preocupa com Web Design Responsivo. Com uma ajudinha dos pré-processadores as media queries podem ficar ainda melhores. Neste artigo vamos turbinar as Media Queries usando um pouco das opções que o SASS nos oferece para ajudar na organização, manutenção e garantir legibilidade ao nosso código.&lt;/p&gt;
+
+&lt;p&gt;Nota: os exemplos deste post serão todos em SASS com a sintaxe do &lt;code&gt;.scss&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;breakpoints-em-variáveis&#34;&gt;Breakpoints em variáveis&lt;/h2&gt;
+
+&lt;p&gt;Se você já usou algum pré-processador, sem dúvida já usou variáveis.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;// width
+$bp-smallest: 10em;
+$bp-small: 30em;
+$tp-small-1: 37.5em;
+&lt;/pre&gt;
+
+&lt;p&gt;Dessa forma, você consegue manter seus breakpoints sob controle e replicá-los de forma concisa e prática. Como estamos falando de organização de código, consistência na nomenclatura é muito importante, então vamos dar uma olhada na que adotei para mim. Você pode criar a sua e se tiver em uma equipe, é bom que todos da equipe concordem com uma mesma nomenclatura:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;bp&lt;/strong&gt;: Breakpoints são pontos onde a mudança interfere amplamente no layout (redução/aumento de colunas, posição de elementos importantes, etc)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;tp&lt;/strong&gt;: Tweakpoints são para mudanças menores, que interferem em apenas um elemento&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Facilita a leitura se colocar juntamente com a sigla uma característica (no caso, &lt;strong&gt;small&lt;/strong&gt;). Além disso, Tweakpoints costumam ter uma ocorrência maior que Breakpoints, por isso numerá-los é uma boa forma de manter o controle.&lt;/p&gt;
+
+&lt;h2 id=&#34;media-features-em-variáveis&#34;&gt;Media Features em variáveis&lt;/h2&gt;
+
+&lt;p&gt;Outra forma de trabalhar com variáveis em suas Media Queries é armazenar toda a &lt;strong&gt;media feature&lt;/strong&gt; como uma &lt;code&gt;string&lt;/code&gt;. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;// width
+$bp-w-small: &#39;(min-width: 30em)&#39;;
+$tp-w-small-1: &#39;(min-width: 37.5em)&#39;;
+
+// height
+$bp-h-small: &#39;(min-height: 10em)&#39;;
+&lt;/pre&gt;
+
+&lt;p&gt;Essa técnica tem maior legibilidade das variáveis. Utilizei os mesmos valores no exemplo acima, mas antes não era possível perceber que uma delas era utilizada para a altura da viewport e as outras duas para a largura.&lt;/p&gt;
+
+&lt;p&gt;Com relação à nomenclatura, uma pequena alteração para auxiliar na legibilidade (uma vez que a string não aparecerá ao longo do seu código de desenvolvimento), coloquei um &lt;code&gt;h&lt;/code&gt; para height e um &lt;code&gt;w&lt;/code&gt; para width.&lt;/p&gt;
+
+&lt;p&gt;Lembrando que, nesse caso é preciso escapar envolvendo a variável com &lt;code&gt;#{}&lt;/code&gt; quando inserí-la no código para garantir que seu valor não seja interpretado pelo compilador.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;@media #{$bp-w-small} {
+        /*--styles--*/
+}
+
+@media #{$tp-w-small-1} {
+        /*--styles--*/
+}
+
+@media #{$bp-h-small} {
+    /*--styles--*/
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;media-queries-com-mixins&#34;&gt;Media Queries com mixins&lt;/h2&gt;
+
+&lt;p&gt;Outra maneira de lidar com suas media queries é colocando-as em um &lt;code&gt;mixin&lt;/code&gt; e selecionando a partir de condicionais (&lt;code&gt;@if&lt;/code&gt;). Segue o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;$bp-width-small : &#34;(min-width: 24em)&#34;;
+$tp-height-small : 10em;
+
+@mixin mq($breakpoint) {
+    @if $breakpoint == $tp-height-small {
+        @media (max-height: $tp-height-small) {
+                @content;
+        }
+    }
+    @if $breakpoint == $bp-width-small {
+        @media #{$bp-width-small} {
+                @content;
+        }
+    }
+    @if $breakpoint == 50 {
+        @media (max-width: 50em) {
+                @content;
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Outro ponto positivo de utilizar as Media Queries envolvidas em &lt;code&gt;mixin&lt;/code&gt; é de oferecer uma CSS como fallback para navegadores que não suportam Media Queries. Para isso, é só estabeler mais um condicional. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;$bp-width-small : &#34;(min-width: 24em)&#34;;
+$tp-height-small : 10em;
+
+$mediaqueries: true;
+
+@mixin mq($breakpoint) {
+    @if $mediaqueries == true {
+        @if $breakpoint == $tp-height-small {
+                @media (max-height: $tp-height-small) {
+                        @content;
+            }
+        }
+        @if $breakpoint == #{$bp-width-small} {
+                @media #{$bp-width-small} {
+                        @content;
+            }
+        }
+        @if $breakpoint == 50 {
+                @media (max-width: 50em) {
+                        @content;
+                }
+        }
+    }
+
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse caso, o compilador vai avaliar se a variável &lt;code&gt;$mediaqueries&lt;/code&gt; é &lt;code&gt;true&lt;/code&gt; ou &lt;code&gt;false&lt;/code&gt;. Caso seja &lt;code&gt;true&lt;/code&gt;, significa que há suporte para Media Queries e portanto, ele vai compilar o mixin; se for &lt;code&gt;false&lt;/code&gt; ele ignora a declaração do &lt;code&gt;mixin&lt;/code&gt; e compila o restante do código sem Media Queries.&lt;/p&gt;
+
+&lt;p&gt;Espero que o post tenha sido útil e ajudado a ilustrar um pouco melhor as facilidades que um pré-processador pode trazer para o seu workflow. Você já usa alguma técnica dessa em seus projetos?&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,306 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/animacoes-fluidas-60fps/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/animacoes-fluidas-60fps/">Animações fluídas à 60fps</a></h1>
+  <p class="tb-hero-p">
+    
+    Fazendo animações a 60fps nos browsers atuais.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/alan-cezar">Alan Cezar</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Existem diversas maneiras da página interagir com o usurário, e uma dessas maneiras é a interação com animações. Podem ser desde animações mais triviais como o scroll de um elemento, até animações mais complexas como gráficos de jogos.</p>
+
+<p>Algumas vezes sentimos nossa UI engasgar durante essas interações, dando o sentimento de que algo está sendo executado com muito esforço. E pode apostar que é isso mesmo.</p>
+
+<p>Para criar essas animações o browser basicamente se comporta como outros softwares que reproduzem vídeo, gerando uma sequência de imagens e renderizando elas na tela do seu dispositivo.</p>
+
+<p>Vou resumir o processo executado pelo browser para gerar essa sequencia de quadros, e como o nosso pode influenciar esse processo de forma negativa ou positiva.</p>
+
+<h2 id="30fps-ou-60fps">30fps ou 60fps?</h2>
+
+<p>Como foi dito acima, o browser procura renderizar cerca de 60 quadros por segundo. Mas essa deve ser a nossa meta? Dá pra sentir diferença?</p>
+
+<p>Alguns estudos dizem que 30fps é o suficiente para a percepção humana, porém 60fps é ideal pois dá uma sensação de fluidez.</p>
+
+<p>Pessoalmente, percebo diferença entre 30fps e 60fps, acima disso não. Se você quiser fazer um teste dá uma olhada <a href="http://frames-per-second.appspot.com/" target="_blank">nesse site</a>.</p>
+
+<p>Acredito que o ideal é entregar o mais próximo possível dos 60fps, assim fica mais fácil agradar gregos e troianos.</p>
+
+<h2 id="o-trampo-do-browser">O Trampo do Browser</h2>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/06/rsz_fluxo_de_renderização_do_browser.png"><img class="alignnone wp-image-49672 size-full" src="http://tableless.com.br/wp-content/uploads/2015/06/rsz_fluxo_de_renderização_do_browser.png" alt="Fluxo de renderização de um frame" width="800" height="230" /></a></p>
+
+<p>O fluxo acima resume as etapas que o browser pode seguir para criar um frame. Nosso código pode influenciar esse fluxo, podendo diminuir o trabalho executado pela engine de renderização. Vamos conhecer cada etapa e descobrir como o código que escrevemos influencia essa sequencia.</p>
+
+<h3 id="dom">DOM</h3>
+
+<p>Ocorre sempre que o DOM é alterado.</p>
+
+<p>Criar ou remover um elemento dispara essa etapa. Esse é um dos motivos pelos quais o acesso ao DOM é sagrado, e não deve ser feito em vão.</p>
+
+<p>Exemplos:</p>
+
+<p>Incluir ou remover <em>trs</em> em um <em>tbody</em>.</p>
+
+<p>Alterar o texto de algum elemento.</p>
+
+<h3 id="cssom">CSSOM</h3>
+
+<p>Ocorre sempre que alguma regra de estilo é alterada.</p>
+
+<p>Pode ser causado por uma nova folha de estilo inserida na página, alteração da classe de algum elemento e alteração de alguma regra de estilo inline.</p>
+
+<p>Exemplos:</p>
+
+<p>Inserção de novas regras via tag <em>style</em> ou por alguma folha de estilo externa.</p>
+
+<p>Alteração de algum estilo inline (lembra do $.hide() do jQuery?).</p>
+
+<h3 id="arvore-de-renderização">Arvore de Renderização</h3>
+
+<p>Após criar ou alterar o DOM e/ou o CSSOM ele precisa mapear os elementos que ficarão visíveis na tela, e quais regras de estilo se aplicam a cada elemento. Esse mapeamento fica na Árvore de Renderização.</p>
+
+<h3 id="layout">Layout</h3>
+
+<p>Ocorre sempre que a geometria de algum elemento é alterada e a posição de algum elemento é alterado na tela.</p>
+
+<p>Exemplos:</p>
+
+<p>Alteração de altura ou largura de algum elemento.</p>
+
+<p>Alteração da margem de algum elemento.</p>
+
+<h3 id="pintura">Pintura</h3>
+
+<p>Ocorre quando são necessárias alterações visuais que não alteram o tamanho ou posicionamento de algum elemento.</p>
+
+<p>Exemplos:</p>
+
+<p>Alterar a cor de fundo de uma <em>div</em>.</p>
+
+<p>Alterar a cor da fonte.</p>
+
+<p>Alterar o z-index de algum elemento.</p>
+
+<h2 id="inspecionando-no-browser">Inspecionando no browser</h2>
+
+<p>Vou dar um exemplo básico de como inspecionar esses eventos no browser. Será um overview simples e não entrarei nos detalhes de cada ferramenta.</p>
+
+<p>Eles entregam as métricas de maneira bem distintas umas das outras, mas durante uma dor de barriga fazem um bom trabalho pra te ajudar á achar quais são os eventos problemáticos.</p>
+
+<p>Não importa qual browser você está usando, aperte F13 para abrir as ferramentas de desenvolvedor. Se você não achar o F13 no seu teclado, quer dizer que você caiu na pegadinha. =)</p>
+
+<p>Geralmente o F12 abre essas ferramentas pra você (pelo menos no Windows).</p>
+
+<h3 id="google-chrome">Google Chrome</h3>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/06/rsz_2style_render_-_gc.jpg"><img class="alignnone wp-image-49668 size-full" src="http://tableless.com.br/wp-content/uploads/2015/06/rsz_2style_render_-_gc.jpg" alt="Google Chrome - Timeline" width="800" height="432" /></a></p>
+
+<p>Costumo usar o Chrome diariamente. Acredito que ele é atualmente o mais completo pois entrega bastante informações. Mas muitas informações. Seria assunto pra um post inteiro.</p>
+
+<h3 id="internet-explorer-11-microsoft-edge">Internet Explorer 11 / Microsoft Edge</h3>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/06/rsz_style_render_-_ie.jpg"><img class="alignnone wp-image-49669 size-full" src="http://tableless.com.br/wp-content/uploads/2015/06/rsz_style_render_-_ie.jpg" alt="Microsoft Edge - Análise de Desempenho" width="800" height="432" /></a></p>
+
+<p>No momento estou usando o Windows 10 Preview e tenho á disposição o IE11 e o Microsoft Edge. Posso afirmar que ele faz um trabalho decente mas ainda tem muito pra melhorar.</p>
+
+<h3 id="firefox-developer-edition">Firefox Developer Edition</h3>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/06/rsz_style_render_-_ff.jpg"><img class="alignnone wp-image-49670 size-full" src="http://tableless.com.br/wp-content/uploads/2015/06/rsz_style_render_-_ff.jpg" alt="Firefox - Análise de Desempenho" width="800" height="215" /></a></p>
+
+<p>O Firefox faz um bom trabalho e tem uma ótima documentação, mas nesse quesito ainda tem muito para melhorar se o compararmos ao Chrome.</p>
+
+<h3 id="dicas-de-outras-ferramentas-e-recursos">Dicas de outras ferramentas e recursos</h3>
+
+<p><a href="http://csstriggers.com/" target="_blank">CSS Triggers</a></p>
+
+<p>Este site tenta listar as propriedades CSS e o efeito que a alteração delas causam na renderização de um frame. Ótimo recurso!</p>
+
+<p><a href="https://developers.google.com/web/fundamentals/performance/index?hl=pt-br" target="_blank">Google Web Fundamentals</a></p>
+
+<p>No Google Web Fundamentals existe uma sessão focada no assunto. Ótimo ponto de partida para aprender sobre o assunto.</p>
+
+<p><a href="https://www.udacity.com/course/website-performance-optimization--ud884" target="_blank">Udacity &#8211; Website Performance Optimization</a></p>
+
+<p>Curso gratuito desenvolvido pela Udacity com a Google. Além das explicações teóricas, tem bastante exercícios práticos.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

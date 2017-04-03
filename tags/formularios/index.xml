@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Formularios on Tableless</title>
+    <link>http://tableless.com.br/tags/formularios/index.xml</link>
+    <description>Recent content in Formularios on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/formularios/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Formulário responsivo com MailChimp</title>
+      <link>http://tableless.com.br/formulario-responsivo-com-mailchimp/</link>
+      <pubDate>Fri, 06 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/formulario-responsivo-com-mailchimp/</guid>
+      <description>
+
+&lt;p&gt;Há cada dia mais utilizamos serviços disponíveis na web que tem um plano básico e gratuito que permite integrações. Nos últimos meses tenho feito formulários com frequência usando uma abordagem bem simples. Vou mostrar agora como criar um formulário responsivo, integrando com MailChimp e usando jQuery Validate.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-html&#34;&gt;O HTML&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar o formulário da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;section&amp;gt;
+  &amp;lt;h1&amp;gt;CREATE RESPONSIVE FORM WITH INTEGRATE MAILCHIMP&amp;lt;/h1&amp;gt;
+  &amp;lt;form id=&#34;form-contact&#34; method=&#34;POST&#34; action=&#34;mailchimp-contact.php&#34;&amp;gt;
+    &amp;lt;div class=&#34;input&#34;&amp;gt;
+      &amp;lt;label for=&#34;name&#34;&amp;gt;Name&amp;lt;/label&amp;gt;
+      &amp;lt;input type=&#34;text&#34; id=&#34;name&#34; name=&#34;name&#34; placeholder=&#34;Your name&#34; required&amp;gt;
+    &amp;lt;/div&amp;gt;
+
+    ...
+    
+    &amp;lt;div class=&#34;input txt&#34;&amp;gt;
+      &amp;lt;label for=&#34;message&#34;&amp;gt;Message&amp;lt;/label&amp;gt;
+      &amp;lt;textarea id=&#34;message&#34; name=&#34;message&#34; cols=&#34;10&#34; rows=&#34;5&#34; placeholder=&#34;Its message leaves&#34; required&amp;gt;&amp;lt;/textarea&amp;gt;
+    &amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;buttons&#34;&amp;gt;
+      &amp;lt;span class=&#34;form-message&#34;&amp;gt;&amp;lt;/span&amp;gt;
+      &amp;lt;input type=&#34;submit&#34; value=&#34;SEND&#34; /&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;/form&amp;gt;
+&amp;lt;/section&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-form-mailchimp/demo-only-elements.html&#34; target=&#34;_blank&#34; title=&#34;Ver demo sem style.&#34;&gt;Ver demo sem style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-css&#34;&gt;O CSS&lt;/h2&gt;
+
+&lt;p&gt;Para cada label e input foi adicionado uma &lt;code&gt;div.input&lt;/code&gt; para inserir uma formatação por grupo.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-form-está-centralizado-com-max-width&#34;&gt;O form está centralizado com max-width:&lt;/h3&gt;
+
+&lt;p&gt;Por ser um elemento &amp;#8216;block&amp;#8217;, vamos definir o tamanho máximo que ele pode ter.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;form {
+&amp;nbsp; margin: 0 auto;
+&amp;nbsp; max-width: 850px;
+&amp;nbsp; padding: 20px 10px;
+&amp;nbsp; background-color: rgba(255,255,255,0.4)
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;o-grupo-div-input-com-50-em-8216-width-8217-do-form&#34;&gt;O grupo div.input com 50% em &amp;#8216;width&amp;#8217; do form:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input {
+  float: left;
+  width: 48%;
+  padding: 0 1% 20px;
+  position: relative;
+}
+
+.input.txt { width: 98%; } /*textarea 100%*/
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;os-labels&#34;&gt;Os labels:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input label {
+  display: block;
+  padding-bottom: 5px;
+  color: #666;
+}
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input label.error {
+  position: absolute;
+  right: 18px;
+  top: 35px;
+  color: #f00;
+}&lt;/pre&gt;
+
+&lt;p&gt;O label.error é gerado pelo jQuery validate e adicionado seguido dos campos.&lt;/p&gt;
+
+&lt;h3 id=&#34;os-campos&#34;&gt;Os campos:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input input,
+.input textarea {
+  padding-top: 10px;
+  padding-bottom: 9px;
+  border: none;
+  font-size: 16px;
+  font-weight: 100;
+  font-family: &#34;Helvetica Neue&#34;, Helvetica, Arial, sans-serif;
+}
+
+.input input {
+  width: 94%;
+  padding-left: 3%;
+  padding-right: 3%;
+}
+
+.input textarea {
+  width: 97%;
+  padding-left: 1.5%;
+  padding-right: 1.5%;
+}&lt;/pre&gt;
+
+&lt;p&gt;Formatamos os campos para ter 100% de tamanho do elemento pai &amp;#8216;div.input&amp;#8217;.&lt;/p&gt;
+
+&lt;p&gt;Sempre que redimensionar não haverá quebras, portanto, responsivo meu amigo.&lt;/p&gt;
+
+&lt;h3 id=&#34;agora-um-capricho-para-resoluções-pequenas&#34;&gt;Agora um capricho para resoluções pequenas.&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@media screen and (max-width: 520px) {
+  .input {
+    width: 98%;
+  }
+}&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-form-mailchimp/demo-style-elements.html&#34; target=&#34;_blank&#34; title=&#34;Ver demo com style.&#34;&gt;Ver demo com style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-jquery-mailchimp&#34;&gt;O jQuery + MailChimp&lt;/h2&gt;
+
+&lt;p&gt;Com o HTML e CSS prontos, vamos adicionar o JavaScript que é fácil. Como dependemos do jQuery e não podemos iniciar de qualquer forma, segue uma estrutura bem legal:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function(){
+  var contact = function(){
+    var init = function() {
+      //initialize code
+    };
+    
+&amp;nbsp;   //more functions
+
+    return {init: init};
+  }();
+
+  //jQuery loaded
+  $(document).ready(contact.init);
+})();&lt;/pre&gt;
+
+&lt;p&gt;Como sabemos exatamente qual função vai executar quando a jQuery carregar, adicionaremos o jQuery Validate no init:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var init = function() {
+  $(&amp;#039;#form-contact&amp;#039;).validate({
+    rules : {
+      name: &#34;required&#34;,
+      email: { required: true, email: true },
+      phone: { required: true, minlength: 14 },
+      company: &#34;required&#34;,
+      message: &#34;required&#34;
+    },
+    messages: {
+      name: &#34;*&#34;,
+      email: { required: &#34;*&#34;, email: &#34;*&#34; },
+      phone: { required: &#34;*&#34;, minlength: &#34;*&#34; },
+      company: &#34;*&#34;,
+      message: &#34;*&#34;
+    }
+  });
+};&lt;/pre&gt;
+
+&lt;p&gt;Agora que estamos validando todos os campos, que tal adicionar um ajax para deixar nosso formulário bem suave e uma função para exibir mensagens de sucesso ou erro, veja:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var init = function() {
+  $(&amp;#039;#form-contact&amp;#039;).validate({
+    rules : {
+      ...
+    },
+    messages: {
+      ...
+    },
+    submitHandler: function(form) {
+      var $form = $(form);
+
+      var params = {
+        name: $form.find(&amp;#039;#name&amp;#039;).val(),
+        email: $form.find(&amp;#039;#email&amp;#039;).val(),
+        phone: $form.find(&amp;#039;#phone&amp;#039;).val(),
+        company: $form.find(&amp;#039;#company&amp;#039;).val(),
+        message: $form.find(&amp;#039;#message&amp;#039;).val()
+      };
+
+      $.ajax({
+        type: $form.attr(&amp;#039;method&amp;#039;),
+        url: $form.attr(&amp;#039;action&amp;#039;),
+        data: params,
+        success: function( data ) {
+          if(data == &#34;true&#34;) {
+            $form.find(&amp;#039;.input input&amp;#039;).val(&#34;&#34;);
+            $form.find(&amp;#039;.input textarea&amp;#039;).val(&#34;&#34;);
+            setMessage(&#34;Mission accomplished. &amp;lt;strong&amp;gt;&#34;+ params.email +&#34;&amp;lt;/strong&amp;gt; was successfully added to list.&#34;, &#34;success&#34;);
+          } else {
+            setMessage(&#34;Mission failed. &amp;lt;strong&amp;gt;&#34;+ params.email +&#34;&amp;lt;/strong&amp;gt; not was added to list.&#34;, &#34;error&#34;);
+          }
+        },
+        error: function( data ) {
+          setMessage(&#34;Mission failed in connection. Try again.&#34;, &#34;error&#34;);
+        }
+      });
+
+      return false;
+    }
+  });
+};
+
+var setMessage = function($message, $type) {
+  $(&amp;#039;.form-message&amp;#039;).html($message).addClass($type);
+
+  setTimeout(function(){
+    $(&amp;#039;.form-message&amp;#039;).removeClass($type);
+  }, 6000);
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Via &amp;#8216;submitHandler&amp;#8217; do &lt;a href=&#34;http://jQueryvalidation.org/&#34; target=&#34;_blank&#34;&gt;jQuery Validate&lt;/a&gt;, vamos disparar por ajax todos os dados preenchidos e travar o post do form com &amp;#8216;return false&amp;#8217; no final da função. Assim evitamos aquele redirecionamento de post.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-php&#34;&gt;O PHP&lt;/h3&gt;
+
+&lt;p&gt;Como definimos com &amp;#8216;method&amp;#8217; e &amp;#8216;action&amp;#8217; para o nosso formulário, segue o código para resgatar os dados:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+    require_once &amp;#039;MCAPI.class.php&amp;#039;;
+    $api = new MCAPI(&amp;#039;casiuach1293kajsc912319203cja23s-us9&amp;#039;);
+    $merge_vars = array(&amp;#039;NAME&amp;#039;=&amp;gt;$_POST[&#34;name&#34;], &#39;PHONE&#39;=&amp;gt;$_POST[&#34;phone&#34;], &#39;COMPANY&#39;=&amp;gt;$_POST[&#34;company&#34;], &#39;MESSAGE&#39;=&amp;gt;$_POST[&#34;message&#34;]);
+    
+    // Submit subscriber data to MailChimp
+    // For parameters doc, refer to: http://apidocs.mailchimp.com/api/1.3/listsubscribe.func.php
+    $retval = $api-&amp;gt;listSubscribe( &amp;#039;12938asd98&amp;#039;, $_POST[&#34;email&#34;], $merge_vars, &amp;#039;html&amp;#039;, false, true );
+    
+    if ($api-&amp;gt;errorCode){
+        echo &#34;false&#34;;
+    } else {
+        echo &#34;true&#34;;
+    }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Dependemos da MCAPI.class que você pode verificar na &lt;a href=&#34;https://apidocs.mailchimp.com/api/example-code/&#34; target=&#34;_blank&#34;&gt;documentação&lt;/a&gt; ou baixar &lt;a href=&#34;https://codeload.github.com/sunarlim/mailchimp-subscribe/zip/master&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;, só lembrando que precisa adicionar sua API Key e List ID.&lt;/p&gt;
+
+&lt;h2 id=&#34;pronto&#34;&gt;PRONTO&lt;/h2&gt;
+
+&lt;p&gt;Nosso formulário é responsivo e integrado ao mailchimp.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://css4html.com.br/demos/responsive-form-mailchimp/&#34; target=&#34;_blank&#34; title=&#34;Veja como ficou o resultado final&#34;&gt;Veja como ficou o resultado final&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/palloi/responsive-form-mailchimp/&#34; target=&#34;_blank&#34; title=&#34;Veja o código completo no github&#34;&gt;Veja o c&amp;oacute;digo completo no github&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;É isso ae pessoal, obrigado.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Validação de formulários com HTML5</title>
+      <link>http://tableless.com.br/validacao-de-formularios-com-html5/</link>
+      <pubDate>Tue, 01 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/validacao-de-formularios-com-html5/</guid>
+      <description>
+
+&lt;p&gt;O HTML5 trouxe diversas possibilidades e, principalmente facilidades para os desenvolvedores. Uma delas é relacionada a validação de formulários. O que antes era feito com algum tempo e JavaScript, hoje pode ser feito diretamente no HTML e em um tempo muito menor. Por isso, navegando pela internet achei no &lt;a href=&#34;http://www.sitepoint.com/&#34;&gt;SitePoint&lt;/a&gt; esse &lt;a href=&#34;http://www.sitepoint.com/client-side-form-validation-html5/&#34;&gt;artigo&lt;/a&gt; do &lt;a href=&#34;https://twitter.com/tech4sky&#34;&gt;&lt;span style=&#34;text-decoration: underline&#34;&gt;A&lt;/span&gt;gbonghama Collins&lt;/a&gt;, um desenvolvedor nigeriano, que escreveu de forma rápida e direta alguns pontos da validação de formulários utilizando HTML5 e, resolvi traduzi-lo para nós.&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Quando contruímos aplicações web, é importante levarmos a segurança a sério, especialmente quando essa precisa coletar dados dos usuários.&lt;/p&gt;
+
+&lt;p&gt;Não confiar em ninguém, é uma norma máxima de segurança, portanto, nunca confie que o usuário vá inserir valores corretos e válidos no formulário. Por exemplo, em um campo de e-mail, em vez de inserir um endereço de e-mail válido, o usuário pode digitar um e-mail inválido ou dados mal-intencionados, obviamente, ignorando a indicação da requisição do campo.&lt;/p&gt;
+
+&lt;p&gt;Quando se trata de validar valores de campos de formulários, isso pode ser feito no &lt;em&gt;lado do cliente&lt;/em&gt; (navegador) e no &lt;em&gt;lado do servidor&lt;/em&gt; (usando a linguagem que preferir).&lt;/p&gt;
+
+&lt;p&gt;No passado, validações no &lt;em&gt;client-side&lt;/em&gt; só podiam ser feitas usando JavaScript ou algumas bibliotecas de &lt;em&gt;frameworks&lt;/em&gt; (como o &lt;a href=&#34;http://jqueryvalidation.org/&#34;&gt;plugin jQuery validation&lt;/a&gt;). Mas isso está mudando, ou melhor, já mudou, porque a validação agora pode ser feita usando &lt;strong&gt;HTML5&lt;/strong&gt;, sem a necessidade de escrever um código complexo de JavaScript para isso.&lt;/p&gt;
+
+&lt;h2 id=&#34;validação-de-formulário-com-html5&#34;&gt;Validação de formulário com HTML5&lt;/h2&gt;
+
+&lt;p&gt;HTML5 inclui um mecanismo bastante sólido na validação de formulários com base nos atributos da tag &lt;code&gt;input&lt;/code&gt;:  &lt;em&gt;type&lt;/em&gt;, &lt;em&gt;pattern&lt;/em&gt; e &lt;em&gt;require&lt;/em&gt;. Graças a esses novos atributos, você pode delegar algumas funções de verificação de dados para o navegador.&lt;/p&gt;
+
+&lt;p&gt;Vamos examinar esse atributos para ver como eles podem nos ajudar na validação de um formulário.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-atributo-type&#34;&gt;O atributo &lt;code&gt;type&lt;/code&gt;&lt;/h2&gt;
+
+&lt;p&gt;Esse atributo indica o tipo de controle de entrada de dados como o popular &lt;code&gt;&amp;lt;input type=&amp;quot;text&amp;quot;&amp;gt;&lt;/code&gt; para manipulação de dados de texto simples.&lt;/p&gt;
+
+&lt;p&gt;Alguns controles de formulários herdam sistemas de validação sem a necessidade de escrever qualquer código. Por exemplo, &lt;code&gt;&amp;lt;input type=&amp;quot;email&amp;quot;&amp;gt;&lt;/code&gt; valida o campo para garantir que o dado digitado seja de fato um endereço de e-mail válido. Se o campo tiver um dado inválido, o formulário não vai poder ser submetido até que esse erro seja corrigido.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-42961&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/06/validacao-email.png&#34; alt=&#34;Imagem mostrando a validação client-side em um campo de formulário&#34; width=&#34;297&#34; height=&#34;100&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codepen.io/raphaelfabeni/pen/hLcxn&#34;&gt;Teste o exemplo nesse link&lt;/a&gt; digitando um endereço de e-mail válido (&lt;a href=&#34;http://codepen.io/SitePoint/pen/BFwhz&#34;&gt;Link do CodePen original&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Há também o &lt;code&gt;&amp;lt;input type=&amp;quot;number&amp;quot;&amp;gt;&lt;/code&gt;, &lt;code&gt;&amp;lt;input type=&amp;quot;url&amp;quot;&amp;gt;&lt;/code&gt; e &lt;code&gt;&amp;lt;input type=&amp;quot;tel&amp;quot;&amp;gt;&lt;/code&gt; para validar números, URLs e telefones respectivamente.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Nota:&lt;/strong&gt; Os formatos de números de telefone variam de país para país devido à inconsistência nos tamanhos e formatos. Como resultado, a especificação não define um algoritmo para validá-los, portanto não é suportado nos navegadores web no momento da escrita.&lt;/p&gt;
+
+&lt;p&gt;Lembre-se, a validação pode ser feita para o campo telefone em conjunto com o atributo &lt;code&gt;pattern&lt;/code&gt; que aceita uma &lt;em&gt;expressão regular&lt;/em&gt;, e que veremos a seguir.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-atributo-pattern&#34;&gt;O atributo &lt;code&gt;pattern&lt;/code&gt;&lt;/h2&gt;
+
+&lt;p&gt;O atributo &lt;code&gt;pattern&lt;/code&gt; vai deixar os desenvolvedores felizes, principalmente aqueles que trabalham com front-end. Este atributo especifica um formato (na forma de expressão regular do JavaScript) em que o valor do campo é testado.&lt;/p&gt;
+
+&lt;p&gt;Expressões regulares são uma linguagem usada para analisar e manipular texto. Elas são frequentemente utilizadas para executar operações complexas de &lt;em&gt;search-and-replace&lt;/em&gt;, e para garantir que os dados de texto estão corretos.&lt;/p&gt;
+
+&lt;p&gt;Hoje em dia, as expressões regulares estão incluídas na maioria das linguagens de programação, assim como em muitas linguagens de script, editores, aplicações, bancos de dados e ferramentas de linha de comando.&lt;/p&gt;
+
+&lt;p&gt;Expressões regulares (&lt;em&gt;RegEX&lt;/em&gt;) oferecem um poderoso, conciso e flexível meio para encontrar &lt;em&gt;string&lt;/em&gt; ou textos com caracteres particulares, palavras ou padrões de caracteres.&lt;/p&gt;
+
+&lt;p&gt;Ao passarmos uma &lt;em&gt;string RegEX&lt;/em&gt; como valor para o atributo &lt;code&gt;pattern&lt;/code&gt;, conseguimos definir qual valor é aceitável pelo campo do formulário e também informar ao usuário de possíveis erros.&lt;/p&gt;
+
+&lt;p&gt;Vamos ver alguns exemplos de como usar expressões regulares para validação de dados em campos de formulário.&lt;/p&gt;
+
+&lt;h3 id=&#34;números-de-telefone&#34;&gt;Números de telefone&lt;/h3&gt;
+
+&lt;p&gt;Como mencionado, o &lt;code&gt;input&lt;/code&gt; tel não é totalmente suportado pelos navegadores web devido à inconsistência no formato dos números de telefone em diferentes países.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo, no meu país, a Nigéria, o formato do telefone é &lt;em&gt;xxxx-xxx-xxxx&lt;/em&gt;, que seria algo como &lt;em&gt;0803-555-8205&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;A &lt;em&gt;RegEX&lt;/em&gt; &lt;code&gt;^\d{4}-\d{3}-\d{4}$&lt;/code&gt; corresponde ao formato, portanto, o HTML ficaria assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt;&amp;lt;label for=&#34;phonenum&#34;&amp;gt;Número de telefone:&amp;lt;/label&amp;gt;
+&amp;lt;input pattern=&#34;^\d{4}-\d{3}-\d{4}$&#34; type=&#34;tel&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codepen.io/raphaelfabeni/pen/vDIor&#34;&gt;Veja aqui um exemplo&lt;/a&gt;. (&lt;a href=&#34;http://codepen.io/SitePoint/pen/Eambf&#34;&gt;Link do CodePen original&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;valores-alfanuméricos&#34;&gt;Valores alfanuméricos&lt;/h3&gt;
+
+&lt;p&gt;O exemplo a seguir corresponde a caracteres alfanuméricos (combinações de letras do alfabeto e números).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt;&amp;lt;input pattern=&#34;[a-zA-Z0-9]+&#34; type=&#34;text&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codepen.io/raphaelfabeni/pen/Lgsdk&#34;&gt;Veja aqui um exemplo&lt;/a&gt;. (&lt;a href=&#34;http://codepen.io/SitePoint/pen/nptlf&#34;&gt;Link do CodePen original&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;usuário-do-twitter&#34;&gt;Usuário do twitter&lt;/h3&gt;
+
+&lt;p&gt;Essa expressão regular corresponde a um usuário do Twitter com o símbolo &lt;code&gt;@&lt;/code&gt;. Por exemplo: @tech3sky&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt;&amp;lt;input pattern=&#34;^@[A-Za-z0-9_]{1,15}$&#34; type=&#34;text&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codepen.io/raphaelfabeni/pen/GBFkJ&#34;&gt;Veja aqui um exemplo&lt;/a&gt;. (&lt;a href=&#34;http://codepen.io/SitePoint/pen/nKGro&#34;&gt;Link do CodePen original&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;modo-de-cor-hex&#34;&gt;Modo de cor HEX&lt;/h3&gt;
+
+&lt;p&gt;Esse corresponde a cores hexadecimais. Por exemplo #3b5998 ou #000.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt;&amp;lt;input pattern=&#34;^#+([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$&#34; type=&#34;text&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codepen.io/raphaelfabeni/pen/ifvFI&#34;&gt;Veja aqui um exemplo&lt;/a&gt;. (&lt;a href=&#34;http://codepen.io/SitePoint/pen/ejqig&#34;&gt;Link do CodePen original&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;dando-algumas-dicas&#34;&gt;Dando algumas dicas&lt;/h3&gt;
+
+&lt;p&gt;Para fornecer ao usuário uma descrição da &lt;code&gt;pattern&lt;/code&gt;, ou um erro reportando que o valor inserido está inválido, você pode utilizar o atributo &lt;code&gt;title&lt;/code&gt;, dessa maneira:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-42964&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/06/validacao-title.png&#34; alt=&#34;Imagem mostra o atributo title de um campo de formulário ao usuário deixar o mouse sob ele&#34; width=&#34;273&#34; height=&#34;100&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-42965&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/06/validacao-erro.png&#34; alt=&#34;Imagem mostra erro devido à entrada de dados inválidos em um campo de formuláriop&#34; width=&#34;269&#34; height=&#34;100&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codepen.io/raphaelfabeni/pen/ifsje&#34;&gt;Veja aqui um exemplo&lt;/a&gt;. (&lt;a href=&#34;http://codepen.io/SitePoint/pen/hbuxg&#34;&gt;Link para o CodePen original&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Se você é novo com expressões regulares, você pode &lt;a href=&#34;http://docs.webplatform.org/wiki/concepts/programming/javascript/regex&#34;&gt;consultar esse documento no WebPlatform para lhe dar uma ajuda inicial&lt;/a&gt;. No entanto, na maioria dos casos, você pode usar o Google para ajudar a procurar a expressão regular que você quer, ou até mesmo &lt;a href=&#34;https://www.google.com.br/?gfe_rd=cr&amp;amp;ei=lkiWU4S-Momk8weRlIBw#q=regular+expression+tool&#34;&gt;utilizar uma ferramenta para ajudá-lo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-atributo-required&#34;&gt;O atributo &lt;code&gt;required&lt;/code&gt;&lt;/h2&gt;
+
+&lt;p&gt;Esse é um atributo &lt;em&gt;booleano&lt;/em&gt; usado para indicar que um determinando campo de formulário é obrigatório para o envio do mesmo. Ao adicionar esse atributo a um campo de formulário, o navegador obriga o usuário a inserir dados naquele campo antes de enviar o formulário.&lt;/p&gt;
+
+&lt;p&gt;Essa validação substitui a validação básica de formulário implementada com JavaScript, tornando as coisas um pouco mais úteis e nos poupando algum tempo de desenvolvimento.&lt;/p&gt;
+
+&lt;p&gt;Exemplo: &lt;code&gt;&amp;lt;input name=&amp;quot;my_name&amp;quot; required=&amp;quot;&amp;quot; type=&amp;quot;text&amp;quot;&amp;gt;&lt;/code&gt; ou &lt;code&gt;&amp;lt;input name=&amp;quot;my_name&amp;quot; required=&amp;quot;required&amp;quot; type=&amp;quot;text&amp;quot;&amp;gt;&lt;/code&gt; para compatibilidade XHTML.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-42966&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/06/validacao-required.png&#34; alt=&#34;Imagem mostra erro da validação HTML5 em um campo de formulário que é obrigatório.&#34; width=&#34;208&#34; height=&#34;150&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Todos os links de exemplos acima utilizam o atributo &lt;code&gt;required&lt;/code&gt;, assim você pode testá-los tentando submetê-los sem digitar nada nos campos.&lt;/p&gt;
+
+&lt;h2 id=&#34;resumo&#34;&gt;Resumo&lt;/h2&gt;
+
+&lt;p&gt;O suporte dos navegadores para as &lt;em&gt;features&lt;/em&gt; de validação de formulários é bem grande, e você pode utilizar &lt;em&gt;polyfills&lt;/em&gt; quando necessário.&lt;/p&gt;
+
+&lt;p&gt;Vale a pena lembrar que confiar apenas no navegador (&lt;em&gt;client-side&lt;/em&gt;) para a validação pode ser perigoso, pois isso pode ser contornado por um usuário mal-intencionado ou por &lt;em&gt;bots&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Nem todos os navegadores suportam HTML5 e nem toda entrada de texto enviada para seu script virá do formulário. Isso significa que validação do lado do servidor também deve estar antes do envio dos dados para o processamento do servidor.&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Texto traduzido e adaptado do &lt;a href=&#34;http://www.sitepoint.com/client-side-form-validation-html5/&#34;&gt;artigo&lt;/a&gt; escrito pelo &lt;a href=&#34;https://twitter.com/tech4sky&#34;&gt;Agbonghama Collins&lt;/a&gt; em 06 de junho de 2014. Tradução autorizada pelo autor.&lt;/p&gt;
+
+&lt;p&gt;Dei um _fork_ em todos os exemplos do CodePen colocando o texto em português, mas mantive os links para os originais também.&lt;/p&gt;
+
+&lt;p&gt;Qualquer erro ou sugestão de melhoria na tradução, é bem vinda! 🙂&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Formulário HTML Básico em 8 minutos</title>
+      <link>http://tableless.com.br/formulario-basico-em-8-minutos/</link>
+      <pubDate>Mon, 02 Jun 2008 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/formulario-basico-em-8-minutos/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;update:&lt;/strong&gt; Se você quiser mais vídeos e em alta-resolução, visite o &lt;a title=&#34;Vídeo tutoriais sobre Tableless e Ajax.&#34; href=&#34;http://visie.com.br/campus&#34;&#34;&gt;Campus Online&lt;/a&gt;. Lá você vai encontrar &lt;a href=&#34;http://campus.visie.com.br/&#34; title=&#34;Vídeos sobre Tableless e Ajax&#34;&gt;vídeos tutoriais de Tableless, Ajax, Javascript&lt;/a&gt; e boas práticas de desenvolvimento web.&lt;/p&gt;
+
+&lt;p&gt;Na verdade ele foi escrito em 7 minutos e 51 segundos e foram escritos apenas o XHTML e CSS. Infelizmente está sem áudio.&lt;/p&gt;
+
+&lt;p&gt;O formulário, depois do link, é o &amp;#8220;objeto&amp;#8221; mais utilizado pelos usuários para interagir com o site. É questão de vida e morte para muitos profissionais. Se não for bem escrito, pode virar um inferno. Com as tags certas, você consegue fazer uma estrutura enxuta e fácil de customizar. Siga a regra áurea do desenvolvimento web: Keep It Simple Stupid.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.youtube.com/watch?v=9KlSuomZkdQ&#34; title=&#34;Construindo o XHTML e CSS de um formulário&#34;&gt;Direto pelo YouTube: Construindo o XHTML e CSS de um formulário&lt;/a&gt;. Se quiser ver o código fonte, &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2008/06/index.html&#34;&gt;clique aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O Coda não é tão bom quanto pensam. Percebam que quando eu fecho as tags de input, ele coloca um /input. Embora haja algumas destas &amp;#8220;tosquices&amp;#8221;, o acabamento visual e outras características matam os outros editores. Mesmo assim, vou experimentar melhor outros editores como o TextMate.&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

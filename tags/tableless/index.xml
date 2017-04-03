@@ -1,0 +1,1418 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tableless</title>
+    <link>http://tableless.com.br/tags/tableless/index.xml</link>
+    <description>Recent content on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/tableless/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando um widget de “Artigos Populares” por numero de visualizações</title>
+      <link>http://tableless.com.br/criando-um-widget-de-artigos-populares-por-numero-de-visualizacoes/</link>
+      <pubDate>Thu, 13 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-um-widget-de-artigos-populares-por-numero-de-visualizacoes/</guid>
+      <description>&lt;p&gt;Recentemente tive que implementar um widget de artigos populares para um cliente. Acontece que até então a única maneira que eu sabia fazer isso era ordenando os posts por número de comentários. Propus a solução ao meu cliente e o mesmo disse que queria que o mesmo fosse ordenados por número de visualizações. Bom, nunca tinha feito isso, então corri atrás de alguns artigos &amp;#8220;gringos&amp;#8221; explicando como fazer e me espantei sobre como era simples.&lt;/p&gt;
+
+&lt;p&gt;Primeiro de tudo, precisamos encontrar uma maneira de registrar cada visita do artigo. Para que isso seja possível adicionamos esse código no &lt;strong&gt;functions.php&lt;/strong&gt; do tema:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/* Populares */
+function wpb_set_post_views($postID) {
+$cookie = strtotime(date(&#39;Y-m-d&#39;));
+ $pv_url = &#39;wpmidia_&#39;.md5($_SERVER[&#39;REQUEST_URI&#39;]);
+ 
+ if( is_single() &amp;&amp; !isset($_COOKIE[$pv_url]) ){
+ $count_key = &#39;wpb_post_views_count&#39;;
+ $count = get_post_meta($postID, $count_key, true);
+ if($count==&#39;&#39;){
+ $count = 0;
+ delete_post_meta($postID, $count_key);
+ add_post_meta($postID, $count_key, &#39;0&#39;);&lt;/pre&gt;
+
+&lt;pre&gt;setcookie($pv_url, $cookie, time()+3600, COOKIEPATH, COOKIE_DOMAIN, false); // 1 hora
+ }else{
+ $count++;
+ update_post_meta($postID, $count_key, $count);
+ setcookie($pv_url, $cookie, time()+3600, COOKIEPATH, COOKIE_DOMAIN, false); // 1 hora
+ }
+ }
+}
+//To keep the count accurate, lets get rid of prefetching
+remove_action( &#39;wp_head&#39;, &#39;adjacent_posts_rel_link_wp_head&#39;, 10, 0);
+function wpb_track_post_views ($post_id) {
+ if ( !is_single() ) return;
+ if ( empty ( $post_id) ) {
+ global $post;
+ $post_id = $post-&amp;gt;ID; 
+ }
+ wpb_set_post_views($post_id);
+}
+add_action( &#39;wp_head&#39;, &#39;wpb_track_post_views&#39;);&lt;/pre&gt;
+
+&lt;p&gt;A segunda função &lt;strong&gt;wpb_track_post_views&lt;/strong&gt; vai basicamente chamar a primeira função toda vez que o tipo de página for &amp;#8220;single&amp;#8221;, ou seja, em todos os artigos. É essencial que seu template tenha a chamada &lt;code&gt;wp_head();&lt;/code&gt; no header do tema. A primeira função vai registrar mais uma visualização do post em nosso banco de dados pela variável &lt;code&gt;$count_key&lt;/code&gt;. Só que tem um pequeno problema que já contornamos no nosso código: toda vez que um usuário der refresh na página ele registraria mais uma visualização, isso faria com que usuários comuns conseguissem burlar, sem querer (ou por querer, sei lá), os posts. Como dito, conseguimos driblar isso, no código usamos o &lt;code&gt;setcookie&lt;/code&gt; para criar um cookie no navegador e impedir que a função seja chamada nos próximos 3600 segundos ou 1 hora (você pode alterar se quiser).&lt;/p&gt;
+
+&lt;p&gt;Dito isso, não adiantaria nada se não pudêssemos chamar essa função. Para isso adicionamos mais um trecho no &lt;strong&gt;functions.php&lt;/strong&gt; do tema:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;function wpb_get_post_views($postID){
+ $count_key = &#39;wpb_post_views_count&#39;;
+ $count = get_post_meta($postID, $count_key, true);
+ if($count==&#39;&#39;){
+ delete_post_meta($postID, $count_key);
+ add_post_meta($postID, $count_key, &#39;0&#39;);
+ return &#34;0 View&#34;;
+ }
+ return $count.&#39; Views&#39;;
+ }&lt;/pre&gt;
+
+&lt;p&gt;A função acima serve também para retornar o numero de visualizações que o artigo teve, basta chama-la com wpb_get_post_views($id), sendo $id o ID do artigo.&lt;/p&gt;
+
+&lt;p&gt;Agora que implementamos todas as funções precisamos exibir isso em algum lugar e o código abaixo serve justamente para isso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;ul&amp;gt;
+ &amp;lt;?php $popularpost = new WP_Query( array( &#39;posts_per_page&#39; =&amp;gt; 5, &#39;meta_key&#39; =&amp;gt; &#39;wpb_post_views_count&#39;, &#39;orderby&#39; =&amp;gt; &#39;meta_value_num&#39;, &#39;order&#39; =&amp;gt; &#39;DESC&#39; ) );
+ while ( $popularpost-&amp;gt;have_posts() ) : $popularpost-&amp;gt;the_post();
+ ?&amp;gt;
+ &amp;lt;li&amp;gt;
+ &amp;lt;small&amp;gt;&amp;lt;?php the_category(&#39;, &#39;); ?&amp;gt;&amp;lt;/small&amp;gt;
+ &amp;lt;a href=&#34;&amp;lt;?php echo get_permalink(); ?&amp;gt;&#34; title=&#34;&amp;lt;?php the_title_attribute(); ?&amp;gt;&#34;&amp;gt;
+ &amp;lt;h3&amp;gt;&amp;lt;?php the_title(); ?&amp;gt;&amp;lt;h3&amp;gt;
+ &amp;lt;/li&amp;gt;
+ &amp;lt;?php
+ endwhile;
+ wp_reset_query();
+ ?&amp;gt;
+ &amp;lt;/ul&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Você pode adicionar thumbnails, links e afins como o de costume.&lt;/p&gt;
+
+&lt;p&gt;O que achou? Tem uma solução melhor? Comenta!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Não seja o próximo Zeno Rocha</title>
+      <link>http://tableless.com.br/nao-seja-o-proximo-zeno-rocha/</link>
+      <pubDate>Mon, 27 Oct 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/nao-seja-o-proximo-zeno-rocha/</guid>
+      <description>
+
+&lt;p&gt;&lt;em&gt;Artigo originalmente &lt;a href=&#34;https://medium.com/@diegoeis/nao-seja-o-proximo-zeno-rocha-df02fb8899ce&#34;&gt;publicado no meu blog no Medium&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Quando montei esse título eu sabia que ia ser polêmico e sabia que haveria um burburinho nos corredores das interwebs. E sabe de uma coisa? To me lixando para que os outros falam por aí.&lt;/p&gt;
+
+&lt;p&gt;Quando conversei com o Zeno horas depois de ter tido a ideia, expliquei os motivos para ele e comentamos sobre coisas que acontecem conosco por causa dessa “popularidade” na área. Eu realmente não quero que você seja o próximo Zeno Rocha. Não mesmo. O Zeno é o Zeno. Ele percorreu o caminho dele. Chegou longe e sei que vai chegar mais longe ainda. Mas uma coisa é certa: talvez você chegue mais longe sendo você mesmo do que querendo ser o Zeno.&lt;/p&gt;
+
+&lt;h2 id=&#34;sobre-admitir-que-você-é-popular&#34;&gt;Sobre admitir que você é popular&lt;/h2&gt;
+
+&lt;p&gt;Isso é difícil. Bastante. Como você diz que você é popular na área em que atua sem parecer arrogante, prepotente, mala ou um metido de nariz empinado? Não dá. A galera vai te interpretar mal. Eu nunca soube fazer isso e não sei fazer até hoje. É por esse motivo que muitas vezes, no início da minha carreira, eu me escondia nos eventos, não usava os crachás com meu nome e essas coisas. Leva tempo para assimilar. Mas &lt;a href=&#34;https://medium.com/@zenorocha/ser-popular-e-uma-merda-b739836e4407&#34;&gt;admitir que você é popular&lt;/a&gt; tem mais a ver com as atitudes que você vai tomar dali pra frente do que se importar com o que os outros vão falar. É muito sobre como você vai lidar com a situação de ser popular e como você vai usar essa vantagem (eu seria imbecil de dizer que isso não é uma vantagem) para melhorar sua carreira e claro, ajudar outros devs.&lt;/p&gt;
+
+&lt;p&gt;E sabe de uma coisa? Tem que ter coragem para bater no peito e admitir para você e para os outros que você é uma estrelinha na área. Não é questão de ser humilde. É questão de entender qual o seu papel na vida dos outros, na sua carreira e principalmente na sua própria vida.&lt;/p&gt;
+
+&lt;p&gt;Cansei de receber emails de devs iniciantes dizendo que queriam ser igual a mim. Percebi logo que isso não era saudável para o cara do outro lado e muito menos para mim. Você precisa sim, seguir os passos de alguém. Isso é algo inteligente de se fazer. É assim que a humanidade evolui. Mas entenda: seguir os passos de alguém não quer dizer que você tenha que ser a outra pessoa. O Zeno foi ele mesmo durante todo o caminho. Eu fui eu mesmo durante todo o meu caminho e você precisa ser você mesmo, seguindo o seu caminho. Se não, você vai falhar.&lt;/p&gt;
+
+&lt;p&gt;Quando eu tinha minha empresa, contratei um consultor de negócios para nos guiar. No início ele quis entender qual o papel da empresa e dos sócios no mercado, como atuávamos e qual a nossa influência na área. Quando ele soube que eu era um cara popular no meio, ele disse assim: &amp;#8220;O que você vai fazer quando não for mais o garoto do momento?&amp;#8221; Eu admito que nunca havia pensado naquilo e isso ficou martelando durante alguns dias na cabeça. Me fez pensar bastante sobre várias coisas, principalmente em como eu estava usando ou subutilizando a minha imagem no mercado.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;“Work hard, never stop learning, create remarkable things, help others and always stop to enjoy the moment. It’s really that simple.” &amp;#8211; &lt;a href=&#34;https://twitter.com/dcancel/status/443831291625361408&#34;&gt;@dcancel&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Quando eu (ele) me convenci que um dia esse dia chegaria eu fiquei mais tranquilo e entendi que esse é o fluxo natural (e saudável). A popularidade vem e vai. Se você não está preparado pra isso, seu ego explode e te leva junto. Um dia vão parar de falar o seu nome para falar o nome de outra pessoa. Foi o que aconteceu comigo, várias vezes. Não só o Zeno, mas outros caras apareceram e vão continuar aparecendo. E sabe de uma coisa? É importante que isso aconteça. Você é forçado a reavaliar os seus erros e principalmente a avaliar o que os outros fizeram e o que você não fez para chegar lá. Mas o segredo é fazer essa avaliação AGORA, sendo ou não popular.&lt;/p&gt;
+
+&lt;h3 id=&#34;sobre-mudar-o-mundo&#34;&gt;Sobre mudar o mundo&lt;/h3&gt;
+
+&lt;p&gt;Outra coisa que é difícil de entender, é que &lt;a href=&#34;https://medium.com/brasil/conselhos-de-um-velho-programador-antissocial-e-ranzinza-3b32f7ba4561&#34;&gt;nem todo mundo nasceu pra mudar o mundo&lt;/a&gt;. Talvez você não fique popular. Talvez você não seja reconhecido pelas pessoas que você ajudou. Talvez você fique chateado e descubra que web não é a sua praia, embora você queira muito que seja. Se isso acontecer, esse processo pode ser feito em outro mercado, em outra área, com outras pessoas. Você só precisa desses três componentes básicos e estará a salvo: vontade, tempo e curiosidade. Estes seriam os componentes importantes para qualquer tarefa que precise ser executada.&lt;/p&gt;
+
+&lt;p&gt;Quando resolvi fazer um artigo com o título &amp;#8220;Não seja o próximo Zeno Rocha&amp;#8221; um monte de bundões interpretaram errado. Mas pra você que é inteligente o bastante, vai perceber que o que eu quero mostrar nessa palestra é que qualquer um pode chegar lá sem ser o Zeno, o Maujor, o Eduardo Shiota, o Fernando Vieira, o Diego Eis, Leo Balter, Lucas Mazza, Jean Carlo Emer, Jaydson Gomes, Bernard de Luna, Daniel Filho, Almir Filho, Caio Gondim ou qualquer outro desenvolvedor conhecido na área, mas sendo você mesmo. Com as suas características e habilidades.&lt;/p&gt;
+
+&lt;p&gt;Eu ia falar bastante sobre outras atitudes que você pode fazer pra alavancar sua carreira e sua popularidade no evento do Tableless, mas se eu tivesse que adiantar apenas uma dica, ela seria essa: ajude e ensine outros devs.&lt;/p&gt;
+
+&lt;p&gt;Muito provavelmente eu não deveria ter publicado este artigo. Mas já que foi, espero que não o interprete errado. A dificuldade de falar desse assunto é inversamente proporcional à facilidade dos trolls de serem imbecis.&lt;/p&gt;
+
+&lt;p&gt;PS.: Ah, esse artigo absolutamente não tem nada a ver com o outro que escrevi dias atrás chamado &amp;#8220;&lt;a href=&#34;https://medium.com/@diegoeis/sobre-os-pavoes-do-front-end-91b8fe0bce00&#34;&gt;Sobre os pavões do front-end&lt;/a&gt;&amp;#8220;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Elevação ou JavaScript hoisting</title>
+      <link>http://tableless.com.br/elevacao-ou-javascript-hoisting/</link>
+      <pubDate>Wed, 04 Jun 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/elevacao-ou-javascript-hoisting/</guid>
+      <description>
+
+&lt;h2 id=&#34;um-pouco-de-teoria-antes-da-diversão&#34;&gt;Um pouco de Teoria antes da diversão.&lt;/h2&gt;
+
+&lt;p&gt;Muitas vezes, um simples princípio não compreendido, pode confundir novatos ou especialistas em JavaScript. Neste artigo, vamos tentar entender melhor um problema comum, que é mais simples do que parece.&lt;/p&gt;
+
+&lt;h2 id=&#34;declarações-na-frente&#34;&gt;Declarações na frente&lt;/h2&gt;
+
+&lt;p&gt;Antigamente em linguagens como C, se usavam funções ou procedimentos para dividir um programa, mas havia um problema: as declarações deveriam ficar sempre na frente.&lt;/p&gt;
+
+&lt;p&gt;Suponha que você queira usar uma função que junta palavras:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;juntarPalavras(&#39;Arco&#39;, &#39;íris&#39;);&lt;/pre&gt;
+
+&lt;p&gt;Mas temos um problema aqui, não? Essa função não foi definida antes de ser chamada!&lt;/p&gt;
+
+&lt;p&gt;O programa retornará um erro, pois &lt;strong&gt;juntarPalavras()&lt;/strong&gt; não foi criada, ou acha que a linguagem deve permitir que você use funções que são definidas no final do código?&lt;/p&gt;
+
+&lt;p&gt;Declarar funções no início do programa resolveu o problema por um tempo, pois todas as funções e variáveis eram declaradas antes de serem usadas, sendo assim não se tinha erros de referência.&lt;/p&gt;
+
+&lt;p&gt;Com o tempo os programadores pensaram: &amp;#8220;Mas por que cargas d&amp;#8217;água não fazemos isso mais amigável e fácil de ler?&amp;#8221;, &amp;#8220;por que ler o código de baixo para cima e, não de cima para baixo?&amp;#8221;. Agora podemos colocar as definições em qualquer lugar do código e usá-los, mesmo antes de realmente serem definidos, que maravilha não?&lt;/p&gt;
+
+&lt;p&gt;O que acontece agora é que os compiladores ou até mesmo linguagens runtime leem todo o programa para saber que funções e variáveis você declarou no código. Após isso, a execução real acontece e ele já sabe onde está cada coisa. JavaScript faz exatamente isso, o que chamamos de Hoisting.&lt;/p&gt;
+
+&lt;h2 id=&#34;hora-da-diversão&#34;&gt;Hora da diversão&lt;/h2&gt;
+
+&lt;p&gt;Vamos começar com algo leve, para ir aquecendo os neurônios, veja o seguinte código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;nome = &#39;Jonatan&#39;;
+console.log(nome);
+// Jonatan
+&lt;/pre&gt;
+
+&lt;p&gt;Até aqui nada de novo, apenas iniciamos a variável nome com o valor jonatan e mostramos na tela;&lt;/p&gt;
+
+&lt;p&gt;Certo, e que tal tentarmos isso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var nome = meunome;
+console.log(nome);
+// ReferenceError: meunome is not defined
+&lt;/pre&gt;
+
+&lt;p&gt;Recebemos um erro bem obvio não acha? Como vamos definir o &lt;strong&gt;nome&lt;/strong&gt; com o valor de &lt;strong&gt;meunome&lt;/strong&gt; se essa variável nem existe ainda?&lt;/p&gt;
+
+&lt;p&gt;Agora, deste jeito:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var nome = meunome;
+console.log(nome);
+var meunome;
+// undefined
+&lt;/pre&gt;
+
+&lt;p&gt;Opa! “undefined”, sacam a jogada?&lt;/p&gt;
+
+&lt;p&gt;Isso acontece porque o JavaScript não obriga você a declarar variáveis, ​​permite que você defina as funções em qualquer lugar que você queira, o que lhe permite usar uma função antes de sua definição. O nome hoisting, elevação ou até mesmo içamento, é só um termo especificado, pois ele arranca as declarações até o topo do seu escopo.&lt;/p&gt;
+
+&lt;p&gt;Beleza, agora qual a diferença entre declaração e inicialização? Simples:&lt;/p&gt;
+
+&lt;p&gt;Aqui apenas declaramos a variável &lt;strong&gt;meunome&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var meunome;
+//undefined
+&lt;/pre&gt;
+
+&lt;p&gt;Já nesta parte iniciamos seu conteúdo como &lt;strong&gt;Jonatan&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;meunome = &#39;Jonatan&#39;;
+//Jonatan
+&lt;/pre&gt;
+
+&lt;p&gt;Este é o mesmo procedimento feito com as funções:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;console.log(multiplicaNumero(10,10));
+var multiplicaNumero = function(a,b) {
+  return a*b;
+}
+//TypeError: undefined is not a function
+&lt;/pre&gt;
+
+&lt;p&gt;Viram? Ele elevou a declaração var multiplicaNumero, mas como chamamos antes de ele ser iniciado recebemos um erro.&lt;/p&gt;
+
+&lt;p&gt;Se mudarmos para:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;console.log(multiplicaNumero(10,10));
+multiplicaNumero = function(a,b) {
+  return a*b;
+}
+//ReferenceError: multiplicaNumero is not defined
+&lt;/pre&gt;
+
+&lt;p&gt;Recebemos o erro nos dizendo que &lt;strong&gt;multiplicaNumero&lt;/strong&gt; não foi declarado.&lt;/p&gt;
+
+&lt;p&gt;Alteramos novamente:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;console.log(multiplicaNumero(10,10));
+function multiplicaNumero (a,b) {
+  return a*b;
+}
+// 100
+&lt;/pre&gt;
+
+&lt;p&gt;E agora o código executou sem erro porque toda declaração de função não anônima é elevada para o topo do escopo.&lt;/p&gt;
+
+&lt;p&gt;Fácil não é? Com isso aprendemos que é uma boa prática declarar e/ou iniciar variáveis e funções no início do escopo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var a, foo = &#39;bar&#39;;
+var bar = function(){
+  var foo = &#39;foo&#39;;
+  console.log(&#39;local: &#39;+foo);
+};
+bar();
+console.log(&#39;global: &#39;+foo);
+//local: foo
+//global: bar 
+&lt;/pre&gt;
+
+&lt;p&gt;Boas práticas nos levam a caminhos melhores.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Utilizando as metatags de OpenGraph</title>
+      <link>http://tableless.com.br/utilizando-meta-tags-facebook/</link>
+      <pubDate>Thu, 23 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/utilizando-meta-tags-facebook/</guid>
+      <description>
+
+&lt;p&gt;Creio que você, usuário frenético de facebook já tenha visto algo mais ou menos assim na sua linha do tempo:&lt;/p&gt;
+
+&lt;div id=&#34;attachment_40213&#34; style=&#34;width: 484px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/imagem-P.jpg&#34;&gt;&lt;img class=&#34;size-full wp-image-40213&#34; alt=&#34;Imagem compartilhamento Facebook.&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/imagem-P.jpg&#34; width=&#34;474&#34; height=&#34;153&#34; srcset=&#34;uploads/2014/01/imagem-P.jpg 474w, uploads/2014/01/imagem-P-329x106.jpg 329w&#34; sizes=&#34;(max-width: 474px) 100vw, 474px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Facebook Share
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Esse tipo de compartilhamento é devido ao uso das meta tags que o próprio facebook oferece aos desenvolvedores, as famosas &lt;strong&gt;metas :og&lt;/strong&gt; ou &lt;strong&gt;Open Graph&lt;/strong&gt;. Elas existem com o intuito de especificar metas no &lt;code&gt;&amp;lt;head&amp;gt;&lt;/code&gt; para sua publicação no facebook ser a mais agradável e apresentável possível.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-você-precisa-saber-e-fazer&#34;&gt;O que você precisa saber e fazer&lt;/h2&gt;
+
+&lt;p&gt;A syntax para essa tag é básica:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;head&amp;gt;
+&amp;lt;meta property=&#34;OG TAG&#34; content=&#34;VALOR&#34;&amp;gt;
+&amp;lt;/head&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;A seguir veremos as tags que podemos especificar para modificar nossa publicação:&lt;/p&gt;
+
+&lt;h3 id=&#34;locale&#34;&gt;Locale&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;meta property=&#34;og:locale&#34; content=&#34;en_US&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Nessa tag definimos basicamente o local/idioma da publicação. O valor &lt;em&gt;default&lt;/em&gt; dela é _en&lt;em&gt;US&lt;/em&gt;. É interessante o idioma dessa tag acompanhar o mesmo que está definido dentro do &lt;code&gt;&amp;lt;html lang=&amp;quot;&amp;quot;&amp;gt;&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Eu, particularmente, não uso _pt&lt;em&gt;BR&lt;/em&gt; para publicações no facebook, e para ser bem sincero não encontro muitas pessoas que usam. Porém, a documentação do Open Graph diz para optarmos pelo idioma em qual o site, artigo ou portfólio está escrito.&lt;/p&gt;
+
+&lt;h3 id=&#34;url&#34;&gt;URL&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;meta property=&#34;og:url&#34; content=&#34;http://www.meusite.com.br/ola-mundo&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;A tag URL é usada para definir o link destino da publicação. Ela também é usada para definir o tanto de  likes e shares que uma página possui, sem desmembrar nenhum dado perdido por ai, como um like ali e um like aqui. Tudo é “somado” na URL especificáda.&lt;/p&gt;
+
+&lt;h3 id=&#34;title&#34;&gt;Title&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;meta property=&#34;og:title&#34; content=&#34;Utilizando as meta tags do Facebook.&#34;&amp;gt;
+&amp;lt;meta property=&#34;og:site_name&#34; content=&#34;Tableless&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;No HTML puro, a forma que usamos para especificar, tanto o nome a página quanto o nome do site é a tag &lt;code&gt;&amp;lt;title&amp;gt;&lt;/code&gt;. As meta tags:og vão um pouco a mais que isso. É fornecido 2 tags para usar em relação ao título da página:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;&amp;lt;property=&amp;quot;og:title&amp;quot;&amp;gt;&lt;/code&gt; Específica o título da página, assim como essa: &lt;em&gt;Utilizando as meta tags do Facebook&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;&amp;lt;property=&amp;quot;og:site_name&amp;quot;&amp;gt;&lt;/code&gt; Especifica o nome do site: &lt;em&gt;Tableless&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;description&#34;&gt;Description&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;meta property=&#34;og:description&#34; content=&#34;O tutorial para compartilhar o conteúdo do seu site de forma eficaz.&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Acho que essa tag não necessita de muita explicação. É basicamente a descrição da sua postagem. Mas é importante ressaltar de colocar um bom texto chamativo e interessante, para o usuário ver a publicação, gostar e acessar.&lt;/p&gt;
+
+&lt;p&gt;É interessante a sua descrição não ultrapassar o máximo de 200 caracteres.&lt;/p&gt;
+
+&lt;h3 id=&#34;images&#34;&gt;Images&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;meta property=&#34;og:image&#34; content=&#34;www.meusite.com.br/imagem.jpg&#34;&amp;gt;
+&amp;lt;meta property=&#34;og:image:type&#34; content=&#34;image/jpeg&#34;&amp;gt;
+&amp;lt;meta property=&#34;og:image:width&#34; content=&#34;800&#34;&amp;gt; /** PIXELS **/
+&amp;lt;meta property=&#34;og:image:height&#34; content=&#34;600&#34;&amp;gt; /** PIXELS **/&lt;/pre&gt;
+
+&lt;p&gt;A syntax mostrada logo a cima seria a ideal para um bom compartilhamento. Lembre-se que imagens são a porta de entrada. Você pode ter um bom título, uma boa descrição, mas nada se compara com o impacto que uma imagem provoca no usuário.&lt;/p&gt;
+
+&lt;p&gt;Colocando apenas a URL da imagem já é necessário para que sua postagem a apresente. Porém, quando você não especifica o tamanho da imagem, a miniatura vai ser estabelecida com as dimensões originais, e assim o próprio facebook vai decidir se o thumbnail vai ser:&lt;/p&gt;
+
+&lt;p&gt;Pequeno&lt;/p&gt;
+
+&lt;div id=&#34;attachment_40213&#34; style=&#34;width: 484px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/imagem-P.jpg&#34;&gt;&lt;img class=&#34;size-full wp-image-40213&#34; alt=&#34;Imagem compartilhamento Facebook.&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/imagem-P.jpg&#34; width=&#34;474&#34; height=&#34;153&#34; srcset=&#34;uploads/2014/01/imagem-P.jpg 474w, uploads/2014/01/imagem-P-329x106.jpg 329w&#34; sizes=&#34;(max-width: 474px) 100vw, 474px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Facebook Share Pequeno
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Isso acontece porque ela não é grande o suficiente para ser um Thumbanil de modelo grande, e caso tentássemos &amp;#8220;esticar&amp;#8221; a imagem para transformar num thumbanil grande a qualidade ficaria MUITO ruim. Mas não se esqueça, se você especificar na tag uma dimensão pequena, mesmo que sua dimensão original seja grande, ela vai aparecer pequena, como no modelo a cima.&lt;/p&gt;
+
+&lt;p&gt;E caso a imagem seja grande, ou se você especificou uma dimensão grande na tag, ela irá aparecer assim:&lt;/p&gt;
+
+&lt;div id=&#34;attachment_40214&#34; style=&#34;width: 330px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/imagem-G.jpg&#34;&gt;&lt;img class=&#34;size-medium wp-image-40214&#34; alt=&#34;Compartilhamento com Thumbnail grande.&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/imagem-G-320x310.jpg&#34; width=&#34;320&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/01/imagem-G-320x310.jpg 320w, uploads/2014/01/imagem-G-173x168.jpg 173w, uploads/2014/01/imagem-G.jpg 396w&#34; sizes=&#34;(max-width: 320px) 100vw, 320px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Facebook Share Grande
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Os formatos que o Facebook aceita é: JPEG, PNG, GIF, e BMP. A dica que eu dou é sempre optar pelo JPG e sempre especificar o formato e as dimensões da imagem. Isso faz o Facebook “entender melhor” o que você está enviando.&lt;/p&gt;
+
+&lt;h3 id=&#34;type&#34;&gt;Type&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;meta property=&#34;og:type&#34; content=&#34;website&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Define o tipo do seu site. O valor &lt;em&gt;default&lt;/em&gt; desse atributo é o &lt;em&gt;website&lt;/em&gt;. Geralmente é isso mesmo que é usado, o valor &lt;em&gt;website&lt;/em&gt;. Mas, caso o seu conteúdo for um artigo, você pode optar pela tag &lt;em&gt;article&lt;/em&gt; e assim especificar novos valores (o próprio Tableless faz isso.)&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;meta property=&#34;og:type&#34; content=&#34;article&#34;&amp;gt;
+&amp;lt;meta property=&#34;article:author&#34; content=&#34;reidark&#34;&amp;gt;
+&amp;lt;meta property=&#34;article:section&#34; content=&#34;Tutoriais&#34;&amp;gt;
+&amp;lt;meta property=&#34;article:tag&#34; content=&#34;Facebook, tags, og, open graph&#34;&amp;gt;
+&amp;lt;meta property=&#34;article:published_time&#34; content=&#34;date_time&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;escopo-final&#34;&gt;Escopo Final&lt;/h2&gt;
+
+&lt;p&gt;Especificando todas as meta tags:og o seu cabeçalho tem que ficar preenchido mais ou menos dessa maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;head&amp;gt;
+&amp;lt;meta property=&#34;og:locale&#34; content=&#34;pt_BR&#34;&amp;gt;
+
+&amp;lt;meta property=&#34;og:url&#34; content=&#34;http://www.meusite.com.br/ola-mundo&#34;&amp;gt;
+
+&amp;lt;meta property=&#34;og:title&#34; content=&#34;Título da página ou artigo&#34;&amp;gt;
+&amp;lt;meta property=&#34;og:site_name&#34; content=&#34;Nome do meu site&#34;&amp;gt;
+
+&amp;lt;meta property=&#34;og:description&#34; content=&#34;Minha boa descrição para intrigar os usuários.&#34;&amp;gt;
+
+&amp;lt;meta property=&#34;og:image&#34; content=&#34;www.meusite.com.br/imagem.jpg&#34;&amp;gt;
+&amp;lt;meta property=&#34;og:image:type&#34; content=&#34;image/jpeg&#34;&amp;gt;
+&amp;lt;meta property=&#34;og:image:width&#34; content=&#34;800&#34;&amp;gt; /** PIXELS **/
+&amp;lt;meta property=&#34;og:image:height&#34; content=&#34;600&#34;&amp;gt; /** PIXELS **/
+
+/** CASO SEJA UM SITE NORMAL **/
+
+&amp;lt;meta property=&#34;og:type&#34; content=&#34;website&#34;&amp;gt;
+
+/** CASO SEJA UM ARTIGO **/
+
+&amp;lt;meta property=&#34;og:type&#34; content=&#34;article&#34;&amp;gt;
+&amp;lt;meta property=&#34;article:author&#34; content=&#34;Autor do artigo&#34;&amp;gt;
+&amp;lt;meta property=&#34;article:section&#34; content=&#34;Seção do artigo&#34;&amp;gt;
+&amp;lt;meta property=&#34;article:tag&#34; content=&#34;Tags do artigo&#34;&amp;gt;
+&amp;lt;meta property=&#34;article:published_time&#34; content=&#34;date_time&#34;&amp;gt;
+&amp;lt;/head&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;p&gt;Lembre-se que essa forma de publicação no Facebook atrai pessoas para seu site, seja tanto para ler um artigo, ou apenas dar uma olhada, e assim acaba sendo uma espécie de SEO para rede sociais. Então não esqueça de acrescentar isso ao seu site, vai te ajudar 😉&lt;/p&gt;
+
+&lt;p&gt;Tenha em mente que isso é o básico, mas é essencial.&lt;/p&gt;
+
+&lt;p&gt;Caso você queira pular de ponta nessas meta tags Open Graph, entre &lt;a href=&#34;http://ogp.me/&#34;&gt;aqui&lt;/a&gt; e se divirta 🙂&lt;/p&gt;
+
+&lt;p&gt;Eu esqueci alguma coisa? Então me ajude, comente aqui em baixo.&lt;/p&gt;
+
+&lt;p&gt;Abraços!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Um 2013 cheio de propósito</title>
+      <link>http://tableless.com.br/um-2013-cheio-de-proposito/</link>
+      <pubDate>Mon, 31 Dec 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/um-2013-cheio-de-proposito/</guid>
+      <description>
+
+&lt;p&gt;&lt;em&gt;Este post é longo e não tem versão TL;DR.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;No começo falo muito sobre o que aconteceu comigo esse ano. No final falo o que quero fazer com o Tableless em 2013.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Este é meu último post pessoal aqui no Tableless. Quero desassociar artigos pessoais com os artigos do Tableless.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Eu tenho a tradição (na verdade tinha) de escrever um post de como foi o último ano do Tableless. É difícil eu não falar algo pessoal por que o Tableless está na minha vida todos os dia. Por isso esse post talvez seja mais de cunho pessoal do que algo mais &amp;#8220;institucional&amp;#8221;. Juro que vai ser a última vez.&lt;/p&gt;
+
+&lt;p&gt;Eu gosto de escolher uma palavra para levar comigo durante o ano. Esse ano a palavra era &amp;#8220;mudar&amp;#8221;. E realmente tudo mudou.&lt;/p&gt;
+
+&lt;h3 id=&#34;largando-o-osso&#34;&gt;Largando o osso&lt;/h3&gt;
+
+&lt;p&gt;Eu decidi sair da empresa onde eu era sócio. Durante 6 anos da minha vida eu me dediquei a ter uma empresa sobre desenvolvimento web que fazia as coisas realmente diferentes. Nestes 6 anos eu fiz diversos projetos, conheci muita gente e aprendi mais do que nunca. Aprendi muita coisa sobre gerência, administração, controle financeiro, negócios e tudo que envolve manter uma empresa. Comi grama por baixo durante muito tempo, mas também colhi ótimos frutos. Sei do bom e do ruim.&lt;/p&gt;
+
+&lt;p&gt;Nesse tempo e até hoje eu lido com profissionais sensacionais. Já treinei equipes de empresas como Globo, Yahoo!, Google, Itaú e uma série de outras. Já fechei negócios com empresas como Johnson &amp;amp; Johnson&amp;#8217;s, Nokia, Accenture e outros… São experiências que você guarda para você e tem que tomar muito cuidado pra que isso não perca o valor.&lt;/p&gt;
+
+&lt;p&gt;Eu decidi sair por diversos motivos. Um deles era buscar uma experiência que eu não tinha e não havia maneira de adquirir essa experiência sem largar o osso. Decidi virar empregado. Eu nunca tinha sido empregado na minha vida, tirando os 6 meses de carteira assinada do meu primeiro emprego como assistente de web designer.&lt;/p&gt;
+
+&lt;p&gt;Eu sentia que faltava algo. Mesmo com toda a experiência que eu havia adquirido tendo uma empresa, sentia que faltava alguma coisa. Desde então eu larguei o osso. Abrir empresa é &amp;#8220;simples&amp;#8221; e você pode fazer isso a qualquer momento. Por isso eu arrisquei mais uma vez e virei empregado.&lt;/p&gt;
+
+&lt;h3 id=&#34;virando-empregado&#34;&gt;Virando empregado&lt;/h3&gt;
+
+&lt;p&gt;Uma experiência totalmente nova para mim. Esse ano eu ganhei meu primeiro salário oficial. Ganhei meu primeiro décimo terceiro e minha primeira cesta de natal e fui promovido pela primeira vez na vida. Não que eu esteja feliz por isso ou prefira ser empregado do que dono. Na verdade o que importa é o seu propósito.&lt;/p&gt;
+
+&lt;h3 id=&#34;propósito&#34;&gt;Propósito&lt;/h3&gt;
+
+&lt;p&gt;Você deve estar dizendo que eu sou louco (burro, dá zero para ele) por ter deixado a empresa em que fundei e estar alegre agora por que eu recebi uma cesta de natal… Eu até entendendo seu desespero, mas tudo se resume a uma palavra: propósito.&lt;/p&gt;
+
+&lt;p&gt;Eu tenho o propósito de mudar as coisas em minha volta. Não por que eu seja convencido e metido a ponto de achar que eu sou o cara e consigo mudar tudo a hora que eu bem entender, mas por que eu preciso tentar, eu preciso arriscar. Todo mundo precisa ter um propósito, todo mundo precisa ter um motivo para avançar, para seguir em frente, pra te dar tesão na hora de levantar numa manhã fria para ir trabalhar. Eu, graças a Deus, tenho isso. Eu trabalho com Web e não me vejo fazendo outra coisa. Eu não me vejo em outro mercado, mesmo gostando de diversos outras profissiões, é a web que me faz sorrir.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Na verdade o que importa é o seu propósito.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;É por isso que a única coisa que eu desejo a você em 2013 é que você tenha um propósito. Esse propósito vai ser seu motor… é o que vai te dar força. É o que vai te impulsionar todas as manhãs. É o que vai te fazer um profissional melhor.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-tableless-em-2013&#34;&gt;O Tableless em 2013&lt;/h2&gt;
+
+&lt;p&gt;Mudamos bastante o foco esse ano e vamos ainda mais em 2013. Queremos que o Tableless cresça e aborde assuntos importantes para o desenvolvedor web. Queremos que você aprenda muito. Queremos que você transborde de sabedoria. Você é o cara, véi.&lt;/p&gt;
+
+&lt;h3 id=&#34;design&#34;&gt;Design&lt;/h3&gt;
+
+&lt;p&gt;Pra começar, modificamos o site. De novo! 😉&lt;/p&gt;
+
+&lt;p&gt;Eu nunca me senti satisfeito com os designs do Tableless. Uma por que era eu que fazia, outra era por que não havia uma identidade que marcasse o site. Iremos manter essa nova identidade durante muito tempo, fazendo alguns realinhamentos durante o ano, mas mantendo a mesma linha visual. Assim ninguém fica perdido e conseguimos manter o site mais facilmente.&lt;/p&gt;
+
+&lt;p&gt;O novo design foi feito com a ideia de Mobile First. Isso quer dizer que desenhamos primeiro a versão mobile, priorizando apenas o que era importante para o usuário mobile se sentir confortável ao visitar. Uma experiência interessante por que te desafia na hora da montagem do HTML/CSS/JS. A ordem das coisas é totalmente alterada e a forma com que você planeja a implementação do projeto te faz pensar sempre em formas mais simples de se fazer, ainda mais se você estiver fazendo um site resposivo, onde você vai precisar usar o mesmo HTML para todos os dispositivos.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Site responsivo é aquele site que se adequa aos diversos dispositivos e não aos diversos tamanhos de janelas de browser.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;O Responsivo que fizemos no site não é nada inovador… mas precisa ser?&lt;/p&gt;
+
+&lt;p&gt;O que é um site responsivo? É só aquele site que fica sambando quando você redimensiona a janela do browser? Claro que não. Site responsivo é aquele site que &lt;strong&gt;se adequa aos diversos dispositivos&lt;/strong&gt; e não a diversos tamanhos de janelas de browser.&lt;/p&gt;
+
+&lt;p&gt;Se você abrir em um smartphone, vai ver um site diferente das versões para desktop e tablet. Deixamos mais amigável para quem consome o site via smartphones e celulares com tela grande. O público do site que acessa com esses aparelhos ainda é pequeno, cerca de 3%. Tem crescido a cada dia… O problema era que o site anterior também não era um site responsivo de verdade. Não tinha uma versão mobile decente.&lt;/p&gt;
+
+&lt;h3 id=&#34;frequência-de-atualizações&#34;&gt;Frequência de atualizações&lt;/h3&gt;
+
+&lt;p&gt;Uma das maiores reclamações do site é a falta de atualizações. Eu concordo. Ficamos muito, mas muito tempo sem atualizarmos o site e em parte é a falta de tempo mesmo. Mesmo tendo algo em torno de 10 autores, o site fica dias sem ser atualizado. Cada um tem seu tempo e todos os autores estão muito envolvidos com diversas outras iniciativas, o que é ótimo pra nós da comunidade web. Pessoalmente eu tento manter pelo menos um post por semana.&lt;/p&gt;
+
+&lt;p&gt;Em 2013 quero que a frequência de novos posts aumente. Existem várias saídas para isso e já estamos testando duas soluções.&lt;/p&gt;
+
+&lt;p&gt;É isso&amp;#8230; Estamos fazendo de tudo pra melhorar a comunicação com você que lê e interage conosco. Um bom 2013 e o Tableless agradece a você, leitor gente fina, que está sempre conosco, nos ajudando a crescer e mostrando qual o melhor caminho. Que em 2013 seja um ano que tire seu fôlego, como 2012 foi para mim.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Passwords em Mobiles</title>
+      <link>http://tableless.com.br/passwords-em-mobiles/</link>
+      <pubDate>Sun, 11 Nov 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/passwords-em-mobiles/</guid>
+      <description>&lt;p&gt;Estava conversando outro dia com um pessoal sobre melhores práticas em sites/sistemas mobile. Um dos pontos foi a forma que tratamos senhas em mobiles. Em desktops e outros terminais (como caixas eletrônicos) é necessário que sua senha seja escondida conforme você a digita. Isso é bom por que pode ter algum engraçadinho perto de você, olhando a sua tela. Com mobile é um pouco diferente. Normalmente você está com o dispositivo na sua mão, utilizando-o perto do seu corpo, bem difícil de alguém tentar ficar bisbilhotando, e se estiver é fácil de esconder.&lt;/p&gt;
+
+&lt;p&gt;Tendo esse cenário em mente, vamos pensar em outro ponto para discutir: é um saco digitar senhas com teclados pequenos e touchs. Quem nunca ao errar a digitação no meio da senha, apaga todo o campo e começa a digitar novamente desde o começo?&lt;/p&gt;
+
+&lt;p&gt;Quando você digita a sua senha e aparecem aqueles asteríscos, eles mais atrapalham você do que ajudam na sua segurança. A forma com que tratamos senhas faz com que o usuário escolha senhas simples de serem escritas e na sua maioria das vezes fáceis de descobrir. E não é culpa dos usuários: se você escolhe uma senha pequena e simples, você erra menos ao digitar.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;“Masking passwords doesn&amp;#8217;t even increase security, but it does cost you business due to login failures.” &amp;#8230;and it&amp;#8217;s worse on mobile. -Nielsen Norman Group&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://www.lukew.com/ff/entry.asp?1653&#34;&gt;LukeW escreveu um texto sobre isso muito completo&lt;/a&gt;. Recomendo sua leitura.&lt;/p&gt;
+
+&lt;p&gt;No Mac, por exemplo, há sempre aquele checkbox de mostrar senhas.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/Screen-Shot-2012-11-11-at-9.25.25-PM.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Em mobile geralmente eles te mostram o caracteres que foi digitado por último por alguns instantes, assim se você for rápido e tiver dedos grandes, consegue ver se digitou a letra correta antes do caractere se transformar no • .&lt;/p&gt;
+
+&lt;p&gt;Há custos ao mascarar as senhas, tanto em mobiles quanto em desktops. Lembre-se que a internet está chegando a pessoas que não tenta experiência computacional. Mascarar as senhas trazem alguns problemas de usabilidade:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Usuários cometem mais erros quando eles não enxergam o que estão digitando. Obviamente.&lt;/li&gt;
+&lt;li&gt;Os usuários mais inexperientes, quando ficam incertos sobre digitar corretamente a senha, eles escolhem criar senhas mais simples ou fazem um simples copy/paste de sua senha de um arquivo de texto.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;São dois problemas de usabilidade que viram problemas de segurança! Quantas vezes você não ouviu histórias de pessoas que guardam suas senhas escritas em folhas de papel? Ou guardam tudo no email?&lt;/p&gt;
+
+&lt;p&gt;Uma prática interessante é inserir um checkbox ou alguma outra forma para que o usuário mostre a senha na hora do login. Isso facilitaria a digitação do usuário, não haveria tantas ocorrências de bloqueio de senha, lembrete de senha etc e o usuário não ficaria sem paciência ao utilizar seu sistema&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/hidepass4.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Lembre-se que o usuário está competindo a atenção com outras coisas ao utilizar seu sistema mobile. Ele pode estar em pé, no ônibus, chacoalhando o tempo todo. Ter um botãozinho que o ajude a digitar a senha sem tantos problemas é interessante. A experiência melhora e usuário fica feliz.&lt;/p&gt;
+
+&lt;p&gt;Leia mais sobre o assunto:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://danamckay.wordpress.com/2010/01/22/password-masking-and-the-difference-between-usability-and-user-experience/&#34;&gt;Password masking, and the difference between usability and user experience&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.useit.com/alertbox/passwords.html&#34;&gt;Stop Password Masking&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.nngroup.com/events/tutorials/usability.html&#34;&gt;Fundamental Guidelines for Web Usability&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.lukew.com/ff/entry.asp?1653&#34;&gt;Mobile Design Details: Hide/Show Passwords&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Drops 11 – Adaptação e Otimização</title>
+      <link>http://tableless.com.br/drops-11-adaptacao-e-otimizacao/</link>
+      <pubDate>Wed, 04 Jul 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/drops-11-adaptacao-e-otimizacao/</guid>
+      <description>&lt;p&gt;Aproveitando o embalo do &lt;a href=&#34;http://tableless.com.br/responsive-web-design-adaptacao-vs-otimizacao/&#34; title=&#34;Responsive Web Design – Adaptação vs Otimização&#34;&gt;artigo&lt;/a&gt;, resolvi fazer um drops rápido sobre o assunto, falando mais sobre produzir sites responsivos ou específicos para determinados aparelhos. Falei mais sobre suas vantagens e desvantagens.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Drops 10 – Web Apps ou Instaláveis no dispositivos?</title>
+      <link>http://tableless.com.br/drops-10-web-apps-ou-instalaveis-no-dispositivos/</link>
+      <pubDate>Fri, 22 Jun 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/drops-10-web-apps-ou-instalaveis-no-dispositivos/</guid>
+      <description>&lt;p&gt;Você fará uma aplicação. Essa aplicação será instalada no dispositivo ou será baseada em web?&lt;/p&gt;
+
+&lt;p&gt;Essa é uma discussão antiga e não dá para dizer o que é certo e errado por enquanto. Eu sou do time do pessoal que acha que web apps são o melhor caminho. Tenho alguns motivos para pensar assim e quero compartilhar com vocês nesse Drops. O que você acha sobre isso?&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/podcast/drops10.mp3&#34;&gt;Link direto do arquivo&lt;/a&gt;. &lt;a href=&#34;feed://tableless.com.br/categoria/podcasts/feed/&#34;&gt;RSS direto do podcast&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Estruturação de front-end – Parte 1: Preprocessadores, Framewoks e Bibliotecas</title>
+      <link>http://tableless.com.br/estruturacao-de-client-side-preprocessadores-framewoks-e-bibliotecas-parte-1/</link>
+      <pubDate>Wed, 09 May 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/estruturacao-de-client-side-preprocessadores-framewoks-e-bibliotecas-parte-1/</guid>
+      <description>
+
+&lt;p&gt;Existem três categorias de &amp;#8220;ferramentas&amp;#8221; que nos ajudam a desenvolver um projeto client-side: Preprocessadores, Frameworks e Bibliotecas.&lt;/p&gt;
+
+&lt;h3 id=&#34;preprocessadores&#34;&gt;Preprocessadores&lt;/h3&gt;
+
+&lt;p&gt;Preprocessadores são ferramentas onde você escreve CSS de uma determinada forma, modificando sua sintaxe, fazendo com que na hora de sua utilização o código CSS precise ser préprocessado para que o código escrito seja transformado em código CSS puro e assim então os browsers consigam entender.&lt;/p&gt;
+
+&lt;p&gt;Existem muitos preprocessadores no mercado como &lt;a href=&#34;http://lesscss.org/&#34;&gt;Less&lt;/a&gt;, &lt;a href=&#34;http://sass-lang.com/&#34;&gt;Sass&lt;/a&gt;, &lt;a href=&#34;http://turbine.peterkroener.de/index.php&#34;&gt;Turbine&lt;/a&gt;, &lt;a href=&#34;http://sourceforge.net/projects/switchcss/&#34;&gt;Switch CSS&lt;/a&gt; e outros.&lt;/p&gt;
+
+&lt;p&gt;Particularmente eu não gosto de usar preprocessadores. Para começar é necessário que você aprenda a linguagem de cada um e a ideia de que seu CSS precisa ser compilado para poder funcionar não me agrada muito. O CSS é simples demais para complicarmos desse jeito. Entretanto, há uma série de coisas interessantes que podemos fazer com os preprocessadores como variáveis, funções, operações e etc que demorarão um pouco (ou não) para fazerem parte do core definitivo da linguagem. Mesmo assim, pessoalmente, para a maioria dos projetos, não vale a pena.&lt;/p&gt;
+
+&lt;h3 id=&#34;frameworks&#34;&gt;Frameworks&lt;/h3&gt;
+
+&lt;p&gt;Frameworks são diferentes de preprocessadores mas são muito parecidos com Bibliotecas. Um Framework disponibiliza para o dev um conjunto de estilos e estruturas prontas para a utilização em projetos de forma escalável e uniforme. Normalmente os frameworks te dão uma coleção de componentes para que sejam usadas por todo o projeto. Esses componentes na maioria das vezes já vem com estilos visuais aplicados, bem como a estrutura. Veja por exemplo o &lt;a href=&#34;http://twitter.github.com/bootstrap&#34;&gt;Bootstrap&lt;/a&gt; ou o &lt;a href=&#34;http://blueprintcss.org&#34;&gt;Blueprint&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Com o Bootstrap você consegue, rapidamente, fazer um protótipo simples ou uma estrutura básica de sistema. É o preferido dos programadores. Os elementos visuais já foram criados e desenhados. Talvez não seja uma boa ideia você utilizar um framework em um projeto cujo design já esteja aprovado. Você teria muito retrabalho para &amp;#8220;zerar&amp;#8221; o estilo visual de cada elemento para depois reconstruí-lo utilizando o seu design.&lt;/p&gt;
+
+&lt;p&gt;É muito importante que o uso de um framework CSS/Javascript seja aprovado no início de um grande projeto. Mesmo que você planeje criar um framework do zero, específico para seu projeto. O que na maioria das vezes não vale a pena.&lt;/p&gt;
+
+&lt;h3 id=&#34;bibliotecas&#34;&gt;Bibliotecas&lt;/h3&gt;
+
+&lt;p&gt;Bibliotecas CSS geralmente não modificam o visual como os Frameworks fazem, mas eles disponibilizam uma coleção de classes, reutilizáveis e o melhor, combinatórias, para que se adeque a diversos cenários do seu projeto. Como essas classes não estão ligadas a nenhuma formatação visual, você consegue combinar sem grandes problemas com suas classes e IDs, modificando a hora que quiser a formatação visual dos elementos.&lt;/p&gt;
+
+&lt;p&gt;As bibliotecas são indicadas para projetos mais simples, sem grandes apetrechos técnicos, como um site ou algo parecido. Para fazer um sistema, as bibliotecas irão reforçar os Frameworks, facilitando a organização e formatação da estrutura do site. A biblioteca também ajuda na manipulação dos elementos via Javascript se baseando por estas classes prontas.&lt;/p&gt;
+
+&lt;p&gt;A verdade é que hoje é muito difícil diferenciar uma biblioteca de um framework.&lt;/p&gt;
+
+&lt;h3 id=&#34;como-todos-eles-trabalham-juntos&#34;&gt;Como todos eles trabalham juntos?&lt;/h3&gt;
+
+&lt;p&gt;Você pode usar todos os três ao mesmo tempo em um projeto. Mas não é muito inteligente, já que se você estiver utilizando um framework, muito provavelmente ele terá uma &amp;#8220;biblioteca&amp;#8221; em sua base. Imagine que a biblioteca pode ser específica de estrutura ou formatação visual. O Framework, basicamente, junta os dois. Obviamente há mais coisas envolvidas. Mas para simplificarmos a explicação, imagine que um Framework é a mistura dessas duas bibliotecas.&lt;/p&gt;
+
+&lt;p&gt;O Preprocessador é independente do Framework e da Biblioteca. O seu ganho está ao escrever um código mais escalável, muitas vezes melhorando ou piorando a sintaxe do código. É pura sintaxe, não são classes prédefinidas. Mesmo assim você pode basear seu Framework/Biblioteca em um Préprocessador. O Bootstrap faz isso para facilitar features dinâmicas como grids, cores e etc.&lt;/p&gt;
+
+&lt;p&gt;Como eu disse, eu não gosto de misturar as coisas. Prefiro utilizar o Bootstrap puro, sem a interferência de nenhum préprocessador. Mas, há gosto para tudo. 😉&lt;/p&gt;
+
+&lt;h3 id=&#34;qual-deles-é-melhor-para-o-meu-projeto&#34;&gt;Qual deles é melhor para o meu projeto&lt;/h3&gt;
+
+&lt;p&gt;Eu não sugiro que você utilize um framework para criar websites institucionais. Websites geralmente não usam os mesmos elementos, nem as mesmas estruturas, nem o mesmo design. Logo, se você utilizasse um framework como o Bootstrap, ou o JQuery UI, você acabaria gastando mais tempo reestilizando e brigando com o CSS já criado dos frameworks do que fazendo o que realmente importa: o seu trabalho.&lt;/p&gt;
+
+&lt;p&gt;Logo, para projetos de pequeno porte eu sugiro que você utilize uma biblioteca simples. Sugiro ainda que essa biblioteca seja criada por você.&lt;/p&gt;
+
+&lt;p&gt;Não precisa de muito. Em uma biblioteca você só precisa ter algumas propriedades que fazem tarefas básicas, como fazer o elemento flutuar para a esquerda, para direita, clear, retirar margens e etc. Normalmente eu utilizo um reset chamado &lt;a href=&#34;http://necolas.github.com/normalize.css/&#34;&gt;Normalize&lt;/a&gt;. Ele já reseta meu CSS inteiro e então eu me foco apenas nas propriedades que eu reutilizarei no resto do projeto.&lt;/p&gt;
+
+&lt;p&gt;Se seu projeto for médio ou grande, você já pode pensar em utilizar um Framework. Principalmente se seu projeto for um sistema. Você já vai ter à disposição estilos para formulários (que são um saco pra fazer), botões, grids, reset CSS e outras coisas. O trabalho fica mais fácil por que você tem menos arestas para acertar. Ainda mais se o designer aceitar utilizar alguns dos estilos já prontos do Framework, assim você não precisa reconfigurar formatações visuais e etc.&lt;/p&gt;
+
+&lt;p&gt;A utilização do Preprocessadores é totalmente opcional. Mas se você decidir utilizá-lo juntamente com algum Framework, procure saber se o Framework escolhido suporta algum tipo de préprocessador. O Bootstrap, por exemplo, tem uma versão para LESS.&lt;/p&gt;
+
+&lt;p&gt;No próximo artigo vou contar como estamos fazendo aqui na Locaweb. Estamos criando uma grande biblioteca visual e de front-end que será utilizado por todos os serviços. Os programadores conseguem subir um sistema sem precisar esperar um código HTML definitivo, utilizando os módulos dessa biblioteca. A galera de design faz todos os layouts padronizados visualmente, garantindo a uniformidade de todos os sistemas. E o pessoal de front? Bom o pessoal de front cuida para que tudo isso funcione. 😉&lt;/p&gt;
+
+&lt;p&gt;Veja a segunda parte deste artigo: &lt;a href=&#34;http://tableless.com.br/estruturacao-de-client-side-designers-e-programadores-parte-2/&#34; title=&#34;Estruturação de Client-side – Parte 2: Designers e Programadores&#34;&gt;Designers e Programadores&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Qualidade de Imagens e densidade de pixels</title>
+      <link>http://tableless.com.br/qualidade-de-imagens-e-densidade-de-pixels/</link>
+      <pubDate>Mon, 26 Mar 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/qualidade-de-imagens-e-densidade-de-pixels/</guid>
+      <description>
+
+&lt;p&gt;Você se lembra quando planejavamos nossos layouts para resoluções acima de 1024? Chega ser engraçado lembrar que um dia fizemos websites para 640&amp;#215;480, pensando que a resolução de 1024&amp;#215;768 eram a minoria dos usuários. Os tempos mudaram e naturalmente diversas outras resoluções apareceram por conta de novos dispositivos, melhores monitores e etc. Acontece que na web nada é tão fácil assim. A gente se livra de um problema, mas aparece outro no lugar.&lt;/p&gt;
+
+&lt;p&gt;Este ano eu estou trabalhando a maior parte do tempo em um monitor fullHD. Notei uma diferença gritante ao digitar código pela primeira vez em um monitor desses. E não são apenas os monitores que estão mudando para uma resolução decente. Também, seguindo o ciclo natural, dispositivos menores estão recebendo a dádiva de ter a alta resolução em suas telas. E isso, meu caro, é uma dádiva para o usuário, para você é mais trabalho. 😉&lt;/p&gt;
+
+&lt;h3 id=&#34;pixels-não-são-mais-como-eram-antigamente&#34;&gt;Pixels não são mais como eram antigamente&lt;/h3&gt;
+
+&lt;p&gt;Na minha época de escola &amp;#8211; nem tanto tempo assim &amp;#8211; os professores me ensinaram que o átomo era indivisível. Era incrível por que eu, como criança, me divertia tentando entender como algo poderia ser tão pequeno que não pudesse ser partido ao meio, ficando menor&amp;#8230; Mas aí eu descobri que os prótons, os elentrons e outras partículas subatomicas existiam também&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;A mesma coisa aconteceu com o pixel. O pixel sempre representou a menor unidade da sua tela. Para os designers, o pixel é a unidade central. É onde tudo se baseia: medidas, tamanhos, alinhamentos etc&amp;#8230; Mas o pixel não é mais como era antigamente.&lt;/p&gt;
+
+&lt;p&gt;Com o advento das telas HD em aparelhos móveis, o conceito de pixel mudou um &lt;del&gt;pouco&lt;/del&gt; muito. Quando a tela retina display do iPhone 4 foi lançada o queixo de todo mundo caiu. A Apple conseguiu apertar quatro pixels onde apenas caberia um. Logo o pixel pode ser definido como a menor unidade na tela, como você já conhece ou pode ser baseada em uma unidade chamada hoje em dia de &amp;#8220;pixel referência&amp;#8221; ou do inglês &lt;strong&gt;&lt;a href=&#34;http://www.alistapart.com/articles/a-pixel-identity-crisis/?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;reference pixel&lt;/a&gt;&lt;/strong&gt;: que significa que esse novo &amp;#8220;pixel&amp;#8221; é uma &lt;strong&gt;referência ótica&lt;/strong&gt; de unidade.&lt;/p&gt;
+
+&lt;p&gt;Para entrar em detalhes, leia &lt;a href=&#34;http://en.wikipedia.org/wiki/Pixel&#34;&gt;o que é um pixel&lt;/a&gt;. Vai te ajudar a entender melhor.&lt;/p&gt;
+
+&lt;h3 id=&#34;densidade-de-pixels&#34;&gt;Densidade de pixels&lt;/h3&gt;
+
+&lt;p&gt;A sigla PPI (&lt;a href=&#34;http://www.andrewdaceyphotography.com/articles/dpi/&#34;&gt;que é diferente de DPI&lt;/a&gt;) significa &lt;strong&gt;Pixel Per Inch&lt;/strong&gt;, ou seja, é o número de pixels que seu dispositivo pode conter em uma polegada. Quanto mais pixels em uma polegada, mais nítida a imagem é.&lt;/p&gt;
+
+&lt;p&gt;Os aparelhos como o iPhone 4 e outros que carregam Android tem uma densidade de pixels muito alta. Ou seja, eles conseguem comprimir um grande número de pixels em suas telas, tornando as imagens melhores. O problema é que as imagens que criamos hoje podem parecer ruins nesses dispositivos. Algo parecido como aumentar uma imagem pequena no Photoshop, entende? Ela fica toda pixelada, sem qualidade nenhuma. Isso por que você está aumentando o tamanho de uma imagem que é pequena e não tem pixels suficientes para dividir pelo tamanho que você definiu.&lt;/p&gt;
+
+&lt;p&gt;Entenda fazendo um teste: Vá até o site da Apple utilizando SAFARI. Agora, dê um zoom em alguma imagem. Veja como ela parece pixelada por causa do zoom. Agora abra o Inspector do seu navegador, vá até o console e coloque as duas linhas abaixo:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;AC.ImageReplacer._devicePixelRatio = 2&lt;/p&gt;
+
+&lt;p&gt;new AC.ImageReplacer()&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;A imagem foi trocada para uma imagem com o dobro de tamanho da imagem original para que ela ficasse melhor em telas com alta densidade de pixels&amp;#8230; &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2012/03/retina.jpg&#34;&gt;Veja a diferença&lt;/a&gt;. &lt;a href=&#34;http://www.appleinsider.com/articles/12/03/13/how_to_preview_the_retina_display_enhanced_applecom_in_safari_on_mac_or_pc.html&#34;&gt;Eu vi esse truque aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;ações-para-otimizar&#34;&gt;Ações para otimizar&lt;/h3&gt;
+
+&lt;p&gt;Existem algumas atitudes que vocês já pode tomar agora para poder chavear estes aparelhos e entregar uma experiência melhor para seus usuários.&lt;/p&gt;
+
+&lt;h4 id=&#34;utilize-media-queries&#34;&gt;Utilize media queries&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/introducao-sobre-media-queries/&#34;&gt;Media Queries são um chuchuzinho&lt;/a&gt;. Você pode utilizar uma regra chamada &lt;strong&gt;device-pixel-ratio&lt;/strong&gt; para detectar qual CSS servir dependendo do pixel-ratio do dispositivo. Não precisa ser maníaco e servir vários CSS para vários pixel-ratios&amp;#8230; Você vai ficar doido se fizer isso.&lt;/p&gt;
+
+&lt;p&gt;Abaixo veja uma tabela de exemplos de aparelhos com seus valores de pixel-ratios:&lt;/p&gt;
+
+&lt;table style=&#34;margin: auto&#34;&gt;
+  &lt;tr&gt;
+    &lt;td width=&#34;200px&#34;&gt;
+      &lt;strong&gt;Dispositivo&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;100px&#34;&gt;
+      &lt;strong&gt;Resolução&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;150px&#34;&gt;
+      &lt;strong&gt;device-pixel-ratio&lt;/strong&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      Android LDPI
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      320×240
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      0.75
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      Iphone 3 &amp; Android MDPI
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      320×480
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      1
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      Android HDPI
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      480×800
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      1.5
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      Iphone 4
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      960×640
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      2.0
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Agora, como seria o CSS:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;&lt;link rel=&#34;stylesheet&#34; media=&#34;screen and (-webkit-device-pixel-ratio: 0.75)&#34; href=&#34;low-ppi.css&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;link rel=&#34;stylesheet&#34; media=&#34;screen and (-webkit-device-pixel-ratio: 1.0)&#34; href=&#34;medium-ppi.css&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;link rel=&#34;stylesheet&#34; media=&#34;screen and (-webkit-device-pixel-ratio: 1.5)&#34; href=&#34;high-ppi.css&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;link rel=&#34;stylesheet&#34; media=&#34;screen and (-webkit-device-pixel-ratio: 2.0)&#34; href=&#34;retina.css&#34; /&gt;
+[/cc]&lt;/p&gt;
+
+&lt;p&gt;Eu sugiro que você se limite apenas para o pixel-ratio 2. Do jeito que as coisas estão andando, os aparelhos de pixel-ratio menor do que 2 desaparecerão logo e os aparelhos com pixel-ratio igual a 1 são maioria e você já faz versões para eles, já que não precisam de fallbacks.&lt;/p&gt;
+
+&lt;h4 id=&#34;considere-chavear-versões-de-imagens&#34;&gt;Considere chavear versões de imagens&lt;/h4&gt;
+
+&lt;p&gt;Este é um problema que ainda não existe uma solução inteligente e definitiva.&lt;/p&gt;
+
+&lt;p&gt;A ideia é tentar evitar que o usuário baixe duas imagens iguais, mas de tamanhos diferentes para cada tipo de necessidade. Logo, existem vários fallbacks, em Javascript ou linguagens server-side para servir apenas a imagem necessária.&lt;/p&gt;
+
+&lt;p&gt;O pessoal da Clound Four escreveu &lt;a href=&#34;http://cloudfour.com/how-apple-com-will-serve-retina-images-to-new-ipads/?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;um artigo muito interessante sobre isso&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Há outros artigos bons por aí. Eu estou dando uma lida em vários para tentar escrever um artigo mais simples aqui no Tableless. Mas o assunto é muito vasto e ninguém tem uma opinião definida ainda. Isso não é útil apenas para a situação dos aparelhos hires, mas também para encontrarmos maneiras de servir imagens menores para versões de sites mobiles.&lt;/p&gt;
+
+&lt;h4 id=&#34;text-rendering&#34;&gt;Text rendering&lt;/h4&gt;
+
+&lt;p&gt;Você consegue melhorar muito a leitura dos usuários utilizando a propriedade &lt;strong&gt;text-rendering&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;h1, h2, h3 { text-rendering: optimizeLegibility; }&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Esta propriedade melhora muito a leitura quando o usuário dá o zoom nos aparelhos móveis e também corrige suporte de ligaduras e kerning. Coisa linda.&lt;/p&gt;
+
+&lt;h4 id=&#34;text-smoothing&#34;&gt;Text Smoothing&lt;/h4&gt;
+
+&lt;p&gt;A propriedade &lt;strong&gt;font-smoothing&lt;/strong&gt; é útil agora! A leitura melhora demais em monitores normais e previne serrilhamentos ocasionais quando utilizandos @font-face.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;body * {&lt;/p&gt;
+
+&lt;p&gt;-webkit-font-smoothing: antialiased;&lt;/p&gt;
+
+&lt;p&gt;-moz-font-smoothing: antialiased;&lt;/p&gt;
+
+&lt;p&gt;-o-font-smoothing: antialiased;&lt;/p&gt;
+
+&lt;p&gt;-ms-font-smoothing: antialiased;&lt;/p&gt;
+
+&lt;p&gt;font-smoothing: antialiased;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;h4 id=&#34;tente-usar-css3&#34;&gt;Tente usar CSS3&lt;/h4&gt;
+
+&lt;p&gt;Tente usar e abusar dos efeitos do CSS como sombras, gradientes, bordas arredondadas e etc. Além de facilitarem sua vida evitando a criação de imagens desnecessárias, elas ajudam na velocidade de carregamento do site.&lt;/p&gt;
+
+&lt;h4 id=&#34;considere-utilizar-svg&#34;&gt;Considere utilizar SVG&lt;/h4&gt;
+
+&lt;p&gt;Já tem alguns que estão começando a utilizar SVG para facilitar a vida. Para ícones, SVG é ótimo. Você consegue reutilizá-los em diversos tamanhos, aumentando o diminuindo de acordo com a sua necessidade e também do aparelho. Veja um exemplo que a &lt;a href=&#34;http://coding.smashingmagazine.com/2012/01/16/resolution-independence-with-svg/?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;Smashing Magazine escreveu&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;novo-elemento-html&#34;&gt;Novo elemento HTML&lt;/h4&gt;
+
+&lt;p&gt;O W3C já criou um grupo chamado &lt;a href=&#34;http://www.w3.org/community/respimg/&#34;&gt;Responsive Images Community Group&lt;/a&gt; para a criação de elementos do HTML que facilitam a entrega de assets dependendo do contexto. Eles estão propondo um novo elemento que identifica as dimensões do dispositivo, velocidade de rede, densidade de pixels e outros pontos para servir melhor imagens e outros assets dependendo do contexto.&lt;/p&gt;
+
+&lt;h3 id=&#34;muitos-artigos-para-ler&#34;&gt;Muitos artigos para ler&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://aralbalkan.com/3331?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;How to make your web content look stunning on the iPhone 4&amp;#8217;s new Retina Display&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.weedygarden.net/2010/10/13/retina-display-and-css-background-images/?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;Retina Display and CSS Background Images&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.lukew.com/ff/entry.asp?1142&amp;amp;utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;Designing for the Retina Display (326ppi)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;[Você se lembra quando planejavamos nossos layouts para resoluções acima de 1024? Chega ser engraçado lembrar que um dia fizemos websites para 640&amp;#215;480, pensando que a resolução de 1024&amp;#215;768 eram a minoria dos usuários. Os tempos mudaram e naturalmente diversas outras resoluções apareceram por conta de novos dispositivos, melhores monitores e etc. Acontece que na web nada é tão fácil assim. A gente se livra de um problema, mas aparece outro no lugar.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Este ano eu estou trabalhando a maior parte do tempo em um monitor fullHD. Notei uma diferença gritante ao digitar código pela primeira vez em um monitor desses. E não são apenas os monitores que estão mudando para uma resolução decente. Também, seguindo o ciclo natural, dispositivos menores estão recebendo a dádiva de ter a alta resolução em suas telas. E isso, meu caro, é uma dádiva para o usuário, para você é mais trabalho. 😉&lt;/p&gt;
+
+&lt;h3 id=&#34;pixels-não-são-mais-como-eram-antigamente-1&#34;&gt;Pixels não são mais como eram antigamente&lt;/h3&gt;
+
+&lt;p&gt;Na minha época de escola &amp;#8211; nem tanto tempo assim &amp;#8211; os professores me ensinaram que o átomo era indivisível. Era incrível por que eu, como criança, me divertia tentando entender como algo poderia ser tão pequeno que não pudesse ser partido ao meio, ficando menor&amp;#8230; Mas aí eu descobri que os prótons, os elentrons e outras partículas subatomicas existiam também&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;A mesma coisa aconteceu com o pixel. O pixel sempre representou a menor unidade da sua tela. Para os designers, o pixel é a unidade central. É onde tudo se baseia: medidas, tamanhos, alinhamentos etc&amp;#8230; Mas o pixel não é mais como era antigamente.&lt;/p&gt;
+
+&lt;p&gt;Com o advento das telas HD em aparelhos móveis, o conceito de pixel mudou um &lt;del&gt;pouco&lt;/del&gt; muito. Quando a tela retina display do iPhone 4 foi lançada o queixo de todo mundo caiu. A Apple conseguiu apertar quatro pixels onde apenas caberia um. Logo o pixel pode ser definido como a menor unidade na tela, como você já conhece ou pode ser baseada em uma unidade chamada hoje em dia de &amp;#8220;pixel referência&amp;#8221; ou do inglês &lt;strong&gt;&lt;a href=&#34;http://www.alistapart.com/articles/a-pixel-identity-crisis/?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;reference pixel&lt;/a&gt;&lt;/strong&gt;: que significa que esse novo &amp;#8220;pixel&amp;#8221; é uma &lt;strong&gt;referência ótica&lt;/strong&gt; de unidade.&lt;/p&gt;
+
+&lt;p&gt;Para entrar em detalhes, leia &lt;a href=&#34;http://en.wikipedia.org/wiki/Pixel&#34;&gt;o que é um pixel&lt;/a&gt;. Vai te ajudar a entender melhor.&lt;/p&gt;
+
+&lt;h3 id=&#34;densidade-de-pixels-1&#34;&gt;Densidade de pixels&lt;/h3&gt;
+
+&lt;p&gt;A sigla PPI (&lt;a href=&#34;http://www.andrewdaceyphotography.com/articles/dpi/&#34;&gt;que é diferente de DPI&lt;/a&gt;) significa &lt;strong&gt;Pixel Per Inch&lt;/strong&gt;, ou seja, é o número de pixels que seu dispositivo pode conter em uma polegada. Quanto mais pixels em uma polegada, mais nítida a imagem é.&lt;/p&gt;
+
+&lt;p&gt;Os aparelhos como o iPhone 4 e outros que carregam Android tem uma densidade de pixels muito alta. Ou seja, eles conseguem comprimir um grande número de pixels em suas telas, tornando as imagens melhores. O problema é que as imagens que criamos hoje podem parecer ruins nesses dispositivos. Algo parecido como aumentar uma imagem pequena no Photoshop, entende? Ela fica toda pixelada, sem qualidade nenhuma. Isso por que você está aumentando o tamanho de uma imagem que é pequena e não tem pixels suficientes para dividir pelo tamanho que você definiu.&lt;/p&gt;
+
+&lt;p&gt;Entenda fazendo um teste: Vá até o site da Apple utilizando SAFARI. Agora, dê um zoom em alguma imagem. Veja como ela parece pixelada por causa do zoom. Agora abra o Inspector do seu navegador, vá até o console e coloque as duas linhas abaixo:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;AC.ImageReplacer._devicePixelRatio = 2&lt;/p&gt;
+
+&lt;p&gt;new AC.ImageReplacer()&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;A imagem foi trocada para uma imagem com o dobro de tamanho da imagem original para que ela ficasse melhor em telas com alta densidade de pixels&amp;#8230; &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2012/03/retina.jpg&#34;&gt;Veja a diferença&lt;/a&gt;. &lt;a href=&#34;http://www.appleinsider.com/articles/12/03/13/how_to_preview_the_retina_display_enhanced_applecom_in_safari_on_mac_or_pc.html&#34;&gt;Eu vi esse truque aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;ações-para-otimizar-1&#34;&gt;Ações para otimizar&lt;/h3&gt;
+
+&lt;p&gt;Existem algumas atitudes que vocês já pode tomar agora para poder chavear estes aparelhos e entregar uma experiência melhor para seus usuários.&lt;/p&gt;
+
+&lt;h4 id=&#34;utilize-media-queries-1&#34;&gt;Utilize media queries&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/introducao-sobre-media-queries/&#34;&gt;Media Queries são um chuchuzinho&lt;/a&gt;. Você pode utilizar uma regra chamada &lt;strong&gt;device-pixel-ratio&lt;/strong&gt; para detectar qual CSS servir dependendo do pixel-ratio do dispositivo. Não precisa ser maníaco e servir vários CSS para vários pixel-ratios&amp;#8230; Você vai ficar doido se fizer isso.&lt;/p&gt;
+
+&lt;p&gt;Abaixo veja uma tabela de exemplos de aparelhos com seus valores de pixel-ratios:&lt;/p&gt;
+
+&lt;table style=&#34;margin: auto&#34;&gt;
+  &lt;tr&gt;
+    &lt;td width=&#34;200px&#34;&gt;
+      &lt;strong&gt;Dispositivo&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;100px&#34;&gt;
+      &lt;strong&gt;Resolução&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;150px&#34;&gt;
+      &lt;strong&gt;device-pixel-ratio&lt;/strong&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      Android LDPI
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      320×240
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      0.75
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      Iphone 3 &amp; Android MDPI
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      320×480
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      1
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      Android HDPI
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      480×800
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      1.5
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      Iphone 4
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      960×640
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      2.0
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Agora, como seria o CSS:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;&lt;link rel=&#34;stylesheet&#34; media=&#34;screen and (-webkit-device-pixel-ratio: 0.75)&#34; href=&#34;low-ppi.css&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;link rel=&#34;stylesheet&#34; media=&#34;screen and (-webkit-device-pixel-ratio: 1.0)&#34; href=&#34;medium-ppi.css&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;link rel=&#34;stylesheet&#34; media=&#34;screen and (-webkit-device-pixel-ratio: 1.5)&#34; href=&#34;high-ppi.css&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;link rel=&#34;stylesheet&#34; media=&#34;screen and (-webkit-device-pixel-ratio: 2.0)&#34; href=&#34;retina.css&#34; /&gt;
+[/cc]&lt;/p&gt;
+
+&lt;p&gt;Eu sugiro que você se limite apenas para o pixel-ratio 2. Do jeito que as coisas estão andando, os aparelhos de pixel-ratio menor do que 2 desaparecerão logo e os aparelhos com pixel-ratio igual a 1 são maioria e você já faz versões para eles, já que não precisam de fallbacks.&lt;/p&gt;
+
+&lt;h4 id=&#34;considere-chavear-versões-de-imagens-1&#34;&gt;Considere chavear versões de imagens&lt;/h4&gt;
+
+&lt;p&gt;Este é um problema que ainda não existe uma solução inteligente e definitiva.&lt;/p&gt;
+
+&lt;p&gt;A ideia é tentar evitar que o usuário baixe duas imagens iguais, mas de tamanhos diferentes para cada tipo de necessidade. Logo, existem vários fallbacks, em Javascript ou linguagens server-side para servir apenas a imagem necessária.&lt;/p&gt;
+
+&lt;p&gt;O pessoal da Clound Four escreveu &lt;a href=&#34;http://cloudfour.com/how-apple-com-will-serve-retina-images-to-new-ipads/?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;um artigo muito interessante sobre isso&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Há outros artigos bons por aí. Eu estou dando uma lida em vários para tentar escrever um artigo mais simples aqui no Tableless. Mas o assunto é muito vasto e ninguém tem uma opinião definida ainda. Isso não é útil apenas para a situação dos aparelhos hires, mas também para encontrarmos maneiras de servir imagens menores para versões de sites mobiles.&lt;/p&gt;
+
+&lt;h4 id=&#34;text-rendering-1&#34;&gt;Text rendering&lt;/h4&gt;
+
+&lt;p&gt;Você consegue melhorar muito a leitura dos usuários utilizando a propriedade &lt;strong&gt;text-rendering&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;h1, h2, h3 { text-rendering: optimizeLegibility; }&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Esta propriedade melhora muito a leitura quando o usuário dá o zoom nos aparelhos móveis e também corrige suporte de ligaduras e kerning. Coisa linda.&lt;/p&gt;
+
+&lt;h4 id=&#34;text-smoothing-1&#34;&gt;Text Smoothing&lt;/h4&gt;
+
+&lt;p&gt;A propriedade &lt;strong&gt;font-smoothing&lt;/strong&gt; é útil agora! A leitura melhora demais em monitores normais e previne serrilhamentos ocasionais quando utilizandos @font-face.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;body * {&lt;/p&gt;
+
+&lt;p&gt;-webkit-font-smoothing: antialiased;&lt;/p&gt;
+
+&lt;p&gt;-moz-font-smoothing: antialiased;&lt;/p&gt;
+
+&lt;p&gt;-o-font-smoothing: antialiased;&lt;/p&gt;
+
+&lt;p&gt;-ms-font-smoothing: antialiased;&lt;/p&gt;
+
+&lt;p&gt;font-smoothing: antialiased;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;h4 id=&#34;tente-usar-css3-1&#34;&gt;Tente usar CSS3&lt;/h4&gt;
+
+&lt;p&gt;Tente usar e abusar dos efeitos do CSS como sombras, gradientes, bordas arredondadas e etc. Além de facilitarem sua vida evitando a criação de imagens desnecessárias, elas ajudam na velocidade de carregamento do site.&lt;/p&gt;
+
+&lt;h4 id=&#34;considere-utilizar-svg-1&#34;&gt;Considere utilizar SVG&lt;/h4&gt;
+
+&lt;p&gt;Já tem alguns que estão começando a utilizar SVG para facilitar a vida. Para ícones, SVG é ótimo. Você consegue reutilizá-los em diversos tamanhos, aumentando o diminuindo de acordo com a sua necessidade e também do aparelho. Veja um exemplo que a &lt;a href=&#34;http://coding.smashingmagazine.com/2012/01/16/resolution-independence-with-svg/?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;Smashing Magazine escreveu&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;novo-elemento-html-1&#34;&gt;Novo elemento HTML&lt;/h4&gt;
+
+&lt;p&gt;O W3C já criou um grupo chamado &lt;a href=&#34;http://www.w3.org/community/respimg/&#34;&gt;Responsive Images Community Group&lt;/a&gt; para a criação de elementos do HTML que facilitam a entrega de assets dependendo do contexto. Eles estão propondo um novo elemento que identifica as dimensões do dispositivo, velocidade de rede, densidade de pixels e outros pontos para servir melhor imagens e outros assets dependendo do contexto.&lt;/p&gt;
+
+&lt;h3 id=&#34;muitos-artigos-para-ler-1&#34;&gt;Muitos artigos para ler&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://aralbalkan.com/3331?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;How to make your web content look stunning on the iPhone 4&amp;#8217;s new Retina Display&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.weedygarden.net/2010/10/13/retina-display-and-css-background-images/?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;Retina Display and CSS Background Images&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.lukew.com/ff/entry.asp?1142&amp;amp;utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;Designing for the Retina Display (326ppi)&lt;/a&gt;
+*]&lt;a href=&#34;http://eisabainyo.net/weblog/2011/06/07/how-to-use-hi-res-images-for-web-apps-in-iphone4/?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;13&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.fiveminutes.eu/targeting-hight-screen-densities-with-css-media-queries/?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;Targeting High Screen Densities with CSS Media Queries&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.alistapart.com/articles/a-pixel-identity-crisis/?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;A Pixel Identity Crisis&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://bradfrostweb.com/blog/mobile/hi-res-optimization/?utm_source=TablelessComBr&amp;amp;utm_medium=PostLink&amp;amp;utm_campaign=TablelessComBr&amp;amp;utm_nooverride=1&#34;&gt;optimizing web experiences for high resolution screens&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Boas práticas de Acessibilidade</title>
+      <link>http://tableless.com.br/boas-praticas-de-acessibilidade/</link>
+      <pubDate>Mon, 23 Jan 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/boas-praticas-de-acessibilidade/</guid>
+      <description>&lt;p&gt;Preparei uma pequena (nem tão pequena assim) apresentação que mostra algumas boas práticas e técnicas sobre acessibilidade para sistemas e websites. São pequenos ajustes que podemos incorporar mesmo depois de todo o desenvolvimento pronto e que dão resultados importantes para adequação dos seus sites ou sistemas.&lt;/p&gt;
+
+&lt;div style=&#34;width:595px&#34; id=&#34;__ss_11217803&#34;&gt;
+  &lt;strong style=&#34;display:block;margin:12px 0 4px&#34;&gt;&lt;a href=&#34;http://www.slideshare.net/diegoeis/apresentancao-acessibilidade&#34; title=&#34;Apresentancao acessibilidade&#34; target=&#34;_blank&#34;&gt;Apresentancao acessibilidade&lt;/a&gt;&lt;/strong&gt; &lt;/p&gt; 
+  
+  &lt;div style=&#34;padding:5px 0 12px&#34;&gt;
+    Veja mais &lt;a href=&#34;http://www.slideshare.net/&#34; target=&#34;_blank&#34;&gt;apresentações&lt;/a&gt; de &lt;a href=&#34;http://www.slideshare.net/diegoeis&#34; target=&#34;_blank&#34;&gt;Diego Eis&lt;/a&gt;
+  &lt;/div&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Declarando idiomas no HTML</title>
+      <link>http://tableless.com.br/declarando-idiomas-no-html/</link>
+      <pubDate>Mon, 09 Jan 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/declarando-idiomas-no-html/</guid>
+      <description>
+
+&lt;p&gt;Publicar conteúdo na web definitivamente não é a mesma coisa da publicação de conteúdo nos meios impressos. Quando imprimimos o conteúdo, temos como foco um determinado público de uma determinada região. Eu, estando no Brasil, não vou fazer uma revista em no idioma Japonês. Quando falamos publicação de conteúdo online a coisa muda de cenário. O conteúdo online pode ser acessado no mundo inteiro, não importa seu idioma. Obviamente se você conhece outros idiomas, você amplia suas possibilidades para encontrar conteúdo e novos sites.&lt;/p&gt;
+
+&lt;p&gt;Os desenvolvedores do mundo inteiro juntamente com os fabricantes de browsers e outros interessados, querem ter certeza que os navegadores, robôs de busca, leitores de tela e outros sistemas detectem da forma ideal o idioma correto.&lt;/p&gt;
+
+&lt;p&gt;A declaração do idioma no código HTML não determina a informação no &lt;a href=&#34;http://tableless.com.br/charsets-e-encodes-tabelas-de-caracteres/&#34; title=&#34;Charsets e Encodes – Tabelas de caracteres&#34;&gt;encoding de caractére do texto&lt;/a&gt; nem a direção de leitura do texto em outros idiomas. Essas definições precisam ser declaradas separadamente.&lt;/p&gt;
+
+&lt;p&gt;Nós precisamos definir o idioma por alguns motivos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Melhor pronunciação do texto em leitores de tela.&lt;/li&gt;
+&lt;li&gt;Para que os buscadores possam indexar o website no buscador do respectivo idioma. Por exemplo: não tem sentido o Google ranqueear muito bem um site em português no Google americano.&lt;/li&gt;
+&lt;li&gt;Selecionar as fonts corretas para mostrar na tela. Nesse caso para idiomas como Chinês.&lt;/li&gt;
+&lt;li&gt;Para que os browsers escolham o dicionário correto para a correção gramatical nativa em textos e formulários.&lt;/li&gt;
+&lt;li&gt;Renderizar a página rapidamente &amp;#8211; o browser carrega o documento mais rápido quando o browser sabe qual o idioma nativo.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;definindo-o-idioma-padrão-do-documento&#34;&gt;Definindo o idioma padrão do documento&lt;/h3&gt;
+
+&lt;p&gt;Existem algumas maneiras que você pode definir o idioma padrão no documento exibido ou em partes do texto para aqueles termos em idiomas diferentes.&lt;/p&gt;
+
+&lt;p&gt;Podemos definir diretamente via metatag nativa:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;meta http-equiv=&#34;Content-Language&#34; content=&#34;pt-br&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Pela Metatag podemos definir vários valores no atributo content:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;meta http-equiv=&#34;Content-Language&#34; content=&#34;pt-br, en, fr, it&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Via &lt;strong&gt;HTTP Header&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;HTTP/1.1 200 OK
+Date: Fri, 30 Dez 2011 10:46:04 GMT
+Server: Apache/1.3.28 (Unix) PHP/4.2.3
+Content-Location: CSS2-REC.en.html
+Vary: negotiate,accept-language,accept-charset
+TCN: choice
+P3P: policyref=http://www.w3.org/2001/05/P3P/p3p.xml
+Cache-Control: max-age=21600
+Expires: Wed, 05 Nov 2003 16:46:04 GMT
+Last-Modified: Tue, 12 May 1998 22:18:49 GMT
+ETag: &#34;3558cac9;36f99e2b&#34;
+Accept-Ranges: bytes
+Content-Length: 10734
+Connection: close
+Content-Type: text/html; charset=utf-8
+Content-Language: pt-br
+&lt;/pre&gt;
+
+&lt;p&gt;Via atributo &lt;strong&gt;lang&lt;/strong&gt; nos elementos do HTML.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;p&amp;gt;N&amp;oacute;s utilizamos o &amp;lt;span lang=&#34;en&#34;&amp;gt;mouse&amp;lt;/span&amp;gt; para navegar na &amp;lt;span lang=&#34;en&#34;&amp;gt;web&amp;lt;/span&amp;gt; por meios dos &amp;lt;span lang=&#34;en&#34;&amp;gt;browsers&amp;lt;/span&amp;gt;.
+&lt;/pre&gt;
+
+&lt;p&gt;Assim indicamos, principalmente para os leitores de tela, quais termos ele deve ler com o idioma nativo do termo.&lt;/p&gt;
+
+&lt;p&gt;Temos o costume de indicar o atributo &lt;strong&gt;lang&lt;/strong&gt; no elemento &lt;strong&gt;html&lt;/strong&gt; logo no início do documento para indicar que todo o conteúdo contido dentro do &lt;strong&gt;html&lt;/strong&gt; está escrito em um determinado idioma.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+  &amp;lt;title&amp;gt;T&amp;iacute;tulo&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;ordem-de-herança&#34;&gt;Ordem de herança&lt;/h3&gt;
+
+&lt;p&gt;Os meios de acesso, normalmente browsers, seguem esses passos de verificação para identificar o idioma:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Verifica se elemento HTML que tem o atributo &lt;strong&gt;lang&lt;/strong&gt;, se não,&lt;/li&gt;
+&lt;li&gt;Verifica se pai mais próximo ao termo que tenha o atributo &lt;strong&gt;lang&lt;/strong&gt;, se não,&lt;/li&gt;
+&lt;li&gt;Verifica se o documento tem a metatag definida &lt;meta http-equiv=&amp;#8221;content-language&amp;#8221; content=&amp;#8221;pt-br&amp;#8221;&gt;, se não,&lt;/li&gt;
+&lt;li&gt;Verifica se o HTTP Header Content-Language tem uma tag de idioma definido. Se não,&lt;/li&gt;
+&lt;li&gt;O idioma é tratado como não reconhecido.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;O W3C recomenda que você sempre utilize o &lt;strong&gt;lang&lt;/strong&gt; no elemento &lt;strong&gt;html&lt;/strong&gt; para definir o idioma padrão de todo o conteúdo e também em todo o termo encontrado no texto com idioma diferente do definido como padrão.&lt;/p&gt;
+
+&lt;p&gt;Declarações de idioma baseados nestes atributos são importantes para a maioria das aplicações web hoje, que vão desde as &lt;a href=&#34;http://br.mozdev.org/firefox/ortografia&#34;&gt;corretores ortográficos&lt;/a&gt; embutidos diretamente nos browsers até leitores de telas que interpretam as páginas web, etc etc.&lt;/p&gt;
+
+&lt;p&gt;Estas possibilidades são interessantes para que possamos globalizar ainda mais nossos projetos. Imagine por exemplo um website que ensina Russo para Chineses. É interessante que possamos marcar os termos dos dois idiomas de forma que os mecanismos trabalhem adequadamente em diversos meios de acesso. Os browsers precisam identificar quando o texto está em Russo ou quando está em Chinês. Os buscadores também precisam entender essa diferença, bem como os leitores de tela.&lt;/p&gt;
+
+&lt;p&gt;Aos poucos vamos padronizando características que antes eram ignoradas no desenvolvimento web. Não são ações muito difíceis de aplicar. Para começar, basta colocar o atributo &lt;strong&gt;lang&lt;/strong&gt; no elemento &lt;strong&gt;html&lt;/strong&gt; dos seus documentos e pronto.&lt;/p&gt;
+
+&lt;h5 id=&#34;referências&#34;&gt;Referências&lt;/h5&gt;
+
+&lt;p&gt;Artigo que &lt;a href=&#34;http://tableless.com.br/charsets-e-encodes-tabelas-de-caracteres/&#34; title=&#34;Charsets e Encodes – Tabelas de caracteres&#34;&gt;explica os Charsets, encodes e tabelas de caractéres no HTML&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Veja aqui a &lt;a href=&#34;http://www.w3.org/TR/i18n-html-tech-lang/&#34;&gt;documentação oficial do W3C&lt;/a&gt; que fala sobre este assunto.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Guia de Referência de HTML5</title>
+      <link>http://tableless.com.br/guia-de-referencia-de-html5/</link>
+      <pubDate>Mon, 02 Jan 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/guia-de-referencia-de-html5/</guid>
+      <description>
+
+&lt;p&gt;Ter sempre um guia de referência sobre qualquer tipo de linguagem é sempre bom. Ainda mais quando é completo e atual. O pessoal do WDL nos presenteou com &lt;a href=&#34;http://www.inmotionhosting.com/infographics/html5-cheat-sheet/&#34;&gt;uma série de Cheat Sheets&lt;/a&gt; sobre HTML5.&lt;/p&gt;
+
+&lt;p&gt;Os guias são divididos em 3 gráficos: Um mostra as novas tags, o segundo mostra os eventos e atributos e o terceiro mostra o suporte dos browsers.&lt;/p&gt;
+
+&lt;p&gt;Cada Cada um diferencia as características novas, existentes ou não suportadas do HTML5. O visual deles é bem simples e muito fácil de entender. O mais legal é que dá para imprimir e deixar à vista para quando você ou a equipe precisarem.&lt;/p&gt;
+
+&lt;h3 id=&#34;html5-tags-cheat-sheet&#34;&gt;HTML5 Tags Cheat Sheet&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.inmotionhosting.com/infographics/html5-cheat-sheet/&#34; target=&#34;_blank&#34;&gt;&lt;img src=&#34;http://www.inmotionhosting.com/infographics/_img/html5_cheat_sheet_tags-670x460.png&#34; width=&#34;670&#34; height=&#34;460&#34; border=&#34;0&#34; alt=&#34;HTML5 Cheat Sheet - Tags&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;HTML5 Cheat Sheet By InMotion Hosting &amp;#8211; A &lt;a href=&#34;http://www.inmotionhosting.com/vps_hosting.html&#34;&gt;Virtual Private Servers&lt;/a&gt; Provider&lt;/p&gt;
+
+&lt;h3 id=&#34;html5-event-handler-content-attribute-cheat-sheet&#34;&gt;HTML5 Event Handler Content Attribute Cheat Sheet&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.inmotionhosting.com/infographics/html5-cheat-sheet/#eventhandler&#34; target=&#34;_blank&#34;&gt;&lt;img src=&#34;http://www.inmotionhosting.com/infographics/_img/html5_cheat_sheet_event_attributes-670x460.png&#34; width=&#34;670&#34; height=&#34;460&#34; border=&#34;0&#34; alt=&#34;HTML5 Cheat Sheet - Event Handler Attributes&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;HTML5 Cheat Sheet By InMotion Hosting &amp;#8211; A &lt;a href=&#34;http://www.inmotionhosting.com/&#34;&gt;Web Hosting&lt;/a&gt; Provider&lt;/p&gt;
+
+&lt;h3 id=&#34;html5-browser-support-cheat-sheet&#34;&gt;HTML5 Browser Support Cheat Sheet&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.inmotionhosting.com/infographics/html5-cheat-sheet/#browsersupport&#34; target=&#34;_blank&#34;&gt;&lt;img src=&#34;http://www.inmotionhosting.com/infographics/_img/html5_cheat_sheet_browser_support-670x460.png&#34; width=&#34;670&#34; height=&#34;460&#34; border=&#34;0&#34; alt=&#34;HTML5 Cheat Sheet - Browser Support&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;HTML5 Cheat Sheet By InMotion Hosting &amp;#8211; A &lt;a href=&#34;http://www.inmotionhosting.com/dedicated_servers.html&#34;&gt;Dedicated Server&lt;/a&gt; Provider&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Experiência deve ter começo, meio e fim</title>
+      <link>http://tableless.com.br/experiencia-deve-ter-comeco-meio-e-fim/</link>
+      <pubDate>Mon, 28 Nov 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/experiencia-deve-ter-comeco-meio-e-fim/</guid>
+      <description>&lt;p&gt;&lt;small&gt;Esse artigo pode parecer meio confuso, mas é apenas um pensamento que estive matutando. Não ligue se a ordem das ideias estiverem tortas e sinuosas. 😉&lt;/small&gt;&lt;/p&gt;
+
+&lt;p&gt;Tive uma experiência muito ruim no primeiro dia de 2010: pulei na piscina com meu iPhone no bolso.&lt;/p&gt;
+
+&lt;p&gt;Ok, pode me xingar agora.&lt;/p&gt;
+
+&lt;p&gt;Depois da tragédia, ele durou rápidos 5 segundos, e faleceu. Não ligava, não apitava, não fazia nada. &amp;#8220;Paciência&amp;#8221;, falei para mim mesmo. No dia seguinte peguei um celular reserva que eu tinha guardado: um HTC Touch, com Windows Mobile 6 (não Windows Phone). Foi então que eu notei o porque o trabalho da Apple vicia os consumidores.&lt;/p&gt;
+
+&lt;p&gt;Estamos bem acostumados a utilizar um notebook ou um computador desktop, com monitor, teclado e mouse. A interface do sistema muitas vezes parece desaparecer quando se abre o navegador. A experiência de uso dos periféricos já é bastante conhecida e isso facilita muito a forma com que o usuário interaje com a interface. Há uma harmonia, se é que você me entende. A mesma coisa é dificil de acontecer quando utilizamos um dispositivo mobile. Em um dispositivo móvel você precisa de foco. Não há espaço para milhares de botões com dezenas de ações. É SIM e NÃO. É OK ou CANCELAR e mais nada. O que não é o caso do Windows Mobile. O Windows Mobile foi feito daquele jeito Microsoft. Muito, mas muito diferente do Windows Phone que está um primor. Com uma interface totalmente repensada, do zero, onde seu visual se integra com os outros sistemas da marca. Há uma homogeneidade na experiência do usuário quando ele usa a Live do XBOX, o Windows Phone e o Windows 8. A experiência é cross-platform. A Apple faz isso durante anos. E durante todos estes anos esse foi seu segredo. O famoso &amp;#8220;eco sistema Apple&amp;#8221;. Tudo funciona muito bem quando estamos com nossos iPhones, iPads, MacBooks e iPods. Se eu tenho um iPad, mas utilizo um PC, algo fica estranho. Funciona, mas fica estranho.&lt;/p&gt;
+
+&lt;p&gt;Assim como sistema dos mobiles, os sites precisam seguir a mesma fórmula de simplicidade e foco. Por isso, criar sites para mobiles é uma arte. É um jogo de prioridades. Você precisa saber o que é importante na página e focar naquilo. Há um bom trabalho de arquitetura de informação que precisa ser feito. E não se engane, as vezes é muito mais dificil desenvolver um projeto de arquitetura para mobiles do que para versões full.&lt;/p&gt;
+
+&lt;p&gt;O iPhone, e agora o Windows Phone, se destacam muito por conta dessa harmonia que citei acima. Há uma ligação em tudo ali. Quando você aciona o Safari, ele tem uma interface intuitiva, bem acabada e que não agride a usabilidade do site. O iPhone tem um browser 100% atualizado com os Padrões Web e isso ajuda um bocado o desenvolvimento de interfaces inteligentes.&lt;/p&gt;
+
+&lt;p&gt;E a Apple se preocupa com essa harmonia da qual estamos falando, ela prepara uma série de materiais que ajudam os desenvolvedores. São guias de desenvolvimento e referência com os princípios de design e usabilidade que garantem a experiência completa. Por causa disso os desenvolvedores e designers fazem ótimos apps, tornando a experiência do usuário completa e uniforme durante o uso do dispositivo.&lt;/p&gt;
+
+&lt;p&gt;É por isso que a vale a pena municiar os desenvolvedores e designers do mundo todo, para que a experiência não termine quando o consumidor feche o seu aplicativo ou abra o navegador. Experiência tem começo, meio e fim. A Apple se preocupa com essas etapas. Ela sabe que se o site abrir &amp;#8220;quebrado&amp;#8221; o consumidor vai xingar primeiro o aparelho e não site. Tudo é uma única experiência. Começa no sistema do aparelho e termina no site de um terceiro.&lt;/p&gt;
+
+&lt;p&gt;O resto dos aparelhos começam pecando por ter um browser ruim ou uma interface de uso complicada. Na maioria os browsers não dão suporte algum aos Padrões. Isso é um pecado. Se eu tenho um Smartphone, eu passarei mais tempo na internet, conectado, do que falando ao telefone. Esse é apenas um ponto sobre o porque um dispositivo móvel precisa ter um browser decente.&lt;/p&gt;
+
+&lt;p&gt;O usuário tem uma boa experiência quando consegue com sucesso a informação que procurava, sem bloqueios. Se ele consegue passar esse processo com sucesso, como se o dispositivo (mobile, desktop, notebook, leitor e tela etc) e o site/sistema fossem transparentes, aí cumprimos com o nosso dever.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Performance do seu CSS</title>
+      <link>http://tableless.com.br/melhorando-performance-css/</link>
+      <pubDate>Tue, 29 Mar 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/melhorando-performance-css/</guid>
+      <description>
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/modulando-o-css&#34;&gt;Modular seu código CSS&lt;/a&gt; é uma boa prática para que o website carregue apenas o código necessário para montar a pagina que o visitante está. Por isso não precisamos carregar o código CSS que monta a página de contato uma vez que o usuário está na home, possibilitando um ganho de performance.&lt;/p&gt;
+
+&lt;p&gt;Podemos ainda melhorar um pouco mais nossa performance tendo atenção com a forma que escrevemos os seletores do CSS. Há algumas dicas que podemos seguir para que isso seja possível.&lt;/p&gt;
+
+&lt;p&gt;O seletor é a alma do CSS. É com ele que o browser procura e captura o elemento que você deseja formatar. Existem diversos seletores que possibilitam a captura de elementos em diversos cenários e necessidades. Com a atualizações dos browsers em relação a padronização do CSS 2.1 e do CSS 3, os desenvolvedores ganharam novos ferramentas e formas de capturar elementos.&lt;/p&gt;
+
+&lt;p&gt;Quero que você entenda que essas dicas são sugestões. Não seja um purista cabeça dura. Seja flexível e tolerante com alguns cenários que podem surgir durante o projeto. É bom sempre procurar o meio termo entre performance e velocidade de produção.&lt;/p&gt;
+
+&lt;p&gt;Outro ponto para pensar é que a má performance do CSS pode significar muito pouco perto de outros fatores como servidor, performance server-side, peso de imagens e outros fatores. Por isso é importante que você tenha em mente que fazendo as sugestões abaixo não é garantia de que seu site ficará super ultra rápido. =^)&lt;/p&gt;
+
+&lt;h3 id=&#34;processo-de-leitura&#34;&gt;Processo de leitura&lt;/h3&gt;
+
+&lt;p&gt;O browser segue um processo de leitura muito fácil de ser entendido.&lt;/p&gt;
+
+&lt;p&gt;Todo o seletorer (se voce não sabe o que é um seletor de CSS, recomendo que leia &lt;a href=&#34;http://tableless.com.br/seletores-complexos-do-css?utm_source=Artigo%2BSeletores%2BPerformance&amp;amp;utm_medium=Artigo%2Btableless&amp;amp;utm_campaign=seletores%2Bperformance&#34;&gt;isto&lt;/a&gt; e &lt;a href=&#34;http://tableless.com.br/seletores-agrupados-e-encadeados?utm_source=Artigo%2BSeletores%2BPerformance&amp;amp;utm_medium=Artigo%2Btableless&amp;amp;utm_campaign=seletores%2Bperformance&#34;&gt;isto&lt;/a&gt; antes de continuar).&lt;/p&gt;
+
+&lt;p&gt;O sistema de leitura consiste em encontrar o elemento da extrema direita do seletor. Logo a leitura do seletor começa da direita para a esquerda. A medida que o browser lê o seletor, ele vai encontrando os elementos e só pára quando há um erro no seletor ou não encontra o elemento.&lt;/p&gt;
+
+&lt;p&gt;Tenha como exemplo este seletor:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;ul li a {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Nesse primeiro momento, ao ler o elemento da direita, o browser seleciona TODOS os elementos &lt;strong&gt;A&lt;/strong&gt; da página, independente se ele está ou não dentro de um &lt;strong&gt;LI&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;“The style system matches a rule by starting with the rightmost selector and moving to the left through the rule’s selectors. As long as your little subtree continues to check out, the style system will continue moving to the left until it either matches the rule or bails out because of a mismatch.” – David Hyatt&lt;/p&gt;
+
+&lt;h3 id=&#34;não-use-ids-ou-classes-ligados-a-tags&#34;&gt;Não use IDs ou Classes ligados a tags&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;EVITE&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;div.content {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;div#geral {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RECOMENDADO&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;.content {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;#geral {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;h3 id=&#34;tente-especificar-os-elementos&#34;&gt;Tente especificar os elementos&lt;/h3&gt;
+
+&lt;p&gt;Sempre que puder tente especificar os elementos com IDs ou Classes em vez de escrever seletores longos.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;EVITE&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;nav#menu ul li a {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RECOMENDADO&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;.menuitem {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Eu não gosto muito desta sugestão porque teríamos de colocar uma classe &amp;#8220;menuitem&amp;#8221; em cada um dos ítens do menu. O HTML ficaria horrível. Prefiro fazer como abaixo. Não é a melhor forma (como eu cito no próximo tópico), mas é um meio termo entre performance, flexibilidade e produção de código:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;#menu a {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;h3 id=&#34;não-misture-ids-com-nomes-de-tags-e-classes&#34;&gt;Não misture IDs com nomes de tags e classes&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;EVITE&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;button#botaoverde {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;.menu#menuPrincipal {…}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RECOMENDADO&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;#botaoverde {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;#menuPrincipal {…}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;h3 id=&#34;não-coloque-nomes-de-tags-nos-nomes-de-classes&#34;&gt;Não coloque nomes de tags nos nomes de classes&lt;/h3&gt;
+
+&lt;p&gt;Muita gente relaciona o nome da tag ao nome da class ou id do CSS. Essa prática pode confundir posteriormente tanto na manutenção quanto no processo de produção por pelo menos dois motivos: &lt;strong&gt;1.&lt;/strong&gt; Você pode atribuir essa classe a elementos diferentes e não somente aquele que você relacionou no nome. &lt;strong&gt;2.&lt;/strong&gt; A classe pode fazer muito mais do que estava descrito inicialmente.&lt;/p&gt;
+
+&lt;p&gt;Por isso é interessante que cada nome de Classe seja ÚNICA e não seja relacionada a nenhum elemento em específico.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;EVITE&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;li.selected {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Bom, mas não muito&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;.liselected {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RECOMENDADO&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;.selected {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;h3 id=&#34;evite-seletores-filhos&#34;&gt;Evite seletores filhos&lt;/h3&gt;
+
+&lt;p&gt;Sempre tente evitar declarar hierarquia nos seletores. Sempre que puder, coloque o nome do elemento diretamente por meio de class ou id. Mesmo assim tenha em mente a limpeza do seu HTML. Se você já aplicou boa parte dessas sugestões no resto do site, você pode abrir mão em alguns lugares que poderão ser úteis como na criação de um menu.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;EVITE&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;section form#cadastro fieldset label input.Text {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RECOMENDADO&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;input[type=&amp;#8221;text&amp;#8221;] {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;h3 id=&#34;evite-seletores-descendentes&#34;&gt;Evite seletores descendentes&lt;/h3&gt;
+
+&lt;p&gt;Os seletores descendentes são os seletores tem menos performance no CSS.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;EVITE&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;section article h1 {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;É bom, mas nem tanto&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;section &amp;gt; article &amp;gt; h1 {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RECOMENDADO&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;.tituloh1 {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Claro que é muito complexo colocar uma classe nos títulos do site, ainda mais se os títulos são gerados por outras pessoas. Por isso prefiro, dependendo do site, dependendo do cliente, dependendo de como eu acordar de manhã, utilizar a primeira sugestão, que está marcada para EVITAR. Lembre-se ache o meio termo.&lt;/p&gt;
+
+&lt;h4 id=&#34;referências&#34;&gt;Referências:&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.archive.jpsykes.com/152/testing-css-performance-pt-2/&#34; rel=&#34;external&#34;&gt;Testing CSS Performance&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.stevesouders.com/blog/2009/06/18/simplifying-css-selectors/&#34; rel=&#34;external&#34;&gt;Simplifying CSS Selectors&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://css-tricks.com/more-on-css-selector-performance/&#34; rel=&#34;external&#34;&gt;More on CSS Selector Performance&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.mozilla.org/en/Writing_Efficient_CSS&#34; rel=&#34;external&#34;&gt;Wrinting Efficient CSS&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

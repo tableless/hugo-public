@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Media Queries on Tableless</title>
+    <link>http://tableless.com.br/tags/media-queries/index.xml</link>
+    <description>Recent content in Media Queries on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/media-queries/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Turbinando as Media Queries</title>
+      <link>http://tableless.com.br/turbinando-media-queries/</link>
+      <pubDate>Thu, 12 Dec 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/turbinando-media-queries/</guid>
+      <description>
+
+&lt;p&gt;Media Queries são uma das ferramenta mais importante do CSS pra quem se preocupa com Web Design Responsivo. Com uma ajudinha dos pré-processadores as media queries podem ficar ainda melhores. Neste artigo vamos turbinar as Media Queries usando um pouco das opções que o SASS nos oferece para ajudar na organização, manutenção e garantir legibilidade ao nosso código.&lt;/p&gt;
+
+&lt;p&gt;Nota: os exemplos deste post serão todos em SASS com a sintaxe do &lt;code&gt;.scss&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;breakpoints-em-variáveis&#34;&gt;Breakpoints em variáveis&lt;/h2&gt;
+
+&lt;p&gt;Se você já usou algum pré-processador, sem dúvida já usou variáveis.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;// width
+$bp-smallest: 10em;
+$bp-small: 30em;
+$tp-small-1: 37.5em;
+&lt;/pre&gt;
+
+&lt;p&gt;Dessa forma, você consegue manter seus breakpoints sob controle e replicá-los de forma concisa e prática. Como estamos falando de organização de código, consistência na nomenclatura é muito importante, então vamos dar uma olhada na que adotei para mim. Você pode criar a sua e se tiver em uma equipe, é bom que todos da equipe concordem com uma mesma nomenclatura:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;bp&lt;/strong&gt;: Breakpoints são pontos onde a mudança interfere amplamente no layout (redução/aumento de colunas, posição de elementos importantes, etc)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;tp&lt;/strong&gt;: Tweakpoints são para mudanças menores, que interferem em apenas um elemento&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Facilita a leitura se colocar juntamente com a sigla uma característica (no caso, &lt;strong&gt;small&lt;/strong&gt;). Além disso, Tweakpoints costumam ter uma ocorrência maior que Breakpoints, por isso numerá-los é uma boa forma de manter o controle.&lt;/p&gt;
+
+&lt;h2 id=&#34;media-features-em-variáveis&#34;&gt;Media Features em variáveis&lt;/h2&gt;
+
+&lt;p&gt;Outra forma de trabalhar com variáveis em suas Media Queries é armazenar toda a &lt;strong&gt;media feature&lt;/strong&gt; como uma &lt;code&gt;string&lt;/code&gt;. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;// width
+$bp-w-small: &#39;(min-width: 30em)&#39;;
+$tp-w-small-1: &#39;(min-width: 37.5em)&#39;;
+
+// height
+$bp-h-small: &#39;(min-height: 10em)&#39;;
+&lt;/pre&gt;
+
+&lt;p&gt;Essa técnica tem maior legibilidade das variáveis. Utilizei os mesmos valores no exemplo acima, mas antes não era possível perceber que uma delas era utilizada para a altura da viewport e as outras duas para a largura.&lt;/p&gt;
+
+&lt;p&gt;Com relação à nomenclatura, uma pequena alteração para auxiliar na legibilidade (uma vez que a string não aparecerá ao longo do seu código de desenvolvimento), coloquei um &lt;code&gt;h&lt;/code&gt; para height e um &lt;code&gt;w&lt;/code&gt; para width.&lt;/p&gt;
+
+&lt;p&gt;Lembrando que, nesse caso é preciso escapar envolvendo a variável com &lt;code&gt;#{}&lt;/code&gt; quando inserí-la no código para garantir que seu valor não seja interpretado pelo compilador.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;@media #{$bp-w-small} {
+        /*--styles--*/
+}
+
+@media #{$tp-w-small-1} {
+        /*--styles--*/
+}
+
+@media #{$bp-h-small} {
+    /*--styles--*/
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;media-queries-com-mixins&#34;&gt;Media Queries com mixins&lt;/h2&gt;
+
+&lt;p&gt;Outra maneira de lidar com suas media queries é colocando-as em um &lt;code&gt;mixin&lt;/code&gt; e selecionando a partir de condicionais (&lt;code&gt;@if&lt;/code&gt;). Segue o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;$bp-width-small : &#34;(min-width: 24em)&#34;;
+$tp-height-small : 10em;
+
+@mixin mq($breakpoint) {
+    @if $breakpoint == $tp-height-small {
+        @media (max-height: $tp-height-small) {
+                @content;
+        }
+    }
+    @if $breakpoint == $bp-width-small {
+        @media #{$bp-width-small} {
+                @content;
+        }
+    }
+    @if $breakpoint == 50 {
+        @media (max-width: 50em) {
+                @content;
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Outro ponto positivo de utilizar as Media Queries envolvidas em &lt;code&gt;mixin&lt;/code&gt; é de oferecer uma CSS como fallback para navegadores que não suportam Media Queries. Para isso, é só estabeler mais um condicional. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;$bp-width-small : &#34;(min-width: 24em)&#34;;
+$tp-height-small : 10em;
+
+$mediaqueries: true;
+
+@mixin mq($breakpoint) {
+    @if $mediaqueries == true {
+        @if $breakpoint == $tp-height-small {
+                @media (max-height: $tp-height-small) {
+                        @content;
+            }
+        }
+        @if $breakpoint == #{$bp-width-small} {
+                @media #{$bp-width-small} {
+                        @content;
+            }
+        }
+        @if $breakpoint == 50 {
+                @media (max-width: 50em) {
+                        @content;
+                }
+        }
+    }
+
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse caso, o compilador vai avaliar se a variável &lt;code&gt;$mediaqueries&lt;/code&gt; é &lt;code&gt;true&lt;/code&gt; ou &lt;code&gt;false&lt;/code&gt;. Caso seja &lt;code&gt;true&lt;/code&gt;, significa que há suporte para Media Queries e portanto, ele vai compilar o mixin; se for &lt;code&gt;false&lt;/code&gt; ele ignora a declaração do &lt;code&gt;mixin&lt;/code&gt; e compila o restante do código sem Media Queries.&lt;/p&gt;
+
+&lt;p&gt;Espero que o post tenha sido útil e ajudado a ilustrar um pouco melhor as facilidades que um pré-processador pode trazer para o seu workflow. Você já usa alguma técnica dessa em seus projetos?&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Versionamento inteligente para mobiles</title>
+      <link>http://tableless.com.br/versionamento-inteligente-para-mobiles/</link>
+      <pubDate>Wed, 20 Jan 2010 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/versionamento-inteligente-para-mobiles/</guid>
+      <description>&lt;p&gt;O iPhone fez a festa dele. Todo mundo gostou do que viu e usou. Acontece que não só de iPhone vive o homem, e há pessoas por aí que não gostam do aparelho por motivos diversos. Há mercado para todos e por isso é natural que apareçam outros aparelhos com novos sistemas. Acontece que o lançamento do iPhone criou uma moda de &lt;a href=&#34;http://tableless.com.br/porque-so-para-o-iphone&#34;&gt;criar versões dos sites específicas para ele&lt;/a&gt;. No começo isso foi ótimo. Mas agora, isso priva diversos celulares similares ao iPhone de terem uma boa experiência de navegação. É o caso de usuários de Android.&lt;/p&gt;
+
+&lt;p&gt;O Android é o novo sistema operacional para mobiles do Google. Até para um AppleBoy, como eu, o sistema é interessante. Tem a interface bem acabada, app&amp;#8217;s amigáveis e etc. Ele faz muito bem o papel dele. O Engine de renderização do browser dele é WebKit. O mesmo engine que o Safari Mobile utiliza. E não estou falando de versões antigas do Webkit como alguns outros celulares utilizam. O Android utiliza as versões mais atuais do Webkit, com suporte extenso a CSS e HTML. Portanto, um site que teoricamente foi feito apenas para iPhone, pode ser visualizado da mesma maneira pelos usuários de Android.&lt;/p&gt;
+
+&lt;p&gt;Aí entra outra questão: provavelmente você deve ter pensado que seria apenas fazer um script de detecção de browser, capturando as visitas de Safari Mobile e Android e pronto. É aí que você se engana. Já há vários outros aparelhos que estão utilizando engines parecidas e que podem renderizar sua &amp;#8220;versão de iphone&amp;#8221;. Exatamente por isso, que você precisa fazer um filtro por características e não por browser. Fazemos isso utilizando &lt;a href=&#34;http://tableless.com.br/introducao-sobre-media-queries&#34;&gt;Media Queries&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;As Media Queries permitem fazer um pequeno filtro, onde definimos as características do dispositivo que acessará a página. Com isso, podemos definir um CSS específico para aquele grupo de dispositivos que se encaixaram no seu filtro. Veja um exemplo abaixo:&lt;/p&gt;
+
+&lt;pre lang=&#34;css&#34; line=&#34;1&#34;&gt;&lt;link rel=&#34;stylesheet&#34; href=&#34;style.css&#34; type=&#34;text/css&#34; media=&#34;screen and (min-width:481px)&#34; /&gt;
+
+&lt;link rel=&#34;stylesheet&#34; href=&#34;mob.css&#34; type=&#34;text/css&#34; media=&#34;screen and (max-width:480px)&#34; /&gt;
+&lt;/pre&gt;
+
+&lt;p&gt;A media que fiz é muito simples de ser entendida. A primeira linha engloba dispositivos que tem tela colorida, com uma resolução de largura mínima de 481px, isso inclui seu monitor, notebook e etc. A outra linha engloba dispositivos com uma largura máxima de 480px, ou seja, iPhones, Androids e dispositivos que seguem esse mesmo esquema de resolução e etc.&lt;/p&gt;
+
+&lt;p&gt;Dessa forma, você filtra os dispositivos e não os browsers dos aparelhos. Isso previne que algum celular, tão bom quanto o iPhone e o Android fiquem de fora de ter uma boa experiência de uso. Quer fazer um teste interessante? Se você estiver utilizando um browser que aceita media queries, redimensione a janela para uma largura menor que 480px. Você verá o Tableless chaveando os estilos automaticamente. Perceba que alguns elementos são reformatados e outros retirados do layout.&lt;/p&gt;
+
+&lt;p&gt;O filtro ainda não está completo porque não estamos contemplando os aparelhos que não aceitam meda queries, mas são mobiles. Para isso, usaríamos os &lt;a href=&#34;http://tableless.com.br/o-que-sao-media-types&#34;&gt;Media Types&lt;/a&gt;, com valor de &lt;strong&gt;handheld&lt;/strong&gt;. Embora celulares que aceitem os Media Types não tenham um bom suporte de CSS, podemos fazer pelo menos uma formatação de texto, cor e background. Celulares que utilizam Opera Mini, terão uma ótima experiência.&lt;/p&gt;
+
+&lt;p&gt;É sempre aquela mesma velha idéia: dar a melhor experiência para todos os meios de acesso. Sempre.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introdução sobre Media Queries</title>
+      <link>http://tableless.com.br/introducao-sobre-media-queries/</link>
+      <pubDate>Mon, 06 Jul 2009 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/introducao-sobre-media-queries/</guid>
+      <description>
+
+&lt;p&gt;Eu não posso explicar sobre Media Queries sem um pouco do contexto das Media Types, que foram a primeira versão de um esforço para direcionar a formatação CSS para determinados tipos de meios de acesso.&lt;/p&gt;
+
+&lt;p&gt;O HTML foi criado para ser portável, ou seja, ele deve ser lido e interpretado por qualquer tipo de dispositivo. Cada dispositivo exibe HTML de uma determinada maneira. Logo, a forma com que você formata o layout precisa ser diferente para cada dispositivo. Por exemplo, se você visita um site por um desktop, a experiência será totalmente diferente caso você visite o mesmo site por um dispositivo móvel. São dispositivos diferentes, com formas totalmente diferentes de navegação e uso.&lt;/p&gt;
+
+&lt;p&gt;Mas o exemplo acima é muito comum. Existem outras outros cenários que precisamos prever para controlar a formatação do site, como por exemplo, quando o usuário imprimir sua página. Quando alguém imprimi a página de um artigo no site do UOL, Terra ou qualquer site de conteúdo, vários elementos não precisam ser impressos, começando pelo menu, barra lateral, rodapé e etc. O texto poderia ser melhor formatado para que a leitura em papel fosse mais confortável. Essa diferença entre dispositivos é controlada pelas %%media types%%. Veja uma lista do que pode ser controlado abaixo:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;all&lt;/strong&gt; este valor é usado para que o código CSS seja aplicado para todos os dispositivos.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;braille&lt;/strong&gt; para dispositivos táteis.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;embossed&lt;/strong&gt; para dispositivos que imprimem em Braille.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;handheld&lt;/strong&gt; para dispositivos de mão, celulares e outros dispositivos deste perfil. Normalmente com telas pequenas e banda limitada.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;print&lt;/strong&gt; para impressão em papel.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;projection&lt;/strong&gt; para apresentações, como PowerPoint. Este valor foi inventado pelo pessoal da Opera. MUITO útil.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;screen&lt;/strong&gt; para dispositivos com telas coloridas e alta resolução.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;speech&lt;/strong&gt; para sintetizadores de voz. O CSS 2 tem uma especificação de CSS chamada Aural (&lt;a href=&#34;http://www.w3.org/TR/CSS2/aural.html&#34;&gt;http://www.w3.org/TR/CSS2/aural.html&lt;/a&gt;) que podemos “formatar” a voz de leitores de tela e outros sintetizadores.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;tty&lt;/strong&gt; para dispositivos que utilizam uma grade fixa para exibição de caracteres, como teletypes, terminais, dispositivos portáteis com display limitado.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;tv&lt;/strong&gt; para dispositivos como televisores, ou seja, com baixa resolução, com boa quantidade de cores e scroll limitado.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A aplicação é muito simples: basta adicionar a linha comum de %%link%% para seu CSS, inserindo um atributo %%media%% e adicionando o valor desejado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;stylesheet&#34; href=&#34;estilo.css&#34; type=&#34;text/css&#34; media=&#34;handheld&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Note que neste exemplo estou chamando um arquivo CSS, que será destinado para funcionar em dispositivos de media **HANDHELD**: aparelhos móveis, celulares com tela pequena e aparelhos similares (já usou PalmTop?). Logo, esse CSS não será aplicado quando o usuário visitar o site utilizando um desktop. Para tanto, teríamos que utilizar media SCREEN:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;stylesheet&#34; href=&#34;estilo.css&#34; type=&#34;text/css&#34; media=&#34;screen&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;o-problema&#34;&gt;O problema&lt;/h2&gt;
+
+&lt;p&gt;Você já notou que todo dia surgem novos dispositivos, com diversos tamanhos e hardwares parecidos com os desktops. Qualquer celular meia boca hoje tem a configuração mais parruda que muitos computadores por aí. Principalmente a configuração da tela, onde as fabricantes tem dado mais atenção nos últimos anos. Logo, não tem motivo para prepararmos um layout e um CSS com media type HANDHELD para o iPhone, já que ele não se encaixa nessa categoria. Entretanto, o iPhone também não é nem de longe um desktop. Aí existe o problema: a media type screen se encaixaria para direcionarmos o a formatação para o iPhone e companhia, mas a especificação é clara quando diz que a media type screen é para desktops e computadores. Como fazer agora?&lt;/p&gt;
+
+&lt;h2 id=&#34;a-solução-media-queries&#34;&gt;A solução: Media Queries&lt;/h2&gt;
+
+&lt;p&gt;As Media Queries definem condições para que o CSS seja utilizado em cenários específicos. Se essas condições forem aprovadas, ou seja, se o dispositivo de adequar a todas as condições estabelecidas na sua Media Querie, o CSS será aplicado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;stylesheet&#34; href=&#34;estilo.css&#34; media=&#34;screen and (max-width: 480px)&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Acima especificamos que o arquivo **estilo.css**, será aplicado em dispositivos que se enquadram na condição de **screen** (ou seja, que tem uma tela com alta capacidade de cores) e com uma largura máxima de 480px.&lt;/p&gt;
+
+&lt;p&gt;Há uma lista de características que você pode utilizar aqui para selecionar os dispositivos que você quiser:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;width&lt;/li&gt;
+&lt;li&gt;height&lt;/li&gt;
+&lt;li&gt;device-width&lt;/li&gt;
+&lt;li&gt;device-height&lt;/li&gt;
+&lt;li&gt;orientation&lt;/li&gt;
+&lt;li&gt;aspect-ratio&lt;/li&gt;
+&lt;li&gt;device-aspect-ratio&lt;/li&gt;
+&lt;li&gt;color&lt;/li&gt;
+&lt;li&gt;color-index&lt;/li&gt;
+&lt;li&gt;monochrome&lt;/li&gt;
+&lt;li&gt;resolution&lt;/li&gt;
+&lt;li&gt;scan&lt;/li&gt;
+&lt;li&gt;grid&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Geralmente usamos as Media Queries dentro código CSS, que é bem mais organizado. Você linka seu CSS normalmente no HEAD do seu documento:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;stylesheet&#34; href=&#34;estilo.css&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;E dentro do código CSS, você vai separar os famosos **breakpoints**, que são as condições da largura das telas do dispositivos, que definem quando cada bloco de CSS será utilizado. Veja o código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Código geral, que será herdado por qualquer dispositivos.
+   nesse caso, seria o código usado no desktop, na maioria das   vezes. 
+   Se você já conhecer a ideia do Mobile First, esse primeiro código será destinado para mobiles.
+*/
+a {color: blue;}
+
+/* 
+ Pra dispositivos que tem uma largura mínima de 768 pixels. Tablets, por exemplo.
+*/
+@media screen and (min-width: 768px) {
+  a {color: yellow;}
+}
+
+/* 
+ Com uma largura mínima de 992 pixels. Monitores por exemplo.
+*/
+@media screen and (min-width: 992px) {
+  a {color: green;}
+}
+
+/* 
+ Dispositivos com largura mínima de 1200 pixels. Por exemplo TVs.
+*/
+@media screen and (min-width: 1200px) {
+  a {color: black;}
+}
+&lt;/pre&gt;
+
+&lt;p&gt;E assim você vai escrevendo seu CSS e manipulando a formatação do layout de acordo com dispositivo desejado.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>O que são Media Types do CSS?</title>
+      <link>http://tableless.com.br/o-que-sao-media-types/</link>
+      <pubDate>Mon, 06 Feb 2006 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/o-que-sao-media-types/</guid>
+      <description>
+
+&lt;p&gt;O CSS foi feito para que pudéssemos dizer como o documento irá se apresentar ao usuário em diferentes meios de acesso. Seja ele na tela do seu monitor, na sua impressora, no seu PDA, no seu sintetizador de voz, celular, smartphone, microondas etc e etc&amp;#8230; Não importa com qual dispositivo o usuário esteja acessando seu site, ele deve ser bem apresentado.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://w3c.org/&#34;&gt;W3C&lt;/a&gt; criou uma forma para fazermos isso com a maior facilidade. Você pode criar um CSS específico para cada tipo de meio de acesso, com a mesma facilidade que você cria um CSS para ser visto em um Desktop. Você pode personalizar um site para ser visto em um Smartphone ou até mesmo quando o visitante imprimir uma página de texto do seu site. Utilizando o caso da impressão: não é interessante para o visitante, que o menu, banners e outros elementos do site sejam impressos no papel.&lt;/p&gt;
+
+&lt;p&gt;Para isso, basta definir para qual tipo de media que você está dirigindo um arquivo CSS especifico. Existem dois jeitos:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;1.&lt;/strong&gt; O primeiro jeito é usado ao importar um arquivo CSS com o @import:&lt;/p&gt;
+
+&lt;pre lang=&#34;css&#34; line=&#34;1&#34;&gt;@import url(&#34;impressao.css&#34;) print;&lt;/pre&gt;
+
+&lt;p&gt;Primeiro vem o arquivo que você quer importar, e logo depois você define para qual media ele será usado.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;2.&lt;/strong&gt; No segundo modo você usará o @media. É muito usado internamente no código CSS. Muito útil quando você quer definir apenas poucas linhas para uma media especifica:&lt;/p&gt;
+
+&lt;pre lang=&#34;css&#34; line=&#34;1&#34;&gt;@media print {
+  /* Código CSS */
+}&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;3.&lt;/strong&gt; Neste modo você usará quando linkar o arquivo CSS no Cabeçalho do documento:&lt;/p&gt;
+
+&lt;pre lang=&#34;css&#34; line=&#34;1&#34;&gt;&lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; media=&#34;print&#34; href=&#34;impressao.css&#34; /&gt;
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;tipos-de-medias&#34;&gt;Tipos de Medias&lt;/h3&gt;
+
+&lt;p&gt;Na especificação você pode definir CSS para um bocado de dispositivos, veja a lista abaixo:&lt;/p&gt;
+
+&lt;dl&gt;
+&lt;dt&gt;screen&lt;/dt&gt;
+&lt;dd&gt;Para computadores, PC´s. Ou algum dispositivo que tenha uma boa tela colorida.&lt;/dd&gt;
+&lt;dt&gt;print&lt;/dt&gt;
+&lt;dd&gt;Para impressoras. Muito usado para dar uma versão de impressão do site.&lt;/dd&gt;
+&lt;dt&gt;handheld&lt;/dt&gt;
+&lt;dd&gt;Para PDAs, celulares e aparelhos que geralmente tem uma tela pequena.&lt;/dd&gt;
+&lt;dt&gt;projection&lt;/dt&gt;
+&lt;dd&gt;Para projetos de apresentações. Você pode transformar seu site em uma apresentação estilo PowerPoint!&lt;/dd&gt;
+&lt;dt&gt;aural&lt;/dt&gt;
+&lt;dd&gt;Para Sintetizadores de Tela.&lt;/dd&gt;
+&lt;dt&gt;braille&lt;/dt&gt;
+&lt;dd&gt;Para dispositivos táteis. Impressionante, ahn? Um cego poder &amp;#8220;imprimir&amp;#8221; um artigo para poder ler onde quiser.&lt;/dd&gt;
+&lt;dt&gt;tv&lt;/dt&gt;
+&lt;dd&gt;Para televisões. A resolução da televisão é muito inferior a um monitor CRT, eles merecem um tratamento especial.&lt;/dd&gt;
+&lt;dt&gt;tty&lt;/dt&gt;
+&lt;dd&gt;Para dispositivos que usam uma grade fixa de caractéres, terminais, dispositivos portáteis, etc&amp;#8230;&lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;p&gt;O &lt;strong&gt;screen&lt;/strong&gt; agora pode ser direcionado para Smartphones, com telas bacanas como o iPhone e celulares com Android por meio das &lt;a href=&#34;http://tableless.com.br/introducao-sobre-media-queries&#34;&gt;Media Queries&lt;/a&gt;. O &lt;strong&gt;handheld&lt;/strong&gt; é largamente usado para celulares que não são smartphones, mas são celulares menores, com telas bacanas. Normalmente, estes celulares utilizam Opera Mini, o que é uma vantagem por conta da larga compatibilidade que o Opera tem com Padrões Web.&lt;/p&gt;
+
+&lt;p&gt;O &lt;strong&gt;projection&lt;/strong&gt; foi primeiramente idealizado pelo Opera, foi conhecido também como Opera Show &amp;#8211; para ver isso funcionando, visite o site do &lt;a href=&#34;http://www.opera.com/support/tutorials/operashow/&#34;&gt;Opera Show&lt;/a&gt; com o &lt;a href=&#34;http://www.opera.com/&#34;&gt;Opera&lt;/a&gt; e aperte &lt;kbd&gt;F11&lt;/kbd&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;TV&lt;/strong&gt; e &lt;strong&gt;TTY&lt;/strong&gt; são pouco utilizados hoje. Quem tem uma televisão bacana em casa, consegue ter a mesma experiência de um monitor comum. Na minha opinião, não sei se ela sobrevive. A TTY talvez seja bem utilizada em nichos específicos já que é para aparelhos que tem uma tela bem limitada e que executam tarefas específicas. Talvez terminais pequenos, geralmente monocromáticos e etc. Também não tenho certeza da sua utilidade no futuro.&lt;/p&gt;
+
+&lt;p&gt;A idéia é dar para todos os meios de acesso uma boa experiência de utilização. O visitante pode iniciar a visitação do seu site em um smartphone ou celular, e terminar em um desktop. Não importa, ele precisa ter uma boa experiência nos dois meios.&lt;/p&gt;
+
+&lt;p&gt;Para ter mais detalhes:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.w3.org/TR/REC-CSS2/media.html&#34;&gt;Media types Contents&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.mozilla.org/projects/minimo/&#34;&gt;Minimo Project&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.opera.com/support/tutorials/operashow/&#34;&gt;Opera Show Tutorial&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.google.com.br/search?q=O+que+s%C3%A3o+Media+Types&#34;&gt;Google: O que são Media Types?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Marcelo Galvão on Tableless</title>
+    <link>http://tableless.com.br/author/marcelo-galv%C3%A3o/index.xml</link>
+    <description>Recent content in Marcelo Galvão on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/marcelo-galv%C3%A3o/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Facebook API – SDK PHP na prática e preview de como aprovar seu aplicativo</title>
+      <link>http://tableless.com.br/facebook-api-sdk-php-na-pratica-e-preview-de-como-aprovar-seu-aplicativo/</link>
+      <pubDate>Wed, 13 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/facebook-api-sdk-php-na-pratica-e-preview-de-como-aprovar-seu-aplicativo/</guid>
+      <description>
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-full wp-image-48618&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/800px-Facebook.png&#34; alt=&#34;facebook&#34; width=&#34;800&#34; height=&#34;301&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Recentemente o Facebook anunciou que sua API seria atualizada para a versão 4.0 e a mesma sofreria fortes mudanças. Eis que esse dia chegou, pff!&lt;/p&gt;
+
+&lt;p&gt;A principal dessas mudanças foi a extinção do suporte ao FQL (Facebook Query Language &amp;#8211; uma maneira linda de fazer requisões na API) e que os aplicativos que exigissem permições de publicar na timeline e outras coisas, passariam por um processo de aprovação, parecido com o que ocorre com a AppStore. O novo SDK faz uso de namespaces e roda no PHP 5.4 ou superior.&lt;/p&gt;
+
+&lt;p&gt;Isso para os desenvolvedores foi um caos, mas para os usuários isso é bem interessante, colocando em ordem a casa e protegendo um pouco mais sua privacidade.&lt;/p&gt;
+
+&lt;p&gt;Farei uso da API com o exemplo prático de um aplicativo que pega as fotos do usuários e depois faz um compartilhamento em sua própria timeline. Por fim mostrarei os passos para aprovar o aplicativo. &lt;a href=&#34;https://github.com/facebook/facebook-php-sdk-v4/archive/4.0-dev.zip&#34; target=&#34;_blank&#34;&gt;Clique aqui&lt;/a&gt; ou &lt;a href=&#34;https://github.com/facebook/facebook-php-sdk-v4/&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt; para baixar o SDK e vamos lá!&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-o-app&#34;&gt;Criando o App&lt;/h2&gt;
+
+&lt;p&gt;Primeira coisa que você deve fazer é ir no &lt;a href=&#34;https://developers.facebook.com/apps/&#34; target=&#34;_blank&#34;&gt;painel de aplicativos&lt;/a&gt; do Facebook Developer e criar um novo aplicativo. É um processo bem simples e por isso vou pular essa parte. Quando solicitado a plataforma do seu app, selecione Site (www). E lá em Settings altere o &amp;#8220;Website -&amp;gt; Site URL&amp;#8221; para a URL da sua aplicação, pode ser &lt;a href=&#34;http://localhost/&#34;&gt;http://localhost/&lt;/a&gt; .&lt;/p&gt;
+
+&lt;h2 id=&#34;login&#34;&gt;Login&lt;/h2&gt;
+
+&lt;p&gt;Em sua aplicação de Facebook você pode realizar o login do usuário usando o SDK JavaScript ou PHP. Não gosto muito de realizar o login via PHP porque já tive alguns problemas com o tal da URL Redirect (não lembro exatamente o porque rsrs, isso foi no boom das abas de fanpage e ações promocionais chovendo em sua timeline), devido a isso vou demonstrar das duas maneiras.&lt;/p&gt;
+
+&lt;h2 id=&#34;login-via-javascript&#34;&gt;Login via JavaScript&lt;/h2&gt;
+
+&lt;pre lang=&#34;lang-php&#34;&gt;// login via javascript
+$(&#39;#bt-facebook&#39;).click( function(event){
+
+    event.preventDefault();    
+    destino = this.href;
+
+    FB.login( function(response){
+        if (response.authResponse) {
+            document.cookie = &#39;meuapp_userid=&#39;+response.authResponse.userID;
+            document.cookie = &#39;meuapp_token=&#39;+response.authResponse.accessToken;
+            window.location.href = destino;
+        }else{
+            // console.log(&#39;O usuário Cancelou o login ou não autozirou.&#39;);
+        }
+    }, {scope: &#39;user_photos, publish_actions&#39;});    
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Na linha 2 eu simulei que a solicitação veio através de um clique num link &lt;a&gt;. Na linha 5 guardamos o destino do link para uso posterior. Na linha 7 fazemos a chamada ao método FB.login() que irá abrir uma caixa de diálogo na tela solicitando permissão ao usuário. Caso o usuário permita o login nas linhas 9 e 10 deixamos salvo o ID do usuário e o token da permissão para uso futuro. Deixei num cookie, mas fica a vontade para guardar isso da maneira que julgar melhor. E por fim na linha 11 envio o usuário para a página de destino do link, a página principal da aplicação quando logado.&lt;/p&gt;
+
+&lt;p&gt;É importante observar a linha 15, onde mencionamos todas as permissões que vamos precisar do usuário. &lt;a href=&#34;https://developers.facebook.com/docs/facebook-login/permissions/v2.3#reference&#34; target=&#34;_blank&#34;&gt;Clique aqui&lt;/a&gt; pra ver a lista de permissões.&lt;/p&gt;
+
+&lt;p&gt;Ah, lembre-se de adicionar a chamada ao SDK JavaScript colocando o código abaixo antes do fechamento da tag &lt;body&gt;.&lt;/p&gt;
+
+&lt;pre lang=&#34;lang-javascript&#34;&gt;&amp;lt;script&amp;gt;
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : &#39;APP_ID&#39;,
+      xfbml      : true,
+      version    : &#39;v2.3&#39;
+    });
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = &#34;//connect.facebook.net/en_US/sdk.js&#34;;
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));
+&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Lembre-se de trocar o APP_ID pelo ID da sua aplicação.&lt;/p&gt;
+
+&lt;h2 id=&#34;login-via-php&#34;&gt;Login via PHP&lt;/h2&gt;
+
+&lt;pre lang=&#34;lang-javascript&#34;&gt;// arquivo 1
+require &#39;facebook/autoload.php&#39;;
+use Facebook\FacebookSession;
+use Facebook\FacebookRedirectLoginHelper;
+use Facebook\FacebookRequest;
+
+FacebookSession::setDefaultApplication(&#39;APP_ID&#39;, &#39;APP_SECRET&#39;);
+
+$helper = new FacebookRedirectLoginHelper(&#39;URL_ARQUIVO_2&#39;);
+$loginUrl = $helper-&amp;gt;getLoginUrl();
+echo &#34;&lt;a href=&#34;\&amp;quot;$loginUrl\&amp;quot;&#34;&gt;login via php&lt;/a&gt;&#34;;
+
+
+// arquivo 2
+require &#39;facebook/autoload.php&#39;;
+use Facebook\FacebookSession;
+use Facebook\FacebookRedirectLoginHelper;
+use Facebook\FacebookRequest;
+use Facebook\GraphUser;
+use Facebook\Entities\AccessToken;
+
+FacebookSession::setDefaultApplication(&#39;APP_ID&#39;, &#39;APP_SECRET&#39;);
+$helper = new FacebookRedirectLoginHelper(&#39;URL_ARQUIVO_2&#39;);
+try {
+  $session = $helper-&amp;gt;getSessionFromRedirect();
+} catch(FacebookRequestException $ex) {
+  // When Facebook returns an error
+} catch(\Exception $ex) {
+  // When validation fails or other local issues
+}
+
+if ($session) {
+  echo &#34;Usuário logado.&#34;;
+  
+  $me = (new FacebookRequest(
+      $session, &#39;GET&#39;, &#39;/me&#39;
+    ))-&amp;gt;execute()-&amp;gt;getGraphObject(GraphUser::className());
+
+  // echo $token = $session-&amp;gt;getToken();
+  setcookie(&#39;tacaruna_token&#39;, $session-&amp;gt;getToken());
+  setcookie(&#39;tacaruna_userid&#39;, $me-&amp;gt;getProperty(&#39;id&#39;));
+  header(&#34;Location: mosaico.php&#34;);
+
+}else{
+  echo &#34;Não logado&#34;;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Não vou entrar em detalhes nesses arquivos de login via PHP porém mais abaixo tudo é explanado. Lembre-se de trocar APP_ID, APP_SECRET e URL_ARQUIVO_2 pelos seus respectivos valores.&lt;/p&gt;
+
+&lt;h2 id=&#34;pegando-as-fotos-do-usuário&#34;&gt;Pegando as fotos do usuário&lt;/h2&gt;
+
+&lt;pre&gt;/* INCLUDE NO AUTOLOAD E CHAMA AS CLASSES NECESSÁRIAS */
+require &#39;facebook/autoload.php&#39;;
+use Facebook\FacebookSession;
+use Facebook\FacebookJavaScriptLoginHelper;
+use Facebook\FacebookRequest;
+use Facebook\GraphUser;
+
+FacebookSession::setDefaultApplication(&#39;APP_ID&#39;, &#39;APP_SECRET&#39;);
+
+/* VERIFICA SE ESTA LOGADO */
+$helper = new FacebookJavaScriptLoginHelper();
+try {
+  $session = new FacebookSession($_COOKIE[&#39;meuapp_token&#39;]);
+}catch(FacebookRequestException $ex) {
+  // When Facebook returns an error
+}catch(\Exception $ex) {
+  // When validation fails or other local issues
+}
+
+// caso não esteja logado
+if (!$session) exit(&#39;Usuário não logado ou token expirado.&#39;);
+
+/* PEGA OS DADOS DO USUÁRIO */
+try {
+    $response = (new FacebookRequest($session, &#39;GET&#39;, &#39;/me&#39;))-&amp;gt;execute();
+    $object = $response-&amp;gt;getGraphObject();
+
+    $fbid = $object-&amp;gt;getProperty(&#39;id&#39;);
+    $fbname = $object-&amp;gt;getProperty(&#39;name&#39;);
+    $fbgender = $object-&amp;gt;getProperty(&#39;gender&#39;);
+
+} catch (FacebookRequestException $ex) {
+  // echo $ex-&amp;gt;getMessage();
+} catch (\Exception $ex) {
+  // echo $ex-&amp;gt;getMessage();
+}
+
+
+/* PEGA OS ALBUNS */
+$response = (new FacebookRequest($session, &#39;GET&#39;, &#39;/me/albums&#39;))-&amp;gt;execute();
+$graphObject = $response-&amp;gt;getGraphObject()-&amp;gt;asArray();
+$albuns = array();
+foreach($graphObject[&#39;data&#39;] as $v) $albuns[] = $v-&amp;gt;id;
+
+/* PEGA AS FOTOS */
+// $x = 0;
+foreach($albuns as $v){
+    $response = (new FacebookRequest($session, &#39;GET&#39;, &#34;/$v/photos&#34;))-&amp;gt;execute()-&amp;gt;getGraphObject()-&amp;gt;asArray();
+
+    foreach($response[&#39;data&#39;] as $fotos){
+        echo &#39;&amp;lt;img src=&#34;&#39;.$fotos-&amp;gt;picture . &#39;&#34; data-source=&#34;&#39;.$fotos-&amp;gt;source.&#39;&#34;&amp;gt;&amp;lt;br&amp;gt;&#39;;
+        // if (++$x === 50) break;
+    }   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Nas linhas iniciais nos chamados o autoload da API para evitar ficar dando milhões de include e logo depois chamamos as classes do SDK que iremos utilizar. Na linha 8 setamos as configurações do nosso aplicativo, substitua APP_ID e APP_SERCRET pelos do seu aplicativo.&lt;/p&gt;
+
+&lt;p&gt;Da linha 10 à 18, verificamos se o usuários está logado. Lembra que no login eu guardei o token num cookie? Olha ele aí na linha 13.&lt;/p&gt;
+
+&lt;p&gt;Da linha 24 à 36 pegamos os dados do usuário logado para caso queira guardar num banco de dados, etc. Dê um var_dump na variável $object e veja o que ele contém.&lt;/p&gt;
+
+&lt;p&gt;Para pegar as fotos do usuário primeiro vamos pegar os álbuns e aí depois as fotos contida neles. Antigamente você pegava todas as fotos com apenas uma requisição =/ Da linha 40 à 43 pegamos os IDs dos álbuns e nas linhas 47 à 54 pegamos as fotos e exibimos na tela. Mais uma você pode dar um var_dump em $fotos e ver os dados que ela contém, são vários.&lt;/p&gt;
+
+&lt;h2 id=&#34;compartilhando-na-timeline&#34;&gt;Compartilhando na timeline&lt;/h2&gt;
+
+&lt;pre&gt;/* INCLUDE NO AUTOLOAD E CHAMA AS CLASSES NECESSÁRIAS */
+require &#39;facebook/autoload.php&#39;;
+use Facebook\FacebookSession;
+use Facebook\FacebookJavaScriptLoginHelper;
+use Facebook\FacebookRequest;
+use Facebook\GraphUser;
+use Facebook\FacebookRequestException;
+use Facebook\GraphObject;
+
+FacebookSession::setDefaultApplication(&#39;APP_ID&#39;, &#39;APP_SECRET&#39;);
+
+/* VERIFICA SE ESTA LOGADO */
+$helper = new FacebookJavaScriptLoginHelper();
+try {
+  $session = new FacebookSession($_COOKIE[&#39;meuapp_token&#39;]);
+}catch(FacebookRequestException $ex) {
+  // When Facebook returns an error
+}catch(\Exception $ex) {
+  // When validation fails or other local issues
+}
+
+// caso não esteja logado
+if (!$session){
+  exit(&#39;Usuário não logado ou token expirado.&#39;);
+
+}else{
+  
+  /* COMPARITLHA */
+  $img = realpath(&#34;CAMINHO_DA_IMAGEM&#34;);
+  $txt = &#34;TEXTO_DIGITADO_PELO_USUARIO&#34;;
+
+  try {
+
+    $response = (new FacebookRequest(
+      $session, &#39;POST&#39;, &#39;/me/photos&#39;, array(
+        &#39;source&#39; =&amp;gt; new CURLFile($img, &#39;image/jpeg&#39;),
+        &#39;message&#39; =&amp;gt; &#34;$txt&#34;
+      )
+    ))-&amp;gt;execute()-&amp;gt;getGraphObject();
+
+    echo  $response-&amp;gt;getProperty(&#39;id&#39;);
+
+  } catch(FacebookRequestException $e) {
+
+    // echo &#34;Exception occured, code: &#34; . $e-&amp;gt;getCode();
+    // echo &#34; with message: &#34; . $e-&amp;gt;getMessage();
+    exit(&#34;Erro ao compartilhar.&#34;);
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Mais uma vez nas linhas iniciais nos chamados o autoload da API setamos as configurações do nosso aplicativo e logo verificamos se o mesmo está logado. Na linha 29 nos colocamos o realpath do caminho da imagem que iremos compartilhar (caso a versão do seu PHP seja inferior a 5.5, altere a linha 36 para: &amp;#8216;source&amp;#8217; =&amp;gt; ‘@‘. $img). Na linha 30 temos uma frase que irá acompanhar a postagem/foto escrita pelo próprio usuário. Não é obrigado conter uma frase, pode deixar em branco. O que não pode é deixar um texto pré-definido. Caso isso ocorra o seu app não será aprovado.&lt;/p&gt;
+
+&lt;h2 id=&#34;aprovando-o-aplicativo&#34;&gt;Aprovando o aplicativo&lt;/h2&gt;
+
+&lt;p&gt;Enviar o aplicativo para aprovação não é um bicho de sete cabeças. Dá um pouco de trabalho porque você precisa tirar alguns printscreen, escrever um passo a passo e mais algumas informações. Para alguns &amp;#8211; e principalmente agências de publicidade, isso é um inferno porque para precisaríamos de todo o layout já pronto, mas você pode dar um jeito de adiantar esse processo fazendo você mesmo um pré-layout baseado no wireframe que já serve, não precisa estar lindão, só precisa ter o protótipo do seu aplicativo com um bom gosto no css que já é o suficiente!&lt;/p&gt;
+
+&lt;p&gt;O Facebook deixou um &lt;a href=&#34;https://developers.facebook.com/docs/opengraph/submission-process&#34; target=&#34;_blank&#34;&gt;página dedicada&lt;/a&gt; a isso bem explicada e com imagens ilustrando e tudo mais. Lá no painel em Status &amp;amp; Review quando você clicar em Start a Submission ele vai apontar para você que está faltando e daí você vai fazendo, etc.&lt;/p&gt;
+
+&lt;p&gt;Lembre-se de deixar o seu aplicativo visível para o todos (público) para facilitar, mas pelo que vi você pode deixar privado e designar um usuário de teste para eles testarem.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter wp-image-48607 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/status-public.jpg&#34; alt=&#34;&#34; width=&#34;500&#34; height=&#34;161&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Em App Details você precisa preencher a maioria dos campos, em português mesmo. Também precisa de pelo menos 3 screenshots do seu aplicativo bem como a maioria das imagens de capa, baner, ícone, etc.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter wp-image-48608 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/informacoes.jpg&#34; alt=&#34;&#34; width=&#34;500&#34; height=&#34;1042&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;É importante observar que como mencionei anteriormente, não podemos deixar uma frase de compartilhamento pré-definida, o que um dia foi um prática comum da maioria das marcas. Caso isso ocorra seu aplicativo não será aprovado.&lt;/p&gt;
+
+&lt;p&gt;O Facebook diz que pode precisar de até 15 dias úteis para aprovar, mas nesse exemplo que apresentei aqui ele pedio 5 dias e terminou aprovando em apenas 1 dia 🙂&lt;/p&gt;
+
+&lt;p&gt;Então é isso, e boa sorte na aprovação!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

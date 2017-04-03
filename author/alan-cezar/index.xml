@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Alan Cezar on Tableless</title>
+    <link>http://tableless.com.br/author/alan-cezar/index.xml</link>
+    <description>Recent content in Alan Cezar on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/alan-cezar/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Animações fluídas à 60fps</title>
+      <link>http://tableless.com.br/animacoes-fluidas-60fps/</link>
+      <pubDate>Mon, 29 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/animacoes-fluidas-60fps/</guid>
+      <description>
+
+&lt;p&gt;Existem diversas maneiras da página interagir com o usurário, e uma dessas maneiras é a interação com animações. Podem ser desde animações mais triviais como o scroll de um elemento, até animações mais complexas como gráficos de jogos.&lt;/p&gt;
+
+&lt;p&gt;Algumas vezes sentimos nossa UI engasgar durante essas interações, dando o sentimento de que algo está sendo executado com muito esforço. E pode apostar que é isso mesmo.&lt;/p&gt;
+
+&lt;p&gt;Para criar essas animações o browser basicamente se comporta como outros softwares que reproduzem vídeo, gerando uma sequência de imagens e renderizando elas na tela do seu dispositivo.&lt;/p&gt;
+
+&lt;p&gt;Vou resumir o processo executado pelo browser para gerar essa sequencia de quadros, e como o nosso pode influenciar esse processo de forma negativa ou positiva.&lt;/p&gt;
+
+&lt;h2 id=&#34;30fps-ou-60fps&#34;&gt;30fps ou 60fps?&lt;/h2&gt;
+
+&lt;p&gt;Como foi dito acima, o browser procura renderizar cerca de 60 quadros por segundo. Mas essa deve ser a nossa meta? Dá pra sentir diferença?&lt;/p&gt;
+
+&lt;p&gt;Alguns estudos dizem que 30fps é o suficiente para a percepção humana, porém 60fps é ideal pois dá uma sensação de fluidez.&lt;/p&gt;
+
+&lt;p&gt;Pessoalmente, percebo diferença entre 30fps e 60fps, acima disso não. Se você quiser fazer um teste dá uma olhada &lt;a href=&#34;http://frames-per-second.appspot.com/&#34; target=&#34;_blank&#34;&gt;nesse site&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Acredito que o ideal é entregar o mais próximo possível dos 60fps, assim fica mais fácil agradar gregos e troianos.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-trampo-do-browser&#34;&gt;O Trampo do Browser&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_fluxo_de_renderização_do_browser.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-49672 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_fluxo_de_renderização_do_browser.png&#34; alt=&#34;Fluxo de renderização de um frame&#34; width=&#34;800&#34; height=&#34;230&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O fluxo acima resume as etapas que o browser pode seguir para criar um frame. Nosso código pode influenciar esse fluxo, podendo diminuir o trabalho executado pela engine de renderização. Vamos conhecer cada etapa e descobrir como o código que escrevemos influencia essa sequencia.&lt;/p&gt;
+
+&lt;h3 id=&#34;dom&#34;&gt;DOM&lt;/h3&gt;
+
+&lt;p&gt;Ocorre sempre que o DOM é alterado.&lt;/p&gt;
+
+&lt;p&gt;Criar ou remover um elemento dispara essa etapa. Esse é um dos motivos pelos quais o acesso ao DOM é sagrado, e não deve ser feito em vão.&lt;/p&gt;
+
+&lt;p&gt;Exemplos:&lt;/p&gt;
+
+&lt;p&gt;Incluir ou remover &lt;em&gt;trs&lt;/em&gt; em um &lt;em&gt;tbody&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Alterar o texto de algum elemento.&lt;/p&gt;
+
+&lt;h3 id=&#34;cssom&#34;&gt;CSSOM&lt;/h3&gt;
+
+&lt;p&gt;Ocorre sempre que alguma regra de estilo é alterada.&lt;/p&gt;
+
+&lt;p&gt;Pode ser causado por uma nova folha de estilo inserida na página, alteração da classe de algum elemento e alteração de alguma regra de estilo inline.&lt;/p&gt;
+
+&lt;p&gt;Exemplos:&lt;/p&gt;
+
+&lt;p&gt;Inserção de novas regras via tag &lt;em&gt;style&lt;/em&gt; ou por alguma folha de estilo externa.&lt;/p&gt;
+
+&lt;p&gt;Alteração de algum estilo inline (lembra do $.hide() do jQuery?).&lt;/p&gt;
+
+&lt;h3 id=&#34;arvore-de-renderização&#34;&gt;Arvore de Renderização&lt;/h3&gt;
+
+&lt;p&gt;Após criar ou alterar o DOM e/ou o CSSOM ele precisa mapear os elementos que ficarão visíveis na tela, e quais regras de estilo se aplicam a cada elemento. Esse mapeamento fica na Árvore de Renderização.&lt;/p&gt;
+
+&lt;h3 id=&#34;layout&#34;&gt;Layout&lt;/h3&gt;
+
+&lt;p&gt;Ocorre sempre que a geometria de algum elemento é alterada e a posição de algum elemento é alterado na tela.&lt;/p&gt;
+
+&lt;p&gt;Exemplos:&lt;/p&gt;
+
+&lt;p&gt;Alteração de altura ou largura de algum elemento.&lt;/p&gt;
+
+&lt;p&gt;Alteração da margem de algum elemento.&lt;/p&gt;
+
+&lt;h3 id=&#34;pintura&#34;&gt;Pintura&lt;/h3&gt;
+
+&lt;p&gt;Ocorre quando são necessárias alterações visuais que não alteram o tamanho ou posicionamento de algum elemento.&lt;/p&gt;
+
+&lt;p&gt;Exemplos:&lt;/p&gt;
+
+&lt;p&gt;Alterar a cor de fundo de uma &lt;em&gt;div&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Alterar a cor da fonte.&lt;/p&gt;
+
+&lt;p&gt;Alterar o z-index de algum elemento.&lt;/p&gt;
+
+&lt;h2 id=&#34;inspecionando-no-browser&#34;&gt;Inspecionando no browser&lt;/h2&gt;
+
+&lt;p&gt;Vou dar um exemplo básico de como inspecionar esses eventos no browser. Será um overview simples e não entrarei nos detalhes de cada ferramenta.&lt;/p&gt;
+
+&lt;p&gt;Eles entregam as métricas de maneira bem distintas umas das outras, mas durante uma dor de barriga fazem um bom trabalho pra te ajudar á achar quais são os eventos problemáticos.&lt;/p&gt;
+
+&lt;p&gt;Não importa qual browser você está usando, aperte F13 para abrir as ferramentas de desenvolvedor. Se você não achar o F13 no seu teclado, quer dizer que você caiu na pegadinha. =)&lt;/p&gt;
+
+&lt;p&gt;Geralmente o F12 abre essas ferramentas pra você (pelo menos no Windows).&lt;/p&gt;
+
+&lt;h3 id=&#34;google-chrome&#34;&gt;Google Chrome&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_2style_render_-_gc.jpg&#34;&gt;&lt;img class=&#34;alignnone wp-image-49668 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_2style_render_-_gc.jpg&#34; alt=&#34;Google Chrome - Timeline&#34; width=&#34;800&#34; height=&#34;432&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Costumo usar o Chrome diariamente. Acredito que ele é atualmente o mais completo pois entrega bastante informações. Mas muitas informações. Seria assunto pra um post inteiro.&lt;/p&gt;
+
+&lt;h3 id=&#34;internet-explorer-11-microsoft-edge&#34;&gt;Internet Explorer 11 / Microsoft Edge&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_style_render_-_ie.jpg&#34;&gt;&lt;img class=&#34;alignnone wp-image-49669 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_style_render_-_ie.jpg&#34; alt=&#34;Microsoft Edge - Análise de Desempenho&#34; width=&#34;800&#34; height=&#34;432&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;No momento estou usando o Windows 10 Preview e tenho á disposição o IE11 e o Microsoft Edge. Posso afirmar que ele faz um trabalho decente mas ainda tem muito pra melhorar.&lt;/p&gt;
+
+&lt;h3 id=&#34;firefox-developer-edition&#34;&gt;Firefox Developer Edition&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_style_render_-_ff.jpg&#34;&gt;&lt;img class=&#34;alignnone wp-image-49670 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_style_render_-_ff.jpg&#34; alt=&#34;Firefox - Análise de Desempenho&#34; width=&#34;800&#34; height=&#34;215&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O Firefox faz um bom trabalho e tem uma ótima documentação, mas nesse quesito ainda tem muito para melhorar se o compararmos ao Chrome.&lt;/p&gt;
+
+&lt;h3 id=&#34;dicas-de-outras-ferramentas-e-recursos&#34;&gt;Dicas de outras ferramentas e recursos&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://csstriggers.com/&#34; target=&#34;_blank&#34;&gt;CSS Triggers&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Este site tenta listar as propriedades CSS e o efeito que a alteração delas causam na renderização de um frame. Ótimo recurso!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://developers.google.com/web/fundamentals/performance/index?hl=pt-br&#34; target=&#34;_blank&#34;&gt;Google Web Fundamentals&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;No Google Web Fundamentals existe uma sessão focada no assunto. Ótimo ponto de partida para aprender sobre o assunto.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.udacity.com/course/website-performance-optimization--ud884&#34; target=&#34;_blank&#34;&gt;Udacity &amp;#8211; Website Performance Optimization&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Curso gratuito desenvolvido pela Udacity com a Google. Além das explicações teóricas, tem bastante exercícios práticos.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>HTML: Encode UTF-8</title>
+      <link>http://tableless.com.br/html-encode-utf-8/</link>
+      <pubDate>Fri, 01 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/html-encode-utf-8/</guid>
+      <description>
+
+&lt;p&gt;Há uns 7 anos atrás o Diego Eis publicou &lt;a href=&#34;http://tableless.com.br/charsets-e-encodes-tabelas-de-caracteres/&#34;&gt;aqui&lt;/a&gt; um artigo sobre o assunto. Vou fazer uma nova abordagem.&lt;/p&gt;
+
+&lt;p&gt;Sabe quando sua página troca acentuações por caracteres bem loucos? Este é um problema simples de explicar e vou tentar mostrar as regras que se aplicam quando o browser faz o download de um HTML, como escolher um encode e como usá-lo.&lt;/p&gt;
+
+&lt;p&gt;Existem três formas de declararmos o encode do arquivo:&lt;/p&gt;
+
+&lt;h3 id=&#34;1-8211-via-cabeçalho-http&#34;&gt;1 &amp;#8211; Via cabeçalho HTTP&lt;/h3&gt;
+
+&lt;pre&gt;Content-Type: text/html; charset=utf-8&lt;/pre&gt;
+
+&lt;p&gt;Esse aí é o cara que manda. Se declararmos o encode no parâmetro &lt;em&gt;charset&lt;/em&gt; do &lt;em&gt;Content-Type&lt;/em&gt;, as outras duas opções serão ignoradas. Hoje em dia a customização no servidor é praticamente zero por parte do desenvolvedor, pois a maioria dos servers e banco de dados já vem com essa configuração.&lt;/p&gt;
+
+&lt;h3 id=&#34;2-8211-via-meta-tag&#34;&gt;2 &amp;#8211; Via Meta Tag&lt;/h3&gt;
+
+&lt;pre&gt;&amp;lt;!-- HTML 4 --&amp;gt;
+&amp;lt;meta http-equiv=&#34;Content-Type&#34; content=&#34;text/html; charset=utf-8&#34;&amp;gt;
+&amp;lt;!-- HTML5 --&amp;gt;
+&amp;lt;meta charset=&#34;utf-8&#34;/&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Acredito que a maioria dos desenvolvedores utilizam essa técnica. Muitas vezes já vem nos snnipets que encontramos em nosso editores e ou até mesmo naqueles templates gerados via scaffolding (ex.: yoeman).&lt;/p&gt;
+
+&lt;p&gt;É uma boa prática colocar ele logo após a abertura da tag html. Pois se o encode não estiver disponível no cabeçalho da requisição, o browser irá procurar por essa informação nos primeiros 1024 bytes do arquivo. Se ele não encontrar, será utilizado o UTF-8.&lt;/p&gt;
+
+&lt;p&gt;Segundo a w3techs.com que é especialista em um monte de pesquisas sobre a web, o formato UTF-8 é utilizado em cerca de 80% das páginas web. Mas vamos falar um pouco mais do UTF-8 depois.&lt;/p&gt;
+
+&lt;h3 id=&#34;3-8211-via-xml&#34;&gt;3 &amp;#8211; Via XML&lt;/h3&gt;
+
+&lt;pre&gt;&amp;lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Esse cara só serve para páginas XHTML e deve ser colocado antes do DOCTYPE.&lt;/p&gt;
+
+&lt;h3 id=&#34;por-que-tanto-utf-8&#34;&gt;Por que tanto UTF-8?&lt;/h3&gt;
+
+&lt;p&gt;Em 2014 foi constatado que cerca de 83,6% das páginas web estavam utilizando esse encode. Sua popularização se deu pelo fato dele reconhecer bastante caracteres (tipo uns 65.536).&lt;/p&gt;
+
+&lt;p&gt;Tem uma galera por aí usando o ISO-8859-1 por que ele é mais performático chegando á cada caractere pesar metade do seu correspondente no UTF-8. Mas aí você fica com algumas opções de caracteres á menos (você se limita á usar 256 caracteres diferentes. Pouco né?).&lt;/p&gt;
+
+&lt;p&gt;Esse segundo encode apareceu nesse mesmo relatório em segundo lugar com 8.3% das páginas. Ele não é uma péssima opção, uma vez que ele cobre todos os caracteres do nosso idioma. Mas se você for trabalhar em uma aplicação com chances de rolar internacionalização, aconselho á usar o UTF-8 pra ter uma transição natural sem maiores problemas.&lt;/p&gt;
+
+&lt;h3 id=&#34;bala-de-prata&#34;&gt;Bala de Prata?&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Tudo isso é muito chato ou demais pra minha cabeça. Quero algo mais simples.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Então tá. Vamos ver&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Você pode ignorar qualquer encode e utilizar entidades HTML.&lt;/p&gt;
+
+&lt;p&gt;Escrever &lt;em&gt;Sab&amp;atilde;o&lt;/em&gt; garante que o usuário vai ler _Sabão_ e evita que algum navegador por aí mostre na tela _SabÃ£o_ ou &lt;em&gt;Sab�o&lt;/em&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Legal! Quero ver dar errado agora depois dessa!&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Mas calma jovem, tudo tem um preço. Dá uma olhada na lista de pontos negativos:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Além de escrever mais caracteres você terá que aprender todas essas entidades (ou a maioria).&lt;/li&gt;
+&lt;li&gt;Uma &amp;#8220;alteraçãozinha de 2 minutos&amp;#8221; pra um desenvolvedor que não está muito familiarizado se torna algo com uma certa complexidade desnecessária.&lt;/li&gt;
+&lt;li&gt;Sua semântica diminui, uma vez que o conteúdo do seu código deixa de ter uma alta facilidade de entendimento.&lt;/li&gt;
+&lt;li&gt;Isso vai exigir mais caracteres, o que aumenta &lt;del&gt;nem que seja só um pouquinho&lt;/del&gt; o tráfego na rede.&lt;/li&gt;
+&lt;li&gt;Não é uma técnica muito popular devido aos pontos negativos anteriores á esse.&lt;/li&gt;
+&lt;li&gt;Você corre risco de sofrer bullying no trampo depois de seus colegas lerem teu código.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Eu até sei um ou outro de cabeça, tipo o &lt;em&gt;&amp;ccedil;&lt;/em&gt; e o &lt;em&gt;&amp;amp;&lt;/em&gt;, mas prefiro mil vezes digitar &lt;em&gt;ç&lt;/em&gt; e o &lt;em&gt;&amp;amp;&lt;/em&gt;. Mais fácil né não?&lt;/p&gt;
+
+&lt;p&gt;Referências:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://wiki.locaweb.com/pt-br/C%C3%B3digos_HTML_para_caracteres_acentuados&#34; target=&#34;_blank&#34;&gt;Locaweb &amp;#8211; Códigos HTML para caracteres acentuados&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://wiki.locaweb.com/pt-br/Como_resolver_problemas_de_acentua%C3%A7%C3%B5es_em_seu_site&#34; target=&#34;_blank&#34;&gt;Locaweb &amp;#8211; Como resolver problemas de acentuação no seu site&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://w3techs.com/technologies/overview/character_encoding/all&#34; target=&#34;_blank&#34;&gt;w3techs.com &amp;#8211; Levantamento sobre o uso do UTF-8 na web&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Código Limpo</title>
+      <link>http://tableless.com.br/codigo-limpo/</link>
+      <pubDate>Wed, 11 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/codigo-limpo/</guid>
+      <description>
+
+&lt;p&gt;Um dos assuntos que costumo discutir bastante com a galera é sobre qualidade de código. Nesses papos sempre vem questões como: quais práticas podemos adotar para ter um código de alta qualidade? E como sabemos se o nosso código está bom? Como temos certeza de que estamos no caminho certo?&lt;/p&gt;
+
+&lt;p&gt;Vou explicar meu humilde ponto de vista com exemplos e opiniões sobre qualidade de código. Vou abordar casos de uso com JavaScript, mas nada te impede aplicar muitas dessas dicas usando outras linguagens.&lt;/p&gt;
+
+&lt;h2 id=&#34;gdd-8211-gambiarra-driven-development&#34;&gt;GDD &amp;#8211; Gambiarra Driven Development&lt;/h2&gt;
+
+&lt;p&gt;Vamos começar pela metodologia mais antiga e talvez a mais adotada no mercado. Já trabalhei com profissionais que defendiam com unhas e dentes o não uso de padrões e boas práticas. Vamos ver as &lt;del&gt;desculpas&lt;/del&gt; justificativas mais usadas:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;O projeto é muito simples. Não precisa de muita frescura.&lt;/li&gt;
+&lt;li&gt;Faço isso há muitos anos e dificilmente tenho problemas.&lt;/li&gt;
+&lt;li&gt;Desse jeito entrego em 10 minutos o que faríamos em horas.&lt;/li&gt;
+&lt;li&gt;Não preciso padronizar, o código tá fácil de entender.&lt;/li&gt;
+&lt;li&gt;Não temos tempo para documentar.&lt;/li&gt;
+&lt;li&gt;Não temos tempo para escrever testes.&lt;/li&gt;
+&lt;li&gt;Não temos tempo para refatorar.&lt;/li&gt;
+&lt;li&gt;Esse código aí não é meu.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Conseguiu se lembrar de alguns momentos na sua carreira, onde você já falou ou ouviu qualquer uma das frases acima? Não? Sortudo!&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Não acredito que é errado você usar uma gambiarra para resolver um erro, desde que posteriormente você empregue uma solução mais robusta. O problema maior ocorre quando o uso de soluções paliativas se tornam frequentes.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Mas de longe esse é o único ou pior problema que encontramos na codificação. Gambiarras e &lt;em&gt;anti-patterns&lt;/em&gt; podem ser bons e eficientes a curto prazo, mas a longo prazo te mostram o inferno na terra.&lt;/p&gt;
+
+&lt;p&gt;Vou apontar algumas boas práticas voltadas á escrita de código e o motivo para usá-las.&lt;/p&gt;
+
+&lt;h2 id=&#34;antes-de-tudo-8230&#34;&gt;Antes de tudo&amp;#8230;&lt;/h2&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Você como desenvolvedor, tem a obrigação de entender cada linha de código que você escreve.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Estude boas práticas e metodologias sempre. Mas não seja ingênuo a ponto de acreditar que a adoção de uma delas irá salvar parte do seu projeto/equipe. Muitas soluções podem trazer novos problemas. Quantas vezes a solução de um bug gerou outros 10 na aplicação? Por isso é necessário sempre ter na equipe alguém experiente com bastante vivência, que saiba direcionar o projeto nesses cenários.&lt;/p&gt;
+
+&lt;p&gt;Já vi projetos que começaram repletos de boas práticas, e terminaram desastrados por conta da falta de maturidade prática da equipe. O ponto inicial que jamais deve ser ignorado é: &lt;strong&gt;você como desenvolvedor, tem a obrigação de entender cada linha de código que você escreve&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;no-caminho-certo&#34;&gt;No caminho certo&lt;/h2&gt;
+
+&lt;p&gt;Seu código atual tem uma qualidade superior comparado com o que você escreveu há 6 meses atrás? Se sua resposta for sim, isso indica que você está no caminho certo. Programação é algo em constante evolução, o você programador, também deve evoluir. Com o passar dos anos seu código deve se tornar mais bem organizado, limpo e elegante.&lt;/p&gt;
+
+&lt;p&gt;Uma leitura obrigatória é o livro &lt;a href=&#34;http://www.saraiva.com.br/clean-code-a-handbook-of-agile-software-craftsman-3095979.html&#34; target=&#34;_blank&#34;&gt;Clean Code&lt;/a&gt;. Muitos artigos e palestras sobre boas práticas (incluindo esse artigo), repetem pontos abordados nesse livro. Já vi até empresas cobrando a leitura desse livro como requisito para contratação.&lt;/p&gt;
+
+&lt;h2 id=&#34;código-limpo&#34;&gt;Código Limpo&lt;/h2&gt;
+
+&lt;p&gt;Enquanto o _GDD_ pode te dar felicidade a curto prazo, escrever código de forma limpa e consistente vai te garantir um futuro mais confortável. Você terá um código de fácil entendimento, o que tornará sua manutenção mais eficiente. E se você for um garoto prendado e cobrir sua aplicação com o máximo possível de testes, erros de regressão não irão mais chatear teu cliente/chefe.&lt;/p&gt;
+
+&lt;p&gt;Vou focar em poucos pontos. Se quiser mais conteúdo, leia o &lt;a href=&#34;http://www.saraiva.com.br/clean-code-a-handbook-of-agile-software-craftsman-3095979.html&#34; target=&#34;_blank&#34;&gt;Clean Code&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;code-review&#34;&gt;Code Review&lt;/h3&gt;
+
+&lt;p&gt;Sempre peça para um colega revisar teu código. Se outra pessoa entendeu perfeitamente o que você escreveu, é um bom sinal.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&amp;#8220;Qualquer tolo consegue escrever código que um computador entenda. Bons programadores escrevem código que humanos possam entender.&amp;#8221; &amp;#8211; Martin Fowler&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&#34;linters&#34;&gt;Linters&lt;/h3&gt;
+
+&lt;p&gt;Ferramentas que escaneiam nosso código procurando o uso de más práticas e possíveis erros de execução, são nossos aliados. No dia-a-dia costumo usar o &lt;a href=&#34;http://jshint.com/&#34; target=&#34;_blank&#34;&gt;JSHint&lt;/a&gt; e agora meu novo parceiro: &lt;a href=&#34;https://github.com/danielstjules/jsinspect&#34; target=&#34;_blank&#34;&gt;JSInspect&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Gosto do JSHint pelo fato de poder customizar algumas regras. Já o JSInspect te ajuda á identificar o padrão &lt;em&gt;copy &amp;amp; paste&lt;/em&gt;, te ajudando a escrever módulos melhores.&lt;/p&gt;
+
+&lt;h3 id=&#34;nomenclaturas&#34;&gt;Nomenclaturas&lt;/h3&gt;
+
+&lt;p&gt;Quando me perguntam qual parte da programação eu acho mais difícil, respondo na lata: nomear coisas.&lt;/p&gt;
+
+&lt;p&gt;Passamos boa parte do tempo fazendo isso no nosso código, nomeando funções, variáveis, classes, namespaces, etc. Muitas vezes demoramos até chegar em um resultado bacana.&lt;/p&gt;
+
+&lt;h3 id=&#34;seja-verboso&#34;&gt;Seja verboso&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&amp;#8220;Existem duas coisas muito difíceis na Ciência da Computação: invalidar cache e dar nome às coisas.&amp;#8221; &amp;#8211; Phil Karlton&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Consegue me dizer se você entende de cara o que faz a instrução abaixo?&lt;/p&gt;
+
+&lt;pre&gt;u.cptTasks = false;&lt;/pre&gt;
+
+&lt;p&gt;E agora com o código abaixo?&lt;/p&gt;
+
+&lt;pre&gt;var u = new User();
+u.name = &#39;Joana Souza&#39;;
+u.adminPerm = true;
+u.cptTasks = false;
+u.save();&lt;/pre&gt;
+
+&lt;p&gt;Conseguiu entender tudo? Vamos ver se fica mais fácil:&lt;/p&gt;
+
+&lt;pre&gt;var user = new User();
+user.name = &#39;Joana Souza&#39;;
+user.hasAdministratorPermissions = true;
+user.didCompleteAllTasks = false;
+user.save();&lt;/pre&gt;
+
+&lt;p&gt;Nomear a variável como &lt;em&gt;u&lt;/em&gt; não ajudou muito. Principalmente se você for reutilizar essa variável muitas linhas abaixo. Abreviações também atrapalham bastante. Duvido que de imediato você soube o significado de &lt;em&gt;u.cptTasks&lt;/em&gt;. Pode ter tido várias idéias, o que te guiou ao velho &lt;em&gt;achismo&lt;/em&gt;. E quantos erros já não cometemos pelo simples fato de _acharmos_ isso ou aquilo?&lt;/p&gt;
+
+&lt;h3 id=&#34;considere-o-uso-da-nossa-querida-língua-portuguesa&#34;&gt;Considere o uso da nossa querida Língua Portuguesa&lt;/h3&gt;
+
+&lt;p&gt;Usar a língua portuguesa para nomear coisas pode ser muito bom, principalmente para os novatos. Pelo simples motivo de que fazendo isso, fica mais visível o que é API nativa da linguagem/browser, e API proprietária. Dá uma olhada:&lt;/p&gt;
+
+&lt;pre&gt;var usuario = new Usuario();
+usuario.nome = &#39;Joana Souza&#39;;
+usuario.temPermissoesAdministrativas = true;
+usuario.completouTodasTarefas = false;
+usuario.salvar();&lt;/pre&gt;
+
+&lt;p&gt;Ficou mais confortável né? Seu cérebro praticamente se deu ao único trabalho de compreender o código. Não precisou traduzir de um idioma para outro. Mas isso é também uma faca de dois gumes.&lt;/p&gt;
+
+&lt;p&gt;Conhecer a língua inglesa é extremamente importante no mundo da programação, pois muitas documentações e materiais estão nesse idioma. Logo, nomear coisas em português te tira a oportunidade de praticar o idioma, pelo menos na forma escrita. Vale á pena bater um papo com a sua equipe á respeito disso.&lt;/p&gt;
+
+&lt;h3 id=&#34;adote-uma-convenção&#34;&gt;Adote uma convenção&lt;/h3&gt;
+
+&lt;p&gt;A adoção de uma convenção facilita muito na padronização de estilo de escrita e organização de código. É uma ótima opção iniciar com alguma existente:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://snowdream.github.io/javascript-style-guide/javascript-style-guide/br/naming-conventions.html&#34; target=&#34;_blank&#34;&gt;Convenção de Nomenclatura &amp;#8211; Airbnb&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://andrecomws.com/lab/code-standards/&#34; target=&#34;_blank&#34;&gt;Padrões de Código Front-End &amp;#8211; Isobar&lt;/a&gt; (a versão original está &lt;a href=&#34;http://isobar-idev.github.io/code-standards/&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://javascript.crockford.com/code.html&#34; target=&#34;_blank&#34;&gt;Convenções do Douglas Crockford&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://google.github.io/styleguide/javascriptguide.xml&#34; target=&#34;_blank&#34;&gt;Padrões de Código da Google&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Bônus:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Leitura obrigatória: &lt;a href=&#34;http://jstherightway.org/pt-br/&#34; target=&#34;_blank&#34;&gt;JavaSript the Right Way&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;variáveis-e-funções-não-utilizadas&#34;&gt;Variáveis e funções não utilizadas&lt;/h3&gt;
+
+&lt;p&gt;Variáveis e funções não utilizadas são um belo exemplo de sujeira. Alguma vez você já deu manutenção em algum código, cujo algum tempo foi investido para compreender o que foi escrito, pra no final das contas perceber que o código estava morto, sem utilização? Chato, né?&lt;/p&gt;
+
+&lt;p&gt;Pra se livrar dessa sujeira é bem simples: ninguém está usando? Apague! Essa regra também vale para código comentado.&lt;/p&gt;
+
+&lt;h3 id=&#34;reinvenção-da-roda&#34;&gt;Reinvenção da roda&lt;/h3&gt;
+
+&lt;p&gt;Esse erro é geralmente cometido por novos e &lt;em&gt;antigos juniores&lt;/em&gt; (entendo como antigo júnior aquele profissional que programa há muitos anos, mas nunca se interessou em aprofundar em uma linguagem).&lt;/p&gt;
+
+&lt;p&gt;O fato de não conhecer muito bem a API da linguagem, pode te levar á reinventar á roda.&lt;/p&gt;
+
+&lt;p&gt;Um exemplo disso é quando precisamos fazer um filtro em um array. Quem não está familiarizado, irá primeiramente fazer o bom e velho &lt;em&gt;for&lt;/em&gt;, possivelmente desconhecendo outras opções como &lt;em&gt;Array.filter&lt;/em&gt; e &lt;em&gt;Array.map&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;funções-pequenas&#34;&gt;Funções Pequenas&lt;/h3&gt;
+
+&lt;p&gt;Funções devem ser claras, objetivas e pequenas. Respeite a regra da responsabilidade única: sua função deve fazer somente uma coisa, e deve fazê-la muito bem.&lt;/p&gt;
+
+&lt;p&gt;Dá uma olhada no exemplo abaixo:&lt;/p&gt;
+
+&lt;pre&gt;usuario.salvar()
+
+...
+
+function salvar() {
+    var camposObrigatorios = [ &#39;nome&#39;, &#39;email&#39;, &#39;cpf&#39; ];
+
+    camposObrigatorios.forEach( ( propriedade ) =&amp;gt; {
+        if ( !usuario[ propriedade ] ) {
+            throw new Error( `É obrigatório informar o ${ propriedade } do usuário.` );
+        }
+    } );
+
+    $http.post( &#39;http://app.com/api/usuario&#39;, usuario )
+        .success( ... )
+        .error( ... )
+        .finally( ... );
+}&lt;/pre&gt;
+
+&lt;p&gt;Pelo nome da função ficou claro o objetivo dela. Mas analisando vemos a implementação de duas coisas: validação e persistência dos dados. Poderíamos dividir as responsabilidades da seguinte forma:&lt;/p&gt;
+
+&lt;pre&gt;validarUsuario() &amp;&amp; usuario.salvar();
+
+...
+
+function validarUsuario() {
+    var camposObrigatorios = [ &#39;nome&#39;, &#39;email&#39;, &#39;cpf&#39; ];
+
+    camposObrigatorios.forEach( ( propriedade ) =&amp;gt; {
+        if ( !usuario[ propriedade ] ) {
+            throw new Error( `É obrigatório informar o ${ propriedade } do usuário.` );
+        }
+    } );
+
+    return true;
+}
+
+function salvar() {
+    $http.post( &#39;http://app.com/api/usuario&#39;, usuario )
+        .success( ... )
+        .error( ... )
+        .finally( ... );
+}&lt;/pre&gt;
+
+&lt;p&gt;Manter suas funções enxutas te auxilia á praticar o reuso do código.&lt;/p&gt;
+
+&lt;p&gt;Esse é um assunto que pode ser extenso. Uma discussão bem bacana rolou no StackOverflow. Dá uma olhada &lt;a href=&#34;http://pt.stackoverflow.com/questions/30772/uma-fun%C3%A7%C3%A3o-grande-ou-muitas-pequenas&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;comentários&#34;&gt;Comentários&lt;/h3&gt;
+
+&lt;p&gt;Já ouvi dizer que código semântico dispensa comentários. Concordo parcialmente com isso. Acredito que é válido usar comentários nas seguintes situações:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Utilização muito pouco comum de uma parte da API pode ajudar a galera mais nova&lt;/li&gt;
+&lt;li&gt;Nem sempre conseguimos deixar nosso código semântico, a ponto dele &lt;em&gt;contar o que está acontecendo&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Existem poucos momentos em que devemos fazer uso de uma má prática. E é bom deixar documentado o motivo antes que alguém refatore e quebre alguma funcionalidade&lt;/li&gt;
+&lt;li&gt;Sua aplicação expõe uma API pública. Sugiro o uso do &lt;a href=&#34;http://usejsdoc.org/&#34; target=&#34;_blank&#34;&gt;JSDocs&lt;/a&gt; para manter um padrão.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Agora  &lt;strong&gt;/* código comentado */ &lt;/strong&gt;é algo deve ter pouquíssima tolerância.&lt;/p&gt;
+
+&lt;h3 id=&#34;indentação&#34;&gt;Indentação&lt;/h3&gt;
+
+&lt;p&gt;Esse é conhecido como &lt;em&gt;problema de perfumaria&lt;/em&gt;. Saca só:&lt;/p&gt;
+
+&lt;pre&gt;if(usuario.idade!==null||usuario.idade!==undefined||typeof usuario.idade == &#39;number&#39;||usuario.idade&amp;lt;18){
+  alert(&#39;O usuário não possui idade suficiente para ser cadastrado nesse sistema.&#39;);
+  return false;
+}else{
+    usuario.salvar();
+}&lt;/pre&gt;
+
+&lt;p&gt;Lindo né? Que tal dar mais espaço pra essa bagunça?&lt;/p&gt;
+
+&lt;pre&gt;if ( usuario.idade &amp;&amp; typeof usuario.idade === &#39;number&#39; &amp;&amp; usuario.idade &amp;lt; 18 ) {
+    alert( &#39;O usuário não possui idade suficiente para ser cadastrado nesse sistema.&#39; );
+    return false;
+}
+
+usuario.salvar();&lt;/pre&gt;
+
+&lt;p&gt;E agora? Ficou mais fácil de ler?&lt;/p&gt;
+
+&lt;p&gt;Enfiar todo o código em uma pequena lata de sardinha pode dificultar um pouco a sua compreensão, por mais que o seu editor de texto ou IDE tenha um highlight com alto contraste. Uma ferramenta bacana pra te ajudar á manter esse padrão é o &lt;a href=&#34;http://jscs.info/&#34; target=&#34;_blank&#34;&gt;JSCS&lt;/a&gt;. Gosto de usar o preset jQuery dessa ferramenta, pois o código fica com mais espaçamento, deixando o mais confortável para ler.&lt;/p&gt;
+
+&lt;h3 id=&#34;vale-lembrar-que-8230&#34;&gt;Vale lembrar que&amp;#8230;&lt;/h3&gt;
+
+&lt;p&gt;Muitas dicas dadas aqui retirei do livro Clean Code, e outras aprendi com o passar do tempo em experiência com diversos projetos. O seu comentário com um ponto de vista diferente pode me ajudar á aprender mais sobre o assunto.&lt;/p&gt;
+
+&lt;p&gt;Espero ter ajudado.&lt;/p&gt;
+
+&lt;p&gt;=)&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

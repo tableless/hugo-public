@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Clóvis Neto Javascript on Tableless</title>
+    <link>http://tableless.com.br/tags/cl%C3%B3vis-neto-javascript/index.xml</link>
+    <description>Recent content in Clóvis Neto Javascript on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/cl%C3%B3vis-neto-javascript/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Dominando o uso de prototype em JavaScript</title>
+      <link>http://tableless.com.br/dominando-o-uso-de-prototype-em-javascript/</link>
+      <pubDate>Sat, 14 Jun 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/dominando-o-uso-de-prototype-em-javascript/</guid>
+      <description>
+
+&lt;p&gt;Vários desenvolvedores web falam que protótipos representam uma forma de definirmos tipos de objetos, mas se você observar com cuidado, isto é uma característica de funções.&lt;/p&gt;
+
+&lt;p&gt;Perceba que todas as funções têm uma propriedade &lt;em&gt;prototype&lt;/em&gt; que, inicialmente, referencia um objeto vazio.&lt;/p&gt;
+
+&lt;p&gt;Usando a palavra chave &lt;em&gt;New&lt;/em&gt; para invocar a função construtor, temos agora um objeto recém instanciado  como seu contexto.&lt;/p&gt;
+
+&lt;p&gt;Ex:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function Lutador(){}
+ var lutador1 = new Lutador();&lt;/pre&gt;
+
+&lt;h2 id=&#34;o-básico-8211-incluindo-métodos-numa-classe-função&#34;&gt;O básico &amp;#8211; Incluindo métodos numa classe (função)&lt;/h2&gt;
+
+&lt;p&gt;Temos nossa classe &lt;strong&gt;Lutador&lt;/strong&gt;, que se encontra vazia e queremos anexar um método a ela. Logo utilizamos a seguinte estrutura:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function Lutador(){}
+Lutador.prototype.Socar = function(){
+ return true;
+}
+ var lutador1 = new Lutador();
+
+console.log(lutador1.Socar());&lt;/pre&gt;
+
+&lt;p&gt;Um protótipo nos permite predefinir propriedades, incluindo métodoss. Você pode saber como acessar as propriedades de protótipos a partir da instância do objeto com &lt;em&gt;lutador1.constructor.prototype.Socar&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Uma observação importante é que não importa a ordem onde o protótipo é declarado, pois &amp;#8220;suas atualizações&amp;#8221; são feitas dinamicamente, ex:&lt;/p&gt;
+
+&lt;p&gt;Isto:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function Lutador(){}
+Lutador.prototype.Socar = function(){
+ return true;
+}
+ var lutador1 = new Lutador();&lt;/pre&gt;
+
+&lt;p&gt;Tem o mesmo sentido de:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function Lutador(){}
+ var lutador1 = new Lutador();
+Lutador.prototype.Socar = function(){
+ return true;
+}&lt;/pre&gt;
+
+&lt;p&gt;Podemos também instânciar um objeto deste modo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function Lutador(){}
+var lutador1 = new Lutador();
+var lutador2 = new lutador1.constructor();
+console.log(&#34;Verificanco se esta afirmção é verdadeira: &#34;+lutador1 !== lutador2);&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Note que &lt;strong&gt;lutador1&lt;/strong&gt; não é o mesmo objeto de &lt;strong&gt;lutador2&lt;/strong&gt;, mas são duas instâncias distintas.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Tudo que vimos até agora, foi o básico de que os protótipos oferecem, agora está na hora de avançar um pouco mais.&lt;/p&gt;
+
+&lt;h2 id=&#34;herança-e-a-cadeia-de-protótipos&#34;&gt;Herança e a cadeia de protótipos&lt;/h2&gt;
+
+&lt;p&gt;Existem várias formas de como obter uma herança com protótipos, mas sem dúvida, a melhor forma é este modo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function Lutador(){
+ this.attackPlayer = function(){
+  return true;
+ }
+} 
+
+function Habilidades(){
+ this.esquivaPlayer = function(){
+  console.log(&#34;esquivou&#34;);
+ }
+}
+
+//fazendo Lutador herdar de Habilidades
+Lutador.prototype = new Habilidades();
+lutador1 = new Lutador();
+
+//verificando
+console.log(lutador1 instanceof Lutador);
+console.log(lutador1 instanceof Habilidades);&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;Nota: &amp;#8220;Existe também outra técnica semelhante a esta, e que eu desaconselho. É utilizar o objeto do protótipo de&lt;/em&gt; Habilidades&lt;em&gt; diretamente como protótipo de&lt;/em&gt; Lutador_&amp;#8230; Ex:_ Lutador.prototype = Habilidades.prototype; &lt;em&gt;pois fazendo isto, qualquer alteração no protótipo de&lt;/em&gt; Lutador &lt;em&gt;também modificará o protótipo de&lt;/em&gt; Habilidades&lt;em&gt;, porque eles serão o mesmo objeto, e isso com certeza terá alguns efeitos colaterais indesejaveis&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;incluindo-novo-método-nos-elementos-html-por-meio-do-protótipo-htmlelement&#34;&gt;Incluindo novo método nos elementos HTML por meio do protótipo HTMLElement&lt;/h2&gt;
+
+&lt;p&gt;Nos navegadores atuais e antigos (IE8+) temos uma funcionalidade bastante interessante que nos permite estender qualquer nó HTML de nossa escolha, vejamos então o próximo exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;HTMLElement.prototype.remover = function() {
+        this.parentNode.removeChild(this);
+    };
+
+    document.querySelector(&#34;#a&#34;).remover();&lt;/pre&gt;
+
+&lt;p&gt;Neste exemplo incluimos um novo método &amp;#8220;remover&amp;#8221;, em todos os elementos do DOM por meio do protótipo do contrutor HTMLElement. Logo depois removemos o elemento html que tem por &lt;em&gt;id=&amp;#8221;a&amp;#8221; &lt;/em&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;Um exemplo muito bom de utilização deste recurso é a biblioteca Prototype, por ela conseguimos obter muitas funcionalidades nos elementos DOM, por exemplo injetar HTML e manipular CSS.&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&#34;extenção-de-object-e-array&#34;&gt;Extenção de Object e Array&lt;/h4&gt;
+
+&lt;p&gt;Por meio de protótipos também podemos estender os tipos primitivos do javascript, como: Object, Array e Number. Vejamos como estender uma variável do tipo array por meio de protótipos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;Array.prototype.cataFruta = function(callback) {
+    for(var i = 0; i &amp;lt; this.length; i++){
+        callback.call(this,this[i],i);
+    }
+};
+var frutas = [&#34;laranja&#34;,&#34;uva&#34;,&#34;pinha&#34;,&#34;morango&#34;];
+frutas.cataFruta(function(element,index){
+    console.log(&#34;fruta: &#34;+element+&#34; sua posição é: &#34;+index);
+});&lt;/pre&gt;
+
+&lt;p&gt;Note que adicionamos um método &amp;#8220;cataFruta()&amp;#8221;, que serve como um forEach dentro do array, e este mesmo método pode receber um callback que retorna dois parâmetros, que é o elemento atual em execução e o seu índice. Também podemos estender Object:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;Object.prototype.esconde = function(callback) {
+    if(this.hasOwnProperty(&#34;style&#34;)){
+        this.style.opacity = 0;
+        this.style.filter = &#34;alpha(opacity=0)&#34;;
+        callback.call(this,this);
+    }
+};
+document.getElementById(&#39;escondido&#39;).esconde(function(element){
+    console.log(&#34;escondemos a div com o id: &#34;+element.getAttribute(&#34;id&#34;)+&#34;!!&#34;);
+});&lt;/pre&gt;
+
+&lt;p&gt;Note que usamos a mesma lógica para os dois, só mudou que ao invés de &lt;em&gt;Array.prototype&lt;/em&gt; colocamos &lt;em&gt;Object.prototype.&lt;/em&gt; Também podemos estender o tipo Number, algo que não recomendo pois ele é um protótipo nativo muito problemático.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;#8220;Devido à forma como números e propriedades de números são processados pelo engine JavaScript, alguns resultados podem ser bastante confusos&amp;#8230;&amp;#8221; (Segredos do Ninja Javascript::Novatec)&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&#34;subclasse-do-objeto-array&#34;&gt;Subclasse do objeto Array&lt;/h4&gt;
+
+&lt;p&gt;Como expliquei mais à cima, existe um modo de herdamos heranças em classes JavaScript, isso não é diferente com o objeto Array. Vejamos um exemplo de como podemos criar uma subclasse do tipo array:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function MinhaClasse(){}
+MinhaClasse.prototype = new Array();
+var meu = new MinhaClasse();
+meu.push(1,2,3);
+console.log(&#34;O tamanho da subclasse meu é: &#34;+meu.length);
+
+Ou ao invés de criar, podemos apenas &#34;simular&#34; a criação de uma subclasse do tipo array, ex:&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function MinhaClasse(){}
+MinhaClasse.prototype.length = 0;
+
+(function(){
+    var novos_metodos = [&#39;push&#39;,&#39;shift&#39;,&#39;join&#39;,&#39;unshift&#39;,&#39;slice&#39;,&#39;pop&#39;,&#39;splice&#39;];
+    for (var i = 0; i &amp;lt; novos_metodos.length; i++)(function(metodo){
+        MinhaClasse.prototype[metodo] = function(){
+            return Array.prototype[metodo].apply(this,arguments);
+        }
+    })(novos_metodos[i]);
+})();
+
+var meu = new MinhaClasse();
+meu.push(1,2,3);
+console.log(&#34;O tamanho da subclasse meu é: &#34;+meu.length);&lt;/pre&gt;
+
+&lt;h2 id=&#34;um-erro-grave-de-usuário&#34;&gt;Um erro grave de usuário&lt;/h2&gt;
+
+&lt;p&gt;Tudo que vimos até agora é muito bom e ajuda bastante para nossas aplicações JavaScript, com esse conhecimento e um pouco de esforço da até mesmo para criar sua própria biblioteca JavaScript. Mas ainda eu não poderia encerrar o artigo sem antes lhes prevenir de um erro que alguns usuários com pouco conhecimento de JavaScript cometem&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Tudo que vimos não terá utilidade nenhuma se não invocarmos a função como construtor. Imagine que um usuário leigo de JS pegou seu código mas tenta invocar a função &amp;#8220;como função&amp;#8221; achando que é assim que tem que ser feito. ex:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function Pessoa(nome,sobrenome){
+    this.name = nome+&#34; &#34;+sobrenome;
+}
+
+var homem = Pessoa(&#34;Clóvis&#34;,&#34;Neto&#34;);
+console.log(homem.name);&lt;/pre&gt;
+
+&lt;p&gt;Note no console de seu navegador que um erro aconteceu ao tentarmos verificar o &lt;em&gt;name&lt;/em&gt; de homem. Logo isto ocorrerá sempre que o usuário tentar invocar a &amp;#8220;função como função&amp;#8221;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;Então qual será a solução para este problema? &lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Simples podemos fazer uma verificação, se o objeto é uma instância da função&amp;#8230; caso não seja, retornaremos a forma correta de como chamar a função e tudo estará resolvido. Ex:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function Pessoa(nome,sobrenome){
+        if(!(this instanceof arguments.callee)){
+        return new Pessoa(nome,sobrenome);
+    }
+
+    this.name = nome+&#34; &#34;+sobrenome;
+}
+
+var homem = Pessoa(&#34;Clóvis&#34;,&#34;Neto&#34;);
+console.log(homem.name);&lt;/pre&gt;
+
+&lt;p&gt;Rode agora nosso script e veja que tudo vai bem, e não aparece erro nenhum no console 🙂&lt;/p&gt;
+
+&lt;p&gt;Bem vou parar por aqui para o artigo não ficar muito grande, por hoje é só, um forte abraço de Clóvis Neto e até a próxima 😀&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

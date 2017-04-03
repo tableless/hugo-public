@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/fluxo-de-execucao-assincrono-em-javascript-callbacks/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/fluxo-de-execucao-assincrono-em-javascript-callbacks/">Fluxo de execução assíncrono em JavaScript – Callbacks</a></h1>
+  <p class="tb-hero-p">
+    
+    Este é o primeiro artigo de uma pequena série a respeito de execução de código assíncrono. Definiremos o que é fluxo de execução e veremos o que é e quão importante é dominar as callbacks na escrita de código JavaScript.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/jean-carlo-emer">Jean Carlo Emer</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>O fluxo de execução de um programa é determinado pela ordem em que suas instruções são executadas. Tradicionalmente a execução é sequencial e segue a ordem em que as instruções aparecem no código fonte do programa.</p>
+
+<p>Existem instruções especiais que podem guiar o fluxo de execução, seja pela imposição de uma decisão, repetição ou pulo. No JavaScript, temos como exemplo <code>if</code>, <code>for</code>, <code>while</code>, <code>try catch</code>, <code>return</code>, dentre outros (como <code>break</code> e <code>continue</code> que podem ser usados de um <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/label#Using_a_labeled_continue_with_for_loops">jeito peculiar</a>).</p>
+
+<p>Como a maioria das linguagens de programação, o JavaScript foi projetado para funcionar com um único fluxo de execução. Apenas uma instrução do seu código será processada em um determinado instante. No ambiente do navegador, seu código JavaScript ainda terá que disputar vaga com o <a href="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/render-tree-construction"><em>rendering</em></a> (<em>layout</em> e <em>paint</em>) da página. <strong>Isto significa que o navegador não conseguirá posicionar ou desenhar um elemento na tela ao mesmo tempo que executa JavaScript e vice-versa</strong>.</p>
+
+<h2 id="fluxos-assíncronos">Fluxos assíncronos</h2>
+
+<p>Mesmo que projetado para ter um único fluxo de execução, algumas tarefas do seu programa JavaScript poderão ser executadas sem interferir em nada o fluxo principal de execução de código. Essas tarefas são conhecidas como fluxos assíncronos. <strong>Você pode disparar uma série dessas tarefas sem precisar esperar que cada uma se complete para prosseguir</strong>. Nos computadores atuais, que possuem mais de um núcleo de processamento, algumas tarefas do escopo do seu programa poderão inclusive ser executadas no mesmo instante do seu código.</p>
+
+<p>Isso pode parecer um pouco complicado e um exemplo pode ajudar. Toda vez que você dispara uma <a href="https://en.wikipedia.org/wiki/Ajax_(programming">requisição Ajax</a>, a comunicação com o servidor e o recebimento dos dados ocorre em paralelo a execução de outras linhas do seu programa. <strong>Quando tudo estiver pronto, você será avisado no mesmo fluxo de execução que disparou a requisição, e então poderá usar sua resposta</strong>.</p>
+
+<p>Os navegadores possuem uma série de APIs e funções que executam em fluxos assíncronos. Abaixo a lista das mais relevantes:</p>
+
+<h3 id="timers">Timers</h3>
+
+<p>As funções <code>setTimeout</code> e <code>setInterval</code> criam contadores que irão avisar seu programa que determinado período de tempo se passou de forma assíncrona.</p>
+
+<h3 id="comunicação-com-servidor">Comunicação com servidor</h3>
+
+<p>As APIs para comunicação Ajax e outras que implementam os vários <a href="https://speakerdeck.com/jcemer/protocolos-de-comunicacao-que-fazem-parte-da-web">protocolos de comunicação que fazem parte da Web</a> são assíncronas.  Web Sockets e Server Sent Events criam conexões permanentes com o servidor no navegador, retornando dados ao longo do tempo para nosso código.</p>
+
+<h3 id="eventos-do-dom">Eventos do DOM</h3>
+
+<p>Através dos eventos do DOM é possível perceber interações do usuário e monitorar mudanças de estado do documento. Como o usuário pode reagir a qualquer instante, o tratamento obrigatoriamente precisa se dar de forma assíncrona. Não é viável bloquear o fluxo de execução principal a espera de um clique.</p>
+
+<h3 id="mensagens">Mensagens</h3>
+
+<p>A função <code>window.postMessage</code> e o tratador de evento de recebimento de mensagem, permitem, respectivamente, enviar e receber mensagens de forma assíncrona entre diferentes páginas (ou <em>iframes</em>) abertas no navegador.</p>
+
+<h3 id="mutation-observers">Mutation Observers</h3>
+
+<p>Os Mutation Observers permitem assistir a mudanças no documento. Através destes, é possível ser avisado a cada alteração de atributo, criação, remoção ou alteração de elementos da página. Seu comportamento e justificativa de existência é a mesma dos eventos do DOM.</p>
+
+<h2 id="callbacks-e-closures">Callbacks e closures</h2>
+
+<p>As chamadas de função que executam em um fluxo assíncrono fazem uso de <em>callbacks</em>. <em>Callbacks</em> são porções de código que serão executados no futuro, em um tempo conveniente.</p>
+
+<p>O JavaScript interage com os fluxos assíncronos através de troca de mensagens. Sempre que uma tarefa assíncrona entra em ação, a <em>callback</em> é registrada e fica a espera de uma mensagem para ser executada. <strong>Existe então um loop de eventos que aguarda por mensagens</strong> emitidas por <em>timers</em>, requisições, eventos do DOM e outras chamadas assíncronas.</p>
+
+<p>As mensagens, quando recebidas, são mantidas em uma fila e disparam a execução da <em>callback</em>, uma por vez. É importante notar que duas <em>callbacks</em> não são disparadas no mesmo instante. Existe um único fluxo de execução JavaScript nos navegadores e as <em>callbacks</em> são executadas nele também.</p>
+
+<blockquote>
+<p>Tudo é executado em paralelo, exceto o seu código &#8211; Mikito Takada</p>
+</blockquote>
+
+<p>As <em>callbacks</em> <strong>possuem acesso às variáveis do escopo em que foram definidas</strong>, por isto são chamadas <em>closures</em>. Apesar disto, <em>callbacks</em> não são executadas no mesmo escopo em que definidas.</p>
+
+<h2 id="quebrando-o-fluxo-de-execução">Quebrando o fluxo de execução</h2>
+
+<p>Quando escrevemos código para adicionar interatividade a uma página, existem algumas situações que pode ser interessante que o fluxo de execução não seja contínuo. Como vimos anteriormente, a execução de nosso código é compartilhada com o <em>rendering</em> da página. Qualquer execução que tome um pouco mais de tempo, irá bloquear a interface e transmitir uma impressão de lentidão para o usuário.</p>
+
+<p>Um artifício que pode ser usado para permitir que o <em>rendering</em> não seja prejudicado é quebrar a execução de uma tarefa em fatias. Para isto, será preciso dividir a tarefa em <em>callbacks</em> e fazer uso de recursos que criem fluxos assíncronos. A mais simples das funções que conhecemos já pode ajudar: <code>setTimeout(callback, 0)</code>.</p>
+
+<p>A cada chamada de <code>setTimeout</code> um fluxo assíncrono será criado para gerenciar um temporizador. Assim que as demais instruções forem executadas, o fluxo principal será interrompido. O navegador poderá então utilizar seus recursos para fazer tarefas relacionadas ao <em>rendering</em>, garantindo assim uma interface fluída para o usuário. Quando tais tarefas terminarem, o temporizador de zero segundos já deverá ter disparado uma mensagem a ser atendida pelo <em>loop</em> de eventos do JavaScript. A <em>callback</em> será disparada.</p>
+
+<p>Usar <code>setTimout</code>, apesar de ser um truque baixo, irá funcionar bem para tarefas simples. Porém, existe uma limitação em sua especificação. Sempre que <em>callbacks</em> disparadas por um temporizador criarem outro temporizador, este terá tempo mínimo de 4 milissegundos. Existe uma <a href="https://github.com/YuzuJS/setImmediate">especificação em andamento para definir a função <code>setImmediate</code></a>. E para jogos e animações, melhor mesmo é usar a <a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame">função <code>requestAnimationFrame</code></a> que cria um novo fluxo de execução logo após o <em>rendering</em>.</p>
+
+<h2 id="problemas-das-callbacks">Problemas das callbacks</h2>
+
+<p>O único mecanismo que o JavaScript oferece para gerenciar fluxos de execução assíncronos são as <em>callbacks</em>. É provável que no futuro tenhamos os <a href="http://www.2ality.com/2015/03/no-promises.html">Generators</a> e <a href="http://jakearchibald.com/2014/es7-async-functions/">Async Functions</a>. Mas por enquanto todas as APIs recebem apenas <em>callbacks</em>.</p>
+
+<p>O problema é que alguns códigos que utilizam <em>callbacks</em> são frequentemente mal compreendidos. O código abaixo, apesar de parecer, não irá mostrar um contador regressivo para o usuário. Como já mencionado, o que as <em>closures</em> enxergam são variáveis e não valores.</p>
+
+<pre><code>for (var i=0; i&lt;4; i++) {
+    setTimeout(function () {
+        alert(4-i)
+    }, i*100)  
+}
+</code></pre>
+
+<p>A solução para o código acima é utilizar o <code>.bind</code> para armazenar os diferentes valores de <code>i</code>. Uma solução melhor ainda é reescrever este algoritmo seguindo um estilo mais funcional:</p>
+
+<pre><code>Array.apply(null, Array(4)).forEach(function (undef, index) {
+    setTimeout(function () {
+        alert(4-index)
+    }, index*100)  
+})
+</code></pre>
+
+<p>Outra confusão comum envolve excessões. Observe o código a seguir e tente prever seu comportamento:</p>
+
+<pre><code>try {
+    setTimeout(function () {
+        throw &quot;Exception&quot;
+    }, 100)
+}
+catch (e) {}
+</code></pre>
+
+<p>A exceção emitida pela <em>callback</em> não será coletada e explodirá direto para o usuário. A <em>callback</em>, quando executada, não estará mais sendo assistida pelo bloco de tratamento de exceção. Um novo bloco de tratamento deve ser criado no interior da função.</p>
+
+<p>O valor que o <code>this</code> irá representar no interior da <em>callback</em> algumas vezes gera dúvidas. Esqueça! Geralmente é uma má ideia utilizar o <code>this</code> nestes casos. Se for preciso, é bom recorrer ao <code>.bind</code> da <em>callback</em> com o valor que se espera que o <code>this</code> represente. Logo será possível utilizar também <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions">Arrow Functions</a> para contornar este problema.</p>
+
+<p>Por fim, há desenvolvedores que argumentam contra <em>callbacks</em> pelo uso destas resultar em um código confuso e com alto acoplamento. O site <a href="http://callbackhell.com">Callback Hell</a> ensina de forma prática como evitar o temido <em>callback hell</em> (sic).</p>
+
+<p>Apesar de todos estes problemas e confusões, as <em>callbacks</em> são simples e poderosas.</p>
+
+<p style="text-align: center;">
+  ***
+</p>
+
+<p>Espero que tenha aproveitado a leitura. <span style="text-decoration: line-through;">No próximo artigo da série, veremos algumas limitações reais das <em>callbacks</em>. Seremos apresentados às <em>promises</em>, que irão garantir uma escrita de código melhor em determinadas circunstâncias. Até lá.</span> <a href="http://tableless.com.br/fluxo-de-execucao-assincrono-em-javascript-promises/">O próximo artigo da série que fala sobre _promises _já saiu</a>.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

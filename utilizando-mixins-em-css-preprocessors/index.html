@@ -1,0 +1,267 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/utilizando-mixins-em-css-preprocessors/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/utilizando-mixins-em-css-preprocessors/">Utilizando Mixins em pré-processadores CSS</a></h1>
+  <p class="tb-hero-p">
+    
+    Entendendo o básico de mixins do SASS.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/jo%C3%A3o-felix">João Felix</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      <p>Recentemente respondi à uma enquete (não me perguntem aonde, eu esqueci! :-() onde era perguntado sobre como lidávamos com prefixos proprietários em nossos códigos CSS. Até aquele momento apenas cerca de 9% dos participantes usavam Pré-processadores e cerca de 26% escreviam os <a href="http://tableless.com.br/prefixos-dos-browsers-a-web-precisa-de-voce/" title="Prefixos dos browsers: A web precisa de você">prefixos do browsers</a> “na unha”.</p>
+
+<p>Pré-processadores de CSS ainda não são um comum para algumas pessoas, mas eu, particularmente, defendo o uso devido à organização e redução de trabalho na escrita de folhas de estilo, proporcionado entre outros, pelo encadeamento e os “mixins”, algo como “associação interna”, que funcionam melhores que muitos analgésicos para dores de cabeça causadas pelo retrabalho.</p>
+
+<p>Considero o dilema dos prefixos proprietários como o maior motivo para utilizarmos mixins, já que eles estão em processo de adaptação, sofrem recorrentes mudanças e em um curto prazo (<span style="text-decoration: line-through">com um pouco de fé</span>) serão removidos para dar lugar à normalização (se quiser entender mais, recomendo o artigo <a title="Prefixos dos browsers: A web precisa de você" href="http://tableless.com.br/prefixos-dos-browsers-a-web-precisa-de-voce/" target="_blank">&#8220;Prefixos dos browsers: A web precisa de você&#8221;</a>). Para você que só acredita vendo, prefixos proprietários são mais ou menos assim:</p>
+
+<pre class="lang-css">.elemento1 {
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  border-radius: 10px;
+}
+.elemento2 {
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  -ms-border-radius: 12px;
+  -o-border-radius: 12px;
+  border-radius: 12px;
+}
+</pre>
+
+<p>A grande dificuldade surge na manutenção de extensos arquivos CSS, com inúmeras referências à estes prefixos e que precisam ser alterados. No caso de um CSS puro, a melhor alternativa é abrir um editor de texto e procurar todas as ocorrências para altera-las uma a uma, agora, considerando a utilização de pré-processadores, como o <a title="LESS CSS" href="http://lesscss.org/" target="_blank">LESS</a> e o <a title="SASS LANG" href="http://sass-lang.com/" target="_blank">SASS</a> (de certa forma maduros), o uso de mixins pode ser adotado para concentrar a necessidade de mudança em apenas um trecho do código.</p>
+
+<p><span style="line-height: 1.5em">Exemplo LESS:</span></p>
+
+<pre class="lang-css">.border-radius (@radius) {
+  -webkit-border-radius: @radius;
+  -moz-border-radius: @radius;
+  -ms-border-radius: @radius;
+  -o-border-radius: @radius;
+  border-radius: @radius;
+}
+.elemento1 {
+ .border-radius(10px);
+}
+.elemento2 {
+ .border-radius(12px);
+}</pre>
+
+<p>Exemplo SASS:</p>
+
+<pre class="lang-css">@mixin border-radius ($radius) {
+  -webkit-border-radius: $radius;
+  -moz-border-radius: $radius;
+  -ms-border-radius: $radius;
+  -o-border-radius: $radius;
+  border-radius: $radius;
+}
+.elemento1 {
+ @include border-radius(10px);
+}
+.elemento2 {
+ @include border-radius(12px);
+}
+</pre>
+
+<p>Este é um exemplo simples de mixins, em uma utilização mais aprofundada é possível trabalhar mais variáveis, valores padrões e até mesmo sobrecarga.</p>
+
+<p>Deixando de lado o padrão de escrita de cada pré-processador, ambos resultam no seguinte código CSS:</p>
+
+<pre class="lang-css">.elemento1 {
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  border-radius: 10px;
+}
+.elemento2 {
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  -ms-border-radius: 12px;
+  -o-border-radius: 12px;
+  border-radius: 12px;
+}
+</pre>
+
+<p>Os mixins podem ser reutilizados e reescritos, deixando um código organizado e de fácil manutenção, no entanto, eu não seria imprudente a ponto de recomendar a utilização de pré-processadores aos sete ventos. É extremamente necessário uma avaliação do projeto e suas reais necessidades da utilização de uma ferramenta dessas, que, dependendo das proporções e finalidades do CSS, acabam apenas por aumentar a complexidade do desenvolvimento.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

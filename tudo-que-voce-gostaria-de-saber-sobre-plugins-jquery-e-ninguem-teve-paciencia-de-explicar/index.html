@@ -1,0 +1,360 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/tudo-que-voce-gostaria-de-saber-sobre-plugins-jquery-e-ninguem-teve-paciencia-de-explicar/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/tudo-que-voce-gostaria-de-saber-sobre-plugins-jquery-e-ninguem-teve-paciencia-de-explicar/">Tudo que você gostaria de saber sobre plugins jQuery e ninguém teve paciência de explicar</a></h1>
+  <p class="tb-hero-p">
+    
+    Pra você que cansou de ser um mero manipulador de plugins alheios
+    
+  </p>
+      <span class="tb-author">por <a href="/author/zeno-rocha">Zeno Rocha</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Então quer dizer que você anda brincando com jQuery. Volta e meia utiliza uns plugins que mais parecem mágica e se duvidar até se aventurou em criar o seu próprio, acertei?</p>
+
+<p>Acontece que, caso você já saiba desenvolver os seus, talvez possam existir melhores formas de escrevê-lo. Será que você está seguindo as melhores práticas? Será que realmente entende o que está acontecendo por trás de cada linha?</p>
+
+<p>Hoje vou tentar responder as dúvidas mais frequentes, explorando as melhores práticas para se construir um plugin. E no fim lhe mostrar um padrão interessante que você pode seguir agora que já entendeu os conceitos.</p>
+
+<p>A ideia aqui não é simplesmente mostrar como criar um plugin, mas sim como criar direito, explorando tudo o que o jQuery tem de melhor para nos oferecer.</p>
+
+<h2 id="por-que-eu-deveria-construir-um-plugin">Por que eu deveria construir um plugin?</h2>
+
+<p>Encapsulamento e reaproveitamento de código, essas são as palavras-chave. Se você está codificando algo que talvez sirva para futuros projetos, pode ser uma boa encapsular tudo isso em um plugin.</p>
+
+<h2 id="entendi-quero-criar-um-como-faz">Entendi, quero criar um! Como faz?</h2>
+
+<p>Existem diversas formas, mas vamos começar com essa:</p>
+
+<pre class="lang-javascript">$.fn.meuPlugin = function() {
+    // aqui vem a lógica
+};</pre>
+
+<p>Esse é o mínimo que você precisa para iniciar o desenvolvimento de um plugin, basta adicionar uma propriedade ao <strong>$.fn</strong>.</p>
+
+<p>Por mais trivial que isso possa parecer, muita gente não entende o que está acontecendo por trás disso exatamente. Portanto, antes de evoluirmos esse padrão, vamos recorrer ao <a href="http://code.jquery.com/jquery-1.7.1.js">código fonte da biblioteca</a>, na sua versão mais recente, para entender de verdade esse pequeno trecho de código.</p>
+
+<h2 id="o-que-significa-o-cifrão">O que significa o cifrão ($) ?</h2>
+
+<p>O famoso <strong>$</strong> nada mais é do que um “apelido” para o objeto <strong>jQuery</strong>. Próximo ao fim do <a href="http://code.jquery.com/jquery-1.7.1.js">código fonte da biblioteca</a> encontramos a seguinte definição:</p>
+
+<pre class="lang-javascript">window.jQuery = window.$ = jQuery;</pre>
+
+<p>Isso significa que o mesmo objeto em memória pode ser referenciado de diversas formas: <strong>window.jQuery</strong>, <strong>window.$</strong>, <strong>jQuery</strong> ou simplesmente <strong>$</strong>.</p>
+
+<h2 id="qual-a-diferença-entre-meuplugin-e-fn-meuplugin">Qual a diferença entre $.meuPlugin e $.fn.meuPlugin?</h2>
+
+<p>Possivelmente você já se deparou com plugins que não utilizavam a propriedade <strong>.fn</strong>. Mas afinal, por que eu deveria utilizar o <strong>.fn</strong>? Por que não apenas <strong>$.meuPlugin</strong> ao invés de <strong>$.fn.meuPlugin</strong>?</p>
+
+<p>Novamente, ao nos aventurarmos no <a href="http://code.jquery.com/jquery-1.7.1.js">código fonte</a> percebemos, logo nas primeiras linhas, como o objeto <strong>jQuery</strong> é definido.</p>
+
+<pre class="lang-javascript">var jQuery = function( selector, context ) {
+    return new jQuery.fn.init( selector, context, rootjQuery );
+}</pre>
+
+<p>Note que <strong>jQuery</strong> é uma função e no Javascript uma função é também um objeto do tipo <strong>Function</strong>. Por isso <strong>jQuery.meuPlugin</strong> (ou <strong>$.meuPlugin</strong>) irá atribuir <strong>meuPlugin</strong> para o objeto jQuery do tipo <strong>Function</strong>.</p>
+
+<p>Dito isso, voltamos ao <a href="http://code.jquery.com/jquery-latest.js">código fonte</a> e veremos que <strong>jQuery.fn</strong> é a mesma coisa que dizer <strong>jQuery.prototype</strong>.</p>
+
+<pre class="lang-javascript">jQuery.fn = jQuery.prototype;</pre>
+
+<p>Portanto, a cada vez que você atribuir uma função (ou propriedade) para <strong>jQuery.fn</strong>, como em <strong>$.fn.meuPlugin</strong>, a função estará disponível para todas as instâncias desse objeto.</p>
+
+<p>Isso é importante, pois quando você invoca a função <strong>$()</strong>, como em <strong>$(&#8220;#algumID&#8221;)</strong>, uma nova instância é criada nessa linha:</p>
+
+<pre class="lang-javascript">return new jQuery.fn.init( selector, context );</pre>
+
+<p>E essa instância terá todos os métodos que atribuirmos ao <strong>prototype</strong>, mas não todos os métodos que foram atribuídos direto ao objeto <strong>Function</strong>.</p>
+
+<p>Logo, vá de <strong>.fn</strong>.</p>
+
+<h2 id="evite-conflitos">Evite conflitos</h2>
+
+<p>Sabia que existem outras bibliotecas Javascript que também utilizam o símbolo cifrão para referenciar seus objetos? Pois é, isso pode lhe causar uma baita dor de cabeça se utilizar apenas aquele primeiro padrão proposto.</p>
+
+<p>Logo, uma boa prática seria encapsular a lógica do plugin em uma função anônima. Assim, garantimos que não irá haver conflito entre o <strong>$</strong> do jQuery com o <strong>$</strong> de outras bibliotecas.</p>
+
+<pre class="lang-javascript">(function( $ ){
+    $.fn.meuPlugin = function() {
+        // aqui vem a lógica
+    }; 
+})( jQuery );</pre>
+
+<p>Dessa forma mapeamos o <strong>$</strong> para que não seja afetado por nada fora desse escopo.</p>
+
+<h2 id="não-quebre-a-corrente">Não quebre a corrente</h2>
+
+<p>Então, você já entendeu como funcionam algumas coisas, vamos criar nosso primeiro plugin! Começaremos com o clássico exemplo de um Tooltip (aquelas caixinhas que aparecem no mouseover).</p>
+
+<p>Criamos então a chamada para o plugin a partir de determinado seletor:</p>
+
+<pre class="lang-javascript">$(function() {
+    $(".BlaBlaBla").tooltip();
+});</pre>
+
+<p>E código do nosso plugin ficará definido assim:</p>
+
+<pre class="lang-javascript">(function( $ ){
+    $.fn.tooltip = function() {
+        this.css({ background: 'yellow' });
+    }; 
+})( jQuery );</pre>
+
+<p>Aparentemente tudo certo, já que o plugin funciona direitinho, certo?</p>
+
+<p>Na verdade não, pois dessa forma estamos ferindo um dos princípios importantes que diferem os plugins bons dos ruins, e esse princípio se chama encadeamento.</p>
+
+<p>No jQuery é muito comum vermos declarações do tipo:</p>
+
+<pre class="lang-javascript">$('div').show().addClass('BlaBlaBla').fadeIn();</pre>
+
+<p>Isso, porque é possível encadear diversas chamadas, a um mesmo seletor. E uma excelente prática por sinal, já que não criamos diversas instâncias como em:</p>
+
+<pre class="lang-javascript">$('div').show();
+$('div').addClass('BlaBlaBla');
+$('div').fadeIn();</pre>
+
+<p>Para permitirmos comportamento similar com nosso plugin basta retornar o <strong>this</strong>.</p>
+
+<pre class="lang-javascript">(function( $ ){
+    $.fn.tooltip = function() {
+        return this.each (function() {
+            $(this).css({ background: 'yellow' });
+        });
+    }; 
+})( jQuery );</pre>
+
+<p>Assim, além de garantirmos o encadeamento, também manipulamos a coleção passada para o plugin através do método <strong>each</strong>, muito similar a um loop com <strong>for</strong> por exemplo.</p>
+
+<h2 id="como-passar-parâmetros-e-lidar-com-eles-depois">Como passar parâmetros e lidar com eles depois?</h2>
+
+<p>E que tal se evoluíssemos nosso plugin e resolvessemos passar como parâmetro a cor de fundo do nosso elemento.</p>
+
+<pre class="lang-javascript">$(function() {
+    $(".BlaBlaBla").tooltip({
+      'corDeFundo' : 'blue'
+    });
+}); </pre>
+
+<p>Agora preparamos nosso plugin para receber os parâmetros através da variável <strong>options</strong> e aplicamos a propriedade <strong>corDeFundo</strong> no <strong>background</strong>.</p>
+
+<pre class="lang-javascript">(function( $ ){
+    $.fn.tooltip = function(options) {
+        return this.each (function() {
+            $(this).css({ background: options.corDeFundo });
+        });
+    }; 
+})( jQuery );</pre>
+
+<p>Maravilha, funcionou! Mas o que acontece se você resolve mais tarde não passar como parâmetro a cor de fundo? Nosso plugin quebra.</p>
+
+<p>Portanto, não podemos nos esquecer de que precisamos nos preparar para receber esse conjunto de opções e assegurar que, caso não seja passado nenhum valor como parâmetro, nós possamos lidar com valores padrão.</p>
+
+<pre class="lang-javascript">(function( $ ){
+    $.fn.tooltip = function(options) {
+
+        var defaults = {
+          'corDeFundo' : 'yellow'
+        };
+
+        var settings = $.extend( {}, defaults, options );
+
+        return this.each(function() {
+            $(this).css({ background: settings.corDeFundo });
+        });
+
+    }; 
+})( jQuery );</pre>
+
+<p>Para isso recorremos a função <a href="http://api.jquery.com/jQuery.extend/">$.extend</a> que irá buscar os valores passados pela variável <strong>options</strong> e mesclar com os valores definidos na variável <strong>defaults</strong>, armazenando em outra variável chamada <strong>settings</strong>.</p>
+
+<h2 id="a-procura-da-batida-perfeita">A procura da batida perfeita</h2>
+
+<p>Esse é só o começo para você que deseja se aprofundar um pouquinho mais nessa arte de criar plugins, para entender mais visite o <a href="http://docs.jquery.com/Plugins/Authoring">guia oficial</a>.</p>
+
+<p>Mesmo que a ideia de se formar um padrão único para criar plugins seja utópico, sugiro fortemente que dê uma olhadinha no <a href="http://jqueryboilerplate.com/">jQuery Boilerplate</a>, lá você vai encontrar um padrão bem sólido para iniciar seus projetos, sem contar que a versão traduzida para português foi lançada hoje!</p>
+
+<p>Mas se o buraco for mais em baixo e você for lidar com plugins <a href="http://en.wikipedia.org/wiki/State_(computer_science">stateful</a> que controlam o estado dos objetos, confira o <a href="http://wiki.jqueryui.com/w/page/12138135/Widget%20factory">jQuery UI Widget Factory</a>.</p>
+
+<p>Lembre-se que o jQuery não é apenas uma caixa preta que faz mágicas pra você. Aventure-se no código fonte e verá que não é nada muito diferente do que você já faz com JavaScript puro.</p>
+
+<p>E é isso, espero que depois desse artigo, você tenha evoluido de um simples “manipulador de plugins” para um criador de fato. Até a próxima!</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

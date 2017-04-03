@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Babel on Tableless</title>
+    <link>http://tableless.com.br/tags/babel/index.xml</link>
+    <description>Recent content in Babel on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/babel/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Entendendo o async e o await em JavaScript</title>
+      <link>http://tableless.com.br/entendendo-o-async-e-o-await-em-javascript/</link>
+      <pubDate>Tue, 12 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/entendendo-o-async-e-o-await-em-javascript/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;As funcionalidades &lt;code&gt;async&lt;/code&gt; / &lt;code&gt;await&lt;/code&gt; não conseguiram chegar para o ES6, mas isso não significa que elas não irão chegar ao JavaScript. Enquanto escrevo esse post, ela é uma proposta na &lt;a href=&#34;https://github.com/tc39/ecma262/tree/82bebe057c9fca355cfbfeb36be8e42f18c61e94&#34; target=&#34;_blank&#34;&gt;fase 3&lt;/a&gt; e está sendo trabalhada ativamente. As funcionalidades já estão no &lt;a href=&#34;https://blogs.windows.com/msedgedev/2015/09/30/asynchronous-code-gets-easier-with-es2016-async-function-support-in-chakra-and-microsoft-edge/&#34; target=&#34;_blank&#34;&gt;Edge&lt;/a&gt; e devem chegar a outros browsers assim que chegar na &lt;a href=&#34;https://twitter.com/bterlson/status/692464374842290176&#34; target=&#34;_blank&#34;&gt;fase 4&lt;/a&gt; &amp;#8211; pavimentando seu caminho para inclusão na próxima edição da linguagem (veja também: &lt;a href=&#34;https://tc39.github.io/process-document/&#34; target=&#34;_blank&#34;&gt;Processo TC39&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h2 id=&#34;utilizando-promises&#34;&gt;Utilizando Promises&lt;/h2&gt;
+
+&lt;p&gt;Vamos supor que tenhamos o código abaixo. Aqui eu estou encapsulando uma chamada &lt;code&gt;HTTP&lt;/code&gt; em uma &lt;code&gt;Promise&lt;/code&gt;. A promise executa o &lt;code&gt;body&lt;/code&gt; caso haja sucesso e é rejeitada com um &lt;code&gt;err&lt;/code&gt; caso contrário. Ela puxa o HTML de um artigo aleatório &lt;a href=&#34;https://ponyfoo.com/&#34; target=&#34;_blank&#34;&gt;desse blog&lt;/a&gt; toda vez que é executada.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var request = require(&#39;request&#39;);
+
+function getRandomPonyFooArticle () {
+  return new Promise((resolve, reject) =&amp;gt; {
+    request(&#39;https://ponyfoo.com/articles/random&#39;, (err, res, body) =&amp;gt; {
+      if (err) {
+        reject(err); return;
+      }
+      resolve(body);
+    });
+  });
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Uma utilização típica da promise mostrada anteriormente está no código abaixo. Nele nós construímos um encadeamento de promises transformando o HTML da página em Markdown de um subconjunto de seu DOM e então imprimimos de forma amigável no terminal utilizando um &lt;code&gt;console.log&lt;/code&gt;. Sempre lembre de adicionar um &lt;code&gt;.catch&lt;/code&gt; para suas promises.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var hget = require(&#39;hget&#39;);
+var marked = require(&#39;marked&#39;);
+var Term = require(&#39;marked-terminal&#39;);
+
+printRandomArticle();
+
+function printRandomArticle () {
+  getRandomPonyFooArticle()
+    .then(html =&amp;gt; hget(html, {
+      markdown: true,
+      root: &#39;main&#39;,
+      ignore: &#39;.at-subscribe,.mm-comments,.de-sidebar&#39;
+    }))
+    .then(md =&amp;gt; marked(md, {
+      renderer: new Term()
+    }))
+    .then(txt =&amp;gt; console.log(txt))
+    .catch(reason =&amp;gt; console.error(reason));
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Esse código foi “melhor que utilizar callbacks” quando se trata da sensação de como foi ler o código sequencialmente.&lt;/p&gt;
+
+&lt;h2 id=&#34;usando-generators&#34;&gt;Usando generators&lt;/h2&gt;
+
+&lt;p&gt;Nós já exploramos os generators como uma forma de deixar o html disponível de uma maneira sintética e síncrona &lt;a href=&#34;https://ponyfoo.com/articles/es6-generators-in-depth&#34; target=&#34;_blank&#34;&gt;no passado&lt;/a&gt;. Mesmo que o código agora seja um pouco síncrono, existe um pouco de encapsulamento envolvido, e generators podem não ser a melhor maneira de chegar aos resultados que queremos, então vamos continuar utilizando Promises.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function getRandomPonyFooArticle (gen) {
+  var g = gen();
+  request(&#39;https://ponyfoo.com/articles/random&#39;, (err, res, body) =&amp;gt; {
+    if (err) {
+      g.throw(err); return;
+    }
+    g.next(body);
+  });
+}
+
+getRandomPonyFooArticle(function* printRandomArticle () {
+  var html = yield;
+  var md = hget(html, {
+    markdown: true,
+    root: &#39;main&#39;,
+    ignore: &#39;.at-subscribe,.mm-comments,.de-sidebar&#39;
+  });
+  var txt = marked(md, {
+    renderer: new Term()
+  });
+  console.log(txt);
+});
+&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Lembre-se que você deve encapsular a chamada ao yield em um bloco try / catch para preservar o tratamento de erros que adicionamos quando usamos promises.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Nem precisamos falar que usar generators dessa maneira não permite que escalemos bem nossas aplicações. Além de envolver uma sintaxe não intuitiva nessa mistura, seu código iterador será altamente acoplado ao generator que está sendo consumido. Isso faz com que você terá de modificar ele toda vez que uma nova expressão de &lt;code&gt;await&lt;/code&gt; for inserida no generator. A melhor alternativa é utilizar uma nova funcionalidade que está chegando: &lt;strong&gt;Funções Assíncronas&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;utilizando-async-await&#34;&gt;Utilizando &lt;code&gt;async&lt;/code&gt; / &lt;code&gt;await&lt;/code&gt;&lt;/h2&gt;
+
+&lt;p&gt;Quando as &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; finalmente chegarem, seremos capazes de pegar nossa implementação baseada em promises e tirar a vantagem do estilo de &lt;strong&gt;“aparência síncrona”&lt;/strong&gt; dos generators. Outro benefício dessa abordagem é que não teremos que alterar o &lt;code&gt;getRandomPonyFooArticle&lt;/code&gt;, enquanto ele retornar uma promise ele poderá ser aguardado.&lt;/p&gt;
+
+&lt;p&gt;Perceba que o &lt;code&gt;await&lt;/code&gt; só poderá ser utilizado em funções marcadas com a palavra chave &lt;code&gt;async&lt;/code&gt;. Ele funciona similarmente aos generators, suspendendo a execução em seu contexto até que a promise seja entregue. Se a expressão esperada não for uma promise, ela é transformada em uma promise.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;read();
+
+async function read () {
+  var html = await getRandomPonyFooArticle();
+  var md = hget(html, {
+    markdown: true,
+    root: &#39;main&#39;,
+    ignore: &#39;.at-subscribe,.mm-comments,.de-sidebar&#39;
+  });
+  var txt = marked(md, {
+    renderer: new Term()
+  });
+  console.log(txt);
+}
+&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Novamente &amp;#8211; assim como os generators &amp;#8211; lembre-se que você deverá encapsular o await em um bloco try / catch para que possamos capturar e tratar erros esperados das promises das funções assíncronas.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Além disso, uma &lt;strong&gt;Função Assíncrona&lt;/strong&gt; sempre irá retornar uma &lt;code&gt;Promise&lt;/code&gt;. Essa promise é rejeitada em caso de exceções não tratadas ou é resolvida e enviada como retorno da função assíncrona caso contrário. Isso nos permite invocar uma Função assíncrona e misturar isso com uma continuação baseada em promises normalmente. O exemplo a seguir mostra como as duas maneiras podem ser combinadas.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;async function asyncFun () {
+  var value = await Promise
+    .resolve(1)
+    .then(x =&amp;gt; x * 3)
+    .then(x =&amp;gt; x + 5)
+    .then(x =&amp;gt; x / 2);
+  return value;
+}
+asyncFun().then(x =&amp;gt; console.log(`x: ${x}`));
+// &amp;lt;- &amp;#039;x: 4&amp;#039;
+&lt;/pre&gt;
+
+&lt;p&gt;Voltando ao nosso exemplo anterior, ele mostra que podemos usar o &lt;code&gt;return txt&lt;/code&gt; da nossa função &lt;code&gt;async read&lt;/code&gt; e permitir que os “consumidores” possam dar continuidade utilizando promises ou até mesmo uma outra &lt;strong&gt;Função Assíncrona&lt;/strong&gt;. Dessa maneira, nossa função read deve se preocupar apenas com imprimir um markdown de forma legível no terminal de um artigo aleatório do Pony Foo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;async function read () {
+  var html = await getRandomPonyFooArticle();
+  var md = hget(html, {
+    markdown: true,
+    root: &#39;main&#39;,
+    ignore: &#39;.at-subscribe,.mm-comments,.de-sidebar&#39;
+  });
+  var txt = marked(md, {
+    renderer: new Term()
+  });
+  return txt;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Então você poderá adicionar mais tarde um &lt;code&gt;await read()&lt;/code&gt; em outra &lt;strong&gt;Função Assíncrona&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;async function write () {
+  var txt = await read();
+  console.log(txt);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ou poderá simplesmente utilizar promises para dar continuação.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;read().then(txt =&amp;gt; console.log(txt));
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;bifurcação-no-caminho&#34;&gt;Bifurcação no caminho&lt;/h2&gt;
+
+&lt;p&gt;No fluxo assíncrono de código é comum executar duas ou mais tarefas concorrentemente. Enquanto as &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; facilitam a escrita de código assíncrono, elas também transformam elas mesmas em um código que é serial, ou seja, código que executa uma operação por vez. Uma função com múltiplos &lt;code&gt;await&lt;/code&gt; irá ser suspensa uma vez em cada &lt;code&gt;await&lt;/code&gt; até que a &lt;code&gt;Promise&lt;/code&gt; chegue (antes de retomar a execução e mover para o próximo &lt;code&gt;await&lt;/code&gt;, não diferente de como podemos ver com os generators e o &lt;code&gt;yield&lt;/code&gt;).&lt;/p&gt;
+
+&lt;p&gt;Para contornar isso você pode usar o &lt;code&gt;Promise.all&lt;/code&gt; para criar uma única promise que você irá dar o &lt;code&gt;await&lt;/code&gt; nela. O único problema é pegar o hábito de utilizar o &lt;code&gt;Promise.all&lt;/code&gt; ao invés de deixar tudo ocorrer em série, como também pode diminuir a performance do seu código.&lt;/p&gt;
+
+&lt;p&gt;O exemplo a seguir mostra como você pode utilizar o &lt;code&gt;await&lt;/code&gt; em três diferentes promises que poderiam ser executadas concorrentemente. Dado que o &lt;code&gt;await&lt;/code&gt; suspende a sua &lt;strong&gt;Função Assíncrona&lt;/strong&gt; e que o &lt;code&gt;await Promise.all&lt;/code&gt; resulta em um &lt;strong&gt;array de results&lt;/strong&gt;, nós podemos desestruturar para puxar resultados individualmente do array.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;async function concurrent () {
+  var [r1, r2, r3] = await Promise.all([p1, p2, p3]);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Até um tempo atrás havia uma alternativa para o código acima: &lt;code&gt;await*&lt;/code&gt;, onde você não precisava encapsular as promises com o &lt;code&gt;Promise.all&lt;/code&gt;. O &lt;strong&gt;Babel 5&lt;/strong&gt; ainda suporta essa sintaxe, mas ela foi tirada da documentação e também do &lt;strong&gt;Babel 6&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;async function concurrent () {
+  var [r1, r2, r3] = await* [p1, p2, p3];
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Você ainda pode utilizar algo como &lt;code&gt;all = Promise.all.bind(Promise)&lt;/code&gt; para obter uma alternativa ao &lt;code&gt;Promise.all&lt;/code&gt;. Partindo desse ponto, você pode fazer o mesmo para o &lt;code&gt;Promise.race&lt;/code&gt;, que não tinha um equivalente para &lt;code&gt;await*&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const all = Promise.all.bind(Promise);
+async function concurrent () {
+  var [r1, r2, r3] = await all([p1, p2, p3]);
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tratamento-de-erros&#34;&gt;Tratamento de Erros&lt;/h2&gt;
+
+&lt;p&gt;Note que &lt;strong&gt;erros são engolidos “silenciosamente” nas Funções Assíncronas&lt;/strong&gt; &amp;#8211; assim como em &lt;code&gt;Promises&lt;/code&gt; normais. A menos que você adicione blocos &lt;code&gt;try&lt;/code&gt; / &lt;code&gt;catch&lt;/code&gt; ao redor de chamadas &lt;code&gt;await&lt;/code&gt;, exceções não capturadas &amp;#8211; independentemente se ocorreram no corpo da sua &lt;strong&gt;Função Assíncrona&lt;/strong&gt; ou enquanto estava suspensa durante o &lt;code&gt;await&lt;/code&gt; &amp;#8211; irão rejeitar a &lt;code&gt;Promise&lt;/code&gt; retornada pela &lt;strong&gt;Função Assíncrona&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Naturalmente isso pode ser visto como um ponto forte: você tem a capacidade de tirar proveito das convenções do uso do &lt;code&gt;try&lt;/code&gt; / &lt;code&gt;catch&lt;/code&gt;, algo que você era incapaz de realizar com o uso de &lt;code&gt;callbacks&lt;/code&gt; &amp;#8211; e de alguma forma utilizar com &lt;code&gt;Promises&lt;/code&gt;. Nesse sentido, &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; são semelhantes aos generators, onde você também tinha a capacidade de tirar proveito do uso do &lt;code&gt;try&lt;/code&gt; / &lt;code&gt;catch&lt;/code&gt; graças à suspensão da execução da função tornando um fluxo assíncrono em um código síncrono.&lt;/p&gt;
+
+&lt;p&gt;Além disso, você também é capaz de capturar exceções de fora da &lt;strong&gt;Função Assíncrona&lt;/strong&gt;, simplesmente adicionando uma cláusula &lt;code&gt;.catch&lt;/code&gt; à &lt;code&gt;Promise&lt;/code&gt; que eles retornam. Enquanto isso é uma forma flexível de combinar o tratamento de erros utilizando &lt;code&gt;try&lt;/code&gt; / &lt;code&gt;catch&lt;/code&gt; com cláusulas &lt;code&gt;.catch&lt;/code&gt; nas &lt;code&gt;Promises&lt;/code&gt;, também pode levar a uma grande confusão e deixar com que erros fiquem sem tratamento.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;read()
+  .then(txt =&amp;gt; console.log(txt))
+  .catch(reason =&amp;gt; console.error(reason));
+&lt;/pre&gt;
+
+&lt;p&gt;Nós devemos ter cuidado e educarmos a nós mesmos sobre as diferentes formas em que podemos encontrar, tratar, registrar e prevenir as exceções.&lt;/p&gt;
+
+&lt;h2 id=&#34;utilizando-async-await-hoje&#34;&gt;Utilizando &lt;code&gt;async&lt;/code&gt; / &lt;code&gt;await&lt;/code&gt; hoje&lt;/h2&gt;
+
+&lt;p&gt;Uma das formas de se utilizar &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; em seu código hoje é através do &lt;strong&gt;Babel&lt;/strong&gt;. Isso envolve uma série de módulos, mas você pode sempre criar um módulo que encapsula todos esses outros em um se você preferir. Eu incluí um &lt;code&gt;npm-run&lt;/code&gt; como uma maneira útil de se manter tudo em pacotes instalados localmente.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;npm i -g npm-run
+npm i -D \
+  browserify \
+  babelify \
+  babel-preset-es2015 \
+  babel-preset-stage-3 \
+  babel-runtime \
+  babel-plugin-transform-runtime
+
+echo &#39;{
+  &#34;presets&#34;: [&#34;es2015&#34;, &#34;stage-3&#34;],
+  &#34;plugins&#34;: [&#34;transform-runtime&#34;]
+}&#39; &amp;gt; .babelrc
+&lt;/pre&gt;
+
+&lt;p&gt;O exemplo a seguir irá compilar o arquivo &lt;code&gt;example.js&lt;/code&gt; utilizando o &lt;strong&gt;browserify&lt;/strong&gt; enquanto utiliza o &lt;strong&gt;babelify&lt;/strong&gt; para habilitar o suporte às &lt;strong&gt;Funções Assíncronas&lt;/strong&gt;. Você pode então enviar o script para o &lt;strong&gt;node&lt;/strong&gt; ou &lt;strong&gt;salvar em disco&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;npm-run browserify -t babelify example.js | node
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;leitura-adicional&#34;&gt;Leitura adicional&lt;/h2&gt;
+
+&lt;p&gt;O rascunho das &lt;a href=&#34;https://tc39.github.io/ecmascript-asyncawait/&#34; target=&#34;_blank&#34;&gt;especificações para Funções Assíncronas&lt;/a&gt; é bem curto e deve ser uma leitura interessante se você quer aprender mais sobre essa funcionalidade que está por vir.&lt;/p&gt;
+
+&lt;p&gt;Eu colei um pedaço de código abaixo com a finalidade de ajudar você a entender como &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; funcionam internamente. Mesmo que não possamos criar novas palavras chave, é importante em termos de compreensão saber o que está acontecendo atrás dar curtinas do &lt;code&gt;async&lt;/code&gt; / &lt;code&gt;await&lt;/code&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;É útil saber que &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; internamente se aproveitam dos &lt;strong&gt;generators&lt;/strong&gt; e das &lt;strong&gt;promises&lt;/strong&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;O código a seguir mostra como uma declaração de uma &lt;strong&gt;Função Assíncrona&lt;/strong&gt; pode ser transformada em uma função comum que retorna o resultado alimentando a &lt;code&gt;spawn&lt;/code&gt; com um generator &amp;#8211; onde nós iremos considerar o &lt;code&gt;await&lt;/code&gt; como o equivalente sintático para &lt;code&gt;yield&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;async function example (a, b, c) {
+  example function body
+}
+
+function example (a, b, c) {
+  return spawn(function* () {
+    example function body
+  }, this);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Na &lt;code&gt;spawn&lt;/code&gt;, uma promise é encapsulada em volta do código que irá percorrer o generator &amp;#8211; composta do código do usuário &amp;#8211; em série, repassando valores para o “generator” (corpo da &lt;strong&gt;Função Assíncrona&lt;/strong&gt;). Com isso podemos observar que &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; são um &lt;code&gt;syntactic sugar&lt;/code&gt; que utiliza generators e promises, isso faz com que seja importante você entender como cada uma dessas partes trabalham para que você possa ter um melhor entendimento em como você pode misturar, comparar e combinar diferentes tipos de fluxo de código assíncrono juntos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function spawn (genF, self) {
+  return new Promise(function (resolve, reject) {
+    var gen = genF.call(self);
+    step(() =&amp;gt; gen.next(undefined));
+    function step (nextF) {
+      var next;
+      try {
+        next = nextF();
+      } catch(e) {
+        // finished with failure, reject the promise
+        reject(e);
+        return;
+      }
+      if (next.done) {
+        // finished with success, resolve the promise
+        resolve(next.value);
+        return;
+      }
+      // not finished, chain off the yielded promise and `step` again
+      Promise.resolve(next.value).then(
+        v =&amp;gt; step(() =&amp;gt; gen.next(v)),
+        e =&amp;gt; step(() =&amp;gt; gen.throw(e))
+      );
+    }
+  });
+}
+&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Os pedaços de códigos mostrados devem ajudá-lo a compreender como o algoritmo do &lt;code&gt;async&lt;/code&gt; / &lt;code&gt;await&lt;/code&gt; itera sobre uma sequência de generators (expressões &lt;code&gt;await&lt;/code&gt;), encapsulando cada item na sequência em uma promise e então encadeando com a próxima sequência. Quando a sequência terminar ou uma das promises são rejeitadas ou a promise é retornada para a função que chamou o generator.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Artigo traduzido e adaptado de: &lt;a href=&#34;https://ponyfoo.com/articles/understanding-javascript-async-await&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://ponyfoo.com/articles/understanding-javascript-async-await&#34;&gt;https://ponyfoo.com/articles/understanding-javascript-async-await&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>ES2015 – Babel 6 com Browserify e Babelify</title>
+      <link>http://tableless.com.br/es2015-babel-6-com-browserify-e-babelify/</link>
+      <pubDate>Mon, 23 Nov 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/es2015-babel-6-com-browserify-e-babelify/</guid>
+      <description>
+
+&lt;p&gt;Vivemos um momento de transição no mundo Javascript com a aprovação do ES2015 ou ES6, porém, este novo padrão ainda não é suportado totalmente por todos os navegadores, para administrar este problema foi criado o Babel, um compiler Javascript, que além de suas muitas funções, nesta versão 6, pode transformar ES2015 em ES5.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando&#34;&gt;Instalando&lt;/h2&gt;
+
+&lt;p&gt;Para este tutorial, iremos utilizar o &lt;a href=&#34;https://github.com/babel/babelify&#34; target=&#34;_blank&#34;&gt;Babelify&lt;/a&gt;, um módulo &lt;a href=&#34;https://www.npmjs.com/&#34; target=&#34;_blank&#34;&gt;npm&lt;/a&gt; feito para funcionar juntamente com o &lt;a href=&#34;http://browserify.org/&#34; target=&#34;_blank&#34;&gt;Browserify&lt;/a&gt;, outro módulo que empacota todos os seus requires para serem usados no browser.&lt;/p&gt;
+
+&lt;p&gt;Para instalar ambos, é necessário ter instalado em seu computador o &lt;a href=&#34;https://nodejs.org/&#34; target=&#34;_blank&#34;&gt;Node.js&lt;/a&gt;, que juntamente instala o npm (Node Package Manager) ou Gerenciador de Pacotes Node.&lt;/p&gt;
+
+&lt;p&gt;Navegue via terminal até a raiz do seu projeto e digite o comando abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bsh&#34;&gt;npm install --save-dev browserify babelify babel-preset-es2015
+&lt;/pre&gt;
+
+&lt;p&gt;O comando irá instalar o Browserify, Babelify e o plugin es2015 do Babel, responsável por cuidar da conversão de ES2015 para ES5, além de salvá-los na lista de devDependencies do seu &lt;a href=&#34;https://docs.npmjs.com/files/package.json&#34; target=&#34;_blank&#34;&gt;package.json&lt;/a&gt;. Nesta versão do Babel (6) nenhum plugin é instalado por padrão, por isso precisamos instalar ele à parte, você pode encontrar a lista completa de plugins &lt;a href=&#34;http://babeljs.io/docs/plugins/&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;configurando&#34;&gt;Configurando&lt;/h2&gt;
+
+&lt;h3 id=&#34;script&#34;&gt;Script&lt;/h3&gt;
+
+&lt;p&gt;Para configurarmos via script, abra o seu arquivo &lt;a href=&#34;https://docs.npmjs.com/files/package.json&#34; target=&#34;_blank&#34;&gt;package.json&lt;/a&gt;, crie a sessão &lt;a href=&#34;https://docs.npmjs.com/misc/scripts&#34; target=&#34;_blank&#34;&gt;scripts&lt;/a&gt; e nela vamos adicionar o código que irá transformar seu código ES2015 para ES5:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;&#34;build-browserify&#34;: &#34;browserify ./src/meuarquivo.js -t [ babelify --presets [ es2015 ] ] -o ./dist/meunovoarquivo.js&#34;
+&lt;/pre&gt;
+
+&lt;p&gt;Explicando um pouco mais sobre o código acima:&lt;/p&gt;
+
+&lt;p&gt;./src/meuarquivo.js &amp;#8211; Este é o local do seu arquivo JS escrito nos padrões ES2015.&lt;/p&gt;
+
+&lt;p&gt;-t [ babelify &amp;#8211;presets [ es2015 ] ] &amp;#8211; A option -t se refere à transform, que utiliza de módulos de transformação terceiros, neste caso o &lt;a href=&#34;https://github.com/babel/babelify&#34; target=&#34;_blank&#34;&gt;Babelify&lt;/a&gt;. Passamos o módulo que iremos utilizar e passamos uma option para o módulo (&amp;#8211;presets), nesta option listamos os &lt;a href=&#34;http://babeljs.io/docs/plugins/&#34; target=&#34;_blank&#34;&gt;plugins&lt;/a&gt; que iremos utilizar do Babel, que será o es2015.&lt;/p&gt;
+
+&lt;p&gt;-o ./dist/meunovoarquivo.js &amp;#8211; A option -o se refere à output, aqui passamos o destino do nosso arquivo, que será gerado após a transformação.&lt;/p&gt;
+
+&lt;h3 id=&#34;grunt&#34;&gt;Grunt&lt;/h3&gt;
+
+&lt;p&gt;Podemos utilizar também o &lt;a href=&#34;http://gruntjs.com/&#34; target=&#34;_blank&#34;&gt;Grunt&lt;/a&gt;, um Task Runner de Javascript, para realizarmos a transformação do arquivo. Para isso é necessário instalarmos mais um módulo npm, o &lt;a href=&#34;https://www.npmjs.com/package/grunt-browserify&#34; target=&#34;_blank&#34;&gt;grunt-browserify&lt;/a&gt; (contando que você já tenha instalado em seu projeto os módulos &lt;a href=&#34;https://www.npmjs.com/package/grunt&#34; target=&#34;_blank&#34;&gt;grunt&lt;/a&gt; e &lt;a href=&#34;https://www.npmjs.com/package/grunt-cli&#34; target=&#34;_blank&#34;&gt;grunt-cli&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Novamente na raiz do seu projeto via terminal, digite o comando abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bsh&#34;&gt;npm install --save-dev grunt-browserify
+&lt;/pre&gt;
+
+&lt;p&gt;Após a instalação, vá em seu arquivo &lt;a href=&#34;http://gruntjs.com/sample-gruntfile&#34; target=&#34;_blank&#34;&gt;Gruntfile.js&lt;/a&gt; e adicione no config:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;browserify: {
+    dist: {
+        options: {
+            &#34;transform&#34;: [ [&#34;babelify&#34;, { &#34;presets&#34;: [&#34;es2015&#34;] }] ]
+        },
+        files: {
+            &#39;./dist/meunovoarquivo.js&#39;: [&#39;./src/meuarquivo.js&#39;]
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Depois, carregue o módulo e registre uma task:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;grunt.loadNpmTasks(&#39;grunt-browserify&#39;);
+grunt.registerTask(&#39;default&#39;, [&#39;browserify&#39;]);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Ainda estamos iniciando essa nova fase de ES2015, porém já podemos perceber que o futuro espera muitas novidades e um crescimento maravilhoso do Javascript.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

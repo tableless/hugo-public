@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Igor Santana on Tableless</title>
+    <link>http://tableless.com.br/author/igor-santana/index.xml</link>
+    <description>Recent content in Igor Santana on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/igor-santana/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando aplicações CLI utilizando Node.js</title>
+      <link>http://tableless.com.br/criando-aplicacoes-cli-utilizando-node-js/</link>
+      <pubDate>Tue, 03 May 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-aplicacoes-cli-utilizando-node-js/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;As aplicações que se utilizam da linha de comando do Sistema Operacional são comumente chamadas de &lt;code&gt;CLI Applications&lt;/code&gt; ou &lt;code&gt;Command-Line Interface Applications&lt;/code&gt;.  O que isto quer dizer? Estas aplicações só sofrerão alguma interação caso ela seja feita através de um Shell (BASH, DOS, ZSH, entre outros), mediante entrada de texto.&lt;/p&gt;
+
+&lt;p&gt;Este tipo de aplicação é contrária as &lt;code&gt;GUI Applications&lt;/code&gt; ou &lt;code&gt;Graphical User Interface Applications&lt;/code&gt;, que permitem o usuário interagir com a aplicação através de ícones, disposição dos elementos na tela, utilizando-se do Mouse para isto.&lt;/p&gt;
+
+&lt;h2 id=&#34;por-que-utilizar-cli&#34;&gt;Por que utilizar CLI?&lt;/h2&gt;
+
+&lt;p&gt;Um dos principais motivos é a agilidade com que algumas tarefas podem ser executadas. Por utilizar apenas texto, algumas tarefas triviais são mais simples de serem executadas. Por exemplo, para copiar todos os arquivos com terminação &lt;code&gt;.js&lt;/code&gt; de um diretório para outro:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;GUI:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Abrir o gerenciador de arquivos&lt;/li&gt;
+&lt;li&gt;Navegar entre os diretórios até achar o desejado&lt;/li&gt;
+&lt;li&gt;Selecionar todos os arquivos que terminam com &lt;code&gt;.js&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Copiar os arquivos&lt;/li&gt;
+&lt;li&gt;Trocar de diretório no gerenciador de arquivos&lt;/li&gt;
+&lt;li&gt;Colar os arquivos&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;CLI:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Abrir o terminal&lt;/li&gt;
+&lt;li&gt;Executar o comando de cópia &lt;code&gt;cp *.js destinationfolder&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-full wp-image-53787&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/tableless.gif&#34; alt=&#34;Cópia de arquivos exemplo&#34; width=&#34;639&#34; height=&#34;114&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Além disto, você consegue automatizar diversas tarefas criando arquivos executáveis, simplesmente executando estes arquivos (que podem ser em bash, python, ou qualquer outra linguagem que rode em ambiente Shell).&lt;/p&gt;
+
+&lt;h2 id=&#34;como-fazer-cli-applications-com-javascript&#34;&gt;Como fazer CLI Applications com Javascript?&lt;/h2&gt;
+
+&lt;p&gt;Antes de tudo, faça o download do &lt;a href=&#34;https://nodejs.org/en/download/&#34; target=&#34;_blank&#34;&gt;NodeJS&lt;/a&gt;, que é o &lt;em&gt;runtime&lt;/em&gt; utilizado para executar Javascript no server-side.&lt;/p&gt;
+
+&lt;p&gt;Após ter o Node instalado, vá até o seu terminal e execute os seguintes comandos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34; style=&#34;padding-left: 30px&#34;&gt;mkdir tableless-cli
+cd tableless-cli
+npm init--yes
+&lt;/pre&gt;
+
+&lt;p&gt;Estes comandos irão gerar um arquivo chamado &lt;code&gt;package.json&lt;/code&gt;, que terá o seguinte formato:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+  &#34;name&#34;: &#34;tableless-cli&#34;,
+  &#34;version&#34;: &#34;1.0.0&#34;,
+  &#34;description&#34;: &#34;&#34;,
+  &#34;main&#34;: &#34;index.js&#34;,
+  &#34;scripts&#34;: {
+    &#34;test&#34;: &#34;echo \&#34;Error: no test specified\&#34; &amp;&amp; exit 1&#34;
+  },
+  &#34;keywords&#34;: [],
+  &#34;author&#34;: &#34;&#34;,
+  &#34;license&#34;: &#34;ISC&#34;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O &lt;code&gt;package.json&lt;/code&gt; é um arquivo de configuração do &lt;code&gt;NPM&lt;/code&gt;&lt;code&gt;(Node Package Manager)&lt;/code&gt; que é utilizado como um descritor do seu projeto, além de manusear suas dependências, e o mais importante para nós neste tutorial, transformar seu arquivo Javascript em um executável no sistema.&lt;/p&gt;
+
+&lt;p&gt;Nosso projeto vai consistir de um arquivo javascript que, ao ser executado, nos trará a previsão do tempo da cidade passada como parâmetro. Esta previsão do tempo será resgatada através de uma busca para a API de Geocoding do &lt;a href=&#34;https://developers.google.com/maps/documentation/geocoding/intro?hl=pt-br#GeocodingRequests&#34; target=&#34;_blank&#34;&gt;Google Maps&lt;/a&gt;, e em seguida para a API do &lt;a href=&#34;http://forecast.io&#34; target=&#34;_blank&#34;&gt;forecast.io&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Vamos criar nosso arquivo index.js dentro de uma pasta &lt;code&gt;bin&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34; style=&#34;padding-left: 30px&#34;&gt;mkdir bin
+cd bin
+touch index.js
+&lt;/pre&gt;
+
+&lt;p&gt;E, dentro do nosso package.json, vamos dizer ao npm que quando o comando &amp;#8220;forecast&amp;#8221; for executado no terminal, queremos que execute o arquivo &lt;code&gt;./bin/index.js&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+  &#34;name&#34;: &#34;tableless-cli&#34;,
+  &#34;version&#34;: &#34;1.0.0&#34;,
+  &#34;description&#34;: &#34;&#34;,
+  &#34;main&#34;: &#34;index.js&#34;,
+  &#34;scripts&#34;: {
+    &#34;test&#34;: &#34;echo \&#34;Error: no test specified\&#34; &amp;&amp; exit 1&#34;
+  },
+  &#34;keywords&#34;: [],
+  &#34;author&#34;: &#34;&#34;,
+  &#34;license&#34;: &#34;ISC&#34;,
+  &#34;bin&#34;: {
+    &#34;forecast&#34;: &#34;./bin/index.js&#34;
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;No nosso arquivo &lt;code&gt;index.js&lt;/code&gt;, vamos dizer para o sistema que o arquivo deve ser executado utilizando o NodeJS e vamos importar uma biblioteca padrão para realizar chamadas HTTPS.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;#! /usr/bin/env node
+  var https = require(&#39;https&#39;)
+&lt;/pre&gt;
+
+&lt;p&gt;Vamos adicionar mais duas linhas de códigos para testarmos se está tudo funcionando.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;#! /usr/bin/env node
+  var https = require(&#39;https&#39;)
+  var arguments = process.argv.splice(2, process.argv.length -1).join(&#39; &#39;)
+  console.log(arguments);
+&lt;/pre&gt;
+
+&lt;p&gt;A linha &lt;strong&gt;3&lt;/strong&gt; captura os argumentos passados para nossa aplicação, ignorando os dois primeiros itens. Eles são ignorados pois são o caminho dos executáveis que farão nossa aplicação ser executada, e nós não precisamos desta informação. Além disto, transformamos o &lt;code&gt;Array&lt;/code&gt; de argumentos para uma &lt;code&gt;String&lt;/code&gt;, através do comando &lt;code&gt;.join(&#39; &#39;)&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Voltando a pasta onde o arquivo &lt;code&gt;package.json&lt;/code&gt; está, vá até seu terminal e execute os seguintes comandos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34; style=&#34;padding-left: 30px&#34;&gt;npm link
+forecast
+&lt;/pre&gt;
+
+&lt;p&gt;O comando &lt;code&gt;npm link&lt;/code&gt; irá transformar em executável nosso arquivo dentro do sistema, deixando-o disponível para ser executado, e o comando &lt;code&gt;forecast&lt;/code&gt; foi o que definimos dentro do nosso &lt;code&gt;package.json&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Pronto, criamos nosso primeiro executável! Agora vamos fazer uma busca para a API do Google Maps para transformar o endereço digitado em Latitude e Longitude.&lt;/p&gt;
+
+&lt;p&gt;Para fazermos a busca para a API do Google Maps, precisamos de mais uma biblioteca padrão do Node.js: &lt;code&gt;querystring&lt;/code&gt;. Utilizaremos a função &lt;code&gt;stringify&lt;/code&gt; dela, para podermos normalizar o texto que enviaremos para a API.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;#! /usr/bin/env node
+var https = require(&#39;https&#39;)
+var querystring = require(&#39;querystring&#39;)
+
+var arguments = process.argv.splice(2, process.argv.length -1).join(&#39; &#39;)
+var search    = querystring.stringify({ address: arguments })
+
+https
+  .get(&#39;https://maps.googleapis.com/maps/api/geocode/json?&#39; + search, function(res){
+    var data = &#39;&#39;
+    
+    res.on(&#39;data&#39;, function(newData){
+      data += newData
+    });
+
+    res.on(&#39;end&#39;, function(){
+      var location = JSON.parse(data).results[0].geometry.location
+    })
+  })
+&lt;/pre&gt;
+
+&lt;p&gt;Na linha 9, estamos fazendo uma chamada https para a API do google maps passando como parâmetro o que foi passado para nossa aplicação.&lt;/p&gt;
+
+&lt;p&gt;Na linha 18, obtemos como resultado da busca a Latitude e a Longitude da nossa pesquisa. Por prática estou usando apenas o primeiro resultado, mas sinta-se a vontade para brincar com os resultados da API.&lt;/p&gt;
+
+&lt;p&gt;Até agora, geramos um arquivo javascript executável através da linha de comando que faz uma busca na API do Google para um endereço passado como parâmetro.&lt;/p&gt;
+
+&lt;h2 id=&#34;utilizando-a-api-do-forecast&#34;&gt;Utilizando a API do Forecast.&lt;/h2&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://forecast.io&#34;&gt;Forecast&lt;/a&gt; é um site que mostra a condição do tempo e possui uma API muito boa para que nós, desenvolvedores, possamos aproveitar. É necessário uma &lt;code&gt;key&lt;/code&gt; para fazermos uma requisição e, na versão gratuita, podemos fazer no máximo 1.000 chamadas por dia para a API. Como não teremos um volume muito grande de chamadas, vamos utilizá-la.&lt;/p&gt;
+
+&lt;p&gt;Para conseguir sua key de acesso, faça o cadastro &lt;a href=&#34;https://developer.forecast.io/&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Vamos utilizar agora o objeto de Geolocalização que obtivemos da API do Google Maps para fazermos uma chamada para API do Forecast.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;#! /usr/bin/env node
+var https = require(&#39;https&#39;)
+var querystring = require(&#39;querystring&#39;)
+
+var arguments = process.argv.splice(2, process.argv.length -1).join(&#39; &#39;)
+var search    = querystring.stringify({ address: arguments })
+
+https
+  .get(&#39;https://maps.googleapis.com/maps/api/geocode/json?&#39; + search, function(res){
+    var data = &#39;&#39;
+    
+    res.on(&#39;data&#39;, function(newData){
+      data += newData
+    });
+
+   res.on(&#39;end&#39;, function(){
+      var location = JSON.parse(data).results[0].geometry.location
+      var options = querystring.stringify({ units: &#39;si&#39;, lang: &#39;pt&#39; })
+      https
+        .get(&#39;https://api.forecast.io/forecast//&#39; + location.lat +&#39;,&#39; + location.lng + &#39;?&#39; + options, function(resForecast){
+          var data = &#39;&#39;
+
+          resForecast.on(&#39;data&#39;, function(newData){
+            data += newData
+          });
+
+          resForecast.on(&#39;end&#39;, function(){
+            var json = JSON.parse(data)
+            console.log(&#39;Temperatura Atual: &#39; + json.currently.temperature + &#39; ºC&#39;)
+            console.log(&#39;Sensação Térmica: &#39; + json.currently.apparentTemperature + &#39; ºC&#39;)
+            console.log(json.daily.summary)
+          })
+        })
+    })
+  })
+&lt;/pre&gt;
+
+&lt;p&gt;Com isto, finalizamos nossa aplicação. Foi feita uma chamada para a API do Forecast passando a latitude e longitude descobertas através da API do Google Maps.&lt;/p&gt;
+
+&lt;p&gt;Utilizamos o retorno da API do Forecast para mostrar no terminal algumas das informações retornadas. As opções que foram passadas para a API do Forecast foram utilizadas para formatar tanto o sistema de medidas (&lt;code&gt;units: &#39;si&#39;&lt;/code&gt;), quanto o idioma de retorno: (&lt;code&gt;lang: &#39;pt&#39;&lt;/code&gt;).&lt;/p&gt;
+
+&lt;p&gt;Executando a aplicação após ela estar finalizada:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/3EFswyb-Imgur.gif&#34; alt=&#34;Finalizado a aplicação&#34; width=&#34;858&#34; height=&#34;152&#34; class=&#34;alignnone size-full wp-image-53802&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Fazer aplicações que serão executadas na linha de comando com NodeJS é muito simples, e requer conhecimentos apenas da linguagem. Estas aplicações poderão ser executadas em qualquer Sistema Operacional (Windows, Linux, Mac) e podem nos ajudar e muito na resolução de tarefas corriqueiras do dia a dia.&lt;/p&gt;
+
+&lt;p&gt;O código desta aplicação está no meu &lt;a href=&#34;https://github.com/igorsantana/tableless-cli&#34;&gt;github&lt;/a&gt;, para quem quiser dar uma olhada.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

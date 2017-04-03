@@ -1,0 +1,306 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/bdd-na-pratica-parte-1/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/bdd-na-pratica-parte-1/">BDD na prática – Parte 1</a></h1>
+  <p class="tb-hero-p">
+    
+    Sinta o gostinho do BDD em um simples hello world
+    
+  </p>
+      <span class="tb-author">por <a href="/author/jefersson-nathan">Jefersson Nathan</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Se você não sabe o que é <strong>Behavior driven development,</strong> para ter um melhor proveito desse artigo,  leia uma <a href="http://tableless.com.br/introducao-ao-behavior-driven-development/">introdução ao BDD</a> antes de prosseguir.</p>
+
+<p>Para começo de conversa, estaremos fazendo uma abordagem prática sobre testes de comportamento. Para isso, utilizaremos a biblioteca para testes <a href="http://behat.org/">behat</a>. Vamos ao nosso arquivo <code>composer.json:</code></p>
+
+<pre class="lang-javascript">{
+    "require-dev": {
+        "behat/behat": "2.4.*@stable"
+    },
+    "config": {
+        "bin-dir": "bin/"
+    }
+}</pre>
+
+<p>Se ainda não estiver familiarizado com o uso do <strong>composer</strong> para gerenciamento de dependências de seus projetos em php, vale a pena dar uma olhada em <a href="http://tableless.com.br/composer-para-iniciantes/">composer para iniciantes</a>.</p>
+
+<p>Agora, basta instalar nossas dependências com o seguinte comando:</p>
+
+<pre class="lang-sh">$ composer install</pre>
+
+<p><img class="size-full wp-image-42015 aligncenter" alt="Captura de tela 2014-04-06 13.52.43" src="http://tableless.com.br/wp-content/uploads/2014/04/Captura-de-tela-2014-04-06-13.52.43.png" width="684" height="816" srcset="uploads/2014/04/Captura-de-tela-2014-04-06-13.52.43.png 684w, uploads/2014/04/Captura-de-tela-2014-04-06-13.52.43-400x477.png 400w" sizes="(max-width: 684px) 100vw, 684px" /></p>
+
+<p>De forma alternativa, você poderá fazer uma instalação global baixando o arquivo <code>behat.phar</code> e deixando acessível de seu sistema operacional, geralmente esse processo é simples, e basta criar um link simbólico em <code>/usr/local/bin</code> para o arquivo que deseja executar.</p>
+
+<h2 id="como-funciona">Como funciona?</h2>
+
+<p>Se dermos uma olhada na estrutura que o <em><strong>composer</strong></em> criou para a gente, notaremos que um diretório <strong><em>feature</em></strong> foi criado. Nesse diretório criaremos os arquivos *<strong>.feature</strong> que descreverão um conjunto de ações para atingir um determinado objetivo.</p>
+
+<p>Para começar criaremos o arquivo <strong>example.feature</strong>.</p>
+
+<p><img class="size-full wp-image-42019 aligncenter" alt="Estrutura de diretórios" src="http://tableless.com.br/wp-content/uploads/2014/04/Captura-de-tela-2014-04-06-14.25.49.png" width="407" height="95" srcset="uploads/2014/04/Captura-de-tela-2014-04-06-14.25.49.png 407w, uploads/2014/04/Captura-de-tela-2014-04-06-14.25.49-400x93.png 400w" sizes="(max-width: 407px) 100vw, 407px" /></p>
+
+<p>Se você estiver usando o <strong>Sublime Text</strong>, instale essa extensão <a href="https://www.dropbox.com/s/xb6mmsxy5qdtjja/Captura%20de%20tela%202014-04-06%2014.47.25.png">https://github.com/omissis/sublime-behat-syntax</a> que provê highlight em arquivos *.feature</p>
+
+<p>No nosso arquivo <strong>example.feature</strong>, iremos descrever nosso cenário, o que queremos <em>testar.</em></p>
+
+<p><img class="alignnone size-full wp-image-42024" alt="Captura de tela 2014-04-06 14.54.18" src="http://tableless.com.br/wp-content/uploads/2014/04/Captura-de-tela-2014-04-06-14.54.18.png" width="609" height="474" srcset="uploads/2014/04/Captura-de-tela-2014-04-06-14.54.18.png 609w, uploads/2014/04/Captura-de-tela-2014-04-06-14.54.18-400x311.png 400w" sizes="(max-width: 609px) 100vw, 609px" /></p>
+
+<p>Com uma <strong>feature</strong> já escrita, iremos executar o <em>behat</em> para nos dar a descrição e métodos dessa feature em PHP, daí prosseguiremos com a implementação dos métodos que eles nos forneceu. Para isso basta executarmos o arquivo <strong>behat</strong>, dentro da pasta <strong>bin</strong> que foi criada pelo <em>composer</em>.</p>
+
+<pre class="lang-sh">$ bin/behat features/example.feature</pre>
+
+<p><img class="alignnone size-full wp-image-42029" alt="Behat feature" src="http://tableless.com.br/wp-content/uploads/2014/04/Captura-de-tela-2014-04-06-15.07.06.png" width="684" height="620" srcset="uploads/2014/04/Captura-de-tela-2014-04-06-15.07.06.png 684w, uploads/2014/04/Captura-de-tela-2014-04-06-15.07.06-400x362.png 400w" sizes="(max-width: 684px) 100vw, 684px" /></p>
+
+<p>Assim, o <strong>behat</strong> cospe pra nos um código PHP para que coloquemos na classe de feature. E aí começaremos a <em>codar</em> os cenários. No arquivo <code>features/bootstrap/FeatureContext.php</code> colaremos o código que foi fornecido pelo <strong>behat</strong>.</p>
+
+<pre class="lang-php">&lt;?php
+
+use Behat\Behat\Context\BehatContext;
+
+class FeatureContext extends BehatContext
+{
+    /** @Given /^some step with "([^"]*)" argument$/ */
+    public function someStepWithArgument($argument1)
+    {
+        return $argument1;
+    }
+
+    /** @Given /^number step with (\d+)$/ */
+    public function numberStepWith($argument1)
+    {
+        return $argument1;
+    }
+}</pre>
+
+<p>Aqui temos uma classe simples, que <strong>não testa nada</strong>, mais é um bom ponto de partidada para entender como funciona a ferramenta e o esquema de testes de comportamento. Pois <em>codar</em> os cenários deve ser a parte mais fácil do processo, se você tem <strong>steps</strong> bem definidos.</p>
+
+<p>para rodar esse testes execute o seguinte comando.</p>
+
+<pre class="lang-sh">$ bin/behat features/example.feature</pre>
+
+<h2 id="hello-world">Hello world</h2>
+
+<p>Agora que temos uma ideia de como o <strong>behat</strong> trabalha, faremos o clássico <strong>hello world</strong>.</p>
+
+<p>Em nosso arquivo <code>example.feature</code> descreveremos o seguinte cenário:</p>
+
+<p><img class="alignnone size-full wp-image-42040" alt="Hello world feature behat" src="http://tableless.com.br/wp-content/uploads/2014/04/Captura-de-tela-2014-04-06-16.53.08.png" width="605" height="333" srcset="uploads/2014/04/Captura-de-tela-2014-04-06-16.53.08.png 605w, uploads/2014/04/Captura-de-tela-2014-04-06-16.53.08-400x220.png 400w" sizes="(max-width: 605px) 100vw, 605px" /></p>
+
+<p>Nesse cenário estaremos testando que quando passarmos a string <strong>Hello world,</strong> nossa classe tem que concatenar nossa string a uma exclamação. Com isso já poderemos escrever nossa classe PHP para testar essa <strong>feature.</strong></p>
+
+<pre class="lang-php">&lt;?php
+
+use Behat\Behat\Context\BehatContext;
+
+class FeatureContext extends BehatContext
+{
+    private $_string;
+
+    /** @Given /^some step with "([^"]*)" argument$/ */
+    public function someStepWithArgument($string)
+    {
+        $this-&gt;_string = strtolower($string);
+    }
+
+    /**
+     * @Then /^i have "([^"]*)"$/
+     */
+    public function iHave($expected)
+    {
+        if (0 !== strcmp(strtolower($expected), $this-&gt;_string.'!'))
+            throw new Exception('Wrong "hello world" received: '.$this-&gt;_string );
+
+        return $expected;
+    }
+}</pre>
+
+<p>Se executarmos o teste com o <strong>behat</strong>, poderemos ver como está o nosso cenário.</p>
+
+<p>&nbsp;</p>
+
+<p><img class="alignnone size-full wp-image-42045" alt="Behat hello world execution" src="http://tableless.com.br/wp-content/uploads/2014/04/Captura-de-tela-2014-04-06-17.16.30.png" width="740" height="494" srcset="uploads/2014/04/Captura-de-tela-2014-04-06-17.16.30.png 740w, uploads/2014/04/Captura-de-tela-2014-04-06-17.16.30-400x267.png 400w" sizes="(max-width: 740px) 100vw, 740px" /></p>
+
+<h2 id="conclusão">Conclusão</h2>
+
+<p>Escrever testes de comportamento é sempre bom, e podemos consulta-los sempre, seja pra esclarecer uma regra de negócio ou para integrar novas pessoas ao time de desenvolvimento. Vendo os cenários sabemos exatamente o que uma classe/entidade deve fazer. Seu objetivo e contexto ficam claros. Os incentivo fortemente a implantar uma cultura de testes de software em sua empresa e projetos. Você tem muito a ganhar a longo prazo.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

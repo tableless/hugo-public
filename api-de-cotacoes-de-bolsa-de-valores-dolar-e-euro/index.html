@@ -1,0 +1,291 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/api-de-cotacoes-de-bolsa-de-valores-dolar-e-euro/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/api-de-cotacoes-de-bolsa-de-valores-dolar-e-euro/">API de cotações de Bolsa de Valores, Dólar e Euro</a></h1>
+  <p class="tb-hero-p">
+    
+    Aprenda a utilizar uma API para consulta de cotações com PHP.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/henrique-schreiner">Henrique Schreiner</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      <p>Hoje em dia é muito comum os sites terem um widget ou uma barra lateral com informações de cotações do dólar, euro e os principais mercados financeiros do mundo.</p>
+
+<p>Como o mercado oscila muito, essas informações são atualizadas constantemente, de minuto a minuto. Se você está pensando em mostrar essas informações em seu site, com certeza vai precisar de uma API para consultar estes dados em tempo real.</p>
+
+<p>O pessoal da <a href="http://agenciaideias.com.br" target="_blank">Agência Ideias</a> criou uma <a href="http://developers.agenciaideias.com.br/cotacoes" target="_blank">API</a> bem legal para consulta de cotações em tempo real, sendo o valor do euro e do dólar referentes aos valores de compra dessas moedas. O formato do retorno da consulta pode ser <a href="http://developers.agenciaideias.com.br/cotacoes/json" target="_blank">JSON</a> ou <a href="http://developers.agenciaideias.com.br/cotacoes/xml" target="_blank">XML</a>, dependendo da necessidade de sua aplicação. Para a nossa classe em PHP, vamos utilizar o formato de retorno em JSON.</p>
+
+<p>Vamos criar um novo arquivo em PHP com o nome <strong>Quotation.php</strong>. Nele vamos criar a classe <strong>Quotation</strong>. Logo no início da classe, vamos declarar duas variáves estáticas que serão usadas por nossa classe. Uma delas é o endereço da API e a outra é o conteúdo que será retornado por ela.</p>
+
+<pre class="lang-php">class Quotation {
+
+  private static $apiUrl = "http://developers.agenciaideias.com.br/cotacoes/json";
+  private static $content;
+
+}
+</pre>
+
+<p>Em seguida, vamos criar um método estático para preparar nossa classe para a interação com a API:</p>
+
+<pre class="prettyprint php">public static function init() {
+
+  self::$content = file_get_contents(self::$apiUrl);
+  self::$content = json_decode(self::$content);
+}
+</pre>
+
+<p>O conteúdo do retorno da API é semelhante a este:</p>
+
+<pre class="lang-javascript">{
+  "bovespa":{
+    "cotacao":"46955",
+    "variacao":"-0.14"
+  },
+  "dolar": {
+    "cotacao":"2.7500",
+    "variacao":"+2.34"
+  },
+  "euro":{
+    "cotacao":"3.4427",
+    "variacao":"+2.65"
+  },
+  "atualizacao":"16\/12\/14   - 14:08"
+}
+</pre>
+
+<p>Para que possamos organizar melhor as informações, vamos criar um método para cada tipo de cotação:</p>
+
+<pre class="lang-php">public static function dolar() {
+
+        self::init();
+        return array(
+            "quotation" =&gt; self::$content-&gt;dolar-&gt;cotacao,
+            "variation" =&gt; self::$content-&gt;dolar-&gt;variacao,
+            "status" =&gt; self::getVariation(self::$content-&gt;dolar-&gt;variacao)
+        );
+    }
+
+    public static function bovespa() {
+
+        self::init();
+        return array(
+            "quotation" =&gt; self::$content-&gt;bovespa-&gt;cotacao,
+            "variation" =&gt; self::$content-&gt;bovespa-&gt;variacao,
+            "status" =&gt; self::getVariation(self::$content-&gt;bovespa-&gt;variacao)
+        );
+    }
+
+    public static function euro() {
+
+        self::init();
+        return array(
+            "quotation" =&gt; self::$content-&gt;euro-&gt;cotacao,
+            "variation" =&gt; self::$content-&gt;euro-&gt;variacao,
+            "status" =&gt; self::getVariation(self::$content-&gt;euro-&gt;variacao)
+        );
+    }
+
+</pre>
+
+<p>Cada um destes métodos utiliza o método <strong>init()</strong> que inicializa a interação da nossa classe com a API e guarda o retorno na variável estática de classe <strong>self::$content</strong>.</p>
+
+<p>Por último, vamos criar um último método apenas para verificar se a variação teve uma alta ou uma baixa:</p>
+
+<pre class="lang-php">public static function getVariation($variation) {
+        if (strpos($variation, "+")) {
+            return "+";
+        } else {
+            return "-";
+        }
+  }
+</pre>
+
+<p>Como exemplo, vamos verificar a cotação do dólar:</p>
+
+<pre class="lang-php">$dolar = Quotation::dolar();
+  echo "Cotação do Dólar:\n";
+  echo "Valor: R$" . number_format($dolar['quotation'], 2, ',', '.') . "\n";
+  echo "Variação: {$dolar['variation']}";
+</pre>
+
+<p>A classe pode ser baixada na íntegra <a title="QuotationAPI" href="https://github.com/hmschreiner/QuotationAPI" target="_blank">aqui</a>.</p>
+
+<p>Espero que tenham gostado do post. <strong>Não deixem de comentar e deixar suas dúvidas.</strong></p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

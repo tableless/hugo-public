@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Filipe Teixeira on Tableless</title>
+    <link>http://tableless.com.br/author/filipe-teixeira/index.xml</link>
+    <description>Recent content in Filipe Teixeira on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/filipe-teixeira/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Formulário de e-mail e envio com PHP</title>
+      <link>http://tableless.com.br/formulario-de-e-mail-e-envio-com-php/</link>
+      <pubDate>Tue, 18 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/formulario-de-e-mail-e-envio-com-php/</guid>
+      <description>
+
+&lt;p&gt;Há anos atrás, quando queríamos colocar um formulário de e-mail em nosso site, simplesmente pegávamos um script em Perl que funcionava, mas não fazíamos ideia de como as coisas aconteciam por trás. Neste post demonstrarei que é muito simples fazer a mesma coisa em PHP. Perceba que o foco é principalmente no PHP, e não necessariamente na validação do formulário ou CSS, embora usaremos algumas boas práticas de validação.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Aviso:&lt;/strong&gt; O script apenas enviará o e-mail se estiver em um servidor. Você não conseguirá mandar o e-mail do localhost (No Wamp ou Xampp por exemplo).&lt;/p&gt;
+
+&lt;h3 id=&#34;criando-os-arquivos&#34;&gt;Criando os arquivos&lt;/h3&gt;
+
+&lt;p&gt;Criaremos quatro arquivos que irão conter nosso script.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;O index.php&lt;/code&gt;, para que a pasta sempre abra no nosso arquivo de contato (você pode renomear depois para contato.php se quiser). O arquivo &lt;code&gt;mail_ok.php&lt;/code&gt;, para exibir a mensagem que o e-mail foi enviado, e o &lt;code&gt;mail_error.php&lt;/code&gt;, contendo a mensagem de erro. Finalmente, o &lt;code&gt;mail_send.php&lt;/code&gt;, contendo o script que envia o e-mail propriamente dito.&lt;/p&gt;
+
+&lt;h3 id=&#34;index-php&#34;&gt;index.php&lt;/h3&gt;
+
+&lt;p&gt;No &lt;code&gt;index.php&lt;/code&gt; vamos fazer o nosso formulário:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+    &amp;lt;head&amp;gt;
+        &amp;lt;meta charset=&#34;utf8&#34;&amp;gt;
+        &amp;lt;title&amp;gt;Contato&amp;lt;/title&amp;gt;
+    &amp;lt;/head&amp;gt;
+    &amp;lt;body&amp;gt;
+        &amp;lt;form action=&#34;mail_send.php&#34; method=&#34;post&#34;&amp;gt;
+            &amp;lt;fieldset&amp;gt;
+                &amp;lt;label for=&#34;email&#34;&amp;gt;E-mail: &amp;lt;/label&amp;gt;
+                &amp;lt;input required name=&#34;email&#34; type=&#34;email&#34;&amp;gt;
+            &amp;lt;/fieldset&amp;gt;
+            &amp;lt;fieldset&amp;gt;
+                &amp;lt;label for=&#34;mensagem&#34;&amp;gt;Mensagem: &amp;lt;/label&amp;gt;
+                &amp;lt;textarea required name=&#34;mensagem&#34;&amp;gt;&amp;lt;/textarea&amp;gt;
+            &amp;lt;/fieldset&amp;gt;
+            &amp;lt;fieldset&amp;gt;
+                &amp;lt;button type=&#34;submit&#34;&amp;gt;Enviar&amp;lt;/button&amp;gt;
+            &amp;lt;/fieldset&amp;gt;
+        &amp;lt;/form&amp;gt;
+    &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Esse formulário contém os campos &lt;code&gt;e-mail&lt;/code&gt; e &lt;code&gt;mensagem&lt;/code&gt;, ambos campos obrigatórios.&lt;/p&gt;
+
+&lt;p&gt;Vamos agora fazer o &lt;code&gt;mail_ok.php&lt;/code&gt; e &lt;code&gt;mail_error.php&lt;/code&gt;:&lt;/p&gt;
+
+&lt;h3 id=&#34;mail-ok-php&#34;&gt;mail_ok.php&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt; &amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+    &amp;lt;head&amp;gt;
+        &amp;lt;meta charset=&#34;utf8&#34;&amp;gt;
+        &amp;lt;title&amp;gt;Sucesso&amp;lt;/title&amp;gt;
+    &amp;lt;/head&amp;gt;
+    &amp;lt;body&amp;gt;
+        &amp;lt;h1&amp;gt;Sucesso&amp;lt;/h1&amp;gt;
+        
+        &amp;lt;hr&amp;gt;
+        
+        &amp;lt;p&amp;gt;O e-mail foi enviado com sucesso.&amp;lt;/p&amp;gt;
+    &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;mail-error-php&#34;&gt;``mail_error.php&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt; &amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+    &amp;lt;head&amp;gt;
+        &amp;lt;meta charset=&#34;utf8&#34;&amp;gt;
+        &amp;lt;title&amp;gt;Erro&amp;lt;/title&amp;gt;
+    &amp;lt;/head&amp;gt;
+    &amp;lt;body&amp;gt;
+        &amp;lt;h1&amp;gt;Erro&amp;lt;/h1&amp;gt;
+        
+        &amp;lt;hr&amp;gt;
+        
+        &amp;lt;p&amp;gt;Houve um erro no envio do e-mail. &amp;lt;a href=&#34;index.php&#34;&amp;gt;Tentar novamente&amp;lt;/a&amp;gt;.&amp;lt;/p&amp;gt;
+    &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Os arquivos anteriores mostram mensagens se o e-mail foi enviado. O seguinte script PHP irá redirecionar para eles:&lt;/p&gt;
+
+&lt;h3 id=&#34;mail-send-php&#34;&gt;mail_send.php&lt;/h3&gt;
+
+&lt;pre class=&#34;lang_php prettyprint linenums&#34;&gt;&amp;lt;?php
+
+function pegaValor($valor) {
+    return isset($_POST[$valor]) ? $_POST[$valor] : &#39;&#39;;
+}
+
+function validaEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL);
+}
+
+function enviaEmail($de, $assunto, $mensagem, $para, $email_servidor) {
+    $headers = &#34;From: $email_servidor\r\n&#34; .
+               &#34;Reply-To: $de\r\n&#34; .
+               &#34;X-Mailer: PHP/&#34; . phpversion() . &#34;\r\n&#34;;
+    $headers .= &#34;MIME-Version: 1.0\r\n&#34;;
+    $headers .= &#34;Content-Type: text/html; charset=ISO-8859-1\r\n&#34;;
+  
+  mail($para, $assunto, nl2br($mensagem), $headers);
+}
+
+$email_servidor = &#34;email@servidor.com&#34;;
+$para = &#34;seu@email.com&#34;;
+$de = pegaValor(&#34;email&#34;);
+$mensagem = pegaValor(&#34;mensagem&#34;);
+$assunto = &#34;Assunto da mensagem&#34;;
+
+?&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Este último script define três funções:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;pegaValor&lt;/code&gt;: se existir, pega a váriavel enviada via &amp;#8216;post&amp;#8217;, senão, retorna uma string vazia;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;validaEmail: &lt;/code&gt;retorna se o e-mail é válido;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;enviaEmail&lt;/code&gt; : chama a função &lt;em&gt;mail&lt;/em&gt; do PHP com as variáveis que definimos.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;As variáveis &lt;code&gt;$de&lt;/code&gt; e &lt;code&gt;$mensagem&lt;/code&gt; irão pegar os valores enviados pelo formulário. Nas variáveis &lt;code&gt;$email_servidor&lt;/code&gt; e &lt;code&gt;$para&lt;/code&gt; você deverá colocar seu e-mail do servidor e o e-mail para o qual será enviado o formulário, respectivamente. A variável &lt;code&gt;$assunto&lt;/code&gt; será, obviamente, o assunto da mensagem.&lt;/p&gt;
+
+&lt;h3 id=&#34;corpo-do-script&#34;&gt;Corpo do script&lt;/h3&gt;
+
+&lt;pre class=&#34;lang_php prettyprint linenums&#34;&gt;if ($nome &amp;&amp; validaEmail($de) &amp;&amp; $mensagem) {
+    enviaEmail($de, $assunto, $mensagem, $para, $email_servidor);
+    $pagina = &#34;mail_ok.php&#34;;
+} else {
+    $pagina = &#34;mail_error.php&#34;;
+}
+
+header(&#34;location:$pagina&#34;);&lt;/pre&gt;
+
+&lt;p&gt;Esta parte do script é o controle de fluxo. Se as variáveis não forem vazias e o e-mail for válido, enviará o e-mail e atribuirá a variável &lt;code&gt;$pagina&lt;/code&gt; para &lt;code&gt;mail_ok.php&lt;/code&gt;. Caso contrário, a variável &lt;code&gt;$pagina&lt;/code&gt; será &lt;code&gt;mail_error.php. &lt;/code&gt;E finalmente, redirecionaremos a página com a função &lt;code&gt;header&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Aviso:&lt;/strong&gt; É de suma importância verificar no seu editor de texto se a codificação é &lt;strong&gt;UTF-8 sem BOM&lt;/strong&gt;. Se não for, o script irá enviar um espaço em branco antes do cabeçalho de redirecionamente, e irá aparecer o seguinte erro:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Cannot modify header information - headers already sent&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Com isso nosso script PHP está pronto. Adeus Perl!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

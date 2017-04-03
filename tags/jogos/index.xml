@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Jogos on Tableless</title>
+    <link>http://tableless.com.br/tags/jogos/index.xml</link>
+    <description>Recent content in Jogos on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/jogos/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Crie seu jogo em HTML5 com enchant.js</title>
+      <link>http://tableless.com.br/crie-seu-jogo-em-html5-com-enchant-js/</link>
+      <pubDate>Tue, 28 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/crie-seu-jogo-em-html5-com-enchant-js/</guid>
+      <description>
+
+&lt;p&gt;Mantido na UEI (Ubiquitous Entertainment, Inc), por membros do Centro de Pesquisa de Akihabara, o &lt;em&gt;framework&lt;/em&gt; japonês chamado &lt;strong&gt;&lt;a href=&#34;http://enchantjs.com/pt-br/&#34; target=&#34;_blank&#34;&gt;enchant.js&lt;/a&gt;&lt;/strong&gt;, permite criar com poucas linhas de código um jogo simples em HTML5.&lt;/p&gt;
+
+&lt;p&gt;Com &lt;strong&gt;enchant.js&lt;/strong&gt;, você pode criar desde simples jogos 2D até avançados jogos em três dimensões, graças ao suporte WebGL usado como plugin.&lt;/p&gt;
+
+&lt;p&gt;Os elementos criados em um bloco do enchant.js são renderizado através do DOM e do Canvas, além de rodar nas plataformas mais conhecidas. Os eventos são voltados para &lt;em&gt;mobile&lt;/em&gt;, como o &lt;strong&gt;Event.TOUCH_MOVE&lt;/strong&gt;, disparado quando o usuário toca na tela e a segura. O enchant.js ainda possui uma &lt;a href=&#34;http://code.9leap.net/&#34; target=&#34;_blank&#34;&gt;plataforma&lt;/a&gt; com bibliotecas e jogos prontos para serem usados quando quiser.&lt;/p&gt;
+
+&lt;h2 id=&#34;sprites&#34;&gt;&lt;em&gt;Sprites&lt;/em&gt;&lt;/h2&gt;
+
+&lt;p&gt;O enchant.js trabalha com &lt;em&gt;sprites&lt;/em&gt; para renderizar objetos na tela. Esse recurso tem várias utilidades, como criar um personagem ou mesmo um ambiente. O &lt;em&gt;sprite&lt;/em&gt; permite além de renderizar um objeto no DOM ou no Canvas, criar animações com frames a partir de uma imagem &lt;em&gt;sprite&lt;/em&gt;. Cada quadro é definido como um índice em um &lt;em&gt;array&lt;/em&gt;, iniciado com zero, e com limite máximo da quantidade de imagens. Exemplo:&lt;/p&gt;
+
+&lt;pre&gt;var Person = new Sprite(64, 64);
+Person.image = game.assets[&#39;images/Person.png&#39;];
+Person.frame = [0, 1, 4, 5, 1]; // linha importante&lt;/pre&gt;
+
+&lt;p&gt;Isto fará que a imagem passe entre estes sprites em um intervalo de tempo determinado pela propriedade &lt;strong&gt;fps&lt;/strong&gt; do objeto &lt;strong&gt;Core&lt;/strong&gt; (versões mais recentes), e &lt;strong&gt;Game&lt;/strong&gt; (versões anteriores).&lt;/p&gt;
+
+&lt;h2 id=&#34;o-código&#34;&gt;O código&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar um personagem movendo-se em um ambiente usando &lt;em&gt;sprite&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;html&#34;&gt;&lt;strong&gt;HTML:&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+
+ &amp;lt;head&amp;gt;
+ &amp;lt;script src=&#34;enchant.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script src=&#34;script.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;/head&amp;gt;
+
+ &amp;lt;body&amp;gt;&amp;lt;/body&amp;gt;
+
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;javascript&#34;&gt;&lt;strong&gt;JavaScript&lt;/strong&gt;:&lt;/h3&gt;
+
+&lt;pre&gt;(function() {
+   function initialize() {
+     enchant();
+     var game = new Core(640, 480);
+     var gohan = &#34;http://tinyurl.com/p2z8qlt&#34;;
+     var fundo = &#34;http://tinyurl.com/nc39d4y&#34;;
+     game.preload(gohan, fundo);
+     game.fps = 16; // seta o fps. Quanto maior, mais lento
+ 
+     game.onload = function() {
+       // cria fundo
+       var background = new Sprite(1024, 698);
+       background.image = game.assets[fundo];
+      game.rootScene.addChild(background);
+ 
+      // cria player
+     var player = new Sprite(63, 97);
+     player.image = game.assets[gohan];
+     player.frame = [0, 1];
+     player.x = (game.width/2)-(player.width/2); // centraliza no eixo X
+     player.y = 250;
+    player.tl.scaleTo(1.5, 1.5, 50);
+    game.rootScene.addChild(player);
+ 
+    // executa o tempo todo enquanto o player existir
+    player.onenterframe = function() {
+      if (this.age &amp;gt;= 50) this.frame = [2, 3, 4];
+      if (this.age % 10 == 0) 
+        this.tl.moveBy(50,0,10).moveBy(-50,0,10).loop();
+     }
+   }
+   game.start(); // inicia o jogo
+ }
+  window.addEventListener(&#39;load&#39;, initialize, false);
+}).apply(this);
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;a href=&#34;http://plnkr.co/edit/dCxps2&#34; target=&#34;_blank&#34;&gt;Veja o exemplo no Plunker&lt;/a&gt;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Primeiro chamamos o enchant.js na linha &lt;strong&gt;3&lt;/strong&gt;. Na linha &lt;strong&gt;4&lt;/strong&gt; criamos uma variável para guardar o objeto principal do jogo. Na linha &lt;strong&gt;7&lt;/strong&gt;, dizemos ao enchant.js o que precisamos carregar antes de iniciar o jogo. Na linha &lt;strong&gt;8&lt;/strong&gt; setamos os &lt;em&gt;frames per second&lt;/em&gt; do jogo (esta propriedade existe em todos os objetos do enchant.js). Na linha &lt;strong&gt;10&lt;/strong&gt; definimos o que acontece quando o enchant.js terminar de carregar os &lt;em&gt;assets&lt;/em&gt;. Na linha &lt;strong&gt;12&lt;/strong&gt; criamos um novo sprite com largura e altura passadas como argumento. Na linha &lt;strong&gt;13&lt;/strong&gt;, atribuímos a imagem de fundo, que já foi carregada à propriedade &lt;em&gt;image&lt;/em&gt; do &lt;em&gt;sprite background&lt;/em&gt;. Na linha &lt;strong&gt;14&lt;/strong&gt;, adicionamos esse fundo à cena principal (game.rootScene). Na linha &lt;strong&gt;19&lt;/strong&gt;, criamos uma animação passando as imagens 0 e 1 do sprite. Na linha &lt;strong&gt;22&lt;/strong&gt;, há o efeito de escala, como no CSS &lt;em&gt;(transform: scale(x, y))&lt;/em&gt;, mas com a diferença do terceiro argumento que define o tempo (quanto maior, mais demorado). Na linha &lt;strong&gt;29&lt;/strong&gt;, obtêm-se o efeito de mover em uma determinada direção em X e Y, definindo como terceiro argumento um tempo. O &lt;em&gt;loop()&lt;/em&gt; serve para repetir infinitamente a ação atual.&lt;/p&gt;
+
+&lt;h2 id=&#34;adicionando-um-novo-personagem&#34;&gt;Adicionando um novo personagem&lt;/h2&gt;
+
+&lt;p&gt;Que tal deixar nosso jogo mais emocionante e adicionar um inimigo para combater nosso protagonista?&lt;/p&gt;
+
+&lt;pre&gt;(function() {
+   function initialize() {
+   enchant();
+
+   var game = new Core(640, 480)
+   , gohan = &#34;http://tinyurl.com/p2z8qlt&#34;
+   , fundo = &#34;http://tinyurl.com/nc39d4y&#34;
+   , freeza = &#34;http://tinyurl.com/parueup&#34;
+   , powerImage = &#34;http://tinyurl.com/o734vyr&#34;;
+   game.preload(gohan, fundo, freeza, powerImage);
+   game.fps = 16;
+ 
+   game.onload = function() {
+ 
+     var scene = new Scene(); // cria nova cena
+     game.pushScene(scene); // nova cena na principal
+ 
+     // adiciona o fundo
+     var background = new Sprite(1024, 698);
+     background.image = game.assets[fundo];
+     scene.addChild(background);
+ 
+     // modelo de player
+    var Player = Class.create(Sprite, {
+        initialize: function(data) {
+          Sprite.apply(this, [data.w, data.h]);
+          this.image = game.assets[data.image];
+          data.scene.addChild(this);
+      }
+    });
+ 
+    var Power = Class.create(Sprite, {
+      initialize: function(w, h, image, scene) {
+        Sprite.call(this, w, h);
+        this.image = game.assets[image];
+        scene.addChild(this);
+      }
+    });
+ 
+
+    // Gohan
+    var player = new Player({
+    w: 63, h: 97, scene: scene, image: gohan
+    });
+ 
+    player.frame = [0, 1];
+    player.x = ((game.width/2)-(player.width/2))-200;
+    player.y = 250;
+    player.tl.scaleTo(1.5, 1.5, 50);
+ 
+   player.onenterframe = function() {
+     if (this.age &amp;gt;= 50) this.frame = [2, 3, 4];
+     if (this.age % 10 == 0) 
+    this.tl.moveBy(50,0,10).moveBy(-50,0,10).loop();
+   }
+ 
+   player.addEventListener(Event.TOUCH_START,function(evt){
+     var power = new Power(133, 61, powerImage, scene);
+     power.x = evt.x;
+     power.y = evt.y;
+
+     power.addEventListener(&#39;enterframe&#39;, function() {
+       this.x += 2;
+       if (this.intersect(enemy)) {
+         scene.removeChild(enemy);
+         player.frame = 0;
+       }
+     });
+   });
+ 
+   // Freeza
+   var enemy = new Player({
+     scene: scene, w: 65, h: 85, image: freeza
+   });
+ 
+   enemy.x = 400;;
+   enemy.y = 180;
+   enemy.tl.scaleTo(-1, 1, 1);
+   enemy.tl.scaleTo(-3,3, 100);
+ 
+   enemy.onenterframe = function() {
+     if (this.age &amp;gt;= 50) this.frame = [2, 3, 4];
+     if (this.age%10==0) this.tl.moveBy(0,-50,10).moveBy(0,50,10).loop();
+   }
+
+ }
+ game.start();
+}
+
+ window.addEventListener(&#39;load&#39;, initialize, false);
+}).apply(this);
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;a href=&#34;http://plnkr.co/edit/7F6ytf&#34; target=&#34;_blank&#34;&gt;Veja o exemplo com dois personagens no Plunker&lt;/a&gt;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Neste segundo exemplo, temos funções novas:&lt;/p&gt;
+
+&lt;h3 id=&#34;class-create&#34;&gt;Class.create()&lt;/h3&gt;
+
+&lt;p&gt;Este método recebe dois argumentos (classe e objeto). O objeto utiliza a propriedade &lt;em&gt;initialize&lt;/em&gt; para executar o objeto quando é criado como um construtor. Outras propriedades funcionam como eventos:&lt;/p&gt;
+
+&lt;pre&gt;Class.create(Class,{initialize:function(){},onenterframe:function(){}});&lt;/pre&gt;
+
+&lt;p&gt;Dentro do &lt;em&gt;initialize&lt;/em&gt;, precisamos chamar a classe com &lt;em&gt;call&lt;/em&gt; ou &lt;em&gt;apply&lt;/em&gt; e seguir o mesmo padrão do exemplo 1 ao criar um objeto.&lt;/p&gt;
+
+&lt;h3 id=&#34;intersect&#34;&gt;intersect()&lt;/h3&gt;
+
+&lt;p&gt;Esta função facilita a nossa vida, detectando uma colisão. Só é preciso usar este método em um objeto e passar ao outro como argumento. Exemplo:&lt;/p&gt;
+
+&lt;pre&gt;player.intersect(enemy); // true ou false&lt;/pre&gt;
+
+&lt;p&gt;Isto nos poupa de fazer uma lógica como esta:&lt;/p&gt;
+
+&lt;pre&gt;function intersect(t, other) {
+  return t.x &amp;lt; other.x + other.width
+    &amp;&amp; other.x &amp;lt; t.x + t.width 
+    &amp;&amp; t.y &amp;lt; other.y + other.height 
+    &amp;&amp; other.y &amp;lt; t.y + t.height;
+}
+&lt;/pre&gt;
+
+&lt;pre&gt;intersect(player, enemy); // true ou false&lt;/pre&gt;
+
+&lt;p&gt;Apesar deste ser um exemplo simples de como criar um jogo em HTML5, a &lt;a href=&#34;http://enchantjs.com/resource/api-documentation/&#34; target=&#34;_blank&#34;&gt;documentação&lt;/a&gt; do enchant.js é bastante completa, e tem muita coisa que permite ser incorporada para tornar nosso exemplo mais dinâmico e interativo.&lt;/p&gt;
+
+&lt;p&gt;Confira mais &lt;a href=&#34;http://enchantjs.com/pt-br/&#34; target=&#34;_blank&#34;&gt;demos&lt;/a&gt; no site, os &lt;a href=&#34;http://enchantjs.com/tutorial/lets-start-with-enchant-js/&#34; target=&#34;_blank&#34;&gt;tutoriais&lt;/a&gt; e os &lt;a href=&#34;http://enchantjs.com/showcase/games-on-9leap-net/&#34; target=&#34;_blank&#34;&gt;jogos já desenvolvidos&lt;/a&gt; com a plataforma.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Cobertura Campus Party Brasil 2014 – Parte 2</title>
+      <link>http://tableless.com.br/cobertura-campus-party-brasil-2014-parte-2/</link>
+      <pubDate>Tue, 04 Feb 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/cobertura-campus-party-brasil-2014-parte-2/</guid>
+      <description>
+
+&lt;p&gt;Continuando com a &lt;a href=&#34;http://tableless.com.br/campus-party-brasil-2014-primeiro-dia/&#34;&gt;cobertura&lt;/a&gt; da &lt;a href=&#34;http://www.campus-party.com.br/2014/index.html&#34;&gt;Campus Party Brasil 2014 (CPBr7)&lt;/a&gt;, trago os destaques do segundo dia de palestras (&lt;sup&gt;29&lt;/sup&gt;&amp;frasl;&lt;sub&gt;01&lt;/sub&gt;). A experiência com a Campus Party é algo tão imersivo que sequer havia conseguido realizar a cobertura dos dias restantes, mas vamos lá!&lt;/p&gt;
+
+&lt;h2 id=&#34;a-nova-geração-de-smartphones-com-firefox-os&#34;&gt;A nova geração de smartphones com Firefox OS&lt;/h2&gt;
+
+&lt;p&gt;André Garzia, da Comunidade Mozilla Brasil, apresentou as vantagens e os primeiros passos para construir aplicativos para o Firefox OS, o sistema operacional da Mozilla para dispositivos móveis (por enquanto, apenas para smartphones) desenvolvido com tecnologias web.&lt;/p&gt;
+
+&lt;p&gt;O primeiro colocado foi que já comentei no &lt;a href=&#34;http://tableless.com.br/campus-party-brasil-2014-primeiro-dia/&#34;&gt;post anterior&lt;/a&gt; com a palestra “_The Web is dead. Long live the Web_”: a Apple é uma das maiores fabricantes de smartphones e controla totalmente a plataforma, tendo uma rígida política de controle. Ela decide quais aplicativos podem ou não entrar na App Store, por parâmetros de utilidade estabelecidos por eles. Apesar de o Android ser uma plataforma mais aberta neste sentido, faltam informações sobre o versionamento da plataforma e algumas versões não disponibilizam o código aberto, dificultando até o suporte dos desenvolvedores aos seus aplicativos desenvolvidos.&lt;/p&gt;
+
+&lt;p&gt;Já com o Firefox OS (FFOS), temos o pensamento &lt;em&gt;open-source&lt;/em&gt; desde o começo. Ele permite ao desenvolvedor distribuir os seus programas facilmente e trouxe a liberdade da web para um sistema operacional mobile, uma vez que é construído com JS, inclusive para controlar hardware, tendo como suporte o uso do kernel do Linux. Além disso, todo o código está no Github desde o começo, demonstrando a transparência.&lt;/p&gt;
+
+&lt;p&gt;Os aplicativos desenvolvidos para FFOS possuem três possibilidades de níveis de acesso:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Apps hospedados:&lt;/strong&gt; são os aplicativos normais e com menos exigências para publicações no &lt;em&gt;marketplace&lt;/em&gt;;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Apps privilegiados:&lt;/strong&gt; aplicativos que possuem acessos a mais APIs, porém, devem ser empacotados;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Apps certificados:&lt;/strong&gt; aplicativos que possuem acesso total ao hardware e são desenvolvidos exclusivamente por engenheiros da Mozilla. Algumas APIs privilegiadas que estes aplicativos podem acessar envolvem a API do discador, a BrowserAPI, a TCP Sockets API e a Device Storage API.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;André também comentou sobre o manifesto da App, que é um arquivo semelhante a um JSON contendo o nome do app, a descrição, o arquivo que é carregado no &lt;em&gt;launch&lt;/em&gt;, ícones, informações do desenvolvedor e permissões. Ele também mostrou como é possível utilizar poucas linhas de código é possível realizar funções que seriam mais complexas em outros ambientes, como pegar uma imagem do telefone. Isto é possível com o &lt;em&gt;web activity&lt;/em&gt;, que delega uma função para outro aplicativo.&lt;/p&gt;
+
+&lt;p&gt;Para simular o uso do FFOS, há um simulador como complemento para o Firefox. Esta é mais uma vantagem: para desenvolver apps para FFOS, tudo o que o desenvolvedor precisa é de um bom editor de textos e do simulador.&lt;/p&gt;
+
+&lt;p&gt;Por fim, como monetizar estes aplicativos? Primeiro, não é preciso utilizar o Marketplace e você pode optar por ter um aplicativo pago ou gratuito. Além disso, você pode colocar itens a serem comprados dentro do seu aplicativo.&lt;/p&gt;
+
+&lt;p&gt;Outra vantagem é que os apps funcionam no Android via Firefox for Android e também no desktop via Firefox Aurora.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=X4-RsX9Dvnc&#34;&gt;Assista ao vídeo&lt;/a&gt; da palestra.&lt;/p&gt;
+
+&lt;h2 id=&#34;desenvolvimento-de-jogos-com-construct2&#34;&gt;Desenvolvimento de jogos com Construct2&lt;/h2&gt;
+
+&lt;p&gt;Fernando Chamis apresentou um workshop introdutório sobre como utilizar o &lt;a href=&#34;https://www.scirra.com/construct2&#34;&gt;Construct2&lt;/a&gt;, uma IDE para a criação de jogos em HTML5. O Construct possibilita facilmente a criação de &lt;em&gt;sprites&lt;/em&gt; e o desenvolvimento dos componentes do jogo em camadas (&lt;em&gt;layers&lt;/em&gt;).&lt;/p&gt;
+
+&lt;p&gt;A interface do Construct é similar a de IDEs de desenvolvimento de software como o Visual Studio ou o Eclipse. Você pode visualizar em alguns painéis os diretórios do seu projeto para os componentes do jogo, as camadas de objetos e, geralmente à esquerda, o painel de propriedades do elemento selecionado, onde você pode alterar atributos e configurações, inclusive do jogo como um todo (tamanho do palco, etc).&lt;/p&gt;
+
+&lt;p&gt;Quanto à programação e configuração, os jogos são compostos basicamente de &lt;em&gt;Layouts&lt;/em&gt; e &lt;em&gt;Event Sheets&lt;/em&gt;. O layout é interessante para inserir o layout padrão de um &lt;em&gt;level&lt;/em&gt; ou da tela inicial, por exemplo. E a &lt;em&gt;Event Sheet&lt;/em&gt; é onde contém os comportamentos dos personagens, NPCs e demais partes do jogo.&lt;/p&gt;
+
+&lt;p&gt;O interessante da ferramenta é possibilitar integração com times multidisciplinares, uma das coisas mais complexas. Para empresas que ainda estão em fase de migração do Flash para o HTML5, é uma boa a utilização do Construct.&lt;/p&gt;
+
+&lt;h2 id=&#34;lean-ux&#34;&gt;Lean UX&lt;/h2&gt;
+
+&lt;p&gt;O Horácio Soares, especialista em acessibilidade digital e que dispensa maiores apresentações, trouxe o conceito de Lean UX, que traz o conceito do Lean (metodologia de processos enxutos) e do Agile (Métodos Ágeis) para trazer uma ênfase maior em entregar e na experiência real que está sendo projetada.&lt;/p&gt;
+
+&lt;p&gt;Mas antes de falar disso, Horácio falou dos diversos problemas de usabilidade e acessibilidade que encontramos e que (ainda) cometemos ao projetar a experiência do usuário: &lt;em&gt;captcha&lt;/em&gt;, menus &lt;em&gt;dropdowns&lt;/em&gt;, o famoso uso do “clique aqui”, entre outros. O que nos faz pensar: como estamos fazendo UX no momento? Como estamos testando e validando nossas interfaces? Será que estamos mais preocupados em gerar um imenso inventário de documentações e estamos nos perdendo no processo de projetar a experiência de uso?&lt;/p&gt;
+
+&lt;p&gt;Horácio ainda pontuou algo com o qual sempre concordei: devemos tomar cuidado com as tendências de desenvolvimento de interfaces: &lt;em&gt;parallax&lt;/em&gt;, &lt;em&gt;one single page&lt;/em&gt;, modal e, um dos mais frustrantes, &lt;em&gt;carousel&lt;/em&gt; automático. As tendências sempre devem ser utilizadas com cautela, pois podem não se aplicar a determinados públicos e o pior, elas podem estar incorretas e propagando alguma prática ruim. Na ânsia de projetarmos uma boa interface seguindo o modelo mental esperado do usuário, utilizamos padrões que nem sempre se aplicam.&lt;/p&gt;
+
+&lt;p&gt;É importante, dessa forma, testar e validar com os seus usuários e partes interessadas, mas, tendo a vista a complexidade dos processos de UX, acabamos nos concentrando mais em documentos e artefatos do que em testes e validações, pois o tempo fica escasso.&lt;/p&gt;
+
+&lt;p&gt;É nesse ponto que a Lean UX entra em ação, pois propõe um alinhamento entre a área de negócios e o UX designer: um dos primeiros passos é &lt;strong&gt;observar&lt;/strong&gt; as necessidades dos usuários e analisar os objetivos da empresa, ou seja, levar em conta o ponto de vista de todas as partes interessadas. Observar as necessidades dos usuários significa ir a campo ao invés de analisar por dados, pois nem sempre o que as pessoas dizem é o que elas fazem. A Lean UX é um caminho para o equilíbrio que fornece uma modelagem participativa e colaborativa.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;“Muitas empresas falam que trabalham com UX, mas não testam com pessoas”, Horácio Soares.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;O Lean UX também enxuga alguns processos e propõem menos ênfase em entregas/documentações e mais ênfase em projetar a experiência real. Não significa abrir mão de ter documentações, mas sim gerar artefatos de valor, úteis e, além disso, quebrar paradigmas ao trazer também o desenvolvedor para auxiliar a conceber a interface, algo que também apoio e concordo plenamente com o Horácio.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Na Lean UX, qualquer validação é útil.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;[slideshare id=30606324&amp;amp;doc=lean-ux-campusparty-140129224846-phpapp01]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=mNeV9gLwFL8&#34;&gt;Assista ao vídeo&lt;/a&gt; da palestra.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

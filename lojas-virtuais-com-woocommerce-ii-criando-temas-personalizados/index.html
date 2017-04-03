@@ -1,0 +1,529 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/lojas-virtuais-com-woocommerce-ii-criando-temas-personalizados/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/lojas-virtuais-com-woocommerce-ii-criando-temas-personalizados/">Lojas virtuais com WooCommerce II – Criando temas personalizados</a></h1>
+  <p class="tb-hero-p">
+    
+    Conheça o front-end do WooCommerce, aprenda a utilizar ganchos de ação e filtros, organize seu CSS e crie seu próprio layout de loja virtual.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/dani-guerrato">Dani Guerrato</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>O <a href="http://www.woothemes.com/woocommerce/" title="WooCommerce">WooCommerce</a> é um plugin capaz de transformar qualquer site desenvolvido em WordPress em uma loja virtual super potente. Mas para adaptar o seu tema para o sistema e garantir que o seu layout seja visualizado corretamente existem alguns truques, funções e ações fundamentais para que tudo funcione direitinho. A documentação oficial, embora bem completa, pode ser um pouco confusa pois não está organizada em uma ordem cronológica.  Pensando nisto preparei este artigo recheado de dicas úteis para que você possa criar temas em WooCommerce facilmente. Vamos a ele!</p>
+
+<h4 id="aviso-aos-navegantes">Aviso aos navegantes!</h4>
+
+<p>Para compreender este artigo você precisará de dois requisitos básicos:</p>
+
+<ol>
+<li><p>Saber <a href="http://codex.wordpress.org/Theme_Development" title="Wordpress Codex - Theme Development">criar temas para WordPress</a>.</p></li>
+
+<li><p>Conhecer as <a href="http://tableless.com.br/lojas-virtuais-com-woocommerce/#.UnLaEJTXQv4" title="Lojas virtuais com WooCommerce">funções básicas do WooCommerce</a>.</p></li>
+</ol>
+
+<h3 id="utilizando-seu-próprio-tema">Utilizando seu próprio tema</h3>
+
+<p>Existem duas opções básicas para ter um tema personalizado: baixar um tema padrão do WooCommerce e realizar modificações na estrutura ou instalar o plugin em um tema comum de WordPress. Vamos trabalhar com a segunda opção por fins didáticos. Mas eu recomendo experimentar as duas possibilidades para que você possa escolher a sua favorita.</p>
+
+<p>O WooCommerce teoricamente é desenvolvido para funcionar corretamente com qualquer tema de WordPress. Tudo que você precisa fazer, teoricamente, é instalar o plugin e copiar os arquivos da pasta <strong>wp-content/plugins/woocommerce/templates/ </strong>para <strong>/wp-content/themes/nomedoseutema</strong>.</p>
+
+<p>Mas é claro. Se fosse simples assim não iríamos precisar deste artigo, certo?  É bem provável que o seu tema fique um Frankenstein desconfigurado, o layout quebre ou até mesmo simplesmente não funcione. Mas, para tudo tem uma solução! Hoje vamos aprender como modificar a estrutura do WooCommerce para que você possa ter uma loja virtual customizada para chamar de sua.</p>
+
+<h2 id="o-meu-tema-não-oferece-suporte-ao-woocommerce-e-agora">O meu tema não oferece suporte ao WooCommerce. E agora?</h2>
+
+<p>Se você acabou de instalar o WooCommerce em um tema não-padrão é provável que aparece uma a mensagem em roxo como &#8220;<em>Seu tema não oferece suporte ao WooCommerce – Se você encontrar problemas de design, por favor, leia o guia de integração ou escolha um tema do WooCommerce 🙂</em>&#8220;. Isto acontece pois seu tema pode estar utilizando uma estrutura muito diferente e o plugin não tem como adivinhar que página é o que&#8230; Não entre em pânico. Existem duas maneiras para solucionar este problema: substituir a estrutura do seu tema e/ou utilizar hooks.</p>
+
+<h3 id="substituindo-o-loop">Substituindo o loop</h3>
+
+<ol>
+<li><p>Duplique o arquivo <strong>page.php</strong> do tema (ou o tipo de página personalizada que você deseja utilizar) e renomeio o arquivo para <strong>woocommerce.php</strong>. A localização dele deve ser a seguinte <strong>wp-content/themes/nomedoseutema/woocommerce.php</strong>.</p></li>
+
+<li><p>Procure pelo loop do seu post. Normalmente é algo parecido com:</p></li>
+</ol>
+
+<pre>&lt;?php if ( have_posts() ) :
+...
+&lt;?php endif; ?&gt;</pre>
+
+<p>&nbsp;</p>
+
+<ol>
+<li>Substitua este código por:</li>
+</ol>
+
+<pre>&lt;?php woocommerce_content(); ?&gt;</pre>
+
+<p>&nbsp;</p>
+
+<ol>
+<li>Pronto! Sua loja já deve estar funcionando. Por padrão, utilizando o WooCommerce em português, a url ficará em www.seudominio.com.br/loja.</li>
+</ol>
+
+<p>Substituir o loop é rápido e fácil. O ponto contra desta saída é que todos os tipos de post e taxonomias do WooCommerce ficarão com o mesmo layout&#8230; Se você quiser criar templates diferentes para cada seção será necessário partir para a próxima etapa.</p>
+
+<h2 id="utilizando-hooks">Utilizando Hooks</h2>
+
+<p>O WooCommerce (assim como o próprio WordPress) trabalha utilizando uma estrutura de hooks ou, em português, ganchos. A idéia aqui é chamar um determinado elemento de forma rápida através de uma função. Desta maneira você pode manipular o código (e criar suas próprias páginas), sem necessariamente modificar os arquivos do core. Esta solução é mais complexa e flexível do que simplesmente substituir o loop, mas também pode ser um pouco mais complicada se você for um iniciante.</p>
+
+<p>Primeiro é necessário desconectar os ganchos padrões do WooCommerce. Para isto basta acrescentar estas linhas no arquivo <strong>functions.php</strong></p>
+
+<pre>remove_action( 'woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10);
+remove_action( 'woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10);</pre>
+
+<p>&nbsp;</p>
+
+<p>Depois conecte suas próprias funções para mostrar o conteúdo do seu tema. Por exemplo:</p>
+
+<p>&nbsp;</p>
+
+<pre>add_action('woocommerce_before_main_content', 'my_theme_wrapper_start', 10);
+add_action('woocommerce_after_main_content', 'my_theme_wrapper_end', 10);
+
+function my_theme_wrapper_start() {
+  echo '&lt;section id="main"&gt;';
+}
+
+function my_theme_wrapper_end() {
+  echo '&lt;/section&gt;';
+}</pre>
+
+<p>&nbsp;</p>
+
+<p>Não esqueça de substituir as classes e IDs pelas seções do seu tema.</p>
+
+<h3 id="criando-hooks-personalizados">Criando hooks personalizados</h3>
+
+<p>O WooCommerce é um plugin bem completo. Mas as vezes você deseja inserir alguma funcionalidade diferente da do tema padrão. Você pode fazer isto criando novos hooks personalizados através do arquivo <strong>functions.php</strong>.</p>
+
+<p>Existem dois tipos de hooks: ganchos de ações e ganchos de filtros.</p>
+
+<h4 id="action-hooks">Action hooks</h4>
+
+<p>Permite que você insira um código customizado. Você pode criar os seus próprios ganchos de ação através do arquivo <strong>functions.php</strong>. Para isto basta seguir esta estrutura:</p>
+
+<pre>add_action('action_name', 'your_function_name');
+function your_function_name() {
+// Seu código
+}</pre>
+
+<p>&nbsp;</p>
+
+<p>Então chame a função no seu layout obedecendo a seguinte sintaxe:</p>
+
+<pre>do_action(‘action_name’);</pre>
+
+<h4 id="filter-hooks">Filter Hooks</h4>
+
+<p>Os ganchos de filtros servem para retornar e/ou manipular uma determinada variável, como por exemplo o preço de um produto. De maneira bem semalhante a ações, você pode criar seus próprios filtros através do nosso bom e velho amigo <strong>functios.php</strong></p>
+
+<pre>add_filter('filter_name', 'your_function_name');
+function your_function_name( $variable ) {
+// Seu código
+return $variable;
+}</pre>
+
+<p>E para chamar a função no seu layout:</p>
+
+<pre>apply_filter(‘filter_name’, $variable);</pre>
+
+<p>Mas nem sempre é preciso reinventar a roda. O WooCommerce possui uma <a href="http://docs.woothemes.com/document/hooks/" title="WooThemes Hooks">lista bem grande de hooks</a> para diversas situações. A seção <a href="http://docs.woothemes.com/documentation/plugins/woocommerce/woocommerce-codex/snippets/" title="WooCommerce Snippets">snippets</a> da documentação do WooCommerce também possui hooks que podem ser úteis para o seu tema. Vale a pena favoritar e consultar antes de criar uma nova função.</p>
+
+<h2 id="estrutura-básica-de-um-template">Estrutura básica de um Template</h2>
+
+<p>Trabalhar com hooks é uma maneira prática de criar suas próprias páginas de template. Mas as vezes você quer simplesmente fazer uma modificação em alguma estrutura já existente. Na pasta <strong>/woocommerce/templates/</strong> você encontrará a estrutura do front-end da loja, bem como os templates para e-mail marketing do seu projeto.</p>
+
+<p>**archive-pro</p>
+
+<p>duct.php**</p>
+
+<p><strong>cart/</strong></p>
+
+<p>cart-empty.php</p>
+
+<p>cart.php</p>
+
+<p>cross-sells.php</p>
+
+<p>mini-cart.php</p>
+
+<p>shipping-calculator.php</p>
+
+<p>shipping-methods.php</p>
+
+<p>totals.php</p>
+
+<p><strong>checkout/</strong></p>
+
+<p>cart-errors.php</p>
+
+<p>form-billing.php</p>
+
+<p>form-checkout.php</p>
+
+<p>form-coupon.php</p>
+
+<p>form-login.php</p>
+
+<p>form-pay.php</p>
+
+<p>form-shipping.php</p>
+
+<p>review-order.php</p>
+
+<p>thankyou.php</p>
+
+<p><strong>content-product_cat.php</strong></p>
+
+<p><strong>content-product.php</strong></p>
+
+<p><strong>content-single-product.php</strong></p>
+
+<p><strong>emails/</strong></p>
+
+<p>admin-new-order.php</p>
+
+<p>customer-completed-order.php</p>
+
+<p>customer-invoice.php</p>
+
+<p>customer-new_account.php</p>
+
+<p>customer-note.php</p>
+
+<p>customer-processing-order.php</p>
+
+<p>customer-reset-password.php</p>
+
+<p>email-addresses.php</p>
+
+<p>email-footer.php</p>
+
+<p>email-header.php</p>
+
+<p>email-order-items.php</p>
+
+<p><strong>loop/</strong></p>
+
+<p>add-to-cart.php</p>
+
+<p>loop-end.php</p>
+
+<p>loop-start.php</p>
+
+<p>no-products-found.php</p>
+
+<p>orderby.php</p>
+
+<p>pagination.php</p>
+
+<p>price.php</p>
+
+<p>rating.php</p>
+
+<p>result-count.php</p>
+
+<p>sale-flash.php</p>
+
+<p><strong>myaccount/</strong></p>
+
+<p>form-change-password.php</p>
+
+<p>form-edit-address.php</p>
+
+<p>form-login.php</p>
+
+<p>form-lost-password.php</p>
+
+<p>my-account.php</p>
+
+<p>my-address.php</p>
+
+<p>my-downloads.php</p>
+
+<p>my-orders.php</p>
+
+<p><strong>order/</strong></p>
+
+<p>form-tracking.php</p>
+
+<p>order-details.php</p>
+
+<p>tracking.php</p>
+
+<p><strong>shop/</strong></p>
+
+<p>breadcrumb.php</p>
+
+<p>errors.php</p>
+
+<p>form-login.php</p>
+
+<p>messages.php</p>
+
+<p>sidebar.php</p>
+
+<p>wrapper-end.php</p>
+
+<p>wrapper-start.php</p>
+
+<p><strong>single-product/</strong></p>
+
+<p>add-to-cart/</p>
+
+<p>external.php</p>
+
+<p>grouped.php</p>
+
+<p>quantity.php</p>
+
+<p>simple.php</p>
+
+<p>variable.php</p>
+
+<p>meta.php</p>
+
+<p>price.php</p>
+
+<p>product-attributes.php</p>
+
+<p>product-image.php</p>
+
+<p>product-thumbnails.php</p>
+
+<p>related.php</p>
+
+<p>review.php</p>
+
+<p>sale-flash.php</p>
+
+<p>share.php</p>
+
+<p>short-description.php</p>
+
+<p>tabs/</p>
+
+<p>additional-information.php</p>
+
+<p>description.php</p>
+
+<p>tabs.php</p>
+
+<p>title.php</p>
+
+<p>up-sells.php</p>
+
+<p><strong>single-product-reviews.php</strong></p>
+
+<p><strong>single-product.php</strong></p>
+
+<p><strong>taxonomy-product_cat.php</strong></p>
+
+<p><strong>taxonomy-product_tag.php</strong></p>
+
+<p>Em tese basta editar estes arquivos para alterar a estrutura. Mas tome cuidado: se você simplesmente alterar e salvar por cima o seu tema vai funcionar, mas toda vez que o plugin for atualizado suas modificações serão perdidas… Se você quiser fazer alterações de forma segura duplique o arquivo desejado e salve na pasta <strong>nomedoseuthema/woocommerce/</strong>. Desta maneira você não perderá suas modificações em uma atualização futura.</p>
+
+<p>Ex: Vamos supor que você queira modificar o carrinho de compras. Copie o arquivo localizado em <strong>/templates/cart/cart.php</strong> para <strong>nomedoseutema/woocommerce/cart/cart.php</strong>.</p>
+
+<h2 id="modificando-o-css">Modificando o CSS</h2>
+
+<p>OK. Vamos supor que você já tenha editado todos os arquivos PHP e esteja satisfeito com a estrutura da loja. Mas o visual provavelmente está todo quebrado! É preciso agora modificar o CSS do seu tema para criar estilos de botões, links, texto, etc.</p>
+
+<p>Dentro da pasta <strong>assets/css/</strong> você vai encontrar duas folhas de estilo: woocommerce.less e woocommerce.css A versão .css está minificada, ou seja, o ideal é trabalhar com o arquivo pré-processado (extensão .less) e depois compilar (<a href="http://tableless.com.br/css-dinamico-com-less/#.UnLuApTXQv4" title="Css dinamico com less">saiba mais sobre LESS</a>). Se você não curte muito utilizar LESS não se preocupe! Você pode também descomprimir o css padrão.</p>
+
+<p>Aqui vale o mesmo conselho dos outros arquivos do tema: não sobrescreva os arquivos ou eles irão para o grande limbo da internet na próxima atualização do WooCommerce! Ao invés disto crie seus próprios arquivos CSS e/ou LESS a partir de cópias dos originais e desative as folhas antigas. Como fazer isto? Através do arquivo <strong>functions.php</strong>. Basta inserir a seguinte linha de código:</p>
+
+<pre>define('WOOCOMMERCE_USE_CSS', false);</pre>
+
+<p>&nbsp;</p>
+
+<p>Depois de desativado é só continuar trabalhando com a cópia dentro da pasta do seu tema (que você fez no inicio do parágrafo, lembra?)</p>
+
+<h2 id="declararando-seu-suporte-ao-woocommerce">Declararando seu suporte ao WooCommerce</h2>
+
+<p>Uma vez que você esteja satisfeito com o visual e as funcionalidades do seu tema, está na hora de remover aquela mensagem chatinha de erro (&#8220;seu tema não é compatível blá blá blá&#8230;&#8221;) e declarar o seu suporte ao WooCommerce. Para isto, basta colar esta linha de código no <strong>functions.php</strong></p>
+
+<pre>add_theme_support( 'woocommerce' );</pre>
+
+<p>&nbsp;</p>
+
+<p>E pronto! Agora é só realizar as configurações básicas, acrescentar produtos e começar a vender. Boa sorte! 🙂</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

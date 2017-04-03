@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/criando-aplicacoes-portaveis-entre-diferentes-sgbds-usando-pdophp-data-objects/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/criando-aplicacoes-portaveis-entre-diferentes-sgbds-usando-pdophp-data-objects/">Criando aplicações portáveis entre diferentes SGBDs usando PDO(PHP Data Objects)</a></h1>
+  <p class="tb-hero-p">
+    
+    Quero apresentar nesse artigo as principais funcionalidades do PDO. PDO é uma biblioteca que implementa abstração ao acesso dos dados, ou seja, ela utiliza um driver específico, para cada SGBD (Sistema Gerenciador de Banco de Dados), tornando possível a portabilidade da base de dados de sua aplicação, sem que a mesma sofra danos ou que você passe horas e horas reescrevendo linhas e mais linhas de código.
+O primeiro passo é habilitar o driver do PDO no php.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/anrahh">Anrahh</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      <p>Quero apresentar nesse artigo as principais funcionalidades do PDO. PDO é uma biblioteca que implementa abstração ao acesso dos dados, ou seja, ela utiliza um driver específico, para cada SGBD (Sistema Gerenciador de Banco de Dados), tornando possível a portabilidade da base de dados de sua aplicação, sem que a mesma sofra danos ou que você passe horas e horas reescrevendo linhas e mais linhas de código.</p>
+
+<p>O primeiro passo é habilitar o driver do PDO no php.ini retirando o &#8220;;&#8221; da sua frente;</p>
+
+<p>No Windows:</p>
+
+<pre>extension=php_pdo.dll
+extension=php_pdo_mysql.dll</pre>
+
+<p>No Linux:</p>
+
+<pre>extension=pdo.so
+extension=pdo_mysql.so
+</pre>
+
+<p>Consideremos o seguinte banco de dados:</p>
+
+<pre class="lang-sql">create database livraria;
+use livraria;
+create table livros(
+id int not null auto_increment,
+titulo varchar(75) not null,
+preco decimal(10,2) not null,
+estoque int not null,
+PRIMARY KEY (id));
+</pre>
+
+<p>Estabelecemos a conexão com o Banco de dados no nosso arquivo connect.php</p>
+
+<pre class="lang-php">//Local do banco
+$host = "localhost";
+//Nome do banco de dados
+$db = "livraria";
+//Seu Usuário no banco de dados
+$user = "root";
+//Senha do banco de dados
+$pass = "";
+//Estabelecendo a conexão
+try
+{
+  /**
+   *Agora o pulo do gato,aqui é onde a mágica acontece, precisamos especificar o banco de dados 
+que iremos trabalhar,no nosso caso, optei pelo mysql. Em seguida especificamos o local 
+e o nome do banco de dados e por último o usuário e a senha
+    */
+    $pdo = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+}
+catch (Exception $e)
+{
+    echo "Erro ao estabelecer conexão com o banco de dados:".$e-&gt;getMessage();
+    die;
+}
+</pre>
+
+<p>Para inserir no Banco de dados criamos o arquivo insert.php.</p>
+
+<pre class="lang-php">/**
+ * Insere conexão com o banco de dados estabelecida anteriormente 
+ */
+include 'connect.php';
+/**
+ * Variáveis que podem receber os valores do seu formulário
+ */
+ $titulo = "Padrões de Projeto - PHP";
+ $preco = 140.5;
+ $estoque = 5;
+
+try 
+{   /**
+    *Aqui preparamos primeiramente nossa instrução de inserção e como valores, 
+passamos as "?"(interrogações) para referencia-las com o parâmetro passado pela função bindParam. 
+    * */
+    $sql="INSERT INTO `livros` (`titulo`, `preco`, `estoque`) VALUES (?, ?, ?)";
+    $stmt = $pdo-&gt;prepare($sql);
+    $stmt-&gt;bindParam(1,$titulo);
+    $stmt-&gt;bindParam(2,$preco);
+    $stmt-&gt;bindParam(3,$estoque);
+    
+    if($stmt-&gt;execute())
+        echo "Gravado com Sucesso";
+    else
+        throw new Exception("Erro ao gravar informação");
+
+}
+catch (Exception $e) 
+{
+    echo $e-&gt;getMessage();   
+}
+</pre>
+
+<p>Para atualizar os arquivos no banco de dados utilizamos nosso arquivo update.php:</p>
+
+<pre>/**
+*   Inclusão da minha Conexão
+* */
+include 'connect.php';
+/**
+ * Variáveis que vem do seu formulário html  
+ */
+$titulo = "Padrões de Projeto - PHP";
+$preco = 60;
+$estoque = 5;
+try 
+{   
+       /**
+    *Aqui preparamos nossa instrução de atualização dos dados  
+    * */
+    $sql="UPDATE `livros` SET `preco` = ?, `estoque`= ? WHERE `titulo` = ?";
+    $stmt = $pdo-&gt;prepare($sql);
+    $stmt-&gt;bindParam(1,$preco);
+    $stmt-&gt;bindParam(2,$estoque);
+    $stmt-&gt;bindParam(3,$titulo);
+
+    if($stmt-&gt;execute())
+        echo "Atualizado com Sucesso";
+    else
+        throw new Exception('Erro ao Atualizar');
+
+} 
+catch (Exception $e) 
+{
+    echo $e-&gt;getMessage();   
+}
+</pre>
+
+<p>Para listar os dados no list.php:</p>
+
+<pre class="lang-php">include 'conect.php';
+   //listando os livros
+   $sql = "SELECT * FROM livros";
+   $dados = $pdo-&gt;query($sql);
+/**
+*fetch()-&gt;Retorna a próxima linha do resultado.
+*fetchAll()-&gt; Retorna um array com todos os resultados.
+*fetchObject()-&gt; Retorna a próxima linha do resultado como objeto.
+*fetchColumn()-&gt; Retorna uma coluna da próxima linha do resultado.
+**/
+while ($result = $dados-&gt;fetch())
+{   
+ echo $result['titulo'] . " - ". $result['preco']. "-". $result['estoque']."
+";
+}
+</pre>
+
+<p>E para deletar os arquivos criamos o delete.php:</p>
+
+<pre class="lang-php">/**
+ *  Inclusão da minha Conexão
+ **/
+include 'conect.php';
+/**
+ * Variáveis que vem do seu formulário html  
+ */
+$titulo = "Padrões de Projeto - PHP";
+$preco = 60;
+$estoque = 5;
+
+try 
+{   
+    /**
+    * Aqui preparamos nossa instrução de exclusão dos dados.  
+    **/
+      $sql="DELETE FROM `livros` WHERE `titulo` = ?";
+    $stmt = $pdo-&gt;prepare($sql);
+    $stmt-&gt;bindParam(1,$titulo);
+
+    if($stmt-&gt;execute())
+        echo "Deletado com Sucesso";
+    else
+        throw new Exception('Erro ao Deletar');
+
+} 
+catch (Exception $e) 
+{
+    echo $e-&gt;getMessage();   
+}
+</pre>
+
+<p><strong>Métodos da classe PDO:</strong></p>
+
+<pre>exec int Utilizado para insert, update e delete
+query PDOStatement Utilizado para resultados tabulares, comando select.
+prepare PDOStatement Cria um prepared statement, utilizado para dados variáveis.
+</pre>
+
+<p>Trabalhar com PDO tem várias vantagens, além da portabilidade, existe também a questão da segurança, mas isso é cena para os próximos capítulos. Aconselho que visitem a <a href="http://php.net/manual/pt_BR/class.pdostatement.php">documentação</a> para que possam ter acesso a informação completa da biblioteca, pois a mesma é muito rica e fornecerá ao desenvolvedor inúmeras vantagens que facilitarão no dia a dia do seu desenvolvimento. Obrigado ^^!</p>
+
+<p><a href="https://github.com/Anrahh/pdo_tableless">clique aqui para baixar o código completo.</a></p>
+
+<p><strong>Referências</strong></p>
+
+<p><a href="http://www.diogomatheus.com.br/blog/php/trabalhando-com-pdo-no-php/">http://www.diogomatheus.com.br/blog/php/trabalhando-com-pdo-no-php/</a></p>
+
+<p><a href="http://php.net/manual/en/book.pdo.php">http://php.net/manual/en/book.pdo.php</a></p>
+
+<p><a href="http://www.php.net/manual/en/pdo.drivers.php">http://www.php.net/manual/en/pdo.drivers.php</a></p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

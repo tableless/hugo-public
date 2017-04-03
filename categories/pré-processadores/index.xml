@@ -1,0 +1,3072 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Pré Processadores on Tableless</title>
+    <link>http://tableless.com.br/categories/pr%C3%A9-processadores/index.xml</link>
+    <description>Recent content in Pré Processadores on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/categories/pr%C3%A9-processadores/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Analisando o código Stylus de um projeto</title>
+      <link>http://tableless.com.br/iniciando-com-o-pre-processador-stylus/</link>
+      <pubDate>Fri, 18 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/iniciando-com-o-pre-processador-stylus/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-é-um-pré-processador-css&#34;&gt;&lt;strong&gt;O que é um pré-processador CSS?&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Como o nome ja diz, é uma linguagem que precisa ser pré-processada por um &lt;em&gt;parser&lt;/em&gt; para assim gerar o arquivo de extensão &lt;strong&gt;.css&lt;/strong&gt; que será renderizado pelo browser. Atualmente há vários pré-processadores que você pode utilizar para facilitar a codificação e reaproveitamento de código, você pode estar utilizando SASS, LESS e Stylus que são os mais conhecidos no mercado. A diferença do &lt;a href=&#34;http://stylus-lang.com/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;Stylus&lt;/a&gt; para os outros pré-processadores que estão sendo utilizados no mercado é que ele já é baseado em &lt;a href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;NodeJS&lt;/a&gt; e não em ruby. Por conta disso não há necessidade de uma tecnologia intermediária em seu workflow para processá-lo.&lt;/p&gt;
+
+&lt;h2 id=&#34;vamos-começar&#34;&gt;Vamos começar!&lt;/h2&gt;
+
+&lt;p&gt;Tendo em mente que você ja conhece um pouco sobre pré-processadores e algumas de suas vantagens (variáveis, mixins, operadores, funções) vamos criar um projeto utilizando algumas dessas funcionalidades.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Faça o download do &lt;a href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;strong&gt;NodeJS&lt;/strong&gt;&lt;/a&gt; e efetue a instalação&lt;strong&gt;;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Considerando que tenha o node rodando em seu sistema, instale o &lt;strong&gt;Stylus &lt;/strong&gt;de forma global e execute o seguinte comando em seu terminal &lt;strong&gt;npm install -g stylus&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Vamos criar a estrutura de diretórios de nosso projeto:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/director.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Após ter seu diretório criado de acordo com a estrutura da imagem acima, você pode acessá-lo via terminal com o comando &lt;strong&gt;cd /seu-diretorio&lt;/strong&gt; e na sequência executar o compilador stylus da seguinte maneira:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;stylus -w a&lt;/code&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;parâmetros&#34;&gt;&lt;strong&gt;Parâmetros&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;-w (Observar alterações nos arquivos .styl e re-compilar gerando os arquivos resultantes .css);&lt;/li&gt;
+&lt;li&gt;-o (Após este parâmetro deve ser passado o caminho que deve ser salvo o arquivo compilado);&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;desmistificando-a-estrutura&#34;&gt;Desmistificando a Estrutura&lt;/h2&gt;
+
+&lt;h3 id=&#34;assets&#34;&gt;ASSETS&lt;/h3&gt;
+
+&lt;p&gt;Costumo sempre utilizar esta estrutura como raíz para os diretórios front-end principalmente pela facilidade em migrar para servidores independentes e também para evitar confusão entre o pessoal de back-end.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-css&#34;&gt;&lt;strong&gt;ASSETS/css&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;Arquivos gerados após executar o pré-processador, gerando assim os arquivos com extensão &lt;strong&gt;.css&lt;/strong&gt; prontos para utilização em seu código.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus&#34;&gt;ASSETS/stylus&lt;/h3&gt;
+
+&lt;p&gt;Neste diretório fica toda a nossa organização de diretórios e arquivos .styl (Extensão utilizada pelo &lt;strong&gt;Stylus&lt;/strong&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-base-tipografia-reset-variáveis-cores&#34;&gt;ASSETS/stylus/base (Tipografia, reset, variáveis, cores)&lt;/h3&gt;
+
+&lt;p&gt;O nome dos arquivos em si é bem descritivo, colors.styl para cores, variables.styl para variáveis reutilizáveis, typography.styl para definições de fonts e reset.styl (reset de elementos css).&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-components-pequenos-componentes&#34;&gt;ASSETS/stylus/components (Pequenos componentes)&lt;/h3&gt;
+
+&lt;p&gt;Utilizado para pequenos componentes como botões, formulários, modals e o que surgir de necessidade conforme o desenvolvimento de seu projeto.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-helpers-utilitários-para-seus-projetos&#34;&gt;ASSETS/stylus/helpers (Utilitários para seus projetos)&lt;/h3&gt;
+
+&lt;p&gt;Neste diretório geralmente são encontrados os seguintes arquivos: functions.styl, helpers.styl (classes utilitárias ex.: .pull-left, .show), mixins.styl (são blocos de códigos reutilizáveis semelhantes a funções).&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-layout-definições-do-seu-layout&#34;&gt;ASSETS/stylus/layout (Definições do seu layout)&lt;/h3&gt;
+
+&lt;p&gt;Você vai encontrar os arquivos com definições de estilo com a cara do seu layout, como header, footer e grid.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-theme-temas-do-projeto&#34;&gt;ASSETS/stylus/theme (Temas do projeto)&lt;/h3&gt;
+
+&lt;p&gt;Definições de temas do projeto. Caso o projeto tenha mais de um tema, é uma boa prática para manter a organização e facilidade de manutenção no código.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-main-styl&#34;&gt;ASSETS/stylus/main.styl&lt;/h3&gt;
+
+&lt;p&gt;Este é o arquivo primário que será lido pelo seu compilador, deve possuir todas as importações necessárias para gerar o arquivo .css resultante. Obs: Todos os arquivos all.styl servem para facilitar a importação no arquivo principal.&lt;/p&gt;
+
+&lt;h2 id=&#34;botando-a-mão-na-massa&#34;&gt;Botando a mão na massa&lt;/h2&gt;
+
+&lt;p&gt;Uma vez que você compreendeu a ideia dos diretórios criados e está com o compilador rodando corretamente, vamos ao código:&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-base&#34;&gt;assets/stylus/base&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;all.styl (Import de todos os arquivos do diretório)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;// Import all from base
+&amp;lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&amp;gt;@import&amp;lt;/a&amp;gt; ‘reset.styl’
+&amp;lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&amp;gt;@import&amp;lt;/a&amp;gt; ‘colors.styl’
+&amp;lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&amp;gt;@import&amp;lt;/a&amp;gt; ‘typography.styl’
+&amp;lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&amp;gt;@import&amp;lt;/a&amp;gt; ‘variables.styl’&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;colors.styl (Definições de cores do projeto)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;orange = #FF6347
+gray-darker = #AAAAAA
+gray-lighter = #EEEEEE
+lighter = #FFF
+darker = #444444
+blue = #0080FF
+blue-lighter = #1EC0FF
+yellow = #F9C00C
+red = #E71D36
+green = #3AC569
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;reset.styl (Foi utilizado o normalize.css)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://necolas.github.io/normalize.css/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;normalize.css&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;typography.styl (Definições de fonts)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;font-size-h1 = 40px
+font-size-h2 = 34px
+font-size-h3 = 28px
+line-height-h1 = 55px
+line-height-h2 = 46px
+line-height-h3 = 38px
+h1, h2, h3
+ color darker
+ font-weight bold
+h1
+ font-size font-size-h1
+ line-height line-height-h1
+ color darker
+ margin-bottom 30px
+h2
+ font-size font-size-h2
+ line-height line-height-h1
+h3
+ font-size font-size-h3
+ line-height line-height-h3
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;variables.styl (Variáveis reutilizáveis do projeto)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;// Font Weights
+light = 300
+regular = 400
+bold = 700&lt;/pre&gt;
+
+&lt;pre&gt;// Base Font
+base-font-family = ‘Open Sans’, sans-serif
+base-font-weight = light
+base-font-size = 20px
+base-line-height = 27px
+form-label-font-size = base-font-size
+form-field-font-size = 18px&lt;/pre&gt;
+
+&lt;pre&gt;// Buttons
+btn-font-weight = bold
+btn-default-border = gray-darker
+btn-default-color = darker
+btn-primary-color = lighter
+btn-success-color = lighter
+btn-danger-color = lighter
+btn-warning-color = lighter
+btn-info-color = lighter
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;assets-stylus-components&#34;&gt;assets/stylus/components&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;all.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;// Import all from components
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘buttons.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘forms.styl’&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;buttons.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;.btn
+ font-weight bold
+ padding 15px 27px
+ border 1px solid transparent
+ display inline-block
+ cursor pointer
+ border-radius(5px)
+&amp;-info
+ &amp;-primary
+ &amp;-success
+ &amp;-danger
+ color lighter
+&amp;-default
+ color darker
+ border-color gray-darker
+ background-color lighter
+&amp;-primary
+ background-color blue
+ border-color blue
+&amp;:hover
+ &amp;:focus
+ background-color darken(blue, 20%)
+ border-color darken(blue, 20%)
+&amp;-info
+ background-color blue-lighter
+ border-color blue-lighter
+&amp;:hover
+ &amp;:focus
+ background-color darken(blue-lighter, 20%)
+ border-color darken(blue-lighter, 20%)
+&amp;-warning
+ background-color yellow
+ border-color yellow
+&amp;:hover
+ &amp;:focus
+ background-color darken(yellow, 20%)
+ border-color darken(yellow, 20%)
+&amp;-success
+ background-color green
+ border-color green
+&amp;:hover
+ &amp;:focus
+ background-color darken(green, 20%)
+ border-color darken(green, 20%)
+&amp;-danger
+ background-color red
+ border-color red
+&amp;:hover
+ &amp;:focus
+ background-color darken(red, 20%)
+ border-color darken(red, 20%)&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;forms.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;.form
+ &amp;__group
+ margin-bottom 20px
+&amp;__label
+ color darker
+ font-size form-label-font-size
+ font-weight bold
+ margin-bottom 10px
+&amp;__field
+ display block
+ width 100%
+ padding 6px 18px
+ height 60px
+ border 1px solid gray-darker
+ color darker
+ font-size form-field-font-size
+ border-radius(3px)
+&amp;:hover
+ &amp;:focus
+ border-color orange&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;helpers.styl (Utilitários do projeto)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;all.styl (Import de todos os arquivos do diretório)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;// Import all from helpers
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘functions.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘helpers.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘mixins.styl’&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;functions.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;make-media-queries-breakpoints()
+ for screen-width in screen-desktop-large screen-desktop screen-tablet screen-mobile
+ &lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: screen-width)
+ if (screen-width == screen-desktop-large)
+ .container
+ width container-desktop
+ else if (screen-width == screen-desktop)
+ .container
+ width container-tablet
+ else if (screen-width == screen-tablet)
+ .container
+ .columns
+ width container-mobile !important
+make-row()
+ margin 0 (-(grid-gutter-width / 2))
+calc-container-padding()
+ padding 0 (grid-gutter-width / 2)
+make-columns()
+ for i in grid-columns..0
+ .col-{i}
+ width percentage(i, grid-columns)
+.col-offset-{i}
+ margin-left percentage(i, grid-columns)
+percentage(index, divider)
+ if index == 0
+ 0
+ else
+ unit((index * 100) / divider, “%”)&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;helpers.styl (Classes utilitárias para uso no html)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;.pull-left
+ float left
+.pull-right
+ float right
+.show
+ display block
+.hide
+ display none
+.text-center
+ text-align center
+.text-left
+ text-align left
+.text-right
+ text-align right
+.absolute
+ position absolute
+.relative
+ position relative
+.in-block
+ display inline-block
+.center-block
+ margin 0 auto
+ display block
+.img-responsive
+ max-width 100%
+.clearfix
+ &amp;:before
+ &amp;:after
+ content “ “
+ display table
+&amp;:after
+ clear both&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;mixins.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;vendor(prop, args)
+ -webkit-{prop} args
+ -moz-{prop} args
+ {prop} args
+border-radius()
+ vendor(‘border-radius’, arguments)
+box-shadow()
+ vendor(‘box-shadow’, arguments)
+opacity(n)
+ opacity n
+ filter unquote(‘progid:DXImageTransform.Microsoft.Alpha(Opacity=’ + round(n * 100) + ‘)’)&lt;/pre&gt;
+
+&lt;h3 id=&#34;assets-stylus-layout&#34;&gt;assets/stylus/layout&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;header.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.header
+ background-color orange
+ padding 30px 0
+.header__img
+ max-width 150px&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;footer.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.footer
+ padding 40px 0
+ background-color darker
+ color lighter
+&amp; a
+ color lighter
+ &amp;:hover
+ color orange
+&amp; p
+ font-size 16px
+ line-height 22px
+ margin 0 0 10px 0
+&amp; .fa
+ color #E84545
+ margin 0 2px
+&amp; img
+ max-width 150px
+ &amp;:hover
+ opacity(0.6)&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;grid.styl (Sistema de grids utilizado no projeto)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;// Media Queries Breakpoints
+screen-desktop-large = 1200px
+screen-desktop = 992px
+screen-tablet = 768px
+screen-mobile = 480px
+// Grid System
+grid-columns = 12
+grid-gutter-width = 30px
+// Container Sizes
+container-desktop-large = 1170px
+container-desktop = 940px
+container-tablet = 720px
+container-mobile = 100%
+.container
+ width container-desktop-large
+ calc-container-padding()
+ margin 0 auto
+.row
+.columns
+ box-sizing border-box
+.row
+ make-row()
+&amp;:before
+ &amp;:after
+ content “ “
+ display table
+&amp;:after
+ clear both
+.columns
+ &lt;a title=&#34;Twitter profile for @extend&#34; href=&#34;http://twitter.com/extend&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@extend&lt;/a&gt; .relative
+ &lt;a title=&#34;Twitter profile for @extend&#34; href=&#34;http://twitter.com/extend&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@extend&lt;/a&gt; .pull-left
+ padding 0 (grid-gutter-width / 2)
+make-media-queries-breakpoints()
+make-columns()&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;login.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.content
+ padding-top 60px
+ padding-bottom 60px
+ min-height 470px
+&amp;__login
+ padding 30px
+ border-radius(3px)
+ background-color gray-lighter
+ box-shadow(0 0 5px rgba(0,0,0,0.09))
+ max-width 530px
+ background-color darker
+&amp; .form__label
+ &amp; h3
+ color lighter
+&amp; h3
+ margin-bottom 20px&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;assets/stylus/themes (Temas do projeto admin, padrão e quais forem necessários)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;default.styl (Tema padrão)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;*
+ vendor(‘box-sizing’, border-box)
+body
+ font-family base-font-family
+ font-weight base-font-weight
+ font-size base-font-size
+ line-height base-line-height
+ background-color lighter
+a
+ text-decoration none&lt;/pre&gt;
+
+&lt;h3 id=&#34;assets-stylus-main-styl-arquivo-principal&#34;&gt;assets/stylus/main.styl (Arquivo principal)&lt;/h3&gt;
+
+&lt;p&gt;Neste arquivo você deve efetuar todas as importações necessárias do seu projeto. Em nosso tutorial o arquivo ficou assim:&lt;/p&gt;
+
+&lt;pre&gt;&lt;a title=&#34;Twitter profile for @charset&#34; href=&#34;http://twitter.com/charset&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@charset&lt;/a&gt; “UTF-8”
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘base/all.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘helpers/all.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘components/all.styl’
+// Imports from layout
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘layout/grid.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘layout/header.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘layout/footer.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘layout/login.styl’
+// Import themes
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘themes/default.styl’&lt;/pre&gt;
+
+&lt;p&gt;Por fim, crie um arquivo &lt;strong&gt;index.html&lt;/strong&gt; na raíz de seu projeto com o seguinte código:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=”en”&amp;gt;
+&amp;lt;head&amp;gt;
+ &amp;lt;meta charset=”UTF-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Iniciando com Stylus&amp;lt;/title&amp;gt;
+&amp;lt;link href=”&lt;a href=&#34;https://fonts.googleapis.com/css?family=Open+Sans:300,400,700&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;https://fonts.googleapis.com/css?family=Open+Sans:300,400,700&lt;/a&gt;&#34; rel=”stylesheet”&amp;gt;
+&amp;lt;link rel=”stylesheet” href=”&lt;a href=&#34;https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css&lt;/a&gt;&#34;&amp;gt;
+&amp;lt;link rel=”stylesheet” href=”assets/css/main.css”&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+ &amp;lt;header class=”header”&amp;gt;
+ &amp;lt;div class=”container”&amp;gt;
+ &amp;lt;img class=”header__img img-responsive center-block” src=”assets/images/stylus-logo.png” alt=”” /&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;/header&amp;gt;
+&amp;lt;div class=”content container”&amp;gt;
+ &amp;lt;h1 class=”text-center”&amp;gt;Iniciando com Stylus&amp;lt;/h1&amp;gt;
+&amp;lt;div class=”content__login center-block”&amp;gt;
+ &amp;lt;h3 class=”text-center”&amp;gt;Acesse sua conta&amp;lt;/h3&amp;gt;
+&amp;lt;form action=”#”&amp;gt;
+ &amp;lt;div class=”form__group”&amp;gt;
+ &amp;lt;label for=”name” class=”form__label show”&amp;gt;Nome&amp;lt;/label&amp;gt;
+&amp;lt;input type=”text” name=”name” id=”name” class=”form__field”&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=”form__group”&amp;gt;
+ &amp;lt;label for=”email” class=”form__label show”&amp;gt;Email&amp;lt;/label&amp;gt;
+&amp;lt;input type=”text” name=”email” id=”email” class=”form__field”&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=”submit text-right”&amp;gt;
+ &amp;lt;button type=”submit” class=”btn btn-success”&amp;gt;
+ Submit
+ &amp;lt;/button&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;/div&amp;gt;
+&amp;lt;footer class=”footer text-center”&amp;gt;
+ &amp;lt;div class=”container”&amp;gt;
+ &amp;lt;p&amp;gt;
+ Feito com &amp;lt;i class=”fa fa-heart”&amp;gt;&amp;lt;/i&amp;gt; por &amp;lt;a href=”&lt;a href=&#34;http://helderburato.com/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;http://helderburato.com/&lt;/a&gt;”&amp;gt;Helder Burato Berto&amp;lt;/a&amp;gt;
+ &amp;lt;/p&amp;gt;
+&amp;lt;a class=”in-block” href=”&lt;a href=&#34;http://uilab.com.br/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;http://uilab.com.br/&lt;/a&gt;&#34;&amp;gt;
+ &amp;lt;img class=”img-responsive” src=”assets/images/uilab-logo.png” alt=””&amp;gt;
+ &amp;lt;/a&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;/footer&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;compreendendo-a-linguagem-stylus&#34;&gt;Compreendendo a linguagem Stylus&lt;/h2&gt;
+
+&lt;p&gt;Você pode observar que foram utilizados algumas particularidades da linguagem, que não são comuns para quem está acostumado apenas com CSS, sendo elas: &lt;strong&gt;&amp;amp;:&lt;/strong&gt; Usado para referenciar parcialmente um elemento citado anteriormente, por exemplo:&lt;/p&gt;
+
+&lt;pre&gt;.foo
+ color #000
+ &amp; a
+ color #fff&lt;/pre&gt;
+
+&lt;p&gt;Será compilado para:&lt;/p&gt;
+
+&lt;pre&gt;.foo {
+ color: #000;
+}
+.foo a {
+ color: #fff;
+}&lt;/pre&gt;
+
+&lt;p&gt;Você percebe o quanto isso é poderoso e tem utilidade?&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;border-radius():&lt;/strong&gt; Mixin definido para ser reutilizado e com possibilidade de uso com parâmetros.&lt;/p&gt;
+
+&lt;p&gt;Exemplo de uso:&lt;/p&gt;
+
+&lt;pre&gt;.foo
+ border-radius(5px)&lt;/pre&gt;
+
+&lt;p&gt;Será compilado para:&lt;/p&gt;
+
+&lt;pre&gt;.foo {
+ border-radius: 5px;
+ -webkit-border-radius: 5px;
+ -moz-border-radius: 5px;
+}&lt;/pre&gt;
+
+&lt;p&gt;Observe que foi gerado o código ja com os prefixos para outros browsers, facilitando na escrita.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;IF&lt;/strong&gt; e &lt;strong&gt;FOR:&lt;/strong&gt; Vamos descrever o uso de IF e for com uma função que foi utilizado no tutorial chamada &lt;strong&gt;make-media-queries-breakpoints()&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre&gt;make-media-queries-breakpoints()
+ for screen-width in screen-desktop-large screen-desktop screen-tablet screen-mobile
+ &lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: screen-width)
+ if (screen-width == screen-desktop-large)
+ .container
+ width container-desktop
+ else if (screen-width == screen-desktop)
+ .container
+ width container-tablet
+ else if (screen-width == screen-tablet)
+ .container
+ .columns
+ width container-mobile !important&lt;/pre&gt;
+
+&lt;p&gt;Nós utilizamos o FOR para percorrer as variáveis declaradas posteriormente e IF para modificar a width de nosso container principal de acordo com a media queria utilizada.&lt;/p&gt;
+
+&lt;p&gt;O código acima após a compilação:&lt;/p&gt;
+
+&lt;pre&gt;&lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: 1200px) {
+ .container {
+ width: 1170px;
+ }
+}
+&lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: 992px) {
+ .container {
+ width: 720px;
+ }
+}
+&lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: 768px) {
+ .container,
+ .columns {
+ width: 100%;
+ }
+}&lt;/pre&gt;
+
+&lt;h3 id=&#34;sintaxe&#34;&gt;Sintaxe&lt;/h3&gt;
+
+&lt;p&gt;Você provavelmente deve ter percebido que com Stylus não temos a necessidade do uso de &lt;strong&gt;{}&lt;/strong&gt; e&lt;strong&gt;;&lt;/strong&gt; nas declarações CSS, isso em prática ajuda muito na produtividade.&lt;/p&gt;
+
+&lt;h3 id=&#34;variáveis&#34;&gt;Variáveis&lt;/h3&gt;
+
+&lt;p&gt;Você pode declarar variáveis sem o uso de &lt;strong&gt;$&lt;/strong&gt; mas caso você já utilizou outros pré;-processadores, fica a seu crité;rio o uso dele ou não.&lt;/p&gt;
+
+&lt;p&gt;Bom espero que tenha conseguido compartilhar um pouco do que é; esta grande ferramenta e que lhe seja útil na hora de pensar em usar um pré;-processador.&lt;/p&gt;
+
+&lt;p&gt;Um grande abraço, obrigado!&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Link do Projeto: &lt;a href=&#34;https://helderburato.github.io/iniciando-stylus/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://helderburato.github.io/iniciando-stylus/&#34;&gt;https://helderburato.github.io/iniciando-stylus/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Git do Projeto: &lt;a href=&#34;https://github.com/helderburato/iniciando-stylus&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://github.com/helderburato/iniciando-stylus&#34;&gt;https://github.com/helderburato/iniciando-stylus&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Layout: &lt;a href=&#34;https://github.com/helderburato/iniciando-stylus/tree/master/sketch&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://github.com/helderburato/iniciando-stylus/tree/master/sketch&#34;&gt;https://github.com/helderburato/iniciando-stylus/tree/master/sketch&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Sass vs. LESS vs. Stylus: Batalha dos Pré-processadores</title>
+      <link>http://tableless.com.br/sass-vs-less-vs-stylus-batalha-dos-pre-processadores/</link>
+      <pubDate>Mon, 28 Mar 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/sass-vs-less-vs-stylus-batalha-dos-pre-processadores/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;Pré-processadores CSS3 são linguagens criadas com um único propósito de adicionar funcionalidades legais e criativas para o CSS sem quebrar a compatibilidade entre browsers. Os pré-processadores disponibilizam milhares de funcionalidades, e nesse artigo iremos falar sobre as mais utilizadas e conhecidas e algumas nem tanto conhecidas. Vamos começar:&lt;/p&gt;
+
+&lt;h2 id=&#34;sintaxe&#34;&gt;Sintaxe&lt;/h2&gt;
+
+&lt;p&gt;A parte mais importante ao escrever códigos utilizando um pré-processador é entender a sua sintaxe. Felizmente para nós, a sintaxe é (ou pode ser) idêntica à do CSS puro para os três pré-processadores.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-e-less&#34;&gt;Sass e LESS&lt;/h3&gt;
+
+&lt;p&gt;Ambos utilizam o a sintaxe padrão do CSS. Isso faz com que seja extremamente fácil converter um arquivo CSS já existente para qualquer um deles. Sass utiliza arquivos com extensão .scss e LESS com extensão .less. Uma configuração básica de um arquivo Sass ou LESS pode ser como abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.scss ou style.less */
+h1 {
+    color: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ter notado, isso é apenas CSS puro, que compila perfeitamente em ambos pré-processadores (Sass e LESS).&lt;/p&gt;
+
+&lt;p&gt;É importante notar que Sass também tem uma sintaxe mais antiga, que omite ponto e vírgula e as chaves. Ainda pode ser usado, mas como é uma sintaxe antiga, não iremos utilizá-la depois deste exemplo. A sintaxe utiliza arquivos com a extensão .sass e são da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.sass */
+h1
+    color: #0982c1
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Observação pessoal:&lt;/strong&gt; Essa sintaxe não é por causa de ser mais antiga e sim pois no início o &lt;strong&gt;Sass&lt;/strong&gt; era parte de um outro pré-processador chamado &lt;strong&gt;Haml&lt;/strong&gt; criado por desenvolvedores &lt;strong&gt;Ruby&lt;/strong&gt;, e por causa disso as folhas de estilo escritas com &lt;strong&gt;Sass&lt;/strong&gt; utilizavam uma sintaxe como a do &lt;strong&gt;Ruby&lt;/strong&gt;, sem chaves, ponto e vírgula e controlado por identação.&lt;/p&gt;
+
+&lt;h3 id=&#34;stylus&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;p&gt;A sintaxe para o Stylus é muito mais adaptável. Utiliza arquivos com extensão .styl, aceita a sintaxe padrão do CSS, porém também aceita algumas variações onde chaves, dois-pontos e ponto e vírgula são todos opcionais. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.styl */
+h1 {
+    color: #0982c1;
+}
+/* omitindo chaves */
+h1
+    color: #0982c1;
+
+/* omitindo dois-pontos e ponto e vírgula
+h1
+    color: #0982c1
+&lt;/pre&gt;
+
+&lt;p&gt;Utilizar diferentes variações em um mesmo arquivo também é válido, então o seguinte código seria compilado sem erros.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;h1 {
+    color #0982c1
+}
+h2
+    font-size: 1.2em
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;variáveis&#34;&gt;Variáveis&lt;/h2&gt;
+
+&lt;p&gt;Variáveis podem ser declaradas e usadas através das folhas de estilo. Elas podem ter qualquer valor que seja um valor em CSS (por exemplo: cores, números [unidades também], ou texto), e podem ser referenciadas em qualquer lugar das nossas folhas de estilo.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;p&gt;Variáveis em Sass tem seu nome começado o símbolo &amp;#8220;$&amp;#8221; e o nome e o seu valor são separados com dois-pontos, assim como uma propriedade CSS.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;$mainColor: #0982c1;
+$siteWidth: 1024px;
+$borderStyle: dotted;
+
+body {
+    color: $mainColor;
+    border: 1px $borderStyle $mainColor;
+    max-width: $siteWidth;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;p&gt;Varíaves em LESS são praticamente iguais as variáveis no Sass, exceto por começarem seus nomes com o símbolo &amp;#8220;@&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mainColor: #0982c1;
+@siteWidth: 1024px;
+@borderStyle: dotted;
+
+body {
+    color: @mainColor;
+    border: 1px @borderStyle @mainColor;
+    max-width: @siteWidth;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-1&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;p&gt;Variáveis em Stylus não precisam começar com nenhum símbolo, porém ele permite a utilização do símbolo &amp;#8220;$&amp;#8221;. Como sempre, o ponto e vírgula para finalizar não é necessário, mas um sinal de igual entre o nome da variável e seu valor é. Uma coisa importante para se notar é que na versão 0.22.4 do Stylus variáveis com nome começados com o símbolo &amp;#8220;@&amp;#8221; são compiladas, porém não aplicam seu valor quando referenciadas. Em oturas palavras, não faça isso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;mainColor = #0982c1;
+siteWidth = 1024px;
+$borderStyle = dotted;
+
+body
+    color mainColor
+    border 1px $borderStyle mainColor
+    max-width siteWidth
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Cada um dos arquivos acima irão compilar no mesmo CSS. Você pode usar sua imaginação para ver quão úteis variáveis podem ser. Não precisaremos mais ao mudar uma cor reescrever a mesma vinte vezes, ou querer mudar a largura de nosso site e ter de procurar por todo o site para fazer isso. Aqui está o CSS depois de compilado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    color: #0982c1;
+    border: 1px dotted #0982c1;
+    max-width: 1024px.
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;aninhamento&#34;&gt;Aninhamento&lt;/h2&gt;
+
+&lt;p&gt;Se precisarmos referenciar múltiplos elementos com o mesmo pai em nosso CSS, pode ser entediante ficar digitanto o pai toda vez.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+}
+section nav {
+    height: 25px;
+}
+section nav a {
+    color: #0982c1;
+}
+section nav a:hover {
+    text-decoration: underline;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao invés disso, usando um pré-processador, podemos escrever os seletores filhos dentro das chaves do elemento pai. O símbolo &amp;#8220;&amp;amp;&amp;#8221; é usado para referenciar o seletor pai.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-less-e-stylus&#34;&gt;Sass, LESS e Stylus&lt;/h3&gt;
+
+&lt;p&gt;Todos os três pré-processdores utilizam a mesma sintaxe para aninhar seletores.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+
+    nav {
+        height: 25px;
+
+        a {
+            color: #0982c1;
+
+            &amp;:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-1&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Abaixo está o CSS compilado do código escrito acima. Está exatamente igual ao mostrado no começo &amp;#8211; que conveniente!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+}
+section nav {
+    height: 25px;
+}
+section nav a {
+    color: #0982c1;
+}
+section nav a:hover {
+    text-decoration: underline;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;mixins&#34;&gt;Mixins&lt;/h2&gt;
+
+&lt;p&gt;Mixins são funções que permitem reusar propriedades através de nossas folhas de estilo. Ao invés de procurar por todas nossas folhas de estilo e mudar uma propriedade várias vezes, podemos apenas mudar dentro de nosso mixin. Isso pode ser realmente útil para estilização de elementos específicos e para &amp;#8220;vendor prefixes&amp;#8221; (moz-*, o-*, etc). Quando os mixins são chamados de dentro de um seletor CSS, os argumentos são reconhecidos e os estilos dentro do mixin são aplicados ao seletor.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-1&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em Sass chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+@mixin error($borderWidth: 2px) {
+    border: $borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    @include error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    @include error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-1&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em LESS chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+.error(@borderWidth: 2px) {
+    border: @borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    .error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    .error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-2&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em Stylus chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+error(borderWidth = 2px) {
+    border: borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-2&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Todos pré-processadores irão compilar o mesmo código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.generic-error {
+    padding: 20px;
+    margin: 4px;
+    border: 2px solid #f00;
+    color: #f00;
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    border: 5px solid #f00;
+    color: #f00;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;herança&#34;&gt;Herança&lt;/h2&gt;
+
+&lt;p&gt;Quando estamos escrevendo CSS da velha maneira, nós usaríamos o seguinte código para aplicar o mesmo estilo para múltiplos elementos de uma só vez:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;p,
+u,
+ol {
+    /* estilos aqui */
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Isso funciona perfeitamente, mas se depois precisássemos de estilizar os elementos individualmente, outro seletor deveria ser criado para cada um e rapidamente poderia ficar cada vez mais bagunçado e difícil de manter. Podemos utilizar herança para resolver isso. Herança é a habilidade de outros seletores CSS herdarem as propriedades de outro seletor.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-e-stylus&#34;&gt;Sass e Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+
+p {
+    @extend .block; /* Herda estilos do seletor &#39;.block&#39; */
+    border: 1px solid #eee;
+}
+ul, ol {
+    @extend .block; /* Herda estilos do seletor &#39;.block&#39; */
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-sass-e-stylus&#34;&gt;CSS Compilado (Sass e Stylus)&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block, p, ul, ol {
+    margin: 10px 5px;
+    padding: 2px;
+}
+p {
+    border: 1px solid #eee;
+}
+ul, ol {
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-2&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;p&gt;LESS não tem suporte a herança de estilos como Sass e Stylus. Ao invés de adicionar diversos seletores para um grupo de propriedades, ele trata herança como um mixin sem argumentos e importa os estilos para dentro de seus próprios seletores. O problema disso é que propriedades são repetidas em sua folha de estilo compilada. Abaixo segue como deve-se utilizar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+ 
+p {
+    .block; /* Herda estilos do seletor &#39;.block&#39; */
+    border: 1px solid #eee;
+}
+ul, ol {
+    .block; /* Herda estilos do seletor &#39;.block&#39; */
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Observação pessoal:&lt;/strong&gt; Como mencionado nos comentários, o LESS tem suporte a herança e pode ser feita com a seguinte sintaxe:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;p {
+        &amp;:extend(.block);
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-less&#34;&gt;CSS Compilado (LESS)&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+p {
+    margin: 10px 5px;
+    padding: 2px;
+    border: 1px solid #eee;
+}
+ul,
+ol {
+    margin: 10px 5px;
+    padding: 2px;
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ver, os estilos do seletor .block foram inseridas nos seletores que queríamos aplicar a herança. É importante notar que a prioridade das propriedades pode se tornar um problema, então devemos ter bastante cautela.&lt;/p&gt;
+
+&lt;h2 id=&#34;importação&#34;&gt;Importação&lt;/h2&gt;
+
+&lt;p&gt;Na comunidade CSs, importar CSS é visto com maus olhos por utilizar diversas chamadas HTTP. Importar com um pré-processador funciona de forma diferente no entanto. Se você importar um arquivo com qualquer um dos três pré-processadores, ele irá literalmente pegar todo o conteúdo do arquivo durante a importação e gerar apenas um arquivo. Lembre-se que arquivos .css comuns importados compilam com o código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@import &#34;file.css&#34;;
+&lt;/pre&gt;
+
+&lt;p&gt;Lembre-se também que mixins e variáveis podem ser importadas e usadas em sua folha de estilo principal. Importação faz com que possamos criar arquivos separados para uma melhor organização.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-less-e-stylus-1&#34;&gt;Sass, LESS e Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* arquivo.{extensao} */
+body {
+    background: #eee;
+}
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@import &#34;reset.css&#34;;
+@import &#34;arquivo.{extensao}&#34;;
+ 
+p {
+    background: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-3&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;h2 id=&#34;introdução-1&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;-&amp;gt;Pré-processadores produzem CSS que funciona em todos os browsers&lt;/p&gt;
+
+&lt;p&gt;Pré-processadores CSS3 são linguagens criadas com um único propósito de adicionar funcionalidades legais e criativas para o CSS sem quebrar a compatibilidade entre browsers. Eles fazem isso compilando o código que escrevemos em CSS puro que pode ser usado em qualquer browser de agora até a era das pedras. Os pré-processadores disponibilizam milhares de funcionalidades, e nesse artigo iremos falar sobre as mais utilizadas e conhecidas e algumas nem tanto conhecidas. Vamos começar&lt;/p&gt;
+
+&lt;h2 id=&#34;sintaxe-1&#34;&gt;Sintaxe&lt;/h2&gt;
+
+&lt;p&gt;A parte mais importante ao escrever códigos utilizando um pré-processador CSS é entender a sua sintaxe. Felizmente para nós, a sintaxe é (ou pode ser) idêntica à do CSS puro para os três pré-processadores.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-e-less-1&#34;&gt;Sass e LESS&lt;/h3&gt;
+
+&lt;p&gt;Ambos utilizam o a sintaxe padrão do CSS. Isso faz com que seja extremamente fácil converter um arquivo CSS já existente para qualquer um deles. Sass utiliza arquivos com extensão .scss e LESS com extensão .less. Uma configuração básica de um arquivo Sass ou LESS pode ser como abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.scss ou style.less */
+h1 {
+    color: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ter notado, isso é apenas CSS puro, que compila perfeitamente em ambos pré-processadores (Sass e LESS).&lt;/p&gt;
+
+&lt;p&gt;É importante notar que Sass também tem uma sintaxe mais antiga, que omite ponto e vírgula e as chaves. Ainda pode ser usado, mas como é uma sintaxe antiga, não iremos utilizá-la depois deste exemplo. A sintaxe utiliza arquivos com a extensão .sass e são da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.sass */
+h1 {
+    color: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-3&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;p&gt;A sintaxe para o Stylus é muito mais adaptável. Utiliza arquivos com extensão .styl, aceita a sintaxe padrão do CSS, porém também aceita algumas variações onde chaves, dois-pontos e ponto e vírgula são todos opcionais. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.styl */
+h1 {
+    color: #0982c1;
+}
+/* omitindo chaves */
+h1
+    color: #0982c1;
+
+/* omitindo dois-pontos e ponto e vírgula
+h1
+    color: #0982c1
+&lt;/pre&gt;
+
+&lt;p&gt;Utilizar diferentes variações em um mesmo arquivo também é válido, então o seguinte código seria compilado sem erros.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;h1 {
+    color #0982c1
+}
+h2
+    font-size: 1.2em
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;variáveis-1&#34;&gt;Variáveis&lt;/h2&gt;
+
+&lt;p&gt;Variáveis podem ser declaradas e usadas através das folhas de estilo. Elas podem ter qualquer valor que seja um valor em CSS (por exemplo: cores, números [unidades também], ou texto), e podem ser referenciadas em qualquer lugar das nossas folhas de estilo.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-2&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;p&gt;Variáveis em Sass tem seu nome começado o símbolo &amp;#8220;$&amp;#8221; e o nome e o seu valor são separados com dois-pontos, assim como uma propriedade CSS.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;$mainColor: #0982c1;
+$siteWidth: 1024px;
+$borderStyle: dotted;
+
+body {
+    color: $mainColor;
+    border: 1px $borderStyle $mainColor;
+    max-width: $siteWidth;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-3&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;p&gt;Varíaves em LESS são praticamente iguais as variáveis no Sass, exceto por começarem seus nomes com o símbolo &amp;#8220;@&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mainColor: #0982c1;
+@siteWidth: 1024px;
+@borderStyle: dotted;
+
+body {
+    color: @mainColor;
+    border: 1px @borderStyle @mainColor;
+    max-width: @siteWidth;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-4&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;p&gt;Variáveis em Stylus não precisam começar com nenhum símbolo, porém ele permite a utilização do símbolo &amp;#8220;$&amp;#8221;. Como sempre, o ponto e vírgula para finalizar não é necessário, mas um sinal de igual entre o nome da variável e seu valor é. Uma coisa importante para se notar é que na versão 0.22.4 do Stylus variáveis com nome começados com o símbolo &amp;#8220;@&amp;#8221; são compiladas, porém não aplicam seu valor quando referenciadas. Em oturas palavras, não faça isso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;mainColor = #0982c1;
+siteWidth = 1024px;
+$borderStyle = dotted;
+
+body
+    color mainColor
+    border 1px $borderStyle mainColor
+    max-width siteWidth
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-4&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Cada um dos arquivos acima irão compilar no mesmo CSS. Você pode usar sua imaginação para ver quão úteis variáveis podem ser. Não precisaremos mais ao mudar uma cor reescrever a mesma vinte vezes, ou querer mudar a largura de nosso site e ter de procurar por todo o site para fazer isso. Aqui está o CSS depois de compilado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    color: #0982c1;
+    border: 1px dotted #0982c1;
+    max-width: 1024px.
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;aninhamento-1&#34;&gt;Aninhamento&lt;/h2&gt;
+
+&lt;p&gt;Se precisarmos referenciar múltiplos elementos com o mesmo pai em nosso CSS, pode ser entediante ficar digitanto o pai toda vez.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+}
+section nav {
+    height: 25px;
+}
+section nav a {
+    color: #0982c1;
+}
+section nav a:hover {
+    text-decoration: underline;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao invés disso, usando um pré-processador, podemos escrever os seletores filhos dentro das chaves do elemento pai. O símbolo &amp;#8220;&amp;amp;&amp;#8221; é usado para referenciar o seletor pai.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-less-e-stylus-2&#34;&gt;Sass, LESS e Stylus&lt;/h3&gt;
+
+&lt;p&gt;Todos os três pré-processdores utilizam a mesma sintaxe para aninhar seletores.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+
+    nav {
+        height: 25px;
+
+        a {
+            color: #0982c1;
+
+            &amp;:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-5&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Abaixo está o CSS compilado do código escrito acima. Está exatamente igual ao mostrado no começo &amp;#8211; que conveniente!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+}
+section nav {
+    height: 25px;
+}
+section nav a {
+    color: #0982c1;
+}
+section nav a:hover {
+    text-decoration: underline;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;mixins-1&#34;&gt;Mixins&lt;/h2&gt;
+
+&lt;p&gt;Mixins são funções que permitem reusar propriedades através de nossas folhas de estilo. Ao invés de procurar por todas nossas folhas de estilo e mudar uma propriedade várias vezes, podemos apenas mudar dentro de nosso mixin. Isso pode ser realmente útil para estilização de elementos específicos e para &amp;#8220;vendor prefixes&amp;#8221; (moz-*, o-*, etc). Quando os mixins são chamados de dentro de um seletor CSS, os argumentos são reconhecidos e os estilos dentro do mixin são aplicados ao seletor.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-3&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em Sass chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+@mixin error($borderWidth: 2px) {
+    border: $borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    @include error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    @include error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-4&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em LESS chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+.error(@borderWidth: 2px) {
+    border: @borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    .error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    .error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-5&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em Stylus chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+error(borderWidth = 2px) {
+    border: borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-6&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Todos pré-processadores irão compilar o mesmo código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.generic-error {
+    padding: 20px;
+    margin: 4px;
+    border: 2px solid #f00;
+    color: #f00;
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    border: 5px solid #f00;
+    color: #f00;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;herança-1&#34;&gt;Herança&lt;/h2&gt;
+
+&lt;p&gt;Quando estamos escrevendo CSS da velha maneira, nós usaríamos o seguinte código para aplicar o mesmo estilo para múltiplos elementos de uma só vez:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;p,
+u,
+ol {
+    /* estilos aqui */
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Isso funciona perfeitamente, mas se depois precisássemos de estilizar os elementos individualmente, outro seletor deveria ser criado para cada um e rapidamente poderia ficar cada vez mais bagunçado e difícil de manter. Podemos utilizar herança para resolver isso. Herança é a habilidade de outros seletores CSS herdarem as propriedades de outro seletor.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-e-stylus-1&#34;&gt;Sass e Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+
+p {
+    @extend .block; /* Herda estilos do seletor &#39;.block&#39; */
+    border: 1px solid #eee;
+}
+ul, ol {
+    @extend .block; /* Herda estilos do seletor &#39;.block&#39; */
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-sass-e-stylus-1&#34;&gt;CSS Compilado (Sass e Stylus)&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block, p, ul, ol {
+    margin: 10px 5px;
+    padding: 2px;
+}
+p {
+    border: 1px solid #eee;
+}
+ul, ol {
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-5&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;p&gt;LESS não tem suporte a herança de estilos como Sass e Stylus. Ao invés de adicionar diversos seletores para um grupo de propriedades, ele trata herança como um mixin sem argumentos e importa os estilos para dentro de seus próprios seletores. O problema disso é que propriedades são repetidas em sua folha de estilo compilada. Abaixo segue como deve-se utilizar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+ 
+p {
+    .block; /* Herda estilos do seletor &#39;.block&#39; */
+    border: 1px solid #eee;
+}
+ul, ol {
+    .block; /* Herda estilos do seletor &#39;.block&#39; */
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-less-1&#34;&gt;CSS Compilado (LESS)&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+p {
+    margin: 10px 5px;
+    padding: 2px;
+    border: 1px solid #eee;
+}
+ul,
+ol {
+    margin: 10px 5px;
+    padding: 2px;
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ver, os estilos do seletor .block foram inseridas nos seletores que queríamos aplicar a herança. É importante notar que a prioridade das propriedades pode se tornar um problema, então devemos ter bastante cautela.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@import &#34;reset.css&#34;;
+body {
+    background: #eee;
+}
+p {
+    background: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;funções-de-cores&#34;&gt;Funções de Cores&lt;/h2&gt;
+
+&lt;p&gt;Funções de cores são funções nativas que transformam uma cor por compilação. Podem ser extremamente úteis para criar gradientes, escurecer cores no &amp;#8220;hover&amp;#8221; de elementos e muito mais.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-4&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;lighten($color, 10%); /* retorna uma cor 10% mais clara que $color */
+darken($color, 10%);  /* retorna uma cor 10% mais escura $color */
+ 
+saturate($color, 10%);   /* retorna uma cor 10% mais saturada que $color */
+desaturate($color, 10%); /* retorna uma cor 10% menos saturada que $color */
+ 
+grayscale($color);  /* retorna $color na escala de cinza */
+complement($color); /* retorna cor complementar de $color */
+invert($color);     /* retorna cor inversa de $color */
+ 
+mix($color1, $color2, 50%); /* mistura $color1 com $color2 com um peso de 50% */
+&lt;/pre&gt;
+
+&lt;p&gt;Essas é apenas uma pequena lista de funções de cores disponíveis no Sass. A lista completa das funções de cores disponíveis no Sass pode ser encontrada na &lt;a href=&#34;http://sass-lang.com/documentation/Sass/Script/Functions.html&#34; target=&#34;_blank&#34;&gt;documentação do Sass&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Funções de cores podem ser usadas em qualquer lugar que uma cor é válida no CSS. Veja um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;$color: #0982C1;
+ 
+h1 {
+    background: $color;
+    border: 3px solid darken($color, 50%);
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-6&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;lighten(@color, 10%); /* retorna uma cor 10% mais clara que @color */
+darken(@color, 10%);  /* retorna uma cor 10% mais escura @color */
+ 
+saturate(@color, 10%);   /* retorna uma cor 10% mais saturada que @color */
+desaturate(@color, 10%); /* retorna uma cor 10% menos saturada que @color */
+ 
+spin(@color, 10); /* retorna uma cor 10 graus acima na matiz/tonalidade que @color */
+spin(@color, -10); /* retorna uma cor 10 graus abaixo na matiz/tonalidade que @color */
+ 
+mix(@color1, @color2); /* mistura @color1 com @color2 */
+&lt;/pre&gt;
+
+&lt;p&gt;A lista de todas as funções disponíveis no LESS pode encontrada na &lt;a href=&#34;http://lesscss.org/#-color-functions&#34; target=&#34;_blank&#34;&gt;documentação LESS&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Veja um exemplo de como usar uma função de cores no LESS:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@color: #0982C1;
+ 
+h1 {
+    background: @color;
+    border: 3px solid darken(@color, 50%);
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-6&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;lighten(color, 10%); /* retorna uma cor 10% mais clara que &#39;color&#39; */
+darken(color, 10%);  /* retorna uma cor 10% mais escura &#39;color&#39; */
+ 
+saturate(color, 10%);   /* retorna uma cor 10% mais saturada que &#39;color&#39; */
+desaturate(color, 10%); /* retorna uma cor 10% menos saturada que &#39;color&#39; */
+&lt;/pre&gt;
+
+&lt;p&gt;A lista completa de todas funções de cores disponíveis no Stylus pode ser encontrada na &lt;a href=&#34;http://stylus-lang.com/docs/bifs.html&#34; target=&#34;_blank&#34;&gt;documentação Stylus&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Veja um exemplo de como usar uma função de cores no Stylus:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;color = #0982C1
+ 
+h1
+    background color
+    border 3px solid darken(color, 50%)
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;operações&#34;&gt;Operações&lt;/h2&gt;
+
+&lt;p&gt;Fazer cálculos no CSS é bastante útil e agora totalmente possível. É bem simples e é dessa maneira que fazemos:&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-less-e-stylus-3&#34;&gt;Sass, LESS e Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    margin: (14px/2);
+    top: 50px + 100px;
+    right: 100px - 50px;
+    left: 10 * 10;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;aplicações-práticas&#34;&gt;Aplicações Práticas&lt;/h2&gt;
+
+&lt;p&gt;Nós falamos de diversas funcionalidades e novas coisas que pré-processadores podem fazer, mas não mostramos nada na prática ainda. Veja uma pequena lista de aplicações no mundo real em que um pré-processador é um salva-vidas.&lt;/p&gt;
+
+&lt;h3 id=&#34;vendor-prefixes&#34;&gt;Vendor Prefixes&lt;/h3&gt;
+
+&lt;p&gt;Essa é uma das principais razões para se usar um pré-processador e por um motivo bom &amp;#8211; economia gigante de tempo e lágrimas. Criar um mixin para cuidar dos vendor prefixes é fácil e nos salva de uma codificação repetitiva e dolorosa. Veja como fazer:&lt;/p&gt;
+
+&lt;h4 id=&#34;sass-5&#34;&gt;Sass&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mixin border-radius($values) {
+    -webkit-border-radius: $values;
+        -moz-border-radius: $values;
+            border-radius: $values;
+}
+ 
+div {
+    @include border-radius(10px);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;less-7&#34;&gt;LESS&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.border-radius(@values) {
+    -webkit-border-radius: @values;
+        -moz-border-radius: @values;
+            border-radius: @values;
+}
+ 
+div {
+    .border-radius(10px);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;stylus-7&#34;&gt;Stylus&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;border-radius(values) {
+    -webkit-border-radius: values;
+        -moz-border-radius: values;
+            border-radius: values;
+}
+ 
+div {
+    border-radius(10px);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;css-compilado-7&#34;&gt;CSS Compilado&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div {
+    -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+            border-radius: 10px;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;texto-3d&#34;&gt;Texto 3D&lt;/h3&gt;
+
+&lt;p&gt;Simular um texto 3D utilizando diversos text-shadows é uma grande ideia. O único problema é que mudar a cor depois de criar é difícil e incômodo. Usando mixins e funções de cores, podemos criar um texto 3D e mudar sua cor sem nenhuma dificuldade.&lt;/p&gt;
+
+&lt;h4 id=&#34;sass-6&#34;&gt;Sass&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mixin text3d($color) {
+    color: $color;
+    text-shadow: 1px 1px 0px darken($color, 5%),
+            2px 2px 0px darken($color, 10%),
+            3px 3px 0px darken($color, 15%),
+            4px 4px 0px darken($color, 20%),
+            4px 4px 2px #000;
+}
+ 
+h1 {
+    font-size: 32pt;
+    @include text3d(#0982c1);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;less-8&#34;&gt;LESS&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.text3d(@color) {
+    color: @color;
+    text-shadow: 1px 1px 0px darken(@color, 5%),
+            2px 2px 0px darken(@color, 10%),
+            3px 3px 0px darken(@color, 15%),
+            4px 4px 0px darken(@color, 20%),
+            4px 4px 2px #000;
+}
+ 
+span {
+    font-size: 32pt;
+    .text3d(#0982c1);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;stylus-8&#34;&gt;Stylus&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;text3d(color)
+    color: color
+    text-shadow: 1px 1px 0px darken(color, 5%), 2px 2px 0px darken(color, 10%), 3px 3px 0px darken(color, 15%), 4px 4px 0px darken(color, 20%), 4px 4px 2px #000
+span
+    font-size: 32pt
+    text3d(#0982c1)
+&lt;/pre&gt;
+
+&lt;p&gt;Escolhi escrever os &amp;#8220;text-shadows&amp;#8221; do Stylus em apenas uma linha pois omiti as chaves.&lt;/p&gt;
+
+&lt;h4 id=&#34;css-compilado-8&#34;&gt;CSS Compilado&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;span {
+    font-size: 32pt;
+    color: #0982c1;
+    text-shadow: 1px 1px 0px #097bb7, 
+            2px 2px 0px #0875ae, 
+            3px 3px 0px #086fa4, 
+            4px 4px 0px #07689a, 
+            4px 4px 2px #000;
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;resultado-final&#34;&gt;Resultado Final&lt;/h4&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://cdn.tutsplus.com/net/uploads/legacy/1144_preprocshootout/text3d.png&#34; alt=&#34;Texto 3D&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;colunas&#34;&gt;Colunas&lt;/h3&gt;
+
+&lt;p&gt;Usar operações numéricas e variáveis para colunas é uma ideia que tive da primeira vez que estava brincando com pré-processadores CSS. Declarando a largura desejada em uma variável, podemos facilmente alterá-la sem precisar de nenhum cálculo mental. Veja como fazer:&lt;/p&gt;
+
+&lt;h4 id=&#34;sass-7&#34;&gt;Sass&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;$siteWidth: 1024px;
+$gutterWidth: 20px;
+$sidebarWidth: 300px;
+ 
+body {
+    margin: 0 auto;
+    width: $siteWidth;
+}
+.content {
+    float: left;
+    width: $siteWidth - ($sidebarWidth+$gutterWidth);
+}
+.sidebar {
+    float: left;
+    margin-left: $gutterWidth;
+    width: $sidebarWidth;
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;less-9&#34;&gt;LESS&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@siteWidth: 1024px;
+@gutterWidth: 20px;
+@sidebarWidth: 300px;
+ 
+body {
+    margin: 0 auto;
+    width: @siteWidth;
+}
+.content {
+    float: left;
+    width: @siteWidth - (@sidebarWidth+@gutterWidth);
+}
+.sidebar {
+    float: left;
+    margin-left: @gutterWidth;
+    width: @sidebarWidth;
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;stylus-9&#34;&gt;Stylus&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;siteWidth = 1024px;
+gutterWidth = 20px;
+sidebarWidth = 300px;
+ 
+body {
+    margin: 0 auto;
+    width: siteWidth;
+}
+.content {
+    float: left;
+    width: siteWidth - (sidebarWidth+gutterWidth);
+}
+.sidebar {
+    float: left;
+    margin-left: gutterWidth;
+    width: sidebarWidth;
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;css-compilado-9&#34;&gt;CSS Compilado&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    margin: 0 auto;
+    width: 1024px;
+}
+.content {
+    float: left;
+    width: 704px;
+}
+.sidebar {
+    float: left;
+    margin-left: 20px;
+    width: 300px;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;peculiaridades-notáveis&#34;&gt;Peculiaridades Notáveis&lt;/h2&gt;
+
+&lt;p&gt;Existem algumas peculiaridades ao usar um pré-processador CSS. Irei falar de algumas engraçadas, mas se você está realmente interessado em encontrar todas elas eu recomendo você vasculhar toda a documentação, ou melhor, começar a usar um pré-processador na sua codificação diária.&lt;/p&gt;
+
+&lt;h3 id=&#34;relatório-de-erros&#34;&gt;Relatório de Erros&lt;/h3&gt;
+
+&lt;p&gt;Se você já escreveu CSS por uma boa quantia de tempo, tenho certeza que você já chegou a um ponto onde você tinha um erro em algum lugar e simplesmente não conseguia o encontrar. Se você é como eu, provavelmente passou a tarde toda arrancando os cabelos fora e comentando diversas coisas para caçar o erro.&lt;/p&gt;
+
+&lt;p&gt;Pré-processadores CSS relatam os erros. Simples assim. Se tem alguma coisa errada em seu códigom ele te fala onde e, se você estiver com sorte até mesmo o porquê. Você pode dar uma olhada &lt;a href=&#34;http://tjholowaychuk.com/post/5002088731/stylus-vs-sass-vs-less-error-reporting&#34; target=&#34;_blank&#34;&gt;nesse post&lt;/a&gt; caso esteja interessado em ver como os erros são relatados em diferentes pré-processadores.&lt;/p&gt;
+
+&lt;h3 id=&#34;comentários&#34;&gt;Comentários&lt;/h3&gt;
+
+&lt;p&gt;Quando um pré-processador CSS está compilando, qualquer comentário escrito com barras duplas &amp;#8220;//&amp;#8221; é excluído e qualquer comentários escrito com barra e asterisco &amp;#8220;/* */&amp;#8221; não é alterado. Dito isso, use comentários com barras duplas para comentários que você queira na versão não compilada e comentários com barra e asterisco para comentários que serão visíveis após a compilação.&lt;/p&gt;
+
+&lt;p&gt;Observação: Se você compilar os arquivos, minificando-os, todos comentários são excluídos.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Cada um dos pré-processadores que falamos (Sass, LESS e Stylus) possui um modo único de realizar a mesma tarefa &amp;#8211; dando a nós desenvolvedor a habilidade de usar funcionalidades úteis mantendo a compatibilidade entre browsers e um código limpo.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Mesmo não sendo uma exigência para o desenvolvimento, pré-processadores podem economizar muito tempo e tem funcionalidades bastante úteis.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Eu aconselho todos vocês a utilizar e testar a maior quantidade de pré-processadores possível, pois assim você poderá escolher efetivamente um favorito e saber o porquê ele é seu favorito dentre tantos outros. Se você ainda não testou usar nenhum pré-processador para escrever seu CSS, eu recomendo grandemente a você testar.&lt;/p&gt;
+
+&lt;p&gt;Você tem alguma funcionalidade de seu pré-processador favorito que não foi mencionada? Há algo que algum pré-processador possa fazer e outros não? Conte-nos nos comentários abaixo!&lt;/p&gt;
+
+&lt;p&gt;Traduzido e adaptado de: &lt;a href=&#34;http://code.tutsplus.com/tutorials/sass-vs-less-vs-stylus-preprocessor-shootout--net-24320&#34;&gt;http://code.tutsplus.com/tutorials/sass-vs-less-vs-stylus-preprocessor-shootout&amp;#8211;net-24320&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Acelere o desenvolvimento front-end com Jade</title>
+      <link>http://tableless.com.br/acelere-o-desenvolvimento-front-end-com-jade/</link>
+      <pubDate>Mon, 03 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/acelere-o-desenvolvimento-front-end-com-jade/</guid>
+      <description>&lt;p&gt;Certos elementos em nossos sites sempre se repetem, como o menu, o cabeçalho e o rodapé. Replicar o código desses elementos em cada página é uma péssima ideia. Imagine ter um site com mais de 100 páginas HTML e para cada uma, ter que codificar o mesmo menu, o mesmo cabeçalho e o mesmo rodapé. Além de ser algo extremamente trabalhoso, dar manutenção em um código desses é uma tarefa complicada. Imagine que para uma simples alteração de ano, geralmente encontrada no rodapé de muitos sites, seria necessário alterar 100 arquivos. O risco de esquecer algum deles e deixar suas páginas com um layout inconsistente é alto.&lt;/p&gt;
+
+&lt;p&gt;Com o advento do HTML5, existe uma nova especificação para reutilização de HTML. São os &lt;a href=&#34;http://www.w3.org/TR/html-imports/&#34; target=&#34;_blank&#34;&gt;HTML imports&lt;/a&gt;. Porém, sua &lt;a href=&#34;http://caniuse.com/#search=import&#34; target=&#34;_blank&#34;&gt;adoção pelos navegadores atuais(07/2015) &lt;/a&gt;ainda é mínima. Outra estratégia largamente utilizada é o uso do &lt;em&gt;include&lt;/em&gt; do &lt;em&gt;PHP&lt;/em&gt;, como visto em &lt;a href=&#34;http://tableless.com.br/otimizando-e-organizando-seu-front-end-com-php/&#34; target=&#34;_blank&#34;&gt;outro artigo&lt;/a&gt; aqui mesmo no Tableless. Porém, essa não é uma solução elegante, já que depende de um servidor &lt;em&gt;PHP,&lt;/em&gt; e nem todo site/sistema é criado com base nessa estrutura de &lt;em&gt;backend&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Entra em cena o &lt;em&gt;template engine&lt;/em&gt; &lt;a href=&#34;http://jade-lang.com&#34; target=&#34;_blank&#34;&gt;Jade&lt;/a&gt;. Com recursos para fazer &lt;em&gt;include&lt;/em&gt; de HTML e muitas outras funcionalidades, sua sintaxe é extremamente limpa, baseada em indentação, como o &lt;em&gt;Python&lt;/em&gt;. No exemplo a seguir (retirado e adaptado do site oficial do projeto) compare seu equivalente transformado em HTML:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-21.12.59.png&#34; target=&#34;_blank&#34;&gt;&lt;img class=&#34;alignnone&#34; title=&#34;JADE e HTML lado a lado&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-21.12.59.png&#34; alt=&#34;Jade e o HTML gerado&#34; width=&#34;800&#34; height=&#34;357&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Todo começo de linha é interpretado como uma tag HTML, a menos que comece com o operador &amp;#8220;|&amp;#8221;. Neste caso, será interpretado como innerHTML, assim como o texto após uma tag e um espaço (visto na linha 4 da imagem acima).&lt;/p&gt;
+
+&lt;p&gt;No Jade, os atributos das tags são definidos dentro de parênteses, separados entre si por vírgula:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-haml&#34;&gt;form(name=&#34;form&#34;, novalidate)
+  textarea(name=&#34;pergunta&#34;, required, id=&#34;pergunta&#34;)
+  label(for=&#34;pergunta&#34;) Digite sua pergunta
+&lt;/pre&gt;
+
+&lt;p&gt;Equivalente em HTML:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;form name=&#34;form&#34; novalidate&amp;gt;
+  &amp;lt;textarea name=&#34;pergunta&#34; required id=&#34;pergunta&#34;&amp;gt;&amp;lt;/textarea&amp;gt;
+  &amp;lt;label for=&#34;pergunta&#34;&amp;gt;Digite sua pergunta&amp;lt;/label&amp;gt;
+&amp;lt;/form&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Ids e classes podem igualmente ser definidos dentro dos parênteses ou através de atalhos, onde &lt;code&gt;#&lt;/code&gt; é um atalho para id e &lt;code&gt;.&lt;/code&gt; é um atalho para classes:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div#container
+  input#titulo.validate.bordered(type=&#34;text&#34;)
+&lt;/pre&gt;
+
+&lt;p&gt;O código acima irá gerar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div id=&#34;container&#34;&amp;gt;
+  &amp;lt;input id=&#34;titulo&#34; class=&#34;validate bordered&#34; type=&#34;text&#34;&amp;gt;
+&amp;lt;div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;O Jade é muito mais que uma sintaxe limpa para seu HTML. Um grande recurso do Jade é o uso da herança de templates e &lt;em&gt;includes&lt;/em&gt;. É possível criar uma página base e então criar páginas que estendam esta página com um conteúdo específico. Assim, conseguimos criar um template com os trechos que se repetem em nosso site, como o cabeçalho, o rodapé, etc. Abaixo, um exemplo de herança de templates do Jade:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-21.29.23.png&#34; alt=&#34;Templates e includes&#34; width=&#34;343&#34; height=&#34;240&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;No arquivo layout.jade acima, é definido o template que será estendido por todas as outras páginas. É possível também visualizar o recurso de includes.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;include head&lt;/code&gt; : arquivo head.jade, onde é carregado folhas de estilo, definido o title da página, o viewport, dentre outros;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;include cabecalho&lt;/code&gt;: arquivo cabecalho.jade onde é carregado a logo do site;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;include menu&lt;/code&gt;: arquivo menu.jade onde é inserido o menu do site. Pode também ser colocado junto com o cabecalho, mas aqui mantivemos em um arquivo separado;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;block contentBlock&lt;/code&gt; : esse é o trecho que será sobrescrito por cada página que extender o layout.jade;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;include footer&lt;/code&gt;: arquivo footer.jade com o rodapé do site (simplificado para melhor entendimento):&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-22.07.49.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-50039 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-22.07.49.png&#34; alt=&#34;exemplo de footer do arquivo Jade&#34; width=&#34;599&#34; height=&#34;120&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O Jade &amp;#8220;inclui&amp;#8221; o código do arquivo no lugar onde ele invocado (onde foi feito o &lt;em&gt;include&lt;/em&gt;). Criado o layout.jade, basta estender esse layout para cada página do seu site como visto no código abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-22.16.40.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-50040 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-22.16.40.png&#34; alt=&#34;contentBlock foi o nome do bloco definido no arquivo layout.jade para ser sobrescrito.&#34; width=&#34;746&#34; height=&#34;172&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O nome &lt;em&gt;contentBlock&lt;/em&gt; foi definido no arquivo layout.jade para ser sobrescrito. Com o recurso de &lt;em&gt;includes&lt;/em&gt; e &lt;em&gt;extends&lt;/em&gt; conseguimos resolver o problema sem ter que replicar código HTML para várias páginas.&lt;/p&gt;
+
+&lt;p&gt;Outra funcionalidade que acelera nosso processo de desenvolvimento é o uso dos &lt;strong&gt;&lt;em&gt;mixins&lt;/em&gt;&lt;/strong&gt;. &lt;em&gt;Mixins&lt;/em&gt; reusam fragmentos de código HTML, possibilitando parametrizar certos pedaços de código. Vamos tomar como exemplo o _&lt;a href=&#34;http://getbootstrap.com/components/#panels-alternatives&#34; target=&#34;_blank&#34;&gt;panel&lt;/a&gt;_ do Bootstrap. Esse é o código usado para criar um &lt;em&gt;panel&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-23.23.28.png&#34; target=&#34;_blank&#34;&gt;&lt;img class=&#34;alignnone wp-image-50050 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-23.23.28.png&#34; alt=&#34;Código para criação de um panel no Bootstrap.&#34; width=&#34;636&#34; height=&#34;393&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Não é tanto &lt;em&gt;markup&lt;/em&gt;, mas que tal usarmos a estrutura de um &lt;em&gt;panel&lt;/em&gt; com apenas uma linha? Com o uso de &lt;em&gt;mixins&lt;/em&gt; isso é possível. Criamos uma estrutura inicial com o &lt;em&gt;markup&lt;/em&gt; de um &lt;em&gt;panel&lt;/em&gt;, parametrizando o que for necessário como o título, o rodapé e o estilo do &lt;em&gt;panel&lt;/em&gt;. Após criada essa estrutura (&lt;em&gt;mixin&lt;/em&gt;) para inserir um &lt;em&gt;panel&lt;/em&gt;, basta chamá-lo com o comando &lt;em&gt;+panel()&lt;/em&gt;, passando os parâmetros desejados.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-15-às-21.59.46.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-50150 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-15-às-21.59.46.png&#34; alt=&#34;Mixin e seu uso&#34; width=&#34;612&#34; height=&#34;441&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O seguinte código gerou os &lt;em&gt;panels&lt;/em&gt; abaixo. Perceba, que na estrutura criada, se não informarmos um título, o &lt;em&gt;panel&lt;/em&gt; ficará sem o seu título. O mesmo para o rodapé. Se não informarmos a classe para estilizar o &lt;em&gt;panel&lt;/em&gt;, nosso &lt;em&gt;mixin&lt;/em&gt; aplica a classe &lt;em&gt;panel-default&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-15-às-21.58.49.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-50151 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-15-às-21.58.49.png&#34; alt=&#34;Panels com uso de mixins&#34; width=&#34;579&#34; height=&#34;488&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Note que no conteúdo do &lt;em&gt;mixin&lt;/em&gt;, temos um &lt;em&gt;block&lt;/em&gt;. Esse será o bloco substituído pelo conteúdo definido abaixo da chamada ao &lt;em&gt;panel&lt;/em&gt;. Nesse &lt;em&gt;mixin&lt;/em&gt;, é apresentado também o conceito de variáveis e o comando de decisão &lt;code&gt;if&lt;/code&gt;. Perceba o grande poder que os &lt;em&gt;mixins&lt;/em&gt; nos proporciona. O exemplo acima é simples, mas podemos criar qualquer &amp;#8220;componente&amp;#8221; mais complexo e reutilizá-lo ao longo do nosso desenvolvimento.&lt;/p&gt;
+
+&lt;p&gt;Se interessou pelo Jade? Quer começar a usar hoje mesmo? No &lt;a href=&#34;http://jade-lang.com&#34; target=&#34;_blank&#34;&gt;site oficial do projeto&lt;/a&gt; você encontra um passo a passo de como usá-lo, além de documentação para outros recursos não citados nesse post. A princípio, a sintaxe do Jade pode parecer um pouco intimidadora, mas sua curva de aprendizado é rápida. Em questão de alguns minutos você já está familiarizado com sua estrutura.&lt;/p&gt;
+
+&lt;p&gt;Com o Jade também é possível gerar o HTML preservando a indentação ou configurando-o para remover espaços e quebras de linha, gerando um HTML &amp;#8220;minificado&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;E se você utiliza algum automatizador de tarefas, basta adicionar o Jade ao seu workflow com o &lt;a href=&#34;https://github.com/gruntjs/grunt-contrib-jade&#34; target=&#34;_blank&#34;&gt;Grunt&lt;/a&gt; ou o &lt;a href=&#34;https://github.com/phated/gulp-jade&#34; target=&#34;_blank&#34;&gt;Gulp&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando Layouts com Susy Framework</title>
+      <link>http://tableless.com.br/criando-layouts-com-susy-framework/</link>
+      <pubDate>Mon, 03 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-layouts-com-susy-framework/</guid>
+      <description>
+
+&lt;p&gt;Com a alta demanda e prazos cada vez menores somos obrigados a trabalhar cada vez mais rápido e isso serve de incentivo para que novos frameworks sejam feitos buscando melhorar a qualidade no desenvolvimento. Um desses frameworks é o Susy e nesse artigo vamos conhecer e dar os primeiros passos com ele.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-susy&#34;&gt;O que é Susy?&lt;/h2&gt;
+
+&lt;p&gt;Susy é um framework que permite criar grids de acordo com as necessidades do seu site. Diferente de outros como Bootstrap e Foundation, você não vai precisar importar um arquivo cheio de classes em que vai usar apenas algumas delas. O Susy trabalha direto no estilo das classes que você definiu e personalizou.&lt;/p&gt;
+
+&lt;p&gt;Para começar a usá-lo você precisa ter o Sass instalado e o mínimo de conhecimento sobre ele. Não vou me aprofundar em Sass, pois não é o foco desse artigo, mas para quem tiver alguma dúvida a respeito pode ver uma série de &lt;a href=&#34;http://goo.gl/PmuwuA&#34; target=&#34;_blank&#34;&gt;artigos&lt;/a&gt; aqui mesmo no Tableless.&lt;/p&gt;
+
+&lt;p&gt;Agora que já sabemos do que se trata vamos começar a desenvolver nosso layout com Susy.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-seu-primeiro-layout-com-susy&#34;&gt;Criando seu primeiro layout com Susy&lt;/h2&gt;
+
+&lt;p&gt;Assumindo que você já tem o Sass instalado, vamos instalar o Susy. Abra o prompt de comando e digite:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;gem install susy&lt;/pre&gt;
+
+&lt;p&gt;Após concluir a instalação vamos criar uma pasta para o projeto e dentro dela um arquivo index.html, uma pasta css e uma pasta scss com um arquivo style.scss dentro dela.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-50233&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/estrutura-de-pastas.jpg&#34; alt=&#34;Learning Susy&#34; width=&#34;617&#34; height=&#34;76&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;iniciando-o-desenvolvimento&#34;&gt;Iniciando o desenvolvimento&lt;/h2&gt;
+
+&lt;p&gt;Vamos construir o seguinte layout:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-50282&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/layout.png&#34; alt=&#34;layout&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Primeiramente vamos iniciar o Sass para que nosso código possa ser compilado. Abra a pasta do projeto na linha de comando e digite:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;sass --watch scss:css -r susy&lt;/pre&gt;
+
+&lt;p&gt;Feito isso um arquivo style.css foi criado dentro da pasta css. Vamos adiciona-lo no head no html:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;stylesheet&#34; href=&#34;css/style.css&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Vamos adicionar o normalize ao nosso projeto&lt;/p&gt;
+
+&lt;p&gt;Para usar o Susy no projeto temos apenas que adicionar a seguinte linha no style.scss:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@import &#34;susy&#34;;&lt;/pre&gt;
+
+&lt;h3 id=&#34;susy-map&#34;&gt;Susy Map&lt;/h3&gt;
+
+&lt;p&gt;Susy Map é um conjunto de instruções que são declaradas no início do projeto.  O grid é gerado de acordo com as informações declaradas nele. Abaixo temos o Map do nosso projeto, vamos adiciona-lo no style.scss, mais informações podem ser adicionadas , mas para nosso projeto é o suficiente. As linhas estão comentadas informando o que cada uma faz.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;$susy:(
+    columns: 8, // número de colunas do grid
+    container: 1140px, // largura do container
+    debug: (image: show), // exibe as colunas do grid
+);&lt;/pre&gt;
+
+&lt;p&gt;Vou adicionar o código completo, mas somente as funções do Susy serão explicadas. Então vamos começar! No HTML, vamos adicionar o header da página:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;header class=&#34;site-header&#34;&amp;gt;
+    &amp;lt;div class=&#34;container&#34;&amp;gt;
+        &amp;lt;div class=&#34;logo&#34;&amp;gt;&amp;lt;a href=&#34;#&#34;&amp;gt;Logo&amp;lt;/a&amp;gt;&amp;lt;/div&amp;gt;
+        &amp;lt;nav class=&#34;menu&#34;&amp;gt;
+            &amp;lt;ul&amp;gt;
+                &amp;lt;li&amp;gt;&amp;lt;a href=&#34;#&#34;&amp;gt;Home&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+                &amp;lt;li&amp;gt;&amp;lt;a href=&#34;#&#34;&amp;gt;About&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+                &amp;lt;li&amp;gt;&amp;lt;a href=&#34;#&#34;&amp;gt;Photos&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+                &amp;lt;li&amp;gt;&amp;lt;a href=&#34;#&#34;&amp;gt;Contact&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+            &amp;lt;/ul&amp;gt;
+        &amp;lt;/nav&amp;gt;
+    &amp;lt;/div&amp;gt;
+&amp;lt;/header&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Vamos adicionar o estilo dele:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;.container {
+    @include container(); // inclui na classe o container definido no Susy Map
+}
+.logo {
+    float: left;
+    padding: 0.9375rem;
+    line-height: 2rem;
+    font-size: 1.5rem;
+}
+nav {
+    float: right;
+    li {
+        list-style: none;
+        float: left;
+        margin-left: 2rem;
+        line-height: 2rem;
+    }
+}&lt;/pre&gt;
+
+&lt;p&gt;Depois do header vamos inserir o banner no html:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;container&#34;&amp;gt;
+    &amp;lt;img src=&#34;img/banner.jpg&#34; class=&#34;banner&#34;&amp;gt;
+&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora o estilo do banner:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;img {
+    width:100%;
+}
+.banner {
+    @include span(8 of 8);
+    margin: gutter() 0;
+    height: 100%;
+}&lt;/pre&gt;
+
+&lt;p&gt;O &amp;#8220;@include span (8 of 8)&amp;#8221; é uma função do Susy que diz que o banner irar ocupar 8 colunas das 8 declaradas no Susy Map, mas não é só isso, reparem que no margin adicionamos um valor &amp;#8220;gutter()&amp;#8221;, isso é outra função do Susy que adiciona o valor que existe entre os grids, pode ver como o espaço que está entre o header e o banner é o mesmo que está entre as 8 colunas que definimos no grids.&lt;/p&gt;
+
+&lt;p&gt;Agora vamos adicionar o conteúdo do layout:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;container&#34;&amp;gt;
+    &amp;lt;div class=&#34;sidebar&#34;&amp;gt;
+        &amp;lt;ul&amp;gt;
+            &amp;lt;li&amp;gt;&amp;lt;a href=&#34;#&#34;&amp;gt;Fortaleza&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+            &amp;lt;li&amp;gt;&amp;lt;a href=&#34;#&#34;&amp;gt;Natal&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+            &amp;lt;li&amp;gt;&amp;lt;a href=&#34;#&#34;&amp;gt;Recife&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+            &amp;lt;li&amp;gt;&amp;lt;a href=&#34;#&#34;&amp;gt;Salvador&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+        &amp;lt;/ul&amp;gt;
+    &amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;content&#34;&amp;gt;
+        &amp;lt;div class=&#34;content-item&#34;&amp;gt;&amp;lt;img src=&#34;img/001.jpg&#34;&amp;gt;&amp;lt;/div&amp;gt;
+        &amp;lt;div class=&#34;content-item&#34;&amp;gt;&amp;lt;img src=&#34;img/002.jpg&#34;&amp;gt;&amp;lt;/div&amp;gt;
+        &amp;lt;div class=&#34;content-item&#34;&amp;gt;&amp;lt;img src=&#34;img/003.jpg&#34;&amp;gt;&amp;lt;/div&amp;gt;
+        &amp;lt;div class=&#34;content-item&#34;&amp;gt;&amp;lt;img src=&#34;img/004.jpg&#34;&amp;gt;&amp;lt;/div&amp;gt;
+        &amp;lt;div class=&#34;content-item&#34;&amp;gt;&amp;lt;img src=&#34;img/005.jpg&#34;&amp;gt;&amp;lt;/div&amp;gt;
+        &amp;lt;div class=&#34;content-item&#34;&amp;gt;&amp;lt;img src=&#34;img/006.jpg&#34;&amp;gt;&amp;lt;/div&amp;gt;
+    &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;E o estilo delas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;.sidebar {
+    @include span (2 of 8);
+    ul {
+        margin: 0;
+        padding: 1.2rem;
+    }
+    li {
+        list-style: none;
+        font-size: 1.1rem;
+        border-bottom: 2px dotted #c6c6c6;
+        &amp;:last-child {
+            border:none;
+        }
+    }   
+    a {
+        display: block;
+        padding: 1rem .5rem;
+        color: #333;
+        line-height: 2;
+        text-decoration: none;
+    }
+}
+.content {
+    @include span (6 of 8 last);
+}
+.content-item {
+    @include gallery(2 of 6);
+    margin-bottom: gutter();
+}&lt;/pre&gt;
+
+&lt;p&gt;Repare nos includes que acabamos de usar. Na mesma linha usamos 2 colunas para o sidebar e as 6 para o content, veja que adicionamos um last no final do include na classe content, esse last serve para dizer que são as ultimas colunas da linha. O espaço entre os grids é feito com um margin-right e o last serve parar remover esse margin-right do ultimo item do grid. Olha lá o aquivo style.css para entender melhor o que está sendo feito.&lt;/p&gt;
+
+&lt;p&gt;O footer não tem muito o que falar, então vamos apenas adicionar o código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;footer class=&#34;site-footer&#34;&amp;gt;
+    &amp;lt;div class=&#34;container&#34;&amp;gt;
+        &amp;lt;p&amp;gt;Copyright © 2015 - Desenvolvido por Felipe César para o Tableless&amp;lt;/p&amp;gt;
+    &amp;lt;/div&amp;gt;
+&amp;lt;/footer&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;E o estilo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;.site-footer {
+    margin-top: 2rem;
+    padding: 0.6rem 0;
+    color: #fff;
+}&lt;/pre&gt;
+
+&lt;p&gt;Por fim vamos apenas remover do Susy Map a linha que exibe os grids:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;debug: (image: show),&lt;/pre&gt;
+
+&lt;p&gt;Pronto, finalizamos o nosso layout, fácil não é?! Esse projeto foi bem simples apenas para apresentar o framework e mostrar como funciona, mas não pare por aí, faça o &lt;a href=&#34;https://github.com/felipecesr/layout-susy-framework&#34; target=&#34;_blank&#34;&gt;download do código&lt;/a&gt;, brinque com ele, acesse a documentação do &lt;a href=&#34;http://susydocs.oddbird.net/en/latest/&#34; target=&#34;_blank&#34;&gt;Susy&lt;/a&gt; e conheça outros recursos que podem te ajudar bastante no desenvolvimento.&lt;/p&gt;
+
+&lt;p&gt;Espero que tenham gostado do artigo, bons estudos!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Workflow Front-end</title>
+      <link>http://tableless.com.br/workflow-front-end/</link>
+      <pubDate>Wed, 21 Jan 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/workflow-front-end/</guid>
+      <description>
+
+&lt;p&gt;O desenvolvimento em html, javascript e CSS é uma forma mágica de se construir um mundo novo a cada linha de código. Os mágicos do front-end precisam de cartolas para que retirem seus coelhos. Essas cartolas e varinhas mágicas devem ser escolhidas a dedo, para que a mágica aconteça de forma suave e agradável à plateia.&lt;/p&gt;
+
+&lt;p&gt;Cada mágico tem sua técnica, portanto o objetivo não é estabelecer um padrão imutável, mas estabelecer diretrizes que possam servir de auxílio a qualquer ilusionista. Vamos entender magia.&lt;/p&gt;
+
+&lt;h2 id=&#34;baralho&#34;&gt;Baralho&lt;/h2&gt;
+
+&lt;p&gt;Todo mágico possui um baralho. Com ele é possível fazer um número imenso de ilusões. Tão versátil quanto um baralho, deve ser o editor de texto a ser usado pelo desenvolvedor.&lt;/p&gt;
+
+&lt;p&gt;Vamos falar de dois editores: Edge Code e Sublime Text.&lt;/p&gt;
+
+&lt;p&gt;O Edge Code tem como objetivo permitir o foco no trabalho, para isso ele tem uma interface propositalmente simples. Uma mágica que adoro nele é poder editar conteúdo de um arquivo por meio de outro com base em uma relação específica – ou seja, tenho no arquivo html uma marcação que faz referência a uma classe CSS, clicando com o botão direito nessa classe e selecionando quick edit podemos editar o CSS do arquivo externo com base no arquivo html. Esse baralho tem muito mais mágicas.&lt;/p&gt;
+
+&lt;p&gt;O Sublime Text tem tantos recursos que possibilitam uma produtividade imensa. Quando você acessa &lt;a href=&#34;http://www.sublimetext.com/&#34;&gt;http://www.sublimetext.com/&lt;/a&gt;, nota-se o foco em mostrar o quão produtivo o Sublime Text é. Uma mágica de produtividade é a possibilidade de selecionar um texto que se repete em um arquivo html por meio da tecla de atalho Ctrl+d e alterar todos ao mesmo tempo. Adoro isso.&lt;/p&gt;
+
+&lt;h2 id=&#34;cartola&#34;&gt;Cartola&lt;/h2&gt;
+
+&lt;p&gt;O NodeJS permite que mágicas que eram feitas somente no palco – navegador –, possam ser feitas atrás das cortinas – servidor. No entanto essas mágicas são cada vez mais complexas, gerando uma dependência de recursos que necessitariam de outra ferramenta mágica para gerenciá-las.&lt;/p&gt;
+
+&lt;p&gt;Essa outra ferramenta mágica é nossa cartola. Dela tiramos tudo que é necessário para fazermos o show. Duas cartolas não podem deixar de serem conhecidas: NPM e Bower.&lt;/p&gt;
+
+&lt;p&gt;O NPM é o que todo gerenciador de dependências precisa ser: instalador de pacotes, gerenciador de versão e gerenciador de dependências.&lt;/p&gt;
+
+&lt;p&gt;O Bower é o que o NPM é, mas para componentes front-end.&lt;/p&gt;
+
+&lt;p&gt;Se este é o cenário, então é bom termos duas cartolas, cada uma fazendo seu tipo de mágica: NPM no desenvolvimento com Grunt, Gulp, JSHint, etc; e Bower para componentes front-end.&lt;/p&gt;
+
+&lt;h2 id=&#34;assistentes&#34;&gt;Assistentes&lt;/h2&gt;
+
+&lt;p&gt;Assistentes de palco são vitais no contexto de muitas mágicas. Além de distrair quem vê o espetáculo, elas embelezam o ambiente. Elas são o CSS da ilusão.&lt;/p&gt;
+
+&lt;p&gt;Frameworks de estilo podem agilizar muito um trabalho, porque muitas das preocupações iniciais do projeto, podem ser deixadas de lado pela adoção de um padrão, que já respondeu a todas elas. Nossas assistentes de palco são: Bootstrap e Pure.&lt;/p&gt;
+
+&lt;p&gt;Bootstrap é de longe a ferramenta mais popular para atribuição de estilo aos projetos. Pontos positivos: variedade de componentes, utilizado por grandes empresas que contribuem com o projeto e boa documentação. Ele é a assistente que sabe como as mágicas são feitas.&lt;/p&gt;
+
+&lt;p&gt;Pure tem como objetivo fornecer estilo totalmente independente de qualquer javascript e de uma maneira muito leve. É uma assistente magrinha que faz seu trabalho bem feito.&lt;/p&gt;
+
+&lt;p&gt;É inquestionável que a aparência faz muita diferença.&lt;/p&gt;
+
+&lt;h2 id=&#34;caixas-e-lâminas&#34;&gt;Caixas e lâminas&lt;/h2&gt;
+
+&lt;p&gt;Na mágica da mulher cortada ao meio, uma mulher entra numa caixa e o mágico enfia uma lâmina no meio da caixa, e ela é separada em duas partes. As mãos, a cabeça e os pés continuam se mexendo. Quando uso pré-processadores CSS me sinto separado um corpo ao meio, mas ao mesmo tempo confiando que ele irá unir as partes e no final teremos um corpo inteiro.&lt;/p&gt;
+
+&lt;p&gt;É claro que escrever CSS puro gerará menos código que o uso errôneo de mixins em SASS. Mas devemos medir a relação de custo e benefício em relação a produtividade (após a curva de aprendizagem ser superada) e qualidade do nosso código, para podermos escolher aquilo que é melhor para o projeto &amp;#8211; espetáculo. Nossas caixas e lâminas para separarem corpos podem ser: LESS e SASS.&lt;/p&gt;
+
+&lt;p&gt;As características da LESS que devem ser sempre destacadas são, em sua maioria, comuns aos pré-processadores. Mas devem ser ditas aqui:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Variáveis: valores que são usados em vários lugares podem ser reutilizados por todo o estilo do projeto, e quando uma alteração for necessária, poderá ser feita com muita facilidade.&lt;/li&gt;
+&lt;li&gt;Mixins: servem ao mesmo propósito das variáveis – a reutilização –, mas sendo usadas para classes completas. Podendo incluir uma classe dentro de outra classe, como se fosse uma propriedade.&lt;/li&gt;
+&lt;li&gt;Aninhamento: a possibilidade de aninhar seletores dentro de outros seletores é um truque que me encanta muito. Porque ele criará os seletores longos por conta própria e você ficará com o trabalho de apenas construir a hierarquia a seletores por meio de aninhamento.&lt;/li&gt;
+&lt;li&gt;Operações: executar operações com propriedades e cores por meio do CSS é tão fora de cogitação que se torna muito surpreendente.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;SASS faz tudo isso descrito acima, e faz antes de o LESS ter feito. Mas a consideração que deve ser feita é: LESS tem uma sintaxe mais simples, que leva a uma curva de aprendizagem menor, e quando essa curva atinge uma boa inclinação, ela é mais produtiva.&lt;/p&gt;
+
+&lt;h2 id=&#34;automatização&#34;&gt;Automatização&lt;/h2&gt;
+
+&lt;p&gt;Muitas coisas precisam ser feitas, que não necessariamente são observadas, mas tem valor. Isso se aplica a tudo na vida. Montar o palco para o espetáculo, preparar e limpar as ferramentas, checar se tudo está apto para funcionamento, etc. Concatenar arquivos, minificar código, realizar o deploy, etc.&lt;/p&gt;
+
+&lt;p&gt;Estas tarefas podem continuar a serem feitas, mas sem o trabalho que normalmente se tem para as suas execuções. A ferramenta a ser usada neste caso é o Grunt.&lt;/p&gt;
+
+&lt;p&gt;Com o Grunt você pode automatizar tarefas para serem executadas via linha de comando. Basta ter o NodeJS e configurar as tarefas a serem automatizadas.&lt;/p&gt;
+
+&lt;h2 id=&#34;qualidade&#34;&gt;Qualidade&lt;/h2&gt;
+
+&lt;p&gt;Uma mágica bem feita pode ser repetida diversas vezes, e ainda causará boas impressões. Isso se deve a qualidade com que a mágica foi feita. Existe a melhor maneira de executá-la, e quando isso é feito, tudo flui muito bem. Escrever códigos javascript e css com qualidade &amp;#8211; o que inclui boas práticas de sintaxe e construção – é um desafio, porque escrever sem boas práticas também funciona.&lt;/p&gt;
+
+&lt;p&gt;Para verificar a qualidade do nosso código temos: JSLint, JSHint e CSSLint.&lt;/p&gt;
+
+&lt;p&gt;JSLint realiza uma busca com foco em erros de sintaxe e erros estruturais.&lt;/p&gt;
+
+&lt;p&gt;JSHint é um fork do JSLint com uma melhoria que permite customizações, ele permite flexibilidade.&lt;/p&gt;
+
+&lt;p&gt;CSSLint tem o objetivo de verificar além da sintaxe a performance do CSS.&lt;/p&gt;
+
+&lt;h2 id=&#34;enfim&#34;&gt;Enfim&lt;/h2&gt;
+
+&lt;p&gt;Cada mágico tem um conjunto de mágicas que são apresentadas. Mas todos tem o mesmo objetivo: encantar. Todo desenvolvedor precisa encantar a todos para ter seu trabalho reconhecido. Essas ferramentas, e muitas outras, podem fazer a diferença. Então faça a diferença.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Em um relacionamento sério com generators front-end – Parte 2</title>
+      <link>http://tableless.com.br/em-um-relacionamento-serio-com-generators-front-end-parte-2/</link>
+      <pubDate>Wed, 10 Dec 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/em-um-relacionamento-serio-com-generators-front-end-parte-2/</guid>
+      <description>
+
+&lt;h1 id=&#34;o-início&#34;&gt;O início&lt;/h1&gt;
+
+&lt;p&gt;O objetivo desse post não é para fazer com que os desenvolvedores só usem esta ferramenta, e sim para apresentar opções de desenvolvimentos ágeis que podem ser úteis no seu dia a dia. É uma ferramenta a qual lhe oferece um stack completo de estrutura de projeto, basta você saber como usar e para que vai usar.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-yeoman&#34;&gt;O Yeoman&lt;/h3&gt;
+
+&lt;p&gt;O Yeoman é considerado uma ferramenta web de andaimes para criação de webapp modernos, nele você consegue montar um esquema de trabalho facilitando seu desenvolvimento. Seu fluxo de trabalho é composto por 3 ferramentas melhorando sua produtividade e satisfação.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;YO &amp;#8211; Conjunto de geradores que nos permite prototipar&lt;/li&gt;
+&lt;li&gt;Gruntjs &amp;#8211; Gerencia suas tarefas de forma automatizadas&lt;/li&gt;
+&lt;li&gt;Bower &amp;#8211; Gerencia suas dependências aplicadas no projeto&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;PS: São ferramentas que por padrão já vem com o Yeoman, porém temos a opção de usar o Gulp para gerenciar nossas tarefas.&lt;/p&gt;
+
+&lt;h3 id=&#34;ta-me-convence&#34;&gt;Ta, me convence!&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/12/convence.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-46124&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/12/convence.jpg&#34; alt=&#34;convence&#34; width=&#34;477&#34; height=&#34;275&#34; srcset=&#34;uploads/2014/12/convence.jpg 477w, uploads/2014/12/convence-241x139.jpg 241w, uploads/2014/12/convence-400x230.jpg 400w&#34; sizes=&#34;(max-width: 477px) 100vw, 477px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O Yeoman sendo uma ferramenta completa, pode proporcionar para você formas práticas e ágeis de desenvolvimento com menos tempo e com boa qualidade. Alguns criticam, outros elogiam, mas você só saberá o resultado se positivo ou negativo, quando usar esse brinquedinho.&lt;/p&gt;
+
+&lt;p&gt;Penso o seguinte: Uma ferramenta nova no marcado ou até mesmo uma antiga com novas versões e novas features, precisam ser exploradas para saber o que a mesma pode nos proporcionar. Por isso nunca se intimide com novas tecnologias e sim aproveite para ganhar conhecimentos.&lt;/p&gt;
+
+&lt;h3 id=&#34;dicas-importantes-antes-de-praticar&#34;&gt;Dicas importantes antes de praticar&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/12/dica.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-46127&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/12/dica.jpg&#34; alt=&#34;dica&#34; width=&#34;400&#34; height=&#34;245&#34; srcset=&#34;uploads/2014/12/dica.jpg 400w, uploads/2014/12/dica-226x139.jpg 226w&#34; sizes=&#34;(max-width: 400px) 100vw, 400px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Antes de mais nada já saiba que não ter medo do terminal é um diferencial. Sacanagem Hahaha. Mas é importante saber que a maioria das configurações e monitoramento serão via terminal, por isso é bom entender e interpretar cada linha de comando digitada.&lt;/p&gt;
+
+&lt;p&gt;Lembrando que para usar o Yeoman é preciso ter Nodejs instalado em sua máquina, por isso se você não tem essa plataforma, baixe &lt;a href=&#34;http://nodejs.org/download/&#34;&gt;aqui&lt;/a&gt;, instale e parte para a próxima etapa. Após a instalação do nodejs o resto é mágica!&lt;/p&gt;
+
+&lt;p&gt;Uma observação válida a ser feita é o seguinte: Você que desenvolve com Mac OS ou Linux *-* por padrão já vem instalado o Ruby e para quem desenvolve em windows é preciso instalar os dois: Nodejs e Ruby. Você pode baixar o ruby bem &lt;a href=&#34;https://www.ruby-lang.org/pt/downloads/&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;vendo-teorias-na-prática&#34;&gt;Vendo teorias na prática&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/12/vendo-tv.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-46128&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/12/vendo-tv.jpg&#34; alt=&#34;vendo-tv&#34; width=&#34;381&#34; height=&#34;315&#34; srcset=&#34;uploads/2014/12/vendo-tv.jpg 381w, uploads/2014/12/vendo-tv-168x139.jpg 168w&#34; sizes=&#34;(max-width: 381px) 100vw, 381px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Conforme comentado acima, precisa ter nodejs instalado, por isso instale e após a instalação seguia os passos seguintes.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Digite o código abaixo via linha de comando na raiz do seu projeto. O mesmo instala o Yo, Gruntjs e Bower de forma global, podendo usar também Gulp. &lt;pre class=&#34;lang-html&#34;&gt;npm install -g yo grunt-cli bower&lt;/pre&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Instale o generator da aplicação, nesse caso o generator escolhido para uso é o &amp;#8220;webapp&amp;#8221;. &lt;pre class=&#34;lang-html&#34;&gt;npm install generator-webapp&lt;/pre&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Inicie a aplicação com YO. &lt;pre class=&#34;lang-html&#34;&gt;yo webapp&lt;/pre&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;O comando &amp;#8220;generator-webapp&amp;#8221; é o gerador de aplicações web padrão que será um projeto contendo HTML5 Boilerplate , jQuery , Modernizr e Bootstrap . Você vai ter uma opção durante as instruções interativas para não incluir muitos destes.&lt;/p&gt;
+
+&lt;h3 id=&#34;mas-o-que-vem-depois&#34;&gt;Mas o que vem depois?&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/12/01.jpg&#34;&gt;&lt;img class=&#34;alignnone  wp-image-46228&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/12/01.jpg&#34; alt=&#34;01&#34; width=&#34;338&#34; height=&#34;190&#34; srcset=&#34;uploads/2014/12/01.jpg 400w, uploads/2014/12/01-247x139.jpg 247w&#34; sizes=&#34;(max-width: 338px) 100vw, 338px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Após o processo de instalação seguida passo a passo, a ferramenta já pode ser usada para criar suas aplicações. Você vai perceber que o YO já te retorna uma estrutura de pasta bem completa com tudo que você precisa e ainda alguns recursos a mais. Veja abaixo!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/12/estrutura-raiz.jpg&#34;&gt;&lt;img class=&#34;alignnone  wp-image-46230&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/12/estrutura-raiz.jpg&#34; alt=&#34;estrutura raiz&#34; width=&#34;193&#34; height=&#34;269&#34; srcset=&#34;uploads/2014/12/estrutura-raiz.jpg 233w, uploads/2014/12/estrutura-raiz-99x139.jpg 99w&#34; sizes=&#34;(max-width: 193px) 100vw, 193px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Analisando a estrutura, digo o seguinte:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A pasta &lt;strong&gt;app&lt;/strong&gt; é onde vai rodar toda sua aplicação em modo de desenvolvimento. É lá que você cria seus arquivos HTML / CSS / JavaScript e entre outros. Mas essa pasta vamos ver com detalhes já já.&lt;/li&gt;
+&lt;li&gt;A pasta &lt;strong&gt;bower_componnets&lt;/strong&gt; é criada pelo bower, onde você vai baixar e usar componentes como bootstrap, AngularJS, Backbone e entre outros e por padrão ele já traz o jQuery para você. Caso você não goste do nome “bower_componentes” você tem a opção de criar uma pasta como “libs” ou “componentes” e apontar seus componentes baixados para está nova pasta, só precisa criar um arquivo “.bowerrc” e lá você aponta para tal pasta. Exemplo: { app/libs ou app/componentes }&lt;/li&gt;
+&lt;li&gt;A pasta &lt;strong&gt;node_modules&lt;/strong&gt; são os módulos instalados pelo nodejs, lá você vai ver alguns plugins do Gruntjs instalados por padrão, podendo ainda instalar outros plugins.&lt;/li&gt;
+&lt;li&gt;Os arquivos &lt;strong&gt;Gruntfile&lt;/strong&gt; e &lt;strong&gt;Bower.json&lt;/strong&gt; são de configurações de componentes, onde o Gruntfile armazena todas as tarefas automatizadas do gruntjs como: minificação, compilação e otimização. Já o bower.json é um arquivo simples que retorna dados importantes dos componentes gerenciados no bower e armazena os componentes usados e suas versões.&lt;/li&gt;
+&lt;li&gt;Os outros arquivos são de configuração da ferramenta, incluindo os arquivos ocultos.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;a-tal-pasta-app-da-minha-aplicação&#34;&gt;A tal pasta APP da minha aplicação&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/12/02.jpg&#34;&gt;&lt;img class=&#34;alignnone  wp-image-46231&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/12/02.jpg&#34; alt=&#34;02&#34; width=&#34;355&#34; height=&#34;239&#34; srcset=&#34;uploads/2014/12/02.jpg 425w, uploads/2014/12/02-206x139.jpg 206w, uploads/2014/12/02-400x269.jpg 400w&#34; sizes=&#34;(max-width: 355px) 100vw, 355px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Enfim chegamos a pasta de desenvolvimento, é aqui que começa toda a sua aplicação, você não precisa mexer em nenhuma outra pasta, tudo que você precisa mexer e criar vai ser dentro deste diretório, beleza? Veja como funciona a estrutura da pasta e logo após vamos ver funcionando e depois daremos o &lt;strong&gt;build&lt;/strong&gt; *-*&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/12/estrutura-app.jpg&#34;&gt;&lt;img class=&#34;alignnone  wp-image-46232&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/12/estrutura-app.jpg&#34; alt=&#34;estrutura-app&#34; width=&#34;134&#34; height=&#34;277&#34; srcset=&#34;uploads/2014/12/estrutura-app.jpg 154w, uploads/2014/12/estrutura-app-67x139.jpg 67w&#34; sizes=&#34;(max-width: 134px) 100vw, 134px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Acredito que detalhar essa estrutura não tem tanta necessidade, pois as pastas e arquivos já falam por si, não é mesmo? Mas qualquer dúvida pode deixar seu comentário que responderei com prazer.&lt;/p&gt;
+
+&lt;p&gt;Bom, você já instalou as ferramentas (Yo/Gruntjs/bower), já instalou o generator que será usado (generator-webapp) e executou o “yo” que retornou essa estrutura de pasta. Agora para ver como funciona é simples. Execute o comando abaixo, ele vai criar um server local para você ir debugando sua aplicação e vendo como ela está se comportanto no browser e o mais legal é que você não precisa dar F5, pois por padrão já vem instalado o “livereload” plugin do grunt que atualiza automaticamente sua aplicação no browser  =)&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;grunt server&lt;/pre&gt;
+
+&lt;p&gt;Após isso você criar sua aplicação normalmente, usando como ponto de partida o arquivo index.html e os diretórios presentes.&lt;/p&gt;
+
+&lt;h3 id=&#34;e-se-eu-quiser-baixar-outros-componentes-e-plugins&#34;&gt;*&lt;strong&gt;&lt;em&gt;&lt;em&gt;E se eu quiser baixar outros componentes e plugins?&lt;/em&gt;&lt;/em&gt;&lt;/strong&gt;*&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/12/03.jpg&#34;&gt;&lt;img class=&#34;alignnone  wp-image-46233&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/12/03.jpg&#34; alt=&#34;03&#34; width=&#34;335&#34; height=&#34;216&#34; srcset=&#34;uploads/2014/12/03.jpg 400w, uploads/2014/12/03-215x139.jpg 215w&#34; sizes=&#34;(max-width: 335px) 100vw, 335px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;É uma boa pergunta e simples de responder. Para baixar outro componente como por exemplo AngularJS vamos usar o Bower, nosso gerenciador de componentes. E para baixar um novo plugin como por exemplo JSHINT vamos usar o Gruntjs que gerencia nossas tarefas. Os comandos abaixo mostra como baixar componentes e plugins.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Baixando componentes&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;bower install [nome do componente]&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Baixando plugins&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;npm install [nome do plugin] --save-dev&lt;/pre&gt;
+
+&lt;h3 id=&#34;e-meu-ambiente-de-produção&#34;&gt;E meu ambiente de produção?&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/12/04.jpg&#34;&gt;&lt;img class=&#34;alignnone  wp-image-46234&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/12/04.jpg&#34; alt=&#34;04&#34; width=&#34;363&#34; height=&#34;252&#34; srcset=&#34;uploads/2014/12/04.jpg 392w, uploads/2014/12/04-200x139.jpg 200w&#34; sizes=&#34;(max-width: 363px) 100vw, 363px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Chegamos ao nosso momento de build da aplicação. O yeoman compila todos os arquivos da pasta app e nos retorna uma pasta chamada “dist” é lá que encontram seus arquivos de produção prontos para serem usados e testados. Lembrando que qualquer alteração não poderá ser feita na pasta “dist” e sim em “app”.&lt;/p&gt;
+
+&lt;p&gt;Dando o build no projeto e gerando meu diretório de produção:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;grunt build&lt;/pre&gt;
+
+&lt;h3 id=&#34;visão-geral&#34;&gt;Visão geral&lt;/h3&gt;
+
+&lt;p&gt;Hoje aprendemos realmente a usar o yeoman, desde seus conceitos até o modo de produção, é só seguir os passos e dicas. E por falar em dica, lá vai uma dica para melhorar mais ainda a sua transferência de arquivos para o ambiente de produção.&lt;/p&gt;
+
+&lt;p&gt;Ao dar o build ele gera o diretório “dist” contendo nele os arquivos de produção. Já que estamos automatizando tudo, evite o uso do FTP e sim faça deploy =) Abaixo segue algumas referências de um módulo do grunt que você pode acrescentar em sua aplicação e deixá-la mais interessante. Assim você miniminiza retrabalhos. Estou falando de [rsync][12].&lt;/p&gt;
+
+&lt;p&gt;Links de referência Yeoman que podem complementar o Post&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; &lt;a href=&#34;http://yeoman.io/&#34;&gt;Site oficial do yeoman&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; &lt;a href=&#34;https://github.com/yeoman/yeoman&#34;&gt;Projeto yeoman no github para contribuição&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; &lt;a href=&#34;http://blog.caelum.com.br/experimente-o-yeoman-em-seu-workflow-de-projetos-front-end/&#34;&gt;Outro Post de referência explicativo e conceitual&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; &lt;a href=&#34;http://pt.slideshare.net/pedropolisenso/em-um-relacionamento-srio-com-generators-front-end&#34;&gt;Palestra sobre generators (yeoman)&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;considerações-finais&#34;&gt;Considerações finais&lt;/h3&gt;
+
+&lt;p&gt;Chegamos ao final desse capítulo tentando expor as qualidades que o Yeoman pode nos dar e sua forma de uso. No próximo capítulo teremos nosso amigo Beto Muniz (&lt;a href=&#34;https://twitter.com/obetomuniz&#34;&gt;@obetomuniz&lt;/a&gt;) falando sobre Slush dentro da série. Não perca os próximos capítulos da série, onde no 4º capítulo finalizaremos com algumas dicas, apresentaremos projetos que foram criados a parir de um desses generators e mostrar como criar seu próprio generator. Valeu =]&lt;/p&gt;
+
+&lt;p&gt;[12]: Ao%20dar o build ele gera o diretório “dist” contendo nele os arquivos de produção. Já que estamos automatizando tudo, jamais em toda sua vida use FTP e sim faça deploy =) Abaixo segue algumas referências de um módulo do grunt que você pode acrescentar em sua aplicação e deixá-la mais interessante. Assim você miniminiza retrabalhos. Estou falando de rsync&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Instalando SASS na máquina – video</title>
+      <link>http://tableless.com.br/instalando-sass-na-maquina-video/</link>
+      <pubDate>Mon, 18 Aug 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/instalando-sass-na-maquina-video/</guid>
+      <description>
+
+&lt;p&gt;Se você quiser usar um pré-processador em seus projetos, aqui vão instruções simples para você começar agora. Darei mais atenção para quem usa Mac porque é o sistema que eu uso. Mas no Windows as instruções são quase as mesmas, principalmente se você for usar algum sistema que gerencia os assets. Também estou abordando aqui apenas o SASS, nada de LESS, Style ou qualquer outro pré-processador. Depois desse disclaimer, vamos ao que interessa.&lt;/p&gt;
+
+&lt;h2 id=&#34;iniciando&#34;&gt;Iniciando&lt;/h2&gt;
+
+&lt;p&gt;Um pré-processador precisa ser pré-processado (!) antes do código resultante seja renderizado pelo browser. Isso quer dizer que o browser nunca (nunca diga nunca) vai ler direto seu código SASS e renderizar seu código. Por isso, você precisa de um parser, que vai ler seu SASS, salvar em um arquivo CSS para seu browser renderizar o CSS.&lt;/p&gt;
+
+&lt;p&gt;O SASS é uma GEM do Ruby, logo, invariavelmente você vai precisar do Ruby. Por isso, existem duas maneiras de você usar um Pré-processador sem se preocupar em preparar seu ambiente e rodar SASS com tranquilidade. A primeira forma é usando alguma aplicação que vai ler e parsar seus arquivos SASS, sem a necessidade do Ruby no ambiente. Claro, você vai precisar esperar alguns segundos para dar um refresh na página. Isso acontece por que o aplicativo está parseando seu código.&lt;/p&gt;
+
+&lt;p&gt;A outra maneira é a melhor, você não tem esse delay de segundos, mas é mais complicada para quem não está acostumado com Terminal. Mesmo assim, é tão fácil, tão fácil, que eu sugiro que você tente primeiro fazer funcionar o SASS pelo terminal, se conseguir, tente usar a aplicação.&lt;/p&gt;
+
+&lt;h2 id=&#34;scout&#34;&gt;Scout&lt;/h2&gt;
+
+&lt;p&gt;Existem várias aplicações que compilam SASS e outras linguagens como CoffeeScript, TypeScript, LESS, Stylus e etc. A maioria deles é pago, mas muito bons. Se você preferir pagar, sugiro que use o mais famoso que é o &lt;a href=&#34;http://incident57.com/codekit/&#34;&gt;CodeKit&lt;/a&gt;. Mas se você não quer pagar nada, sugiro o Scout.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://mhs.github.io/scout-app/&#34;&gt;Scout&lt;/a&gt; (tem para Windows e Mac) é um compilador para exclusivo SASS/Compass e ele tem um único objetivo, ler seus arquivos SASS, parsear, compilar e por fim salvar em uma pasta no formato CSS.&lt;/p&gt;
+
+&lt;p&gt;Fiz um vídeo mudo (sou tímido) que mostra como adicionar um projeto no Scout. Basicamente você escolhe a pasta do projeto e indica quais as pastas onde ele vai encontrar os arquivos SASS e onde ele vai salvar os arquivos .CSS. Normalmente eu escolho sempre a mesma pasta, mas você pode escolher uma outra pasta que vai salvar os arquivos CSS finais. Veja abaixo o vídeo:&lt;/p&gt;
+
+&lt;p&gt;Se você quiser testar outra aplicação em vez do Scout, experimente o &lt;a href=&#34;http://koala-app.com&#34;&gt;Koala&lt;/a&gt;. Ele também é free e compila outros pré-processadores como o LESS e CoffeeScript.&lt;/p&gt;
+
+&lt;h2 id=&#34;usando-o-terminal&#34;&gt;Usando o terminal&lt;/h2&gt;
+
+&lt;p&gt;Para usar no terminal, você precisa ter na máquina Ruby e a gem do Sass instalada. Feito isso, você vigia a pasta com os arquivos SASS com o comando abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;sass --watch [diretório dos arquivos SASS]
+&lt;/pre&gt;
+
+&lt;p&gt;Simples assim.&lt;/p&gt;
+
+&lt;p&gt;Se você quiser avançar e já leu sobre Compass e sua facilidade de usar CSS3, você usá-lo para vigiar sua pasta. Para iniciar o projeto:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;compass create [nome do projeto]
+&lt;/pre&gt;
+
+&lt;p&gt;Se você já tiver a pasta do projeto, basta fazer o mesmo comando. Ele vai criar dentro da pasta uma pasta chamada &lt;strong&gt;sass&lt;/strong&gt;, com os arquivos SASS, uma pasta &lt;strong&gt;stylesheet&lt;/strong&gt;, que é onde vai ficar o código CSS resultante do SASS. Ele vai criar também um arquivo &lt;strong&gt;config.rb&lt;/strong&gt;, que é onde fica as configurações do seu projeto.&lt;/p&gt;
+
+&lt;p&gt;Quando tiver feito esse comando acima, e claro, ter linkado o CSS no seu arquivo HTML, você pode começar digitar o comando &lt;strong&gt;compass watch&lt;/strong&gt;, que vai vigiar a pasta stylesheets procurando por arquivos SASS e transformando-os em CSS.&lt;/p&gt;
+
+&lt;p&gt;Abaixo, veja outro vídeo mudo, onde eu crio o projeto e modifico o &lt;strong&gt;config.rb&lt;/strong&gt; do Compass para que a estrutura de pastas fique do jeito que eu gosto, geralmente para mudar a estrutura de pastas, inserindo as pastas de stylesheets, imagens e javascripts para dentro da pasta &lt;strong&gt;assets&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Eu vou tentar melhorar ainda mais esse passo a passo com o tempo. Não encontrei nenhum lugar onde ensinasse exatamente como fazer para rodar SASS na máquina sem estar em um projeto Ruby. Isso era uma dificuldade para devs novatos que querem experimentar as maravilhosas peripécias do SASS.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Utilizando Map Structure do Sass</title>
+      <link>http://tableless.com.br/utilizando-maps-sass/</link>
+      <pubDate>Mon, 11 Aug 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/utilizando-maps-sass/</guid>
+      <description>
+
+&lt;p&gt;O Sass é um pré-processador usado para melhorar sua produtividade ao codificar CSS. Dentre as várias funcionalidades, existe uma chamada &lt;code&gt;maps&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;O &lt;code&gt;maps&lt;/code&gt; é como um array de variáveis. Ela guarda uma série de chaves com valores. A sintaxe é bastante comum, veja:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;$map: (
+  key1: value1, 
+  key2: value2, 
+  key3: value3
+);
+&lt;/pre&gt;
+
+&lt;p&gt;A primeira vista se parece com Json, né?&lt;/p&gt;
+
+&lt;p&gt;A ideia é que você consiga pegar o valor de qualquer chave que está dentro do seu mapa e usar em momentos onde você irá repetir bastante código.&lt;/p&gt;
+
+&lt;h2 id=&#34;demo&#34;&gt;Demo&lt;/h2&gt;
+
+&lt;p&gt;No exemplo abaixo, vou mostrar uma situação muito comum ao desenvolvermos um site com variação de temas de cores. Na maneira normal, você faria um código basicamente assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.tema-azul body {
+  background-color: #0176bb;
+}
+
+.tema-vermelho body {
+  background-color: #e3413e;
+}
+
+.tema-amarelo body {
+  background-color: #f8e042;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Usando o mapa do SASS, a primeira coisa que faríamos seria separar as cores em variáveis, assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;$cores: (
+  azul: #0176bb, 
+  vermelho: #e3413e, 
+  amarelo: #f8e042
+);
+&lt;/pre&gt;
+
+&lt;p&gt;E faríamos uma função dessa forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;@each $tema, $cor in $cores {
+  .tema-#{tema} body {
+     background-color: $cor;
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O &lt;code&gt;$tema&lt;/code&gt; seria cada uma das chaves, no nosso caso &lt;code&gt;azul&lt;/code&gt;, &lt;code&gt;vermelho&lt;/code&gt; e &lt;code&gt;amarelo&lt;/code&gt;. O &lt;code&gt;$cor&lt;/code&gt; seria cada um dos valores dos temas, ou seja, os valores hexadecimais. A função &lt;code&gt;@each&lt;/code&gt; está dizendo assim: a cada valor dos temas (azul, vermelho, amarelo) que encontrar no mapa &lt;code&gt;$cores&lt;/code&gt;, repita o bloco de código.&lt;/p&gt;
+
+&lt;p&gt;Isso resultaria no seguinte código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.tema-azul body {
+  background-color: #0176bb;
+}
+
+.tema-vermelho body {
+  background-color: #e3413e;
+}
+
+.tema-amarelo body {
+  background-color: #f8e042;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Isso salva vidas. Agora vamos complicar mais. Normalmente um tema é composto de mais cores. Para isso o mapa vai ficar parecido isso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;$cores: (
+  azul: (
+    color1: #0176bb, 
+    color2: #23aad0,
+    color3: #edf7fd
+  ),
+  vermelho: (
+    color1: #e3413e, 
+    color2: #1f518c,
+    color3: #f8e042
+  ),
+  amarelo: (
+    color1: #4a5269, 
+    color2: #fc7d74,
+    color3: #4a5269
+  )
+);
+&lt;/pre&gt;
+
+&lt;p&gt;O código do &lt;code&gt;@each&lt;/code&gt; não mudará muito, mas precisaremos guardar cada uma dessas cores dentro de uma variável que será usada no código final. Ficará assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;@each $tema, $cor in $cores {
+  $color1: map-get($cor, color1);
+  $color2: map-get($cor, color2);
+  $color3: map-get($cor, color3);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Explicando: a cada &lt;code&gt;$tema&lt;/code&gt; (azul, vermelho e amarelo) que há no mapa &lt;code&gt;$cores&lt;/code&gt;, ele vai gravar as variáveis &lt;code&gt;$color1&lt;/code&gt;, &lt;code&gt;$color2&lt;/code&gt; e &lt;code&gt;$color3&lt;/code&gt;. A função &lt;code&gt;map-get&lt;/code&gt; vai pegar o valor específico de cada variável &lt;code&gt;color1&lt;/code&gt;, &lt;code&gt;color2&lt;/code&gt; e &lt;code&gt;color3&lt;/code&gt; de cada tema e irá guardar. O código CSS fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@each $tema, $cor in $cores {
+  $color1: map-get($cor, color1);
+  $color2: map-get($cor, color2);
+  $color3: map-get($cor, color3);
+
+  .color-#{$tema} {
+    body {
+      background-color: $color1;
+    }
+
+    .header {
+      background-color: $color2;
+    }
+
+    .menu a {
+      background-color: $color3;
+    }
+
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ele vai repetir o bloco acima uma vez para cada tema de cor. No nosso caso, 3 vezes: uma para azul, vermelho e amarelo.&lt;/p&gt;
+
+&lt;p&gt;Novamente: isso salva vidas.&lt;/p&gt;
+
+&lt;p&gt;A única coisa que você vai gerenciar depois são as variáveis para modificar ou inserir novas cores.&lt;/p&gt;
+
+&lt;p&gt;Veja abaixo um exemplo mais completo, mostrando o código final do CSS gerado:&lt;/p&gt;
+
+&lt;p class=&#34;sassmeister&#34; data-gist-id=&#34;9fc788894331313ce485&#34; data-height=&#34;480&#34;&gt;
+  &lt;a href=&#34;http://sassmeister.com/gist/9fc788894331313ce485&#34;&gt;Play with this gist on SassMeister.&lt;/a&gt;
+&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://viget.com/extend/sass-maps-are-awesome&#34;&gt;O pessoal do Viget explorou outro problema&lt;/a&gt; para resolver. Na verdade, as implicações são diversas. A qualquer momento que você tiver um bloco de código repetitivo e que depende de muitas variações, o &lt;code&gt;maps&lt;/code&gt; é indicado.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>SASS: Mixin ou Placeholder?</title>
+      <link>http://tableless.com.br/sass-mixin-ou-placeholder/</link>
+      <pubDate>Sun, 16 Mar 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/sass-mixin-ou-placeholder/</guid>
+      <description>
+
+&lt;p&gt;Se é um tema que sempre vejo a respeito da utilização ou não, é sobre o uso de pré processadores CSS. Alguns &lt;em&gt;devs&lt;/em&gt; que costumo seguir e ler os artigos, e que pra mim são algumas das nossas referências, apontam as suas considerações sobre o tema. O Miller Medeiros, em um &lt;a href=&#34;http://blog.millermedeiros.com/the-problem-with-css-pre-processors/&#34;&gt;post&lt;/a&gt; mostra alguns pontos negativos na utilização de pré processadores. O Jean Carlos Emer em um outro &lt;a href=&#34;http://tableless.com.br/css-steroids/&#34; title=&#34;CSS on steroids&#34;&gt;post&lt;/a&gt; mostra as reais vantagens de se utilizar um pré-processador. O Diego Eis, em um outro &lt;a href=&#34;http://tableless.com.br/pre-processadores-usar-ou-nao-usar/&#34; title=&#34;Pré processadores: usar ou não usar?&#34;&gt;post&lt;/a&gt; faz uma conclusão muito boa sobre a utilização ou não:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Pré processadores podem ajudar como também podem maltratar bastante. Basta um escorregão para que seu projeto vire um inferno. &amp;#8211; Diego Eis&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;A utilização ou não de um pré processador fica a seu critério mas, se você já utiliza nos seus projetos ou está pensando em usar, você sabe o que são um &lt;strong&gt;placeholder&lt;/strong&gt; e um &lt;strong&gt;mixin&lt;/strong&gt;? Se sim, sabe qual a principal diferença entre eles e quando usar um ou outro? Navegando um dia pela internet, achei um &lt;a href=&#34;http://www.sitepoint.com/sass-mixin-placeholder/&#34;&gt;artigo&lt;/a&gt; do &lt;a href=&#34;https://twitter.com/HugoGiraudel&#34; title=&#34;Perfil do twitter do desenvolvedor Hugo Giraudel&#34;&gt;Hugo Giraudel&lt;/a&gt;, um dev front-end francês, no &lt;a href=&#34;http://www.sitepoint.com/&#34; title=&#34;Link do website SitePoint&#34;&gt;SitePoint&lt;/a&gt; que trata exatamente sobre esse assunto.&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Quando comecei a trabalhar com SASS cerca de um ano e meio atrás, uma coisa que me levou tempo para entender foi a diferença entre &lt;em&gt;&lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#mixins&#34;&gt;incluir um mixin&lt;/a&gt;&lt;/em&gt; e &lt;em&gt;&lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#placeholders&#34;&gt;estender um placeholder&lt;/a&gt;&lt;/em&gt;. Na verdade, até mesmo a noção de &lt;em&gt;placeholder&lt;/em&gt; era uma espécie de magia negra vodu naquela época.&lt;/p&gt;
+
+&lt;p&gt;Se você estiver em uma situação semelhante, não se preocupe, porque eu vou tentar iluminar o caminho. Hoje vamos aprender para que exatamente serve um &lt;em&gt;mixin&lt;/em&gt;, e quando usar um &lt;em&gt;placeholder do SASS&lt;/em&gt;. Você vai entender que ambos tem diferentes finalidades e não devem ser confundidas.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Nota: Enquanto pretendo falar sobre SASS, esse artigo pode ser aplicado a qualquer outro pré-processador CSS, seja Stylus, LESS, ou outro que você venha a usar. Essas tecnologias geralmente fazem a mesma coisa, portanto fique a vontade para adaptar o conteúdo deste artigo para a ferramenta de sua escolha&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Primeiro devemos fazer um breve resumo sobre o que estamos falando quando nos referimos aos &lt;strong&gt;placeholder e mixins do SASS&lt;/strong&gt;, então vamos fazer isso já.&lt;/p&gt;
+
+&lt;h2 id=&#34;entendendo-o-mixin&#34;&gt;Entendendo o mixin&lt;/h2&gt;
+
+&lt;p&gt;Um mixin é uma diretiva que permite que você defina várias regras com diversos argumentos. Pense nisso como uma função que irá retornar conteúdo CSS ao invés de um valor. Aqui está a definição de &lt;em&gt;mixin&lt;/em&gt; da &lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#mixin-content&#34;&gt;referência do SASS&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote cite=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#mixin-content&#34;&gt;
+  &lt;p&gt;
+    Mixins permitem definir estilos que podem ser reutilizados em toda a folha de estilo, sem a necessidade de recorrer a classes não semânticas como &lt;i&gt;.float-left&lt;/i&gt;. Mixins podem também conter regras completas de CSS e quaisquer outras coisas permitidas em um documento SASS. Eles podem até mesmo possuírem argumentos que lhe permitem produzir uma ampla variedade de estilos com poucos mixins.
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Agora que cobrimos a terminologia, vamos dizer que você encontra algumas declarações que são repetidas várias vezes ao longo da sua folha de estilos. Você que está familiarizado com o conceito de DRY (&lt;a href=&#34;http://en.wikipedia.org/wiki/Don&#39;t_repeat_yourself&#34;&gt;Don&amp;#8217;t Repeat Yourself&lt;/a&gt;), sabe que a repetição de código é ruim. Para corrigir isso, você pode escrever um mixin para todas aquelas declarações repetidas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@mixin center() {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.container {
+    @include center();
+    /* Outros estilos aqui... */
+}
+
+/* Outros estilos... */
+
+.image-cover {
+    @include center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Nota: Se você não passar um argumento para um mixin, você pode omitir os parênteses. Na verdade, você pode até omiti-los na definição do &lt;code&gt;@mixin&lt;/code&gt;&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Com este mixin recém-criado, você não precisa repetir aquelas três linhas de código cada vez que precisar centralizar um elemento; você simplesmente inclui o mixin. Muito prático, não é?!&lt;/p&gt;
+
+&lt;p&gt;Algumas vezes você vai querer um mixin para construir o que você chamaria de &lt;em&gt;shorthand&lt;/em&gt; para algumas propriedades. Por exemplo, largura e altura. Você não está cansado de escrever as duas linhas várias e várias vezes? Especialmente quando ambas tem o mesmo valor? Bem, vamos lidar com isso usando um mixin!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@mixin size($width, $height: $width) {
+    width: $width;
+    height: $height;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Muito simples, não é? Note como deixamos o parâmetro &lt;code&gt;$height&lt;/code&gt; ser opcional e, por padrão assumir o mesmo valor do parâmetro &lt;code&gt;$width&lt;/code&gt; na assinatura do mixin. Agora, sempre que você precisar definir as dimensões para um elemento, você pode simplesmente fazer isso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;.icon {
+    @include size(32px);
+}
+
+.cover {
+    @include size(100%, 10em);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Nota: Um outro bom exemplo de mixin seria &lt;a href=&#34;http://hugogiraudel.com/2013/08/05/offsets-sass-mixin/&#34;&gt;este aqui&lt;/a&gt; que eu fiz para evitar de escrever as posições &lt;code&gt;top&lt;/code&gt;, &lt;code&gt;left&lt;/code&gt;, &lt;code&gt;right&lt;/code&gt; e &lt;code&gt;bottom&lt;/code&gt; toda vez que quiser utilizar um sistema de posicionamento diferente do estático.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conhecendo-seu-placeholder&#34;&gt;Conhecendo seu Placeholder&lt;/h2&gt;
+
+&lt;p&gt;Placeholders são um tipo de coisa estranha. Eles são classes que não são retornadas quando o seu SCSS é compilado. Você deve então pensar: &lt;em&gt;&amp;#8220;Qual é o sentido disso?&amp;#8221;&lt;/em&gt;. Na verdade, o ponto seria minímo senão fosse a expressão &lt;code&gt;@extend&lt;/code&gt;. Mas vamos por partes. Essa é a forma que você escreve um placeholder:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;%center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Nota do editor: Como um placeholder, um mixin é igualmente inútil, a menos que seja referenciado, assim essa seção não está dizendo que eles são diferentes nesse aspecto, mas apenas esclarecendo que mesmo que se pareça similar com um bloco de declaração CSS, não será gerado por conta própria.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Basicamente você escreve exatamente como uma classe &lt;code&gt;CSS&lt;/code&gt; exceto pelo símbolo % ao invés do ponto. Além disso, segue as mesmas &lt;a href=&#34;http://www.w3.org/TR/html401/types.html#type-cdata&#34;&gt;regras de nomenclatura&lt;/a&gt; das classes.&lt;/p&gt;
+
+&lt;p&gt;Agora, se você tentar compilar seu SCSS, você não vai ver esse pedaço de código no arquivo gerado. Como eu disse: &lt;strong&gt;placeholders não são compilados&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Então, por agora, esse placeholder é totalmente inútil. Você não consegue fazer qualquer uso dele a não ser que você veja o &lt;code&gt;@extend&lt;/code&gt;. Um &lt;code&gt;@extend&lt;/code&gt; tem como objetivo herdar as propriedades de um seletor CSS / SCSS placeholder. Aqui como usá-lo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;.container {
+  @extend %center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao fazer isso, o arquivo SASS vai pegar o conteúdo do placeholder &lt;code&gt;%center&lt;/code&gt; e aplicá-lo no &lt;code&gt;.container&lt;/code&gt; (mesmo que isso não aconteça exatamente assim &amp;#8211; mas isso não é importante agora). Como eu disse, você também pode &lt;em&gt;estender&lt;/em&gt; seletores CSS já existentes (além de placeholders SCSS) dessa maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;.table-zebra {
+  @extend .table;
+
+  tr:nth-of-type(even) {
+    background: rgba(0,0,0,.5);
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Esse é um caso muito comum para o uso do &lt;code&gt;@extend&lt;/code&gt;. Nesse caso, pedimos para a classe &lt;code&gt;.table-zebra&lt;/code&gt; se comportar exatamente como a classe &lt;code&gt;.table&lt;/code&gt; e então adicionamos as regras específicas da classe &lt;code&gt;.table-zebra&lt;/code&gt;. &lt;em&gt;Estender&lt;/em&gt; seletores é bastante conveniente quando você desenvolve seu site ou aplicação em componentes modulares.&lt;/p&gt;
+
+&lt;h2 id=&#34;qual-utilizar&#34;&gt;Qual utilizar?&lt;/h2&gt;
+
+&lt;p&gt;Então, a pergunta permanece: o que você deve usar? Bem, como tudo em nossa área: &lt;strong&gt;depende&lt;/strong&gt;. Depende do contexto e, em uma outra análise, do que você está querendo fazer.&lt;/p&gt;
+
+&lt;p&gt;O melhor conselho seria: se você precisa de variáveis, utilize o mixin. Caso contrário, use o placeholder. Há duas razões para isso:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Primeiro, você não pode usar variáveis em um placeholder. Na verdade, até pode, mas você não consegue &lt;em&gt;passar&lt;/em&gt; uma variável em um placeholder para gerar um conteúdo específico de CSS, como você faria em um mixin.&lt;/li&gt;
+&lt;li&gt;Segundo, a forma como o SASS lida com os mixins, os torna muito incovenientes quando você os utiliza sem variáveis contextuais. Simplificando: o SASS vai duplicar a saída de um mixin toda vez que você o utilizá-lo, resultando não apenas em CSS duplicado, mas também em uma folha de estilos maior.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Considere o primeiro exemplo desse artigo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@mixin center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container {
+  @include center;
+}
+
+.image-cover {
+  @include center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O CSS compilado seria esse:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.container {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.image-cover {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Observou o CSS duplicado? Ele não é tão prejudicial se forem apenas três linhas duplicadas, mas se você tiver muitos mixins que são usados várias vezes em um projeto, essas três linhas podem facilmente se tornarem 300. E se reformularmos nosso exemplo, só que dessa vez utilizando o placeholder?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;%center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container {
+  @extend %center;
+}
+
+.image-cover {
+  @extend %center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora, esse é o CSS gerado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.container, .image-cover {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Muito melhor! A compilação leva vantagem &lt;a href=&#34;http://reference.sitepoint.com/css/selectorgrouping&#34;&gt;agrupando seletores&lt;/a&gt;, sem nenhum estilo repetido. Assim, sempre que você quiser evitar a escrever as mesmas propriedades diversas vezes, sabendo que elas não mudarão, é uma boa idéia &lt;em&gt;estender&lt;/em&gt; um placeholder. Isso resultará em um código CSS compilado muito mais limpo.&lt;/p&gt;
+
+&lt;p&gt;Por outro lado, se você precisa escrever as mesmas propriedades em vários lugares mas com valores diferentes (tamanho, cores, etc), um mixin é o melhor caminho a seguir. Agora se você possui ambos, um grupo de valores fixos e outro de valores variáveis, você deve tentar usar uma combinação dos dois.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;%center {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+@mixin skin($color, $size) {
+  @extend %center;
+  background: $color;
+  height: $size;
+}
+
+a { @include skin(pink, 10em) }
+b { @include skin(blue, 90px) }
+&lt;/pre&gt;
+
+&lt;p&gt;Neste caso, o mixin está &lt;em&gt;estendendo&lt;/em&gt; o placeholder para os valores fixos em vez de jogá-los diretamente em seu corpo. Isso gera um CSS mais limpo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;a, b {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+a {
+  background: pink;
+  height: 10em;
+}
+
+b {
+  background: blue;
+  height: 90px;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;É isso. Espero ter deixado claro não só o que são mixins e placeholders, mas também quando você deve usá-los e qual os efeitos sobre o CSS compilado.&lt;/p&gt;
+
+&lt;p&gt;Se você tiver alguma coisa a acrescentar sobre suas experiências com essas &lt;em&gt;features&lt;/em&gt; dos pré-processadores de CSS, sinta-se livre para compartilhar nos comentários.&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Texto traduzido e adaptado do [Se é um tema que sempre vejo a respeito da utilização ou não, é sobre o uso de pré processadores CSS. Alguns &lt;em&gt;devs&lt;/em&gt; que costumo seguir e ler os artigos, e que pra mim são algumas das nossas referências, apontam as suas considerações sobre o tema. O Miller Medeiros, em um &lt;a href=&#34;http://blog.millermedeiros.com/the-problem-with-css-pre-processors/&#34;&gt;post&lt;/a&gt; mostra alguns pontos negativos na utilização de pré processadores. O Jean Carlos Emer em um outro &lt;a href=&#34;http://tableless.com.br/css-steroids/&#34; title=&#34;CSS on steroids&#34;&gt;post&lt;/a&gt; mostra as reais vantagens de se utilizar um pré-processador. O Diego Eis, em um outro &lt;a href=&#34;http://tableless.com.br/pre-processadores-usar-ou-nao-usar/&#34; title=&#34;Pré processadores: usar ou não usar?&#34;&gt;post&lt;/a&gt; faz uma conclusão muito boa sobre a utilização ou não:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Pré processadores podem ajudar como também podem maltratar bastante. Basta um escorregão para que seu projeto vire um inferno. &amp;#8211; Diego Eis&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;A utilização ou não de um pré processador fica a seu critério mas, se você já utiliza nos seus projetos ou está pensando em usar, você sabe o que são um &lt;strong&gt;placeholder&lt;/strong&gt; e um &lt;strong&gt;mixin&lt;/strong&gt;? Se sim, sabe qual a principal diferença entre eles e quando usar um ou outro? Navegando um dia pela internet, achei um &lt;a href=&#34;http://www.sitepoint.com/sass-mixin-placeholder/&#34;&gt;artigo&lt;/a&gt; do &lt;a href=&#34;https://twitter.com/HugoGiraudel&#34; title=&#34;Perfil do twitter do desenvolvedor Hugo Giraudel&#34;&gt;Hugo Giraudel&lt;/a&gt;, um dev front-end francês, no &lt;a href=&#34;http://www.sitepoint.com/&#34; title=&#34;Link do website SitePoint&#34;&gt;SitePoint&lt;/a&gt; que trata exatamente sobre esse assunto.&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Quando comecei a trabalhar com SASS cerca de um ano e meio atrás, uma coisa que me levou tempo para entender foi a diferença entre &lt;em&gt;&lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#mixins&#34;&gt;incluir um mixin&lt;/a&gt;&lt;/em&gt; e &lt;em&gt;&lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#placeholders&#34;&gt;estender um placeholder&lt;/a&gt;&lt;/em&gt;. Na verdade, até mesmo a noção de &lt;em&gt;placeholder&lt;/em&gt; era uma espécie de magia negra vodu naquela época.&lt;/p&gt;
+
+&lt;p&gt;Se você estiver em uma situação semelhante, não se preocupe, porque eu vou tentar iluminar o caminho. Hoje vamos aprender para que exatamente serve um &lt;em&gt;mixin&lt;/em&gt;, e quando usar um &lt;em&gt;placeholder do SASS&lt;/em&gt;. Você vai entender que ambos tem diferentes finalidades e não devem ser confundidas.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Nota: Enquanto pretendo falar sobre SASS, esse artigo pode ser aplicado a qualquer outro pré-processador CSS, seja Stylus, LESS, ou outro que você venha a usar. Essas tecnologias geralmente fazem a mesma coisa, portanto fique a vontade para adaptar o conteúdo deste artigo para a ferramenta de sua escolha&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Primeiro devemos fazer um breve resumo sobre o que estamos falando quando nos referimos aos &lt;strong&gt;placeholder e mixins do SASS&lt;/strong&gt;, então vamos fazer isso já.&lt;/p&gt;
+
+&lt;h2 id=&#34;entendendo-o-mixin-1&#34;&gt;Entendendo o mixin&lt;/h2&gt;
+
+&lt;p&gt;Um mixin é uma diretiva que permite que você defina várias regras com diversos argumentos. Pense nisso como uma função que irá retornar conteúdo CSS ao invés de um valor. Aqui está a definição de &lt;em&gt;mixin&lt;/em&gt; da &lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#mixin-content&#34;&gt;referência do SASS&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote cite=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#mixin-content&#34;&gt;
+  &lt;p&gt;
+    Mixins permitem definir estilos que podem ser reutilizados em toda a folha de estilo, sem a necessidade de recorrer a classes não semânticas como &lt;i&gt;.float-left&lt;/i&gt;. Mixins podem também conter regras completas de CSS e quaisquer outras coisas permitidas em um documento SASS. Eles podem até mesmo possuírem argumentos que lhe permitem produzir uma ampla variedade de estilos com poucos mixins.
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Agora que cobrimos a terminologia, vamos dizer que você encontra algumas declarações que são repetidas várias vezes ao longo da sua folha de estilos. Você que está familiarizado com o conceito de DRY (&lt;a href=&#34;http://en.wikipedia.org/wiki/Don&#39;t_repeat_yourself&#34;&gt;Don&amp;#8217;t Repeat Yourself&lt;/a&gt;), sabe que a repetição de código é ruim. Para corrigir isso, você pode escrever um mixin para todas aquelas declarações repetidas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@mixin center() {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.container {
+    @include center();
+    /* Outros estilos aqui... */
+}
+
+/* Outros estilos... */
+
+.image-cover {
+    @include center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Nota: Se você não passar um argumento para um mixin, você pode omitir os parênteses. Na verdade, você pode até omiti-los na definição do &lt;code&gt;@mixin&lt;/code&gt;&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Com este mixin recém-criado, você não precisa repetir aquelas três linhas de código cada vez que precisar centralizar um elemento; você simplesmente inclui o mixin. Muito prático, não é?!&lt;/p&gt;
+
+&lt;p&gt;Algumas vezes você vai querer um mixin para construir o que você chamaria de &lt;em&gt;shorthand&lt;/em&gt; para algumas propriedades. Por exemplo, largura e altura. Você não está cansado de escrever as duas linhas várias e várias vezes? Especialmente quando ambas tem o mesmo valor? Bem, vamos lidar com isso usando um mixin!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@mixin size($width, $height: $width) {
+    width: $width;
+    height: $height;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Muito simples, não é? Note como deixamos o parâmetro &lt;code&gt;$height&lt;/code&gt; ser opcional e, por padrão assumir o mesmo valor do parâmetro &lt;code&gt;$width&lt;/code&gt; na assinatura do mixin. Agora, sempre que você precisar definir as dimensões para um elemento, você pode simplesmente fazer isso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;.icon {
+    @include size(32px);
+}
+
+.cover {
+    @include size(100%, 10em);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Nota: Um outro bom exemplo de mixin seria &lt;a href=&#34;http://hugogiraudel.com/2013/08/05/offsets-sass-mixin/&#34;&gt;este aqui&lt;/a&gt; que eu fiz para evitar de escrever as posições &lt;code&gt;top&lt;/code&gt;, &lt;code&gt;left&lt;/code&gt;, &lt;code&gt;right&lt;/code&gt; e &lt;code&gt;bottom&lt;/code&gt; toda vez que quiser utilizar um sistema de posicionamento diferente do estático.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conhecendo-seu-placeholder-1&#34;&gt;Conhecendo seu Placeholder&lt;/h2&gt;
+
+&lt;p&gt;Placeholders são um tipo de coisa estranha. Eles são classes que não são retornadas quando o seu SCSS é compilado. Você deve então pensar: &lt;em&gt;&amp;#8220;Qual é o sentido disso?&amp;#8221;&lt;/em&gt;. Na verdade, o ponto seria minímo senão fosse a expressão &lt;code&gt;@extend&lt;/code&gt;. Mas vamos por partes. Essa é a forma que você escreve um placeholder:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;%center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Nota do editor: Como um placeholder, um mixin é igualmente inútil, a menos que seja referenciado, assim essa seção não está dizendo que eles são diferentes nesse aspecto, mas apenas esclarecendo que mesmo que se pareça similar com um bloco de declaração CSS, não será gerado por conta própria.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Basicamente você escreve exatamente como uma classe &lt;code&gt;CSS&lt;/code&gt; exceto pelo símbolo % ao invés do ponto. Além disso, segue as mesmas &lt;a href=&#34;http://www.w3.org/TR/html401/types.html#type-cdata&#34;&gt;regras de nomenclatura&lt;/a&gt; das classes.&lt;/p&gt;
+
+&lt;p&gt;Agora, se você tentar compilar seu SCSS, você não vai ver esse pedaço de código no arquivo gerado. Como eu disse: &lt;strong&gt;placeholders não são compilados&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Então, por agora, esse placeholder é totalmente inútil. Você não consegue fazer qualquer uso dele a não ser que você veja o &lt;code&gt;@extend&lt;/code&gt;. Um &lt;code&gt;@extend&lt;/code&gt; tem como objetivo herdar as propriedades de um seletor CSS / SCSS placeholder. Aqui como usá-lo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;.container {
+  @extend %center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao fazer isso, o arquivo SASS vai pegar o conteúdo do placeholder &lt;code&gt;%center&lt;/code&gt; e aplicá-lo no &lt;code&gt;.container&lt;/code&gt; (mesmo que isso não aconteça exatamente assim &amp;#8211; mas isso não é importante agora). Como eu disse, você também pode &lt;em&gt;estender&lt;/em&gt; seletores CSS já existentes (além de placeholders SCSS) dessa maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;.table-zebra {
+  @extend .table;
+
+  tr:nth-of-type(even) {
+    background: rgba(0,0,0,.5);
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Esse é um caso muito comum para o uso do &lt;code&gt;@extend&lt;/code&gt;. Nesse caso, pedimos para a classe &lt;code&gt;.table-zebra&lt;/code&gt; se comportar exatamente como a classe &lt;code&gt;.table&lt;/code&gt; e então adicionamos as regras específicas da classe &lt;code&gt;.table-zebra&lt;/code&gt;. &lt;em&gt;Estender&lt;/em&gt; seletores é bastante conveniente quando você desenvolve seu site ou aplicação em componentes modulares.&lt;/p&gt;
+
+&lt;h2 id=&#34;qual-utilizar-1&#34;&gt;Qual utilizar?&lt;/h2&gt;
+
+&lt;p&gt;Então, a pergunta permanece: o que você deve usar? Bem, como tudo em nossa área: &lt;strong&gt;depende&lt;/strong&gt;. Depende do contexto e, em uma outra análise, do que você está querendo fazer.&lt;/p&gt;
+
+&lt;p&gt;O melhor conselho seria: se você precisa de variáveis, utilize o mixin. Caso contrário, use o placeholder. Há duas razões para isso:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Primeiro, você não pode usar variáveis em um placeholder. Na verdade, até pode, mas você não consegue &lt;em&gt;passar&lt;/em&gt; uma variável em um placeholder para gerar um conteúdo específico de CSS, como você faria em um mixin.&lt;/li&gt;
+&lt;li&gt;Segundo, a forma como o SASS lida com os mixins, os torna muito incovenientes quando você os utiliza sem variáveis contextuais. Simplificando: o SASS vai duplicar a saída de um mixin toda vez que você o utilizá-lo, resultando não apenas em CSS duplicado, mas também em uma folha de estilos maior.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Considere o primeiro exemplo desse artigo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@mixin center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container {
+  @include center;
+}
+
+.image-cover {
+  @include center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O CSS compilado seria esse:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.container {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.image-cover {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Observou o CSS duplicado? Ele não é tão prejudicial se forem apenas três linhas duplicadas, mas se você tiver muitos mixins que são usados várias vezes em um projeto, essas três linhas podem facilmente se tornarem 300. E se reformularmos nosso exemplo, só que dessa vez utilizando o placeholder?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;%center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container {
+  @extend %center;
+}
+
+.image-cover {
+  @extend %center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora, esse é o CSS gerado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.container, .image-cover {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Muito melhor! A compilação leva vantagem &lt;a href=&#34;http://reference.sitepoint.com/css/selectorgrouping&#34;&gt;agrupando seletores&lt;/a&gt;, sem nenhum estilo repetido. Assim, sempre que você quiser evitar a escrever as mesmas propriedades diversas vezes, sabendo que elas não mudarão, é uma boa idéia &lt;em&gt;estender&lt;/em&gt; um placeholder. Isso resultará em um código CSS compilado muito mais limpo.&lt;/p&gt;
+
+&lt;p&gt;Por outro lado, se você precisa escrever as mesmas propriedades em vários lugares mas com valores diferentes (tamanho, cores, etc), um mixin é o melhor caminho a seguir. Agora se você possui ambos, um grupo de valores fixos e outro de valores variáveis, você deve tentar usar uma combinação dos dois.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;%center {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+@mixin skin($color, $size) {
+  @extend %center;
+  background: $color;
+  height: $size;
+}
+
+a { @include skin(pink, 10em) }
+b { @include skin(blue, 90px) }
+&lt;/pre&gt;
+
+&lt;p&gt;Neste caso, o mixin está &lt;em&gt;estendendo&lt;/em&gt; o placeholder para os valores fixos em vez de jogá-los diretamente em seu corpo. Isso gera um CSS mais limpo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;a, b {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+a {
+  background: pink;
+  height: 10em;
+}
+
+b {
+  background: blue;
+  height: 90px;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;conclusão-1&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;É isso. Espero ter deixado claro não só o que são mixins e placeholders, mas também quando você deve usá-los e qual os efeitos sobre o CSS compilado.&lt;/p&gt;
+
+&lt;p&gt;Se você tiver alguma coisa a acrescentar sobre suas experiências com essas &lt;em&gt;features&lt;/em&gt; dos pré-processadores de CSS, sinta-se livre para compartilhar nos comentários.&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Texto traduzido e adaptado do]&lt;a href=&#34;http://www.sitepoint.com/sass-mixin-placeholder/&#34;&gt;4&lt;/a&gt; escrito pelo &lt;a href=&#34;https://twitter.com/HugoGiraudel&#34; title=&#34;Perfil do twitter&#34;&gt;Hugo Giraudel&lt;/a&gt; em 30 de janeiro de 2014.&lt;/p&gt;
+
+&lt;p&gt;Tradução autorizada pelo &lt;a href=&#34;http://www.sitepoint.com/&#34;&gt;SitePoint&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Qualquer erro ou sugestão de melhoria na tradução, é bem vinda! 🙂&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Utilizando Mixins em pré-processadores CSS</title>
+      <link>http://tableless.com.br/utilizando-mixins-em-css-preprocessors/</link>
+      <pubDate>Mon, 13 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/utilizando-mixins-em-css-preprocessors/</guid>
+      <description>&lt;p&gt;Recentemente respondi à uma enquete (não me perguntem aonde, eu esqueci! :-() onde era perguntado sobre como lidávamos com prefixos proprietários em nossos códigos CSS. Até aquele momento apenas cerca de 9% dos participantes usavam Pré-processadores e cerca de 26% escreviam os &lt;a href=&#34;http://tableless.com.br/prefixos-dos-browsers-a-web-precisa-de-voce/&#34; title=&#34;Prefixos dos browsers: A web precisa de você&#34;&gt;prefixos do browsers&lt;/a&gt; “na unha”.&lt;/p&gt;
+
+&lt;p&gt;Pré-processadores de CSS ainda não são um comum para algumas pessoas, mas eu, particularmente, defendo o uso devido à organização e redução de trabalho na escrita de folhas de estilo, proporcionado entre outros, pelo encadeamento e os “mixins”, algo como “associação interna”, que funcionam melhores que muitos analgésicos para dores de cabeça causadas pelo retrabalho.&lt;/p&gt;
+
+&lt;p&gt;Considero o dilema dos prefixos proprietários como o maior motivo para utilizarmos mixins, já que eles estão em processo de adaptação, sofrem recorrentes mudanças e em um curto prazo (&lt;span style=&#34;text-decoration: line-through&#34;&gt;com um pouco de fé&lt;/span&gt;) serão removidos para dar lugar à normalização (se quiser entender mais, recomendo o artigo &lt;a title=&#34;Prefixos dos browsers: A web precisa de você&#34; href=&#34;http://tableless.com.br/prefixos-dos-browsers-a-web-precisa-de-voce/&#34; target=&#34;_blank&#34;&gt;&amp;#8220;Prefixos dos browsers: A web precisa de você&amp;#8221;&lt;/a&gt;). Para você que só acredita vendo, prefixos proprietários são mais ou menos assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.elemento1 {
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  border-radius: 10px;
+}
+.elemento2 {
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  -ms-border-radius: 12px;
+  -o-border-radius: 12px;
+  border-radius: 12px;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;A grande dificuldade surge na manutenção de extensos arquivos CSS, com inúmeras referências à estes prefixos e que precisam ser alterados. No caso de um CSS puro, a melhor alternativa é abrir um editor de texto e procurar todas as ocorrências para altera-las uma a uma, agora, considerando a utilização de pré-processadores, como o &lt;a title=&#34;LESS CSS&#34; href=&#34;http://lesscss.org/&#34; target=&#34;_blank&#34;&gt;LESS&lt;/a&gt; e o &lt;a title=&#34;SASS LANG&#34; href=&#34;http://sass-lang.com/&#34; target=&#34;_blank&#34;&gt;SASS&lt;/a&gt; (de certa forma maduros), o uso de mixins pode ser adotado para concentrar a necessidade de mudança em apenas um trecho do código.&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;line-height: 1.5em&#34;&gt;Exemplo LESS:&lt;/span&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.border-radius (@radius) {
+  -webkit-border-radius: @radius;
+  -moz-border-radius: @radius;
+  -ms-border-radius: @radius;
+  -o-border-radius: @radius;
+  border-radius: @radius;
+}
+.elemento1 {
+ .border-radius(10px);
+}
+.elemento2 {
+ .border-radius(12px);
+}&lt;/pre&gt;
+
+&lt;p&gt;Exemplo SASS:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mixin border-radius ($radius) {
+  -webkit-border-radius: $radius;
+  -moz-border-radius: $radius;
+  -ms-border-radius: $radius;
+  -o-border-radius: $radius;
+  border-radius: $radius;
+}
+.elemento1 {
+ @include border-radius(10px);
+}
+.elemento2 {
+ @include border-radius(12px);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Este é um exemplo simples de mixins, em uma utilização mais aprofundada é possível trabalhar mais variáveis, valores padrões e até mesmo sobrecarga.&lt;/p&gt;
+
+&lt;p&gt;Deixando de lado o padrão de escrita de cada pré-processador, ambos resultam no seguinte código CSS:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.elemento1 {
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  border-radius: 10px;
+}
+.elemento2 {
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  -ms-border-radius: 12px;
+  -o-border-radius: 12px;
+  border-radius: 12px;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Os mixins podem ser reutilizados e reescritos, deixando um código organizado e de fácil manutenção, no entanto, eu não seria imprudente a ponto de recomendar a utilização de pré-processadores aos sete ventos. É extremamente necessário uma avaliação do projeto e suas reais necessidades da utilização de uma ferramenta dessas, que, dependendo das proporções e finalidades do CSS, acabam apenas por aumentar a complexidade do desenvolvimento.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Turbinando as Media Queries</title>
+      <link>http://tableless.com.br/turbinando-media-queries/</link>
+      <pubDate>Thu, 12 Dec 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/turbinando-media-queries/</guid>
+      <description>
+
+&lt;p&gt;Media Queries são uma das ferramenta mais importante do CSS pra quem se preocupa com Web Design Responsivo. Com uma ajudinha dos pré-processadores as media queries podem ficar ainda melhores. Neste artigo vamos turbinar as Media Queries usando um pouco das opções que o SASS nos oferece para ajudar na organização, manutenção e garantir legibilidade ao nosso código.&lt;/p&gt;
+
+&lt;p&gt;Nota: os exemplos deste post serão todos em SASS com a sintaxe do &lt;code&gt;.scss&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;breakpoints-em-variáveis&#34;&gt;Breakpoints em variáveis&lt;/h2&gt;
+
+&lt;p&gt;Se você já usou algum pré-processador, sem dúvida já usou variáveis.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;// width
+$bp-smallest: 10em;
+$bp-small: 30em;
+$tp-small-1: 37.5em;
+&lt;/pre&gt;
+
+&lt;p&gt;Dessa forma, você consegue manter seus breakpoints sob controle e replicá-los de forma concisa e prática. Como estamos falando de organização de código, consistência na nomenclatura é muito importante, então vamos dar uma olhada na que adotei para mim. Você pode criar a sua e se tiver em uma equipe, é bom que todos da equipe concordem com uma mesma nomenclatura:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;bp&lt;/strong&gt;: Breakpoints são pontos onde a mudança interfere amplamente no layout (redução/aumento de colunas, posição de elementos importantes, etc)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;tp&lt;/strong&gt;: Tweakpoints são para mudanças menores, que interferem em apenas um elemento&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Facilita a leitura se colocar juntamente com a sigla uma característica (no caso, &lt;strong&gt;small&lt;/strong&gt;). Além disso, Tweakpoints costumam ter uma ocorrência maior que Breakpoints, por isso numerá-los é uma boa forma de manter o controle.&lt;/p&gt;
+
+&lt;h2 id=&#34;media-features-em-variáveis&#34;&gt;Media Features em variáveis&lt;/h2&gt;
+
+&lt;p&gt;Outra forma de trabalhar com variáveis em suas Media Queries é armazenar toda a &lt;strong&gt;media feature&lt;/strong&gt; como uma &lt;code&gt;string&lt;/code&gt;. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;// width
+$bp-w-small: &#39;(min-width: 30em)&#39;;
+$tp-w-small-1: &#39;(min-width: 37.5em)&#39;;
+
+// height
+$bp-h-small: &#39;(min-height: 10em)&#39;;
+&lt;/pre&gt;
+
+&lt;p&gt;Essa técnica tem maior legibilidade das variáveis. Utilizei os mesmos valores no exemplo acima, mas antes não era possível perceber que uma delas era utilizada para a altura da viewport e as outras duas para a largura.&lt;/p&gt;
+
+&lt;p&gt;Com relação à nomenclatura, uma pequena alteração para auxiliar na legibilidade (uma vez que a string não aparecerá ao longo do seu código de desenvolvimento), coloquei um &lt;code&gt;h&lt;/code&gt; para height e um &lt;code&gt;w&lt;/code&gt; para width.&lt;/p&gt;
+
+&lt;p&gt;Lembrando que, nesse caso é preciso escapar envolvendo a variável com &lt;code&gt;#{}&lt;/code&gt; quando inserí-la no código para garantir que seu valor não seja interpretado pelo compilador.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;@media #{$bp-w-small} {
+        /*--styles--*/
+}
+
+@media #{$tp-w-small-1} {
+        /*--styles--*/
+}
+
+@media #{$bp-h-small} {
+    /*--styles--*/
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;media-queries-com-mixins&#34;&gt;Media Queries com mixins&lt;/h2&gt;
+
+&lt;p&gt;Outra maneira de lidar com suas media queries é colocando-as em um &lt;code&gt;mixin&lt;/code&gt; e selecionando a partir de condicionais (&lt;code&gt;@if&lt;/code&gt;). Segue o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;$bp-width-small : &#34;(min-width: 24em)&#34;;
+$tp-height-small : 10em;
+
+@mixin mq($breakpoint) {
+    @if $breakpoint == $tp-height-small {
+        @media (max-height: $tp-height-small) {
+                @content;
+        }
+    }
+    @if $breakpoint == $bp-width-small {
+        @media #{$bp-width-small} {
+                @content;
+        }
+    }
+    @if $breakpoint == 50 {
+        @media (max-width: 50em) {
+                @content;
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Outro ponto positivo de utilizar as Media Queries envolvidas em &lt;code&gt;mixin&lt;/code&gt; é de oferecer uma CSS como fallback para navegadores que não suportam Media Queries. Para isso, é só estabeler mais um condicional. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css prettyprint linenums&#34;&gt;$bp-width-small : &#34;(min-width: 24em)&#34;;
+$tp-height-small : 10em;
+
+$mediaqueries: true;
+
+@mixin mq($breakpoint) {
+    @if $mediaqueries == true {
+        @if $breakpoint == $tp-height-small {
+                @media (max-height: $tp-height-small) {
+                        @content;
+            }
+        }
+        @if $breakpoint == #{$bp-width-small} {
+                @media #{$bp-width-small} {
+                        @content;
+            }
+        }
+        @if $breakpoint == 50 {
+                @media (max-width: 50em) {
+                        @content;
+                }
+        }
+    }
+
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse caso, o compilador vai avaliar se a variável &lt;code&gt;$mediaqueries&lt;/code&gt; é &lt;code&gt;true&lt;/code&gt; ou &lt;code&gt;false&lt;/code&gt;. Caso seja &lt;code&gt;true&lt;/code&gt;, significa que há suporte para Media Queries e portanto, ele vai compilar o mixin; se for &lt;code&gt;false&lt;/code&gt; ele ignora a declaração do &lt;code&gt;mixin&lt;/code&gt; e compila o restante do código sem Media Queries.&lt;/p&gt;
+
+&lt;p&gt;Espero que o post tenha sido útil e ajudado a ilustrar um pouco melhor as facilidades que um pré-processador pode trazer para o seu workflow. Você já usa alguma técnica dessa em seus projetos?&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

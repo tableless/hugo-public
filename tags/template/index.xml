@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Template on Tableless</title>
+    <link>http://tableless.com.br/tags/template/index.xml</link>
+    <description>Recent content in Template on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/template/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Templates client-side com Mustache.js</title>
+      <link>http://tableless.com.br/templates-client-side-com-mustache-js/</link>
+      <pubDate>Mon, 15 Apr 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/templates-client-side-com-mustache-js/</guid>
+      <description>
+
+&lt;p&gt;Antes de começarmos, uma pergunta: quem nunca implementou um &amp;#8220;template&amp;#8221; nos moldes do código abaixo?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;html  = &#39;&amp;lt;li class=&#34;clearfix&#34;&amp;gt;&#39;;
+html += &#39; &amp;lt;div class=&#34;foto&#34;&amp;gt;&#39;;
+html += &#39;   &amp;lt;a href=&#34;&#39; + item.permalink + &#39;&#34;&amp;gt;&#39;;
+html += &#39;     &amp;lt;img src=&#34;&#39; + item.thumb + &#39;&#34; width=&#34;180&#34; height=&#34;124&#34; alt=&#34;&#39; + item.titulo + &#39;&#34;&amp;gt;&#39;;
+html += &#39;   &amp;lt;/a&amp;gt;&#39;;
+html += &#39; &amp;lt;/div&amp;gt;&#39;;
+html += &#39; &amp;lt;span&amp;gt;&#39;;
+html += item.titulo;
+html += &#39; &amp;lt;/span&amp;gt;&#39;;
+html += &#39;&amp;lt;/li&amp;gt;&#39;;&lt;/pre&gt;
+
+&lt;p&gt;Se você ainda faz isso, chegou a hora de parar.&lt;/p&gt;
+
+&lt;p&gt;Neste artigo abordaremos a &lt;a href=&#34;https://github.com/janl/mustache.js/&#34;&gt;implementação JavaScript para templates Mustache&lt;/a&gt;. A sintaxe já foi portada para diferentes linguagens, incluindo Ruby, Python, PHP e Java. Para uma lista completa, visite o &lt;a href=&#34;http://mustache.github.com/&#34;&gt;site oficial do projeto&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;A principal diferença do Mustache para outras formas de templating no client-side (&lt;a href=&#34;http://tableless.com.br/templates-e-jquery-parte-1/&#34; title=&#34;http://tableless.com.br/templates-e-jquery-parte-1/&#34;&gt;jQuery Template&lt;/a&gt;, por exemplo) é que ele não aceita lógica, como declarações condicionais, loops etc. Pode não parecer, mas isso é muito bom: um template não deveria conter nenhuma lógica, já que é apenas uma camada de apresentação.&lt;/p&gt;
+
+&lt;p&gt;Por ser &amp;#8220;logic-less&amp;#8221;, o Mustache.js é bem enxuto, pesando 8.5kb em sua versão minificada.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-um-template&#34;&gt;Criando um template&lt;/h2&gt;
+
+&lt;p&gt;Os templates Mustache esperam receber dados no formato JSON. Os dados podem ser textos, variáveis e até mesmo funções. Vamos começar com um exemplo básico onde renderizamos um template de um artigo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var item = {
+      titulo: &#34;Templates client-side com Mustache.js&#34;,
+      permalink: &#34;http://tableless.com.br/templates-client-side-com-mustache-js&#34;
+      thumb: &#34;mustache.jpg&#34;,
+    },
+    output = Mustache.render(&#34;&amp;lt;h1&amp;gt;{{title}}&amp;lt;/h1&amp;gt;&amp;lt;p&amp;gt;{{abstract}}&amp;lt;/p&amp;gt;&#34;, item);
+console.log(output);&lt;/pre&gt;
+
+&lt;p&gt;O método &lt;strong&gt;render&lt;/strong&gt; é o responsável por retornar o template com os dados formatados. O primeiro parâmetro é o template e o segundo o objeto JSON com os dados que devem ser aplicados.&lt;/p&gt;
+
+&lt;p&gt;Os dados armazenados no JSON são representados no template utilizando duas chaves (bigode-bigode) com o nome da propriedade.&lt;/p&gt;
+
+&lt;p&gt;Uma boa prática é separar o template do seu código JavaScript armazenando a estrutura do template em uma tag &lt;strong&gt;script&lt;/strong&gt; do tipo &lt;strong&gt;&amp;#8220;text/template&amp;#8221;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script id=&#34;item-template&#34; type=&#34;text/template&#34;&amp;gt;
+&amp;lt;li class=&#34;clearfix&#34;&amp;gt;
+  &amp;lt;div class=&#34;foto&#34;&amp;gt;
+    &amp;lt;a href=&#34;{{ item.permalink }}&#34;&amp;gt;
+      &amp;lt;img src=&#34;{{ item.thumb }}&#34; width=&#34;180&#34; height=&#34;124&#34; alt=&#34;{{ item.titulo }}&#34;&amp;gt;
+    &amp;lt;/a&amp;gt;
+  &amp;lt;/div&amp;gt;
+  &amp;lt;span&amp;gt;{{ item.titulo }}&amp;lt;/span&amp;gt;
+&amp;lt;/li&amp;gt;
+&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Os dados do template são utilizados buscando o conteúdo HTML da tag.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var item = {
+      titulo: &#34;Templates client-side com Mustache.js&#34;,
+      permalink: &#34;http://tableless.com.br/templates-client-side-com-mustache-js&#34;
+      thumb: &#34;mustache.jpg&#34;,
+    },
+    template = document.getElementById(&#39;article-template&#39;).innerHTML;
+    output = Mustache.render(template, item);
+console.log(output);&lt;/pre&gt;
+
+&lt;p&gt;Nos exemplos a seguir, para facilitar a leitura, vamos continuar utilizando os templates diretamente no método &lt;strong&gt;render&lt;/strong&gt; do Mustache.&lt;/p&gt;
+
+&lt;h2 id=&#34;lógica&#34;&gt;Lógica?&lt;/h2&gt;
+
+&lt;p&gt;É verdade que não existem tags para condicionais e loops, mas sua implementação é possível utilizando caracteres especiais nas tags do template.&lt;/p&gt;
+
+&lt;p&gt;No exemplo abaixo temos um objeto tableless que armazena um conjunto de artigos. Para realizarmos um loop nos artigos, basta utilizar o caractere &amp;#8216;#&amp;#8217; seguido do nome da propriedade como uma tag do nosso template. Dentro do bloco &lt;strong&gt;#artigos&lt;/strong&gt; temos acesso às propriedades de cada artigo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var tableless = {
+      &#39;artigos&#39;: [
+        { &#39;titulo&#39;: &#39;Templates client-side com Mustache.js&#39; },
+        { &#39;titulo&#39;: &#39;Zepto.js: JavaScript peso-leve&#39; },
+        { &#39;titulo&#39;: &#39;JavaScript: o que fazer e aprender para se tornar um dev melhor?&#39; }
+      ]
+    },
+    output = Mustache.render(&#39;{{#artigos}}&amp;lt;li&amp;gt;{{titulo}}&amp;lt;/li&amp;gt;{{/artigos}}&#39;, tableless);
+console.log(output);&lt;/pre&gt;
+
+&lt;p&gt;A lógica de condicionais é tratada no próprio objeto. Assim como o loop acima, basta adicionarmos o caracatere &amp;#8216;#&amp;#8217; a uma variável booleana para exibir ou não um conteúdo de acordo com o valor da mesma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var tableless = {
+      &#39;artigos&#39;: [
+        { &#39;titulo&#39;: &#39;Templates client-side com Mustache.js&#39;, publicado: true },
+        { &#39;titulo&#39;: &#39;Zepto.js: JavaScript peso-leve&#39;, publicado: true },
+        { &#39;titulo&#39;: &#39;JavaScript: o que fazer e aprender para se tornar um dev melhor?&#39;, publicado: false }
+      ]
+    },
+    output = Mustache.render(&#39;{{#artigos}}{{#publicado}}&amp;lt;li&amp;gt;{{titulo}}&amp;lt;/li&amp;gt;{{/publicado}}{{/artigos}}&#39;, tableless);
+console.log(output);&lt;/pre&gt;
+
+&lt;h2 id=&#34;funções&#34;&gt;Funções&lt;/h2&gt;
+
+&lt;p&gt;As tags podem conter funções como valores. Por exemplo, no objeto abaixo, a função buzz soma a quantidade de likes, tweets e comentários de um artigo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var artigo = {
+    &#39;titulo&#39;: &#39;Templates client-side com Mustache.js&#39;,
+      &#39;likes&#39;: 32,
+    &#39;tweets&#39;: 22,
+      &#39;comentarios&#39;: 45,
+    &#39;buzz&#39;: function () {
+      return this.likes + this.tweets + this.comentarios;
+    }
+  },
+  output = Mustache.render(&#39;&amp;lt;h1&amp;gt;{{titulo}} &amp;lt;small&amp;gt;{{buzz}}&amp;lt;/small&amp;gt;&amp;lt;/h1&amp;gt;&#39;, artigo);
+console.log(output);&lt;/pre&gt;
+
+&lt;p&gt;Quando o valor de uma tag é representado por uma função e o caractere &amp;#8216;#&amp;#8217; é utilizado, a mesma pode retornar uma outra função que recebe dois parâmetros: o texto do bloco do template e uma versão especial do método render para ser executada no contexto do bloco.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var artigo = {
+    &#39;titulo&#39;: &#39;Templates client-side com Mustache.js&#39;,
+    &#39;url&#39;: &#39;http://tableless.com.br/templates-client-side-com-mustache-js&#39;,
+    &#39;permalink&#39;: function () {
+      return function (text, render) {
+        return &#39;&amp;lt;a href=&#34;&#39; + this.url + &#39;&#34; class=&#34;permalink&#34;&amp;gt;&#39; + render(text) + &#39;&amp;lt;/a&amp;gt;&#39;;
+      }
+    }
+  },
+  output = Mustache.render(&#39;&amp;lt;p&amp;gt;{{#permalink}}{{titulo}}{{/permalink}}&amp;lt;/p&amp;gt;&#39;, artigo);
+console.log(output);&lt;/pre&gt;
+
+&lt;p&gt;Esse tipo de função é chamado de helper, podendo conter lógicas exclusivas da view e evitando a repetição de trechos de template comuns.&lt;/p&gt;
+
+&lt;h2 id=&#34;parciais&#34;&gt;Parciais&lt;/h2&gt;
+
+&lt;p&gt;Outra maneira de evitar repetição é utilizando templates parciais. Parciais são referenciados com o caractere &amp;#8216;&amp;gt;&amp;#8217; dentro da tag.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var tableless = {
+      &#39;artigos&#39;: [
+        { &#39;titulo&#39;: &#39;Templates client-side com Mustache.js&#39; },
+        { &#39;titulo&#39;: &#39;Zepto.js: JavaScript peso-leve&#39; },
+        { &#39;titulo&#39;: &#39;JavaScript: o que fazer e aprender para se tornar um dev melhor?&#39; }
+      ]
+    },
+    parciais = {&#39;artigo&#39;: &#39;
+
+&lt;li&gt;
+  {{titulo}}
+&lt;/li&gt;&#39;},
+    output = Mustache.render(&#39;{{#artigos}}{{&amp;gt;artigo}}{{/artigos}}&#39;, tableless, parciais);
+console.log(output);&lt;/pre&gt;
+
+&lt;p&gt;Os templates parciais devem ser informados como terceiro parâmetro do método &lt;strong&gt;render&lt;/strong&gt; e seu valor deve ser um objeto contendo um ou mais templates. A chave informada no objeto é o nome da tag que será utilizada no template principal.&lt;/p&gt;
+
+&lt;h2 id=&#34;e-tem-mais&#34;&gt;E tem mais&lt;/h2&gt;
+
+&lt;p&gt;Além das funcionalidades apresentadas neste artigo, a biblioteca Mustache.js ainda trás alguns outros benefícios como templates compilados, delimitadores personalizados e seções invertidas. Para saber mais, visite a &lt;a href=&#34;https://github.com/janl/mustache.js/&#34;&gt;página do projeto no GitHub&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;E você? Utiliza alguma solução de templating no client-side? Compartilhe nos comentários!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Templates e jQuery – parte 2</title>
+      <link>http://tableless.com.br/templates-jquery-parte2/</link>
+      <pubDate>Mon, 13 Dec 2010 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/templates-jquery-parte2/</guid>
+      <description>
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/templates-e-jquery-parte-1&#34;&gt;Na primeira parte&lt;/a&gt; deste artigo você conferiu uma introdução ao novo plugin .tmpl() que possibilita a utilização de templates para retornos e saídas de suas aplicações jQuery. O plugin certamente é um avanço considerável na organização de código &amp;#8211; é o JavaScript ficando cada vez mais profissional e robusto, abandonando a fama de ser uma simples linguagem de script, sem padrões.&lt;/p&gt;
+
+&lt;p&gt;A forma mais básica de utilização do plugin .tmpl() é declarar seu template em uma variável e chamá-lo da seguinte forma:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;var noticias = [&lt;/p&gt;
+
+&lt;p&gt;{&lt;/p&gt;
+
+&lt;p&gt;titulo : &amp;#8216;Notícia 1&amp;#8242;,&lt;/p&gt;
+
+&lt;p&gt;data_publicacao : &amp;#8217;28/10/2010 20h31&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;chamada : &amp;#8216;Chamada da notícia 1&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;link : &amp;#8216;/noticia-1/&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;},&lt;/p&gt;
+
+&lt;p&gt;{&lt;/p&gt;
+
+&lt;p&gt;titulo : &amp;#8216;Notícia 2&amp;#8242;,&lt;/p&gt;
+
+&lt;p&gt;data_publicacao : &amp;#8217;28/10/2010 20h32&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;chamada : &amp;#8216;Chamada da notícia 2&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;link : &amp;#8216;/noticia-2/&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;},&lt;/p&gt;
+
+&lt;p&gt;{&lt;/p&gt;
+
+&lt;p&gt;titulo : &amp;#8216;Notícia 3&amp;#8242;,&lt;/p&gt;
+
+&lt;p&gt;data_publicacao : &amp;#8217;28/10/2010 20h33&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;chamada : &amp;#8216;Chamada da notícia 3&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;link : &amp;#8216;/noticia-3/&amp;#8217;,&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;];&lt;/p&gt;
+
+&lt;p&gt;var tpl_noticia = &amp;#8216;&lt;li&gt;&lt;h3&gt;${titulo}&lt;/h3&gt;&lt;span class=&amp;#8221;data&amp;#8221;&gt;${data_publicacao}&lt;/span&gt;&lt;span&gt;${chamada}&lt;/span&gt;&lt;span&gt;&lt;a href=&amp;#8221;${link}&amp;#8221;&gt;Veja mais&lt;/a&gt;&lt;/span&gt;&lt;/li&gt;&amp;#8217;;&lt;/p&gt;
+
+&lt;p&gt;$.tmpl( tpl_noticia, noticias ).appendTo( &amp;#8216;ul#noticias&amp;#8217; );&lt;/p&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Um problema do exemplo acima é que o template acaba ficando confuso dentro de uma variável. Uma outra forma de declarar um modelo seria utilizando a própria tag script, mas com um tipo diferente (text/x-jquery-tmpl):&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;xml&amp;#8221;]&lt;/p&gt;
+
+&lt;script id=&amp;#8221;tpl-noticia&amp;#8221; type=&amp;#8221;text/x-jquery-tmpl&amp;#8221;&gt;
+      
+&lt;li&gt;
+      
+&lt;h3&gt;${titulo}&lt;/h3&gt;
+      
+&lt;span class=&amp;#8221;data&amp;#8221;&gt;${data}&lt;/span&gt;
+      
+&lt;p class=&amp;#8221;chamada&amp;#8221;&gt;${chamada}&lt;/p&gt;
+      
+&lt;a href=&amp;#8221;${link}&amp;#8221;&gt;Leia mais&lt;/a&gt;
+     
+&lt;/li&gt;
+  
+&lt;/script&gt;
+  
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Dessa forma é possível indentar o template HTML obtendo uma melhor organização/visualização do código.&lt;/p&gt;
+
+&lt;h2 id=&#34;caching&#34;&gt;Caching&lt;/h2&gt;
+
+&lt;p&gt;Antes de um template ser retornado através do método .tmpl(), ele é tranformado em uma função e depois executado. Uma forma de evitar esta execução toda vez que for retornado o plugin é utilizar o método .template() para criar uma versão em cache, otimizando a performance do script.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;// renderizando como plugin diretamente no objeto jQuery&lt;/p&gt;
+
+&lt;p&gt;$(&amp;#8216;#tpl-noticia&amp;#8217;).template(&amp;#8216;tplNoticia&amp;#8217;);&lt;/p&gt;
+
+&lt;p&gt;// associando diretamente a uma variável&lt;/p&gt;
+
+&lt;p&gt;var tplNoticia = $(&amp;#8216;#tpl-noticia&amp;#8217;).template();&lt;/p&gt;
+
+&lt;p&gt;// renderizando passando html/texto como parâmetro&lt;/p&gt;
+
+&lt;p&gt;$.template(&amp;#8216;tplNoticia&amp;#8217;, &amp;#8216;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;${titulo}
+&amp;#8216;);
+&lt;br /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;No exemplo acima, a variável &lt;strong&gt;tplNoticia&lt;/strong&gt; armazena a função responsável por nosso template. O método .template() é chamado de duas formas distintas: a primeira cria a função do template baseada no script com o id tpl-noticia. A segunda chamada funciona da mesma forma, só que dessa vez passamos o conteúdo do template diretamente como parâmetro. &lt;a href=&#34;http://tableless.com.br/anatomia-de-um-plugin-jquery&#34;&gt;Lembram do artigo sobre plugins?&lt;/a&gt; Então, uma é um método público e a outra um utilitário jQuery.&lt;/p&gt;
+
+&lt;h2 id=&#34;wrap-e-tmpl&#34;&gt;{{wrap}} e {{tmpl}}&lt;/h2&gt;
+
+&lt;p&gt;As tags especiais {{wrap}} e {{tmpl}} possuem objetivos bem parecidos. A primeira permite a iteração e inclusão de trechos HTML dentro de um objeto de template. Já a tag {{tmpl}} utiliza, ao invés de trechos HTML, um outro objeto template.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;xml&amp;#8221;]&lt;/p&gt;
+
+&lt;script id=&amp;#8221;tplNoticia&amp;#8221; type=&amp;#8221;text/x-jquery-tmpl&amp;#8221;&gt;
+      
+{{wrap &amp;#8220;#tableNoticia&amp;#8221;}}
+          
+&lt;h2&gt;Notícia 1&lt;/h2&gt;
+          
+&lt;p&gt;&lt;a href=&amp;#8221;noticia-1&amp;#8243;&gt;Chamada da notícia 1&lt;/a&gt;&lt;/p&gt;
+          
+&lt;h2&gt;Notícia 2&lt;/h2&gt;
+          
+&lt;p&gt;&lt;a href=&amp;#8221;noticia-2&amp;#8243;&gt;Chamada da notícia 2&lt;/p&gt;
+      
+{{/wrap}}
+  
+&lt;/script&gt;
+
+&lt;script id=&amp;#8221;tableNoticia&amp;#8221; type=&amp;#8221;text/x-jquery-tmpl&amp;#8221;&gt;
+      
+&lt;table&gt;
+        
+&lt;tbody&gt;
+          
+&lt;tr&gt;
+              
+{{each $item.html(&amp;#8220;h2&amp;#8221;, true)}}
+                  
+&lt;td&gt;
+                      
+${$value}
+                  
+&lt;/td&gt;
+              
+{{/each}}
+          
+&lt;/tr&gt;
+          
+&lt;tr&gt;
+              
+{{each $item.html(&amp;#8220;p&amp;#8221;)}}
+                  
+&lt;td&gt;
+                      
+{{html $value}}
+                  
+&lt;/td&gt;
+              
+{{/each}}
+          
+&lt;/tr&gt;
+        
+&lt;/tbody&gt;
+      
+&lt;/table&gt;
+  
+&lt;/script&gt;
+
+&lt;div id=&amp;#8221;noticias&amp;#8221;&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  
+$(function(){
+    
+$(&amp;#8220;#tplNoticia&amp;#8221;).tmpl().appendTo(&amp;#8220;#noticias&amp;#8221;);
+  
+});
+  
+&lt;/script&gt;
+  
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;p&gt;No código acima utilizamos a tag {{wrap}} para popular dados em uma tabela. A primeira linha (&lt;tr&gt;) da tabela recebe os títulos do nosso template de notícias &amp;#8211; tudo o que estiver entre a tag &lt;h2&gt;. A iteração é feita através da tag {{each}}, explicada no &lt;a href=&#34;http://tableless.com.br/templates-e-jquery-parte-1&#34;&gt;artigo anterior&lt;/a&gt;. O que o exemplo acima faz é buscar todos os elementos H2 no item de template e adicionar o seu conteúdo, sem a tag, na célula da tabela. (Lembrando que você pode utilizar qualquer método jQuery no item de um loop dentro do template.)&lt;/p&gt;
+
+&lt;p&gt;Já a segunda linha da tabela recebe a chamada da notícia, preservando suas tags HTML &amp;#8211; por isso a utilização da tag {{html}} no valor de cada notícia.&lt;/p&gt;
+
+&lt;p&gt;A tag {{tmpl}} é muito útil quando precisamos encadear ou utilizar uma espécie de include dentro de um outro template. No exemplo abaixo, o template para o título e o template da chamada da notícia estão separados. O método .tmpl() recebe apenas o template da chamada.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;xml&amp;#8221;]&lt;/p&gt;
+
+&lt;script id=&amp;#8221;tplNoticia&amp;#8221; type=&amp;#8221;text/x-jquery-tmpl&amp;#8221;&gt;
+      
+{{tmpl &amp;#8220;#tplTitulo&amp;#8221;}}
+      
+&lt;p class=&amp;#8221;chamada&amp;#8221;&gt;${chamada} &lt;a href=&amp;#8221;${link}&amp;#8221;&gt;Leia mais&amp;#8230;&lt;/a&gt;&lt;/p&gt;
+  
+&lt;/script&gt;
+
+&lt;script id=&amp;#8221;tplTitulo&amp;#8221; type=&amp;#8221;text/x-jquery-tmpl&amp;#8221;&gt;
+      
+&lt;h2&gt;${titulo}&lt;/h2&gt;
+      
+&lt;span class=&amp;#8221;data&amp;#8221;&gt;${data_publicacao}&lt;/span&gt;
+  
+&lt;/script&gt;
+
+&lt;div id=&amp;#8221;noticias&amp;#8221;&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  
+$(function(){
+    
+$( &amp;#8220;#tplNoticia&amp;#8221; ).tmpl( noticias ).appendTo( &amp;#8220;#noticias&amp;#8221; );
+  
+});
+  
+&lt;/script&gt;
+  
+
+&lt;p&gt;[/cce]&lt;/p&gt;
+
+&lt;h2 id=&#34;como-e-quando-utilizar-templates&#34;&gt;Como e quando utilizar templates?&lt;/h2&gt;
+
+&lt;p&gt;Templating é um conceito relativamente novo no jQuery, portanto, algumas funcionalidades ainda podem parecer confusas. Cabe a você decidir qual a melhor forma de definir e converter seus modelos. Por exemplo, se o seu template só vai ser utilizado uma única vez não é necessário utilizar caching (de repente não é necessário nem mesmo utilizar um template!).&lt;/p&gt;
+
+&lt;p&gt;Procure organizar bem seu código e pensar sempre em uma possível evolução do projeto &amp;#8211; nesse caso, templates vão ser uma mão na roda.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>WordPress Include Tags</title>
+      <link>http://tableless.com.br/wordpress-include-tags/</link>
+      <pubDate>Sun, 06 Jul 2008 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/wordpress-include-tags/</guid>
+      <description>&lt;p&gt;O &lt;a href=&#34;http://wordpress.org/&#34;&gt;WordPress&lt;/a&gt; tem 3 TemplatesTags para incluir elementos básicos de Cabeçalho, Coluna lateral (sidebar) e Rodapé, são eles: get_header(), get_sidebar() e get_footer(). Essas TemplateTags não aceitam qualquer tipo de parâmetro, portanto são simples de se aplicar. Em todos os themes do WordPress, essas 3 TemplateTags estão sempre presentes, mesmo assim, você pode modificar isso incluindo outro arquivo que não seja o padrão que o WP estabeleceu.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;get-header&#34;&gt;get_header()&lt;/h3&gt;
+
+&lt;p&gt;O &lt;strong&gt;&amp;lt;?php get_header(); ?&amp;gt;&lt;/strong&gt;inclui em seu template o arquivo header.php, que é onde vai o cabeçalho do seu site. É lá onde vai o começo da estrutura básica do HTML &amp;#8211; Doctype, html, head, title, metatags e body.&lt;/p&gt;
+
+&lt;h3 id=&#34;get-sidebar&#34;&gt;get_sidebar()&lt;/h3&gt;
+
+&lt;p&gt;O &lt;strong&gt;&amp;lt;?php get_sidebar(); ?&amp;gt;&lt;/strong&gt; é a função que incluirá em seu template a sua coluna lateral. Menu lateral, banners, informações e tudo o que normalmente vai em um sidebar.&lt;/p&gt;
+
+&lt;h3 id=&#34;get-footer&#34;&gt;get_footer()&lt;/h3&gt;
+
+&lt;p&gt;O &lt;strong&gt;&amp;lt;?php get_footer(); ?&amp;gt;&lt;/strong&gt; inclui em seu template o arquivo footer.php. É lá onde você normalmente termina seu . É neste arquivo que você terá o código do rodapé e de elementos que sempre seguirão o final da página.&lt;/p&gt;
+
+&lt;p&gt;Se o WordPress não encontrar, por exemplo o arquivo footer.php, ele irá incluir o arquivo relacionado do theme default: wp-content/themes/default/footer.php. O mesmo acontece para o sidebar.php, o header.php e o comments_template().&lt;/p&gt;
+
+&lt;h3 id=&#34;incluindo-qualquer-arquivo&#34;&gt;Incluindo qualquer arquivo&lt;/h3&gt;
+
+&lt;p&gt;Claro que você vai querer incluir outros arquivos. Por exemplo, caso seu site tiver duas colunas, ou o seu cabeçalho for muito grande e você quiser inserir os elementos em arquivos separados. Nestes casos você pode utilizar esse código:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;&amp;lt;?php include (TEMPLATEPATH . &#39;/header2.php&#39;); ?&amp;gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;O WordPress vai inserir o arquivo pedido como um include PHP normal.&lt;/p&gt;
+
+&lt;p&gt;Quer saber mais sobre WordPress? &lt;a href=&#34;http://tableless.com.br/wordpress&#34;&gt;Fique antenado aqui&lt;/a&gt;!&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

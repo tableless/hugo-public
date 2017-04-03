@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Webpack on Tableless</title>
+    <link>http://tableless.com.br/tags/webpack/index.xml</link>
+    <description>Recent content in Webpack on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/webpack/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Proteja seu código usando o Webpack</title>
+      <link>http://tableless.com.br/proteja-seu-codigo-usando-o-webpack/</link>
+      <pubDate>Mon, 28 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/proteja-seu-codigo-usando-o-webpack/</guid>
+      <description>
+
+&lt;p&gt;Não é um eufemismo dizer que que as ferramentas de front-end avançam rapidamente. Por um tempo, &lt;a href=&#34;http://gruntjs.com/&#34; target=&#34;_blank&#34;&gt;Grunt&lt;/a&gt; foi o principal automatizador. E desde então a comunidade adotou o &lt;a href=&#34;http://gulpjs.com/&#34; target=&#34;_blank&#34;&gt;Gulp&lt;/a&gt;, uma alternativa de streaming. Embora essas ferramentas sejam ótimas, você ainda precisará trabalhar dura para manter o seu sistema. E é aí que entram os empacotadores como o &lt;a href=&#34;http://browserify.org/&#34; target=&#34;_blank&#34;&gt;Browserify&lt;/a&gt; e &lt;a href=&#34;https://webpack.github.io/&#34; target=&#34;_blank&#34;&gt;Webpack&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-usar-um-empacotador&#34;&gt;Como usar um empacotador&lt;/h2&gt;
+
+&lt;p&gt;Os empacotadores resolvem o problema fundamental no desenvolvimento front-end. Eles permitem que você transforme assets arbitrários em algo que possa ser consumido por um navegador. Se você está usando NPM, e deveria, você pode empacotar todos esses pacotes que está utilizando em seu aplicativo para poder usá-los no navegador. Mas há a possibilidade de você querer fazer muitas outras coisas além de empacotar, então você vai entrelaçar isso com alguma ferramenta de automação como o Grunt ou Gulp. Você pode até ignorar um task runner e implementar suas tarefas por meio da seção de &lt;strong&gt;scripts&lt;/strong&gt; &lt;code&gt;package.json&lt;/code&gt; (se estiver usando NPM) para configurar as transformações do Browserify.&lt;/p&gt;
+
+&lt;h2 id=&#34;conhecendo-o-webpack&#34;&gt;Conhecendo o Webpack&lt;/h2&gt;
+
+&lt;p&gt;Você pode alcançar resultados similares tanto com o Browserify quanto o Webpack. O Browserify está mais próximo da filosofia Unix. Ao usá-lo você está literalmente colando pequenos utilitários juntos. Como resultado, o Browserify é fácil de conseguir. Mas se você tem uma lista longa de transformações que deseja aplicar em seu código é melhor utilizar um task runner como Grunt ou Gulp para automatizar esse processo.&lt;/p&gt;
+
+&lt;p&gt;Por outro lado, se você usa Webpack pode nem precisar do Grunt ou Gulp. O Webpack presume que existem certas tarefas que você sempre deseja executar. É claro que você deseja mover os arquivos de uma pasta de origem para um diretório de compilação. Claro que você vai querer completar seu código fonte usando uma (geralmente longa) lista de transformações (aliás, elas são chamadas de &lt;strong&gt;loaders&lt;/strong&gt;, ou carregadores, no Webpack). É claro que você quer usar bibliotecas em diferentes formatos de módulo como CoomonJS, RequireJS ou os novos módulos ES6 se desejar.&lt;/p&gt;
+
+&lt;p&gt;Você pode até desejar lidar com diferentes formatos de arquivos. Para lhe dar um exemplo melhor do que isso significa na prática, considere os códigos abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;style.css&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    font-family: sans-serif;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;index.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// load style to the resulting bundle
+require(&#39;./style.css&#39;);
+
+// just print hello, normally we would do
+// something more involved and start the
+// application here
+console.log(&#39;hello world&#39;);&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;webpack.config.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var webpack = require(&#39;webpack&#39;);
+
+    module.exports = {
+    // this is the top level file or set of files
+    entry: &#39;./index.js&#39;,
+    // it will bundle everything inside this output path
+    output: {
+    path: __dirname,
+    filename: &#39;bundle.js&#39;
+},
+module: {
+loaders: [
+{
+    // 1. resolve @import and url() through css-loader
+    // 2. load the result to bundle using style-loader
+    // note that loaders are interpreted from right to left
+    test: /.css$/, // A regexp to test the require path
+    loaders: [&#39;style&#39;, &#39;css&#39;]
+}
+]
+},
+plugins: [
+    // minify output
+    new webpack.optimize.UglifyJsPlugin()
+]
+};&lt;/pre&gt;
+
+&lt;p&gt;O Webpack permite que você carregue o CSS da mesma forma que carrega outros códigos com &lt;a href=&#34;https://github.com/webpack/css-loader&#34; target=&#34;_blank&#34;&gt;css-loader&lt;/a&gt; e &lt;a href=&#34;https://github.com/webpack/style-loader&#34; target=&#34;_blank&#34;&gt;style-loader&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Por que você iria querer usar o require para o seu CSS em vez da mesma velha maneira que temos utilizado CSS? Bem, porque o Webpack é inteligente o suficiente para concatenar seu CSS quando ele é pequeno o bastante, caso contrário ele irá minificar o arquivo e dar a ele um nome único para fins de cache. O mesmo pode ser feito com imagens utilizando o &lt;a href=&#34;https://github.com/webpack/url-loader&#34; target=&#34;_blank&#34;&gt;url-loader&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se você executou o Webpack contra essa configuração, você irá acabar com um &lt;code&gt;bundle.js&lt;/code&gt; minificado que contém CSS inline. Pode parecer muito esforço para alcançar um simples resultado como esse. Isso está além do ponto. Considere o seguinte:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;E se você quisesse usar os novos recursos do Javascript em seu projeto? Você teria que configurar o &lt;a href=&#34;https://www.npmjs.com/package/babel-loader&#34; target=&#34;_blank&#34;&gt;babel-loader&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;E se você quisesse usar CSS compilado? Você precisaria configurar o &lt;a href=&#34;https://github.com/webpack/less-loader&#34; target=&#34;_blank&#34;&gt;less-loader&lt;/a&gt; ou o &lt;a href=&#34;https://github.com/jtangelder/sass-loader&#34; target=&#34;_blank&#34;&gt;sass-loader&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;E se você quisesse sourcemaps? Você teria que configurar a opção &lt;a href=&#34;https://webpack.github.io/docs/configuration.html#devtool&#34; target=&#34;_blank&#34;&gt;devtool&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;E se você quisesse uma saída UMD para sua biblioteca? É preciso configurar o &lt;a href=&#34;https://webpack.github.io/docs/configuration.html#output-librarytarget&#34; target=&#34;_blank&#34;&gt;output.libraryTarget&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;E se você quisesse um servidor de desenvolvimento &lt;em&gt;hot loading&lt;/em&gt;? Você precisaria configurar o &lt;a href=&#34;https://webpack.github.io/docs/webpack-dev-server.html&#34; target=&#34;_blank&#34;&gt;webpack-dev-server&lt;/a&gt; ou construir um sozinho baseado no Express, como mostrado no &lt;a href=&#34;https://github.com/gaearon/react-transform-boilerplate&#34; target=&#34;_blank&#34;&gt;react-transform-boilerplate&lt;/a&gt;. O recurso de &lt;em&gt;hot loading&lt;/em&gt; separa Webpack conforme atualiza seu navegador automaticamente enquanto mantém o estado do aplicativo.&lt;/li&gt;
+&lt;li&gt;E se você quisesse múltiplas metas (desenvolvimento, produção, teste)? Poderia usar uma solução como a &lt;a href=&#34;https://www.npmjs.com/package/webpack-merge&#34; target=&#34;_blank&#34;&gt;webpack-merge&lt;/a&gt; e conectar seu automatizador de tarefas com ela.&lt;/li&gt;
+&lt;li&gt;E se você quisesse carregar algumas dependências lentamente? Você precisaria configurar o &lt;a href=&#34;https://webpack.github.io/docs/code-splitting.html#require-ensure&#34; target=&#34;_blank&#34;&gt;require.ensure&lt;/a&gt;. O Webpack irá gerar pacotes separados para dividir os pontos e carregá-los sob demanda.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Basicamente, você pode desenvolver as configurações para várias direções baseado em suas necessidades. Há definitivamente uma curva de aprendizado e leva um tempo para entender todas as opções. Dito isso, a abordagem é poderosa uma vez que você entende.&lt;/p&gt;
+
+&lt;h2 id=&#34;conectando-o-webpack-com-jscrambler&#34;&gt;Conectando o Webpack com Jscrambler&lt;/h2&gt;
+
+&lt;p&gt;Se você quiser adicionar o Jscrambler para o seu processo de desenvolvimento e estiver usando o Webpack, nós temos uma boa notícia para você! O &lt;a href=&#34;https://github.com/jscrambler/jscrambler-loader&#34; target=&#34;_blank&#34;&gt;jscrambler-loader&lt;/a&gt; está disponível e é realmente fácil de configurar assim como a maioria dos loaders do Webpack.&lt;/p&gt;
+
+&lt;p&gt;Nós vamos lhe mostrar o quanto essa configuração é fácil utilizando o exemplo abaixo e adicionando o &lt;a href=&#34;https://github.com/jscrambler/jscrambler-loader&#34; target=&#34;_blank&#34;&gt;jscrambler-loader&lt;/a&gt; em nosso processo. Também vamos remover o &lt;strong&gt;UglifyJsPlugin&lt;/strong&gt;, já que o &lt;strong&gt;Jscrambler&lt;/strong&gt; pode desempenhar essa mesma função.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;webpack.config.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var webpack = require(&#39;webpack&#39;);
+
+    module.exports = {
+    // this is the top level file or set of files
+    entry: &#39;./index.js&#39;,
+    // it will bundle everything inside this output path
+    output: {
+    path: __dirname,
+    filename: &#39;bundle.js&#39;
+},
+module: {
+loaders: [
+{
+    // 1. resolve @import and url() through css-loader
+    // 2. load the result to bundle using style-loader
+    // note that loaders are interpreted from right to left
+    test: /.css$/, // A regexp to test the require path
+    loaders: [&#39;style&#39;, &#39;css&#39;]
+},
+{
+    test: /.js$/,
+    exclude: /node_modules/,
+    loader: &#39;jscrambler-loader&#39;
+}
+]
+}
+};&lt;/pre&gt;
+
+&lt;p&gt;Você também irá precisar criar um arquivo chamado &lt;strong&gt;.jscramblerrc&lt;/strong&gt; com suas credenciais da API.&lt;/p&gt;
+
+&lt;p&gt;Você irá encontrar elas no painel de controlo da sua conta Jscrambler.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;.jscramblerrc&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+    &#34;keys&#34;: {
+    &#34;accessKey&#34;: &#34;XXXXXX&#34;,
+    &#34;secretKey&#34;: &#34;XXXXXX&#34;
+},
+&#34;params&#34;: {
+    &#34;self_defending&#34;: &#34;%DEFAULT%&#34;
+    // there is a big set of transformations that you can use
+    // check https://jscrambler.com/en/help/javascript_obfuscation
+}
+}&lt;/pre&gt;
+
+&lt;p&gt;Pronto! Você está pronto para depurar o seu código protegido!&lt;/p&gt;
+
+&lt;p&gt;Há várias outras formas de conectar o Jscrambler com o seu sistema. Isso depende do seu task runner. Eu reuni as possíveis abordagens abaixo:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Grunt &amp;#8211; &lt;a href=&#34;https://www.npmjs.com/package/grunt-jscrambler&#34; target=&#34;_blank&#34;&gt;grunt-jscrambler&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Gulp &amp;#8211; &lt;a href=&#34;https://www.npmjs.com/package/gulp-jscrambler&#34; target=&#34;_blank&#34;&gt;gulp-jscrambler&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;package.json&lt;/em&gt; &amp;#8211; &lt;a href=&#34;https://www.npmjs.com/package/jscrambler&#34; target=&#34;_blank&#34;&gt;Jscrambler CLI tool&lt;/a&gt;. Para isso funcionar, crie um &lt;em&gt;script&lt;/em&gt; separado e depois passe sua versão minificada do Webpack através dele. É preferível manter uma versão local da ferramenta Jscrambler CLI (&lt;code&gt;npm i jscrambler --save-dev&lt;/code&gt;) dentro de seu projeto para que tudo funcione independentemente do ambiente.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;O Jscrambler tem um conjunto de ferramentas para proteger seu código (ofuscação + armadilhas no código + serviço de autoproteção de aplicativo, ou RASP em inglês), fazendo com que a engenharia reversa fique significantemente difícil, mas também tem alguns recursos de otimização de código para você tirar vantagem. Você pode até usá-lo para minificação ou compressão.&lt;/p&gt;
+
+&lt;p&gt;Saiba mais sobre o Jscrambler em &lt;a href=&#34;https://jscrambler.com?utm_medium=social&amp;utm_source=tableless&#34; target=&#34;_blank&#34;&gt;jscrambler.com&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Ainda que o Webpack não seja a ferramenta mais fácil de aprender, eu recomendo que você dê uma olhada nela. O livro &lt;a href=&#34;http://survivejs.com/&#34; target=&#34;_blank&#34;&gt;SurviveJS &amp;#8211; Webpack and React&lt;/a&gt;, que está em inglês, fala sobre essa ferramenta com mais detalhes. A maioria dos conteúdos está disponível gratuitamente e irá lhe ajudar a entender o Webpack e React a um nível mais profundo.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introdução ao webpack</title>
+      <link>http://tableless.com.br/introducao-ao-webpack/</link>
+      <pubDate>Mon, 23 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/introducao-ao-webpack/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-é-onde-vivem-o-que-comem&#34;&gt;O que é? (Onde vivem? O que comem?)&lt;/h2&gt;
+
+&lt;p&gt;webpack (com &amp;#8220;w&amp;#8221; minúsculo, respeitando a grafia do site oficial) é um empacotador de código para projetos web, como o &lt;a href=&#34;http://browserify.org/&#34;&gt;browserify&lt;/a&gt;. O que ele se propõe a fazer de diferente é focar em módulos da sua aplicação. Nem sempre ter todo e qualquer JavaScript/CSS do seu projeto num único arquivo é bom, por isso o webpack tem a ideia de &lt;a href=&#34;http://webpack.github.io/docs/code-splitting.html&#34;&gt;code splitting&lt;/a&gt;, onde você modulariza partes reaproveitáveis do seu projeto, facilitando o desenvolvimento independente, por exemplo, ter uma equipe trabalhando em um módulo X e outra num módulo Y, mas ambos de um mesmo projeto.&lt;/p&gt;
+
+&lt;p&gt;Não é sempre que a gente faz um projeto tão grande assim, a ponto de precisar separar equipes em diferentes módulos, mas o webpack também pode ser ideal para pequenos projetos.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando&#34;&gt;Instalando.&lt;/h2&gt;
+
+&lt;p&gt;É bem simples. Você tem o webpack como pacote do &lt;a href=&#34;http://nodejs.org/&#34;&gt;NodeJS&lt;/a&gt;. Se você não sabe o que é NodeJS, &lt;a href=&#34;http://tableless.com.br/o-que-nodejs-primeiros-passos-com-node-js/&#34;&gt;pare agora e leia esse artigo&lt;/a&gt;. Sugiro dar uma pesquisada sobre &lt;a href=&#34;https://www.npmjs.com/&#34;&gt;NPM&lt;/a&gt; antes. Se você entendeu tudo até aqui, pode escolher entre tê-lo globalmente ou somente num projeto:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;&amp;gt; npm install&amp;lt;/span&gt; webpack -g
+&amp;gt; npm install webpack --&lt;span class=&#34;hljs-built_in&#34;&gt;save&lt;/span&gt;-&lt;span class=&#34;hljs-built_in&#34;&gt;dev&lt;/span&gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;usando&#34;&gt;Usando&lt;/h2&gt;
+
+&lt;p&gt;É bem simples, também. O comando espera dois argumentos, um arquivo de entrada e um arquivo de saída que se não existir vai ser criado e se já existir será substituído.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ webpack &lt;span class=&#34;hljs-tag&#34;&gt;&amp;lt;&lt;span class=&#34;hljs-title&#34;&gt;entry&lt;/span&gt;&amp;gt;&lt;/span&gt; &lt;span class=&#34;hljs-tag&#34;&gt;&amp;lt;&lt;span class=&#34;hljs-title&#34;&gt;output&lt;/span&gt;&amp;gt;&lt;/span&gt;&lt;/pre&gt;
+
+&lt;p&gt;Você pode definir um arquivo de configuração pro comando com a opção &lt;code&gt;--config example.config.js&lt;/code&gt; se nada for passado o webpack vai procurar um arquivo chamado &lt;code&gt;webpack.config.js&lt;/code&gt; onde ele está sendo executado (normalmente raiz do projeto) se não achar, vai usar as configurações padrão, o famoso default.&lt;/p&gt;
+
+&lt;h2 id=&#34;loaders-e-preloaders&#34;&gt;Loaders e preloaders&lt;/h2&gt;
+
+&lt;p&gt;O webpack pode executar transformações nos arquivos durante o processo de empacotamento, essas transformações são, por exemplo, nossos famosos pré-processadores, React (JSX), Coffee, 6to5, SweetJS, TypeScript&amp;#8230; a lista de &lt;em&gt;loaders&lt;/em&gt; já prontos é muito boa e claro, você pode construir os seus se sentir falta de algum. Também tem Less, Sass, Stylus, Jade, Ejs, Mustache, Handlebars, Markdown&amp;#8230; não é só pra JavaScript. Em adição aos &lt;em&gt;loaders&lt;/em&gt;, você pode ter plugins, que executam processos mais complexos que as transformações, por exemplo, &lt;strong&gt;UglifyJsPlugin!&lt;/strong&gt; Yay!&lt;/p&gt;
+
+&lt;h2 id=&#34;bora-ver-na-pr-tica&#34;&gt;Bora ver na prática&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar um módulo super útil que nunca vi por aí que serve pra deixar as letras de um texto em caixa alta.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// upper.js
+module.exports = function(str) {
+    return str.toUpperCase();
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Agora a gente chama esse modulo no nosso arquivo de entrada, que não é necessariamente o principal, por isso a gente não vai chamar de &lt;em&gt;main.js&lt;/em&gt; ou &lt;em&gt;app.js.&lt;/em&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// entry.js
+var upper = require(&#39;./upper.js&#39;);
+console.log(upper(&#39;test&#39;));
+&lt;/pre&gt;
+
+&lt;p&gt;Sim! Como puderam perceber, podemos usar o padrão CommonJS pra criar nossos módulos, que é o mesmo padrão usado pelo NodeJS, então a gente pode usar alguns pacotes do NPM também, mesmo num build com target pro browser (módulo focado para o navegador). Vamos ver o que vai dar isso até agora.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;&amp;gt; webpack entry.js bundle.js&lt;/pre&gt;
+
+&lt;p&gt;O comando gera um &lt;em&gt;report&lt;/em&gt; simples no console mesmo, aqui ficou:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;Hash: 0b87391ad5027f171afe
+Version: webpack 1.5.3
+Time: 310ms
+Asset Size Chunks Chunk Names
+bundle.js 1706 0 [emitted] main
+[0] ./entry.js 63 {0} [built]
+[1] ./upper.js 67 {0} [built]
+&lt;/pre&gt;
+
+&lt;p&gt;Se você estiver acompanhando na prática, pode abrir o &lt;em&gt;bundle.js&lt;/em&gt; (se já não fez isso seguindo o instinto curioso de qualquer dev) e ver como fica o &lt;em&gt;build&lt;/em&gt;. Você vai notar que o &lt;strong&gt;webpack&lt;/strong&gt; tem um &lt;em&gt;boilerplate&lt;/em&gt; até considerável, mas é útil, ele tem um sistema de cache que performa os &lt;em&gt;builds&lt;/em&gt;, ele vai saber qual módulo mudou de verdade ao invés de pegar tudo e &lt;em&gt;buildar&lt;/em&gt; tudo de novo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;&amp;gt; node bundle.js
+TEST
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;react-t-na-moda-vamos-usar-&#34;&gt;React tá na moda, vamos usar.&lt;/h2&gt;
+
+&lt;p&gt;Vamos usar um arquivo de configuração pra vincular os arquivos &lt;em&gt;.jsx&lt;/em&gt; ao Loader certo, o webpack usa RegExp pra testar sobre o nome dos arquivos e vincular a um &lt;em&gt;loader&lt;/em&gt; e o arquivo de configuração é um módulo CommonJS. Já que estamos usando um arquivo para a configuração, vamos por nele qual é nosso &lt;em&gt;entry&lt;/em&gt; e qual é nosso &lt;em&gt;output&lt;/em&gt;. Mas antes, como usaremos módulos do NPM, vamos inicia-lo em nosso projeto e ter um arquivo declarando essas dependências, o &lt;em&gt;packages.json&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;&amp;gt; npm init
+&amp;gt; npm install react --save
+&amp;gt; npm install jsx-loader --save-dev
+&lt;/pre&gt;
+
+&lt;p&gt;Nosso arquivo de configuração vai ficar assim:&lt;/p&gt;
+
+&lt;pre&gt;// webpack.config.js
+module.exports = {
+    entry: &#34;./entry.jsx&#34;,
+    output: {
+        filename: &#34;bundle.js&#34;
+    },
+    module: {
+        loaders: [
+            {test: /\.jsx/, loader: &#39;jsx-loader&#39;}
+        ]
+    }
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Agora é só rodar o webpack, sem passar nada, ele já vai ler nas configurações.&lt;/p&gt;
+
+&lt;pre&gt;&amp;gt; webpack&lt;/pre&gt;
+
+&lt;p&gt;Tá lá! Você tem um &lt;em&gt;bundle&lt;/em&gt; com React pronto pra web.&lt;/p&gt;
+
+&lt;h2 id=&#34;concluindo&#34;&gt;Concluindo&lt;/h2&gt;
+
+&lt;p&gt;Essa foi só uma introdução e vale ressaltar que o webpack não é uma alternativa aos &lt;em&gt;tasks managers&lt;/em&gt; como Gulp e Grunt (caso alguém tenha entendido isso), mas só com o webpack você tem um &lt;em&gt;watcher&lt;/em&gt; pro &lt;em&gt;build&lt;/em&gt; acontecer logo que ele detecta uma alteração em um arquivo e o plugin do UglifyJS pra &lt;em&gt;minificar&lt;/em&gt; seu &lt;em&gt;build&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Isso aí, se ficou alguma dúvida, só chamar 😉&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

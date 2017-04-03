@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Alex Miranda on Tableless</title>
+    <link>http://tableless.com.br/author/alex-miranda/index.xml</link>
+    <description>Recent content in Alex Miranda on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/alex-miranda/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Uma visão detalhada sobre instanciação de variaveis no JavaScript</title>
+      <link>http://tableless.com.br/uma-visao-detalhada-sobre-instanciacao-de-variaveis-no-javascript/</link>
+      <pubDate>Wed, 09 Dec 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/uma-visao-detalhada-sobre-instanciacao-de-variaveis-no-javascript/</guid>
+      <description>
+
+&lt;h2 id=&#34;hoisting&#34;&gt;Hoisting&lt;/h2&gt;
+
+&lt;p&gt;Antes de falarmos sobre hoisting é importante lembrar como funciona escopo em JavaScript. Escopo nada mais é do que um contexto criado para os valores e expressões terem sua validade. Em JavaScript o escopo é criado com a declaração de funções. Vamos a um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Escopo global
+var num = 0; 
+
+// Escopo criado pela função
+function imprimir(){
+    var num = 1;
+    console.log(num);
+}
+
+// Executar a função e o que tem em seu escopo
+imprimir(); // 1
+
+// Imprimindo a variável do escopo global
+console.log(num); // 0
+&lt;/pre&gt;
+
+&lt;p&gt;No exemplo acima temos o seguinte: A variável &amp;#8220;num&amp;#8221; foi declarada com o mesmo nome em 2 lugares diferentes: No escopo global e no escopo criado pela função imprimir. Por elas estarem em escopos diferentes, não tem problema terem o mesmo nome.&lt;/p&gt;
+
+&lt;p&gt;Mas cuidado! As variáveis declaradas sem a palavra reservada &amp;#8220;var&amp;#8221; passam a ser parte do escopo global. Olha só:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Escopo global
+var num = 0;
+
+// Escopo criado para a função imprimir
+function imprimir(){
+    num = 1; 
+    console.log(num);
+}
+
+// Executar a função e o que tem no escopo
+imprimir(); // 1
+
+// Acessando a variável do escopo global
+console.log(num); // 1
+&lt;/pre&gt;
+
+&lt;p&gt;Uma das boas praticas em JavaScript é sempre declarar as variáveis com a palavra reservada &amp;#8216;var&amp;#8217; para conter o valor em seu escopo local e manter o escopo global limpo.&lt;/p&gt;
+
+&lt;p&gt;Legal, agora que já relembramos o escopo em JavaScript vamos entender o que é o hoisting.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Hoisting pode ser traduzido como levantar, erguer ou içar.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Esse comportamento na linguagem JavaScript vale para funções e variáveis. Vamos falar primeiro sobre o hoisting de variáveis. Quando declaramos uma variável em JavaScript a mesma é erguida, ou hoisted, para o topo do escopo, no caso de variaveis somente a sua declaração é levada para o topo do escopo mas sua inicialização não. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function nome(){
+    var nome = &#34;Alex&#34;;
+    console.log(nome + &#34; &#34; + sobreNome);
+    var sobreNome = &#34;Miranda&#34;;
+}
+nome(); // Alex undefined
+&lt;/pre&gt;
+
+&lt;p&gt;O valor da variável sobreNome é undefined, ou seja, ela esta sendo considerada na função mas o seu valor não.&lt;/p&gt;
+
+&lt;p&gt;E é assim que funciona o hoisting de variável. 😉&lt;/p&gt;
+
+&lt;p&gt;No caso de funções o hoisting ocorre de um jeito diferente. Tanto a sua declaração quanto o seu escopo é içado&lt;/p&gt;
+
+&lt;p&gt;para o topo. Olha que interessante:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;nome(); // Alex
+function nome(){
+    var nome = &#34;Alex&#34;;
+    console.log(nome);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Sim, a função foi executada antes da sua declaração por conta do hoisting. Porém, aqui vale um lembrete, uma das formas de declaramos funções em JavaScript é armazenando elas em variáveis, nesse caso a regra para hoisting em variáveis entra em cena novamente. Vamos ver o que o nosso exemplo anterior retornaria neste caso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;nome();
+var nome = function(){
+    var nome = &#34;Alex&#34;;
+    console.log(nome);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Declarando a função desta forma o JavaScript retorna um erro dizendo que &amp;#8220;nome&amp;#8221; não é uma função.&lt;/p&gt;
+
+&lt;h2 id=&#34;closure&#34;&gt;Closure&lt;/h2&gt;
+
+&lt;p&gt;A tradução para a Closure em português seria clausura que quer dizer confinamento ou ambiente fechado. Para conseguir esse confinamento basta declarar uma função dentro de outra, a função externa confina a função interna.&lt;/p&gt;
+
+&lt;p&gt;O confinamento acontece por conta da regra do JavaScript referente a escopo. Sabemos que o escopo é criado por funções, isso quer dizer que a função externa cria um escopo em que a função interna fica confinada podendo ser executada somente dentro desse escopo. As variáveis e parâmetros da função externa podem ser acessados pela função interna.&lt;/p&gt;
+
+&lt;p&gt;Vamos a um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// função externa
+function lancamentoDeNota(nome, exercicio , nota){
+    // função interna
+    function fechamento(){
+        var mensagem = &#34;Avaliação do exercício : &#34; + exercicio;
+        mensagem += &#34;\n Aluno: &#34; + nome;
+        mensagem += &#34;\n Nota: &#34; + nota;
+        console.log(mensagem)
+    }
+    // executa a função interna
+    fechamento();
+
+} // fecha função externa
+
+lancamentoDeNota(&#34;Alex&#34;, &#34;Importando collections&#34;, &#34;10&#34;); // Avaliação do exercício : Importando collections Aluno: Alex Nota: 10
+&lt;/pre&gt;
+
+&lt;p&gt;Acabamos de ver um exemplo de closure em JavaScript, mas ainda temos uma diferença muito bacana na linguagem. Em JavaScript é possível escapar a função interna do seu confinamento. Vamos avaliar o código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// função externa
+function lancamentoDeNota(nome, exercicio , nota){
+    // função interna
+    function fechamento(){
+        var mensagem = &#34;Avaliação do exercício: &#34; + exercicio;
+        mensagem += &#34;\n Aluno: &#34; + nome;
+        mensagem += &#34;\n Nota: &#34; + nota;
+        console.log(mensagem)
+    }
+    // escapando a função interna retornando ela de forma literal para função externa. Malandragem é pouco pro JS kkkk
+    return fechamento;
+}
+var primeiroExercicio = lancamentoDeNota(&#34;Alex&#34;, &#34;Importando collections&#34;, &#34;10&#34;);
+var segundoExercicio = lancamentoDeNota(&#34;Alex&#34;, &#34;Inserindo Pokemons&#34;, &#34;10&#34;);
+
+primeiroExercicio(); // Avaliação do exercício : Importando collections Aluno: Alex Nota: 10
+segundoExercicio(); // Avaliação do exercício : Importando Pokemons Aluno: Alex Nota: 10
+&lt;/pre&gt;
+
+&lt;p&gt;O return faz com que a função interna seja retornada de forma literal podendo ser executada fora do confinamento.&lt;/p&gt;
+
+&lt;h2 id=&#34;variável-global&#34;&gt;Variável Global&lt;/h2&gt;
+
+&lt;p&gt;Variáveis globais são todas aquelas definidas fora de alguma função. Isso porque cada função gera seu próprio escopo. A variável global pode ser acessada por qualquer função. Fizemos isso segundo exemplo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Escopo global
+var num = 0;
+
+// Escopo criado para a função imprimir
+function imprimir(){
+    num = 1; 
+    console.log(num);
+}
+
+// Executar a função e o que tem no escopo
+imprimir(); // 1
+
+// Acessando a variável do escopo global
+console.log(num); // 1
+&lt;/pre&gt;
+
+&lt;p&gt;Todas as variáveis que não forem declaradas com a palavra reservada &amp;#8216;var&amp;#8217; serão consideradas parte do escopo&lt;/p&gt;
+
+&lt;p&gt;global.&lt;/p&gt;
+
+&lt;h2 id=&#34;variável-por-parâmetro&#34;&gt;Variável por parâmetro&lt;/h2&gt;
+
+&lt;p&gt;Quando declaramos uma função temos a opção de indicar alguns parâmetros para elas. Tais parâmetros são considerados como variáveis que recebem um valor na hora da execução da função. Esses valores são utilizados dentro da função. Exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function sub(num1, num2){
+ console.log(num1-num2)
+}
+sub(10, 2) // 8
+&lt;/pre&gt;
+
+&lt;p&gt;Caso esse parâmetro seja uma variável global o valor dela não se altera. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var global = 12;
+function sub(global, num2){
+ console.log(global-num2);
+}
+sub(15, 2) // 13
+console.log(global); // 12
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;instanciação-usando-uma-iife&#34;&gt;Instanciação usando uma IIFE&lt;/h2&gt;
+
+&lt;p&gt;IIFE é a abreviação para Imediately Invoked Function Expression, que pode ser traduzida para Expressão de Função Invocada Imediatamente. Esse tipo de função é executada no mesmo momento que esta sendo interpretada, veja a sintaxe dela:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;(function(){
+ // corpo da função
+}())
+&lt;/pre&gt;
+
+&lt;p&gt;Os parenteses que envolvem a função fazem dela uma expressão e os parenteses no final da declaração executa a&lt;/p&gt;
+
+&lt;p&gt;função. Esse tipo de função também pode ser armazenada em uma variável. Dessa forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var nome = (function(){
+ // corpo da função
+}())
+&lt;/pre&gt;
+
+&lt;p&gt;Como toda função, a IIFE também pode receber parâmetros. Mas agora pense o seguinte, se ela é chamada imediatamente em tempo de execução, como podemos passar os parâmetros ? Vamos ver:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var nome = (function(nome){
+ // corpo da função
+ console.log(&#34;Artigo escrito por: &#34; + nome); // Alex
+}(&#34;Alex&#34;))
+&lt;/pre&gt;
+
+&lt;p&gt;Bem bacana né ? A IIFE é um partner em JavaScript que evita poluição no escopo global e com ela também é possível modularizar o código e deixar tudo mais organizado.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

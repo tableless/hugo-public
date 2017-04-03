@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rethinkdb on Tableless</title>
+    <link>http://tableless.com.br/tags/rethinkdb/index.xml</link>
+    <description>Recent content in Rethinkdb on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/rethinkdb/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Como criar aplicações em tempo real usando Node.js e RethinkDB</title>
+      <link>http://tableless.com.br/como-criar-aplicacoes-em-tempo-real-usando-node-js-e-rethinkdb/</link>
+      <pubDate>Wed, 22 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/como-criar-aplicacoes-em-tempo-real-usando-node-js-e-rethinkdb/</guid>
+      <description>
+
+&lt;h2 id=&#34;sobre-o-rethinkdb&#34;&gt;Sobre o RethinkDB&lt;/h2&gt;
+
+&lt;p&gt;Se você precisa de um banco de dados NoSQL que funcione com dados JSON e tenha suporte completo para buscas em tempo real e uma mistura de modelos entre SQL e NoSQL, então uma boa opção é o RethinkDB.&lt;/p&gt;
+
+&lt;p&gt;Trata-se de uma base de dados em código aberto em que todos os dados JSON são persistidos em tabelas como um banco de dados SQL convencional, permitindo que você execute queries entre múltiplas tabelas utilizando o comando clássico &lt;strong&gt;join&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mas você também pode persistir arrays e sub-documentos como está acostumado a fazer com o MongoDB, CouchDB ou PostgreSQL.&lt;/p&gt;
+
+&lt;p&gt;Há alguns materiais bacanas no RethinkDB, como:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Suporte ao GeoSpartial;&lt;/li&gt;
+&lt;li&gt;API para lidar com strings, datas, booleanos e documentos;&lt;/li&gt;
+&lt;li&gt;API para Math;&lt;/li&gt;
+&lt;li&gt;Suporte ao Map-reduce;&lt;/li&gt;
+&lt;li&gt;Cliente HTTP para capturar alguns dados externos;&lt;/li&gt;
+&lt;li&gt;Changefeeds , que é uma busca em tempo real;&lt;/li&gt;
+&lt;li&gt;Suporte para index (simples, composto e multi);&lt;/li&gt;
+&lt;li&gt;Painel de administrador nativo da web;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;desenvolvendo-o-aplicativo&#34;&gt;Desenvolvendo o aplicativo&lt;/h2&gt;
+
+&lt;p&gt;E então, que tal desenvolver algo útil usando o RethinkDB? Para explorar a busca em tempo real, vamos construir uma timeline global simples utilizando o recurso &lt;a href=&#34;http://rethinkdb.com/docs/changefeeds/javascript&#34;&gt;changefeed&lt;/a&gt; para listar todos os dados na timeline em tempo real, com o uso do Node.js, Express, Socket.IO e o RethinkDB.&lt;/p&gt;
+
+&lt;p&gt;Primeiro, você precisa instalar o RethinkDB. Antes de começar escrevendo os códigos abaixo, para instalar esse banco de dados eu recomendo que você leia e siga as instruções deste link &lt;a href=&#34;http://rethinkdb.com/docs/install&#34;&gt;http://rethinkdb.com/docs/install&lt;/a&gt; de acordo com seu sistema operacional.&lt;/p&gt;
+
+&lt;p&gt;Depois de instalá-lo, execute os comandos abaixo para iniciar o projeto:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;bash&#34;&gt;mkdir timeline
+cd timeline
+npm init
+npm install--save express socket.io rethinkdb
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora, vamos trabalhar! Para simplificar as coisas nós vamos usar o código do ES6 da versão nativa &lt;strong&gt;Node v6.x.x&lt;/strong&gt;, e o backend será um único arquivo de código para fins de estudo, mas se você precisa desenvolver um servidor backend complexo e bem estruturado utilizando o RethinkDB, dê uma olhada neste projeto &lt;a href=&#34;https://github.com/caio-ribeiro-pereira/node-api-examples&#34;&gt;node-api-examples&lt;/a&gt;, o qual possui uma lista com alguns exemplos de APIs utilizando os mesmos roteadores web e bancos de dados. Existem alguns exemplos do uso do RethinkDB com Koa, Express e o Hapi.js.&lt;/p&gt;
+
+&lt;p&gt;Bem, vamos criar o servidor backend de nossa aplicação. Você pode criar o arquivo &lt;code&gt;index.js&lt;/code&gt; por meio do código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;javascript&#34;&gt;const http = require(&#39;http&#39;);
+const fs = require(&#39;fs&#39;);
+const express = require(&#39;express&#39;);
+const socketIO = require(&#39;socket.io&#39;);
+const r = require(&#39;rethinkdb&#39;);
+const config = require(&#39;./config.json&#39;);
+
+// Loading Express, HTTP, Socket.IO and RethinkDB
+const db = Object.assign(config.rethinkdb, {
+    db: &#39;timeline&#39;
+});
+const app = express();
+const server = http.Server(app);
+const io = socketIO(server);
+
+// Connecting to RethinkDB server
+r.connect(db)
+    .then(conn =&amp;gt; {
+        // Index route which renders the index.html
+        app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+            fs.readFile(`${__dirname}/index.html`, (err, html) =&amp;gt; {
+                res.end(html || err);
+            });
+        });
+        // The changefeed is provided by change() function
+        // which emits broadcast of new messages for all clients
+        r.table(&#39;messages&#39;)
+            .changes()
+            .run(conn)
+            .then(cursor =&amp;gt; {
+                cursor.each((err, data) =&amp;gt; {
+                    const message = data.new_val;
+                    io.sockets.emit(&#39;/messages&#39;, message);
+                });
+            });
+        // Listing all messages when new user connects into socket.io
+        io.on(&#39;connection&#39;, (client) =&amp;gt; {
+            r.table(&#39;messages&#39;)
+                .run(conn)
+                .then(cursor =&amp;gt; {
+                    cursor.each((err, message) =&amp;gt; {
+                        io.sockets.emit(&#39;/messages&#39;, message);
+                    });
+                });
+            // Listening the event from client and insert new messages
+            client.on(&#39;/messages&#39;, (body) =&amp;gt; {
+                const {
+                    name,
+                    message
+                } = body;
+                const data = {
+                    name,
+                    message,
+                    date: new Date()
+                };
+                r.table(&#39;messages&#39;).insert(data).run(conn);
+            });
+        });
+        server.listen(3000, () =&amp;gt; console.log(&#39;Timeline Server!&#39;));
+    })
+    .error(err =&amp;gt; {
+        console.log(&#39;Can\&#39;t connect to RethinkDB&#39;);
+        throw err;
+    });
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Existem alguns detalhes importantes que você precisa saber quando for usar o RethinkDB. Primeiro, todas as funções desse módulo funcionam usando callbacks ou &lt;a href=&#34;https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise&#34;&gt;Promessas&lt;/a&gt;. Se você escolher as promessas, você pode criar funções assíncronas bem estruturadas com gerentes de erros melhores.&lt;/p&gt;
+
+&lt;p&gt;O recurso &lt;strong&gt;changefeed&lt;/strong&gt; (via &lt;code&gt;r.table(&#39;messages&#39;).changes()&lt;/code&gt;) é um subscriber do banco de dados, o qual é uma query observadora e retorna qualquer modificação de uma tabela. A combinação com o &lt;code&gt;io.sockets.emit()&lt;/code&gt; permite que o servidor envie dados em tempo real para o cliente.&lt;/p&gt;
+
+&lt;p&gt;Agora, vamos criar um script simples de migração para preparar o banco de dados antes de rodar o servidor. Essa migração é muito comum em bancos de dados relacionais. Crie o arquivo &lt;code&gt;database.js&lt;/code&gt; com o script abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;javascript&#34;&gt;const r = require(&#39;rethinkdb&#39;);
+const config = require(&#39;./config.json&#39;);
+let conn;
+
+r.connect(config.rethinkdb)
+    .then(connection =&amp;gt; {
+        console.log(&#39;Connecting RethinkDB...&#39;);
+        conn = connection;
+        return r.dbCreate(&#39;timeline&#39;).run(conn);
+    })
+    .then(() =&amp;gt; {
+        console.log(&#39;Database &#34;timeline&#34; created!&#39;);
+        return r.db(&#39;timeline&#39;).tableCreate(&#39;messages&#39;).run(conn);
+    })
+    .then(() =&amp;gt; console.log(&#39;Table &#34;messages&#34; created!&#39;))
+    .error(err =&amp;gt; console.log(err))
+    .finally(() =&amp;gt; process.exit(0));
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;E não se esqueça de criar o arquivo &lt;code&gt;config.json&lt;/code&gt;, o qual possui dados para conectar no servidor RethinkDB:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;javascript&#34;&gt;{
+    &#34;rethinkdb&#34;: {
+        &#34;host&#34;: &#34;localhost&#34;,
+        &#34;port&#34;: 28015
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Para finalizar nossa aplicação, precisamos criar o arquivo &lt;code&gt;index.html&lt;/code&gt;, que será a parte do lado do cliente para os usuários enviarem mensagens na timeline.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+
+&amp;lt;head&amp;gt;
+    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+    &amp;lt;title&amp;gt;Timeline&amp;lt;/title&amp;gt;
+    &amp;lt;meta name=&#34;viewport&#34; content=&#34;width=device-width,initial-scale=1&#34;&amp;gt;
+    &amp;lt;script src=&#34;http://tableless.com.br/socket.io/socket.io.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;/head&amp;gt;
+
+&amp;lt;body&amp;gt;
+    &amp;lt;form style=&#34;text-align:center;margin:50px 0&#34;&amp;gt;
+        &amp;lt;label for=&#34;name&#34;&amp;gt;Name:&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;text&#34; id=&#34;name&#34; /&amp;gt;
+        &amp;lt;label for=&#34;message&#34;&amp;gt;Message:&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;text&#34; id=&#34;message&#34; /&amp;gt;
+        &amp;lt;button type=&#34;submit&#34;&amp;gt;Send&amp;lt;/button&amp;gt;
+    &amp;lt;/form&amp;gt;
+    &amp;lt;fieldset style=&#34;padding: 20px;width:50%;margin:0 auto&#34;&amp;gt;
+        &amp;lt;legend style=&#34;text-align:center&#34;&amp;gt;Timeline&amp;lt;/legend&amp;gt;
+        &amp;lt;p id=&#34;messages&#34;&amp;gt;&amp;lt;/p&amp;gt;
+    &amp;lt;/fieldset&amp;gt;
+    &amp;lt;script&amp;gt;
+        (function() {
+            var socket = io();
+            var form = document.querySelector(&#39;form&#39;);
+            form.addEventListener(&#39;submit&#39;, function(e) {
+                e.preventDefault();
+                var name = e.target.querySelector(&#39;#name&#39;);
+                var message = e.target.querySelector(&#39;#message&#39;);
+                var data = {
+                    name: name.value,
+                    message: message.value
+                };
+                socket.emit(&#39;/messages&#39;, data);
+                e.target.reset();
+            });
+            socket.on(&#39;/messages&#39;, function(data) {
+                var messages = document.querySelector(&#39;#messages&#39;);
+                var message = &#39;&amp;lt;b&amp;gt;&#39; + data.name + &#39;:&amp;lt;/b&amp;gt; &#39; +
+                    data.message + &#39;&amp;lt;br /&amp;gt;&#39;;
+                messages.innerHTML += message;
+            });
+        })();
+    &amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+
+&amp;lt;/html&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora nós estamos prontos para rodar essa aplicação! Mas antes de iniciar o servidor, na primeira vez você deve executar a migração do banco de dados para criar o banco de dados e tabela para este projeto. Para isso, execute o seguinte comando:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;node database.js
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Se tudo der certo, você pode iniciar o servidor ao executar:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;node index.js
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;E você pode brincar enviando mensagens nesta aplicação acessando o endereço &lt;a href=&#34;http://localhost:3000&#34;&gt;http://localhost:3000&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;protegendo-o-aplicativo&#34;&gt;Protegendo o aplicativo&lt;/h2&gt;
+
+&lt;p&gt;Se quiser saber mais sobre como começar protegendo seu aplicativo, basta acessar este &lt;a href=&#34;https://blog.jscrambler.com/jscrambler-101-first-use&#34;&gt;tutorial&lt;/a&gt;, que irá ajudar nos primeiros passos de uso do &lt;a href=&#34;https://www.jscrambler.com&#34;&gt;Jscrambler&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;O RethinkDB é o incrível NoSQL! Esse banco de dados pode oferecer suporte total para aplicações de tempo real apenas utilizando o changefeed + socket.io. &lt;a href=&#34;http://rethinkdb.com/docs/changefeeds/javascript&#34;&gt;Neste link&lt;/a&gt;, você pode ler mais sobre o que é possível criar usando o changefeeds. Quase todas as funções podem executar usando as Promises, que fazem com que você escreva um código melhor e você pode facilmente usar o recurso &lt;strong&gt;ES7 async/await&lt;/strong&gt; para simplificar as funções de promessas também.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

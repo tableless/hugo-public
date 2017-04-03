@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Cakephp3 on Tableless</title>
+    <link>http://tableless.com.br/tags/cakephp3/index.xml</link>
+    <description>Recent content in Cakephp3 on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/cakephp3/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Formulário sem Model no CakePHP 3.x</title>
+      <link>http://tableless.com.br/formulario-sem-model-no-cakephp-3-x/</link>
+      <pubDate>Tue, 16 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/formulario-sem-model-no-cakephp-3-x/</guid>
+      <description>
+
+&lt;p&gt;Requisitos do artigos:&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Ter o CakePHP 3 instalado ( &lt;a href=&#34;https://medium.com/@eabreusantos/instalando-o-cakephp-3-0-2f2a155cb8b1&#34; target=&#34;_blank&#34;&gt;Artigo de como instalar o Cakephp 3.x&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;O que aprenderemos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Como trabalhar com formulários que não necessitam de um Model.&lt;/li&gt;
+&lt;li&gt;Criar uma página de contato.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;formulários&#34;&gt;Formulários&lt;/h3&gt;
+
+&lt;p&gt;Na maioria das vezes, trabalhamos com formulários relacionados a um Model para persistir dados. Outras vezes precisamos validar os dados de um formulário onde não há persistência, como é no caso de um Formulário de Contato. Para tal tarefa, o CakePHP 3.x nos disponibiliza o que chamamos de &lt;strong&gt;Modelless Forms&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para começar, precisamos criar uma pasta chamada &amp;#8216;Forms&amp;#8217; dentro do diretório &amp;#8216;app\src&amp;#8217;. Para exemplificar vamos assumir que iremos criar um formulário de contato básico com nome, email e mensagem.&lt;/p&gt;
+
+&lt;p&gt;Na pasta Forms, crie um arquivo chamado &amp;#8216;ContactForm.php&amp;#8217; com o seguinte conteúdo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;namespace App\Form;
+use Cake\Form\Form;
+use Cake\Form\Schema;
+use Cake\Validation\Validator;
+class ContactForm extends Form
+{
+ /*
+ * Cria schema do formulário
+ * @param Schema object
+ * @return Schema object
+ */
+ protected function _buildSchema(Schema $schema)
+{
+ return $schema-&amp;gt;addField(&#39;name&#39;, &#39;string&#39;)
+ -&amp;gt;addField(&#39;email&#39;, [&#39;type&#39; =&amp;gt; &#39;string&#39;])
+ -&amp;gt;addField(&#39;body&#39;, [&#39;type&#39; =&amp;gt; &#39;text&#39;]);
+}
+/*
+*Add regras de validação aos campos do formulário
+* @param Validator object
+* @return Validator object
+*/
+protected function _buildValidator(Validator $validator)
+{
+ return $validator-&amp;gt;add(&#39;name&#39;, &#39;length&#39;, [
+ &#39;rule&#39; =&amp;gt; [&#39;minLength&#39;, 10],
+ &#39;message&#39; =&amp;gt; &#39;Campo nome é obrigatório&#39;
+ ])-&amp;gt;add(&#39;email&#39;, &#39;format&#39;, [
+ &#39;rule&#39; =&amp;gt; &#39;email&#39;,
+ &#39;message&#39; =&amp;gt; &#39;Endereço de e-mail inválido&#39;,
+ ]);
+}
+/*
+* Envia e-mail com os dados do contato
+* @param array $data dados da requisição
+* @return bool true caso tenha enviado o e-mail com sucesso
+*/
+protected function _execute(array $data)e
+{
+// Send an email.
+return true;
+}
+}&lt;/pre&gt;
+
+&lt;p&gt;Linha 1:4 — Declaramos o namespace e importamos classes que iremos utilizar.&lt;/p&gt;
+
+&lt;p&gt;Linha 5 — Declaração da classe, obrigatório o sufixo Form tanto na declaração da classe como no nome do arquivo, Modelless Forms devem obrigatoriamente estender da classe Form.&lt;/p&gt;
+
+&lt;p&gt;Linha 12:17 — Método &amp;#8216;&lt;strong&gt;_buildSchema&lt;/strong&gt;&amp;#8216;, recebe como parâmetro um objeto do tipo Schema. É usado para definir o esquema de dados que será utilizado pelo FormHelper para criar o formulário html. É possível definir o tipo do campo, tamanho do campo e precisão. Este método deve retornar o próprio objeto Schema.&lt;/p&gt;
+
+&lt;p&gt;Linha 23:32 — Método &lt;strong&gt;&amp;#8216;_buildValidator&lt;/strong&gt;&amp;#8216;, recebe como parâmetro um objeto do tipo Validator. É usado para definir o esquema de validação do formulário quando processado. É possível definir várias regras de validação para mesmo campo. Este método deve retornar o próprio objeto Validator. Veja mais regras e opções em: &lt;a href=&#34;http://book.cakephp.org/3.0/en/core-libraries/validation.html&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://book.cakephp.org/3.0/en/core-libraries/validation.html&#34;&gt;http://book.cakephp.org/3.0/en/core-libraries/validation.html&lt;/a&gt;&lt;/a&gt;. Em breve irei publicar um artigo sobre Validação de dados.&lt;/p&gt;
+
+&lt;p&gt;Linha 38:~ — Método &amp;#8216;&lt;strong&gt;_execute&lt;/strong&gt;&amp;#8216;, recebe como parâmetro um array contendo os dados da requisição ou no caso os dados do formulário que o usuário preencheu. O retorno deste método é de acordo com a implementação.&lt;/p&gt;
+
+&lt;h3 id=&#34;processando-o-formulário&#34;&gt;Processando o Formulário&lt;/h3&gt;
+
+&lt;p&gt;Uma vez definida a classe do formulário, temos agora de processa-lo, para isto podemos utilizar um Controller. Na pasta &amp;#8216;app\src\Controller&amp;#8217; crie um arquivo chamado &amp;#8216;ContactController.php&amp;#8217; com o seguinte conteúdo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;namespace App\Controller;
+use App\Controller\AppController;
+use App\Form\ContactForm;
+class ContactController extends AppController
+{
+  /*
+  * Exibe e processa o formulário de contato caso seja uma requisição post
+  * @return void\Response
+  */
+public function index()
+{
+ $contact = new ContactForm();
+ if ($this-&amp;gt;request-&amp;gt;is(&#39;post&#39;)) {
+ if ($contact-&amp;gt;execute($this-&amp;gt;request-&amp;gt;data)) {
+ $this-&amp;gt;Flash-&amp;gt;success(&#39;Mensagem enviado, aguarde nosso retorno.&#39;);
+} else {
+ $this-&amp;gt;Flash-&amp;gt;error(&#39;Ocorreu um problema ao enviar sua mensagem.&#39;);
+}
+}
+ $this-&amp;gt;set(&#39;contact&#39;, $contact);
+}
+}&lt;/pre&gt;
+
+&lt;p&gt;Linha 13 — Verificamos se a requisição é do tipo &amp;#8216;POST&amp;#8217;.&lt;/p&gt;
+
+&lt;p&gt;Linha 14 — Caso seja, tentamos processar o formulário executando o método &amp;#8216;execute()&amp;#8217; que recebe como parâmetro os dados da requisição que estará disponível no método &amp;#8216;_execute&amp;#8217; do Form. Ao executar o método &amp;#8216;execute&amp;#8217;, automaticamente o formulário irá tentar validar os dados de acordo com sua implementação do método &amp;#8216;_buildValidator&amp;#8217;, se a validação passar, só então o método &amp;#8216;_execute&amp;#8217; é chamado.&lt;/p&gt;
+
+&lt;p&gt;Linha 20 — Envia o objeto do formulário à view para ser utilizado no FormHelper.&lt;/p&gt;
+
+&lt;h3 id=&#34;capturando-erros-de-validação&#34;&gt;Capturando erros de validação&lt;/h3&gt;
+
+&lt;p&gt;Para capturar os erros de validação, utilize o método &amp;#8216;errors()&amp;#8217; do objeto do formulário, veja abaixo um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php &#34;&gt;// Na action do controller
+public function index()
+{
+ $contact = new ContactForm();
+ $erros = [];
+ if ($this-&amp;gt;request-&amp;gt;is(&#39;post&#39;)) {
+ if ($contact-&amp;gt;execute($this-&amp;gt;request-&amp;gt;data)) {
+ $this-&amp;gt;Flash-&amp;gt;success(&#39;Mensagem enviado, aguarde nosso retorno.&#39;);
+} else {
+//Captura &lt;span class=&#34;hiddenGrammarError&#34;&gt;erros
+ $erros&lt;/span&gt; = $contact-&amp;gt;errors();
+ $this-&amp;gt;Flash-&amp;gt;error(&#39;Ocorreu um problema ao enviar sua mensagem.&#39;);
+}
+}
+ $this-&amp;gt;set(&#39;contact&#39;, $contact);
+ $this-&amp;gt;set(&#39;erros&#39;,$erros);
+}&lt;/pre&gt;
+
+&lt;p&gt;O método &amp;#8216;errors&amp;#8217; retorna um array com a listagem de campos que não estão válidos, sendo os índices os nomes dos campos e os valores as mensagens de erro.&lt;/p&gt;
+
+&lt;h3 id=&#34;exibição-do-formulário&#34;&gt;Exibição do Formulário&lt;/h3&gt;
+
+&lt;p&gt;Para que o formulário seja exibido para usuário, crie uma view no diretório &amp;#8216;app\src\View\Template\Contact&amp;#8217; com o nome &amp;#8216;index.ctp&amp;#8217; e o seguinte conteúdo:&lt;/p&gt;
+
+&lt;p&gt;Por enquanto é só galera, em breve irei publicar como enviar os dados do formulário para um e-mail.&lt;/p&gt;
+
+&lt;p&gt;Qualquer dúvida, estou a disposição para ajudar.&lt;/p&gt;
+
+&lt;p&gt;Abraços!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

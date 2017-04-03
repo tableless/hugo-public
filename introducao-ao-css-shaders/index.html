@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/introducao-ao-css-shaders/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/introducao-ao-css-shaders/">Introdução ao CSS Shaders – Parte 1</a></h1>
+  <p class="tb-hero-p">
+    
+    Shaders CSS é um complemento para Filter Effects. Além disso, shaders CSS introduz uma noção de Vertex Shader para um modelo de filtro. 
+    
+  </p>
+      <span class="tb-author">por <a href="/author/giovanni-keppelen">Giovanni Keppelen</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>O recurso de shaders CSS é proposto à consideração da <a title="FX Task Force" href="http://www.w3.org/Graphics/fx/" target="_blank">FX Task Force</a> que pode ser integrado na especificação de <a title="Filter Effects" href="https://dvcs.w3.org/hg/FXTF/raw-file/tip/filters/publish/Filters.html" target="_blank">Filter Effects</a>.</p>
+
+<h3 id="introdução">Introdução</h3>
+
+<p>Um Shader é essencialmente um pequeno programa que proporciona um efeito particular e cujo comportamento é controlado com parâmetros de entradas.</p>
+
+<p>Arquiteturas de gráficos, tais como <a title="Microsof 3D" href="http://msdn.microsoft.com/en-us/library/bb219679(v=vs.85).aspx" target="_blank">Microsoft Direct3D</a> ou <a title="Open GL" href="http://en.wikipedia.org/wiki/OpenGL" target="_blank">OpenGL </a>tem uma noção de <a title="Vertex Shaders" href="http://en.wikipedia.org/wiki/Vertex_shader" target="_blank">vertex shaders</a> que são operadas em coordenadas de ponto(vértices). Vertex shaders opera em uma malha de vértices e fornece uma ampla variedade de efeitos e distorção (Onda, oscilação). Shaders permitem varios efeitos per-pixel, como por exemplos, um efeito de florescer e vários outros efeitos de imagem (borrão, brilhos, detecção de bordas).</p>
+
+<p>Quando aplicado para um conteúdo do documento, como o HTML ou elementos SVG, shaders podem ser usados de formas interessantes. Esses elementos 2D podem ser desenhados conceitualmente sobre uma malha de vértices que podem ser processados através de um <a title="vertex shader" href="http://en.wikipedia.org/wiki/Vertex_shader" target="_blank">Vertex Shader</a> para a distorção e depois para um <a title="Introdução ao Shader CSS" href="http://tableless.com.br/introducao-ao-css-shaders/" target="_blank">shader</a> de fragmento para o processamento de pixel.</p>
+
+<p>Shaders são particulamente interessantes no contexto de transições animadas e um complemento para o <a title="Filter Effects 1.0" href="https://dvcs.w3.org/hg/FXTF/raw-file/tip/filters/publish/Filters.html" target="_blank">Filter Effects 1.0</a>, <a title="CSS Animation" href="http://tableless.com.br/introducao-ao-css-animation/" target="_blank">CSS Animations</a>, CSS Transitions entre outras.</p>
+
+<p>Este documento propõe:</p>
+
+<ul>
+<li>Modelo e uma sintaxe CSS para fazer a vertex shaders ao conteúdo de marcação arbitrária.</li>
+<li>Sintaxe CSS para fazer fragmentos de shaders para operar com outros filtros de efeitos primitivos.</li>
+<li>Uma sintaxe CSS para passar parâmetros para fragmentar e vertex shaders.</li>
+<li>Uma sintaxe CSS para controlar a granularidade da malha processada pelo CSS.</li>
+<li>Uma sintaxe CSS para definir um efeito de filtro (aplicável a shaders CSS, mas geralmente útil para efeitos de filtro).</li>
+</ul>
+
+<h3 id="exemplos-de-css-shaders">Exemplos de CSS Shaders</h3>
+
+<div id="attachment_4303" style="width: 310px" class="wp-caption aligncenter">
+  <a href="http://tableless.com.br/wp-content/uploads/2011/10/intro-filtered-element.png"><img class="size-medium wp-image-4303" src="http://tableless.com.br/wp-content/uploads/2011/10/intro-filtered-element-300x194.png" alt="" width="300" height="194" srcset="uploads/2011/10/intro-filtered-element-300x194.png 300w, uploads/2011/10/intro-filtered-element.png 544w" sizes="(max-width: 300px) 100vw, 300px" /></a>
+  
+  <p class="wp-caption-text">
+    Elemento antes de aplicar o Shaders
+  </p>
+</div>
+
+<div id="attachment_4304" style="width: 310px" class="wp-caption aligncenter">
+  <a href="http://tableless.com.br/wp-content/uploads/2011/10/intro-example-1.png"><img class="size-medium wp-image-4304" src="http://tableless.com.br/wp-content/uploads/2011/10/intro-example-1-300x202.png" alt="" width="300" height="202" srcset="uploads/2011/10/intro-example-1-300x202.png 300w, uploads/2011/10/intro-example-1.png 550w" sizes="(max-width: 300px) 100vw, 300px" /></a>
+  
+  <p class="wp-caption-text">
+    Elemento com um vértice shader aplicado
+  </p>
+</div>
+
+<p>[cce lang=&#8221;css&#8221;]</p>
+
+<p>.waving {</p>
+
+<p>filter: custom(url(&#8216;wave.vs&#8217;), 20 20, phase 0, amplitude 50);</p>
+
+<p>transition-property: filter;</p>
+
+<p>transition-duration: 0.2s;</p>
+
+<p>}</p>
+
+<p>.waving:hover {</p>
+
+<p>filter: custom(url(&#8216;wave.vs&#8217;), 20 20, phase 90, amplitude 20);</p>
+
+<p>}</p>
+
+<p>[/cce]</p>
+
+<p>[cce lang=&#8221;html&#8221;]</p>
+
+<div class="waving">
+  <h2>
+    Hello CSS Shaders
+  </h2>
+</div>
+
+<p>[/cce]</p>
+
+<p><em>url(&#8216;wave.vs&#8217;)</em> faz referencia ao vértice shader customizada que calcula o efeito de ondulação. O parametro <em>20 20</em> controla a _<a title="Vertex Mesch" href="https://dvcs.w3.org/hg/FXTF/raw-file/tip/custom/index.html#vertex-mesh" target="_blank">Vertex mesh</a>_, de modo que a onda é suave. Finalmente a <em>amplitude</em> paraametros de controle a forma  e a força da curva utilizada para o efeito de ondulação.</p>
+
+<h3 id="combinado-vértice-e-fragmento">Combinado vértice e fragmento</h3>
+
+<p>&nbsp;</p>
+
+<p>[cce lang=&#8221;css&#8221;]</p>
+
+<p>.old-book-page {</p>
+
+<p>filter: grayscale(1.0) custom(url(&#8216;book.vs&#8217;) url(&#8216;old-page-paper.fs&#8217;));</p>
+
+<p>}</p>
+
+<p>[/cce]</p>
+
+<p>[cce lang=&#8221;html&#8221;]</p>
+
+<div class="old-book-page">
+  <h2>
+    Hello CSS Shaders
+  </h2>
+</div>
+
+<p>[/cce]</p>
+
+<p>A figura mostra uma combinação de um vertex shader (para dar forma um &#8220;livro aberto&#8221; ) e um shader de fragmento (para dar a imagem um estilo de &#8216;papel velho&#8217;, com uma sombra sutil no meio).</p>
+
+<p>Note como a propriedade &#8216;filter&#8217; é estendida com um costume () função e como essa função pode ser combinada com uma das funções existentes filtrantes (tais como tons de cinza () no exemplo acima)</p>
+
+<p>Cada shader define seu próprio conjunto de parâmetros. Normalmente, os shaders terão diferentes parâmetros com tipos diferentes. Por exemplo, &#8220;box-blur&#8221; e &#8220;box-size&#8221;.</p>
+
+<p><strong>Na parte 2, mostrarei mais exemplos práticos sobre como usar melhor os Shaders, nesse artigo, quiz mesmo fazer uma introdução sobre o elemento.</strong></p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

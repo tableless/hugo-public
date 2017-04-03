@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ngroute on Tableless</title>
+    <link>http://tableless.com.br/tags/ngroute/index.xml</link>
+    <description>Recent content in Ngroute on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/ngroute/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando uma aplicação Single Page com AngularJS</title>
+      <link>http://tableless.com.br/criando-uma-aplicacao-single-page-com-angularjs/</link>
+      <pubDate>Sun, 22 Jun 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-uma-aplicacao-single-page-com-angularjs/</guid>
+      <description>
+
+&lt;p&gt;Um dos melhores conceitos que o AngularJS oferece é o de &amp;#8220;Single Page&amp;#8221;, onde os recursos apropriados são dinamicamente carregados e adicionados à página, conforme necessário, geralmente em resposta a ações do usuário.&lt;/p&gt;
+
+&lt;p&gt;Para isto acontecer o framework oferece módulos que te possibilitam ter apenas uma página index, com outras páginas de conteúdo (views) sendo carregadas de acordo com uma específica rota (route).&lt;/p&gt;
+
+&lt;p&gt;Deste modo, você consegue separar bem as responsabilidades do seu projeto, e ficando de fácil manutenção e codificação dos elementos.&lt;/p&gt;
+
+&lt;p&gt;Vamos parar de enrolação e ver como isso funciona em um rápido exemplo&amp;#8230;&lt;/p&gt;
+
+&lt;h2 id=&#34;estrutura-de-pastas&#34;&gt;Estrutura de pastas&lt;/h2&gt;
+
+&lt;p&gt;Primeiro criamos uma estrutura de pastas simples para o exemplo:&lt;/p&gt;
+
+&lt;pre&gt;app
+    controllers
+        controllers.js
+    views
+        home.html
+        sobre.html
+        contato.html
+    app.js
+index.html
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;configurando-a-aplicação&#34;&gt;Configurando a aplicação&lt;/h2&gt;
+
+&lt;p&gt;É aqui que o show acontece, no arquivo app.js, primeiro, carregamos o módulo ngRoute que é usado para &lt;strong&gt;deep-linking URLs&lt;/strong&gt; para controllers e views. Este módulo observa qual é url ($location.url()) e tenta mapear o caminho de acordo com alguma rota pré-definida, assim ele consegue executar o controller e a view correspondente para cada url.&lt;/p&gt;
+
+&lt;p&gt;Para setarmos uma configuração no AngularJS, precisamos usar a função &lt;strong&gt;config&lt;/strong&gt;, que pode receber diversas propriedades já existentes do angular.&lt;/p&gt;
+
+&lt;pre lang=&#34;javascript&#34;&gt;var app = angular.module(&#39;app&#39;,[&#39;ngRoute&#39;]);
+
+app.config(function($routeProvider, $locationProvider)
+{
+   // remove o # da url
+   $locationProvider.html5Mode(true);
+
+   $routeProvider
+
+   // para a rota &#39;/&#39;, carregaremos o template home.html e o controller &#39;HomeCtrl&#39;
+   .when(&#39;/&#39;, {
+      templateUrl : &#39;app/views/home.html&#39;,
+      controller     : &#39;HomeCtrl&#39;,
+   })
+
+   // para a rota &#39;/sobre&#39;, carregaremos o template sobre.html e o controller &#39;SobreCtrl&#39;
+   .when(&#39;/sobre&#39;, {
+      templateUrl : &#39;app/views/sobre.html&#39;,
+      controller  : &#39;SobreCtrl&#39;,
+   })
+
+   // para a rota &#39;/contato&#39;, carregaremos o template contato.html e o controller &#39;ContatoCtrl&#39;
+   .when(&#39;/contato&#39;, {
+      templateUrl : &#39;app/views/contato.html&#39;,
+      controller  : &#39;ContatoCtrl&#39;,
+   })
+
+   // caso não seja nenhum desses, redirecione para a rota &#39;/&#39;
+   .otherwise ({ redirectTo: &#39;/&#39; });
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Neste exemplo recebemos duas propriedades, $locationProvider e $routeProvider.&lt;/p&gt;
+
+&lt;p&gt;O &lt;strong&gt;$routeProvider&lt;/strong&gt; é usado para configurar as rotas, que é exatamente o que estamos fazendo, quando usamos o &lt;strong&gt;.when()&lt;/strong&gt;, definimos a rota (url) e depois um objeto com o templateUrl (url da view) e qual nome do controller correspondente.&lt;/p&gt;
+
+&lt;p&gt;O &lt;strong&gt;$locationProvider&lt;/strong&gt; é usado para configurar como a aplicação com os chamados &amp;#8220;deep-linking&amp;#8221; irão ser armazenados, no nosso caso nós usamos a propriedade para definir true o modo de html5 (html5Mode), isso faz com que não fique com # nas URLs.&lt;/p&gt;
+
+&lt;h2 id=&#34;definindo-os-controllers&#34;&gt;Definindo os controllers&lt;/h2&gt;
+
+&lt;p&gt;Para criar um controller no angular, podemos usar a instância do módulo, que definimos anteriormente como &amp;#8220;app&amp;#8221;, deste modo definimos um controller mais modular (é como prefiro :]) ou de forma tradicional como sempre criamos funções no JavaScript (function HomeCtrl($rootScope, $location){ //do stuff&amp;#8230; }).&lt;/p&gt;
+
+&lt;p&gt;Por ser apenas um exemplo, coloquei todos meus controllers no mesmo arquivo, mas se você quiser pode colocar em arquivos diferentes, só não esqueça de linka-los à index.&lt;/p&gt;
+
+&lt;p&gt;Criaremos o primeiro controller com o nome de &amp;#8216;HomeCtrl&amp;#8217;, igual ao que definimos nas rotas mais acima, estamos passando para ele dois parâmetros, $rootScope e $location, já definidos no Angular.&lt;/p&gt;
+
+&lt;pre lang=&#34;javascript&#34;&gt;app.controller(&#39;HomeCtrl&#39;, function($rootScope, $location)
+{
+   $rootScope.activetab = $location.path();
+});
+
+app.controller(&#39;SobreCtrl&#39;, function($rootScope, $location)
+{
+   $rootScope.activetab = $location.path();
+});
+
+app.controller(&#39;ContatoCtrl&#39;, function($rootScope, $location)
+{
+   $rootScope.activetab = $location.path();
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Note que para cada controller, realizamos a mesma funcionalidade, para saber em qual página estou, criei uma variável no $rootScope, o que a torna global na página, podendo ser acessada de qualquer local.&lt;/p&gt;
+
+&lt;p&gt;Para a variável activetab atribuímos o caminho da localização que estamos, no caso, seria atribuído &amp;#8216;/&amp;#8217; logo quando acessamos o exemplo.&lt;/p&gt;
+
+&lt;h2 id=&#34;eis-a-single-page&#34;&gt;Eis a Single Page!&lt;/h2&gt;
+
+&lt;p&gt;Aqui está nossa index, ela servirá para carregar os nossos templates definidos previamente nas rotas.&lt;/p&gt;
+
+&lt;p&gt;Nesta página contemos algumas &lt;strong&gt;diretivas&lt;/strong&gt; (directives) do próprio angular, mas o que é uma diretiva?&lt;/p&gt;
+
+&lt;p&gt;Basicamente, diretivas em angular são atributos de tags HTMLs que definem o comportamento do mesmo. O próprio angular já oferece muitas diretivas, mas você pode criar a sua própria se desejar.&lt;/p&gt;
+
+&lt;p&gt;O recomendado quando se usa AngularJS e você deseja fazer alterações no DOM, é criar uma diretiva personalizada para tal&amp;#8230;&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!doctype html&amp;gt;
+&amp;lt;html ng-app=&#34;app&#34;&amp;gt;
+   &amp;lt;head&amp;gt;
+      &amp;lt;meta http-equiv=&#34;Content-Type&#34; content=&#34;text/html; charset=utf-8&#34; /&amp;gt;
+      &amp;lt;meta http-equiv=&#34;content-language&#34; content=&#34;pt-br&#34; /&amp;gt;
+      &amp;lt;title&amp;gt;AngularJS: Single Page com ngView e ngRoute&amp;lt;/title&amp;gt;
+      &amp;lt;link rel=&#34;stylesheet&#34; href=&#34;//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css&#34; /&amp;gt;
+   &amp;lt;/head&amp;gt;
+
+   &amp;lt;body&amp;gt;
+      &amp;lt;ul class=&#34;nav nav-tabs&#34;&amp;gt;
+         &amp;lt;li ng-class=&#34;{active: activetab == &#39;/&#39;}&#34;&amp;gt;&amp;lt;a href=&#34;#/home&#34;&amp;gt;Home&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+         &amp;lt;li ng-class=&#34;{active: activetab == &#39;/sobre&#39;}&#34;&amp;gt;&amp;lt;a href=&#34;#/sobre&#34;&amp;gt;Sobre&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+         &amp;lt;li ng-class=&#34;{active: activetab == &#39;/contato&#39;}&#34;&amp;gt;&amp;lt;a href=&#34;#/contato&#34;&amp;gt;Contato&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+      &amp;lt;/ul&amp;gt;
+
+      &amp;lt;div ng-view&amp;gt;&amp;lt;/div&amp;gt;
+
+      &amp;lt;script src=&#34;//ajax.googleapis.com/ajax/libs/angularjs/1.2.8/angular.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+      &amp;lt;script src=&#34;//ajax.googleapis.com/ajax/libs/angularjs/1.2.0rc1/angular-route.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+
+      &amp;lt;script src=&#34;app/app.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+      &amp;lt;script src=&#34;app/controllers/controllers.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+   &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Note que a linha mais importante de código aqui é a que contém a diretiva &lt;strong&gt;ng-view&lt;/strong&gt;, é ali que seus templates irão carregar, aquilo que você definiu previamente nas rotas, irão ser abertas dentro desta div.&lt;/p&gt;
+
+&lt;p&gt;Para usarmos o conceito de Single Page no angular, é necessário usarmos a diretiva ng-view. Ela é a responsável por renderizar suas devidas &amp;#8216;views&amp;#8217; à sua index principal.&lt;/p&gt;
+
+&lt;p&gt;Para cada rota, definimos uma view anteriormente, certo?&lt;/p&gt;
+
+&lt;p&gt;Àquelas views serão carregadas dentro desta div, dependendo da rota que o usuário estiver.&lt;/p&gt;
+
+&lt;p&gt;Mesmo não sendo o foco do artigo, coloquei uma diretiva &lt;strong&gt;ng-class&lt;/strong&gt; para adicionar a classe active ao elemento &lt;li&gt; se a condição for verdadeira. Ou seja, quando o controller é ativado pelo angular, ele atribui na variável activetab a sua localização atual.&lt;/p&gt;
+
+&lt;p&gt;Se estivermos na rota &amp;#8216;/&amp;#8217; a classe active irá ser adicionada ao primeiro elemento &lt;li&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se estivermos na rota &amp;#8216;/sobre&amp;#8217; a classe active irá ser adicionada ao segundo elemento &lt;li&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se estivermos na rota &amp;#8216;/contato&amp;#8217; a classe active irá ser adicionada ao terceiro elemento &lt;li&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-as-views&#34;&gt;Criando as views&lt;/h2&gt;
+
+&lt;p&gt;Como é apenas um exemplo, procurei agilidade, então, os templates são praticamente iguais.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!-- home.html --&amp;gt;
+&amp;lt;div class=&#34;page-header&#34;&amp;gt;
+   &amp;lt;h1&amp;gt;Página Home!&amp;lt;/h1&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;pre&gt;&amp;lt;!-- sobre.html --&amp;gt;
+&amp;lt;div class=&#34;page-header&#34;&amp;gt;
+   &amp;lt;h1&amp;gt;Página Sobre!&amp;lt;/h1&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;pre&gt;&amp;lt;!-- contato.html --&amp;gt;
+&amp;lt;div class=&#34;page-header&#34;&amp;gt;
+   &amp;lt;h1&amp;gt;Página Contato!&amp;lt;/h1&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Finalizamos por aqui pessoal, a ideia era de passar exatamente como criamos uma aplicação Single Page com AngularJS, espero que todos consigam!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

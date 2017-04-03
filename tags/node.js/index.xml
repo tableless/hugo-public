@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Node.Js on Tableless</title>
+    <link>http://tableless.com.br/tags/node.js/index.xml</link>
+    <description>Recent content in Node.Js on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/node.js/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Como criar aplicações em tempo real usando Node.js e RethinkDB</title>
+      <link>http://tableless.com.br/como-criar-aplicacoes-em-tempo-real-usando-node-js-e-rethinkdb/</link>
+      <pubDate>Wed, 22 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/como-criar-aplicacoes-em-tempo-real-usando-node-js-e-rethinkdb/</guid>
+      <description>
+
+&lt;h2 id=&#34;sobre-o-rethinkdb&#34;&gt;Sobre o RethinkDB&lt;/h2&gt;
+
+&lt;p&gt;Se você precisa de um banco de dados NoSQL que funcione com dados JSON e tenha suporte completo para buscas em tempo real e uma mistura de modelos entre SQL e NoSQL, então uma boa opção é o RethinkDB.&lt;/p&gt;
+
+&lt;p&gt;Trata-se de uma base de dados em código aberto em que todos os dados JSON são persistidos em tabelas como um banco de dados SQL convencional, permitindo que você execute queries entre múltiplas tabelas utilizando o comando clássico &lt;strong&gt;join&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mas você também pode persistir arrays e sub-documentos como está acostumado a fazer com o MongoDB, CouchDB ou PostgreSQL.&lt;/p&gt;
+
+&lt;p&gt;Há alguns materiais bacanas no RethinkDB, como:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Suporte ao GeoSpartial;&lt;/li&gt;
+&lt;li&gt;API para lidar com strings, datas, booleanos e documentos;&lt;/li&gt;
+&lt;li&gt;API para Math;&lt;/li&gt;
+&lt;li&gt;Suporte ao Map-reduce;&lt;/li&gt;
+&lt;li&gt;Cliente HTTP para capturar alguns dados externos;&lt;/li&gt;
+&lt;li&gt;Changefeeds , que é uma busca em tempo real;&lt;/li&gt;
+&lt;li&gt;Suporte para index (simples, composto e multi);&lt;/li&gt;
+&lt;li&gt;Painel de administrador nativo da web;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;desenvolvendo-o-aplicativo&#34;&gt;Desenvolvendo o aplicativo&lt;/h2&gt;
+
+&lt;p&gt;E então, que tal desenvolver algo útil usando o RethinkDB? Para explorar a busca em tempo real, vamos construir uma timeline global simples utilizando o recurso &lt;a href=&#34;http://rethinkdb.com/docs/changefeeds/javascript&#34;&gt;changefeed&lt;/a&gt; para listar todos os dados na timeline em tempo real, com o uso do Node.js, Express, Socket.IO e o RethinkDB.&lt;/p&gt;
+
+&lt;p&gt;Primeiro, você precisa instalar o RethinkDB. Antes de começar escrevendo os códigos abaixo, para instalar esse banco de dados eu recomendo que você leia e siga as instruções deste link &lt;a href=&#34;http://rethinkdb.com/docs/install&#34;&gt;http://rethinkdb.com/docs/install&lt;/a&gt; de acordo com seu sistema operacional.&lt;/p&gt;
+
+&lt;p&gt;Depois de instalá-lo, execute os comandos abaixo para iniciar o projeto:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;bash&#34;&gt;mkdir timeline
+cd timeline
+npm init
+npm install--save express socket.io rethinkdb
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora, vamos trabalhar! Para simplificar as coisas nós vamos usar o código do ES6 da versão nativa &lt;strong&gt;Node v6.x.x&lt;/strong&gt;, e o backend será um único arquivo de código para fins de estudo, mas se você precisa desenvolver um servidor backend complexo e bem estruturado utilizando o RethinkDB, dê uma olhada neste projeto &lt;a href=&#34;https://github.com/caio-ribeiro-pereira/node-api-examples&#34;&gt;node-api-examples&lt;/a&gt;, o qual possui uma lista com alguns exemplos de APIs utilizando os mesmos roteadores web e bancos de dados. Existem alguns exemplos do uso do RethinkDB com Koa, Express e o Hapi.js.&lt;/p&gt;
+
+&lt;p&gt;Bem, vamos criar o servidor backend de nossa aplicação. Você pode criar o arquivo &lt;code&gt;index.js&lt;/code&gt; por meio do código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;javascript&#34;&gt;const http = require(&#39;http&#39;);
+const fs = require(&#39;fs&#39;);
+const express = require(&#39;express&#39;);
+const socketIO = require(&#39;socket.io&#39;);
+const r = require(&#39;rethinkdb&#39;);
+const config = require(&#39;./config.json&#39;);
+
+// Loading Express, HTTP, Socket.IO and RethinkDB
+const db = Object.assign(config.rethinkdb, {
+    db: &#39;timeline&#39;
+});
+const app = express();
+const server = http.Server(app);
+const io = socketIO(server);
+
+// Connecting to RethinkDB server
+r.connect(db)
+    .then(conn =&amp;gt; {
+        // Index route which renders the index.html
+        app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+            fs.readFile(`${__dirname}/index.html`, (err, html) =&amp;gt; {
+                res.end(html || err);
+            });
+        });
+        // The changefeed is provided by change() function
+        // which emits broadcast of new messages for all clients
+        r.table(&#39;messages&#39;)
+            .changes()
+            .run(conn)
+            .then(cursor =&amp;gt; {
+                cursor.each((err, data) =&amp;gt; {
+                    const message = data.new_val;
+                    io.sockets.emit(&#39;/messages&#39;, message);
+                });
+            });
+        // Listing all messages when new user connects into socket.io
+        io.on(&#39;connection&#39;, (client) =&amp;gt; {
+            r.table(&#39;messages&#39;)
+                .run(conn)
+                .then(cursor =&amp;gt; {
+                    cursor.each((err, message) =&amp;gt; {
+                        io.sockets.emit(&#39;/messages&#39;, message);
+                    });
+                });
+            // Listening the event from client and insert new messages
+            client.on(&#39;/messages&#39;, (body) =&amp;gt; {
+                const {
+                    name,
+                    message
+                } = body;
+                const data = {
+                    name,
+                    message,
+                    date: new Date()
+                };
+                r.table(&#39;messages&#39;).insert(data).run(conn);
+            });
+        });
+        server.listen(3000, () =&amp;gt; console.log(&#39;Timeline Server!&#39;));
+    })
+    .error(err =&amp;gt; {
+        console.log(&#39;Can\&#39;t connect to RethinkDB&#39;);
+        throw err;
+    });
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Existem alguns detalhes importantes que você precisa saber quando for usar o RethinkDB. Primeiro, todas as funções desse módulo funcionam usando callbacks ou &lt;a href=&#34;https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise&#34;&gt;Promessas&lt;/a&gt;. Se você escolher as promessas, você pode criar funções assíncronas bem estruturadas com gerentes de erros melhores.&lt;/p&gt;
+
+&lt;p&gt;O recurso &lt;strong&gt;changefeed&lt;/strong&gt; (via &lt;code&gt;r.table(&#39;messages&#39;).changes()&lt;/code&gt;) é um subscriber do banco de dados, o qual é uma query observadora e retorna qualquer modificação de uma tabela. A combinação com o &lt;code&gt;io.sockets.emit()&lt;/code&gt; permite que o servidor envie dados em tempo real para o cliente.&lt;/p&gt;
+
+&lt;p&gt;Agora, vamos criar um script simples de migração para preparar o banco de dados antes de rodar o servidor. Essa migração é muito comum em bancos de dados relacionais. Crie o arquivo &lt;code&gt;database.js&lt;/code&gt; com o script abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;javascript&#34;&gt;const r = require(&#39;rethinkdb&#39;);
+const config = require(&#39;./config.json&#39;);
+let conn;
+
+r.connect(config.rethinkdb)
+    .then(connection =&amp;gt; {
+        console.log(&#39;Connecting RethinkDB...&#39;);
+        conn = connection;
+        return r.dbCreate(&#39;timeline&#39;).run(conn);
+    })
+    .then(() =&amp;gt; {
+        console.log(&#39;Database &#34;timeline&#34; created!&#39;);
+        return r.db(&#39;timeline&#39;).tableCreate(&#39;messages&#39;).run(conn);
+    })
+    .then(() =&amp;gt; console.log(&#39;Table &#34;messages&#34; created!&#39;))
+    .error(err =&amp;gt; console.log(err))
+    .finally(() =&amp;gt; process.exit(0));
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;E não se esqueça de criar o arquivo &lt;code&gt;config.json&lt;/code&gt;, o qual possui dados para conectar no servidor RethinkDB:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;javascript&#34;&gt;{
+    &#34;rethinkdb&#34;: {
+        &#34;host&#34;: &#34;localhost&#34;,
+        &#34;port&#34;: 28015
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Para finalizar nossa aplicação, precisamos criar o arquivo &lt;code&gt;index.html&lt;/code&gt;, que será a parte do lado do cliente para os usuários enviarem mensagens na timeline.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+
+&amp;lt;head&amp;gt;
+    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+    &amp;lt;title&amp;gt;Timeline&amp;lt;/title&amp;gt;
+    &amp;lt;meta name=&#34;viewport&#34; content=&#34;width=device-width,initial-scale=1&#34;&amp;gt;
+    &amp;lt;script src=&#34;http://tableless.com.br/socket.io/socket.io.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;/head&amp;gt;
+
+&amp;lt;body&amp;gt;
+    &amp;lt;form style=&#34;text-align:center;margin:50px 0&#34;&amp;gt;
+        &amp;lt;label for=&#34;name&#34;&amp;gt;Name:&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;text&#34; id=&#34;name&#34; /&amp;gt;
+        &amp;lt;label for=&#34;message&#34;&amp;gt;Message:&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;text&#34; id=&#34;message&#34; /&amp;gt;
+        &amp;lt;button type=&#34;submit&#34;&amp;gt;Send&amp;lt;/button&amp;gt;
+    &amp;lt;/form&amp;gt;
+    &amp;lt;fieldset style=&#34;padding: 20px;width:50%;margin:0 auto&#34;&amp;gt;
+        &amp;lt;legend style=&#34;text-align:center&#34;&amp;gt;Timeline&amp;lt;/legend&amp;gt;
+        &amp;lt;p id=&#34;messages&#34;&amp;gt;&amp;lt;/p&amp;gt;
+    &amp;lt;/fieldset&amp;gt;
+    &amp;lt;script&amp;gt;
+        (function() {
+            var socket = io();
+            var form = document.querySelector(&#39;form&#39;);
+            form.addEventListener(&#39;submit&#39;, function(e) {
+                e.preventDefault();
+                var name = e.target.querySelector(&#39;#name&#39;);
+                var message = e.target.querySelector(&#39;#message&#39;);
+                var data = {
+                    name: name.value,
+                    message: message.value
+                };
+                socket.emit(&#39;/messages&#39;, data);
+                e.target.reset();
+            });
+            socket.on(&#39;/messages&#39;, function(data) {
+                var messages = document.querySelector(&#39;#messages&#39;);
+                var message = &#39;&amp;lt;b&amp;gt;&#39; + data.name + &#39;:&amp;lt;/b&amp;gt; &#39; +
+                    data.message + &#39;&amp;lt;br /&amp;gt;&#39;;
+                messages.innerHTML += message;
+            });
+        })();
+    &amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+
+&amp;lt;/html&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora nós estamos prontos para rodar essa aplicação! Mas antes de iniciar o servidor, na primeira vez você deve executar a migração do banco de dados para criar o banco de dados e tabela para este projeto. Para isso, execute o seguinte comando:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;node database.js
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Se tudo der certo, você pode iniciar o servidor ao executar:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;node index.js
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;E você pode brincar enviando mensagens nesta aplicação acessando o endereço &lt;a href=&#34;http://localhost:3000&#34;&gt;http://localhost:3000&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;protegendo-o-aplicativo&#34;&gt;Protegendo o aplicativo&lt;/h2&gt;
+
+&lt;p&gt;Se quiser saber mais sobre como começar protegendo seu aplicativo, basta acessar este &lt;a href=&#34;https://blog.jscrambler.com/jscrambler-101-first-use&#34;&gt;tutorial&lt;/a&gt;, que irá ajudar nos primeiros passos de uso do &lt;a href=&#34;https://www.jscrambler.com&#34;&gt;Jscrambler&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;O RethinkDB é o incrível NoSQL! Esse banco de dados pode oferecer suporte total para aplicações de tempo real apenas utilizando o changefeed + socket.io. &lt;a href=&#34;http://rethinkdb.com/docs/changefeeds/javascript&#34;&gt;Neste link&lt;/a&gt;, você pode ler mais sobre o que é possível criar usando o changefeeds. Quase todas as funções podem executar usando as Promises, que fazem com que você escreva um código melhor e você pode facilmente usar o recurso &lt;strong&gt;ES7 async/await&lt;/strong&gt; para simplificar as funções de promessas também.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Consumo eficiente de recursos computacionais de servidores de aplicação web com Node.js</title>
+      <link>http://tableless.com.br/consumo-eficiente-de-recursos-computacionais-de-servidores-de-aplicacao-web-com-node-js/</link>
+      <pubDate>Thu, 28 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/consumo-eficiente-de-recursos-computacionais-de-servidores-de-aplicacao-web-com-node-js/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;INTRODUÇÃO&lt;/h2&gt;
+
+&lt;p&gt;Nos últimos anos, houve um considerável crescimento do número de usuários e volume de dados na Internet. Em 2014, cerca de 3 bilhões de pessoas no mundo usavam a internet e 43.6% das residências em todo mundo possuíam algum forma de acesso a grande rede. Os sites de redes sociais têm registrado, ao longo dos anos, um crescimento exponencial, o Facebook, por exemplo, possuía no final de 2013, 1,3 bilhões de usuários ativos, enquanto o Twitter, maior &lt;em&gt;microblog&lt;/em&gt; internacional, registrava, na mesma época, 646 milhões de usuários ativos, responsáveis por 58 milhões de &lt;em&gt;tweets&lt;/em&gt; postados diariamente (ITU, 2014). Nesse cenário, as aplicações necessitam atender esse grande número de acesso simultâneo mantendo estabilidade e desempenho satisfatório.&lt;/p&gt;
+
+&lt;p&gt;Duas possíveis soluções podem ser utilizadas para resolução de problemas de picos de acessos simultâneos: 1) a substituição da máquina antiga por uma mais robusta, com maior capacidade de processamento; e 2) incorporar novas máquinas, a fim de atender o aumento da demanda dos clientes. Não obstante, as aplicações – &lt;em&gt;software&lt;/em&gt; – necessitam utilizar mecanismos e paradigmas capazes de extrair a capacidade máxima de processamento do &lt;em&gt;hardware&lt;/em&gt;, ou seja, atender um maior número de requisições com o mínimo possível de recursos computacionais.&lt;/p&gt;
+
+&lt;p&gt;Por conseguinte, Node.js pode ser uma alternativa eficiente em aplicações com um alto número de requisições simultâneas por ter em seu modelo de programação as estratégias já mencionadas.&lt;/p&gt;
+
+&lt;p&gt;Para verificar a eficiência do Node.js foi montado um ambiente controlado para execução de testes de performance, simulando um alto número de acessos simultâneos a uma aplicação de “Hello World”, que tem como saída uma mensagem de “Hello World” e a hora de execução do &lt;em&gt;script&lt;/em&gt;. Na execução dos testes foi analisado o consumo de recursos computacionais da plataforma Node.js em relação a outras tecnologias.&lt;/p&gt;
+
+&lt;h2 id=&#34;metodologia&#34;&gt;METODOLOGIA&lt;/h2&gt;
+
+&lt;p&gt;Foi considerado como universo desta pesquisa, servidores de aplicações web que necessitam atender um grande número de requisições simultâneas. Para amostragem foram selecionadas plataformas que utilizam entradas e saídas não bloqueantes como estratégia para melhoramento de desempenho: a) Node.js; b) Thin; c) Twistted; e d) Tornado.&lt;/p&gt;
+
+&lt;p&gt;A coleta dos dados foi realizada durante a execução de testes de performance, em um ambiente controlado, utilizando a ferramenta Apache JMeter. Antes do teste, o plugin ServerAgent, do Apache JMeter, foi configurado no sistema operacional da aplicação servidora, para permitir a coleta dos dados referentes ao uso de memória e CPU. Foram utilizadas 05 (cinco) máquinas virtuais, com sistema operacional Debian 7.5 e em cada uma dessas máquinas foi instalado uma plataforma da amostragem. Acessos simultâneos de 100, 500 e 1.000 usuários, foram originados do Apache JMeter e direcionados a cada um dos hosts da amostragem, que executavam um código de “Hello, World!”.&lt;/p&gt;
+
+&lt;p&gt;Os dados obtidos por ocasião da execução do teste de carga objetivaram trazer subsídios para interpretar a eficiência e consumo de recursos da plataforma Node.js em relação as demais plataformas da amostra. A análise dos dados levou em consideração 04 (quatro) indicadores de desempenho, dividido em dois grupos: a) indicadores de serviço: disponibilidade e tempo de resposta; e b) indicadores de eficiência: consumo de recursos e throughput (vazão).&lt;/p&gt;
+
+&lt;h2 id=&#34;resultados&#34;&gt;RESULTADOS&lt;/h2&gt;
+
+&lt;p&gt;Com base nos testes realizados percebeu-se que, Node.js demonstrou ter maior desempenho que todas as outras plataformas. Sendo capaz de atender quase o dobro de requisições por segundo, em relação à Thin, tecnologia que demonstrou desempenho mais próximo ao Node.js.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53919&#34; style=&#34;width: 574px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53919 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/tempo_resposta.png&#34; alt=&#34;Resultado do tempo médio de resposta&#34; width=&#34;564&#34; height=&#34;332&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Figura 1 &amp;#8211; Resultado do tempo médio de resposta (em milissegundos)
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;No aspecto tempo de resposta, como pode ser observado na figura acima, o Node.js teve o melhor tempo, gastando metade do tempo utilizado pela plataforma Thin, que ficou em segundo lugar.&lt;/p&gt;
+
+&lt;p&gt;Salienta-se que, em todas as plataformas, o tempo médio de resposta quando 1.000 (um mil) requisições concorrentes estavam sendo executadas não foi um tempo aceitável para ambientes de produção, justificado pela pouca capacidade dos recursos computacionais dos servidores em que as aplicações estavam sendo executadas. Todavia, os aspectos aqui analisados são as diferenças dos resultados apresentados entre as plataformas analisadas, uma vez que todas aplicações foram executadas nas mesmas condições de infraestrutura e hardware.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53918&#34; style=&#34;width: 574px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53918 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/req_por_segundo.png&#34; alt=&#34;Resultado do throughput (vazão)&#34; width=&#34;564&#34; height=&#34;332&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Figura 2 &amp;#8211; Resultado do throughput (vazão)
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Este é um indicador do grupo dos indicadores orientados a eficiência, e um dos principais fatores a ser analisado no teste, pois expressa a capacidade do servidor em atender requisições durante um determinado período. No gráfico da figura 2, está exposto o número de requisições executadas por segundo e é notável que das plataformas analisadas, Node.js apresentou o melhor índice de requisições, chegando a obter mais de 500 requisições por segundo para os testes de 1.000 requisições concorrentes, enquanto a plataforma que obteve o segundo melhor índice alcançou, no melhor caso, um valor acima de 400 requisições por segundo, sendo com apenas 100 requisições simultâneas. É visível a grande diferença entre as plataformas, chegando a ter um aumento de desempenho de quase 50% utilizando os mesmo recursos de hardware.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53917&#34; style=&#34;width: 488px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53917 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/erros.png&#34; alt=&#34;Porcentagem de erros durante os testes&#34; width=&#34;478&#34; height=&#34;164&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Tabela 1 &amp;#8211; Porcentagem de erros durante os testes
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Quanto ao consumo dos recursos computacionais, todas as tecnologias tiveram um consumo bastante alto nas avaliações com mais 100 requisições concorrentes. Thin, não conseguiu completar com sucesso todas as requisições, nos testes de 500 requisições teve uma taxa de erro de 0,44%. Já nas avaliações com 1.000 requisições, essa taxa aumentou para 2,32%, conforme a tabela 1.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53921&#34; style=&#34;width: 574px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53921 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/uso_memoria.png&#34; alt=&#34;Resultado do consumo de memória RAM&#34; width=&#34;564&#34; height=&#34;332&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Figura 3 &amp;#8211; Resultado do consumo de memória RAM
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;No indicador consumo de memória RAM, figura 3, praticamente todas as plataformas tiveram consumo constante e estável. Das plataformas que conseguiram atender todas as requisições com taxas de erro “zero”, Node.js foi a que teve o menor consumo, enquanto o Twisted foi a que obteve o maior consumo de memória, porém essa diferença entre as plataformas, em geral, foi baixa.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53920&#34; style=&#34;width: 574px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53920 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/uso_cpu.png&#34; alt=&#34;Resultado consumo de CPU&#34; width=&#34;564&#34; height=&#34;332&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Figura 4 &amp;#8211; Resultado consumo de CPU
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Quanto ao uso da CPU, em geral, todas as tecnologias avaliadas tiveram um alto consumo. Das plataformas que completaram todas as requisições sem erros, em média, a Twisted foi a que apresentou o menor consumo de CPU e Tornado a que apresentou o maior índice de consumo. Node.js só ficou abaixo das demais plataformas nos testes de 100 requisições simultâneas, nas avaliações com 500 e 1000 requisições concorrentes, Node.js teve o segundo maior consumo de CPU.&lt;/p&gt;
+
+&lt;p&gt;Cabe ressaltar que apesar do consumo de memória e CPU ter sido similar entre todas as plataformas, Node.js foi superior nas questões de tempo de resposta e número de requisições por segundo, ou seja, foi capaz de atender, com sucesso, um número muito maior de requisições por segundo, com um tempo relativamente menor para atender cada requisição, utilizando a mesma capacidade de recursos de hardware das demais tecnologias.&lt;/p&gt;
+
+&lt;h2 id=&#34;considerações-finais&#34;&gt;CONSIDERAÇÕES FINAIS&lt;/h2&gt;
+
+&lt;p&gt;Analisando os resultados nos testes é possível concluir que Node.js é realmente uma alternativa para consumo eficiente dos recursos computacionais, e demonstrou ser um servidor de aplicação web de alto desempenho, tendo uma performance até 50% maior que as demais arquiteturas exploradas nos testes. Isto se deve ao fato de essa plataforma ter sido construída com esse propósito, de alto desempenho.&lt;/p&gt;
+
+&lt;p&gt;Foi possível comprovar que a performance de Node.js é bem superior a dos servidores web “event-based” comparados nesta pesquisa, permitindo que aplicações que exigem um alto de número de conexões concorrentes sejam mantidas com menos recursos computacionais, reduzindo o custo de infraestrutura dos servidores. Contudo, Node.js não é uma plataforma para todo tipo de aplicação. Em algumas situações, ela não poderá ser utilizada sozinha, mas como um suplemento em aplicações de grande porte, cabendo aos gestores e engenheiros avaliar os requisitos da aplicação e verificar se Node.js é a solução ideal para o desenvolvimento do projeto.&lt;/p&gt;
+
+&lt;h2 id=&#34;referências&#34;&gt;REFERÊNCIAS&lt;/h2&gt;
+
+&lt;p&gt;Basso, Fernando Luis. (2014) “Um estudo experimentativo e comparativo da plataforma Node.js”, &lt;a href=&#34;http://painel.passofundo.ifsul.edu.br/uploads/arq/201505221046071866349516.pdf&#34;&gt;http://painel.passofundo.ifsul.edu.br/uploads/arq/201505221046071866349516.pdf&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Bonfim, F. L., Liang, M. (2014) “Aplicações escaláveis com mean stack”, &lt;a href=&#34;http://www.inf.ufpr.br/ml09/TG/monografia.pdf&#34;&gt;http://www.inf.ufpr.br/ml09/TG/monografia.pdf&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Gros-Dubois, J. (2014) “Process-based vs Thread-based concurrency (Node.js)”, &lt;a href=&#34;https://ncombo.wordpress.com/2014/07/11/process-based-vs-thread-basedconcurrency-node-js&#34;&gt;https://ncombo.wordpress.com/2014/07/11/process-based-vs-thread-basedconcurrency-node-js&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;ITU, International Telecommunication Union. (2014) “Measuring the Information Society Report 2014”, Geneva Switzerland.&lt;/p&gt;
+
+&lt;p&gt;Junior, F. A. R. (2012) “Programação Orientada a Eventos no lado do servidor utilizando Node.js”, &lt;a href=&#34;http://www.infobrasil.inf.br/userfiles/16-S3-3-97136-Programa%C3%A7%C3%A3o%20Orientada___.pdf&#34;&gt;http://www.infobrasil.inf.br/userfiles/16-S3-3-97136-Programa%C3%A7%C3%A3o%20Orientada___.pdf&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Molyneaux, I. (2014) “The Art of Application Performance Testing: From Strategy to Tools”, Gravenstein Highway North: O’Reilly, 2ª Edição.&lt;/p&gt;
+
+&lt;p&gt;Moreira, R. H. (2013) “O que é Node.js?”, &lt;a href=&#34;http://nodebr.com/o-que-e-node-js&#34;&gt;http://nodebr.com/o-que-e-node-js&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Node.js. (2015) “About Node.js”, &lt;a href=&#34;https://nodejs.org&#34;&gt;https://nodejs.org&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Teixeira, P. (2013) “Professional Node.Js: BUILDING Javascript-Based Scalable Software.”, Indianapolis: John Wiley &amp;amp; Sons.&lt;/p&gt;
+
+&lt;p&gt;Opher, E., Niblett, P. (2011) “Event Processing in Action”. Stamford: Manning.&lt;/p&gt;
+
+&lt;p&gt;Pereira, C. R. (2011) “Aplicações web real-time com Node.Js”, Stamford: Casa do Código.&lt;/p&gt;
+
+&lt;p&gt;Ribeiro, C. (2013) “Destilando JMeter I: Introdução e Conceitos”, &lt;a href=&#34;http://www.bugbang.com.br/destilando-jmeter-i-introducao-e-conceitos&#34;&gt;http://www.bugbang.com.br/destilando-jmeter-i-introducao-e-conceitos&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Ghost – A simples e perfeita plataforma para publicações</title>
+      <link>http://tableless.com.br/ghost-simples-e-perfeita-plataforma-para-publicacoes/</link>
+      <pubDate>Thu, 20 Mar 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/ghost-simples-e-perfeita-plataforma-para-publicacoes/</guid>
+      <description>
+
+&lt;p&gt;Descobrir novas plataformas é um barato pra mim. Estar envolvido no que aparece de novo na internet é algo simplesmente prazeroso. Ideias de outras pessoas me impressionam, até quando parece ser algo tão simples, mas, por ser tão simples, é que é especial.&lt;/p&gt;
+
+&lt;p&gt;Caros amigos e amigas, venho lhes apresentar a nova (não tão nova assim) plataforma para blogging/publicações na web: &lt;strong&gt;&lt;a href=&#34;https://ghost.org&#34;&gt;Ghost&lt;/a&gt;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;ghost-simplificando-o-que-há-de-complicado&#34;&gt;Ghost, simplificando o que há de complicado.&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/03/ghost.png&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/ghost-588x294.png&#34; alt=&#34;ghost&#34; width=&#34;588&#34; height=&#34;294&#34; class=&#34;aligncenter size-medium wp-image-41529&#34; srcset=&#34;uploads/2014/03/ghost-588x294.png 588w, uploads/2014/03/ghost-329x164.png 329w, uploads/2014/03/ghost-620x310.png 620w, uploads/2014/03/ghost-400x200.png 400w, uploads/2014/03/ghost.png 800w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Eu não sei vocês, mas nunca fui fã de rezar terço do WordPress. Claro, não estou tirando mérito nenhum da plataforma, e a discussão nem é pra isso (longe de mim). Apenas quero enfatizar que, para pequenas aplicações e blogs, o WordPress, algumas vezes (principalmente pra quem não tem muita expêriencia) acaba sendo um tiro no escuro.&lt;/p&gt;
+
+&lt;p&gt;E, sem mais, nem menos, foi pra isso que surgiu a plataforma Ghost: &amp;#8220;&lt;em&gt;just a blogging platform&lt;/em&gt;&amp;#8220;.&lt;/p&gt;
+
+&lt;p&gt;Assim como outras plataformas, ela é open-source e você pode fazer exatamente o que quiser com ela (eu, particularmente, odeio alterar o &amp;#8220;core&amp;#8221; das plataformas, mas sinta-se em casa).&lt;/p&gt;
+
+&lt;p&gt;Foi um projeto tão bacana que teve iniciativa na Kickstarter, apenas para criarem o projeto. O resultado a gente já sabe, conseguiram os fundos necessários e trouxeram a plataforma viva.&lt;/p&gt;
+
+&lt;p&gt;O projeto do Kickstater pode ser visto &lt;a href=&#34;https://www.kickstarter.com/projects/johnonolan/ghost-just-a-blogging-platform&#34;&gt;aqui&lt;/a&gt; (&lt;em&gt;This project was successfully funded on May 28, 2013&lt;/em&gt;).&lt;/p&gt;
+
+&lt;h2 id=&#34;como-ele-funciona&#34;&gt;Como ele funciona&lt;/h2&gt;
+
+&lt;p&gt;Ghost é uma plataforma que não utiliza banco de dados, se assim posso dizer, eles trabalham com o node.js, que, utilizando as próprias palavras da equipe do Node.js, é o seguinte:&lt;/p&gt;
+
+&lt;p&gt;&amp;#8220;&lt;em&gt;Node.js usa um modelo de I/O direcionada a evento não bloqueante que o torna leve e eficiente, ideal para aplicações em tempo real com troca intensa de dados através de dispositivos distribuídos.&lt;/em&gt;&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;Lembrando que, para surpresa de alguns (ah, nem tanto), node.js roda Javascript no server-side e não no client-side.&lt;/p&gt;
+
+&lt;p&gt;Ghost, assim como o WordPress e outras plataformas, está disponível para criar online (com amostra grátis de 30 dias) apenas para você ver como o serviço funciona, e, a que vamos usar, para você fazer o download dos arquivos e editar no seu próprio computador (localhost) e subir online aonde você desejar.&lt;/p&gt;
+
+&lt;p&gt;Caso você queira se aventurar agora mesmo e já ir fuçando, deixarei o link para o download e doc aqui: &lt;a href=&#34;http://docs.ghost.org/pt-BR/installation/&#34;&gt;Ghost &amp;#8211; Downloads and Docs&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Mas eu nunca rodei node.js no meu computador, como faço?&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Calma amigo, o próprio Ghost já adiantou 500 pedras e disponibilizou um tutorial show de bola online para você rodar o node.js na sua máquina, seja ela Windows, Mac ou Linux. Para ver esse tutorial &lt;a href=&#34;http://docs.ghost.org/pt-BR/installation/&#34;&gt;entra aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;desenvolvendo-no-paraíso-8230&#34;&gt;Desenvolvendo no paraíso&amp;#8230;&lt;/h2&gt;
+
+&lt;p&gt;Ok, ok, não ataquem pedras, sei que exagerei um pouquinho, rs. Mas, brincadeiras à parte, desenvolver no Ghost é extramente gostoso. Eles tem &lt;a href=&#34;http://docs.ghost.org/usage/settings/&#34;&gt;uma simples documentação para desenvolvedores&lt;/a&gt; para você conferir o que pode usar ou não no seu tema. E é aqui que entra a parte simples do Ghost, que o torna prático e eficaz, o &amp;#8220;código-fonte&amp;#8221; dele é o básico do básico (extremamente fácil de editar e fazer um tema próprio).&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/03/Ghost-Fonte.jpg&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/Ghost-Fonte-588x294.jpg&#34; alt=&#34;Ghost - Fonte&#34; width=&#34;588&#34; height=&#34;294&#34; class=&#34;aligncenter size-medium wp-image-41532&#34; srcset=&#34;uploads/2014/03/Ghost-Fonte-588x294.jpg 588w, uploads/2014/03/Ghost-Fonte-329x164.jpg 329w, uploads/2014/03/Ghost-Fonte-618x310.jpg 618w, uploads/2014/03/Ghost-Fonte-400x200.jpg 400w, uploads/2014/03/Ghost-Fonte.jpg 1360w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;E para criar seu próprio tema é mais ainda, basta &lt;em&gt;reescrever&lt;/em&gt; o tema que vem default nele, chamado de &amp;#8220;casper&amp;#8221; (lembrando que isso é indicação do próprio criador do Ghost para quem deseja criar seu próprio tema).&lt;/p&gt;
+
+&lt;p&gt;Apenas tenha em mente que os arquivos de tema seguem uma hierarquia (e eu aconselho você a não se aventurar em mudar isso) que é:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;.
+├── /assets
+|   └── /css
+|       ├── screen.css
+|   ├── /fonts
+|   ├── /images
+|   ├── /js
+├── default.hbs
+├── index.hbs [required]
+└── post.hbs [required]
+&lt;/pre&gt;
+
+&lt;p&gt;E caso você queira surfar um pouco mais na criação de temas para Ghost, recomendo com alto nível de prioridade você ler esse doc: &lt;a href=&#34;http://docs.ghost.org/themes/&#34;&gt;How To Make Ghost Themes&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;publicações-e-visão-geral&#34;&gt;Publicações e visão geral&lt;/h2&gt;
+
+&lt;p&gt;Olha, eu simplesmente adorei o design do layout default do Ghost. Pra alguém que deseja apenas um blog, só pra postar algumas coisinhas, é um tema perfeito, você não vai precisar sair comprando ou pedindo para alguém criar algum tema para você, o casper (tema padrão) dá conta muito bem do recado.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/03/Ghost-Index.jpg&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/Ghost-Index-588x275.jpg&#34; alt=&#34;Ghost - Index&#34; width=&#34;588&#34; height=&#34;275&#34; class=&#34;aligncenter size-medium wp-image-41537&#34; srcset=&#34;uploads/2014/03/Ghost-Index-588x275.jpg 588w, uploads/2014/03/Ghost-Index-329x154.jpg 329w, uploads/2014/03/Ghost-Index-660x310.jpg 660w, uploads/2014/03/Ghost-Index-400x187.jpg 400w, uploads/2014/03/Ghost-Index.jpg 1360w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;A forma de publicar é simples, você escreve seu post, seguindo as normas de HTML para marcações, como utilizar &lt;code&gt;hgroup (H1 / H2 / H3 ...)&lt;/code&gt;, &lt;code&gt;(img)&lt;/code&gt;, &lt;code&gt;(a)&lt;/code&gt;, e assim por diante&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/03/Ghost-Post.jpg&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/Ghost-Post-588x275.jpg&#34; alt=&#34;Ghost - Post&#34; width=&#34;588&#34; height=&#34;275&#34; class=&#34;aligncenter size-medium wp-image-41536&#34; srcset=&#34;uploads/2014/03/Ghost-Post-588x275.jpg 588w, uploads/2014/03/Ghost-Post-329x154.jpg 329w, uploads/2014/03/Ghost-Post-660x310.jpg 660w, uploads/2014/03/Ghost-Post-400x187.jpg 400w, uploads/2014/03/Ghost-Post.jpg 1360w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Contando também que ele oferece o sistema de url amigável e também criar posts como páginas estáticas, e que, todo post vem com 3 redes sociais para o usuário poder compartilhar: Facebook, Twitter e Google+.&lt;/p&gt;
+
+&lt;p&gt;A página para editar as configurações é bem intuitiva e você pode fazer várias alterações bacanas, como trocar facilmente a imagem de fundo do header do seu site.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/03/Ghost-Settings.jpg&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/Ghost-Settings-588x274.jpg&#34; alt=&#34;Ghost - Settings&#34; width=&#34;588&#34; height=&#34;274&#34; class=&#34;aligncenter size-medium wp-image-41540&#34; srcset=&#34;uploads/2014/03/Ghost-Settings-588x274.jpg 588w, uploads/2014/03/Ghost-Settings-329x153.jpg 329w, uploads/2014/03/Ghost-Settings-660x307.jpg 660w, uploads/2014/03/Ghost-Settings-400x186.jpg 400w, uploads/2014/03/Ghost-Settings.jpg 1360w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Você também pode adicionar informação ao seu usuário, como foto, email, website, biografia, e assim, essas informações aparecerão no final de todo post de sua autoria. Bacana né?&lt;/p&gt;
+
+&lt;h2 id=&#34;pequeno-impasse-8230&#34;&gt;Pequeno impasse&amp;#8230;&lt;/h2&gt;
+
+&lt;p&gt;Não é um problema, na realidade, longe disso, mas colocar seu tema online não é tão fácil assim. Mas não se assuste, estou apenas falando que não é tão fácil quanto fazer upload dos arquivos por FTP e o site/blog já está rodando zero bala.&lt;/p&gt;
+
+&lt;p&gt;Como Ghost usa do node.js para poder funcionar, precisamos rodar nosso blog em um local onde node.js esteja instalado e possa ser rodado, que é o caso da Nuvem, Dedicados ou até mesmo do seu computador com DNS para internet.&lt;/p&gt;
+
+&lt;p&gt;Pra ficar mais fácil eles disponibilizaram um tutorial para explicar como funciona, que você pode ver &lt;a href=&#34;http://docs.ghost.org/installation/deploy/&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;fazendo-do-jeito-mais-fácil&#34;&gt;Fazendo do jeito mais fácil&lt;/h3&gt;
+
+&lt;p&gt;Eu, como não sou nada experiente em dedicados e cloud, uso o serviço que a própria Ghost oferece.&lt;/p&gt;
+
+&lt;p&gt;Você paga por mês 5 doláres para ter acesso há 1 blog com máximo de 10000 visitas por mês. Então, eu simplesmente faço o tema do meu blog no meu computador local, depois eu faço o upload do meu tema pra &amp;#8220;hospedagem&amp;#8221; hosteada pela Ghost, simples e fácil, em dois palitos eu tenho meu tema online sem nenhuma dificuldade (sem ter que ficar configurado node.js pra lá e pra cá, rsrs).&lt;/p&gt;
+
+&lt;p&gt;Caso queira fazer como eu, verifique na sua conta &lt;a href=&#34;https://ghost.org/settings/billing/&#34;&gt;os seus planos&lt;/a&gt;, ai você assinar qual ser mais viável pro seu bolso e utilidades.&lt;/p&gt;
+
+&lt;h2 id=&#34;comentários-gerais&#34;&gt;Comentários Gerais&lt;/h2&gt;
+
+&lt;p&gt;Aguarde, o futuro do Ghost é apenas crescer mais e mais, isso é certeza. Não se sabe o que se pode fazer com a plataforma, porque mesmo sendo para blogging, já vi alguns temas exóticos de pessoas usando para publicar trabalhos de portfólio e tudo mais. Por isso, dê uma chance ao Ghost, quem sabe não rola algum sentimento, não é?&lt;/p&gt;
+
+&lt;p&gt;Com todo perdão ao meu exagero, mas estou apaixonado por essa plataforma. Tive que vir fazer esse post de &amp;#8220;apresentação&amp;#8221; , apenas para vocês ficarem sabendo e criarem o interesse de ir buscar novas informações e regalias dessa nova plataforma.&lt;/p&gt;
+
+&lt;p&gt;Irei deixar alguns links úteis, caso queiram visitar:&lt;/p&gt;
+
+&lt;p&gt;Ghost, Site Official &amp;#8211; &lt;a href=&#34;https://ghost.org/&#34;&gt;Entrar&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ghost, Instalação e Docs &amp;#8211; &lt;a href=&#34;http://docs.ghost.org/installation/&#34;&gt;Entrar&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ghost, Guia para criação de temas &amp;#8211; &lt;a href=&#34;http://docs.ghost.org/usage/&#34;&gt;Entrar&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ghost, Forum &amp;#8211; &lt;a href=&#34;https://ghost.org/forum/&#34;&gt;Entrar&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ghost on Github &amp;#8211; &lt;a href=&#34;https://github.com/tryghost/Ghost&#34;&gt;Fork&lt;/a&gt; 🙂&lt;/p&gt;
+
+&lt;p&gt;É certeza que voltarei com mais tutoriais sobre a plataforma, sem sombra de dúvidas, foi por isso que primeiro trouxe uma rápida introdução para vocês ficarem à parte do que se trata o Ghost.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

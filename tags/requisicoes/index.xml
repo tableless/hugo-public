@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Requisicoes on Tableless</title>
+    <link>http://tableless.com.br/tags/requisicoes/index.xml</link>
+    <description>Recent content in Requisicoes on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/requisicoes/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Performance front-end – Parte 1</title>
+      <link>http://tableless.com.br/performance-frontend-parte1/</link>
+      <pubDate>Mon, 13 Aug 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/performance-frontend-parte1/</guid>
+      <description>
+
+&lt;p&gt;RTT (Road-trip Time) é o tempo que leva para o browser (ou qualquer outro cliente) conversar com o servidor buscando a informação solicitada pelo usuário.&lt;/p&gt;
+
+&lt;p&gt;Normalmente um browser inicia a comunicação com o servidor com pelo menos 3 RTTs: Uma requisição para a resolução do DNS. Outra para o setup de conexão TCP e outra para a requisição HTTP. Normalmente os websites tem muitas requisições HTTP. E isso é muito ruim.  &lt;/p&gt;
+
+&lt;p&gt;Ter muitas requisições significa que seu browser precisa ir e voltar várias vezes durante a abertura da página. Essa ida e volta são os RTT, ou a Road-trip Time. São as RTTs que contribuem para uma latência ruim nas redes. Se seu cliente demora para trazer a informação, o download da página é prejudicado.&lt;/p&gt;
+
+&lt;p&gt;Existem várias estratégias para que você diminua a quantidade de RTTs e melhore a performace da sua página sem fazer muito esforço. Com pequenos passos você consegue resultados bem grandes e interessantes. Lembre-se que alguma dicas não se aplicam a sites pequenos. Mas o que são sites pequenos? Sites pequenos são aqueles sites institucionais, os famosos “Home, Interna e Contato”. O site por si só já é minúsculo. A sua estrutura de arquivos é tranquila de se trabalhar e não precisa de tanta atenção. A performance desses sites dependem mais de onde o servidor está localizado, de qual CMS você estará utilizando e etc&amp;#8230; Mas obviamente um mínimo de “asseio” é necessário.&lt;/p&gt;
+
+&lt;h3 id=&#34;evite-import&#34;&gt;Evite @import&lt;/h3&gt;
+
+&lt;p&gt;Quando utilizamos um @import para adicionar diversos arquivos de CSS em apenas um, o browser precisa baixar o arquivo que importa o código, parsear e executar antes de descobrir que ele precisa baixar os arquivos importados.&lt;/p&gt;
+
+&lt;p&gt;Recomenda-se utilizar a tag link para importar os arquivos separadamente ou utilizar qualquer script que junte os arquivos e minimize para que todo seu código CSS se transforme em apenas um. Dependendo da linguagem utilizada, isso pode ser feito automaticamente, como em projetos Ruby on Rails.&lt;/p&gt;
+
+&lt;h3 id=&#34;otimize-a-ordem-dos-seus-scripts-e-estilos&#34;&gt;Otimize a ordem dos seus scripts e estilos&lt;/h3&gt;
+
+&lt;p&gt;Colocar a chamada dos arquivos na ordem correta pode ajudar bastante no carregamento da página. Códigos Javascripts geralmente modificam e alteram o conteúdo da página, logo os browsers demoram mais para rederizá-los por que é necessário que todas as funções daquele scripts sejam executadas e somente depois ele começa o download de outro arquivo.&lt;/p&gt;
+
+&lt;p&gt;Imagine que você tenha 3 arquivos de CSS e 2 de JS para chamar na sua página, e você o faz assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;stylesheet1.css&#34;&amp;gt;
+&amp;lt;script type=&#34;text/javascript&#34; src=&#34;scriptfile1.js&#34;&amp;gt;
+&amp;lt;script type=&#34;text/javascript&#34; src=&#34;scriptfile2.js&#34;&amp;gt;
+&amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;stylesheet2.css&#34;&amp;gt;
+&amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;stylesheet3.css&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Suponha agora que para fazer o download de cada um desses arquivos demora em torno de 100ms (milisegundos), o download dos arquivos seria algo como a imagem abaixo. Essa imagem peguei de uma página do Google que fala sobre o mesmo assunto:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/07/waterfall1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você simplesmente ordenar os arquivos de outra forma, o carregamento pode ficar apenas em 200ms. Ok, você deve estar falando que eu sou louco por me preocupar com milisegundos&amp;#8230; Mas milisegundos podem se transformar em segundos quando nós nos preocupamos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;stylesheet1.css&#34;&amp;gt;
+&amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;stylesheet2.css&#34;&amp;gt;
+&amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;stylesheet3.css&#34;&amp;gt;
+&amp;lt;script type=&#34;text/javascript&#34; src=&#34;scriptfile1.js&#34;&amp;gt;
+&amp;lt;script type=&#34;text/javascript&#34; src=&#34;scriptfile2.js&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/07/waterfall2.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;O browser baixa paralelamente os três arquivos de CSS e o primeiro arquivo de JS. Depois que o primeiro arquivo de JS foi baixado, ele começa a baixar o segundo. É uma boa prática colocar os arquivos de CSS baixarem primeiro, uma por que a renderização do browser é mais rápida quando se trata de código CSS e outra que o JS pode modificar características desses CSS, logo eles precisar estar carregados quando os scripts forem funcionar.&lt;/p&gt;
+
+&lt;h3 id=&#34;combine-imagens-utilizando-sprites&#34;&gt;Combine imagens utilizando sprites&lt;/h3&gt;
+
+&lt;p&gt;Tivemos um artigo muito bom aqui no Tableless mostrando &lt;a href=&#34;http://tableless.com.br/css-sprites/&#34;&gt;como funcionam os CSS Sprites&lt;/a&gt;. É uma técnica antiga, utilizada durante muito tempo em consoles com baixa memória para guardar grandes quantidades de imagens e informações.&lt;/p&gt;
+
+&lt;p&gt;Sempre utilize CSS Sprites onde puder. Se você tem uma grande quantidade de ícones, se você tem uma grande quantidade de imagens decorativas e etc&amp;#8230; Junte-as e forme um sprite de imagens que possa ser utilizado por todo o site. Isso diminui a quantidade de requisições que o browser fará no decorrer da navegação do usuário.&lt;/p&gt;
+
+&lt;p&gt;Quando utilizamos muitas imagens pequenas e o browser precisa fazer essas requisições juntas, há um acumulo de tarefas, chama-se &lt;a href=&#34;https://developers.google.com/speed/docs/best-practices/request?hl=sv&#34;&gt;request overhead&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Eu sei que trabalhar com sprites dá trabalho para manter e principalmente criar o sprite inicial. Por isso dá para usar serviços para fazer esse trabalho para você. O &lt;a href=&#34;http://spriteme.org&#34;&gt;SpriteMe&lt;/a&gt; é um deles.&lt;/p&gt;
+
+&lt;h3 id=&#34;combine-arquivos-de-css&#34;&gt;Combine arquivos de CSS&lt;/h3&gt;
+
+&lt;p&gt;Modular CSS é uma coisa boa, mas é bom para sua organização. Quando nós separamos nosso código CSS em vários arquivos, isso significa que o browser vai ter que buscar cada um desses arquivos no servidor. Logo, se você modula seu CSS, você precisa fazer um trabalho de entrega desse código apenas quando for necessário. Por exemplo: se você separa o estilo da página de contato em um arquivo &lt;strong&gt;contato.css&lt;/strong&gt;, o mais inteligente seria chamá-lo apenas na página de contato e assim por diante para as outras páginas.&lt;/p&gt;
+
+&lt;p&gt;Se você simplesmente modula seu CSS em vários arquivos, mas não faz esse planejamento de distribuição, a modularização de CSS só servirá para sua organização pessoal.&lt;/p&gt;
+
+&lt;p&gt;Quando combinamos os códigos CSS em um só, diminuimos a latência. O Google recomenda que tenha no máximo 3 arquivos linkados, mas o perfeito seriam 2 arquivos. Em projetos utilizando Ruby on Rails, por exemplo, é possível juntar automaticamente todo os arquivos em apenas um, sem trabalho manual. Ele ainda minimiza seu código arrancando espaços, quebras de linha e etc. Logo você precisa chamar apenas um arquivo. Baixar um arquivo grande é muito melhor do que baixar vários pequenininhos. Por quê? Requisições, lembra?&lt;/p&gt;
+
+&lt;h3 id=&#34;combine-arquivos-de-javascript&#34;&gt;Combine arquivos de Javascript&lt;/h3&gt;
+
+&lt;p&gt;Pelo mesmo motivo de combinar arquivos de CSS. Dá uma olhada nessa imagem que o Google disponibilizou:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/08/externaljs1.png&#34; alt=&#34;Carregamento de arquivos separados&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Quando linkamos uma série de arquivos separadamente, produzimos uma série de requisições no servidor e isso é ruim. Lembre-se que o sinal tem que ir e voltar para podermos começar a carregar os arquivos. Por isso é melhor você carregar um arquivo grande do que vários pequenos. A quantidade de requisições diminui e por isso tempo de carregamento é menor. Veja a imagem abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/08/externaljs2.png&#34; alt=&#34;Carregamento de um arquivo&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Bem diferente, né?&lt;/p&gt;
+
+&lt;p&gt;Você pode modularizar seus arquivos de forma que você melhore o carregamento e ainda não prejudique seu site. Por exemplo, você pode separar em um arquivo o mínimo de código que será necessário carregar para que a página funcione e em outro arquivo vai todo código que pode ser carregado depois que a página terminar de abrir. Assim você divide as prioridades.&lt;/p&gt;
+
+&lt;p&gt;Se for pouco Javascript, algo bem básico mesmo, considere colocá-lo direto no HTML. Sem a necessidade de chamar um arquivo.&lt;/p&gt;
+
+&lt;h3 id=&#34;tente-paralelizar-downloads-de-vários-domínios&#34;&gt;Tente paralelizar downloads de vários domínios&lt;/h3&gt;
+
+&lt;p&gt;De acordo com o protocolo de HTTP, os browsers podem pode ter duas conexões simultâneas por domínio. Se um documento contem referencias para várias recursos como CSS, Javascripts, Imagens e etc, de forma que estoure o máximo permitido pelo host, o browser começa a baixar um parte e deixa os outros recursos na fila. Quando ele termina de baixar todos os recursos atuais, ele vai pra fila e pega o próximo grupo.&lt;/p&gt;
+
+&lt;p&gt;O problema é que a cada grupo que o browser baixa, é gerado um RTT. Ou seja, se você tem 100 arquivos para baixar (CSS, Javascripts, imagens etc), levando em conta que o browser baixa 4 recursos por vez, serão 25 RTTs gerados.&lt;/p&gt;
+
+&lt;p&gt;A estratégia é separar parte destes recursos em outro domínio. Fazendo isso o browser pode baixar o máximo de recursos por domínio paralelamente. Por isso é que normalmente separamos arquivos &amp;#8211; como imagens &amp;#8211; em outro servidor.&lt;/p&gt;
+
+&lt;p&gt;Veja no &lt;a href=&#34;http://www.browserscope.org/&#34;&gt;Browserscope&lt;/a&gt; a lista dos browsers que aceitam ou não fazer esse truque. Normalmente os browsers mais novos estão tranquilos.&lt;/p&gt;
+
+&lt;h4 id=&#34;outras-dicas&#34;&gt;Outras dicas&lt;/h4&gt;
+
+&lt;p&gt;Algumas outras dicas e recomendações podem ser vistas neste documento que o Google disponibilizou sobre &lt;a href=&#34;https://developers.google.com/speed/docs/best-practices/rtt?hl=sv#AvoidCssImport&#34;&gt;boas práticas sobre como deixar sites mais rápidos&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Veja a &lt;a href=&#34;http://tableless.com.br/performance-frontend-parte2/&#34;&gt;segunda parte deste artigo aqui&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

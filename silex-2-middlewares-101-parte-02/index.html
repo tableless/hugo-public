@@ -1,0 +1,272 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/silex-2-middlewares-101-parte-02/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/silex-2-middlewares-101-parte-02/">Silex 2 &amp; Middlewares 101 – Parte 02</a></h1>
+  <p class="tb-hero-p">
+    
+    Olá devs! Tudo bem? Espero que sim! Estamos de volta com mais um post da série sobre o micro-framework Silex! Desta vez, vamos fazer uma parada para atualizar a versão do nosso micro-framework, para versão 2.*!
+A partir deste post vamos escrever baseada nesta versão e falaremos ao longo de cada post, sobre as principais diferenças em relação as versões passadas! Vamos lá!
+
+    
+  </p>
+      <span class="tb-author">por <a href="/author/nando-kstro-net">Nando Kstro Net</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Estamos de volta com mais um post da série sobre o micro-framework Silex! Desta vez, vamos fazer uma parada para atualizar a versão do nosso micro-framework, para versão 2.*!</p>
+
+<p>A partir deste post vamos escrever baseada nesta versão e falaremos ao longo de cada post, sobre as principais diferenças em relação as versões passadas! Vamos lá!</p>
+
+<h2 id="silex-2">Silex 2</h2>
+
+<p>Uma das grandes mudanças do micro-framework, foi o seu componente de Dependency Injection, o Pimple. O que impactou diretamente na parte de services.  Houveram algumas implementações na parte de controllers básicos e também alguns serviços internos que foram renomeados ou integrados diretamente no micro-fw. Como comentei, veremos cada particularidade nas mudanças ao longo dos posts!</p>
+
+<h3 id="atualizando-para-a-versa-o-2">Atualizando para a versão 2</h3>
+
+<p>Para atualizarmos o Silex para sua versão mais recente, precisamos alterar nosso arquivo composer.json. Nosso composer.json fica da seguinte forma, em relação ao <a href="https://tableless.com.br/conhecendo-e-instalando-o-silex/" target="_blank">primeiro post</a>:</p>
+
+<pre class="lang-json">{
+    "require" : {
+    "silex/silex" : "2.*"
+    }
+}
+</pre>
+
+<p>Agora, basta executarmos um composer update em nosso terminal para obtermos o Silex atualizado!</p>
+
+<p><img class="size-full wp-image-57045 aligncenter" src="uploads/2017/01/Screen-Shot-2017-01-23-at-13.36.09.png" alt="" width="582" height="631" /></p>
+
+<h2 id="middlewares-continuação">Middlewares (Continuação)</h2>
+
+<p>Em <a href="https://tableless.com.br/silex-middlewares-101-parte-1/" target="_blank">nosso último post</a>, da série, falamos sobre os middlewares de aplicação, como vimos, seu impacto abrange todo o app!</p>
+
+<h3 id="middlewares-de-rota">Middlewares de Rota</h3>
+
+<p>A diferença entre os middlewares de rota pros middlewares de aplicação, além do escopo que abrange apenas a rota na qual o middleware está definido, é que os middlewares de rota não possuem o método <code>finish</code>, apenas o <code>before</code> e o <code>after</code>. O comportamento é o mesmo. Veja o código a seguir:</p>
+
+<pre class="lang-php">&lt;?php
+require __DIR__ . '/vendor/autoload.php';
+
+use Silex\Application;
+
+$app = new Application();
+$app-&gt;get('/', function(Application $app) {
+    return $app-&gt;escape('Router Content!');
+})
+-&gt;before(function(){
+    print 'Before Route Middleware | ';
+})
+-&gt;after(function(){ print ' After Route Middleware'; }); 
+
+$app-&gt;run();</pre>
+
+<p>No código acima temos os dois middlewares de rotas disponíveis, porém os mesmos só serão executados quando acessarmos a rota / (Rota principal de nosso app), mantendo o mesmo comportamento dos de aplicação.</p>
+
+<h3 id="definindo-ordem-de-execução">Definindo ordem de execução</h3>
+
+<p>&nbsp;</p>
+
+<p>Podemos encadear quantos middlewares quisermos, para Rota e para Aplicação, e também definirmos uma ordem de execução.  Por padrão, os middlewares serão executados na ordem em que estão escritos, seguindo suas regras! Porém, o Silex nos disponibiliza duas constantes para alterarmos a ordem de execução dos mesmos. São elas:</p>
+
+<ul>
+<li><code>Application::EARLY_EVENT;</code></li>
+<li><code>Application::LATE_EVENT;</code></li>
+</ul>
+
+<p>Vejamos o código a seguir:</p>
+
+<pre class="lang-php">$app = new Application();
+$app-&gt;get('/', function(Application $app) {
+    return $app-&gt;escape('Router Content!');
+})
+-&gt;before(function(){
+    print 'Executará segundo por conta do LateEvent';
+}, Application::LATE_EVENT)
+-&gt;before(function(){ 
+    print 'Executará primeiro por conta do EarlyEvent'; 
+}, Application::EARLY_EVENT); 
+</pre>
+
+<p>O código acima, por padrão, executaria os middlewares before na ordem em que seguem, porém o primeiro middleware a ser executado será o segundo before e logo em seguida o primeiro before definido. Isso acontece por conta da ordem de prioridade estabelecida com as contantes, onde, tudo que tiver EARLY_EVENT executará primeiro, e LATE_EVENT executará por último.</p>
+
+<h2 id="conclusão">Conclusão</h2>
+
+<p>Bom, vamos chegando ao fim de mais um post sobre o micro-framework Silex, até o momento já temos o conhecimento geral de como os middlewares funcionam e com certeza eles serão bem úteis em determinados cenários quando você estiver utilizando o Silex em suas criações! Nas próximas postagens falaremos mais sobre o micro-framework, especificamente sobre como os Services trabalham! Nos vemos lá!</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

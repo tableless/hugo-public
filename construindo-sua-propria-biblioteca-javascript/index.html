@@ -1,0 +1,277 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/construindo-sua-propria-biblioteca-javascript/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/construindo-sua-propria-biblioteca-javascript/">Construindo sua própria biblioteca javascript</a></h1>
+  <p class="tb-hero-p">
+    
+    E se um dia você criasse sua própria biblioteca JavaScript, no estilo da jQuery?
+    
+  </p>
+      <span class="tb-author">por <a href="/author/clovis-neto">Clovis Neto</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Pois bem, meu amigo ninja, está na hora de melhorar um pouco mais seus conhecimentos e quem sabe embarcar em uma nova ideia: a criação da sua própria biblioteca javascript!</p>
+
+<h1 id="introdução">Introdução</h1>
+
+<p>Antes de você pensar: “Ah, mas eu já sei como é. Basta estender o objeto HTMLElement por meio da prototype…”. Digo-lhes que felizmente não é assim. Imagine o peso que seria colocar um novo método em todos os elementos HTML. Impraticável.</p>
+
+<p>Bem, meu amigo, se você não compreende minhas palavras, segue um exemplo de como podemos anexar um novo método aos elementos HTML por meio do prototype:</p>
+
+<pre class="lang-javascript">HTMLElement.prototype.esconde = function(){
+ this.setAttribute(“style”,”display:none”)
+}
+</pre>
+
+<p>Logo poderíamos esconder qualquer elemento HTML através da chamada:</p>
+
+<pre class="lang-javascript">document.querySelector(“div”).esconde();</pre>
+
+<p>Então vamos fazer isto da maneira correta, usando um alias ($) para selecionar nossos elementos mais ou menos igual ao jQuery, o resultado final será este:</p>
+
+<pre class="lang-javascript">$(“div”).esconde();</pre>
+
+<blockquote>
+<p>Note que a sintaxe ficará igual a biblioteca jQuery. Veremos como obter este resultado passo-a-passo.</p>
+</blockquote>
+
+<h1 id="passo-1-8211-a-função-imediata">Passo 1 &#8211; A função imediata</h1>
+
+<p>Criaremos uma função imediata, incrivelmente versátil e que tornará a linguagem javascript mais poderosa. Esta função imediata, que veremos aqui, criará um escopo temporário e algumas váriaveis “particulares”</p>
+
+<p><strong>Listagem 1 — Começando com uma função imediata</strong></p>
+
+<pre class="lang-javascript">(function(){ var blJs= function(arg){ }
+})();
+</pre>
+
+<p>Note que criei uma função anônima, cujo o nome é: <strong>blJs</strong>.</p>
+
+<p>Este será o nome da nossa biblioteca</p>
+
+<h1 id="passo-2-8211-entendendo-a-bljs">Passo 2 &#8211; Entendendo a blJs</h1>
+
+<p>Agora que a brincadeira começa a ficar boa. Primeiro iremos programar nossa função anônima (blJs), para que, sempre que ela for chamada, retorne ela mesmo como um construtor, para podermos ter acesso ao tão poderoso “<strong>this</strong>”:</p>
+
+<p><strong>Listagem 2 — A função blJs</strong></p>
+
+<pre class="lang-javascript">var blJs= function(arg){ 
+ if(!(this instanceof blJs)){ 
+  return new blJs(arg); 
+ }
+ this.myArg = arg;
+}
+</pre>
+
+<p>Note que verifiquei se o nosso objeto foi declarado como um construtor. Claro que na chamada inicial ele não será. Por isso invocamos novamente nossa função <strong>blJs</strong>, mas desta vez como um construtor, para podermos utilizar o &#8216;<strong>this</strong>&#8216;. Observe que salvei o argumento da função blJs no objeto <strong>myArg</strong>.</p>
+
+<p>Lembra desta linha de código: $(“div”)…? Isto é o mesmo que: blJs(“div”). Podemos perceber que estamos passando o “<strong>div</strong>” como parâmetro da nossa função. Logo: <strong>this.myArg = “div”</strong></p>
+
+<h1 id="passo-3-8211-estendendo-nossa-biblioteca-inserindo-métodos">Passo 3 &#8211; Estendendo nossa biblioteca: inserindo métodos☺</h1>
+
+<p>Se prepare, amigo ninja, pois a mágica funciona justamente nas próximas linhas de códigos a seguir.</p>
+
+<p>Iremos estender nossa função ( blJs ), por meio da propriedade prototype e fn. Veja a seguir:</p>
+
+<pre class="lang-javascript">blJs.fn = blJs.prototype = { 
+ esconde: function(){ 
+  document.querySelector(this.myArg).setAttribute(“style”,”display:none”); 
+ }
+}
+window.blJs= blJs, window.$ = blJs;
+</pre>
+
+<p>Logo definimos que <strong>blJs.fn</strong> é igual a <strong>blJs.prototype</strong>, onde declaramos nosso novo método. O método esconde, que seleciona a div por meio de querySelector(this.myArg) e esconde o elemento alvo por meio de um display:none.</p>
+
+<p>Ao final da nossa função imediata, definimos que window.blJs será igual a nossa função “blJs”, para podermos chamar nossa biblioteca fora do escopo da função imediata. Veja como é simples definir um alias para nossa biblioteca: é só referenciar o window.$ à nossa função blJs.</p>
+
+<h1 id="finalizando">Finalizando</h1>
+
+<p>Agora é só sorrir e correr para o abraço ☺. Sua biblioteca javascript já está pronta para ser usada. É só utilizar a chamada do inicio:</p>
+
+<pre class="lang-javascript">$(“div”).esconde() ou blJs(“div”).esconde()</pre>
+
+<p>Visualize o código completo no <a title="clique para visualizar o código completo" href="https://github.com/clovisdasilvaneto/blJs" target="_blank">github</a></p>
+
+<p>Bem, amigos ninjas, por hoje é só. Caso tenha alguma dúvida, deixem seu comentário.</p>
+
+<p>Espero que tenham curtido o artigo. Compartilhem e até a próxima!</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

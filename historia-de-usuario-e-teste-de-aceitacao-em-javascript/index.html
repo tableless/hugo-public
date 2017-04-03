@@ -1,0 +1,235 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/historia-de-usuario-e-teste-de-aceitacao-em-javascript/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/historia-de-usuario-e-teste-de-aceitacao-em-javascript/">História de usuário e teste de aceitação em JavaScript</a></h1>
+  <p class="tb-hero-p">
+    
+    História de usuário é uma descrição resumida de alguma funcionalidade do sistema sob o ponto de vista do usuário. 
+    
+  </p>
+      <span class="tb-author">por <a href="/author/igor-ribeiro-lima">Igor Ribeiro Lima</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      <p>Cada história deve ter valor de negócio na visão do cliente e é uma pequena parte da funcionalidade, não necessariamente uma especificação completa, o que minimiza a necessidade de uma extensa documentação.</p>
+
+<p>A história de usuário é escrita pelo próprio cliente e, também, serve para conduzir a criação de teste de aceitação, o qual tem o propósito de avaliar a qualidade externa do produto e, na medida do possível, a qualidade de uso e experiência do usuário. A automatização dos testes de aceitação é criada para certificar de que a história foi implementada corretamente.</p>
+
+<p>Nesse exemplo é preciso a instalação do NodeJS e do Node Package Manager (NPM), que podem ser baixados no <a href="http://nodejs.org/download/">site oficial</a>. O NPM é necessário para instalar o <a href="https://github.com/cucumber/cucumber-js">CucumberJS</a>, o <a href="http://phantomjs.org/">PhantomJS</a> e o <a href="https://github.com/admc/wd">WD</a>, digitando o seguinte _script_ no terminal:</p>
+
+<pre class="lang-ssh">npm install -g cucumber phantomjs</pre>
+
+<pre class="lang-ssh">npm install wd</pre>
+
+<p>O NodeJS possui dois tipos de dependências: global e local. Quando é global, a dependência passa ser executável, tornando possível a utilização da dependência através da linha de comando. Já as dependências locais são instaladas no diretório corrente, dentro de um diretório chamado _node<em>modules</em>.</p>
+
+<p>O primeiro <em>script</em>, que utiliza o parâmetro <strong>-g</strong>, instala o <a href="https://github.com/cucumber/cucumber-js">CucumberJS</a> e o <a href="http://phantomjs.org/">PhantomJS</a> como dependências globais. O CucumberJS é uma implementação JavaScript para interpretar uma linguagem chamada <a href="https://github.com/cucumber/gherkin">Gherkin</a>, a qual permite escrever funcionalidades e especificações em texto simples. Já o PhantomJS é um WebKit headless totalmente em JavaScript e possui suporte rápido e nativo para vários padrões web como manipulação de DOM, seletores CSS, JSON, Canvas e SVG.</p>
+
+<p>O segundo _script_ instala o <a href="https://github.com/admc/wd">WD</a> como dependência local, um cliente NodeJS para facilitar o acesso à API do <a href="http://tableless.com.br/introducao-ao-selenium-2/">Selenium 2</a>, o qual suporta <a href="https://github.com/admc/wd/blob/master/doc/api.md">métodos</a> como: fazer requisições GET e POST, clicar no botão VOLTAR do navegador, redimensionar e mover a janela do navegador, submeter formulário, digitar texto, selecionar um elemento DOM, clicar e mover um elemento DOM selecionado, etc.</p>
+
+<p>Após a instalação das dependências, vamos criar o arquivo <a href="https://gist.github.com/igorlima/8024944#file-apenas-um-exemplo-feature"><strong>apenas-um-exemplo.feature</strong></a> com a especificação da história de usuário e o teste de aceitação. Algo bem simples. Suficiente para exemplificar a implementação desse tipo de teste utilizando JavaScript.</p>
+
+<p><strong>apenas-um-exemplo.feature</strong></p>
+
+<pre class="lang-js">Feature: Apenas Um Exemplo
+  Como um usuario do CucumberJS
+  Eu quero acessar um formulario de teste
+  Para que eu possa submeter novas informacoes
+
+  Scenario: Submetendo um formulario de teste
+    Given o navegador aberto
+      And acessar o formulario de teste
+      And certificar que o titulo da pagina contem "Sauce Labs"
+      And certificar que o titulo da pagina contem "page title"
+      And certificar que o titulo da pagina contem "I am a"
+    When clicar no botao de submeter formulario
+    Then a url do navegador DEVE conter "guinea-pig"
+    And o navegador pode ser fechado</pre>
+
+<p>Ao criar o arquivo de especificação, vamos criar mais dois arquivos: <a href="https://gist.github.com/igorlima/8024944#file-configuracao-webdriver-usando-phantom-js"><strong>configuracao-webdriver-usando-phantom.js</strong></a> com as configurações do WebDriver e o arquivo <a href="https://gist.github.com/igorlima/8024944#file-step-definitions-js"><strong>step-definitions.js</strong></a> com as definições de cada passo do teste de aceitação. Em seguida, é preciso, em um outro terminal, rodar o PhantomJS em modo WebDriver, digitando o seguinte comando:</p>
+
+<pre class="lang-ssh">phantomjs --webdriver=localhost:8910</pre>
+
+<p>Com o PhantomJS rodando em segundo plano, basta rodar o CucumberJS passando como argumento o arquivo com a história de usuário e o teste de aceitação. O parâmetro <strong>&#8211;require</strong> serve para especificar o arquivo com as definições de cada passo do teste de aceitação. E o parâmetro <strong>&#8211;format</strong> é para alterar a formatação do resultado dos testes. Abaixo, o _script_ e uma ilustração do resultado obtido:</p>
+
+<pre class="lang-ssh">cucumber.js apenas-um-exemplo.feature --require step-definitions.js --format pretty</pre>
+
+<p><img alt="Ilustração do resultado de exemplo de como escrever história de usuário e teste de aceitação com JavaScript" src="http://i1368.photobucket.com/albums/ag182/igorribeirolima/resultado-obtido_zps867ddb6d.png" width="1020" height="468" /></p>
+
+<p>Esse exemplo contempla de forma bem simples a implementação de teste de aceitação utilizando JavaScript. Essa abordagem também pode utilizar <a href="http://tableless.com.br/introducao-de-como-executar-testes-unitarios-em-diferentes-tipos-de-navegadores/">diferentes tipos de navegadores</a>, mas isso ficará para uma próxima discussão. Para quem tiver interesse, todo código está disponível em um <a href="https://gist.github.com/igorlima/8024944" title="Gist - Exemplo de como escrever história de usuário e teste de aceitação com JavaScript">gist</a>.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

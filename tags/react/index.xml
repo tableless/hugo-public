@@ -1,0 +1,2025 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>React on Tableless</title>
+    <link>http://tableless.com.br/tags/react/index.xml</link>
+    <description>Recent content in React on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/react/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando a sua primeira aplicação web com React</title>
+      <link>http://tableless.com.br/criando-sua-primeira-aplicacao-web-com-react/</link>
+      <pubDate>Fri, 17 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-sua-primeira-aplicacao-web-com-react/</guid>
+      <description>
+
+&lt;p&gt;Você já deve ter ouvido falar do React, a biblioteca JS mais popular da atualidade, usado por várias empresas grandes como Facebook, Airbnb e Twitter. A ideia desse artigo é demonstrar a criação de uma aplicação simples, que use as principais partes do React. Neste tutorial nós iremos ver:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Componentes&lt;/li&gt;
+&lt;li&gt;Componentes puros/funcionais&lt;/li&gt;
+&lt;li&gt;O uso do &lt;em&gt;state&lt;/em&gt; vs &lt;em&gt;props&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Todos os exemplos deste tutorial serão escritos em ES6. Se você não sabe ES6 &lt;a href=&#34;https://github.com/ldaltro/guia-basico-ES6&#34;&gt;leia esse artigo antes&lt;/a&gt;. Se você é impaciente demais para isso considere que:&lt;/p&gt;
+
+&lt;p&gt;ES6:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const foo = 42; // const declara uma constante
+let bar = 5; // let declara uma variável
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const soma = (a, b) =&amp;gt; a + b;
+ou 
+const soma = (a, b) =&amp;gt; { return a + b; };
+&lt;/pre&gt;
+
+&lt;p&gt;ES5:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var soma = function (a, b) {
+  return a + b;
+};
+&lt;/pre&gt;
+
+&lt;p&gt;ES6:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import React from &#39;react&#39;;
+&lt;/pre&gt;
+
+&lt;p&gt;ES5:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var React = require(&#39;react&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;ES6:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;class MeuComponente extends React.Component {
+  render() {
+    return ();
+  }
+} 
+&lt;/pre&gt;
+
+&lt;p&gt;ES5:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var MeuComponente = React.createClass({
+  render: function(){
+    return ();
+  }
+});&lt;/pre&gt;
+
+&lt;p&gt;Outro pré-requisito para o tutorial é ter o &lt;a href=&#34;https://nodejs.org/en/&#34;&gt;Node.js&lt;/a&gt; instalado na sua máquina. Se você ainda não fez isso, clique &lt;a href=&#34;https://nodejs.org/en/download/&#34;&gt;aqui&lt;/a&gt; e siga as instruções, dependendo do seu sistema operacional.&lt;/p&gt;
+
+&lt;h2 id=&#34;afinal-o-que-é-react&#34;&gt;Afinal, o que é React?&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;React&lt;/strong&gt; é uma biblioteca criada pelo Facebook em 2013 com o objetivo de tornar o desenvolvimento de &lt;em&gt;Single Page Applications&lt;/em&gt; (SPAs) mais fácil. A biblioteca se baseia em alguns conceitos como:&lt;/p&gt;
+
+&lt;h3 id=&#34;componentes&#34;&gt;Componentes&lt;/h3&gt;
+
+&lt;p&gt;Uma aplicação React é dividida em componentes, ou seja, pequenos pedaços de código responsáveis por alguma parte da UI. Um componente ideal é independente e reutilizável, capaz de retornar a resposta esperada usando apenas dados genéricos enviados por outras partes da aplicação.&lt;/p&gt;
+
+&lt;p&gt;Um exemplo de componente React interessante pode ser visto &lt;a href=&#34;https://github.com/tomchentw/react-google-maps&#34;&gt;nessa biblioteca de mapas&lt;/a&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;&lt;span class=&#34;pl-ent&#34;&gt;&lt;span class=&#34;pl-c1&#34;&gt;GoogleMap&lt;/span&gt;&lt;/span&gt;
+    &lt;span class=&#34;pl-e&#34;&gt;ref&lt;/span&gt;&lt;span class=&#34;pl-k&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;pl-pse&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;pl-s1&#34;&gt;&lt;span class=&#34;pl-smi&#34;&gt;props&lt;/span&gt;&lt;span class=&#34;pl-k&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;pl-smi&#34;&gt;onMapLoad&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;pl-pse&#34;&gt;}&lt;/span&gt;
+    &lt;span class=&#34;pl-e&#34;&gt;defaultZoom&lt;/span&gt;&lt;span class=&#34;pl-k&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;pl-pse&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;pl-s1&#34;&gt;&lt;span class=&#34;pl-c1&#34;&gt;3&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;pl-pse&#34;&gt;}&lt;/span&gt;
+    &lt;span class=&#34;pl-e&#34;&gt;defaultCenter&lt;/span&gt;&lt;span class=&#34;pl-k&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;pl-pse&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;pl-s1&#34;&gt;{&lt;span class=&#34;pl-c1&#34;&gt; &lt;span class=&#34;pl-s&#34;&gt;lat&lt;/span&gt;:&lt;/span&gt; &lt;span class=&#34;pl-c1&#34;&gt;-25.363882&lt;/span&gt;,&lt;span class=&#34;pl-c1&#34;&gt; &lt;span class=&#34;pl-s&#34;&gt;lng&lt;/span&gt;:&lt;/span&gt; &lt;span class=&#34;pl-c1&#34;&gt;131.044922&lt;/span&gt; }&lt;/span&gt;&lt;span class=&#34;pl-pse&#34;&gt;}&lt;/span&gt;
+    &lt;span class=&#34;pl-e&#34;&gt;onClick&lt;/span&gt;&lt;span class=&#34;pl-k&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;pl-pse&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;pl-s1&#34;&gt;&lt;span class=&#34;pl-smi&#34;&gt;props&lt;/span&gt;&lt;span class=&#34;pl-k&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;pl-smi&#34;&gt;onMapClick&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;pl-pse&#34;&gt;}&lt;/span&gt;
+  &amp;gt;
+&amp;lt;/&lt;span class=&#34;pl-ent&#34;&gt;&lt;span class=&#34;pl-c1&#34;&gt;GoogleMap&lt;/span&gt;&lt;/span&gt;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Graças ao componentes do React, podemos importar um mapa do Google Maps e usá-lo como se fosse uma tag nativa de HTML, passando apenas as propriedades que nós queremos no componente, como &lt;em&gt;defaultZoom&lt;/em&gt; e &lt;em&gt;defaultCenter&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;jsx&#34;&gt;JSX&lt;/h3&gt;
+
+&lt;p&gt;Em React nós não usamos HTML, toda a marcação é feita no JavaScript, com uma sintaxe baseada em XML chamada JSX. A ideia pode parecer bem maluca no começo mas vai fazer sentido assim que você começar a escrever os seus próprios componentes. JSX parece bastante com HTML mas existem algumas diferenças como:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Todas as tags devem ser fechadas&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Podemos colocar expressões JavaScript dentro do JSX usando {}. Ex.: &lt;pre class=&#34;lang-javascript&#34;&gt;function ola() {
+return &amp;ldquo;ola&amp;rdquo;;
+}
+&amp;lt;p&amp;gt;{2 + 2}&amp;lt;/p&amp;gt;
+&amp;lt;p&amp;gt;{ola()}&amp;lt;/p&amp;gt;&lt;/pre&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Como o JSX fica dentro de arquivos &amp;#8216;.js&amp;#8217; a palavra &lt;em&gt;class&lt;/em&gt; não pode ser usada. Em seu lugar, devemos usar &lt;em&gt;className&lt;/em&gt;. Ex.: &lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;h1 className=&amp;ldquo;titulo&amp;rdquo;&amp;gt;Olá!&amp;lt;/h1&amp;gt;
+&lt;/pre&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Por debaixo dos panos, usamos o &lt;strong&gt;Babel&lt;/strong&gt; para converter o JSX em funções comuns de JavaScript, logo, esse código:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;div&amp;gt;Olá mundo&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Fica assim:&lt;/p&gt;
+
+&lt;pre&gt;&lt;span class=&#34;nx&#34;&gt;React&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;createElement&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s1&#34;&gt;&#39;div&#39;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;null&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &#34;Olá mundo&#34;&lt;span class=&#34;p&#34;&gt;);
+&lt;/span&gt;&lt;/pre&gt;
+
+&lt;p&gt;Leia mais sobre JSX &lt;a href=&#34;https://facebook.github.io/react/docs/introducing-jsx.html&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;virtual-dom&#34;&gt;Virtual DOM&lt;/h3&gt;
+
+&lt;p&gt;Para evitar updates custosos e desnecessários, o React não escreve as alterações diretamente na DOM. Ao invés disso, a biblioteca cria uma cópia da árvore de componentes em memória e esta cópia (Virtual DOM) é quem recebe os updates primeiro. Depois que a Virtual DOM é atualizada o React calcula a maneira mais eficiente de atualizar a árvore DOM real usando um algoritmo de &lt;em&gt;diffing.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;pondo-a-mão-na-massa&#34;&gt;Pondo a mão na massa&lt;/h2&gt;
+
+&lt;p&gt;Ok, chega de tanta teoria, vamos por a mão na massa! Abra o seu terminal e vamos instalar um pacote que vai nos ajudar a criar nossas aplicações o &lt;strong&gt;&lt;a href=&#34;https://github.com/facebookincubator/create-react-app&#34;&gt;create-react-app&lt;/a&gt;:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;npm install create-react-app&lt;/pre&gt;
+
+&lt;p&gt;Montar um ambiente de desenvolvimento capaz de suportar React costumava ser uma tarefa complicada (&lt;a href=&#34;https://tableless.com.br/hello-world-com-react-do-rascunho-ate-o-primeiro-componente/&#34;&gt;esse tutorial do Diego Eis explica muito bem a criação de um ambiente &amp;#8220;na mão&amp;#8221;&lt;/a&gt;). Por causa disso, o Facebook inventou um pacote chamado &lt;em&gt;create-react-app&lt;/em&gt;, que cria um ambiente com tudo o que nós precisamos para começar o nosso projeto (React, ES6 e webpack).&lt;/p&gt;
+
+&lt;p&gt;Depois de instalar o pacote, vamos criar um novo projeto. No terminal digite:&lt;/p&gt;
+
+&lt;pre class=&#34;p1&#34;&gt;&lt;span class=&#34;s1&#34;&gt;create-react-app vamos-aprender-react&lt;/span&gt;&lt;/pre&gt;
+
+&lt;p&gt;Depois de alguns minutos todas as dependências estão instaladas e &lt;em&gt;voilà!&lt;/em&gt; Temos um projeto pronto para ser criado.&lt;/p&gt;
+
+&lt;p&gt;Com o terminal do diretório do seu projeto digite:&lt;/p&gt;
+
+&lt;pre&gt;npm start&lt;/pre&gt;
+
+&lt;p&gt;Se tudo deu certo, o seu browser em &lt;em&gt;&lt;a href=&#34;http://localhost:3000/&#34;&gt;http://localhost:3000/&lt;/a&gt;&lt;/em&gt; deve estar assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-57013 size-full&#34; src=&#34;uploads/2017/01/Captura-de-Tela-2017-01-22-às-19.29.35.png&#34; alt=&#34;Imagem ilustrativa do create-react-app&#34; width=&#34;1438&#34; height=&#34;748&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Parabéns! Você acabou de criar a sua primeira aplicação com React! Vamos dar uma olhada no que foi gerado:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-57015 size-full&#34; src=&#34;uploads/2017/01/Captura-de-Tela-2017-01-22-às-19.34.30.png&#34; alt=&#34;Estrutura de pastas do create-react-app&#34; width=&#34;232&#34; height=&#34;415&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Como podemos ver, a pastar &lt;em&gt;src&lt;/em&gt; contém todos os nosso componentes React. Dentro de &lt;em&gt;src&lt;/em&gt; abra o arquivo &lt;em&gt;index.js&lt;/em&gt;, ele deve conter algo desse tipo:&lt;/p&gt;
+
+&lt;pre&gt;import React from &#39;react&#39;;
+import ReactDOM from &#39;react-dom&#39;;
+import App from &#39;./App&#39;;
+import &#39;./index.css&#39;;
+
+ReactDOM.render(
+ &amp;lt;App /&amp;gt;,
+ document.getElementById(&#39;root&#39;)
+);
+&lt;/pre&gt;
+
+&lt;p&gt;O index.js é o arquivo principal da nossa aplicação, ele é responsável por colocar o nosso componente principal (App) no elemento &lt;em&gt;root&lt;/em&gt; da nossa página. &lt;em&gt;Root&lt;/em&gt; é uma div que está dentro do único arquivo .html do projeto (public/index.html). Toda a nossa aplicação vai ser escrita dentro dessa div root.&lt;/p&gt;
+
+&lt;h3 id=&#34;criando-nosso-primeiro-componente&#34;&gt;Criando nosso primeiro componente&lt;/h3&gt;
+
+&lt;p&gt;Abra o arquivo &lt;em&gt;App.js&lt;/em&gt;, ele é o primeiro componente da nossa árvore. Dentro dele podemos ver o JSX usado para renderizar a tela de boas vindas do &lt;em&gt;create-react-app&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;div className=&#34;App&#34;&amp;gt;
+ &amp;lt;div className=&#34;App-header&#34;&amp;gt;
+ &amp;lt;img src={logo} className=&#34;App-logo&#34; alt=&#34;logo&#34; /&amp;gt;
+ &amp;lt;h2&amp;gt;Welcome to React&amp;lt;/h2&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;p className=&#34;App-intro&#34;&amp;gt;
+ To get started, edit &amp;lt;code&amp;gt;src/App.js&amp;lt;/code&amp;gt; and save to reload.
+ &amp;lt;/p&amp;gt;
+ &amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Note que todo esse código está dentro de um método chamado &lt;em&gt;render&lt;/em&gt; na classe &lt;em&gt;App&lt;/em&gt; que é filha da classe de &lt;em&gt;React.Component&lt;/em&gt;. &lt;em&gt;Render&lt;/em&gt; é responsável por dizer ao React o que deve ser renderizado, todo componente precisa de um método &lt;em&gt;render&lt;/em&gt; para exibir alguma coisa.&lt;/p&gt;
+
+&lt;p&gt;Substitua o método &lt;em&gt;render&lt;/em&gt; por:&lt;/p&gt;
+
+&lt;pre&gt;render() {
+ return &amp;lt;HelloWorld/&amp;gt;;
+ }&lt;/pre&gt;
+
+&lt;p&gt;Se tentarmos rodar o projeto, veremos o seguinte erro:&lt;/p&gt;
+
+&lt;pre&gt;7:13 error &#39;HelloWorld&#39; is not defined react/jsx-no-undef 
+&lt;/pre&gt;
+
+&lt;p&gt;Isso acontece porque estamos tentando usar um component (HelloWorld) que ainda não foi definido. Vamos resolver isso criando um arquivo chamado HelloWorld.js dentro da pastar &lt;em&gt;src&lt;/em&gt;. Dentro de HelloWorld coloque:&lt;/p&gt;
+
+&lt;pre&gt;import React from &#39;react&#39;;
+
+export default class HelloWorld extends React.Component {
+ render() {
+ return &amp;lt;p&amp;gt;Olá mundo!&amp;lt;/p&amp;gt;;
+ }
+}&lt;/pre&gt;
+
+&lt;p&gt;Esse código cria um componente React chamado HelloWorld e implementa o método &lt;em&gt;render&lt;/em&gt; que retorna um parágrafo com &lt;strong&gt;olá mundo&lt;/strong&gt;. Depois disso vamos importar nosso novo componente em App.js:&lt;/p&gt;
+
+&lt;pre&gt;import React, { Component } from &#39;react&#39;;
+import logo from &#39;./logo.svg&#39;;
+import &#39;./App.css&#39;;
+
+import HelloWorld from &#39;./HelloWorld&#39;;// nosso primeiro componente React!
+
+class App extends Component {
+ render() {
+ return &amp;lt;HelloWorld/&amp;gt;;
+ }
+}
+
+export default App;&lt;/pre&gt;
+
+&lt;p&gt;Agora abrindo o browser em &lt;em&gt;&lt;a href=&#34;http://localhost:3000/&#34;&gt;http://localhost:3000/&lt;/a&gt;&lt;/em&gt; vemos:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-57018 size-full&#34; src=&#34;uploads/2017/01/Captura-de-Tela-2017-01-22-às-20.00.26.png&#34; alt=&#34;Exemplo de Hello World&#34; width=&#34;1439&#34; height=&#34;723&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Ótimo! Nós acabamos de criar nosso primeiro React Component \o/. Mas ele não faz lá muita coisa não é mesmo? Vamos tentar fazer esse componente ser mais customizável.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-componentes-genéricos-com-props&#34;&gt;Criando componentes genéricos com Props&lt;/h2&gt;
+
+&lt;p&gt;E se nós quiséssemos exibir o nome de uma pessoa na mensagem do nosso HelloWorld? Obviamente poderíamos fazer algo do tipo:&lt;/p&gt;
+
+&lt;pre&gt;import React from &#39;react&#39;;
+
+export default class HelloWorld extends React.Component {
+ render() {
+ return &amp;lt;p&amp;gt;Olá Lucas!&amp;lt;/p&amp;gt;;
+ }
+}&lt;/pre&gt;
+
+&lt;p&gt;Mas e se for necessário escrever novos nomes? Criar um componente novo para cada pessoa não parece uma ideia muito inteligente&amp;#8230; lembra do exemplo do Google Maps mostrado na introdução? No exemplo, nós passávamos dados para um componente como se fosse uma tag HTML. Vamos fazer a mesma coisa para o nosso HelloWorld! Mude App.js para:&lt;/p&gt;
+
+&lt;pre&gt;import React, { Component } from &#39;react&#39;;
+import logo from &#39;./logo.svg&#39;;
+import &#39;./App.css&#39;;
+
+import HelloWorld from &#39;./HelloWorld&#39;;// nosso primeiro componente React!
+
+class App extends Component {
+ render() {
+ return &amp;lt;div&amp;gt;
+ &amp;lt;HelloWorld nome=&#34;Lucas&#34;/&amp;gt;
+ &amp;lt;HelloWorld nome=&#34;Tableless&#34;/&amp;gt;
+ &amp;lt;HelloWorld nome=&#34;Leitor&#34;/&amp;gt;
+ &amp;lt;/div&amp;gt;;
+ }
+}
+
+export default App;&lt;/pre&gt;
+
+&lt;p&gt;Veja que dessa vez nós tivemos que colocar o HelloWorld dentro de uma div, isso acontece porque o método &lt;em&gt;render&lt;/em&gt; deve sempre retornar apenas um elemento, &lt;strong&gt;sempre que tiver que renderizar mais de um elemento no seu componente, coloque tudo dentro de uma div&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora nós temos que fazer com que o componente HelloWorld leia o valor dado em nome. Isso pode ser feito facilmente usando o objeto &lt;strong&gt;props&lt;/strong&gt; presente em todo componente React. Veja como HelloWorld.js vai ficar agora:&lt;/p&gt;
+
+&lt;pre&gt;import React from &#39;react&#39;;
+
+export default class HelloWorld extends React.Component {
+ render() {
+ return &amp;lt;p&amp;gt;Olá {this.props.nome}!&amp;lt;/p&amp;gt;;
+ }
+}
+
+HelloWorld.propTypes = {
+ nome: React.PropTypes.string.isRequired
+}&lt;/pre&gt;
+
+&lt;p&gt;Tudo que for passado de um componente para outro é adicionado ao objeto &lt;em&gt;props&lt;/em&gt;, podendo ser acessado dentro do componente. Nós também usamos a propriedade &lt;em&gt;propTypes&lt;/em&gt; para informar ao React que a _prop_ &amp;#8216;nome&amp;#8217; é uma &lt;em&gt;string&lt;/em&gt; e que essa &lt;em&gt;string&lt;/em&gt; é obrigatória para o funcionamento do componente (&lt;em&gt;isRequired&lt;/em&gt;). Você não é obrigado a usar &lt;em&gt;propTypes&lt;/em&gt; nos seus componentes, mas é interessante fazer isso, já que elas facilitam a documentação do seu código e podem reduzir erros.&lt;/p&gt;
+
+&lt;p&gt;Agora nós temos um componente muito mais genérico:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-57023 size-full&#34; src=&#34;uploads/2017/01/Captura-de-Tela-2017-01-22-às-20.18.28.png&#34; alt=&#34;Exemplo de Componente React&#34; width=&#34;181&#34; height=&#34;193&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Props&lt;/em&gt; são algo crucial para os componentes React, já que com elas nós podemos fazer com que o nosso componente seja reutilizado até mesmo em outra aplicação. Mas devemos sempre ter em mente que _props_ são imutáveis, uma vez definida a _prop_ &amp;#8216;nome&amp;#8217;, uma instância de HelloWorld não pode mais ser alterada. Ex.:&lt;/p&gt;
+
+&lt;pre&gt;import React from &#39;react&#39;;
+
+export default class HelloWorld extends React.Component {
+ render() {
+ this.props.nome = &#34;Fulano&#34;; // ERRO Cannot assign to read only property &#39;nome&#39; of object &#39;#&amp;lt;Object&amp;gt;&#39;
+ return &amp;lt;p&amp;gt;Olá {this.props.nome}!&amp;lt;/p&amp;gt;;
+ }
+}
+
+HelloWorld.propTypes = {
+ nome: React.PropTypes.string.isRequired
+}&lt;/pre&gt;
+
+&lt;h3 id=&#34;componente-8220-puro-8221-ou-stateless&#34;&gt;Componente &amp;#8220;puro&amp;#8221; ou &lt;em&gt;stateless&lt;/em&gt;&lt;/h3&gt;
+
+&lt;p&gt;Nosso componente HelloWorld é bastante simples e utiliza apenas &lt;em&gt;props&lt;/em&gt;, por causa disso ele pode ser escrito de uma forma melhor, utilizando uma &lt;a href=&#34;https://en.wikipedia.org/wiki/Pure_function&#34;&gt;função pura&lt;/a&gt;. Veja como fica o nosso componente em forma de função:&lt;/p&gt;
+
+&lt;pre&gt;import React from &#39;react&#39;; const HelloWorld = (props) =&amp;gt; &amp;lt;p&amp;gt;Olá {props.nome}!&amp;lt;/p&amp;gt;;&lt;/pre&gt;
+
+&lt;pre&gt;HelloWorld.propTypes = { nome: React.PropTypes.string.isRequired } export default HelloWorld;&lt;/pre&gt;
+
+&lt;p&gt;Veja que dessa vez o componente é basicamente escrito em apenas uma linha (&lt;strong&gt;const HelloWorld = (props) =&amp;gt; &lt;p&gt;Olá {props.nome}!&lt;/p&gt;;&lt;/strong&gt;). Esse é o React Component ideal! Simples, reutilizável e escrito em apenas uma função! Tente criar seus componentes dessa maneira, ao invés de ter um componente complexo e grande, crie vários componentes menores e simples, isso vai melhorar bastante a qualidade do seu projeto.&lt;/p&gt;
+
+&lt;p&gt;Para comprovar que o nosso componente é realmente reutilizável vamos usá-lo em uma lista de nomes. Volte para App.js e digite:&lt;/p&gt;
+
+&lt;pre&gt;import React, { Component } from &#39;react&#39;;
+import logo from &#39;./logo.svg&#39;;
+import &#39;./App.css&#39;;
+
+import HelloWorld from &#39;./HelloWorld&#39;;// nosso primeiro componente React!
+
+class App extends Component {
+ render() {
+ const nomes = [&#34;Lucas&#34;, &#34;Tableless&#34;, &#34;Leitor&#34;, &#34;Maria&#34;, &#34;João&#34;, &#34;Ana&#34;];
+ return &amp;lt;div&amp;gt;
+ {nomes.map((n, i) =&amp;gt; &amp;lt;HelloWorld nome={n} key={i}/&amp;gt;)}
+ &amp;lt;/div&amp;gt;;
+ }
+}
+
+export default App;
+&lt;/pre&gt;
+
+&lt;p&gt;Perceba que nós temos uma mudança aqui, para exibir nomes do nosso &lt;em&gt;array&lt;/em&gt; nós usamos a &lt;a href=&#34;https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/map&#34;&gt;função map&lt;/a&gt;, já que ela retorna uma expressão JavaScript (além de ter uma sintaxe mais legal que a do o laço for :P) e passamos uma nova &lt;em&gt;prop&lt;/em&gt; chamada &lt;em&gt;&lt;strong&gt;key&lt;/strong&gt;&lt;/em&gt; para o nosso componente. &lt;em&gt;Keys&lt;/em&gt; ajudam o React a identificar qual elemento foi adicionado/removido de uma lista/array (&lt;a href=&#34;https://facebook.github.io/react/docs/lists-and-keys.html&#34;&gt;mais informações sobre o assunto aqui&lt;/a&gt;). Uma &lt;em&gt;Key&lt;/em&gt; deve sempre ser um valor &lt;strong&gt;único&lt;/strong&gt; ou poderemos ter problemas de performance. Evite usar o índice do seu &lt;em&gt;loop&lt;/em&gt; como &lt;em&gt;key&lt;/em&gt; em aplicações reais (como fizemos no exemplo acima), tente usar números realmente únicos como um ID vindo de um backend. Leia mais sobre isso &lt;a href=&#34;https://medium.com/@robinpokorny/index-as-a-key-is-an-anti-pattern-e0349aece318#.4nmajnqsa&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;componentes-interativos-com-state&#34;&gt;Componentes interativos com state&lt;/h2&gt;
+
+&lt;p&gt;Como visto anteriormente &lt;em&gt;props&lt;/em&gt; são imutáveis, componentes feitos apenas com &lt;em&gt;props&lt;/em&gt; não podem por exemplo, ser atualizados baseados em uma ordem do usuário. Para representar o estado mutável do seu componente usamos a propriedade &lt;strong&gt;&lt;em&gt;state&lt;/em&gt;.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Para ilustrar o uso de &lt;em&gt;state&lt;/em&gt; no nosso elemento vamos fazer um novo componente e chamá-lo de &lt;strong&gt;ContaClick.js&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;import React from &#39;react&#39;;
+
+export default class ContaClick extends React.Component {
+ constructor() {
+ super();
+ this.state = {
+ clicks: 0
+ }
+ }
+
+ render() {
+ return &amp;lt;div&amp;gt;&amp;lt;p&amp;gt;{this.state.clicks}&amp;lt;/p&amp;gt;&amp;lt;/div&amp;gt;
+ }
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;No construtor da classe ContaClick nós definimos o estado inicial do nosso componente: um contador de clicks que começa em 0. Vamos adicionar um botão para atualizar o contador:&lt;/p&gt;
+
+&lt;pre&gt;import React from &#39;react&#39;;
+
+export default class ContaClick extends React.Component {
+ constructor() {
+ super();
+ this.state = {
+ clicks: 0
+ }
+ }
+
+ clicou = () =&amp;gt; this.setState({clicks: this.state.clicks + 1});
+ 
+ render() {
+ return &amp;lt;div&amp;gt;
+ &amp;lt;p&amp;gt;{this.state.clicks}&amp;lt;/p&amp;gt;
+ &amp;lt;button onClick={this.clicou}&amp;gt;Clica aqui!&amp;lt;/button&amp;gt;
+ &amp;lt;/div&amp;gt;
+ }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;No código acima nós criamos um botão embaixo do exibidor de cliques que chama o método &lt;em&gt;&lt;strong&gt;clicou&lt;/strong&gt;&lt;/em&gt; sempre que o evento onClick é disparado. O método &lt;em&gt;&lt;strong&gt;clicou&lt;/strong&gt;&lt;/em&gt; substitui o objeto &lt;em&gt;state&lt;/em&gt; do componente ContaClick por um objeto novo com clicks incrementados em uma unidade. Veja que nós atualizamos o &lt;em&gt;state&lt;/em&gt; usando a função &lt;em&gt;setState&lt;/em&gt;. &lt;strong&gt;NUNCA atualize o objeto _state_ manualmente&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora vamos colocar o nosso componente &lt;em&gt;ContaClick&lt;/em&gt; em &lt;em&gt;app&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre&gt;import React, { Component } from &#39;react&#39;;
+import logo from &#39;./logo.svg&#39;;
+import &#39;./App.css&#39;;
+
+import HelloWorld from &#39;./HelloWorld&#39;;// nosso primeiro componente React!
+import ContaClick from &#39;./ContaClick&#39;;
+
+class App extends Component {
+ render() {
+ const nomes = [&#34;Lucas&#34;, &#34;Tableless&#34;, &#34;Leitor&#34;, &#34;Maria&#34;, &#34;João&#34;, &#34;Ana&#34;];
+ return &amp;lt;div&amp;gt;
+ {nomes.map((n, i) =&amp;gt; &amp;lt;HelloWorld nome={n} key={i}/&amp;gt;)}
+ &amp;lt;ContaClick /&amp;gt;
+ &amp;lt;/div&amp;gt;;
+ }
+}
+
+export default App;
+&lt;/pre&gt;
+
+&lt;p&gt;Pronto! Rodando a aplicação podemos usar o contador e ver que ele é atualizado a cada clique!&lt;/p&gt;
+
+&lt;p&gt;Até a próxima!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando sua aplicação React em 2 minutos</title>
+      <link>http://tableless.com.br/criando-sua-aplicacao-react-em-2-minutos/</link>
+      <pubDate>Fri, 05 Aug 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-sua-aplicacao-react-em-2-minutos/</guid>
+      <description>&lt;p&gt;Para facilitar a criação de aplicações utilizando React, o Facebook lançou uma ferramenta que promete reduzir toda complexidade envolvida em configurar um novo projeto que utilize a tecnologia.&lt;/p&gt;
+
+&lt;p&gt;O projeto chamado de “ Create React App”, divulgado por Dan Abramov no &lt;a href=&#34;https://facebook.github.io/react/blog/2016/07/22/create-apps-with-no-configuration.html&#34; rel=&#34;nofollow&#34;&gt;blog oficial do React&lt;/a&gt;, permite que os desenvolvedores criem suas aplicações React com apenas um comando. Não é criado somente a estrutura básica de pastas, mas também toda a configuração de build e dependências necessárias, ou seja, comandos complexos do &lt;a href=&#34;https://babeljs.io/&#34; rel=&#34;nofollow&#34;&gt;Babel &lt;/a&gt;e &lt;a href=&#34;https://webpack.github.io/&#34; rel=&#34;nofollow&#34;&gt;Webpack&lt;/a&gt;, usado na maior parte dos projetos, são abstraídos, permitindo ao desenvolvedor se concentrar no que realmente interessa: a sua aplicação.&lt;/p&gt;
+
+&lt;p&gt;No blog, Abramov diz que a motivação para a criação deste projeto é a associação que os desenvolvedores fazem do ecossistema de desenvolvimento do React com uma grande quantidade de ferramentas, principalmente Babel e Webpack, o que torna o processo de desenvolvimento lento e curva de aprendizado mais longa, principalmente quando se trata de aplicações que vão à produção.&lt;/p&gt;
+
+&lt;p&gt;Abramov reforça que quem já tem um processo de build que já funciona, deve mantê-lo. A ideia é que a ferramenta auxilie principalmente quem ainda não tem experiência com React.&lt;/p&gt;
+
+&lt;p&gt;Para o futuro há planos de adicionar mais funcionalidades, como adicionar testes. Abramov comentou que as atualizações serão feitas de forma gradual para deixar as configurações padrões mais flexíveis para cobrir mais casos de uso.&lt;/p&gt;
+
+&lt;p&gt;Para utilizá-lo, é bem simples. Inicialmente, precisamos utilizar o &lt;a href=&#34;https://www.npmjs.com/&#34; rel=&#34;nofollow&#34;&gt;npm&lt;/a&gt; para instalar a ferramenta globalmente na nossa máquina com o comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;npm install -g create-react-app&lt;/pre&gt;
+
+&lt;p&gt;Feito isso, você já terá o Create React App instalado na sua máquina. Agora podemos criar um projeto utilizando o comando &lt;em class=&#34;markup--em markup--p-em&#34;&gt;create-react-app&lt;/em&gt; seguido do nome do nosso projeto:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;create-react-app hello-world&lt;/pre&gt;
+
+&lt;p&gt;Agora, se verificamos o projeto criado, podemos ver sua estrutura:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;node_modules/
+src/
+.gitignore
+README.md
+favicon.ico
+index.html
+package.json
+&lt;/pre&gt;
+
+&lt;p&gt;Ao abrirmos o package.json, iremos notar que há somente uma dependência de desenvolvimento chamada &lt;strong&gt;react-scripts&lt;/strong&gt; e três scripts:&lt;/p&gt;
+
+&lt;ul class=&#34;postList&#34;&gt;
+  &lt;li id=&#34;147a&#34;&gt;
+    &lt;strong&gt;start:&lt;/strong&gt; react-scripts start
+  &lt;/li&gt;
+  &lt;li id=&#34;a8df&#34;&gt;
+    &lt;strong&gt;build:&lt;/strong&gt; react-scripts build
+  &lt;/li&gt;
+  &lt;li id=&#34;e01c&#34;&gt;
+    &lt;strong&gt;eject:&lt;/strong&gt; react-scripts eject
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p class=&#34;graf--p graf-after--li&#34;&gt;
+  O script &lt;em class=&#34;markup--em markup--p-em&#34;&gt;start &lt;/em&gt;iniciará nossa aplicação com base nos componentes que estão no diretório &lt;em class=&#34;markup--em markup--p-em&#34;&gt;src/&lt;/em&gt;. Na criação, ele irá conter os seguintes arquivos:
+&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;App.css
+App.js
+index.css
+index.js
+logo.svg
+&lt;/pre&gt;
+
+&lt;p&gt;E terá a seguinte cara:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-55617 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/08/1-pd5QJ5nHm0h9x4Fa9ey0AQ.png&#34; alt=&#34;1-pd5QJ5nHm0h9x4Fa9ey0AQ&#34; width=&#34;800&#34; height=&#34;489&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Ao alterar qualquer um dos arquivos e salvar, eles serão recompilados automaticamente e o browser também será atualizado. Se erros forem encontrados, eles são exibidos no console.&lt;/p&gt;
+
+&lt;p&gt;Uma vez que o projeto está pronto para ir para produção, podemos utilizar o script &lt;em class=&#34;markup--em markup--p-em&#34;&gt;build. &lt;/em&gt;Ele será responsável por criar o diretório &lt;em class=&#34;markup--em markup--p-em&#34;&gt;build/, &lt;/em&gt;onde o código estará pronto para produção.&lt;/p&gt;
+
+&lt;p&gt;No entanto, se em algum momento você não quiser mais depender da ferramenta para o desenvolvimento da sua aplicação, você pode executar o comando &lt;em class=&#34;markup--em markup--p-em&#34;&gt;eject&lt;/em&gt;. Ele irá remover permanentemente a configuração padrão do Create React App e criará um diretório &lt;em class=&#34;markup--em markup--p-em&#34;&gt;config/ &lt;/em&gt;com todas as “configurações cruas” que ele utiliza por padrão. Isso significa que o seu &lt;em class=&#34;markup--em markup--p-em&#34;&gt;package.json&lt;/em&gt; será modificado para obter as dependências do Babel, Webpack e afins.&lt;/p&gt;
+
+&lt;p&gt;A &lt;a href=&#34;https://github.com/facebookincubator/create-react-app&#34; rel=&#34;nofollow&#34;&gt;página oficial do projeto&lt;/a&gt; no GitHub possui mais informações sobre a ferramenta.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>React Native: Construa aplicações móveis nativas com JavaScript</title>
+      <link>http://tableless.com.br/react-native-construa-aplicacoes-moveis-nativas-com-javascript/</link>
+      <pubDate>Tue, 05 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/react-native-construa-aplicacoes-moveis-nativas-com-javascript/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;O &lt;strong&gt;React Native&lt;/strong&gt; é um projeto desenvolvido pelos engenheiros do &lt;strong&gt;Facebook&lt;/strong&gt; e que consiste em uma série de ferramentas que viabilizam a criação de aplicações móveis &lt;strong&gt;nativas&lt;/strong&gt; para a plataforma &lt;strong&gt;iOS&lt;/strong&gt; e &lt;strong&gt;Android&lt;/strong&gt;, utilizando o que há de mais moderno no desenvolvimento Front-end &amp;#8211; mirando no futuro. É o estado da arte no que se refere ao desenvolvimento mobile baseado em JavaScript.&lt;/p&gt;
+
+&lt;p&gt;O stack do React Native é poderoso, pois nos permite utilizar &lt;strong&gt;ECMAScript 6&lt;/strong&gt;, &lt;strong&gt;CSS Flexbox&lt;/strong&gt;, &lt;strong&gt;JSX&lt;/strong&gt;, diversos pacotes do &lt;strong&gt;NPM&lt;/strong&gt; e muito mais. Sem contar que nos permite fazer debug na mesma IDE utilizada para o desenvolvimento nativo com essas plataformas (além de tornar o processo extremamente divertido).&lt;/p&gt;
+
+&lt;h2 id=&#34;setup&#34;&gt;Setup&lt;/h2&gt;
+
+&lt;p&gt;Nesta introdução ao React Native iremos criar um aplicativo nativo voltado para a plataforma iOS, o que significa que você precisa de um computador rodando &lt;strong&gt;Mac OS X&lt;/strong&gt;. Embora o desenvolvimento para Android já seja possível com o framework (foi anunciado em setembro de 2015), o foco aqui será o iOS. Mas irei falar um pouco sobre o Android mais à frente neste post.&lt;/p&gt;
+
+&lt;h3 id=&#34;instalando-o-xcode&#34;&gt;Instalando o Xcode&lt;/h3&gt;
+
+&lt;p&gt;A primeira coisa que você precisa instalar (caso ainda não o tenha em sua máquina) é o &lt;strong&gt;Xcode&lt;/strong&gt;. Xcode é a IDE de desenvolvimento da Apple para criação de aplicativos para iPhone e iPad. Sua instalação é necessária pois, sem ele, nosso código não poderá ser &amp;#8220;compilado&amp;#8221; para Objective-C. Também é nele que iremos fazer o debug de nossa aplicação.&lt;/p&gt;
+
+&lt;p&gt;Para instalar, basta abrir a App Store no seu Mac e buscar por &amp;#8220;Xcode&amp;#8221;. A instalação pode ser um pouco demorada. Aproveite esse tempo pra contar para os seus familiares que você irá construir uma aplicação iOS nativa utilizando apenas JavaScript e os recursos mais modernos da plataforma. 😉&lt;/p&gt;
+
+&lt;h3 id=&#34;instalando-o-node-js&#34;&gt;Instalando o Node.js&lt;/h3&gt;
+
+&lt;p&gt;O React Native é um projeto que utiliza recursos provenientes do Node.js, portanto precisaremos dele para prosseguir.&lt;/p&gt;
+
+&lt;p&gt;Há duas maneiras de instalar o Nodejs: Voce pode fazer download diretamente no &lt;a href=&#34;https://nodejs.org/en/download/&#34; target=&#34;_blank&#34;&gt;site do projeto&lt;/a&gt; ou através do &lt;a href=&#34;http://brew.sh/&#34; target=&#34;_blank&#34;&gt;Homebrew&lt;/a&gt;, o famoso package manager do Mac OS X. Caso já o tenha instalado na sua máquina, basta digitar o seguinte código no seu Terminal:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;brew install node&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Ter o Homebrew instalado na sua máquina é preferível pois iremos utilizá-lo para instalar a maioria dos outros pacotes necessários para nossa aplicação.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Conforme sugerido pela documentação oficial, você pode instalar o &lt;strong&gt;NVM&lt;/strong&gt; (Node Version Manager) ao invés de instalar o Node diretamente, já que o React Native trabalha com versões do Node iguais ou superiores à versão 4.0. Basta digitar no Terminal &amp;#8220;&lt;strong&gt;brew install nvm&lt;/strong&gt;&amp;#8221; e em seguida &amp;#8220;&lt;strong&gt;nvm install node &amp;amp;&amp;amp; nvm alias default node&lt;/strong&gt;&amp;#8221; para garantir a instalação da versão mais recente.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&#34;instalando-o-watchman&#34;&gt;Instalando o Watchman&lt;/h3&gt;
+
+&lt;p&gt;O &lt;strong&gt;Watchman&lt;/strong&gt; é um pacote muito bacana responsável por monitorar alterações em nosso código e atualizar a nossas views em tempo real (um recurso extremamente poderoso no qual iremos falar mais à frente).&lt;/p&gt;
+
+&lt;p&gt;Digite a seguinte instrução no seu Terminal:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;brew install --HEAD watchman&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;O parâmetro &lt;code&gt;--HEAD&lt;/code&gt; é necessário pois garante que a última versão do Watchman será instalada, evitando problemas de compatibilidade com a versão mais recente do Framework.&lt;/p&gt;
+
+&lt;p&gt;Ótimo. Estamos quase lá&amp;#8230;&lt;/p&gt;
+
+&lt;h3 id=&#34;instalando-o-cli-do-react-native&#34;&gt;Instalando o CLI do React Native&lt;/h3&gt;
+
+&lt;p&gt;Por fim, precisamos instalar o &lt;strong&gt;CLI&lt;/strong&gt; (Command Line Interface) do projeto que consiste em uma série de helpers necessários para a criação dos nossos aplicativos. Dessa vez, iremos instalar utilizando o NPM:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;npm install -g react-native-cli&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Utilizamos o &lt;code&gt;-g&lt;/code&gt; para instalar o CLI de forma global em nossa máquina.&lt;/p&gt;
+
+&lt;p&gt;Perfeito! Agora que todo o nosso arsenal foi preparado, podemos iniciar nossa aventura. Vamos conhecer um pouco do React Native e criar uma aplicação simples de exemplo.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Caso queira acompanhar através do &lt;strong&gt;Git&lt;/strong&gt;, basta clonar o &lt;a href=&#34;https://github.com/carloscabral/myFirstProject---React-Native&#34; target=&#34;_blank&#34;&gt;repositório do projeto no Github&lt;/a&gt;, acessar a pasta do mesmo através da linha de comando e digitar as seguintes instruções no Terminal: &lt;strong&gt;git checkout step2 &amp;amp;&amp;amp; npm install&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;executando-o-aplicativo-de-exemplo&#34;&gt;Executando o aplicativo de exemplo&lt;/h2&gt;
+
+&lt;p&gt;Criar uma aplicação com o React Native é muito simples. Crie uma pasta qualquer e navegue pra dentro dela utilizando o Terminal. Digite o seguinte comando:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;react-native init MyFirstProject&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você abrir a pasta do projeto no seu computador, irá verificar que três arquivos foram automaticamente criados:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;index.ios.js&lt;/li&gt;
+&lt;li&gt;index.android.js&lt;/li&gt;
+&lt;li&gt;package.json&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;E três pastas também:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ios&lt;/li&gt;
+&lt;li&gt;android&lt;/li&gt;
+&lt;li&gt;node_modules&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;O arquivo &lt;em&gt;index.ios.js&lt;/em&gt; é onde iremos escrever o código da nossa aplicação. A vantagem aqui é que podemos utilizar o nosso editor de texto favorito ao invés de uma IDE (prática comum entre os devs Frontend). O arquivo &lt;em&gt;package.json&lt;/em&gt; é criado automaticamente pelo NPM e serve para gerenciar as dependências da nossa aplicação, que, por sua vez, ficam disponíveis na pasta _node&lt;em&gt;modules&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;A pasta &lt;em&gt;ios&lt;/em&gt; é onde a mágica ocorre. Esta é a pasta que contém o projeto iOS nativo gerado pelo React Native (o mesmo conceito para a pasta android). Faça um teste e abra o arquivo &lt;em&gt;MyFirstProject.xcodeproj&lt;/em&gt; no Xcode para visualizar sua extrutura no &lt;strong&gt;Project Navigator&lt;/strong&gt; (à esquerda). Agora pressione o botão &lt;strong&gt;Run&lt;/strong&gt; na barra de ferramentas, conforme a imagem:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2016/01/xcode-run-button.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-52737&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/01/xcode-run-button.jpg&#34; alt=&#34;xcode-run-button&#34; width=&#34;442&#34; height=&#34;139&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Com isso acabamos de solicitar a execução do aplicativo. Neste momento estamos &amp;#8220;compilando o código JavaScript&amp;#8221; presente no nosso projeto (criado por default) para Objective-C e gerando o bundle da aplicação. Agora já podemos testar o resultado em um emulador.&lt;/p&gt;
+
+&lt;p&gt;Geralmente o emulador demora um pouco para exibir alguma coisa na primeira vez que é acionado, mas nada lhe impede de rodar o app em um iPhone real. Basta abrir o arquivo &lt;em&gt;AppDelegate.m&lt;/em&gt;, localizar a string atribuída ao objeto &lt;code&gt;jsCodeLocation&lt;/code&gt; com o conteúdo &lt;strong&gt;@&lt;a href=&#34;http://localhost:8081/&amp;amp;#8230&#34;&gt;http://localhost:8081/&amp;amp;#8230&lt;/a&gt;;&lt;/strong&gt; e alterar o valor de &lt;code&gt;localhost&lt;/code&gt; para o número de IP do seu computador. Lembre-se que o device precisa estar conectado ao seu Mac através da porta USB e ambos devem compartilhar da mesma rede Wifi. Por fim, basta selecionar o seu iPhone na lista de emuladores disponíveis no Xcode.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Para que o procedimento acima seja possível, é necessário que você tenha uma conta de desenvolvedor (iOS developer account) configurada na Apple. Basta gerar um certificado, registrar o seu device e &amp;#8211; depois de efetuar todo o exaustivo processo de configuração &amp;#8211; ele ficará disponível na lista de &lt;strong&gt;deploy target&lt;/strong&gt; do Xcode.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Quando o emulador terminar de carregar, o resultado exibido será este:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-initial-screen_2.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-52742&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-initial-screen_2.jpg&#34; alt=&#34;react native initial screen&#34; width=&#34;344&#34; height=&#34;524&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Perceba que o aplicativo de exemplo contém apenas poucos parágrafos com instruções básicas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Para iniciar, basta editar o arquivo &lt;em&gt;index.ios.js&lt;/em&gt;;&lt;/li&gt;
+&lt;li&gt;Para recarregar a aplicação, basta pressionar &lt;strong&gt;CMD + R&lt;/strong&gt; no teclado.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Vamos então abrir o arquivo &lt;em&gt;index.ios.js&lt;/em&gt; em nosso editor favorito. No meu caso, irei trabalhar com o &lt;a href=&#34;http://www.sublimetext.com/2&#34; target=&#34;_blank&#34;&gt;Sublime Text 2&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se você já está acostumado com a escrita de código do React, não há motivos para sustos. Mas, se este não for o seu caso, não entre em pânico: o React Native é muito simples de trabalhar.&lt;/p&gt;
+
+&lt;p&gt;Vamos fazer um pouco de mágica agora: Encontre o texto &lt;strong&gt;Welcome to React Native&lt;/strong&gt; e modifique-o para &lt;strong&gt;My First Voodoo App!&lt;/strong&gt; &amp;#8211; ou qualquer outra coisa que você queira. Abra o emulador e pressione &lt;strong&gt;CMD + R&lt;/strong&gt; no seu teclado (caso abra uma action sheet, basta clicar em &amp;#8220;Reload&amp;#8221;). Perceba que, em poucos segundos, sua View foi atualizada com o texto novo. Este, meu amigo, é um dos recursos mais fantásticos presentes na plataforma: O live-reload!&lt;/p&gt;
+
+&lt;p&gt;Se você já vem de um background web, deve estar se perguntando: &amp;#8221; &amp;#8211; Sério? Existe motivo para dramatizar com isso?&amp;#8221;. Mas se você já tem experiência no desenvolvimento com &lt;strong&gt;Swift&lt;/strong&gt; ou &lt;strong&gt;Objective-C&lt;/strong&gt; deve saber que alterações feitas no seu código precisam ser re-compiladas no Xcode para que você possa visualizar o que foi modificado. Alterações em Views não são refletidas em tempo real quando você está trabalhando de forma nativa. Isso, por si só, já faz o React Native merecer sua atenção!&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Fazer preview de alterações visuais de componentes em tempo de desenvolvimento é um recurso que pode ser conseguido com &lt;strong&gt;IBDesignables&lt;/strong&gt; de modo nativo. Este recurso está disponível a partir da versão 6 do Xcode. Com ele o desenvolvedor pode visualizar aquilo que está modificando na View sem precisar compilar o app. Mas este é um recurso relativamente avançado utilizado por desenvolvedores mais experientes e que necessita de escrita de código para funcionar.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Vamos agora tentar entender melhor como foi estruturado o código de exemplo e o que cada bloco significa.&lt;/p&gt;
+
+&lt;h2 id=&#34;estrutura-do-react-native&#34;&gt;Estrutura do React Native&lt;/h2&gt;
+
+&lt;p&gt;Todo projeto em React tem como premissa a criação e reutilização de componentes. Basicamente, o que o código de exemplo faz é criar o componente e exibi-lo na tela. Olhando pra ele, você já deve ter reparado que o bloco central é o principal responsável por essa operação:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var MyFirstProject = React.createClass({
+ render: function() {
+   return (
+     &amp;lt;View style={styles.container}&amp;gt;
+       &amp;lt;Text style={styles.welcome}&amp;gt;
+         My First Voodoo App!
+       &amp;lt;/Text&amp;gt;
+       &amp;lt;Text style={styles.instructions}&amp;gt;
+         To get started, edit index.ios.js
+       &amp;lt;/Text&amp;gt;
+       &amp;lt;Text style={styles.instructions}&amp;gt;
+         Shake or press menu button for dev menu
+       &amp;lt;/Text&amp;gt;
+     &amp;lt;/View&amp;gt;
+   );
+ }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Agora que você já brincou um pouco com o código gerado por default, vamos esquecê-lo por um minuto e criar algo do zero.&lt;/p&gt;
+
+&lt;p&gt;Exclua todo o conteúdo do arquivo &lt;em&gt;index.ios.js&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Em React, para criar um novo componente, basta criar uma variável qualquer que receba a notação:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;React.createClass({});
+&lt;/pre&gt;
+
+&lt;p&gt;Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var Tableless = React.createClass({
+
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Agora é necessário suprir esse componente com parâmetros e uma série de instruções, responsáveis por definir o seu comportamento e aspecto visual. Quem se responsabiliza por isso é o método &lt;code&gt;render&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo, se quisermos retornar alguma coisa na classe &lt;strong&gt;Tableless&lt;/strong&gt; que acabamos de criar, faríamos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var Tableless = React.createClass({
+   render: function() {
+      return &amp;lt;p&amp;gt;Hello, Tableless!&amp;lt;/p&amp;gt;;
+   }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Mas, pera aí&amp;#8230; O que significa essa tag de parágrafo HTML envolta do texto? Afinal, estamos lidando com HTML ou JavaScript?&lt;/p&gt;
+
+&lt;h3 id=&#34;jsx&#34;&gt;JSX&lt;/h3&gt;
+
+&lt;p&gt;Para facilitar a escrita de código, o React utiliza &lt;strong&gt;JSX&lt;/strong&gt; (opcional), uma sintaxe que possibilita a escrita de componentes JavaScript por meio de tags.&lt;/p&gt;
+
+&lt;p&gt;Para ilustrar isso melhor, o componente acima poderia ser escrito da seguinte maneira sem o uso do JSX:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var Tableless = React.createClass({
+  render: function() {
+     return React.createElement(&#34;p&#34;, null, &#34;Hello, Tableless!&#34;);
+  }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Conforme pode ser observado, esta é uma forma de escrita muito mais verbosa do que a anterior. Eu sei, pode parecer que você está escrevendo HTML dentro de JavaScript mas, com a devida prática, você vai entender como o JSX quebra um grande galho para o desenvolvedor. Optar por não utilizá-lo é certeza de ter um código muito repetitivo e de difícil manutenção.&lt;/p&gt;
+
+&lt;p&gt;Agora que você compreendeu como funciona o JSX, deve estar se perguntando (pelo menos eu espero) como uma aplicação móvel pode retornar tags HTML como &lt;code&gt;p&lt;/code&gt;, &lt;code&gt;h1&lt;/code&gt; ou &lt;code&gt;div&lt;/code&gt; dentro de um componente nativo, certo?&lt;/p&gt;
+
+&lt;p&gt;Exatamente&amp;#8230; não pode.&lt;/p&gt;
+
+&lt;p&gt;Embora o código acima execute sem falhas em aplicações web, ele não funcionaria dentro do escopo do React Native, simplesmente porque o que precisamos são de componentes do iOS, como &lt;code&gt;UIView&lt;/code&gt;, &lt;code&gt;UILabel&lt;/code&gt; e &lt;code&gt;UIImage&lt;/code&gt;. Ou seja, se você precisa de um &amp;#8220;wrapper&amp;#8221; na sua tela, você irá retornar o componente &lt;code&gt;&amp;lt;View&amp;gt;&lt;/code&gt; ao invés de uma &lt;code&gt;&amp;lt;div&amp;gt;&lt;/code&gt;. Caso queira exibir um texto, você irá utilizar a tag &lt;code&gt;&amp;lt;Text&amp;gt;&lt;/code&gt; ao invés de um &lt;code&gt;&amp;lt;p&amp;gt;&lt;/code&gt; e assim por diante.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://facebook.github.io/react-native/docs/&#34; target=&#34;_blank&#34;&gt;Aqui&lt;/a&gt; você encontra a listagem completa dos componentes disponíveis, tanto para iOS quanto para Android.&lt;/p&gt;
+
+&lt;h3 id=&#34;es6&#34;&gt;ES6&lt;/h3&gt;
+
+&lt;p&gt;Após a criação de um componente precisamos registrá-lo para exibição. Fazemos isso retornando a função com o nome do componente através do &lt;code&gt;AppRegistry&lt;/code&gt;, dessa forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;AppRegistry.registerComponent(&#39;MyFirstProject&#39;, () =&amp;gt; Tableless);
+&lt;/pre&gt;
+
+&lt;p&gt;Se o código acima não ficou óbvio pra você, não se assuste. Por default o React Native permite que trabalhemos com as novas epecificações do &lt;strong&gt;EcmaScript 6&lt;/strong&gt; (ou 2015, para os íntimos). Uma delas é a sintaxe chamada de &lt;strong&gt;arrow functions&lt;/strong&gt; (familiar para quem já trabalhou com &lt;strong&gt;CoffeeScript&lt;/strong&gt;), que permite uma escrita mais simples baseada em &lt;strong&gt;closures&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;A versão JavaScript &lt;strong&gt;ES5&lt;/strong&gt; do código acima seria:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;AppRegistry.registerComponent(&#39;MyFirstProject&#39;, function() {
+   return Tableless
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Mas uma vez, é uma questão de preferência e não uma imposição da ferramenta.&lt;/p&gt;
+
+&lt;p&gt;Contudo, o que fizemos até aqui não será suficiente para fazer o código rodar. Nós não definimos nenhuma das dependências declaradas na aplicação. Vamos resolver esse problema:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var React = require(&#39;react-native&#39;);&lt;/pre&gt;
+
+&lt;p&gt;A string entre aspas é a biblioteca que estamos solicitando acesso. Nesta caso, estamos atribuindo seu retorno à variável React que acabamos de criar.&lt;/p&gt;
+
+&lt;p&gt;Agora que temos acesso à principal biblioteca do React, vamos declarar as restantes, necessárias para rodar nossa aplicação sem erros. A versão completa do nosso código fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&#39;use strict&#39;;
+
+var React = require(&#39;react-native&#39;);
+var AppRegistry = React.AppRegistry;
+var View = React.View;
+var Text = React.Text;
+
+var Tableless = React.createClass({
+    render: function() {
+        return &amp;lt;View&amp;gt;
+            &amp;lt;Text&amp;gt;
+              Hello, Tableless!
+            &amp;lt;/Text&amp;gt;
+        &amp;lt;/View&amp;gt;
+    }
+});
+
+AppRegistry.registerComponent(&#39;MyFirstProject&#39;, () =&amp;gt; Tableless);
+&lt;/pre&gt;
+
+&lt;p&gt;Se você pressionar &lt;strong&gt;CMD + R&lt;/strong&gt; no teclado já terá uma aplicação rodando sem erros. Mas vamos corrigir mais duas coisinhas pra deixar nosso código ainda mais atraente&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Substitua o código do escopo de declaração pelo seguinte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var React = require(&#39;react-native&#39;);
+var {
+  AppRegistry,
+  View,
+  Text,
+} = React;
+&lt;/pre&gt;
+
+&lt;p&gt;Como todas as bibliotecas declaradas depois da react-native fazem parte do seu core, podemos assinalar as três variáveis seguintes ao objeto React. Este é mais um recurso disponível do &lt;strong&gt;ES6/ES2015&lt;/strong&gt; chamado de &lt;strong&gt;destructuring assignment&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Outra coisa que não está muito legal no código é a indentação dos componentes no método return. Vamos envolvê-los em um parênteses para que seja permitido pular de linha e tabular tudo seguindo uma melhor hierarquia visual, dessa forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;render: function() {
+     return (
+       &amp;lt;View&amp;gt;
+          &amp;lt;Text&amp;gt;
+             Hello, Tableless!
+          &amp;lt;/Text&amp;gt;
+       &amp;lt;/View&amp;gt;
+     );
+  }
+&lt;/pre&gt;
+
+&lt;p&gt;Vale salientar que sem o parênteses essa tabulação não seria possível e iria disparar um erro no simulador.&lt;/p&gt;
+
+&lt;p&gt;Vamos ver como ficou o código final agora:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&#39;use strict&#39;;
+
+var React = require(&#39;react-native&#39;);
+var {
+  AppRegistry,
+  View,
+  Text,
+} = React;
+
+var Tableless = React.createClass({
+   render: function() {
+      return (
+         &amp;lt;View&amp;gt;
+             &amp;lt;Text&amp;gt;
+                Hello, Tableless!
+             &amp;lt;/Text&amp;gt;
+         &amp;lt;/View&amp;gt;
+      );
+   }
+});
+
+AppRegistry.registerComponent(&#39;MyFirstProject&#39;, () =&amp;gt; Tableless);
+&lt;/pre&gt;
+
+&lt;p&gt;Se você rodar o aplicativo, irá perceber que o mesmo executa sem erros. Mas, numa primeira olhada, parece que não há nada na tela! Se você observar atentamente, irá perceber que o texto está no canto superior esquerdo da tela, sem qualquer tipo de orientação ou margem. Precisamos corrigir isso!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-simple-label_1.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-52746&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-simple-label_1.jpg&#34; alt=&#34;react native simple label&#34; width=&#34;344&#34; height=&#34;524&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;flexbox&#34;&gt;Flexbox&lt;/h3&gt;
+
+&lt;p&gt;Como estamos lidando exclusivamente com JavaScript, não temos acesso a CSS. Mas para aproximar a experiência de criar aplicativos móveis ao desenvolvimento de uma página web, os responsáveis pelo projeto desenvolveram uma maneira declarativa de estilizar componentes bem similar ao CSS.&lt;/p&gt;
+
+&lt;p&gt;Insira a seguinte notação no bloco da View principal (linha 2 do código):&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;return (
+      // fazemos referência ao estilo
+      &amp;lt;View style={styles.container}&amp;gt;
+          &amp;lt;Text&amp;gt;
+              Hello, Tableless!
+          &amp;lt;/Text&amp;gt;
+      &amp;lt;/View&amp;gt;
+   );
+&lt;/pre&gt;
+
+&lt;p&gt;Agora vamos criar uma variável &amp;#8220;styles&amp;#8221; que recebe o objeto &lt;strong&gt;StyleSheet&lt;/strong&gt; com os seguintes parâmetros:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var styles = StyleSheet.create({
+
+container: {
+   flex: 1,
+   flexDirection: &#39;column&#39;,
+   justifyContent: &#39;center&#39;,
+   alignItems: &#39;center&#39;,
+   borderWidth: 2,
+   borderColor: &#39;ff0000&#39;,
+}
+
+})
+&lt;/pre&gt;
+
+&lt;p&gt;Antes de executar o código, precisamos incluir o &lt;strong&gt;StyleSheet&lt;/strong&gt; em nosso escopo de inicialização:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var {
+  AppRegistry,
+  StyleSheet,
+  Text,
+  View,
+} = React;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora sim. Execute o código pelo Xcode e você verá o seguinte resultado:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-simple-label_3.2.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-52767&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-simple-label_3.2.jpg&#34; alt=&#34;react native simple label with border&#34; width=&#34;344&#34; height=&#34;524&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O texto agora se encontra alinhado no centro da tela e temos uma borda vermelha envolta do container. O que aconteceu aqui?&lt;/p&gt;
+
+&lt;p&gt;Bem, nós criamos um objeto container com seis parâmetros: &lt;code&gt;flex&lt;/code&gt;, &lt;code&gt;flexDirection&lt;/code&gt;, &lt;code&gt;justifyContent&lt;/code&gt;, &lt;code&gt;alignItems&lt;/code&gt;, &lt;code&gt;borderWidth&lt;/code&gt; e &lt;code&gt;borderColor&lt;/code&gt;. Os dois últimos são autoexplicativos e similares à aplicação de bordas do CSS. A diferença aqui é que ao invés de declarar &lt;code&gt;border-width&lt;/code&gt;, com hífen, declaramos &lt;code&gt;borderWidth&lt;/code&gt;, em &lt;strong&gt;camelCase&lt;/strong&gt; (lembrando que estamos lidando com JavaScript e não CSS de verdade). Outra observação importante é que não precisamos atribuir &lt;strong&gt;px&lt;/strong&gt; ao final do valor como fazemos na web, pois aplicativos nativos tem suas resoluções de tela baseada em pontos &lt;strong&gt;(pt)&lt;/strong&gt; e não em pixels.&lt;/p&gt;
+
+&lt;p&gt;O React Native utiliza o &lt;strong&gt;Flexbox&lt;/strong&gt; para organização visual dos componentes, o que simplifica, em muito, a construção de layouts. Basicamente, o parâmetro &lt;code&gt;flex: 1&lt;/code&gt; significa que o container ocupa 100% de altura e largura na tela. O parâmetro &lt;code&gt;flexDirection: column&lt;/code&gt; significa que os elementos seguirão o fluxo baseado em colunas, que é de cima para baixo. A outra opção seria &lt;code&gt;flexDirection: row&lt;/code&gt;, onde os elementos são ordenados da esquerda para a direita. Por default, O fluxo padrão é o de colunas, portanto você pode apagar essa instrução sem nenhum impacto no seu código.&lt;/p&gt;
+
+&lt;p&gt;Por fim, temos a instrução &lt;code&gt;justifyContent: center&lt;/code&gt; e &lt;code&gt;alignItems: center&lt;/code&gt;. O primeiro é responsável por alinhar o conteúdo de forma vertical (eixo y), enquanto o último serve para alinhar de forma horizontal (eixo x). Além de &lt;code&gt;center&lt;/code&gt;, também existem outros valores como &lt;code&gt;flex-start&lt;/code&gt; e &lt;code&gt;flex-end&lt;/code&gt;. Tente utilizá-los para ver o que acontece no seu layout&amp;#8230;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Se ainda restou alguma dúvida, &lt;a href=&#34;http://tableless.com.br/centralizando-conteudo-na-vertical-e-horizontal-com-css-flexbox/&#34; target=&#34;_blank&#34;&gt;este post&lt;/a&gt; escrito pelo Diego Eis pode te ajudar a entender.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;E se eu quiser uma borda arredondada envolta do texto e não no container? Também gostaria de mudar a cor do texto, centralizá-lo e inserir um padding envolta do mesmo. Simples&amp;#8230;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&#39;use strict&#39;;
+
+var React = require(&#39;react-native&#39;);
+var {
+ AppRegistry,
+ StyleSheet,
+ Text,
+ View,
+} = React;
+
+var Tableless = React.createClass({
+   render: function() {
+      return (
+         &amp;lt;View style={styles.container}&amp;gt;
+             // criamos um novo estilo para o componente de texto
+             &amp;lt;Text style={styles.myText}&amp;gt;
+                 Hello, Tableless!
+             &amp;lt;/Text&amp;gt;
+         &amp;lt;/View&amp;gt;
+      );
+   }
+});
+
+var styles = StyleSheet.create({
+
+ container: {
+   flex: 1,
+   flexDirection: &#39;column&#39;,
+   justifyContent: &#39;center&#39;,
+   alignItems: &#39;center&#39;,
+ },
+ // declaração do nosso novo estilo
+ myText: {            
+   borderWidth: 2,
+   borderColor: &#39;ff0000&#39;,
+   borderRadius: 4,
+   textAlign: &#39;center&#39;,
+   padding: 10,
+ // também é permitido passar uma string da cor ao invés de um hexadecimal
+   color: &#39;green&#39;,
+ }
+
+})
+
+AppRegistry.registerComponent(&#39;MyFirstProject&#39;, () =&amp;gt; Tableless);
+&lt;/pre&gt;
+
+&lt;p&gt;Executando o código:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-simple-label_2.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-52746&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-simple-label_2.jpg&#34; alt=&#34;react native simple label&#34; width=&#34;344&#34; height=&#34;524&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora que você já está familiarizado com o &amp;#8220;modo React&amp;#8221; de criar aplicações, vamos tentar entender rapidamente o que acontece por baixo dos panos&amp;#8230;&lt;/p&gt;
+
+&lt;h2 id=&#34;javascriptcore&#34;&gt;JavaScriptCore&lt;/h2&gt;
+
+&lt;p&gt;Se você já ouviu falar sobre React, já ouviu sobre &lt;strong&gt;Virtual DOM&lt;/strong&gt;. Essa é uma forma genial de abstração que os engenheiros do facebook desenvolveram para trazer melhorias na performance de aplicações web, uma vez que um &lt;a href=&#34;https://pt.wikipedia.org/wiki/Modelo_de_Objeto_de_Documentos&#34; target=&#34;_blank&#34;&gt;DOM&lt;/a&gt; Virtual fica em memória e apenas modificações significativas em sua estrutura são novamente renderizadas na tela, sem necessidade de percorrer toda a árvore novamente.&lt;/p&gt;
+
+&lt;p&gt;Em algum momento eles pensaram: &lt;em&gt;&amp;#8220;E se, utilizando essa abordagem, pudéssemos também abstrair uma camada qualquer diferente do DOM para conseguir resultados similares em relação à performance?&amp;#8230;&amp;#8221;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Até então, o único componente presente no iOS e no Android que viabiliza a execução de código JavaScript de modo nativo são seus browsers internos, conhecidos como WebViews. Com base nesse cenário, vários frameworks surgiram nos últimos anos com a proposta de utilizar a camada de código nativa apenas para disparar uma aplicação com código escrito em HTML, CSS e JavaScript no próprio Browser (sem a barra de endereços, obviamente). Como o container responsável pelo ciclo de vida da aplicação é nativo, isso possibilita que essas aplicações sejam desenvolvidas e distribuídas através das lojas oficiais, como a &lt;strong&gt;App Store&lt;/strong&gt; e &lt;a href=&#34;https://play.google.com/store/apps&#34; target=&#34;_blank&#34;&gt;Google Play&lt;/a&gt;, sem maiores problemas. Esse movimento originou o termo atualmente conhecido como &lt;strong&gt;Aplicativos Híbridos&lt;/strong&gt;. Embora essa abordagem provou-se vitoriosa em alguns cenários, ainda consiste em uma página web que simula uma aplicação escrita de forma nativa, o que, algumas vezes, peca em questão de performance e experiência.&lt;/p&gt;
+
+&lt;p&gt;Em React Native continuamos escrevendo um aplicativo em JavaScript, mas que não exibe uma página web como resultado. Ao invés disso, o nosso código executa uma instância do chamado &lt;a href=&#34;http://trac.webkit.org/wiki/JavaScriptCore&#34; target=&#34;_blank&#34;&gt;JavaScriptCore&lt;/a&gt; responsável por renderizar componentes &lt;strong&gt;verdadeiramente nativos&lt;/strong&gt; dentro do nosso app. Por exemplo, se você abrir o arquivo &lt;em&gt;/ios/MyFirstProject/AppDelegate.m&lt;/em&gt; no Xcode, vai encontrar sempre o seguinte conteúdo, independente da quantidade de código que tiver escrito no seu editor de texto:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2016/01/AppDelegate.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-53026&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/01/AppDelegate.png&#34; alt=&#34;AppDelegate.m image &#34; width=&#34;844&#34; height=&#34;777&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O segredo está nessa classe &lt;code&gt;RCTRootView&lt;/code&gt;. Ela é uma classe criada pelo próprio framework, responsável por apresentar os elementos da classe &lt;code&gt;UIKit&lt;/code&gt; com base no código que escrevemos em JS. Ou seja, o controle do comportamento do nosso app é feito em JavaScript, mas em nenhum momento ocorre compilação desse código para Objective-C, binário ou coisa do tipo. Por isso conseguimos ver atualizações em tempo real em nossa aplicação, uma vez que nenhum código em Objective-C é escrito, apenas código JavaScript. Não tem nada pra re-compilar! Genial.&lt;/p&gt;
+
+&lt;p&gt;Como essa &amp;#8220;passagem de bastão&amp;#8221; entre o código JavaScript e Objective-C é feita está fora do escopo desse post, mas caso tenha curiosidade de saber onde vai parar o código que escrevemos, basta acessar a url &lt;a href=&#34;http://localhost:8081/index.ios.bundle?platform=ios&amp; dev=true&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://localhost:8081/index.ios.bundle?platform=ios&amp;amp;&#34;&gt;http://localhost:8081/index.ios.bundle?platform=ios&amp;amp;&lt;/a&gt; dev=true&lt;/a&gt; enquanto a aplicação estiver no ar. Você irá perceber nosso código em meio à um monte de outros gerados pelo framework.&lt;/p&gt;
+
+&lt;h2 id=&#34;explorando-as-apis-e-componentes-nativos&#34;&gt;Explorando as APIs e componentes nativos&lt;/h2&gt;
+
+&lt;p&gt;Uma das coisas mais legais &amp;#8211; e vantajosas &amp;#8211; de se trabalhar com o React Native é a possibilidade de utilizar os componentes e APIs nativos da plataforma. Indiscutivelmente, é um recurso que oferece uma experiência mais atrativa para o usuário e que torna dispensável a utilização de serviços de terceiros como o &lt;a href=&#34;https://cordova.apache.org/&#34; target=&#34;_blank&#34;&gt;Apache Cordova&lt;/a&gt;, por exemplo. O React Native também trabalha em uma thread separada da thread principal, o que faz com que sua aplicação mantenha a alta performance sem sacrificar a capacidade do seu smartphone (o que é incrível!).&lt;/p&gt;
+
+&lt;p&gt;Para começar a ilustrar esses pontos, vamos modificar o nosso código para exibir um alerta nativo do iOS quando um botão for clicado.&lt;/p&gt;
+
+&lt;h3 id=&#34;capturando-eventos-e-fornecendo-feedback-visual&#34;&gt;Capturando eventos e fornecendo feedback visual&lt;/h3&gt;
+
+&lt;p&gt;Assim como todos os demais componentes, o React Native criou um específico para recuperar o evento de &lt;strong&gt;touch&lt;/strong&gt; (ou tap) na tela do device. Seu nome é &lt;code&gt;&amp;lt;TouchableHighlight&amp;gt;&lt;/code&gt;, que nada mais é do que um wrapper invisível responsável por fazer algum outro componente responder ao toque do usuário e, em seguida, conectá-lo a algum evento/método:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;TouchableHighlight onPress={this.someFunction}&amp;gt;
+   // aplicação de estilo no componente
+   &amp;lt;View style={styles.button}&amp;gt;
+      &amp;lt;Text&amp;gt;An Alert Message&amp;lt;/Text&amp;gt;
+   &amp;lt;/View&amp;gt;
+&amp;lt;/TouchableHighlight&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;No código acima temos um exemplo de como podemos fazer uso desse componente. Perceba que dentro dele temos uma outra &lt;code&gt;&amp;lt;View&amp;gt;&lt;/code&gt; que abriga um componente &lt;code&gt;&amp;lt;Text&amp;gt;&lt;/code&gt; com um texto indicativo. O &lt;code&gt;&amp;lt;TouchableHighlight&amp;gt;&lt;/code&gt; recebe uma função de nome &lt;code&gt;someFunction&lt;/code&gt; quando o evento &lt;strong&gt;onPress&lt;/strong&gt; for acionado. Outra coisa bacana do componente é que o mesmo fornece feedback visual do momento em que o usuário pressiona e solta o botão. Por default, o React Native aplica um efeito de &lt;strong&gt;overlay&lt;/strong&gt; ao componente sem que precisemos fazer nada. Awesome!&lt;/p&gt;
+
+&lt;p&gt;O &lt;code&gt;&amp;lt;TouchableHighlight&amp;gt;&lt;/code&gt; também responde à outros eventos, como &lt;code&gt;onPressIn&lt;/code&gt;, &lt;code&gt;onPressOut&lt;/code&gt; e &lt;code&gt;onLongPress&lt;/code&gt;, para atender às demais necessidades de interação com o usuário.&lt;/p&gt;
+
+&lt;p&gt;Vamos agora mexer no nosso código e substituir a função &lt;code&gt;someFunction&lt;/code&gt; do evento &lt;code&gt;onPress&lt;/code&gt; do nosso botão por um &lt;strong&gt;alert dialog&lt;/strong&gt; nativo da plataforma. O código do alerta é muito simples, conforme abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;AlertIOS.alert(
+  &#39;Simple Title&#39;,
+  &#39;Hi, I am a native iOS alert component in action.&#39;
+)
+&lt;/pre&gt;
+
+&lt;p&gt;Nosso alerta é simples e recebe apenas dois parâmetros: O título e a descrição que serão exibidos para o usuário. Vamos juntar tudo e ver como fica o nosso código final (&lt;code&gt;git checkout step3&lt;/code&gt;):&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&#39;use strict&#39;;
+
+var React = require(&#39;react-native&#39;);
+var {
+   AppRegistry,
+   StyleSheet,
+   Text,
+   View,
+   // declaramos o TouchableHighlight.
+   TouchableHighlight,     
+   // declaramos o AlertIOS.
+   AlertIOS,           
+} = React;
+
+var Tableless = React.createClass({
+
+ render: function() {
+   return (
+      &amp;lt;View style={styles.container} &amp;gt;
+        &amp;lt;Text style={styles.myText}&amp;gt;
+          Hello, Tableless!
+        &amp;lt;/Text&amp;gt;
+        // inserimos o código do alerta no lugar da função
+        &amp;lt;TouchableHighlight onPress={() =&amp;gt; AlertIOS.alert(    
+             &#39;Simple Title&#39;,
+             &#39;Hi, I am a native iOS alert component in action.&#39;
+           )}&amp;gt;
+           &amp;lt;View style={styles.button}&amp;gt;
+               // exemplo de estilo inline.
+               &amp;lt;Text style={{color: &#39;#fff&#39;}}&amp;gt;An Alert Message&amp;lt;/Text&amp;gt; 
+           &amp;lt;/View&amp;gt;
+        &amp;lt;/TouchableHighlight&amp;gt;
+      &amp;lt;/View&amp;gt;
+    );
+ }
+});
+
+var styles = StyleSheet.create({
+
+container: {
+   flex: 1,
+   flexDirection: &#39;column&#39;,
+   justifyContent: &#39;center&#39;,
+   alignItems: &#39;center&#39;,
+},
+myText: {
+   borderWidth: 2,
+   borderColor: &#39;ff0000&#39;,
+   borderRadius: 4,
+   textAlign: &#39;center&#39;,
+   padding: 10,
+   marginBottom: 10,
+   color: &#39;green&#39;,
+},
+// estilo do botão.
+button: {                
+   backgroundColor: &#39;lightblue&#39;,
+   padding: 20,
+   borderRadius: 5,
+},
+
+})
+
+AppRegistry.registerComponent(&#39;MyFirstProject&#39;, () =&amp;gt; Tableless);
+&lt;/pre&gt;
+
+&lt;p&gt;Pressione &lt;strong&gt;CMD + R&lt;/strong&gt; no teclado e veja o resultado do que criamos no seu emulador com poucas linhas de código:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-alert-ios.gif&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-52771&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-alert-ios.gif&#34; alt=&#34;react native alert ios&#34; width=&#34;640&#34; height=&#34;480&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;props-state&#34;&gt;Props &amp;amp; State&lt;/h3&gt;
+
+&lt;p&gt;Tudo o que fizemos até o momento foi ótimo, mas não é o suficiente para manter uma aplicação em funcionamento. E se eu quisesse alterar o valor do texto que aparece na tela de forma dinâmica, com base em um input do usuário? Podemos fazer isso facilmente utilizando o conceito de &lt;strong&gt;state&lt;/strong&gt;, que nada mais é do que &lt;strong&gt;gerenciar um componente e aplicar alterações em seu valor durante seu ciclo de vida&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para que isso seja possível, precisaremos de três coisas novas em nosso código:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Um método que defina o &lt;strong&gt;estado inicial&lt;/strong&gt; do meu componente;&lt;/li&gt;
+&lt;li&gt;Um componente nativo que receba &lt;strong&gt;inputs do usuário&lt;/strong&gt; na tela;&lt;/li&gt;
+&lt;li&gt;Um método responsável por &lt;strong&gt;modificar o valor&lt;/strong&gt; desse meu componente.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Primeiramente, vamos criar o estado inicial do meu componente:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;getInitialState : function() {
+   // Inicializamos nosso componente com uma String de texto.
+   return { myText : &#34;Hello, Tableless!&#34; };
+},    
+&lt;/pre&gt;
+
+&lt;p&gt;Em seguida, um componente para receber inputs do usuário:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;TextInput
+         placeholder=&#34;Type something...&#34;
+         onChange={this.textInputDidChange} /&amp;gt;
+// Input com um placeholder + método.
+&lt;/pre&gt;
+
+&lt;p&gt;E, por fim, a função com o método responsável por atualizar o estado da minha View sempre que o valor do meu componente for modificado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;textInputDidChange : function (event) {      
+   this.setState({ myText: event.nativeEvent.text });
+},   
+&lt;/pre&gt;
+
+&lt;p&gt;Vamos ver como tudo isso fica no nosso código (&lt;code&gt;git checkout step4&lt;/code&gt;).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&#39;use strict&#39;;
+
+var React = require(&#39;react-native&#39;);
+var {
+   AppRegistry,
+   StyleSheet,
+   Text,
+   View,
+   TouchableHighlight,
+   AlertIOS,
+   // declaramos o TextInput.
+   TextInput,        
+} = React;
+
+var Tableless = React.createClass({
+
+getInitialState : function() {
+   return { myText : &#34;Hello, Tableless!&#34; };
+},    
+
+textInputDidChange : function (event) {      
+   this.setState({ myText: event.nativeEvent.text });
+},
+
+ render: function() {
+  return (
+    &amp;lt;View style={styles.container} &amp;gt;
+      // Repare os estilos inline (opcional).
+      &amp;lt;TextInput style = {{ height: 50, padding: 6, fontSize: 16, borderColor: &#34;lightblue&#34;, borderWidth: 1,     margin: 10, borderRadius: 4 }}
+               placeholder=&#34;Type something...&#34;
+               onChange={this.textInputDidChange} /&amp;gt;   
+         &amp;lt;Text style={styles.myText}&amp;gt;
+            // Ao invés do texto estático, fazemos referência à variável myText.
+            {this.state.myText}   
+         &amp;lt;/Text&amp;gt;
+         &amp;lt;TouchableHighlight onPress={() =&amp;gt; AlertIOS.alert(
+                 &#39;Simple Title&#39;,
+                 &#39;Hi, I am a native iOS alert component in action.&#39;
+              )}&amp;gt;
+           &amp;lt;View style={styles.button}&amp;gt;
+                &amp;lt;Text style={{color: &#39;#fff&#39;}}&amp;gt;An Alert Message&amp;lt;/Text&amp;gt;
+           &amp;lt;/View&amp;gt;
+         &amp;lt;/TouchableHighlight&amp;gt;
+    &amp;lt;/View&amp;gt;
+  );
+ }
+});
+
+var styles = StyleSheet.create({
+
+ container: {
+   flex: 1,
+   flexDirection: &#39;column&#39;,
+   justifyContent: &#39;center&#39;,
+   alignItems: &#39;center&#39;,
+ },
+ myText: {
+   borderWidth: 2,
+   borderColor: &#39;ff0000&#39;,
+   borderRadius: 4,
+   textAlign: &#39;center&#39;,
+   padding: 10,
+   marginBottom: 10,
+   color: &#39;green&#39;,
+ },
+ button: {
+   backgroundColor: &#39;lightblue&#39;,
+   padding: 20,
+   borderRadius: 5,
+ },
+
+})
+
+AppRegistry.registerComponent(&#39;MyFirstProject&#39;, () =&amp;gt; Tableless);
+&lt;/pre&gt;
+
+&lt;p&gt;Agora nosso label reflete o valor que digitamos em nosso input, veja:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-text-input-ios.gif&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-52776&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-text-input-ios.gif&#34; alt=&#34;react native text input ios&#34; width=&#34;640&#34; height=&#34;480&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Caso queira simular o teclado do device, basta ir na barra de ferramentas do emulador e procurar a opção &lt;strong&gt;Hardware -&amp;gt; Keyboard -&amp;gt; Toggle Software Keyboard&lt;/strong&gt;. Ao habilitar essa opção, o teclado nativo do device será exibido sempre que um input for solicitado.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Se você tem o costume de utilizar aplicativos no iPhone já deve ter reparado que o comportamento de transição de telas é ligeiramente diferente daquilo que observamos na web. Ao invés de exibir uma outra página qualquer como resultado de alguma ação (como clique em um link ou uma busca) no iOS nós trabalhamos com um componente chamado &lt;strong&gt;UINavigationController&lt;/strong&gt; que gerencia essa transição de forma hierárquica. Obviamente já temos à nossa disposição um componente para lidar com isso, chamado &lt;strong&gt;NavigatorIOS&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Dito isso, a primeira coisa que precisamos fazer é mudar o componente &lt;strong&gt;root&lt;/strong&gt; da nossa aplicação que, ao invés de apontar para &lt;strong&gt;Tableless&lt;/strong&gt;, agora irá apontar para a classe &lt;strong&gt;MainNav&lt;/strong&gt;, conforme abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;AppRegistry.registerComponent(&#39;MyFirstProject&#39;, () =&amp;gt; MainNav);&lt;/pre&gt;
+
+&lt;p&gt;Agora vamos criar a classe &lt;strong&gt;MainNav&lt;/strong&gt; que irá funcionar como um container que fará referência à tela &lt;strong&gt;Tableless&lt;/strong&gt; que estávamos trabalhando anteriormente, dessa forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var MainNav = React.createClass({
+  render: function() {
+    return (
+      // Incluímos o NavigatorIOS em MainNav e fazemos ele apontar para Tableless.
+      &amp;lt;NavigatorIOS
+        initialRoute={{ component: Tableless, title: &#39;MyFirstProject&#39; }} 
+        style={{ flex: 1 }} /&amp;gt;
+    );    
+  }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Perfeito. Agora vamos criar uma outra tela que será responsável por exibir o texto que iremos digitar em nossa View principal. Irei chamar essa tela de &lt;strong&gt;NextScreen&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var NextScreen = React.createClass({
+  render: function() {
+    return (
+      &amp;lt;View&amp;gt;
+        &amp;lt;Text&amp;gt;
+          You entered: {this.props.inputText}
+        &amp;lt;/Text&amp;gt;
+      &amp;lt;/View&amp;gt;
+    );
+  }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Perceba a instrução &lt;code&gt;{this.props.inputText}&lt;/code&gt; dentro do componente &lt;code&gt;&amp;lt;Text&amp;gt;&lt;/code&gt;. Ele será o responsável por apresentar o valor digitado no nosso input. Mas para que isso ocorra, precisamos de um novo evento em nosso &lt;code&gt;&amp;lt;TextInput&amp;gt;&lt;/code&gt; que guarde esse valor e o conduza até a próxima tela que acabamos de criar. Já que não temos um botão pra disparar esse método, que tal chamá-lo logo após pressionar o &lt;strong&gt;Return&lt;/strong&gt; do teclado? Existe um evento chamado &lt;code&gt;onEndEditing&lt;/code&gt; que faz justamente isso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;TextInput placeholder=&#34;Type something...&#34;
+              onChange={this.textInputDidChange}
+              // incluímos o novo evento aqui.
+              onEndEditing={ event =&amp;gt; this.callNextScreen(event.nativeEvent.text) } /&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Referenciamos a função de nome &lt;strong&gt;callNextScreen&lt;/strong&gt; que recupera o texto que digitamos através do evento de nome &lt;code&gt;event.nativeEvent.text&lt;/code&gt;. Vamos criar essa função:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// a função recebe o texto digitado como parâmetro
+callNextScreen: function (inputText) {
+  // chamamos a transição &lt;strong&gt;push&lt;/strong&gt; nativa do iOS.
+  this.props.navigator.push({
+     title: &#34;The Next Screen&#34;,
+     component: NextScreen,
+     // enviamos o parâmetro para a tela &lt;strong&gt;NextScreen&lt;/strong&gt;
+     passProps: { &#39;inputText&#39;: inputText }
+  });
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Perceba que nós chamamos a função &lt;code&gt;push&lt;/code&gt; do &lt;code&gt;navigator&lt;/code&gt; que faz parte do atributo props da nossa tela &lt;strong&gt;NextScreen&lt;/strong&gt;. Uma outra novidade é o parâmetro &lt;code&gt;passProps&lt;/code&gt; que recebe um objeto com chave e valor de nome &lt;code&gt;inputText&lt;/code&gt;, responsável por guardar o texto que digitamos e conduzi-lo à próxima tela. Vamos ver como ficou o código final (&lt;code&gt;git checkout step5&lt;/code&gt;):&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&#39;use strict&#39;;
+
+var React = require(&#39;react-native&#39;);
+var {
+  AppRegistry,
+  StyleSheet,
+  Text,
+  View,
+  TouchableHighlight,
+  AlertIOS,
+  TextInput,
+  // novo componente NavigatorIOS
+  NavigatorIOS, 
+} = React;
+
+var Tableless = React.createClass({
+
+getInitialState : function() {
+  return {
+    myText : &#34;Hello, Tableless!&#34;
+  };
+},
+
+callNextScreen: function (inputText) {
+  this.props.navigator.push({
+    title: &#34;The Next Screen&#34;,
+    component: NextScreen,
+    passProps: { &#39;inputText&#39;: inputText }
+});
+},
+
+textInputDidChange : function (event) {
+  this.setState({ myText: event.nativeEvent.text });
+},
+
+render: function() {
+  return (
+   &amp;lt;View style={styles.container} &amp;gt;
+    &amp;lt;TextInput style = {{ height: 50, padding: 6, fontSize: 16, borderColor: &#34;lightblue&#34;, borderWidth: 1, margin:    10, borderRadius: 4 }}
+      placeholder=&#34;Type something...&#34;
+      onChange={this.textInputDidChange}
+      onEndEditing={ event =&amp;gt; this.callNextScreen(event.nativeEvent.text) } /&amp;gt;
+    &amp;lt;Text style={styles.myText}&amp;gt;
+      {this.state.myText}
+    &amp;lt;/Text&amp;gt;
+    &amp;lt;TouchableHighlight onPress={() =&amp;gt; AlertIOS.alert(
+        &#39;Simple Title&#39;,
+        &#39;Hi, I am a native iOS alert component in action.&#39;
+      )}&amp;gt;
+      &amp;lt;View style={styles.button}&amp;gt;
+        &amp;lt;Text style={{color: &#39;#fff&#39;}}&amp;gt;An Alert Message&amp;lt;/Text&amp;gt;
+      &amp;lt;/View&amp;gt;
+    &amp;lt;/TouchableHighlight&amp;gt;
+   &amp;lt;/View&amp;gt;
+  );
+}
+
+});
+
+var MainNav = React.createClass({
+ render: function() {
+   return (
+     &amp;lt;NavigatorIOS
+       initialRoute={{
+         component: Tableless,
+         title: &#39;MyFirstProject&#39;
+       }}
+       style={{ flex: 1 }} /&amp;gt;
+   );
+ }
+});
+
+var NextScreen = React.createClass({
+ render: function() {
+   return (
+     &amp;lt;View style = {{ backgroundColor: &#39;green&#39;, flex: 1, justifyContent: &#39;center&#39;, alignItems: &#39;center&#39; }} &amp;gt;
+       &amp;lt;Text style = {{ color: &#39;#fff&#39;, fontSize: 22 }} &amp;gt;
+         You entered: {this.props.inputText}
+       &amp;lt;/Text&amp;gt;
+     &amp;lt;/View&amp;gt;
+   );
+ }
+});
+
+var styles = StyleSheet.create({
+
+ container: {
+   flex: 1,
+   flexDirection: &#39;column&#39;,
+   justifyContent: &#39;center&#39;,
+   alignItems: &#39;center&#39;,
+ },
+ myText: {
+   borderWidth: 2,
+   borderColor: &#39;ff0000&#39;,
+   borderRadius: 4,
+   textAlign: &#39;center&#39;,
+   padding: 10,
+   marginBottom: 10,
+   color: &#39;green&#39;,
+ },
+ button: {
+   backgroundColor: &#39;lightblue&#39;,
+   padding: 20,
+   borderRadius: 5,
+ },
+
+})
+
+AppRegistry.registerComponent(&#39;MyFirstProject&#39;, () =&amp;gt; MainNav);
+&lt;/pre&gt;
+
+&lt;p&gt;O resultado:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-navigator-ios.gif&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-52778&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-navigator-ios.gif&#34; alt=&#34;react native navigator ios&#34; width=&#34;640&#34; height=&#34;480&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Faça um teste no seu device e observe o quão suave são as animações. Uma vez na tela seguinte, você pode retornar para a anterior com um simples gesto de deslizar os dedos da esquerda para a direita (o famoso &lt;strong&gt;swipe gesture&lt;/strong&gt;). Você consegue até mesmo simular uma transição similar em html com &lt;code&gt;overflow&lt;/code&gt;, mas não será a mesma coisa. Esse é o verdadeiro ganho de trabalhar com componentes 100% nativos: As transições em &lt;strong&gt;60fps&lt;/strong&gt; (60 frames por segundo).&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-swipe-60fps.gif&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-52793&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/01/react-native-swipe-60fps.gif&#34; alt=&#34;react native swipe 60fps&#34; width=&#34;640&#34; height=&#34;480&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Por fim, você foi apresentado aos dois principais conceitos do React: &lt;strong&gt;props&lt;/strong&gt;, utilizado quando queremos compartilhar valores entre componentes e &lt;strong&gt;state&lt;/strong&gt;, quando desejamos monitorar o estado de um componente e suas alterações (geralmente ocasionado por algum evento de usuário).&lt;/p&gt;
+
+&lt;h2 id=&#34;modularidade&#34;&gt;Modularidade&lt;/h2&gt;
+
+&lt;p&gt;Você tem consciência da bagunça que nosso código pode se tornar se prosseguirmos com a escrita de toda a lógica em um mesmo arquivo, né? Mas uma das vantagens da plataforma é justamente a modularização, uma vez que cada componente pode estar isolado em arquivos diferentes, gerenciando seus próprios estados de forma individual. Fazemos isso através do &lt;strong&gt;module.exports&lt;/strong&gt; do Node, presente na especificação do &lt;strong&gt;CommonJS&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para ilustrar como isso pode ser feito, vamos separar nossa seção de estilos no arquivo &lt;em&gt;style.js&lt;/em&gt; e requisitar seu acesso no arquivo _index.ios.js_ (&lt;code&gt;git checkout step6&lt;/code&gt;).&lt;/p&gt;
+
+&lt;p&gt;Conteúdo de &lt;em&gt;style.js&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var React = require(&#39;react-native&#39;);
+var { StyleSheet } = React;
+
+var styles = StyleSheet.create({
+
+ container: {
+   flex: 1,
+   flexDirection: &#39;column&#39;,
+   justifyContent: &#39;center&#39;,
+   alignItems: &#39;center&#39;,
+ },
+ myText: {
+   borderWidth: 2,
+   borderColor: &#39;ff0000&#39;,
+   borderRadius: 4,
+   textAlign: &#39;center&#39;,
+   padding: 10,
+   marginBottom: 10,
+   color: &#39;green&#39;,
+ },
+ button: {
+   backgroundColor: &#39;lightblue&#39;,
+   padding: 20,
+   borderRadius: 5,
+ },
+
+});
+// viabilizamos a exportação do módulo.
+module.exports = styles;
+&lt;/pre&gt;
+
+&lt;p&gt;E no arquivo &lt;em&gt;index.ios.js&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&#39;use strict&#39;;
+
+var React = require(&#39;react-native&#39;);
+var {
+  AppRegistry,
+  StyleSheet,
+  Text,
+  View,
+  TouchableHighlight,
+  AlertIOS,
+  TextInput,
+  NavigatorIOS,
+} = React;
+
+// solicitamos acesso ao conteúdo de &lt;em&gt;style.js&lt;/em&gt;
+var styles = require(&#39;./style&#39;);
+
+var Tableless = React.createClass({ ... })
+&lt;/pre&gt;
+
+&lt;p&gt;Seguindo esse conceito, sua aplicação fica muito mais legível, principalmente se utilizarmos o &lt;strong&gt;Nesting&lt;/strong&gt; de componentes (não abordado nesse tutorial).&lt;/p&gt;
+
+&lt;p&gt;Como exercício, tente fazer o mesmo com os demais componentes que criamos.&lt;/p&gt;
+
+&lt;h3 id=&#34;android&#34;&gt;Android&lt;/h3&gt;
+
+&lt;p&gt;Uma das vantagens oferecidas pelo framework é poder criar aplicações agnósticas, que compartilham a mesma base de código. Neste caso, você poderia ter os arquivos &lt;em&gt;index.ios.js&lt;/em&gt; e &lt;em&gt;index.android.js&lt;/em&gt; apontando para uma classe &amp;#8220;root&amp;#8221;, responsável por executar o código com base no sistema utilizado pelo usuário: iOS ou Android. Isso é possível se você fizer uso de componentes que não são específicos de cada plataforma, como &lt;code&gt;View&lt;/code&gt;, &lt;code&gt;Image&lt;/code&gt;, &lt;code&gt;ListView&lt;/code&gt;, &lt;code&gt;MapView&lt;/code&gt;, &lt;code&gt;Modal&lt;/code&gt;, &lt;code&gt;TouchableHighlight&lt;/code&gt;, &lt;code&gt;Text&lt;/code&gt;, etc.&lt;/p&gt;
+
+&lt;p&gt;Outra possibilidade, em aplicações mais complexas, é de compartilhar a mesma lógica entre ambas as plataformas com a diferença de utilizar componentes específicos para cada uma delas. A vantagem seria proporcionar a melhor experiência &lt;strong&gt;nativa&lt;/strong&gt; possível para o usuário. Como exemplo, temos os componentes &lt;code&gt;DrawerLayoutAndroid&lt;/code&gt;, &lt;code&gt;ProgressBarAndroid&lt;/code&gt;, &lt;code&gt;ToolbarAndroid&lt;/code&gt;, etc.&lt;/p&gt;
+
+&lt;h2 id=&#34;um-futuro-móvel-para-o-javascript&#34;&gt;Um futuro móvel para o JavaScript&lt;/h2&gt;
+
+&lt;p&gt;Hoje em dia o desenvolvedor JavaScript vive um momento fantástico, pois além de contar com frameworks como &lt;a href=&#34;http://ionicframework.com/&#34; target=&#34;_blank&#34;&gt;Ionic&lt;/a&gt;, que tem o intuito de explorar o desenvolvimento híbrido através de tecnologias web, agora temos o React Native à nossa disposição, com o intuito de conduzir o JavaScript ao ambiente nativo. No entanto, diferente do conhecido termo imortalizado pelo Java &amp;#8220;&lt;em&gt;Write once, run anywhere&lt;/em&gt;&amp;#8220;, o framework defende o &amp;#8220;&lt;em&gt;Learn once, write anywhere&lt;/em&gt;&amp;#8220;, o que significa que cada plataforma tem seu próprio visual, estrutura e recursos únicos. E que você, como engenheiro de software, deve ser capaz de construir aplicações para qualquer que seja a plataforma &amp;#8211; sem necessariamente aprender uma gama de novas tecnologias &amp;#8211; mas sempre respeitando o ecossistema nativo de cada uma delas. Isso é fantástico!&lt;/p&gt;
+
+&lt;p&gt;Outro ponto que vale ressaltar é a otimização que o framework oferece ao dia a dia de uma equipe, uma vez que ele tem o potencial de acelerar todo o processo &amp;#8211; não só de desenvolvimento, mas também de lançamento de um aplicativo. Como exemplo, a Apple possibilita que alterações sejam executadas no &amp;#8220;ar&amp;#8221; em aplicativos baseados no tal JavaScriptCore &lt;strong&gt;sem precisar aguardar pelo exaustivo processo de review deles&lt;/strong&gt;. Ou seja, mais produtividade e mais clientes felizes!&lt;/p&gt;
+
+&lt;p&gt;Embora o React Native seja um framework fantástico no que se propõe a oferecer, ele não é o único. Existem outras ferramentas que permitem o desenvolvimento de aplicativos nativos utilizando JavaScript, como é o caso do já conhecido &lt;a href=&#34;http://www.appcelerator.com/mobile-app-development-products/&#34; target=&#34;_blank&#34;&gt;Titanium&lt;/a&gt; e, do mais recente, &lt;a href=&#34;https://www.nativescript.org/&#34; target=&#34;_blank&#34;&gt;NativeScript&lt;/a&gt;. Mas a grande sacada do React Native é o &lt;strong&gt;React&lt;/strong&gt; em si. Sua natureza declarativa, a metodologia de reutilização de componentes e o foco primário na interface do usuário proporcionam uma experiência, até o momento, inédita para o desenvolvedor web que deseja migrar para o mundo do desenvolvimento móvel.&lt;/p&gt;
+
+&lt;p&gt;Em resumo, o React Native merece sua atenção porque&amp;#8230;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Não remove você do ecossistema da web: &lt;/strong&gt;As mesmas ferramentas que usamos para o desenvolvimento web são basicamente as mesmas que utilizaremos para desenvolvimento mobile. Ao invés de depender exclusivamente do Xcode ou Android Studio, um &lt;a href=&#34;http://www.sublimetext.com/&#34; target=&#34;_blank&#34;&gt;SublimeText&lt;/a&gt;, &lt;a href=&#34;https://atom.io/&#34; target=&#34;_blank&#34;&gt;Atom&lt;/a&gt; ou &lt;a href=&#34;http://brackets.io/&#34; target=&#34;_blank&#34;&gt;Brackets&lt;/a&gt; já darão conta do recado pra você. Com se isso não bastasse, você ainda tem a opção de fazer debug do código via &lt;a href=&#34;https://developers.google.com/web/tools/chrome-devtools/&#34; target=&#34;_blank&#34;&gt;Chrome DevTools&lt;/a&gt;, através de uma extensão desenvolvida exclusivamente para o React, como se fosse uma aplicação web de verdade!&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Utiliza Flexbox e CSS: &lt;/strong&gt;O Flexbox permite que você estruture sua camada visual de maneira muito simples e intuitiva. Esse é um ponto crítico em aplicações nativas. Tome o AutoLayout do iOS, como exemplo. Lidar com Constraints, Size Classes e outros recursos não são assim tão simples. Sem contar que essa fica sendo uma tarefa exclusiva do Desenvolvedor e não do Designer. Em contrapartida, se você já é um Webdesigner, pode aproveitar seu código CSS diretamente na plataforma &amp;#8211; ou solicitar que o Designer gere ele pra você incluir no seu app. Não é o máximo?&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;É extremamente extensível: &lt;/strong&gt;Você pode compartilhar o seu código JavaScript com o seu colega de trabalho que desenvolve em Objective-C, Swift ou Java sem maiores problemas. O framework possibilita a integração de módulos nativos, proporcionando um ambiente colaborativo ainda mais rico e transparente. Ou seja, sempre que houver a necessidade de implementar um módulo nativo &amp;#8211; ou reaproveitar algum que já tenha sido criado pela sua equipe &amp;#8211; basta importá-lo no seu projeto e ele estará disponível. Yes!&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Utiliza Polyfills para tirar vantagem dos recursos web: &lt;/strong&gt;APIs como &lt;code&gt;fetch&lt;/code&gt;, &lt;code&gt;geolocation&lt;/code&gt;, &lt;code&gt;setTimeout&lt;/code&gt; e o próprio &lt;code&gt;flexbox&lt;/code&gt; não existem em ambiente nativo, mas existem no Browser! Mais uma vez, a transição entre os ambientes web e nativo fica ainda mais simples de ser feita.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Simples gerenciamento das dependências do projeto:&lt;/strong&gt;Programadores JavaScript já estão acostumados a utilizar o NPM para gerir dependências e fazer build de suas aplicações. Trazer essa ferramenta para dentro do escopo nativo significa menos uma barreira adicional. Em um simples arquivo &lt;em&gt;package.json&lt;/em&gt; você é capaz de organizar todas as suas dependências como se estivesse trabalhando na web, sem a necessidade de aprender ferramentas como &lt;a href=&#34;https://cocoapods.org/&#34; target=&#34;_blank&#34;&gt;Cocoapods&lt;/a&gt; para iOS ou &lt;a href=&#34;http://gradle.org/&#34; target=&#34;_blank&#34;&gt;Gradle&lt;/a&gt; no caso do Android.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;O desenvolvimento mobile está mudando com a mesma velocidade da demanda de mercado. Mais e mais ferramentas vêm sendo desenvolvidas com o intuito de prover uma experiência mais rica, tanto para o desenvolvedor quanto para o usuário final. Frameworks como React Native surgem como uma prova de conceito de que existem falhas em ambos os ecossistemas e o que resta fazer é unir o melhor dos dois mundos. O mais importante, no fim das contas, é a tal da estratégia. Se &lt;a href=&#34;https://en.wikipedia.org/wiki/Time_to_market&#34; target=&#34;_blank&#34;&gt;tempo de mercado&lt;/a&gt; e produtividade fazem parte do seu vocabulário (ou de sua startup), fique de olho nas mudanças. Elas estão apenas começando&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Enfim&amp;#8230; é uma época excelente para ser um desenvolvedor JavaScript. 🙂&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Conheça mais sobre o React para web &lt;a href=&#34;http://tableless.com.br/react-javascript-reativo/&#34; target=&#34;_blank&#34;&gt;neste post&lt;/a&gt; do Davi Ferreira.&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introdução ao Redux</title>
+      <link>http://tableless.com.br/bem-vindo-ao-redux/</link>
+      <pubDate>Mon, 04 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/bem-vindo-ao-redux/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;a href=&#34;http://redux.js.org/docs/introduction/index.html&#34;&gt;Redux&lt;/a&gt;&lt;/strong&gt; é uma maneira de pensar o desenvolvimento de aplicações criada pelo &lt;a href=&#34;https://twitter.com/dan_abramov&#34; target=&#34;_blank&#34;&gt;@dan_abramov&lt;/a&gt; que teve como principio optimizar a ideia do &lt;a href=&#34;https://facebook.github.io/flux/&#34; target=&#34;_blank&#34;&gt;Flux&lt;/a&gt;. Ela foi criada para tentar optimizar alguns obstáculos que o Flux começou a enfrentar, e também veio para simplificar a implementação do mesmo. Inspirada em conceitos da linguagem funcional &lt;a href=&#34;http://elm-lang.org/&#34; target=&#34;_blank&#34;&gt;Elm&lt;/a&gt;, e de algumas bibliotecas JS como o &lt;a href=&#34;https://facebook.github.io/immutable-js/&#34; target=&#34;_blank&#34;&gt;Immutable.js&lt;/a&gt;,  o &lt;a href=&#34;https://github.com/Yomguithereal/baobab&#34; target=&#34;_blank&#34;&gt;Baobab&lt;/a&gt;, o  &lt;a href=&#34;https://github.com/Reactive-Extensions/RxJS&#34; target=&#34;_blank&#34;&gt;RxJs&lt;/a&gt; e o próprio Flux, o Redux veio com alguns paradigmas interessantes e um pouco diferenciados do Flux.&lt;/p&gt;
+
+&lt;h2 id=&#34;triforce-do-redux&#34;&gt;Triforce do Redux&lt;/h2&gt;
+
+&lt;p&gt;O Redux é composto de três princípios que formam e definem o seu conceito. Eles são:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Um único ponto de verdade&lt;/strong&gt; &amp;#8211; Todo o estado da aplicação é mantido em apenas um único objeto chamado de Store.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;O estado é imutável&lt;/strong&gt; &amp;#8211; O estado da aplicação é inalterável, a unica maneira de afeta-lo é emitindo uma Action com a mudança.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Mudanças são feitas apenas por funções puras&lt;/strong&gt; &amp;#8211; Reducers recebem as Actions emitidas e aplicam-nas ao estado. Sempre retornando um novo estado.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Agora com os princípios estabelecidos, vamos entender o que significa cada uma dessas parte da arquitetura.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-estado&#34;&gt;O que é Estado&lt;/h2&gt;
+
+&lt;p&gt;Quando se trata de aplicações reativas, ouvimos muito falar do tal estado (ou &lt;strong&gt;state&lt;/strong&gt; em inglês), mas nem todo mundo consegue assimilar de fato o que ele representa na aplicação.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Estado&lt;/strong&gt; é ser considerado &lt;em&gt;o conjunto de dados mantidos no momento em que sua aplicação está rodando no lado do cliente&lt;/em&gt;. Qualquer atualização que envolva alteração desses dados, automaticamente essa mudança irá alterar o estado.&lt;/p&gt;
+
+&lt;h2 id=&#34;views&#34;&gt;Views&lt;/h2&gt;
+
+&lt;p&gt;Views são os arquivos finais mostrados para o usuário, na maior parte dos frameworks views são todos os arquivos HTML renderizados pelo Browser, no caso do React em especifico,  as views são consideradas componentes React, onde o contexto é renderizado através da função &lt;code&gt;render()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;actions&#34;&gt;Actions&lt;/h2&gt;
+
+&lt;p&gt;Actions (ou ações) são objetos que servem para transmitir o que será enviado de sua view para sua store.&lt;/p&gt;
+
+&lt;p&gt;Actions possuem obrigatoriamente uma propriedade &lt;strong&gt;type&lt;/strong&gt; que indica o tipo de ação que será executada,  e que por sua vez devem ser escritas sempre como constantes.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+ type: &#39;ENVIAR_MENSAGEM&#39;,
+ text: &#39;Olá Redux&#39;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Neste caso estou criando uma action que será do tipo &lt;code&gt;ENVIAR_MENSAGEM e &lt;/code&gt;a propriedade &lt;strong&gt;text&lt;/strong&gt; é apenas um parâmetro que ela irá transmitir para a store.&lt;/p&gt;
+
+&lt;h2 id=&#34;reducers&#34;&gt;Reducers&lt;/h2&gt;
+
+&lt;p&gt;Actions descrevem de fato que algo aconteceu e o papel dos Reducers é transmitir o que aconteceu para alterar devidamente sua store&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;let initialState = {
+  mensagem: &#39;Olá Mundo&#39;
+}
+
+function olaMundo(state = initialState, action) {
+  switch (action.type) {
+    case ENVIAR_MENSAGEM:
+      return Object.assign({}, state, {
+        mensagem: action.text
+      })
+    
+    case APAGAR_MENSAGEM:
+      return Object.assign({}, state, {
+        mensagem: &#39;&#39;
+      })
+    
+    default:
+      return state
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Vamos analisar o código acima:&lt;/p&gt;
+
+&lt;p&gt;Primeiro gostaria de avisar que estou implementando usando ES2015, então sugiro para quem ainda não experimentou, de uma olhada &lt;a href=&#34;https://babeljs.io/docs/learn-es2015/&#34; target=&#34;_blank&#34;&gt;neste link&lt;/a&gt; que é uma referência bem bacana sobre o que mudou.&lt;/p&gt;
+
+&lt;p&gt;Em primeiro lugar eu declarei o estado inicial da aplicação com uma propriedade &lt;code&gt;mensagem&lt;/code&gt; e disse que seu valor é &lt;strong&gt;Olá Mundo&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Criei uma função chamada de &lt;strong&gt;olaMundo&lt;/strong&gt; com dois parâmetros (state que já declarado como meu estado inicial e a action que foi emitida para acionar este reducer) e nela que está a mágica. Note que ela possui um &lt;code&gt;switch&lt;/code&gt; com duas condições, explicarei apenas a primeira, pois as duas basicamente tem o mesmo resultado.&lt;/p&gt;
+
+&lt;p&gt;Quando a Ação &lt;code&gt;ENVIAR_MENSAGEM&lt;/code&gt; é emitida para este reducer, ele irá atribuir o valor que a action transmiti ao estado e a função &lt;code&gt;Object.Assign()&lt;/code&gt; será responsável por criar a cópia do estado e envia-lo à store.&lt;/p&gt;
+
+&lt;h2 id=&#34;store&#34;&gt;Store&lt;/h2&gt;
+
+&lt;p&gt;Além de manter o estado da aplicação como já falado antes. A Store também tem algumas outras responsabilidades, são Elas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Permitir a leitura do estado através do método &lt;code&gt;getState()&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;Permitir que o estado seja alterado pelos &lt;strong&gt;Reducers&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Registrar &lt;strong&gt;Listeners&lt;/strong&gt; para escutar o estado à partir do método &lt;code&gt;subscribe(listener)&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;Manipular os &lt;strong&gt;Listeners&lt;/strong&gt; registrados.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;migrando-para-o-redux&#34;&gt;Migrando Para o Redux&lt;/h2&gt;
+
+&lt;p&gt;Como é dito na própria documentação oficial do Redux, ele nao é algo que te deixará preso e impossibilitado de mudar, mas claro, caso queira adota-lo, algumas tomadas de decisões terão de ser feitas.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Redux is not a monolithic framework&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;O Redux também é uma maneira de se pensar, note que todos os passos que eu mostrei não são exclusivos do React, ou do Angular por exemplo, a biblioteca em si foi documentada usando o React, mas nada te impede de implementar a ideia em qualquer outro Framework como o Angular.&lt;/p&gt;
+
+&lt;p&gt;E para quem usa o Backbone também existe uma lib citada pelo próprio Redux para você que queira fazer a migração.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Lembrando que o Redux não é de forma alguma um concorrente do Flux, ou das outras implementações do mesmo. E que esse post é apenas uma breve introdução ao assunto. Deixei alguns links interessantes nas referencias para quem possam começar ou continuar a estudar Redux.&lt;/p&gt;
+
+&lt;h3 id=&#34;para-ler-mais&#34;&gt;Para ler mais&lt;/h3&gt;
+
+&lt;p&gt;Um ótimo exemplo para entender mais sobre o que eu escrevi acima pode ser encontrado em &lt;a href=&#34;https://github.com/reactjs/redux/tree/master/examples/todomvc&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;;&lt;/p&gt;
+
+&lt;p&gt;A documentação completa pode ser vista através &lt;a href=&#34;http://redux.js.org/&#34; target=&#34;_blank&#34;&gt;deste link&lt;/a&gt;;&lt;/p&gt;
+
+&lt;p&gt;E caso tenha lido o post sobre &lt;a href=&#34;http://tableless.com.br/introducao-ao-electron/&#34; target=&#34;_blank&#34;&gt;Electron.js&lt;/a&gt; e queira iniciar o desenvolvimento de aplicações Desktop usando React + Redux aqui esta o &lt;a href=&#34;https://github.com/henriquesosa/electron-intro&#34; target=&#34;_blank&#34;&gt;repositório&lt;/a&gt; que criei com uma breve introdução ao assunto.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/redbooth/backbone-redux&#34; target=&#34;_blank&#34;&gt;Migração do Backbone.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/wbuchwalter/ng-redux&#34; target=&#34;_blank&#34;&gt;Migrando o Angular.js para Redux.&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introdução ao webpack</title>
+      <link>http://tableless.com.br/introducao-ao-webpack/</link>
+      <pubDate>Mon, 23 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/introducao-ao-webpack/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-é-onde-vivem-o-que-comem&#34;&gt;O que é? (Onde vivem? O que comem?)&lt;/h2&gt;
+
+&lt;p&gt;webpack (com &amp;#8220;w&amp;#8221; minúsculo, respeitando a grafia do site oficial) é um empacotador de código para projetos web, como o &lt;a href=&#34;http://browserify.org/&#34;&gt;browserify&lt;/a&gt;. O que ele se propõe a fazer de diferente é focar em módulos da sua aplicação. Nem sempre ter todo e qualquer JavaScript/CSS do seu projeto num único arquivo é bom, por isso o webpack tem a ideia de &lt;a href=&#34;http://webpack.github.io/docs/code-splitting.html&#34;&gt;code splitting&lt;/a&gt;, onde você modulariza partes reaproveitáveis do seu projeto, facilitando o desenvolvimento independente, por exemplo, ter uma equipe trabalhando em um módulo X e outra num módulo Y, mas ambos de um mesmo projeto.&lt;/p&gt;
+
+&lt;p&gt;Não é sempre que a gente faz um projeto tão grande assim, a ponto de precisar separar equipes em diferentes módulos, mas o webpack também pode ser ideal para pequenos projetos.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando&#34;&gt;Instalando.&lt;/h2&gt;
+
+&lt;p&gt;É bem simples. Você tem o webpack como pacote do &lt;a href=&#34;http://nodejs.org/&#34;&gt;NodeJS&lt;/a&gt;. Se você não sabe o que é NodeJS, &lt;a href=&#34;http://tableless.com.br/o-que-nodejs-primeiros-passos-com-node-js/&#34;&gt;pare agora e leia esse artigo&lt;/a&gt;. Sugiro dar uma pesquisada sobre &lt;a href=&#34;https://www.npmjs.com/&#34;&gt;NPM&lt;/a&gt; antes. Se você entendeu tudo até aqui, pode escolher entre tê-lo globalmente ou somente num projeto:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;&amp;gt; npm install&amp;lt;/span&gt; webpack -g
+&amp;gt; npm install webpack --&lt;span class=&#34;hljs-built_in&#34;&gt;save&lt;/span&gt;-&lt;span class=&#34;hljs-built_in&#34;&gt;dev&lt;/span&gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;usando&#34;&gt;Usando&lt;/h2&gt;
+
+&lt;p&gt;É bem simples, também. O comando espera dois argumentos, um arquivo de entrada e um arquivo de saída que se não existir vai ser criado e se já existir será substituído.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ webpack &lt;span class=&#34;hljs-tag&#34;&gt;&amp;lt;&lt;span class=&#34;hljs-title&#34;&gt;entry&lt;/span&gt;&amp;gt;&lt;/span&gt; &lt;span class=&#34;hljs-tag&#34;&gt;&amp;lt;&lt;span class=&#34;hljs-title&#34;&gt;output&lt;/span&gt;&amp;gt;&lt;/span&gt;&lt;/pre&gt;
+
+&lt;p&gt;Você pode definir um arquivo de configuração pro comando com a opção &lt;code&gt;--config example.config.js&lt;/code&gt; se nada for passado o webpack vai procurar um arquivo chamado &lt;code&gt;webpack.config.js&lt;/code&gt; onde ele está sendo executado (normalmente raiz do projeto) se não achar, vai usar as configurações padrão, o famoso default.&lt;/p&gt;
+
+&lt;h2 id=&#34;loaders-e-preloaders&#34;&gt;Loaders e preloaders&lt;/h2&gt;
+
+&lt;p&gt;O webpack pode executar transformações nos arquivos durante o processo de empacotamento, essas transformações são, por exemplo, nossos famosos pré-processadores, React (JSX), Coffee, 6to5, SweetJS, TypeScript&amp;#8230; a lista de &lt;em&gt;loaders&lt;/em&gt; já prontos é muito boa e claro, você pode construir os seus se sentir falta de algum. Também tem Less, Sass, Stylus, Jade, Ejs, Mustache, Handlebars, Markdown&amp;#8230; não é só pra JavaScript. Em adição aos &lt;em&gt;loaders&lt;/em&gt;, você pode ter plugins, que executam processos mais complexos que as transformações, por exemplo, &lt;strong&gt;UglifyJsPlugin!&lt;/strong&gt; Yay!&lt;/p&gt;
+
+&lt;h2 id=&#34;bora-ver-na-pr-tica&#34;&gt;Bora ver na prática&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar um módulo super útil que nunca vi por aí que serve pra deixar as letras de um texto em caixa alta.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// upper.js
+module.exports = function(str) {
+    return str.toUpperCase();
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Agora a gente chama esse modulo no nosso arquivo de entrada, que não é necessariamente o principal, por isso a gente não vai chamar de &lt;em&gt;main.js&lt;/em&gt; ou &lt;em&gt;app.js.&lt;/em&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// entry.js
+var upper = require(&#39;./upper.js&#39;);
+console.log(upper(&#39;test&#39;));
+&lt;/pre&gt;
+
+&lt;p&gt;Sim! Como puderam perceber, podemos usar o padrão CommonJS pra criar nossos módulos, que é o mesmo padrão usado pelo NodeJS, então a gente pode usar alguns pacotes do NPM também, mesmo num build com target pro browser (módulo focado para o navegador). Vamos ver o que vai dar isso até agora.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;&amp;gt; webpack entry.js bundle.js&lt;/pre&gt;
+
+&lt;p&gt;O comando gera um &lt;em&gt;report&lt;/em&gt; simples no console mesmo, aqui ficou:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;Hash: 0b87391ad5027f171afe
+Version: webpack 1.5.3
+Time: 310ms
+Asset Size Chunks Chunk Names
+bundle.js 1706 0 [emitted] main
+[0] ./entry.js 63 {0} [built]
+[1] ./upper.js 67 {0} [built]
+&lt;/pre&gt;
+
+&lt;p&gt;Se você estiver acompanhando na prática, pode abrir o &lt;em&gt;bundle.js&lt;/em&gt; (se já não fez isso seguindo o instinto curioso de qualquer dev) e ver como fica o &lt;em&gt;build&lt;/em&gt;. Você vai notar que o &lt;strong&gt;webpack&lt;/strong&gt; tem um &lt;em&gt;boilerplate&lt;/em&gt; até considerável, mas é útil, ele tem um sistema de cache que performa os &lt;em&gt;builds&lt;/em&gt;, ele vai saber qual módulo mudou de verdade ao invés de pegar tudo e &lt;em&gt;buildar&lt;/em&gt; tudo de novo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;&amp;gt; node bundle.js
+TEST
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;react-t-na-moda-vamos-usar-&#34;&gt;React tá na moda, vamos usar.&lt;/h2&gt;
+
+&lt;p&gt;Vamos usar um arquivo de configuração pra vincular os arquivos &lt;em&gt;.jsx&lt;/em&gt; ao Loader certo, o webpack usa RegExp pra testar sobre o nome dos arquivos e vincular a um &lt;em&gt;loader&lt;/em&gt; e o arquivo de configuração é um módulo CommonJS. Já que estamos usando um arquivo para a configuração, vamos por nele qual é nosso &lt;em&gt;entry&lt;/em&gt; e qual é nosso &lt;em&gt;output&lt;/em&gt;. Mas antes, como usaremos módulos do NPM, vamos inicia-lo em nosso projeto e ter um arquivo declarando essas dependências, o &lt;em&gt;packages.json&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;&amp;gt; npm init
+&amp;gt; npm install react --save
+&amp;gt; npm install jsx-loader --save-dev
+&lt;/pre&gt;
+
+&lt;p&gt;Nosso arquivo de configuração vai ficar assim:&lt;/p&gt;
+
+&lt;pre&gt;// webpack.config.js
+module.exports = {
+    entry: &#34;./entry.jsx&#34;,
+    output: {
+        filename: &#34;bundle.js&#34;
+    },
+    module: {
+        loaders: [
+            {test: /\.jsx/, loader: &#39;jsx-loader&#39;}
+        ]
+    }
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Agora é só rodar o webpack, sem passar nada, ele já vai ler nas configurações.&lt;/p&gt;
+
+&lt;pre&gt;&amp;gt; webpack&lt;/pre&gt;
+
+&lt;p&gt;Tá lá! Você tem um &lt;em&gt;bundle&lt;/em&gt; com React pronto pra web.&lt;/p&gt;
+
+&lt;h2 id=&#34;concluindo&#34;&gt;Concluindo&lt;/h2&gt;
+
+&lt;p&gt;Essa foi só uma introdução e vale ressaltar que o webpack não é uma alternativa aos &lt;em&gt;tasks managers&lt;/em&gt; como Gulp e Grunt (caso alguém tenha entendido isso), mas só com o webpack você tem um &lt;em&gt;watcher&lt;/em&gt; pro &lt;em&gt;build&lt;/em&gt; acontecer logo que ele detecta uma alteração em um arquivo e o plugin do UglifyJS pra &lt;em&gt;minificar&lt;/em&gt; seu &lt;em&gt;build&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Isso aí, se ficou alguma dúvida, só chamar 😉&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>React: JavaScript reativo</title>
+      <link>http://tableless.com.br/react-javascript-reativo/</link>
+      <pubDate>Tue, 17 Sep 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/react-javascript-reativo/</guid>
+      <description>
+
+&lt;p&gt;Uma das palestras que chamou minha atenção na BrazilJS desse ano foi a de &lt;a href=&#34;http://www.phpied.com/files/react/slides.html&#34; target=&#34;_blank&#34;&gt;Stoyan Stefanov&lt;/a&gt;, autor do clássico &lt;a href=&#34;http://www.amazon.com/JavaScript-Patterns-Stoyan-Stefanov/dp/0596806752&#34; target=&#34;_blank&#34;&gt;JavaScript Patterns&lt;/a&gt;. Stoyan mostrou a biblioteca &lt;a href=&#34;http://facebook.github.io/react/&#34; target=&#34;_blank&#34;&gt;React&lt;/a&gt;, desenvolvida pelo pessoal do Facebook/Instagram.&lt;/p&gt;
+
+&lt;p&gt;Apesar de não ser um palestrante muito &lt;a href=&#34;https://twitter.com/davitferreira/status/371051778764468224&#34; target=&#34;_blank&#34;&gt;carismático&lt;/a&gt;, o código mostrado por Stoyan me deixou com a pulga atrás da orelha por possuir uma sintaxe para lá de esquisita e por fugir um pouco da abordagem mais conservadora adotada por bibliotecas e frameworks do mercado.&lt;/p&gt;
+
+&lt;p&gt;Depois de experimentar em algumas aplicações rápidas, fiquei bem surpreso e satisfeito com o resultado do uso da React.&lt;/p&gt;
+
+&lt;h2 id=&#34;javascript-declarativo&#34;&gt;JavaScript declarativo&lt;/h2&gt;
+
+&lt;p&gt;A React pode ser comparada com o framework AngularJS, do Google, por ser declarativo, ou seja, por fazer você, desenvolvedor, focar mais no resultado do que na forma como ele é atingido. Na prática, isso quer dizer que você vai escrever pouco código JavaScript e obter uma aplicação funcional em muito pouco tempo.&lt;/p&gt;
+
+&lt;p&gt;Outro grande diferencial da React é que ela trabalha com um pseudo-DOM em memória. Como vocês sabem (&lt;a href=&#34;http://tableless.com.br/jquery-dicas-de-otimizacao-e-performance/&#34; target=&#34;_blank&#34;&gt;ou deveriam saber&lt;/a&gt;), manipular o DOM é um dos principais causadores de gargalos de performance em sites e web apps e a React resolve isso de maneira brilhante trabalhando com um &amp;#8220;DOM&amp;#8221; próprio.&lt;/p&gt;
+
+&lt;p&gt;Toda vez que um elemento precisa ser renderizado, a biblioteca identifica as atualizações comparando o elemento no DOM e na memória, modificando somente o que foi de fato alterado, sem precisar renderizar todo o elemento.&lt;/p&gt;
+
+&lt;h2 id=&#34;javascript-reativo&#34;&gt;JavaScript reativo&lt;/h2&gt;
+
+&lt;p&gt;Outro ponto forte da biblioteca React é a criação de componentes reutilizáveis. No mesmo BrazilJS o Zeno &lt;a href=&#34;https://speakerdeck.com/zenorocha/um-futuro-chamado-web-components&#34; target=&#34;_blank&#34;&gt;palestrou&lt;/a&gt; sobre Web Components. A ideia aqui é parecida e a React faz sua própria implementação.&lt;/p&gt;
+
+&lt;p&gt;Todo componente React possui dois atributos principais: estado (state) e propriedades (props). Toda vez que o estado de um componente é alterado, ele é renderizado &amp;mdash; isto é JavaScript reativo. Além disso, ao renderizar novamente um componente, a React faz uma comparação entre o estado atual e o novo estado e renderiza apenas o que foi modificado, ou seja, não renderiza novamente todos os atributos e conteúdo do elemento no DOM.&lt;/p&gt;
+
+&lt;h2 id=&#34;jsx&#34;&gt;JSX&lt;/h2&gt;
+
+&lt;p&gt;Uma parte bem esquisita no primeiro contato com a biblioteca React é a utilização da sintaxe JSX, que transforma XML para JavaScript. Nos exemplos você verá markup HTML (sem ser string) no meio de código JavaScript.&lt;/p&gt;
+
+&lt;p&gt;É importante dizer que o uso de JSX é opcional. Também é importante dizer que JSX pode ser utilizado com qualquer código JavaScript, não só React.&lt;/p&gt;
+
+&lt;p&gt;Vejamos um exemplo simples:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// JSX:
+var Site,
+    tableless = &amp;lt;Site url=&#34;http://www.tableless.com.br&#34; nome=&#34;Tableless&#34; /&amp;gt;;&lt;/pre&gt;
+
+&lt;p&gt;Tranformando em JavaScript, o resultado é o seguinte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var tableless = Site({url:&#34;http://www.tableless.com.br&#34;, nome:&#34;Tableless&#34;});&lt;/pre&gt;
+
+&lt;p&gt;Notem que precisamos ter o objeto Site no escopo do JSX, mesmo ele não sendo utilizado. O XML é convertido para a chamada deste objeto onde os atributos da tag Site viram propriedades do objeto Site.&lt;/p&gt;
+
+&lt;p&gt;O site da React oferece um compilador online de JSX caso você queira brincar e experimentar com a sintaxe: &lt;a href=&#34;http://facebook.github.io/react/jsx-compiler.html&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://facebook.github.io/react/jsx-compiler.html&#34;&gt;http://facebook.github.io/react/jsx-compiler.html&lt;/a&gt;&lt;/a&gt;. O conceito e a implementação do JSX são tão interessantes que valeriam um artigo próprio.&lt;/p&gt;
+
+&lt;h2 id=&#34;aplicação-de-exemplo&#34;&gt;Aplicação de exemplo&lt;/h2&gt;
+
+&lt;p&gt;Depois de muita teoria, chegou a hora de ver a React na prática. Para nossa aplicação, vou utilizar o mesmo exemplo que mostrei no &lt;a href=&#34;http://tableless.com.br/criando-uma-aplicacao-simples-com-angularjs/&#34; target=&#34;_blank&#34;&gt;artigo sobre AngularJS&lt;/a&gt;, até mesmo para servir como um comparativo entre o código dessas duas bibliotecas.&lt;/p&gt;
+
+&lt;p&gt;Vamos começar com a estrutura inicial do nosso HTML:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-xml&#34;&gt;&amp;lt;!doctype html&amp;gt;
+&amp;lt;html&amp;gt;
+    &amp;lt;head&amp;gt;
+        &amp;lt;title&amp;gt;Lista de compras com ReactJS&amp;lt;/title&amp;gt;
+    &amp;lt;/head&amp;gt;
+    &amp;lt;body&amp;gt;
+        &amp;lt;div id=&#34;container&#34; class=&#34;container&#34;&amp;gt;&amp;lt;/div&amp;gt;
+        &amp;lt;script type=&#34;text/javascript&#34; src=&#34;react.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+        &amp;lt;script type=&#34;text/javascript&#34; src=&#34;JSXTransformer.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+    &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Pois é, isso é tudo que vamos escrever de HTML. Na verdade, ainda vamos escrever mais HTML, mas utilizando o formato JSX dentro do nosso código React.&lt;/p&gt;
+
+&lt;p&gt;Vamos declarar nosso script com o tipo (&amp;#8220;text/jsx&amp;#8221;) e o comentário (obrigatório) que indicam que nosso código utiliza sintaxe JSX e que ele precisa ser compilado em tempo real pelo JSX Transformer.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script type=&#34;text/jsx&#34;&amp;gt;
+/**
+* @jsx React.DOM
+*/
+&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;É claro que você não deve fazer isso em produção. A react oferece um set de ferramentas como um pacote npm que inclui um compilador de linha de comando para JSX. Para instalar, digite: &lt;strong&gt;npm install -g react-tools&lt;/strong&gt;. Feito isso, o comando &lt;strong&gt;jsx&lt;/strong&gt; estará disponível e ele pode ser utilizado para compilar e observar modificações em arquivos jsx. No nosso exemplo, para facilitar, vamos continuar utilizando JSX inline, compilado em tempo real. Mas, não façam isso em produção!&lt;/p&gt;
+
+&lt;p&gt;Dando sequência, vamos criar nosso primeiro componente, o container da nossa lista de compras:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;script type=&#34;text/jsx&#34;&amp;gt;
+/**
+* @jsx React.DOM
+*/
+var ShoppingBox = React.createClass({
+    render: function () {
+        return (
+            &amp;lt;div&amp;gt;
+                &amp;lt;h1&amp;gt;Minha Lista de Compras&amp;lt;/h1&amp;gt;
+            &amp;lt;/div&amp;gt;
+        );
+    }
+});
+
+React.renderComponent(
+    &amp;lt;ShoppingBox /&amp;gt;,
+    document.getElementById(&#39;container&#39;)
+);
+&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Estão vendo esse &lt;strong&gt;document.getElementById&lt;/strong&gt; aí em cima? Muito provavelmente essa é a única vez que você interage com o DOM diretamente em uma app React. Precisamos definir o elemento container da nossa app. O restante das operações será feita através do DOM em memória da React.&lt;/p&gt;
+
+&lt;p&gt;Nosso primeiro componente não faz muita coisa, apenas adiciona o seu markup. Vamos agora adicionar dois novos componentes: a tabela que listará os produtos em nossa lista e o formulário para cadastrar um novo produto.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;script type=&#34;text/jsx&#34;&amp;gt;
+/**
+* @jsx React.DOM
+*/
+var ShoppingBox = React.createClass({
+    render: function () {
+        return (
+            &amp;lt;div&amp;gt;
+                &amp;lt;h1&amp;gt;Minha Lista de Compras&amp;lt;/h1&amp;gt;
+                &amp;lt;ShoppingTable /&amp;gt;
+                &amp;lt;ShoppingForm /&amp;gt;
+            &amp;lt;/div&amp;gt;
+        );
+    }
+});
+
+var ShoppingTable = React.createClass({
+    render: function () {
+        return (
+            &amp;lt;table&amp;gt;
+                &amp;lt;thead&amp;gt;
+                    &amp;lt;tr&amp;gt;
+                        &amp;lt;th&amp;gt;Comprado?&amp;lt;/th&amp;gt;
+                        &amp;lt;th&amp;gt;Produto&amp;lt;/th&amp;gt;
+                        &amp;lt;th&amp;gt;Quantidade&amp;lt;/th&amp;gt;
+                    &amp;lt;/tr&amp;gt;
+                &amp;lt;/thead&amp;gt;
+                &amp;lt;tbody&amp;gt;
+                &amp;lt;/tbody&amp;gt;
+            &amp;lt;/table&amp;gt;
+        );
+    }
+});
+
+var ShoppingForm = React.createClass({
+    render: function () {
+        return (
+            &amp;lt;form&amp;gt;
+                &amp;lt;input type=&#34;text&#34; placeholder=&#34;Produto&#34; /&amp;gt;
+                &amp;lt;input type=&#34;number&#34; placeholder=&#34;Quantidade&#34; /&amp;gt;
+                &amp;lt;button type=&#34;submit&#34;&amp;gt;adicionar ítem&amp;lt;/button&amp;gt;
+            &amp;lt;/form&amp;gt;
+        );
+    }
+});
+
+React.renderComponent(
+    &amp;lt;ShoppingBox /&amp;gt;,
+    document.getElementById(&#39;container&#39;)
+);
+&lt;/pre&gt;
+
+&lt;p&gt;Agora, além do container, estamos renderizando também a tabela e o form. Nosso último componente é um componente para o produto em si. Adicionem o código abaixo antes da chamada &lt;strong&gt;React.renderComponent&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;...
+var Product = React.createClass({
+    render: function () {
+        return (
+            &amp;lt;tr&amp;gt;
+                &amp;lt;td&amp;gt;&amp;lt;input type=&#34;checkbox&#34; /&amp;gt;&amp;lt;/td&amp;gt;
+                &amp;lt;td&amp;gt;Produto Teste&amp;lt;/td&amp;gt;
+                &amp;lt;td&amp;gt;1&amp;lt;/td&amp;gt;
+            &amp;lt;/tr&amp;gt;
+        );
+    }
+});
+...&lt;/pre&gt;
+
+&lt;p&gt;Para o produto ser renderizado, precisamos adicionar o componente ao método render da tabela:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;...
+var ShoppingTable = React.createClass({
+    render: function () {
+        return (
+            &amp;lt;table&amp;gt;
+                &amp;lt;thead&amp;gt;
+                    &amp;lt;tr&amp;gt;
+                        &amp;lt;th&amp;gt;Comprado?&amp;lt;/th&amp;gt;
+                        &amp;lt;th&amp;gt;Produto&amp;lt;/th&amp;gt;
+                        &amp;lt;th&amp;gt;Quantidade&amp;lt;/th&amp;gt;
+                    &amp;lt;/tr&amp;gt;
+                &amp;lt;/thead&amp;gt;
+                &amp;lt;tbody&amp;gt;
+                    &amp;lt;Product /&amp;gt;
+                &amp;lt;/tbody&amp;gt;
+            &amp;lt;/table&amp;gt;
+        );
+    }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Hora de explicar algumas coisas. Por enquanto temos todos os nossos componentes renderizando HTML, sem nada dinâmico além dos próprios componentes. Os componentes são criados através do método &lt;strong&gt;React.createClass&lt;/strong&gt;, que recebe um objeto com os métodos do componente. O método &lt;strong&gt;render&lt;/strong&gt; é obrigatório em qualquer componente React e é responsável pela interface com o usuário.&lt;/p&gt;
+
+&lt;p&gt;Um componente pode ser renderizado dentro do método render de um outro componente ou em um container no DOM utilizando o método &lt;strong&gt;React.renderComponent&lt;/strong&gt;, que recebe como parâmetro os componentes e o elemento no DOM que os receberá.&lt;/p&gt;
+
+&lt;p&gt;Outra observação importante: um componente, para ser renderizado dentro de outro componente, precisa estar dentro de um elemento HTML válido. Por isso o nosso ShoppingBox possui um elemento &lt;div&gt; que contém os componentes ShoppingTable e ShoppingForm.&lt;/p&gt;
+
+&lt;p&gt;Agora vamos começar a tornar nossa aplicação mais dinâmica, utilizando passos pequenos. O primeiro passo é o carregamento de alguns produtos. Vejamos o código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;...
+var ShoppingTable = React.createClass({
+    render: function () {
+        return (
+            &amp;lt;table&amp;gt;
+                &amp;lt;thead&amp;gt;
+                    &amp;lt;tr&amp;gt;
+                        &amp;lt;th&amp;gt;Comprado?&amp;lt;/th&amp;gt;
+                        &amp;lt;th&amp;gt;Produto&amp;lt;/th&amp;gt;
+                        &amp;lt;th&amp;gt;Quantidade&amp;lt;/th&amp;gt;
+                    &amp;lt;/tr&amp;gt;
+                &amp;lt;/thead&amp;gt;
+                &amp;lt;tbody&amp;gt;
+                    &amp;lt;Product ammount={2} checked={false}&amp;gt;Leite
+                    &amp;lt;Product ammount={4} checked={true}&amp;gt;Negresco
+                &amp;lt;/tbody&amp;gt;
+            &amp;lt;/table&amp;gt;
+        );
+    }
+});
+...&lt;/pre&gt;
+
+&lt;p&gt;Na criação do componente da nossa tabela de produtos estamos passando dois produtos com seus respectivos atributos. A sintaxe do JSX permite que você passe dois tipos de valores para as propriedades: uma string (entre aspas) ou um valor JavaScript utilizando chaves. No exemplo acima estamos passando a quantidade como inteiro e o checked como booleano.&lt;/p&gt;
+
+&lt;p&gt;Precisamos agora alterar o código do nosso componente de Produto para receber e renderizar os produtos passados no componente Tabela, retirando nosso produto de teste que estava fixo no código.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;...
+var Product = React.createClass({
+    getInitialState: function() {
+        return {checked: this.props.checked || false};
+    },
+    toggle: function () {
+        this.setState({checked: !this.state.checked});
+    },
+    render: function () {
+        var checked = (this.state.checked ? &#39;checked&#39; : &#39;&#39;);
+        return (
+            &amp;lt;tr&amp;gt;
+                &amp;lt;td&amp;gt;&amp;lt;input type=&#34;checkbox&#34; checked={checked} onClick={this.toggle} /&amp;gt;&amp;lt;/td&amp;gt;
+                &amp;lt;td&amp;gt;{this.props.children}&amp;lt;/td&amp;gt;
+                &amp;lt;td&amp;gt;{this.props.ammount}&amp;lt;/td&amp;gt;
+            &amp;lt;/tr&amp;gt;
+        );
+    }
+});
+...&lt;/pre&gt;
+
+&lt;p&gt;O método &lt;strong&gt;getInitialState&lt;/strong&gt; é padrão para qualquer componente React. Ele deve retornar o estado inicial de um componente, seus valores default. No caso do nosso componente produto, verificamos se ele vem marcado ou não.&lt;/p&gt;
+
+&lt;p&gt;Implementamos também o método &lt;strong&gt;toggle&lt;/strong&gt;, que marca e desmarca um checkbox e que, em uma implementação final, deveria atualizar essa informação no servidor. Notem que o &lt;strong&gt;toggle&lt;/strong&gt; foi associado ao evento de clique do nosso checkbox na renderização do componente.&lt;/p&gt;
+
+&lt;p&gt;No método &lt;strong&gt;render&lt;/strong&gt; acessamos aqueles dois atributos principais que citamos anteriormente: state e props. Primeiro verificamos se o produto está marcado ou não e depois definimos sua quantidade e seu nome. O atributo &lt;strong&gt;children&lt;/strong&gt; busca qualquer nó filho do elemento JSX que utilizamos, no nosso caso um simples nó de texto com o nome do produto. Entenderam a diferença entre props e state? O primeiro é tudo passado via parâmetro no objeto do componente e o segundo é o estado do objeto, uma propriedade já definida anteriormente.&lt;/p&gt;
+
+&lt;p&gt;E se quiséssemos buscar nossos produtos iniciais de uma consulta ao servidor, em uma API que nos retornaria um objeto JSON com os produtos? Isso também é trivial com React. Vamos alterar nosso código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;...
+var PRODUCTS = [
+    {ammount: 2, checked: false, name: &#34;Leite&#34;},
+    {ammount: 4, checked: true, name: &#34;Negresco&#34;}
+];
+...
+var ShoppingBox = React.createClass({
+    render: function () {
+        return (
+            &amp;lt;div&amp;gt;
+                &amp;lt;h1&amp;gt;Minha Lista de Compras&amp;lt;/h1&amp;gt;
+                &amp;lt;ShoppingTable data={this.props.data} /&amp;gt;
+                &amp;lt;ShoppingForm /&amp;gt;
+            &amp;lt;/div&amp;gt;
+        );
+    }
+});
+...
+var ShoppingTable = React.createClass({
+    render: function () {
+        var productNodes = this.props.data.map(function (product) {
+            return &amp;lt;Product ammount={product.ammount} checked={product.checked}&amp;gt;{product.name}&amp;lt;/Product&amp;gt;;
+        });
+        return (
+            &amp;lt;table&amp;gt;
+                &amp;lt;thead&amp;gt;
+                    &amp;lt;tr&amp;gt;
+                        &amp;lt;th&amp;gt;Comprado?&amp;lt;/th&amp;gt;
+                        &amp;lt;th&amp;gt;Produto&amp;lt;/th&amp;gt;
+                        &amp;lt;th&amp;gt;Quantidade&amp;lt;/th&amp;gt;
+                    &amp;lt;/tr&amp;gt;
+                &amp;lt;/thead&amp;gt;
+                &amp;lt;tbody&amp;gt;
+                    {productNodes}
+                &amp;lt;/tbody&amp;gt;
+            &amp;lt;/table&amp;gt;
+        );
+    }
+});
+...
+React.renderComponent(
+    &amp;lt;ShoppingBox data={PRODUCTS} /&amp;gt;,
+    document.getElementById(&#39;container&#39;)
+);
+...&lt;/pre&gt;
+
+&lt;p&gt;Nessa nova rodada de código, alteramos o componente &lt;strong&gt;ShoppingBox&lt;/strong&gt; para receber um atributo data com o JSON dos produtos. Esse JSON é passado quando renderizamos o componente principal. Além disso, alteramos o método &lt;strong&gt;render&lt;/strong&gt; da tabela de produtos para criar cada componente produto encontrado no objeto JSON, resultando na variável local &lt;strong&gt;productNodes&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora, para finalizar, vamos implementar nosso formulário.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;...
+var ShoppingBox = React.createClass({
+    handleProductSubmit: function(product) {
+        var products = this.state.data;
+        products.push(product);
+        this.setState({data: products});
+    },
+    getInitialState: function() {
+        return {data: []};
+    },
+    render: function () {
+        return (
+            &amp;lt;div&amp;gt;
+                &amp;lt;h1&amp;gt;Minha Lista de Compras&amp;lt;/h1&amp;gt;
+                &amp;lt;ShoppingTable data={this.state.data} /&amp;gt;
+                &amp;lt;ShoppingForm onProductSubmit={this.handleProductSubmit} /&amp;gt;
+            &amp;lt;/div&amp;gt;
+        );
+    }
+});
+...
+var ShoppingForm = React.createClass({
+    handleSubmit: function() {
+        var name = this.refs.name.getDOMNode().value.trim(),
+            ammount = this.refs.ammount.getDOMNode().value.trim() || 1;
+        if (!name) {
+            return false;
+        }
+        this.props.onProductSubmit({name: name, ammount: ammount});
+        this.refs.name.getDOMNode().value = &#39;&#39;;
+        this.refs.ammount.getDOMNode().value = &#39;&#39;;
+        return false;
+    },
+    render: function () {
+        return (
+            &amp;lt;form class=&#34;form-inline&#34; role=&#34;form&#34; onSubmit={this.handleSubmit}&amp;gt;
+                &amp;lt;div class=&#34;form-group&#34;&amp;gt;
+                    &amp;lt;input type=&#34;text&#34; placeholder=&#34;Produto&#34; ref=&#34;name&#34; class=&#34;form-control&#34; /&amp;gt;
+                &amp;lt;/div&amp;gt;
+                &amp;lt;div class=&#34;form-group&#34;&amp;gt;
+                    &amp;lt;input type=&#34;number&#34; placeholder=&#34;Quantidade&#34; ref=&#34;ammount&#34; class=&#34;form-control&#34; /&amp;gt;
+                &amp;lt;/div&amp;gt;
+                &amp;lt;button type=&#34;submit&#34; class=&#34;btn btn-primary&#34;&amp;gt;adicionar ítem&amp;lt;/button&amp;gt;
+            &amp;lt;/form&amp;gt;
+        );
+    }
+});
+...&lt;/pre&gt;
+
+&lt;p&gt;O processo de envio é tratado em dois componentes diferentes. O componente do formulário trata o envio do próprio form, ativando o evento &lt;strong&gt;ProductSubmit&lt;/strong&gt;. O tratamento deste evento, por sua vez, fica a cargo do elemento &lt;strong&gt;ShoppingBox&lt;/strong&gt;, o container da nossa lista, responsável por atualizar seu estado e renderizar novamente nossa lista. Faz sentido, certo? Cada componente possui uma responsabilidade bem definida.&lt;/p&gt;
+
+&lt;p&gt;Para quem quiser conferir nosso exemplo funcionando: &lt;a href=&#34;http://tableless.github.io/exemplos/react/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://tableless.github.io/exemplos/react/&#34;&gt;http://tableless.github.io/exemplos/react/&lt;/a&gt;&lt;/a&gt; (código fonte: &lt;a href=&#34;https://github.com/tableless/exemplos/tree/gh-pages/react&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/tableless/exemplos/tree/gh-pages/react&#34;&gt;https://github.com/tableless/exemplos/tree/gh-pages/react&lt;/a&gt;&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h2 id=&#34;considerações-finais&#34;&gt;Considerações finais&lt;/h2&gt;
+
+&lt;p&gt;Apesar de ser uma biblioteca relativamente nova, a React já é utilizada em produção por Facebook e Instagram. Problemas como semântica e SEO, comuns a esse tipo de framework, continuam presentes. No entanto, se você vai desenvolver uma aplicação web, onde não temos esse tipo de preocupação, a React é uma ótima aposta como ferramenta.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

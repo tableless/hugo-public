@@ -1,0 +1,437 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/custom-post-types-wordpress/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/custom-post-types-wordpress/">Custom Post Types no WordPress</a></h1>
+  <p class="tb-hero-p">
+    
+    Crie tipos de conteúdo diferentes, agregue taxonomias e adicione campos personalizados. Deixe o seu site cada vez mais personalizado, trabalhando a fundo com o WordPress como CMS.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/paulo-rodrigues">Paulo Rodrigues</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Custom Post Types é a função que manipula os tipos de conteúdo no WordPress, ou seja, pode-se criar conteúdos personalizados a partir da sua demanda. Isso é uma das provas mais concretas que temos hoje um CMS muito forte que não serve apenas para criar blog e/ou sites de pequeno porte.</p>
+
+<h3 id="criando-custom-post-types">Criando Custom Post Types</h3>
+
+<p>Como o assunto é muito amplo, criarei com vocês um exemplo de Notícias.</p>
+
+<p>Em functions.php, adicione:</p>
+
+<pre class="lang-php">&lt;?php
+    add_action('init', 'type_post_noticias');
+ 
+    function type_post_noticias() { 
+        $labels = array(
+            'name' =&gt; _x('Not&iacute;cias', 'post type general name'),
+            'singular_name' =&gt; _x('Not&iacute;cia', 'post type singular name'),
+            'add_new' =&gt; _x('Adicionar Novo', 'Novo item'),
+            'add_new_item' =&gt; __('Novo Item'),
+            'edit_item' =&gt; __('Editar Item'),
+            'new_item' =&gt; __('Novo Item'),
+            'view_item' =&gt; __('Ver Item'),
+            'search_items' =&gt; __('Procurar Itens'),
+            'not_found' =&gt;  __('Nenhum registro encontrado'),
+            'not_found_in_trash' =&gt; __('Nenhum registro encontrado na lixeira'),
+            'parent_item_colon' =&gt; '',
+            'menu_name' =&gt; 'Not&iacute;cias'
+        );
+
+        $args = array(
+            'labels' =&gt; $labels,
+            'public' =&gt; true,
+            'public_queryable' =&gt; true,
+            'show_ui' =&gt; true,           
+            'query_var' =&gt; true,
+            'rewrite' =&gt; true,
+            'capability_type' =&gt; 'post',
+            'has_archive' =&gt; true,
+            'hierarchical' =&gt; false,
+            'menu_position' =&gt; null,
+'register_meta_box_cb' =&gt; 'noticias_meta_box',       
+            'supports' =&gt; array('title','editor','thumbnail','comments', 'excerpt', 'custom-fields', 'revisions', 'trackbacks')
+          );
+ 
+register_post_type( 'noticias' , $args );
+flush_rewrite_rules();
+}
+?&gt;
+</pre>
+
+<p>Primeiro adicionamos a função <strong>add_action</strong>, que vai abrigar dois parâmetros, o gancho (aonde vai rodar a função) e a função callback (a função que vai ser chamada com as informações). É função <strong>type_post_noticias</strong> que vai armazenar as informações do post. A variável <strong>$labels</strong>, está indicando os valores para cada título.</p>
+
+<p>A variável <strong>$args</strong> é onde vamos colocar as informações do post. Explico com mais detalhes abaixo.</p>
+
+<ul>
+<li><strong>labels:</strong> Indica a variável que contém as informações do label</li>
+<li><strong>public:</strong> determina se o conteúdo pode ser visto no painel de administração, por padrão é falso.</li>
+<li><strong>publicly_queryable:</strong> determina se a consulta pode ser realizada usando o argumento post_type, por padrão ele herda o valor do public.</li>
+<li><strong>show_ui:</strong> determina se telas de adicionar e editar o post devem ser adicionadas esse tipo de post, por padrão ele herda o valor do public.</li>
+<li><strong>query_var:</strong> evita consultas ou valores de sequência, por padrão é falso.</li>
+<li><strong>rewrite:</strong> reescrita do link, por padrão é verdadeiro.</li>
+<li><strong>capability_type:</strong> define o tipo de conteúdo que o tipo de post personalizado vai seguir, por padrão é post.</li>
+<li><strong>has_archive:</strong> permite os arquivos do tipo do post, por padrão é falso.</li>
+<li><strong>hierarchial:</strong> determina que o tipo do post é hierárquico (igual o das páginas), por padrão o valor é falso</li>
+<li><strong>menu_position:</strong> determina a ordem do menu, por padrão é null (ele ficará em baixo do menu dos comentários), mas pode receber esses seguintes valores
+
+<ul>
+<li><strong>5</strong> – Em baixo do menu Post;</li>
+<li><strong>10</strong> – Em baixo do menu mídia;</li>
+<li><strong>20</strong> – Em baixo do menu páginas;</li>
+<li><strong>60</strong> – Em baixo do primeiro separador;</li>
+<li><strong>100</strong> – Em baixo do segundo separador.</li>
+</ul></li>
+
+<li><p><strong>register_meta_box_cb:</strong> Retorna a função que chamará as caixas de meta para o formulário (irei explicar à frente).</p>
+
+<p>supports: determina os recursos aceitos para esse tipo de post, por padrão é vazio, por isso tem que definir, ele recebe esses valores:</p></p>
+
+<ul>
+<li><strong>author:</strong> o autor por uma área personalizada</li>
+<li><strong>title:</strong> inclui o título ao tipo do post</li>
+<li><strong>editor:</strong> inclui a área de conteúdo do post (VISUAL ou HTML) e uploader de mídia</li>
+<li><strong>excerpts:</strong> inclui o campo de resumo</li>
+<li><strong>thumbnail:</strong> determina se o tipo de post pode inlcuir miniatura de post (<a href="http://tableless.com.br/adicionando-post-thumbnail">http://tableless.com.br/adicionando-post-thumbnail</a>)</li>
+<li><strong>comments:</strong> inclui os comentários</li>
+<li><strong>trackbacks:</strong> inclui os trackbacks</li>
+<li><strong>custom-fields:</strong> inclui a baixa de Custom Fields e se os campos serão automaticamente salvos</li>
+<li><strong>revisions:</strong> inclui revisões (armazenadas ou exibidas)</li>
+<li><strong>page-attributes:</strong> inclui a caixa Page Attributes (são encontradas na inserção de páginas), contendo as opções de parent, template e menu order.</li>
+</ul></li>
+</ul>
+
+<p>Para o registro do post, é necessário a função <strong>register_post_type</strong>, que abrigará dois parâmetros. No primeiro é definido o nome do post (de preferência coloque em letras minúsculas e sem espaço, uma slug) e o outro agregará as demais informações do post, neste caso, a variável $args.</p>
+
+<h3 id="criando-taxonomias">Criando Taxonomias</h3>
+
+<p>A taxonomia é uma forma de criar um tipo de categoria para o tipo de conteúdo.</p>
+
+<p>Adicione em functions.php:</p>
+
+<pre class="lang-php">&lt;?php
+register_taxonomy(
+"categorias", 
+      "noticias", 
+      array(            
+        "label" =&gt; "Categorias", 
+            "singular_label" =&gt; "Categoria", 
+            "rewrite" =&gt; true,
+            "hierarchical" =&gt; true
+)
+);
+?&gt;
+</pre>
+
+<p>Com a função <strong>register_taxonomy</strong>, registramos uma nova taxonomia. O primeiro valor aonde será definido o nome da taxonomia (de preferência de letras minúsculas e sem espaço), o segundo valor é definido o nome do tipo de conteúdo registrado, onde essa taxonomia se agregará. No array, é definido informações já explicadas acima.</p>
+
+<h3 id="criando-campos-personalizados">Criando campos personalizados</h3>
+
+<p>Vamos trabalhar com a variável <strong>register_meta_box</strong> na criação de campos personalizados. Para essa variável, foi definido o valor <strong>noticias_meta_box</strong>, que será a nossa função callback, a função que vai ser chamada para a criação da meta.</p>
+
+<p>Em functions.php adicione:</p>
+
+<pre class="lang-php">&lt;?php
+function noticias_meta_box(){        
+        add_meta_box('meta_box_test', __('Meta Box'), 'meta_box_meta_test', 'noticias', 'side', 'high');
+}
+?&gt;
+</pre>
+
+<p>Retornamos a função definida para a criação de meta box, dentro dela definimos na função add_meta_box, os argumentos respectivamente, são:</p>
+
+<ul>
+<li><strong>$id:</strong> o nome para o meta box, destinado para uso interno</li>
+<li><strong>$title:</strong> o título da caixa</li>
+<li><strong>$callback:</strong> a função que irá ser chamada para imprimir o conteúdo da caixa</li>
+<li><strong>$page:</strong> o tipo de post que vão existir esse meta, para aparecer em mais de um, coloque dentro de um array, ex: array(‘noticias’, ‘post’)</li>
+<li><strong>$context:</strong> em qual parte da página de edição ela vai está (normal, advanced ou side [lateral])</li>
+<li><strong>$priority:</strong> em qual altura a caixa deve aparecer dentro da seção (high [alta], normal, low[baixa), a depender do valor, caixas com prioridade maior ficará encima</li>
+</ul>
+
+<p>Depois que definimos a meta, vamos agora retornar a função que vai imprimir o conteúdo da caixa:</p>
+
+<pre class="lang-php">&lt;?php
+function meta_box_meta_test(){
+      global $post;
+      $metaBoxValor = get_post_meta($post-&gt;ID, 'valor_meta', true); 
+?&gt;        
+    &lt;label for="inputValorMeta"&gt;Valor: &lt;/label&gt;
+    &lt;input type="text" name="valor_meta" id="inputValorMeta" value="&lt;?php echo $metaBoxValor; ?&gt;" /&gt;
+&lt;?php
+    }
+?&gt;
+</pre>
+
+<p>A função foi criada, dentro dela imprimi-se o que o Box vai conter. Para garantir que o campo retornado é necessário usar a função <strong>get_post_meta</strong>. Ela requer três argumentos: o ID do post, o nome do campo (se possível sem acentos e nem espaços) e um valor true/false determinando se a função deve retornar um valor individual ou não.</p>
+
+<p>Por fim criaremos a função que vai salvar as alterações dos campos personalizados:</p>
+
+<pre class="lang-php">&lt;?php
+    add_action('save_post', 'save_noticias_post');
+    
+    function save_noticias_post(){
+        global $post;        
+            update_post_meta($post-&gt;ID, 'valor_meta', $_POST['valor_meta']);
+    }
+?&gt; 
+</pre>
+
+<p>Inicialmente adicionamos a ação no gancho <strong>save_post</strong> com o retorno da função <strong>save_noticias_post</strong>. A função <strong>update_post_meta</strong> vai receber três argumentos, os dois primeiros serão iguais aos explicados na função <strong>get_post_meta</strong>, a única diferença que o ultimo argumento vai receber o valor alterado, caso seja alterado manualmente colocamos uma simples string com o outro valor. Neste caso a alteração será feita após o envio do formulário.</p>
+
+<h3 id="criando-um-loop-personalizado">Criando um LOOP personalizado</h3>
+
+<p>Vamos criar o LOOP personalizado de acordo com o tipo de post, caso ainda não tenha visto o que seja um LOOP, <a href="http://tableless.com.br/o-loop-do-wordpress" title="O Loop do WordPress - Tableless">veja</a></p>
+
+<p>Aonde queria que aparecesse a repetição, adicione:</p>
+
+<pre class="lang-php">&lt;?php 
+$newsArgs = array( 'post_type' =&gt; 'noticias', 'posts_per_page' =&gt; 4);                   
+                        
+      $newsLoop = new WP_Query( $newsArgs );                  
+                        
+      while ( $newsLoop-&gt;have_posts() ) : $newsLoop-&gt;the_post();              ?&gt;
+&lt;div class="news"&gt;                                
+        &lt;h1&gt;&lt;a href="&lt;?php the_permalink(); ?&gt;" title="&lt;?php the_title(); ?&gt;"&gt;&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h1&gt;
+            &lt;p&gt;&lt;strong&gt;&lt;?php the_time('F jS, Y') ?&gt;&lt;/strong&gt; by &lt;?php the_author_posts_link() ?&gt;&lt;/p&gt;
+            &lt;p&gt;&lt;?php the_content(); ?&gt;&lt;/p&gt;
+&lt;p&gt;&lt;?php echo get_the_term_list( $post-&gt;ID, 'categorias', 'Categorias: ', ' '); ?&gt;&lt;/p&gt;
+            &lt;p&gt;Retornando o campo personalizado: &lt;?php echo get_post_meta($post-&gt;ID, 'valor_meta', true); ?&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;?php endwhile; ?&gt;
+
+</pre>
+
+<p>O único termo desconhecido no Loop é a função <strong>get_the_term_list</strong>, que vai retornar a taxonomia para o post. O primeiro argumento é o valor do ID do post, o segundo valor é o nome definido da taxonomia, o terceiro valor é o que vai retonar antes de retornar as taxonomias e o último o separador.</p>
+
+<p>Não há dificuldade, o segredo está na variável <strong>$newsArgs</strong>, que é aonde você vai definir as opções da repetição, ele pode receber mais argumentos, que você pode ver em: <a href="http://codex.wordpress.org/Function_Reference/WP_Query">http://codex.wordpress.org/Function_Reference/WP_Query</a></p>
+
+<p>Para visualizar um post, editamos as informações no arquivo <strong>single.php</strong> do nosso tema, quando temos um Custom Post Type, por padrão ele lê com essa página, caso queria ter uma pagina só para o tipo de post, você pode uma nova página chamada <strong>single-{slug}.php</strong>, ou seja, essa slug seria trocada pelo nome do Custom Post Type, no nosso caso, <strong>single-noticias.php</strong>.</p>
+
+<h3 id="feeds-para-tipos-de-post-personalizado">Feeds para tipos de post personalizado</h3>
+
+<p>Se seu site existe muitos leitores via feed e você quer mostrar o conteúdo personalizado, como fazer? Lendo um livro, WordPress 3 Básico (livro que indico para iniciantes ou desenvolvedores natos), achei essa solução, muito simples.</p>
+
+<p>Em functions.php, adicione:</p>
+
+<pre class="lang-php">&lt;?php
+add_filter('pre_get_posts', 'postsfeed');
+    
+    function postsfeed($query){
+        if( is_feed() ){
+            $query-&gt;set('post_type', array('post', 'noticias'));
+        }
+        return $query;
+    }
+?&gt;
+
+</pre>
+
+<p>No código vamos adicionar o filtro para a consulta de conteúdo para o Feed, você pode adicionar inúmeros conteúdos personalizados.</p>
+
+<h3 id="reduzindo-o-código">Reduzindo o código</h3>
+
+<p>Existe mesmo a necessidade para registrar o Custom Post Type a quantidade de argumentos que foi mostrado? Não.</p>
+
+<p>Neste artigo fez questão de mostrar a maioria das variáveis, mas você pode reduzir o código ainda mais em futuras alterações. Em vez de registrar o seu conteúdo com aquele código enorme, pode-se substituir por:</p>
+
+<pre class="lang-php">&lt;?php
+add_action('init', 'type_post_noticias');
+ 
+    function type_post_noticias() { 
+        $labels = array(
+            'name' =&gt; _x('Not&iacute;cias', 'post type general name'),
+            'singular_name' =&gt; _x(Not&iacute;cia', 'post type singular name')
+        );
+
+        $args = array(
+            'labels' =&gt; $labels,
+            'public' =&gt; true,            
+            'register_meta_box_cb' =&gt; 'noticias_meta_box',
+            'supports' =&gt; array('title','editor','thumbnail','comments', 'excerpt', 'custom-fields', 'revisions', 'trackbacks')
+          );
+ 
+    register_post_type( 'noticias' , $args );
+    flush_rewrite_rules();  
+?&gt; 
+</pre>
+
+<p>Ambas as formas estão corretas.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

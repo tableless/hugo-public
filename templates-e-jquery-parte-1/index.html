@@ -1,0 +1,305 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/templates-e-jquery-parte-1/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/templates-e-jquery-parte-1/">Templates e jQuery – parte 1</a></h1>
+  <p class="tb-hero-p">
+    
+    Separar a programação do HTML é uma prática constante no desenvolvimento web. Durante muito tempo, no entanto, o JavaScript ficou de fora dessa. Chegou a hora de reverter este quadro.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/davi-ferreira">Davi Ferreira</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Na dieta diária do desenvolvedor front-end sempre esteve presente uma saladinha de HTML com JavaScript. Principalmente quando precisamos implementar um código com funcionalidades AJAX. Por exemplo, imagine que o bloco abaixo representa o retorno de um getJSON() da vida:</p>
+
+<pre class="lang-javascript">for( i in noticias )
+{
+    html = '&lt;li&gt;&lt;h3&gt;' + noticias[i]['titulo'] + '&lt;/h3&gt;';
+    html += '&lt;span class="data"&gt;' + noticias[i]['data_publicacao'] + '&lt;/span&gt;';
+    html += '&lt;span&gt;' + noticias[i]['chamada'] + '&lt;/span&gt;';
+    html += '&lt;span&gt;&lt;a href="' + link + '"&gt;Veja mais&lt;/a&gt;&lt;/span&gt;&lt;/li&gt;';
+}
+$('#noticias').append( html );</pre>
+
+<p>O problema do código acima é que ele é pouco reutilizável e de baixa legibilidade, além de ser muito chato de digitar e prestar manutenção, com todas as concatenações e índices. Foi pensando nisso que o pessoal da Microsoft desenvolveu o plugin <a href="http://github.com/jquery/jquery-tmpl" rel="external" title="jQuery.tmpl() no GitHub">jQuery.tmpl()</a> (tmpl de template, é claro), aceito recentemente na <a href="http://api.jquery.com/jquery.tmpl/" rel="external" title="Página do plugin jQuery.tmpl() na documentação oficial do jQuery">API oficial do jQuery</a>.</p>
+
+<p>Mas não confunda template com separar o JavaScript do HTML no sentido &#8220;físico&#8221; da coisa (colocando tudo que é JS em arquivos externos, outra boa prática para desenvolvedores). Neste texto você aprende a utilizar blocos de código HTML nas suas interações via jQuery, substituindo variáveis por conteúdos de saída/retorno.</p>
+
+<h2 id="definindo-seu-template">Definindo seu template</h2>
+
+<p>Quem já trabalhou ou já viu algum tipo de implementação de templates não vai ter muitas dificuldades para se adaptar à forma de templating do jQuery. O conceito básico é definir um modelo padrão para um bloco de código e trabalhar com substituição de variáveis. O template do bloco mostrado anteriormente seria o seguinte:</p>
+
+<pre class="lang-javascript">var tpl_noticia = '&lt;li&gt;&lt;h3&gt;${titulo}&lt;/h3&gt;&lt;span class="data"&gt;${data_publicacao}&lt;/span&gt;&lt;span&gt;${chamada}&lt;/span&gt;&lt;span&gt;&lt;a href="${link}"&gt;Veja mais&lt;/a&gt;&lt;/span&gt;&lt;/li&gt;';</pre>
+
+<p>Abaixo você confere uma chamada simples para nosso template. (Note que os dados de exemplo estão armazenados em um objeto JSON.)</p>
+
+<pre class="lang-javascript">var noticias = [
+    {
+        titulo : 'Notícia 1',
+        data_publicacao : '28/10/2010 20h31',
+        chamada : 'Chamada da notícia 1',
+        link : '/noticia-1/',
+    },
+    {
+        titulo : 'Notícia 2',
+        data_publicacao : '28/10/2010 20h32',
+        chamada : 'Chamada da notícia 2',
+        link : '/noticia-2/',
+    },
+    {
+        titulo : 'Notícia 3',
+        data_publicacao : '28/10/2010 20h33',
+        chamada : 'Chamada da notícia 3',
+        link : '/noticia-3/',
+    }
+];
+
+$(function(){
+    // aplica o template tpl_noticias aos dados e adiciona a lista ao elemento ul
+    $.tmpl( tpl_noticia, noticias ).appendTo( 'ul#noticias' );
+});</pre>
+
+<p>Além do .appendTo(), você pode ainda utilizar os seguintes métodos para trabalhar co templates: .prependTo(), .insertAfter() e .insertBefore().</p>
+
+<h2 id="tipos-de-dados">Tipos de dados</h2>
+
+<h3 id="var">${var}</h3>
+
+<p>Provavelmente a que você vai utilizar com mais frequência. Representa variáveis ou expressões JavaScript, é um atalho para {= expr/var}.</p>
+
+<pre class="lang-javascript">var tpl = '&lt;li&gt;${nome}&lt;/li&gt;';
+                
+// exemplo de express&atilde;o
+var tpl = '&lt;p class=""&gt;${formataData( data_publicacao )}&lt;/p&gt;';
+
+var formataData = function( sdata )
+{
+    var meses = { 
+        1 : 'Janeiro', 2 : 'Fevereiro', 3 : 'Mar&ccedil;o', 4 : 'Abril', 
+        5 : 'Maio', 6 : 'Junho', 7 : 'Julho', 8 : 'Agosto', 9 : 'Setembro', 
+        10 : 'Outubro', 11 : 'Novembro', 12 : 'Dezembro' 
+    };
+    var mes = parseInt( sdata.substr( 3, 2 ), 10 );
+    var dia = sdata.substr( 0, 2 );
+    var ano = sdata.substr( 6, 4 );
+    return dia + ' de ' + meses[mes] + ' de ' + ano;
+};</pre>
+
+<h3 id="each-each">{{each}}{{/each}}</h3>
+
+<p>Define um loop entre elementos de um array ou objeto javascript, dentro do escopo do template. Assim como a tag para expressões, também aceita métodos para tratar o valor. Suas variáveis internas são $index e $value (chave e valor do array/objeto, respectivamente).</p>
+
+<pre class="lang-javascript">var tpl_artigo = '&lt;p&gt;&lt;h3&gt;${titulo}&lt;/h3&gt;{{each autores}}${$value.toUpperCase()}&lt;br /&gt;{{/each}}&lt;/p&gt;';
+
+var artigos = [
+    { 
+        titulo: 'Javascript &amp; Acessibilidade', 
+        autores: ['Davi Ferreira', 'Let&iacute;cia Stallone'],
+        abstract: '&lt;strong&gt;Acessibilidade e Javascript&lt;/strong&gt;',
+        },
+    { 
+        titulo: 'Humor no Javascript', 
+        autores: ['Let&iacute;cia Stallone'],
+        abstract: '&lt;strong&gt;Javascript pode ser bem engra&ccedil;ado&lt;/strong&gt;',
+    },
+    { 
+        titulo: 'Boas pr&aacute;ticas', 
+        autores: '',
+        abstract: '&lt;strong&gt;Boas pr&aacute;ticas de desenvolvimento web&lt;/strong&gt;',
+    }
+];</pre>
+
+<h3 id="if-else-if">{{if}}{{else}}{{/if}}</h3>
+
+<p>Implementa condicionais dentro do template. Executa (ou não) uma determinada condição, baseada no valor/retorno da variável/expressão. Esta tag interpreta como <em>false</em> qualquer valor nulo, 0 ou <em>undefined</em>.</p>
+
+<pre class="lang-javascript">var tpl_artigo = '&lt;li&gt;&lt;h3&gt;${titulo}&lt;/h3&gt;{{if autores.length}}Autor(es): {{else}}sem autor cadastrado{{/if}}{{each autores}}${$value.toUpperCase()}&lt;br /&gt;{{/each}}&lt;/li&gt;';</pre></p> 
+
+### {{html}}
+
+Caso você tente dar a saída no template de um conteúdo com tags HTML o jquery.tmpl() vai transformar as marcações em texto puro. Para que a saída aconteça também em HTML é necessário utilizar a tag especial {{html}}. 
+
+<pre class="lang-javascript">var tpl_artigo = '&lt;li&gt;&lt;h3&gt;${titulo}&lt;/h3&gt;{{if autores.length}}Autor(es): {{else}}sem autor cadastrado{{/if}}{{each autores}}${$value.toUpperCase()}&lt;br /&gt;{{/each}}{{html abstract}}&lt;/li&gt;';</pre>
+
+<p>Deu pra perceber a potencialidade deste plugin para aplicações mais elaboradas, com diversas interações via AJAX? Você pode ter um .js só para seus modelos e parar de concatenar tudo e todos diretamente no código. As tags são bastante flexíveis, permitindo tanto variáveis simples como expressões mais avançadas.</p>
+
+<p>Na parte 2 deste artigo veremos como implementar os templates com caching e ainda as tags avançadas {{wrap}} e {{tmpl}}.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

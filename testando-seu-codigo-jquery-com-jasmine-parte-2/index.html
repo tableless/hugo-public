@@ -1,0 +1,346 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/testando-seu-codigo-jquery-com-jasmine-parte-2/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/testando-seu-codigo-jquery-com-jasmine-parte-2/">Testando seu código jQuery com Jasmine – Parte 2</a></h1>
+  <p class="tb-hero-p">
+    
+    Nesta segunda parte você conhece um pouco mais sobre o framework de testes Jasmine. Aprenda a criar matchers personalizados e testar AJAX e métodos em objetos.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/davi-ferreira">Davi Ferreira</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Jasmine é um framework para testes focado em BDD (<em>Behavior Driven Development</em>). Na <a href="http://tableless.com.br/testando-seu-codigo-jquery-com-jasmine-parte-1/">primeira parte</a> deste artigo aprendemos seus métodos básicos e realizamos alguns testes simples. Agora chegou a hora de ir um pouco além e conhecer técnicas mais avançadas.</p>
+
+<p>Vale lembrar que, em nossos exemplos, utilizamos uma versão modificada da biblioteca, adaptada para jQuery: <a href="https://github.com/velesin/jasmine-jquery">jasmine-jquery</a>.</p>
+
+<p>Utilizaremos os dados de um outro artigo, <a href="http://tableless.com.br/conteudo-sob-demanda-com-jquery/">Conteúdo sob demanda com jQuery</a>. O objetivo é testar as solicitações AJAX do carregamento da lista de tweets do Tableless.</p>
+
+<h3 id="fixtures">Fixtures</h3>
+
+<p>Antes dos testes propriamente ditos vamos conhecer uma forma prática de carregar nosso conteúdo HTM. Fixtures são arquivos carregados através do método <strong>loadFixtures</strong>. Esta funcionalidade, aliás, está disponível apenas no jasmine-jquery.</p>
+
+<p>Vamos salvar o código HTML abaixo no arquivo <strong>tweets.html</strong>, dentro do diretório de fixtures.</p>
+
+<p>[cce lang=&#8221;xml&#8221;]</p>
+
+<div id=&#8221;container&#8221;>
+    
+<h1>Tweets do Tableless</h1>
+    
+<ul id=&#8221;lista-tweets&#8221;></ul>
+    
+<p><a href=&#8221;#&#8221; id=&#8221;carrega-tweets&#8221; data-pagina=&#8221;1&#8243;>Mais!</a></p>
+  
+</div>
+  
+
+<p>[/cce]</p>
+
+<p>Por padrão, o jasmine-jquery procura as fixtures no diretório <strong>spec/javascripts/fixtures</strong>. Como na primeira parte do artigo indicamos uma estrutura diferente, utilizando o diretório <strong>spec/fixtures</strong>, precisamos atualizar a propriedade fixturesPath nas configurações do Jasmine.</p>
+
+<p>[cce lang=&#8221;javascript&#8221;]</p>
+
+<p>jasmine.getFixtures().fixturesPath = &#8216;spec/fixtures/&#8217;;</p>
+
+<p>describe(&#8216;Exibição dos últimos tweets do Tableless&#8217;, function(){</p>
+
+<p>beforeEach(function(){</p>
+
+<p>loadFixtures(&#8216;tweets.html&#8217;);</p>
+
+<p>});</p>
+
+<p>it(&#8216;Deve carregar na primeira página&#8217;, function(){</p>
+
+<p>expect($(&#8216;#carrega-tweets&#8217;).data(&#8216;pagina&#8217;)).toEqual(1);</p>
+
+<p>});</p>
+
+<p>});</p>
+
+<p>[/cce]</p>
+
+<p>Outra forma de utilizarmos fixtures é carregando diretamente no código, sem a necessidade de um arquivo HTML. Esse caso é mais indicado para templates mais simples, com poucos elementos.</p>
+
+<p>[cce lang=&#8221;javascript&#8221;]</p>
+
+<p>setFixtures(&#8216;<ul id=&#8221;lista-tweets&#8221; />&#8217;);</p>
+
+<p>[/cce]</p>
+
+<h3 id="testando-código-assíncrono">Testando código assíncrono</h3>
+
+<p>Testar código AJAX pode ser um pouco mais complicado. No nosso exemplo, como acessamos uma URL externa à nossa aplicação, o tempo de resposta vai depender de vários fatores, como velocidade da conexão, estabilidade do Twitter etc.</p>
+
+<p>Os métodos <strong>runs</strong> e <strong>waits</strong> são úteis para tentar simular esse tempo de carregamento. O <strong>runs</strong> executa os testes e funções um escopo próprio e, além disso, são executados em sequência (quando um termina, o outro começa). Já o método <strong>waits</strong> funciona como uma espécie de pausa/sleep e recebe como parâmetro o tempo em milissegundos.</p>
+
+<p>[cce lang=&#8221;javascript&#8221;]</p>
+
+<p>it(&#8216;Deve carregar os últimos 20 tweets&#8217;, function(){</p>
+
+<p>runs(function(){</p>
+
+<p>Tableless.retorna_tweets(1);</p>
+
+<p>});</p>
+
+<p>waits(1500);</p>
+
+<p>runs(function(){</p>
+
+<p>expect($(&#8216;#lista-tweets li&#8217;).length).toEqual(20);</p>
+
+<p>});</p>
+
+<p>});</p>
+
+<p>[/cce]</p>
+
+<h3 id="espionando-métodos">Espionando métodos</h3>
+
+<p>Às vezes precisamos testar se um método de um objeto é chamado (e com que parâmetros) &mdash; e não testar apenas seu resultado. O Jasmine oferece a função <strong>spyOn</strong> para capturar e validar essas chamadas. O <strong>spyOn</strong> recebe dois parâmetros: o objeto e o nome do método.</p>
+
+<p>[cce lang=&#8221;javascript&#8221;]</p>
+
+<p>it(&#8216;Deve executar função para retornar tweets&#8217;, function(){</p>
+
+<p>spyOn(Tableless, &#8216;retorna_tweets&#8217;);</p>
+
+<p>Tableless.retorna_tweets(1);</p>
+
+<p>expect(Tableless.retorna_tweets).toHaveBeenCalledWith(1);</p>
+
+<p>});</p>
+
+<p>[/cce]</p>
+
+<p>Acima testamos se o método foi chamado com o parâmetro 1 (página). Poderíamos ter utilizado também <strong>toHaveBeenCalled</strong>, testando apenas a chamada. As funções de spy podem ainda ser combinadas com o not, por exemplo:</p>
+
+<p>[cce lang=&#8221;javascript&#8221;]</p>
+
+<p>expect(Tableless.retorna_tweets).not.toHaveBeenCalled();</p>
+
+<p>[/cce]</p>
+
+<h3 id="matchers-personalizados">Matchers personalizados</h3>
+
+<p>Outra funcionalidade poderosa do Jasmine é a possibilidade de criação de matchers personalizados. Os matchers são asserts para seus tests. No exemplo abaixo, criamos o matcher <strong>toBeATweet</strong> para validar se um elemento possui a classe &#8220;tweet&#8221;.</p>
+
+<p>[cce lang=&#8221;javascript&#8221;]</p>
+
+<p>beforeEach(function(){</p>
+
+<p>this.addMatchers({</p>
+
+<p>toBeATweet: function(){</p>
+
+<p>return this.actual.hasClass(&#8216;tweet&#8217;);</p>
+
+<p>}</p>
+
+<p>});</p>
+
+<p>});</p>
+
+<p>[/cce]</p>
+
+<p>[cce lang=&#8221;javascript&#8221;]</p>
+
+<p>expect($(&#8216;#lista-tweets li:first&#8217;)).toBeATweet();</p>
+
+<p>[/cce]</p>
+
+<p>O método addMatchers deve ser executado dentro do beforeEach, utilizando o Jasmine como contexto. Notem que ele recebe um objeto que pode conter um ou mais matchers personalizados. No código, <strong>this.actual</strong> representa a variável, elemento, ou objeto que estará sendo passado ao <strong>expect</strong>.</p>
+
+<h3 id="outros-projetos-utilizando-jasmine">Outros projetos utilizando Jasmine</h3>
+
+<p>Nesses dois artigos vocês conheceram o jasmine-jquery, mas existem diversos outros projetos baseados no framework Jasmine, incluindo adaptações para NodeJS, Rails e iPhone e snippets para Vim e TextMate. A lista completa você confere no <a href="https://github.com/pivotal/jasmine/wiki/Related-projects">wiki do projeto no Github</a>.</p>
+
+<h3 id="referências">Referências</h3>
+
+<ul>
+<li><a href="https://github.com/tableless/exemplos/tree/gh-pages/jasmine-parte-2">Código fonte dos exemplos deste artigo</a></li>
+<li><a href="http://tableless.github.com/exemplos/jasmine-parte-2/tests/SpecRunner.html">SpecRunner dos exemplos rodando no browser</a></li>
+<li><a href="http://f.souza.cc/2011/05/testing-jquery-plugins-with-jasmine/">Testing jQuery plugins with Jasmine</a></li>
+<li><a href="http://testdrivenwebsites.com/2010/07/29/html-fixtures-in-jasmine-using-jasmine-jquery/">HTML fixtures in Jasmine (using jasmine-jquery)</a></li>
+</ul>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

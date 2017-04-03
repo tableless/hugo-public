@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>O Slideshow Com Javascript on Tableless</title>
+    <link>http://tableless.com.br/tags/o-slideshow-com-javascript/index.xml</link>
+    <description>Recent content in O Slideshow Com Javascript on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/o-slideshow-com-javascript/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando slideshow do zero com javascript puro</title>
+      <link>http://tableless.com.br/criando-slideshow-zero-com-javascript-puro-2/</link>
+      <pubDate>Sat, 15 Mar 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-slideshow-zero-com-javascript-puro-2/</guid>
+      <description>
+
+&lt;p&gt;Depois de criar um artigo no devmedia de &lt;a href=&#34;http://www.devmedia.com.br/criando-slideshow-do-zero-com-jquery-sem-usar-plugins/28297&#34; title=&#34;Clique para ir ao artigo&#34;&gt;como criar um slideshow do zero em Jquery sem plugins&lt;/a&gt;, recebi vários pedidos para fazer o mesmo com javascript, também pude notar que muitas pessoas estavam com dificuldade em colocar link nas imagens e os botões de anterior/próximo. Veremos neste artigo como criar um slideshow do zero apenas com javascript e uma dose elegante de CSS3, com controladores, legendas e links nas imagens.&lt;/p&gt;
+
+&lt;p&gt;Abaixo o resultado final do nosso slide:&lt;/p&gt;
+
+&lt;div id=&#34;attachment_40991&#34; style=&#34;width: 579px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/02/slide.fw_.png&#34;&gt;&lt;img class=&#34;size-medium wp-image-40991&#34; title=&#34;Criando slideshow do zero com javascript puro&#34; alt=&#34;Criando slideshow do zero com javascript puro&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/02/slide.fw_-569x310.png&#34; width=&#34;569&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/02/slide.fw_-569x310.png 569w, uploads/2014/02/slide.fw_-308x168.png 308w, uploads/2014/02/slide.fw_.png 1365w&#34; sizes=&#34;(max-width: 569px) 100vw, 569px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Resultado final do nosso slide
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&#34;estrutura-html&#34;&gt;Estrutura HTML&lt;/h2&gt;
+
+&lt;p&gt;Nossa estrutura html é bem simples, veja na listagem 1:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 1&lt;/strong&gt; &amp;#8211; Estrutura html do slideshow&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;figure&amp;gt;
+   &amp;lt;span class=&#34;trs next&#34;&amp;gt;&amp;lt;/span&amp;gt;
+   &amp;lt;span class=&#34;trs prev&#34;&amp;gt;&amp;lt;/span&amp;gt;
+
+   &amp;lt;div id=&#34;slider&#34;&amp;gt;
+      &amp;lt;a href=&#34;#&#34; class=&#34;trs&#34;&amp;gt;&amp;lt;img src=&#34;imagem1.jpg&#34; alt=&#34;Legenda da imagem 1&#34; /&amp;gt;&amp;lt;/a&amp;gt;
+      &amp;lt;a href=&#34;#&#34; class=&#34;trs&#34;&amp;gt;&amp;lt;img src=&#34;imagem2.jpg&#34; alt=&#34;Legenda da imagem 2&#34; /&amp;gt;&amp;lt;/a&amp;gt;
+   &amp;lt;/div&amp;gt;
+
+   &amp;lt;figcaption&amp;gt;&amp;lt;/figcaption&amp;gt;
+&amp;lt;/figure&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Onde:&lt;/p&gt;
+
+&lt;p&gt;&lt;figure&gt;&lt;/figure&gt; &amp;#8211;&amp;gt; Figura que será responsável de gerenciar todos os elementos do nosso slide&lt;/p&gt;
+
+&lt;p&gt;&lt;span class=&amp;#8221;next trs&amp;#8221;&gt;, &lt;span class=&amp;#8221;prev trs&amp;#8221;&gt; &amp;#8211;&amp;gt; Serão os controladores do nosso slide&lt;/p&gt;
+
+&lt;p&gt;&lt;div id=&amp;#8221;slide&amp;#8221;&gt; &amp;#8211;&amp;gt; div que abriga as imagens do nosso slide, facilitará nosso controle no javascript&lt;/p&gt;
+
+&lt;p&gt;&lt;figcaption&gt; &amp;#8211;&amp;gt; Legenda do slide, será baseada pelo o atributo &amp;#8220;alt&amp;#8221; das imagens&lt;/p&gt;
+
+&lt;p&gt;Let&amp;#8217;s go! vamos agora estilizar nosso slide.&lt;/p&gt;
+
+&lt;h2 id=&#34;estilo-css&#34;&gt;Estilo CSS&lt;/h2&gt;
+
+&lt;p&gt;Abaixo na listagem 2, o nosso estilo css, não explicarei a fundo nossa estilização, irei focar apenas nos principais pontos&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 2 &amp;#8211; &lt;/strong&gt;Estilo css&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;&amp;lt;style&amp;gt;
+* {margin: 0; padding: 0;}
+body {background: #000}
+a,img {border: none;}
+.trs {-webkit-transition:all ease-out 0.5s;
+    -moz-transition:all ease-out 0.5s;
+    -o-transition:all ease-out 0.5s;
+    -ms-transition:all ease-out 0.5s;
+    transition:all ease-out 0.5s;}  
+#slider {position: relative; z-index: 1;}
+#slider a { position: absolute; top: 0; left: 0; opacity: 0;filter:alpha(opacity=0);}
+.ativo {opacity: 1!important; filter:alpha(opacity=100)!important;}
+
+/*controladores*/
+span {background: #0190EE; cursor: pointer; opacity: 0;filter:alpha(opacity=0); position: absolute; bottom: 40%; width: 43px; height: 43px; z-index: 5;}
+.next {right: 10px;}
+.next:before,.next:after {left: 21px;}
+.next:before {
+    -webkit-transform: rotate(-42deg);
+    top: 5px;
+}
+.next:after {
+    -webkit-transform: rotate(-132deg);
+    top: 19px;
+}
+.next:before,.next:after,.prev:before,.prev:after {content: &#34;&#34;;
+    height: 20px;
+    background: #fff;
+    width: 1px;
+    position: absolute;
+}
+.prev {left: 10px;}
+.prev:before,.prev:after {left: 18px;}
+.prev:before {
+    -webkit-transform: rotate(42deg);
+    top: 5px;
+}
+.prev:after {
+    -webkit-transform: rotate(132deg);
+    top: 19px;
+}
+
+figure:hover span {opacity: 0.76;filter:alpha(opacity=76);}
+    figure {
+    max-width: 937px;
+    height: 354px;
+    position: relative;
+    overflow: hidden;
+    margin: 50px auto;
+}
+
+figcaption {padding-left: 20px;color: #fff; font-family: &#34;Kaushan Script&#34;,&#34;Lato&#34;,&#34;arial&#34;; font-size: 22px; background: rgba(1, 144, 238, 0.76); width: 100%; position: absolute; bottom: 0; left: 0; line-height: 55px; height: 55px; z-index: 5}
+&amp;lt;/style&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Onde:&lt;/p&gt;
+
+&lt;p&gt;.trs &amp;#8211;&amp;gt; class que define a transição das imagens do nosso slide e dos nossos controladores&lt;/p&gt;
+
+&lt;p&gt;.ativo &amp;#8211;&amp;gt; class que define qual imagem está ativa&lt;/p&gt;
+
+&lt;p&gt;figure:hover span &amp;#8211;&amp;gt; faz com que mostre nossos controladores ao passar o mouse no nosso slide&lt;/p&gt;
+
+&lt;p&gt;Parece que tudo está indo bem, vamos começar a brincar agora com nosso slider, gogo ninja lvl2 😀&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h2 id=&#34;javascript&#34;&gt;Javascript&lt;/h2&gt;
+
+&lt;p&gt;Veremos cada passo do código javascript bem detalhado para que não haja dúvida alguma ao termino do post.&lt;/p&gt;
+
+&lt;p&gt;Primeiramente vamos criar uma função &lt;strong&gt;setaImagem &lt;/strong&gt;e colocar para que ela rode quando a janela (window) for carregada:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 3&lt;/strong&gt; &amp;#8211; Criação da função &amp;#8220;setaImagem&amp;#8221;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+   function setaImagem(){
+   }
+   window.addEventListener(&#34;load&#34;,setaImagem,false);
+&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;onde:&lt;/p&gt;
+
+&lt;p&gt;window.addEventListener(&amp;#8220;load&amp;#8221;,setaImagem,false); &amp;#8211;&amp;gt; faz com que a função &amp;#8220;setaImagem&amp;#8221; seja executada quando a janela for carregada&lt;/p&gt;
+
+&lt;p&gt;Agora iremos criar nossa variável &amp;#8220;settings&amp;#8221; que receberá alguns objetos e funções anonimas.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 4 &lt;/strong&gt;&amp;#8211; Criando nossa varável &amp;#8220;settings&amp;#8221;, já com duas funções anonimas dentro, que são &amp;#8220;legenda&amp;#8221; e &amp;#8220;primeiraImg&amp;#8221;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var settings = {
+  primeiraImg: function(){
+    elemento = document.querySelector(&#34;#slider a:first-child&#34;);
+    elemento.classList.add(&#34;ativo&#34;);
+    this.legenda(elemento);
+  },
+  legenda: function(obj){
+    var legenda = obj.querySelector(&#34;img&#34;).getAttribute(&#34;alt&#34;);
+    document.querySelector(&#34;figcaption&#34;).innerHTML = legenda;
+  }
+ }&lt;/pre&gt;
+
+&lt;p&gt;Onde:&lt;/p&gt;
+
+&lt;p&gt;var settings = {} &lt;strong&gt;&amp;#8211;&amp;gt;&lt;/strong&gt; define uma variavel &amp;#8220;settings&amp;#8221; que conterá as configurações do nosso slide&lt;/p&gt;
+
+&lt;p&gt;primeiraImg: function(){&amp;#8230;} &lt;strong&gt;&amp;#8211;&amp;gt;&lt;/strong&gt; Função que seta a imagem que aparecerá inicialmente no nosso slide&lt;/p&gt;
+
+&lt;p&gt;elemento = document.querySelector(&amp;#8220;#slider a:first-child&amp;#8221;);&lt;span style=&#34;color: #888888&#34;&gt;&lt;strong&gt; &amp;#8211;&amp;gt;&lt;/strong&gt;&lt;/span&gt; captura a primeira tag &amp;#8220;&lt;a&gt;&amp;#8221; da &amp;#8220;div#slider&amp;#8221; e coloca numa variavel elemento.&lt;/p&gt;
+
+&lt;p&gt;elemento.classList.add(&amp;#8220;ativo&amp;#8221;); &lt;strong&gt;&amp;#8211;&amp;gt;&lt;/strong&gt; coloca a classe ativo na tag capturada (elemento.classList.add(&amp;#8220;ativo&amp;#8221;)).&lt;/p&gt;
+
+&lt;p&gt;this.legenda(elemento); &lt;strong&gt;&amp;#8211;&amp;gt;&lt;/strong&gt; chama a função anonima &amp;#8220;legenda&amp;#8221; e passa como parâmetro a variável elemento que acabamos de criar&lt;/p&gt;
+
+&lt;p&gt;legenda:function(obj){&amp;#8230;} &lt;strong&gt;&amp;#8211;&amp;gt;&lt;/strong&gt; função anonima que coloca captura o atributo &amp;#8220;alt&amp;#8221; da tag &amp;#8220;&lt;img&gt;&amp;#8221; que tem como pai, o parâmetro determinado como &amp;#8220;obj&amp;#8221; e coloca como legenda do slideshow&lt;/p&gt;
+
+&lt;p&gt;var legenda = obj.querySelector(&amp;#8220;img&amp;#8221;).getAttribute(&amp;#8220;alt&amp;#8221;); &lt;strong&gt;&amp;#8211;&amp;gt;&lt;/strong&gt; captura o atributo &amp;#8220;alt&amp;#8221; da tag &amp;#8220;&lt;img&gt;&amp;#8221; que tem como pai, o parâmetro determinado como &amp;#8220;obj&amp;#8221; (que neste caso é a primeira tag &amp;#8220;&lt;a&gt;&amp;#8221;) e coloca numa variável legenda&lt;/p&gt;
+
+&lt;p&gt;document.querySelector(&amp;#8220;figcaption&amp;#8221;).innerHTML = legenda; &lt;strong&gt;&amp;#8211;&amp;gt;&lt;/strong&gt; coloca o html, que está dentro do atributo alt da variavel legenda, dentro da tag &amp;#8220;&lt;figcaption&gt;&amp;#8221; que neste caso é a nossa legenda do slideshow.&lt;/p&gt;
+
+&lt;p&gt;Até agora tudo certo, mas note que se você executar nosso documento, nada acontece, isto porque não chamamos nossa função de setar a imagem.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 5 &lt;/strong&gt;&amp;#8211; chamando nossa variavel settings e suas respectivas funções anonimas&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//chama o slide
+settings.primeiraImg();
+
+//chama a legenda
+settings.legenda(elemento);
+
+//chama o slide à um determinado tempo
+var intervalo = setInterval(settings.slide,4000);&lt;/pre&gt;
+
+&lt;p&gt;Primeiro chamamos nossa função de setar a imagem no slideshow, depois setamos sua legenda e por fim, acionamos um temporizador que roda nosso slide a cada 4 segundos.&lt;/p&gt;
+
+&lt;p&gt;Vamos agora adicionar mais uma função à configuração do nosso slide, seu nome será &amp;#8220;slide&amp;#8221;. Esta função servirá para controlar as transições automáticas do nosso slideshow.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;obs: Adicione a linha de código abaixo, dentro da variável settings&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 6 &lt;/strong&gt;&amp;#8211; Criação da função slide&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;slide: function(){
+    elemento = document.querySelector(&#34;.ativo&#34;);
+    if(elemento.nextElementSibling){
+        elemento.nextElementSibling.classList.add(&#34;ativo&#34;);
+        settings.legenda(elemento.nextElementSibling);
+        elemento.classList.remove(&#34;ativo&#34;);
+    }else{
+        elemento.classList.remove(&#34;ativo&#34;);
+        settings.primeiraImg();
+    }
+},&lt;/pre&gt;
+
+&lt;p&gt;Primeiro criamos nossa função slide, dentro dela, capturamos a tag que contém a class &amp;#8220;ativo&amp;#8221; e colocamos numa variável &amp;#8220;elemento&amp;#8221;, logo em seguida fazemos uma verificação, se ouver uma tag após a tag &amp;#8220;ativo&amp;#8221; colocamos nesta outra tag a classe ativo, adicionamos a legenda dela no nosso slide e retiramos a classe ativo da nossa imagem que está ativa. Se não ouver nenhuma outra tag, tiramos a classe &amp;#8220;ativo&amp;#8221; da imagem que está ativa, e chamamos a função &amp;#8220;primeiraImg&amp;#8221; que servirá para setar a primeira imagem no nosso slide.&lt;/p&gt;
+
+&lt;p&gt;show de bola! nosso slide está rodando, mas note que nossos controladores ainda não funcionam, vamos agora fazer eles funcionarem.&lt;/p&gt;
+
+&lt;p&gt;Primeiro vamos criar nossa função que mostra a próxima imagem &amp;#8220;próximo&amp;#8221;:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 7 &lt;/strong&gt;&amp;#8211; Função &amp;#8220;próximo&amp;#8221;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;proximo: function(){
+    clearInterval(intervalo);
+    elemento = document.querySelector(&#34;.ativo&#34;);
+
+    if(elemento.nextElementSibling){
+        elemento.nextElementSibling.classList.add(&#34;ativo&#34;);
+        settings.legenda(elemento.nextElementSibling);
+        elemento.classList.remove(&#34;ativo&#34;);
+    }else{
+        elemento.classList.remove(&#34;ativo&#34;);
+        settings.primeiraImg();
+    }
+    intervalo = setInterval(settings.slide,4000);
+},&lt;/pre&gt;
+
+&lt;p&gt;O processo da função anonima &amp;#8220;proximo&amp;#8221; é o mesmo da função slide, apenas adicionamos um clearInterval(intervalo), que irá limpar o temporizador(tempo de execução) do nosso slide, e ao final da função reiniciamos nosso temporizador.&lt;/p&gt;
+
+&lt;p&gt;Agora iremos criar a função para mostrar a imagem anterior&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 8 &lt;/strong&gt;&amp;#8211; função &amp;#8220;anterior&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;anterior: function(){
+    clearInterval(intervalo);
+    elemento = document.querySelector(&#34;.ativo&#34;);
+
+    if(elemento.previousElementSibling){
+        elemento.previousElementSibling.classList.add(&#34;ativo&#34;);
+        settings.legenda(elemento.previousElementSibling);
+        elemento.classList.remove(&#34;ativo&#34;);
+    }else{
+        elemento.classList.remove(&#34;ativo&#34;);                     
+        elemento = document.querySelector(&#34;a:last-child&#34;);
+        elemento.classList.add(&#34;ativo&#34;);
+        this.legenda(elemento);
+    }
+    intervalo = setInterval(settings.slide,4000);
+},&lt;/pre&gt;
+
+&lt;p&gt;Esta função também é quase a mesma que a anterior, so mudamos onde tem &amp;#8220;next&amp;#8221;(próximo) e colocamos &amp;#8220;previous&amp;#8221;(anterior).&lt;/p&gt;
+
+&lt;p&gt;Ainda falta anexar o evento de click nos nossos controladores, segue abaixo&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 9&lt;/strong&gt; &amp;#8211; Anexando a função de clique nos controladores&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;document.querySelector(&#34;.next&#34;).addEventListener(&#34;click&#34;,settings.proximo,false);
+    document.querySelector(&#34;.prev&#34;).addEventListener(&#34;click&#34;,settings.anterior,false);&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Obs: Coloque a função de clique nos controladores no final da função &amp;#8220;setaImagem&amp;#8221;&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Disponibilizei nosso código no github para quem quiser contribuir ou esteja tendo algum problema no slide &lt;a href=&#34;https://github.com/clovisdasilvaneto/slide-com-javascript-puro&#34; title=&#34;visualizar exemplo pelo github&#34;&gt;(clique aqui)&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Bem amigos ninjas javascript&amp;#8217;s, com isso terminamos nosso post, um forte abraço e até a próxima&lt;/p&gt;
+
+&lt;p&gt;Abaixo nosso código javascript completo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+function setaImagem(){
+    var settings = {
+        primeiraImg: function(){
+            elemento = document.querySelector(&#34;#slider a:first-child&#34;);
+            elemento.classList.add(&#34;ativo&#34;);
+            this.legenda(elemento);
+        },
+
+        slide: function(){
+            elemento = document.querySelector(&#34;.ativo&#34;);
+
+            if(elemento.nextElementSibling){
+                elemento.nextElementSibling.classList.add(&#34;ativo&#34;);
+                settings.legenda(elemento.nextElementSibling);
+                elemento.classList.remove(&#34;ativo&#34;);
+            }else{
+                elemento.classList.remove(&#34;ativo&#34;);
+                settings.primeiraImg();
+            }
+
+        },
+
+        proximo: function(){
+            clearInterval(intervalo);
+            elemento = document.querySelector(&#34;.ativo&#34;);
+
+            if(elemento.nextElementSibling){
+                elemento.nextElementSibling.classList.add(&#34;ativo&#34;);
+                settings.legenda(elemento.nextElementSibling);
+                elemento.classList.remove(&#34;ativo&#34;);
+            }else{
+                elemento.classList.remove(&#34;ativo&#34;);
+                settings.primeiraImg();
+            }
+            intervalo = setInterval(settings.slide,4000);
+        },
+
+        anterior: function(){
+            clearInterval(intervalo);
+            elemento = document.querySelector(&#34;.ativo&#34;);
+
+            if(elemento.previousElementSibling){
+                elemento.previousElementSibling.classList.add(&#34;ativo&#34;);
+                settings.legenda(elemento.previousElementSibling);
+                elemento.classList.remove(&#34;ativo&#34;);
+            }else{
+                elemento.classList.remove(&#34;ativo&#34;);                     
+                elemento = document.querySelector(&#34;a:last-child&#34;);
+                elemento.classList.add(&#34;ativo&#34;);
+                this.legenda(elemento);
+            }
+            intervalo = setInterval(settings.slide,4000);
+        },
+
+        legenda: function(obj){
+            var legenda = obj.querySelector(&#34;img&#34;).getAttribute(&#34;alt&#34;);
+            document.querySelector(&#34;figcaption&#34;).innerHTML = legenda;
+        }
+
+    }
+
+    //chama o slide
+    settings.primeiraImg();
+
+    //chama a legenda
+    settings.legenda(elemento);
+
+    //chama o slide à um determinado tempo
+    var intervalo = setInterval(settings.slide,4000);
+    document.querySelector(&#34;.next&#34;).addEventListener(&#34;click&#34;,settings.proximo,false);
+    document.querySelector(&#34;.prev&#34;).addEventListener(&#34;click&#34;,settings.anterior,false);
+}
+
+window.addEventListener(&#34;load&#34;,setaImagem,false);
+&amp;lt;/script&amp;gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

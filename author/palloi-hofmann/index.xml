@@ -1,0 +1,890 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Palloi Hofmann on Tableless</title>
+    <link>http://tableless.com.br/author/palloi-hofmann/index.xml</link>
+    <description>Recent content in Palloi Hofmann on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/palloi-hofmann/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Formulário responsivo com MailChimp</title>
+      <link>http://tableless.com.br/formulario-responsivo-com-mailchimp/</link>
+      <pubDate>Fri, 06 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/formulario-responsivo-com-mailchimp/</guid>
+      <description>
+
+&lt;p&gt;Há cada dia mais utilizamos serviços disponíveis na web que tem um plano básico e gratuito que permite integrações. Nos últimos meses tenho feito formulários com frequência usando uma abordagem bem simples. Vou mostrar agora como criar um formulário responsivo, integrando com MailChimp e usando jQuery Validate.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-html&#34;&gt;O HTML&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar o formulário da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;section&amp;gt;
+  &amp;lt;h1&amp;gt;CREATE RESPONSIVE FORM WITH INTEGRATE MAILCHIMP&amp;lt;/h1&amp;gt;
+  &amp;lt;form id=&#34;form-contact&#34; method=&#34;POST&#34; action=&#34;mailchimp-contact.php&#34;&amp;gt;
+    &amp;lt;div class=&#34;input&#34;&amp;gt;
+      &amp;lt;label for=&#34;name&#34;&amp;gt;Name&amp;lt;/label&amp;gt;
+      &amp;lt;input type=&#34;text&#34; id=&#34;name&#34; name=&#34;name&#34; placeholder=&#34;Your name&#34; required&amp;gt;
+    &amp;lt;/div&amp;gt;
+
+    ...
+    
+    &amp;lt;div class=&#34;input txt&#34;&amp;gt;
+      &amp;lt;label for=&#34;message&#34;&amp;gt;Message&amp;lt;/label&amp;gt;
+      &amp;lt;textarea id=&#34;message&#34; name=&#34;message&#34; cols=&#34;10&#34; rows=&#34;5&#34; placeholder=&#34;Its message leaves&#34; required&amp;gt;&amp;lt;/textarea&amp;gt;
+    &amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;buttons&#34;&amp;gt;
+      &amp;lt;span class=&#34;form-message&#34;&amp;gt;&amp;lt;/span&amp;gt;
+      &amp;lt;input type=&#34;submit&#34; value=&#34;SEND&#34; /&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;/form&amp;gt;
+&amp;lt;/section&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-form-mailchimp/demo-only-elements.html&#34; target=&#34;_blank&#34; title=&#34;Ver demo sem style.&#34;&gt;Ver demo sem style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-css&#34;&gt;O CSS&lt;/h2&gt;
+
+&lt;p&gt;Para cada label e input foi adicionado uma &lt;code&gt;div.input&lt;/code&gt; para inserir uma formatação por grupo.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-form-está-centralizado-com-max-width&#34;&gt;O form está centralizado com max-width:&lt;/h3&gt;
+
+&lt;p&gt;Por ser um elemento &amp;#8216;block&amp;#8217;, vamos definir o tamanho máximo que ele pode ter.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;form {
+&amp;nbsp; margin: 0 auto;
+&amp;nbsp; max-width: 850px;
+&amp;nbsp; padding: 20px 10px;
+&amp;nbsp; background-color: rgba(255,255,255,0.4)
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;o-grupo-div-input-com-50-em-8216-width-8217-do-form&#34;&gt;O grupo div.input com 50% em &amp;#8216;width&amp;#8217; do form:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input {
+  float: left;
+  width: 48%;
+  padding: 0 1% 20px;
+  position: relative;
+}
+
+.input.txt { width: 98%; } /*textarea 100%*/
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;os-labels&#34;&gt;Os labels:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input label {
+  display: block;
+  padding-bottom: 5px;
+  color: #666;
+}
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input label.error {
+  position: absolute;
+  right: 18px;
+  top: 35px;
+  color: #f00;
+}&lt;/pre&gt;
+
+&lt;p&gt;O label.error é gerado pelo jQuery validate e adicionado seguido dos campos.&lt;/p&gt;
+
+&lt;h3 id=&#34;os-campos&#34;&gt;Os campos:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input input,
+.input textarea {
+  padding-top: 10px;
+  padding-bottom: 9px;
+  border: none;
+  font-size: 16px;
+  font-weight: 100;
+  font-family: &#34;Helvetica Neue&#34;, Helvetica, Arial, sans-serif;
+}
+
+.input input {
+  width: 94%;
+  padding-left: 3%;
+  padding-right: 3%;
+}
+
+.input textarea {
+  width: 97%;
+  padding-left: 1.5%;
+  padding-right: 1.5%;
+}&lt;/pre&gt;
+
+&lt;p&gt;Formatamos os campos para ter 100% de tamanho do elemento pai &amp;#8216;div.input&amp;#8217;.&lt;/p&gt;
+
+&lt;p&gt;Sempre que redimensionar não haverá quebras, portanto, responsivo meu amigo.&lt;/p&gt;
+
+&lt;h3 id=&#34;agora-um-capricho-para-resoluções-pequenas&#34;&gt;Agora um capricho para resoluções pequenas.&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@media screen and (max-width: 520px) {
+  .input {
+    width: 98%;
+  }
+}&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-form-mailchimp/demo-style-elements.html&#34; target=&#34;_blank&#34; title=&#34;Ver demo com style.&#34;&gt;Ver demo com style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-jquery-mailchimp&#34;&gt;O jQuery + MailChimp&lt;/h2&gt;
+
+&lt;p&gt;Com o HTML e CSS prontos, vamos adicionar o JavaScript que é fácil. Como dependemos do jQuery e não podemos iniciar de qualquer forma, segue uma estrutura bem legal:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function(){
+  var contact = function(){
+    var init = function() {
+      //initialize code
+    };
+    
+&amp;nbsp;   //more functions
+
+    return {init: init};
+  }();
+
+  //jQuery loaded
+  $(document).ready(contact.init);
+})();&lt;/pre&gt;
+
+&lt;p&gt;Como sabemos exatamente qual função vai executar quando a jQuery carregar, adicionaremos o jQuery Validate no init:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var init = function() {
+  $(&amp;#039;#form-contact&amp;#039;).validate({
+    rules : {
+      name: &#34;required&#34;,
+      email: { required: true, email: true },
+      phone: { required: true, minlength: 14 },
+      company: &#34;required&#34;,
+      message: &#34;required&#34;
+    },
+    messages: {
+      name: &#34;*&#34;,
+      email: { required: &#34;*&#34;, email: &#34;*&#34; },
+      phone: { required: &#34;*&#34;, minlength: &#34;*&#34; },
+      company: &#34;*&#34;,
+      message: &#34;*&#34;
+    }
+  });
+};&lt;/pre&gt;
+
+&lt;p&gt;Agora que estamos validando todos os campos, que tal adicionar um ajax para deixar nosso formulário bem suave e uma função para exibir mensagens de sucesso ou erro, veja:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var init = function() {
+  $(&amp;#039;#form-contact&amp;#039;).validate({
+    rules : {
+      ...
+    },
+    messages: {
+      ...
+    },
+    submitHandler: function(form) {
+      var $form = $(form);
+
+      var params = {
+        name: $form.find(&amp;#039;#name&amp;#039;).val(),
+        email: $form.find(&amp;#039;#email&amp;#039;).val(),
+        phone: $form.find(&amp;#039;#phone&amp;#039;).val(),
+        company: $form.find(&amp;#039;#company&amp;#039;).val(),
+        message: $form.find(&amp;#039;#message&amp;#039;).val()
+      };
+
+      $.ajax({
+        type: $form.attr(&amp;#039;method&amp;#039;),
+        url: $form.attr(&amp;#039;action&amp;#039;),
+        data: params,
+        success: function( data ) {
+          if(data == &#34;true&#34;) {
+            $form.find(&amp;#039;.input input&amp;#039;).val(&#34;&#34;);
+            $form.find(&amp;#039;.input textarea&amp;#039;).val(&#34;&#34;);
+            setMessage(&#34;Mission accomplished. &amp;lt;strong&amp;gt;&#34;+ params.email +&#34;&amp;lt;/strong&amp;gt; was successfully added to list.&#34;, &#34;success&#34;);
+          } else {
+            setMessage(&#34;Mission failed. &amp;lt;strong&amp;gt;&#34;+ params.email +&#34;&amp;lt;/strong&amp;gt; not was added to list.&#34;, &#34;error&#34;);
+          }
+        },
+        error: function( data ) {
+          setMessage(&#34;Mission failed in connection. Try again.&#34;, &#34;error&#34;);
+        }
+      });
+
+      return false;
+    }
+  });
+};
+
+var setMessage = function($message, $type) {
+  $(&amp;#039;.form-message&amp;#039;).html($message).addClass($type);
+
+  setTimeout(function(){
+    $(&amp;#039;.form-message&amp;#039;).removeClass($type);
+  }, 6000);
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Via &amp;#8216;submitHandler&amp;#8217; do &lt;a href=&#34;http://jQueryvalidation.org/&#34; target=&#34;_blank&#34;&gt;jQuery Validate&lt;/a&gt;, vamos disparar por ajax todos os dados preenchidos e travar o post do form com &amp;#8216;return false&amp;#8217; no final da função. Assim evitamos aquele redirecionamento de post.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-php&#34;&gt;O PHP&lt;/h3&gt;
+
+&lt;p&gt;Como definimos com &amp;#8216;method&amp;#8217; e &amp;#8216;action&amp;#8217; para o nosso formulário, segue o código para resgatar os dados:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+    require_once &amp;#039;MCAPI.class.php&amp;#039;;
+    $api = new MCAPI(&amp;#039;casiuach1293kajsc912319203cja23s-us9&amp;#039;);
+    $merge_vars = array(&amp;#039;NAME&amp;#039;=&amp;gt;$_POST[&#34;name&#34;], &#39;PHONE&#39;=&amp;gt;$_POST[&#34;phone&#34;], &#39;COMPANY&#39;=&amp;gt;$_POST[&#34;company&#34;], &#39;MESSAGE&#39;=&amp;gt;$_POST[&#34;message&#34;]);
+    
+    // Submit subscriber data to MailChimp
+    // For parameters doc, refer to: http://apidocs.mailchimp.com/api/1.3/listsubscribe.func.php
+    $retval = $api-&amp;gt;listSubscribe( &amp;#039;12938asd98&amp;#039;, $_POST[&#34;email&#34;], $merge_vars, &amp;#039;html&amp;#039;, false, true );
+    
+    if ($api-&amp;gt;errorCode){
+        echo &#34;false&#34;;
+    } else {
+        echo &#34;true&#34;;
+    }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Dependemos da MCAPI.class que você pode verificar na &lt;a href=&#34;https://apidocs.mailchimp.com/api/example-code/&#34; target=&#34;_blank&#34;&gt;documentação&lt;/a&gt; ou baixar &lt;a href=&#34;https://codeload.github.com/sunarlim/mailchimp-subscribe/zip/master&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;, só lembrando que precisa adicionar sua API Key e List ID.&lt;/p&gt;
+
+&lt;h2 id=&#34;pronto&#34;&gt;PRONTO&lt;/h2&gt;
+
+&lt;p&gt;Nosso formulário é responsivo e integrado ao mailchimp.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://css4html.com.br/demos/responsive-form-mailchimp/&#34; target=&#34;_blank&#34; title=&#34;Veja como ficou o resultado final&#34;&gt;Veja como ficou o resultado final&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/palloi/responsive-form-mailchimp/&#34; target=&#34;_blank&#34; title=&#34;Veja o código completo no github&#34;&gt;Veja o c&amp;oacute;digo completo no github&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;É isso ae pessoal, obrigado.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Simples modal com CSS responsivo</title>
+      <link>http://tableless.com.br/simples-modal-com-css-responsivo/</link>
+      <pubDate>Wed, 21 Jan 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/simples-modal-com-css-responsivo/</guid>
+      <description>
+
+&lt;p&gt;Continuando com os artigos, vamos utilizar novamente os seletores de css para exibir nosso modal.&lt;/p&gt;
+
+&lt;p&gt;Se você chegou aqui e não viu os posts anteriores, para conhecer a estrutura inicial acesse os links:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/header-responsivo-somente-com-css/&#34; target=&#34;_blank&#34;&gt;Header responsivo somente com css&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/destaques-responsivos/&#34; target=&#34;_blank&#34;&gt;Destaques responsivos&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;De uma maneira bem simples veja como preparar seu html e css.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-label&#34;&gt;O LABEL&lt;/h2&gt;
+
+&lt;p&gt;Com os destaques responsivos, vamos adicionar abaixo da descrição um label que terá a função de marcar o checkbox e por css iremos exibir o modal.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;highlights&#34;&amp;gt;
+&amp;nbsp; &amp;lt;input type=&#34;radio&#34; id=&#34;radio-img1&#34; name=&#34;highlights&#34; checked=&#34;checked&#34; /&amp;gt;
+&amp;nbsp; &amp;lt;div class=&#34;highlights-item&#34;&amp;gt;
+&amp;nbsp; &amp;nbsp; &amp;lt;img src=&#34;assets/images/chaves.jpg&#34; /&amp;gt;
+&amp;nbsp; &amp;nbsp; &amp;lt;p&amp;gt;Olha o Chaves sorrindo&amp;lt;/p&amp;gt;
+&amp;nbsp; &amp;nbsp; &amp;lt;label class=&#34;highlights-button&#34; for=&#34;modal-chaves&#34;&amp;gt;Ver fotos do Chaves&amp;lt;/label&amp;gt;
+&amp;nbsp; &amp;lt;/div&amp;gt;
+&amp;nbsp;&amp;nbsp;
+&amp;nbsp; ...
+&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;o-css-do-botão&#34;&gt;O CSS DO BOTÃO&lt;/h2&gt;
+
+&lt;p&gt;Vamos formatar o label para ser o nosso botão, lembrando que sempre precisamos usar a propriedade &amp;#8220;for&amp;#8221; para marcar o checkbox.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.highlights-button {
+  display: inline-block;
+  padding: 10px 15px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  background-color: #ececec;
+  -webkit-transition: background-color 300ms ease-in-out, border-color 300ms ease-in-out;
+  transition: background-color 300ms ease-in-out, border-color 300ms ease-in-out;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Adicionando o hover:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.highlights-button:hover {
+  border: 1px solid #ececec;
+  background-color: #ccc;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;o-html-do-modal&#34;&gt;O HTML DO MODAL&lt;/h2&gt;
+
+&lt;p&gt;Para um melhor resultado vamos adicionar html antes do &amp;#8220;body&amp;#8221;, mas se quiser aplicar dentro da section sem problemas. Ao aplicar &amp;#8220;position: fixed&amp;#8221; o elemento ignora o &amp;#8220;position&amp;#8221; do pai e respeita o tamanho da janela.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;input type=&#34;checkbox&#34; id=&#34;modal_chaves&#34; /&amp;gt;
+&amp;lt;div class=&#34;modal&#34;&amp;gt;
+  &amp;lt;div class=&#34;modal-content&#34;&amp;gt;
+    &amp;lt;h4&amp;gt;Foto Grande do Chaves&amp;lt;/h4&amp;gt;
+    &amp;lt;img src=&#34;assets/images/chaves-fotos-raras-4.jpg&#34; /&amp;gt;
+  &amp;lt;/div&amp;gt;
+  &amp;lt;label class=&#34;modal-close&#34; for=&#34;modal_chaves&#34;&amp;gt;&amp;lt;/label&amp;gt;
+&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;No resultado final poderá ver as modais aplicados dentro e fora da section.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-css-do-modal&#34;&gt;O CSS DO MODAL&lt;/h2&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  opacity: 0;
+  visibility: hidden;
+  -webkit-transition: all 0.5s 0.5s ease-in-out;
+  transition: all 0.5s 0.5s ease-in-out;
+}
+
+.modal-content {
+  padding: 10px;
+  max-width: 600px;
+  min-width: 360px;
+  max-height: 85%;
+  overflow: auto;
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  z-index: 2;
+  opacity: 0;
+  border-radius: 3px;
+  background: #fff;
+  -webkit-transform: translate(-50%, 0);
+  -ms-transform: translate(-50%, 0);
+  transform: translate(-50%, 0);
+  -webkit-transition: all 0.5s ease-in-out;
+  transition: all 0.5s ease-in-out;
+}
+
+.modal-content img {
+  display: block;
+  width: 100%;
+  margin: 10px 0 0;
+}
+
+.modal-content p {
+  padding-top: 10px;
+  text-align: justify;
+}&lt;/pre&gt;
+
+&lt;p&gt;Agora formatando a cortina e o botão de fechar que é o label que colocamos depois do conteúdo do modal.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.modal-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-close:after {
+  content: &#34;X&#34;;
+  float: right;
+  margin: 5px 5px 0 0;
+  width: 30px;
+  height: 30px;
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  line-height: 30px;
+  cursor: pointer;
+  background-color: rgba(255,255,255,0.8);
+  border-radius: 20px;
+  box-shadow: 0 0 3px #000;
+}&lt;/pre&gt;
+
+&lt;p&gt;Agora vamos esconder o checkbox e fazer nosso modal aparecer com &amp;#8220;:checked&amp;#8221; do css3.&lt;/p&gt;
+
+&lt;p&gt;Um pequeno truque ao usar fixed e 50% para top, faz que o checkbox sempre fique no meio da janela evitando rolar a página ao ser selecionado. Se realizar um teste usando o inspect removendo o top: 50% e clicar no terceiro botão irá simular a rolagem.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;input[id*=&#34;modal_&#34;] {
+  position: fixed;
+  left: -9999px;
+  top: 50%;
+  opacity: 0;
+}
+
+input[id*=&#34;modal_&#34;]:checked + div.modal {
+  opacity: 1;
+  visibility: visible;
+  -webkit-transition-delay: 0s;
+  -ms-transition-delay: 0s;
+  transition-delay: 0s;
+}
+
+input[id*=&#34;modal_&#34;]:checked + div.modal .modal-content {
+  opacity: 1;
+  -webkit-transform: translate(-50%, 0);
+  -ms-transform: translate(-50%, 0);
+  transform: translate(-50%, 0);
+  -webkit-transition-delay: 0.5s;
+  -ms-transition-delay: 0.5s;
+  transition-delay: 0.5s;
+}&lt;/pre&gt;
+
+&lt;p&gt;Praticamente nosso css já está responsivo, mas vamos adaptar para resoluções menores que 768px.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@media screen and (max-width: 767px) {
+  .modal-content {
+    padding: 10px 5%;
+    min-width: 88%;
+  }
+}&lt;/pre&gt;
+
+&lt;h2 id=&#34;pronto&#34;&gt;PRONTO&lt;/h2&gt;
+
+&lt;p&gt;Temos um modal responsivo e seu conteúdo pode ser adaptado para qualquer tamanho, desde que faça isso acontecer.&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;Veja como ficou o resultado final&#34; href=&#34;http://palloi.github.io/responsive-header-only-css/responsive-modal.html&#34; target=&#34;_blank&#34;&gt;Veja como ficou o resultado final&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;código completo no github&#34; href=&#34;https://github.com/palloi/responsive-header-only-css&#34; target=&#34;_blank&#34;&gt;Veja o código completo no github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;concluindo&#34;&gt;CONCLUINDO&lt;/h2&gt;
+
+&lt;p&gt;Podemos aplicar de várias formas e uma delas é usando o &amp;#8220;:target&amp;#8221;, porém quando temos uma tela muito grande e ao fechar precisamos adicionar o &amp;#8220;#&amp;#8221;, isso faz que a página role para o topo.&lt;/p&gt;
+
+&lt;p&gt;Agora com sua imaginação pode fazer diversas animações para exibir seu modal.&lt;/p&gt;
+
+&lt;p&gt;Espero ter ajudado com a criação de modais só com css.&lt;/p&gt;
+
+&lt;p&gt;Obrigado&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Destaques responsivos</title>
+      <link>http://tableless.com.br/destaques-responsivos/</link>
+      <pubDate>Mon, 29 Dec 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/destaques-responsivos/</guid>
+      <description>
+
+&lt;p&gt;Hoje criaremos três destaques com um comportamento totalmente responsivo.&lt;/p&gt;
+
+&lt;p&gt;Com um crescimento das SPAs e seguindo o mesmo conceito do artigo anterior, vou passar agora de uma forma simples de como usar, o input radio para transformar nossos destaques em galeria navegável.&lt;/p&gt;
+
+&lt;h2 id=&#34;aproveitando&#34;&gt;Aproveitando&lt;/h2&gt;
+
+&lt;p&gt;Como já temos um header responsivo, vamos continuar com a mesma estrutura até o final dos artigos só com css e html. Se você ainda não viu como criar um &lt;a href=&#34;http://tableless.com.br/header-responsivo-somente-com-css/&#34; title=&#34;Header responsivo somente com css&#34; target=&#34;_blank&#34;&gt;header responsivo, clique aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-html&#34;&gt;O HTML&lt;/h2&gt;
+
+&lt;p&gt;Vamos iniciar realocando a foto do Chaves para um novo formato:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;highlights&#34;&amp;gt;
+  &amp;lt;div class=&#34;highlights-item&#34;&amp;gt;
+    &amp;lt;img src=&#34;assets/images/chaves.jpg&#34; /&amp;gt;
+    &amp;lt;p&amp;gt;Olha o Chaves sorrindo&amp;lt;/p&amp;gt;
+  &amp;lt;/div&amp;gt;
+
+  &amp;lt;div class=&#34;highlights-item&#34;&amp;gt;
+    &amp;lt;img src=&#34;assets/images/chaves-2.jpg&#34; /&amp;gt;
+    &amp;lt;p&amp;gt;Pensando na Paty&amp;lt;/p&amp;gt;
+  &amp;lt;/div&amp;gt;
+
+  &amp;lt;div class=&#34;highlights-item&#34;&amp;gt;
+    &amp;lt;img src=&#34;assets/images/chaves-3.jpg&#34; /&amp;gt;
+    &amp;lt;p&amp;gt;Quero tanto esse sanduiche iche iche&amp;lt;/p&amp;gt;
+  &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Temos um simples html para 3 itens, deixei os nome das classes mais compreensível e semântico, observado pelo amigo Shankar.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-header-only-css/demo-only-elements.html&#34; target=&#34;_blank&#34;&gt;Ver demo sem style&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-css&#34;&gt;O CSS&lt;/h2&gt;
+
+&lt;p&gt;Sempre pensando no responsivo, vamos deixar nossos itens em % para 3 colunas seguindo dessa forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.highlights-item {
+  float: left;
+  margin: 0 0 0 2%;
+  width: 32%;
+}
+
+.highlights-item:first-of-type {
+  margin-left: 0;
+}
+
+.highlights-item img {
+  display: block;
+  width: 100%;
+  margin: 0 0 5px;
+}
+
+.highlights-item p {
+  font-size: 14px;
+  text-align: center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para cada item apliquei 32% em width + 2% em margin-left, se multiplicarmos por 3 a soma é 102% que passa os 100% representado pelo elemento pai. Por estourar o tamanho do pai o terceiro item sempre cai.&lt;/p&gt;
+
+&lt;p&gt;Então selecionamos o primeiro item para zerar o margin usando o seletor &amp;#8220;:first-of-type&amp;#8221;, por que mais adiante vamos adicionar mais elementos e já evitamos quebrar o css se caso usássemos os &amp;#8220;first-child&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-header-only-css/demo-basic-highlights.html&#34; target=&#34;_blank&#34;&gt;Ver demo com style&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-responsivo&#34;&gt;O RESPONSIVO&lt;/h2&gt;
+
+&lt;p&gt;Já apresentada a forma de como usar os seletores, agora vamos adicionar antes de cada item um input radio, veja:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;highlights&#34;&amp;gt;
+  &amp;lt;input type=&#34;radio&#34; id=&#34;radio-img1&#34; name=&#34;highlights&#34; checked=&#34;checked&#34; /&amp;gt;
+  &amp;lt;div class=&#34;highlights-item&#34;&amp;gt;
+    &amp;lt;img src=&#34;assets/images/chaves.jpg&#34; /&amp;gt;
+    &amp;lt;p&amp;gt;Olha o Chaves sorrindo&amp;lt;/p&amp;gt;
+  &amp;lt;/div&amp;gt;
+  ...
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;o-css-para-transformar&#34;&gt;O CSS PARA TRANSFORMAR&lt;/h2&gt;
+
+&lt;p&gt;Com o html simples para 3 colunas, vamos transformar em uma galeria suave com o &amp;#8216;media screen&amp;#8217;, &amp;#8216;transition&amp;#8217; e &amp;#8216;transform&amp;#8217;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@media screen and (max-width: 767px) {
+  .highlights-item {
+    width: 100%;
+    margin-left: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    visibility: hidden;
+    -webkit-transition: all 500ms ease-in-out;
+    transition: all 500ms ease-in-out;
+    -webkit-transform: scale(0.9);
+    -ms-transform: scale(0.9);
+    transform: scale(0.9);
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse css deixei todos os itens com &amp;#8216;position absolute&amp;#8217;, mas isso faz que todo o conteúdo abaixo dele suba ocupando seu espaço. Mas como teremos um ativo vamos resolver logo abaixo.&lt;/p&gt;
+
+&lt;p&gt;Importante lembrar que sempre precisamos de um radio marcado com &amp;#8216;checked&amp;#8217;, quando responder ao responsivo teremos sempre um ativo. Para mostrar o item ativo vamos adicionar as seguintes linhas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@media screen and (max-width: 767px) {
+   /*checked*/
+  .highlights input:checked + div {
+    position: relative;
+    opacity: 1;
+    visibility: visible;
+    z-index: 1;
+    -webkit-transform: scale(1);
+    -ms-transform: scale(1);
+    transform: scale(1);
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O item que estiver ativo, recebe o &amp;#8216;position relative&amp;#8217; para bloquear sua área e outras propriedades para exibir suavemente.&lt;/p&gt;
+
+&lt;p&gt;Como os type&amp;#8217;s dos input&amp;#8217;s são &amp;#8216;radio&amp;#8217;, teremos somente um &amp;#8216;:checked&amp;#8217; por grupo &amp;#8216;name&amp;#8217;.&lt;/p&gt;
+
+&lt;h2 id=&#34;navegação-com-label&#34;&gt;NAVEGAÇÃO COM LABEL&lt;/h2&gt;
+
+&lt;p&gt;Para selecionar cada radio, precisamos relacionar cada label usando o for e vamos adicionar o seguinte html:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;highlights&#34;&amp;gt;
+  ...
+  &amp;lt;input type=&#34;radio&#34; id=&#34;radio-img3&#34; name=&#34;highlights&#34; /&amp;gt;
+  &amp;lt;div class=&#34;highlights-item&#34;&amp;gt;
+    ....
+  &amp;lt;/div&amp;gt;
+
+  &amp;lt;div class=&#34;highlights-buttons&#34;&amp;gt;
+    &amp;lt;label for=&#34;radio-img1&#34;&amp;gt;Image 1&amp;lt;/label&amp;gt;
+    &amp;lt;label for=&#34;radio-img2&#34;&amp;gt;Image 2&amp;lt;/label&amp;gt;
+    &amp;lt;label for=&#34;radio-img3&#34;&amp;gt;Image 3&amp;lt;/label&amp;gt;
+  &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Por padrão defino &amp;#8216;display none&amp;#8217; para os botões e com resoluções menores 768px mudamos para &amp;#8216;block&amp;#8217; para exibir.&lt;/p&gt;
+
+&lt;h2 id=&#34;label-e-seu-css&#34;&gt;LABEL E SEU CSS&lt;/h2&gt;
+
+&lt;p&gt;Agora que adicionamos os label&amp;#8217;s que tem a missão dos botões, vamos inserir uma formatação bem simples.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.highlights-buttons {
+  display: none;
+  clear: both;
+  text-align: center;
+}
+
+.highlights-buttons label {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin: 0 10px; 
+  border-radius: 10px;
+  background-color: #ccc;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  text-indent: -9999px;
+  -webkit-transition: background-color 300ms ease-in-out;
+  transition: background-color 300ms ease-in-out;
+}
+/*exibindo os botões*/
+@media screen and (max-width: 767px) {
+  .highlights-buttons {
+    display: block;
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Estamos falando de css puro e sempre precisamos definir o que vai ser feito, veja como aplicar o label ativo nessa estrutura que criamos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.highlights input:nth-of-type(1):checked ~ .highlights-buttons label:nth-child(1),
+.highlights input:nth-of-type(2):checked ~ .highlights-buttons label:nth-child(2),
+.highlights input:nth-of-type(3):checked ~ .highlights-buttons label:nth-child(3) {
+  background-color: #000;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para evitar a repetição manual a cada novo item, se você usa SASS ou LESS vai tirar de letra com alguma função.&lt;/p&gt;
+
+&lt;h2 id=&#34;e-pronto&#34;&gt;E PRONTO&lt;/h2&gt;
+
+&lt;p&gt;Mais uma vez com poucos elementos e css, conseguimos deixar nossos destaques em uma galeria navegável e responsivo.&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;Veja como ficou o resultado final&#34; href=&#34;http://palloi.github.io/responsive-header-only-css/responsive-highlights.html&#34; target=&#34;_blank&#34;&gt;Veja como ficou o resultado final&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;Código completo no github&#34; href=&#34;https://github.com/palloi/responsive-header-only-css&#34; target=&#34;_blank&#34;&gt;Veja o código completo no github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;concluindo&#34;&gt;CONCLUINDO&lt;/h2&gt;
+
+&lt;p&gt;Existe diversas maneiras de aplicar no css e quantidades de itens, espero que todos possam aproveitar um pouco do que foi apresentado.&lt;/p&gt;
+
+&lt;p&gt;É isso ae pessoal, obrigado&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Header responsivo somente com css</title>
+      <link>http://tableless.com.br/header-responsivo-somente-com-css/</link>
+      <pubDate>Mon, 08 Dec 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/header-responsivo-somente-com-css/</guid>
+      <description>
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/12/header-responsive-only-css.png&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2014/12/header-responsive-only-css.png&#34; alt=&#34;header-responsive-only-css&#34; class=&#34;alignnone size-full wp-image-46175&#34; srcset=&#34;uploads/2014/12/header-responsive-only-css.png 750w, uploads/2014/12/header-responsive-only-css-265x106.png 265w, uploads/2014/12/header-responsive-only-css-400x160.png 400w&#34; sizes=&#34;(max-width: 750px) 100vw, 750px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;A cada novo projeto queremos alcançar o máximo de usuários, não importa se o dispositivo seja grande ou pequeno, tem que funcionar.&lt;/p&gt;
+
+&lt;p&gt;Com uma abordagem simples e rápida, esse tutorial vai te fazer pensar antes de querer usar o bootstrap só para ter o menu responsivo, claro que ele tem suas vantagens mas procuro sempre desenvolver do zero.&lt;/p&gt;
+
+&lt;p&gt;Estarei criando uma serie de tutoriais abordando o assunto e espero que gostem do meu primeiro artigo.&lt;/p&gt;
+
+&lt;h2 id=&#34;valendo&#34;&gt;Valendo!!!&lt;/h2&gt;
+
+&lt;p&gt;Hoje em dia quando o cliente diz que o site é responsivo, quem aqui pensa no bootstrap?&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;#8220;Fazer menu responsivo é só com bootstrap&amp;#8221; ou &amp;#8220;vamos precisar de javascript.&amp;#8221;&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Nada contra o bootstrap, mas prefiro o &lt;a title=&#34;Locawebstyle&#34; href=&#34;http://locaweb.github.io/locawebstyle/&#34; target=&#34;_blank&#34;&gt;Locawebstyle&lt;/a&gt; que está lindo e o javascript é maravilhoso.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-html&#34;&gt;O HTML&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar primeiro nosso html com header simples:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;header&amp;gt;
+  &amp;lt;h1 class=&#34;fL&#34;&amp;gt;
+    &amp;lt;a href=&#34;#&#34; title=&#34;A TURMA DO CHAVES&#34;&amp;gt;A TURMA DO CHAVES&amp;lt;/a&amp;gt;
+  &amp;lt;/h1&amp;gt;
+
+  &amp;lt;nav class=&#34;fR&#34;&amp;gt;
+    &amp;lt;ul class=&#34;l2&#34;&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&#34;#Chaves&#34; title=&#34;Chaves&#34;&amp;gt;Chaves&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&#34;#Chiquinha&#34; title=&#34;Chiquinha&#34;&amp;gt;Chiquinha&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&#34;#Seu-Madruga&#34; title=&#34;Seu Madruga&#34;&amp;gt;Seu Madruga&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&#34;#Quico&#34; title=&#34;Quico&#34;&amp;gt;Quico&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+    &amp;lt;/ul&amp;gt;
+  &amp;lt;/nav&amp;gt;
+&amp;lt;/header&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;​Agora com o nosso html pronto, vamos fazer o primeiro teste olhando nosso html puro e formatar usando poucas linhas de css.&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;Ver demo sem style.&#34; href=&#34;http://palloi.github.io/responsive-header-only-css/demo-only-elements.html&#34; target=&#34;_blank&#34;&gt;Ver demo sem style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-css&#34;&gt;O CSS&lt;/h2&gt;
+
+&lt;p&gt;Como nosso header ficará sempre fixo no topo, vamos formatar da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;header {
+  min-height: 60px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  border-bottom: 1px solid #ccc;
+  background: #ECECEC;
+  z-index: 2;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora com o header formatado, o segundo teste é redimensionar o navegador para perceber que o header sempre acompanha e ao diminuir muito tem quebra por falta de espaço.&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;Ver demo com style.&#34; href=&#34;http://palloi.github.io/responsive-header-only-css/demo-basic-header.html&#34; target=&#34;_blank&#34;&gt;Ver demo com style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Montamos um header simples e funcional, com mais 3 elementos e CSS teremos um header simples e responsivo.&lt;/p&gt;
+
+&lt;p&gt;Esses elementos são dois label&amp;#8217;s e um checkbox, com o selector &amp;#8216;~&amp;#8217; do css3 vamos transformar o header.&lt;/p&gt;
+
+&lt;h2 id=&#34;começando-o-responsivo&#34;&gt;Começando o responsivo&lt;/h2&gt;
+
+&lt;p&gt;Vamos adicionar os elementos antes da nav e o html fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;header&amp;gt;
+  &amp;lt;h1 class=&#34;fL&#34;&amp;gt;
+    &amp;lt;a href=&#34;#&#34; title=&#34;A TURMA DO CHAVES&#34;&amp;gt;A TURMA DO CHAVES&amp;lt;/a&amp;gt;
+  &amp;lt;/h1&amp;gt;
+  
+  &amp;lt;input type=&#34;checkbox&#34; id=&#34;control-nav&#34; /&amp;gt;
+  &amp;lt;label for=&#34;control-nav&#34; class=&#34;control-nav&#34;&amp;gt;&amp;lt;/label&amp;gt;
+  &amp;lt;label for=&#34;control-nav&#34; class=&#34;control-nav-close&#34;&amp;gt;&amp;lt;/label&amp;gt;
+
+  &amp;lt;nav class=&#34;fR&#34;&amp;gt;
+    &amp;lt;ul class=&#34;l2&#34;&amp;gt;
+      ...
+    &amp;lt;/ul&amp;gt;
+  &amp;lt;/nav&amp;gt;
+&amp;lt;/header&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse ponto o checkbox tem o papel de substituir o javascript.&lt;/p&gt;
+
+&lt;p&gt;Conseguimos também por css saber se o elemento está marcado com o famoso &amp;#8220;:checked&amp;#8221; que todos já usaram com jQuery.&lt;/p&gt;
+
+&lt;h2 id=&#34;seu-projeto-suas-medidas&#34;&gt;Seu projeto, suas medidas&lt;/h2&gt;
+
+&lt;p&gt;Para nosso exemplo adicionei no head:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no&#34; /&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;e no css:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@media screen and (max-width: 767px)
+&lt;/pre&gt;
+
+&lt;p&gt;Quando redimensionar o navegador menor que 768px, a formatação do header vai se comportar de outra maneira e já escondida utilizando transform:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@media screen and (max-width: 767px) {
+  header .control-nav {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    display: block;
+    width: 30px;
+    padding: 5px 0;
+    border: solid #333;
+    border-width: 3px 0;
+    z-index: 2;
+    cursor: pointer;
+  }
+
+  header .control-nav:before {
+    content: &#34;&#34;;
+    display: block;
+    height: 3px;
+    background: #333;
+  }
+
+  header .control-nav-close {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    display: block;
+    z-index: 1;
+    background: rgba(0,0,0,0.4);
+    -webkit-transition: all 500ms ease;
+    transition: all 500ms ease;
+    -webkit-transform: translate(100%, 0);
+    -ms-transform: translate(100%, 0);
+    transform: translate(100%, 0);
+  }
+
+  header nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 250px;
+    border-left: 1px solid #ccc;
+    background: #fff;
+    overflow-x: auto;
+    z-index: 2;
+    -webkit-transition: all 500ms ease;
+    transition: all 500ms ease;
+    -webkit-transform: translate(100%, 0);
+    -ms-transform: translate(100%, 0);
+    transform: translate(100%, 0);
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Formatei o &amp;#8220;label .control-nav&amp;#8221; para ser o botão responsivo, o &amp;#8220;label .control-nav-close&amp;#8221; para ser a cortina bloqueando o fundo e o &amp;#8216;nav&amp;#8217; para ficar fixo e redimensionável.&lt;/p&gt;
+
+&lt;h2 id=&#34;agora-o-pulo-do-gato&#34;&gt;Agora o pulo do gato&lt;/h2&gt;
+
+&lt;p&gt;Utilizando dos seletores do CSS3 que são os &amp;#8216;:checked&amp;#8217; e &amp;#8216;~&amp;#8217;, conseguimos formatar elementos de acordo com a necessidade, &lt;a title=&#34;Veja a documentação&#34; href=&#34;http://www.w3.org/TR/css3-selectors/#selectors&#34; target=&#34;_blank&#34;&gt;veja a documentação&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Sendo mais claro, com o seletor &amp;#8216;~&amp;#8217; você consegue selecionar elemento do mesmo pai declarado depois dele.&lt;/p&gt;
+
+&lt;p&gt;Ao marcar o input, no css usando o transform vamos exibir suavemente o menu, veja:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;#control-nav:checked ~ .control-nav-close {
+  -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+
+#control-nav:checked ~ nav {
+  -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;pronto&#34;&gt;Pronto&lt;/h2&gt;
+
+&lt;p&gt;Agora o menu é responsivo e bem simples com poucos elementos.&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;Veja como ficou o resultado final&#34; href=&#34;http://palloi.github.io/responsive-header-only-css/&#34; target=&#34;_blank&#34;&gt;Veja como ficou o resultado final&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;código completo no github&#34; href=&#34;https://github.com/palloi/responsive-header-only-css&#34; target=&#34;_blank&#34;&gt;Veja o código completo no github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;É isso ae pessoal, obrigado&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

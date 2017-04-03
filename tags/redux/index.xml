@@ -1,0 +1,683 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Redux on Tableless</title>
+    <link>http://tableless.com.br/tags/redux/index.xml</link>
+    <description>Recent content in Redux on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/redux/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Invertendo o Redux</title>
+      <link>http://tableless.com.br/invertendo-o-redux/</link>
+      <pubDate>Fri, 09 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/invertendo-o-redux/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Já faz um tempo desde que implementei pela primeira vez o &lt;a href=&#34;http://redux.js.org/&#34;&gt;Redux&lt;/a&gt;. Numa época que só se falava nos frameworks, ele apareceu do nada, pelo menos para mim. Eu já conhecia o Flux, mas ainda não era o que estava procurando. O &lt;strong&gt;Redux&lt;/strong&gt; realmente é uma das melhores idéias que vi, para mim faz todo o sentido e ainda é simples de entender e de se implementar.&lt;/p&gt;
+
+&lt;p&gt;Depois de usá-lo algumas vezes você precisa se policiar para não se ver usando esta arquitetura em todos os projetos e virar um pregador da arquitetura. A idéia deste post é apresentar alguns aspectos que aprendi usando este padrão, ter um olhar mais crítico apesar do entusiasmo, e apresentar uma proposta um pouco diferente que pode lhe ser útil em alguma situação.&lt;/p&gt;
+
+&lt;h2 id=&#34;uma-visão-crítica&#34;&gt;Uma visão crítica&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Como havia dito, apesar de todo o amor que se pode ter por uma solução, é preciso um pouco de maturidade e entender que tudo o que você gosta possui contras, pontos negativos. Ter consciência disso pode te ajudar a tomar uma decisão melhor quando possui diferentes soluções parecidas para um determinado problema. Te ajudará também a saber quando dar mais atenção aos contras quando estes podem ser mais prejudiciais do que os benefícios dos seus prós. Isso te fará ser mais lúcido, mais racional, tomará menos decisões com natureza emocional. Com isto dito, vamos à alguns pontos sobre o &lt;strong&gt;Redux&lt;/strong&gt; sob minha perspectiva.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Redux&lt;/strong&gt; não é para todas as aplicações, é claro. Me vi em alguns projetos que não eram dos mais complexos, mas também não eram tão simples, nestes casos, a implementação do &lt;strong&gt;Redux&lt;/strong&gt; parece ser demais, um over-engineering, em português claro, um canhão para matar um mosquito.&lt;/li&gt;
+&lt;li&gt;Todos os reducers tem um grupo de switch cases que testam o tipo de ação disparada. Estes reducers podem ficar incrivelmente grandes além de ser difícil saber de forma rápida e prática, quais reducers respondem uma determinada ação. Para saber isso você deve abrir cada arquivo do &lt;em&gt;reducer&lt;/em&gt; para descobrir.&lt;/li&gt;
+&lt;li&gt;A composição dos reducers pode ser um pouco complicada às vezes de se entender. Principalmente para que está iniciando.&lt;/li&gt;
+&lt;li&gt;Em algumas situações você vai preferir que o relacionamento entre as ações e os reducers fosse mais direta, mais simples.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;metodologia&#34;&gt;Metodologia&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Resumidamente, o Redux funciona alterando as propriedades de um único objeto que armazena todo o estado de sua aplicação, utiliza funções puras ( _reducers ) _para aplicar mudanças nestes estados de acordo com uma determinada ação.&lt;/p&gt;
+
+&lt;p&gt;Os tipos das ações são imutáveis, ou seja, são constantes é por isso são usadas strings em &lt;em&gt;uppercase. &lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Pensando em uma alternativa,  removi os tipos das ações de dentro dos reducers, e coloquei no contexto da minha Store. No Redux você pode executar vários reducers para uma mesma ação, mas não pode disparar várias ações usando um reducer.&lt;/p&gt;
+
+&lt;p&gt;Então,  a conclusão que tirei é que posso escrever os tipos das ações como métodos de um objeto. A vantagem disso é que especifico todos os reducers que quero executar para cada um destes métodos, resolvendo o &lt;strong&gt;item 2.&lt;/strong&gt; É fácil enxergar qual &lt;em&gt;reducer&lt;/em&gt; é executado numa ação disparada e como efeito colateral eu resolvo o &lt;strong&gt;item 3&lt;/strong&gt; também, pois a composição entre reducers é direta.&lt;/p&gt;
+
+&lt;p&gt;A lógica no final é: Ao invés de executar _n_ reducers que vão testar todos os tipos das ações, eu faço isso de maneira &lt;strong&gt;inversa&lt;/strong&gt;, eu testo apenas a ação, se esta ação existir no meu objeto, então executo os &lt;em&gt;n&lt;/em&gt; reducers. Por isso chamei esse formato de &lt;em&gt;&lt;strong&gt;Inverted Redux&lt;/strong&gt;&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;iredux-store&#34;&gt;IRedux Store&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Com esta lógica em mente, foi só necessário escrever o código que comprove a eficácia ou não da hipótese do Inverted Redux. Para meu espanto foi ridiculamente simples. Para simplificar ainda mais por questões de didática, vou partir do princípio que esta nova Store receberá um objeto que implementa o padrão &lt;a href=&#34;https://davidwalsh.name/pubsub-javascript&#34;&gt;publish/subscribe&lt;/a&gt; ( &lt;em&gt;que é um padrão bem simples de se implementar&lt;/em&gt; ).&lt;/p&gt;
+
+&lt;p&gt;Esta é a implementação final desta Store:&lt;/p&gt;
+
+&lt;pre&gt;export default ( pubsub, state ) =&amp;gt; {
+        let Store = {
+            getState(){
+                return state
+        },
+            subscribe( callback ){
+                pubsub.subscribe(&#39;store:update&#39;, callback)
+            },
+            dispatch( action ){
+                pubsub.publish(&#39;store&#39;, action)
+            }
+        }
+        pubsub.subscribe(&#39;store&#39;, ( payload ) =&amp;gt;{
+            if( payload.type in Store ){
+                var newstate = Store[ payload.type ].call(null, state, payload );
+                pubsub.publish( &#39;store:update&#39;, newstate );
+            }
+        });
+
+    return Store
+}
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;reducers&#34;&gt;Reducers&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Com esta mudança, os reducers ficaram muito mais simples do que a versão com os _&lt;strong&gt;switch cases&lt;/strong&gt;,_ ficando mais fácil de entender, de compor e de reutilizar também.&lt;/p&gt;
+
+&lt;p&gt;Eu prefiro exportar um objeto contendo os meus reducers agrupados por um contexto em comum. Para exemplificar, vou criar aqui um objeto com as tarefas de &lt;strong&gt;adicionar&lt;/strong&gt;, &lt;strong&gt;remover&lt;/strong&gt; e &lt;strong&gt;editar&lt;/strong&gt; itens de uma lista.&lt;/p&gt;
+
+&lt;pre&gt;export default{
+
+    add( state = [], action ){
+        return [...state, {
+            text :action.item,
+            id   :(Math.random() * Math.pow(10, 20))
+        }]
+    },
+
+    remove( state = [], action ){
+        return state.filter( item =&amp;gt; item.id != action.id )
+    },
+
+    edit( state = [], action ){
+        return state.map( item =&amp;gt; {
+            if( item.id == action.id )
+                return { id : item.id, text : action.text }
+            else
+                return { id : item.id, text : item.text }
+        })
+    }
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Neste formato a principal diferença é que os reducers não testam as ações, apenas se preocupam no tratamento dos dados que lhe são passados.&lt;/p&gt;
+
+&lt;h2 id=&#34;juntando-as-peças&#34;&gt;Juntando as peças&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Bom, o resultado final ficou bem simples, considerando que você já tem sua implementação do Inverted Redux e tem os seus reducers prontos, a junção da instância da sua Store com os reducers se dá da seguinte forma:&lt;/p&gt;
+
+&lt;pre&gt;import store from &#39;Iredux&#39;
+import Pubsub from &#39;Pubsub&#39;
+import reducersList from &#39;reducers/list&#39;
+
+let AppStore = store( Pubsub, {
+    produtos :[]
+})
+
+AppStore.subscribe( state =&amp;gt;
+    console.log( &#39;AppStore.State&#39;, state )
+)
+
+AppStore.ADD = ( state, action ) =&amp;gt;{
+    state.produtos = reducersList.add( state.produtos, action )
+}
+
+AppStore.REMOVE = ( state, action ) =&amp;gt;{
+    state.produtos = reducersList.remove( state.produtos, action )
+}
+
+AppStore.EDIT = ( state, action ) =&amp;gt;{
+    state.produtos = reducersList.edit( state.produtos, action )
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Os métodos representam os tipos das ações do Redux, usei a mesma convenção de constantes, usando os nomes em &lt;em&gt;uppercase&lt;/em&gt;. Sua Store além de ter os métodos &lt;code&gt;dispatch()&lt;/code&gt;, &lt;code&gt;subscribe()&lt;/code&gt; e &lt;code&gt;getState()&lt;/code&gt;, ainda contém estes métodos que serão executados no disparo de uma ação.&lt;/p&gt;
+
+&lt;p&gt;Esta mudança me ajudou não só na visualização, pois você facilmente consegue identificar quais ações sua Store possui, como também na hora de compor os reducers. Posso também disparar um evento de remoção passando apenas o id, sem a necessidade de passar a lista ( de produtos no meu caso ) na hora de criar uma ação:&lt;/p&gt;
+
+&lt;pre&gt;import PubSub from &#39;PubSub&#39;
+
+$(document.body).on(&#39;click&#39;, &#39;.remove-item&#39;, (e)=&amp;gt;{
+    let id = e.target.id
+    PubSub.publish(&#39;store&#39;, { type:&#39;REMOVE&#39;, id })
+})
+&lt;/pre&gt;
+
+&lt;p&gt;No caso do código acima, eu usei o Singleton PubSub para publicar &lt;code&gt;store&lt;/code&gt; , passando apenas o id, porque no arquivo da minha Store propriamente dita, eu já mando o estado &lt;code&gt;produtos&lt;/code&gt; que sempre será uma lista conforme meu reducer &lt;code&gt;edit&lt;/code&gt; espera.&lt;/p&gt;
+
+&lt;p&gt;Assim que a minha Store tiver executado todos os reducers ela disparará novamente outro evento global para meu pubsub, o &lt;code&gt;store:update&lt;/code&gt; . Diferente do Redux, eu preferi sempre enviar o estado da minha aplicação para receber como argumento na hora de registrar um callback, porque eu vi que sempre tinha de executar o método .getState() e tava ficando redundante.&lt;/p&gt;
+
+&lt;pre&gt;AppStore.subscribe( state =&amp;gt;
+    console.log( &#39;AppStore.State =&amp;gt;&#39;, state )
+)
+&lt;/pre&gt;
+
+&lt;p&gt;Ao usar este padrão, percebi também que em alguns casos eu sempre repetia as mesmas chamadas dos reducers em diferentes ações, isso deixava o código meio duplicado e redundante. Mas a solução foi novamente muito simples, bastava criar um reducer intermediário, um middleware, que executava todos os reducers que precisava para uma determinada ação. Passei por isso pela primeira vez quando implementei uma aplicação &lt;code&gt;todomvc&lt;/code&gt; para testar os conceitos, criei um reducer chamado &lt;code&gt;common&lt;/code&gt; :&lt;/p&gt;
+
+&lt;pre&gt;import r from &#39;stores/reducers/todos&#39;
+
+export default ( store )=&amp;gt;{
+
+    let common = ( state, action )=&amp;gt;{
+        state.items     = r.filter( state.todos, { filter : state.filter } )
+        state.remaining = r.remaining( state.remaining, { todos: state.todos } )
+        return state
+    }
+
+    store.ADD = ( state, action ) =&amp;gt;{
+        state.todos = r.add( state.todos, action )
+        return common( state, action )
+    }
+
+    store.REMOVE = ( state, action ) =&amp;gt;{
+        state.todos = r.remove( state.todos, action )
+        return common( state, action )
+    }
+
+    store.UPDATE = ( state, action ) =&amp;gt;{
+        state.todos = r.update( state.todos, action )
+        return common( state, action )
+    }
+
+    store.TOGGLE = ( state, action ) =&amp;gt;{
+        state.todos = r.toggle( state.todos, action )
+        return common( state, action )
+    }
+
+    store.TOGGLE_ALL = ( state, action ) =&amp;gt;{
+        state.todos = r.toggle_all( state.todos, action )
+        return common( state, action )
+    }
+
+    store.EDIT = ( state, action ) =&amp;gt;{
+        state.todos = r.edit( state.todos, action )
+        return common( state, action )
+    }
+
+    store.CANCEL = ( state, action ) =&amp;gt;{
+        state.todos = r.cancel( state.todos, action )
+        return common( state, action )
+    }
+
+    store.CLEAR = ( state, action ) =&amp;gt;{
+        state.todos = r.clear( state.todos, action )
+        return common( state, action )
+    }
+
+    store.FILTER = ( state, action )=&amp;gt;{
+        state.filter = action.filter || &#39;all&#39;
+        return common( state, action )
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Deixei o &lt;code&gt;common&lt;/code&gt;  ali para ficar mais claro de entender o que ele faz, poderia muito bem ter colocado dentro do objeto que contém todos os reducers relacionados à minha lista de Todo&amp;#8217;s e referenciá-lo como fiz com outros métodos. Ali dá para ver que eu atualizo os estados &lt;code&gt;items&lt;/code&gt; e &lt;code&gt;remaining&lt;/code&gt; , e passo normalmente para estes reducers actions customizadas, enviando dados que meus reducers sempre esperam.&lt;/p&gt;
+
+&lt;p&gt;Claro, é possível perceber logo de cara que o arquivo da sua Store vai crescer, você pode resolver isso movendo estas ações para outro arquivo, e mandando sua store como parâmetro:&lt;/p&gt;
+
+&lt;pre&gt;import Pubsub from &#39;Pubsub&#39;
+import store from &#39;Iredux&#39;
+import actions from &#39;stores/actions&#39;
+
+let AppStore = store( Pubsub, {
+    produtos :[]
+})
+
+AppStore.subscribe( state =&amp;gt;
+    console.log( &#39;AppStore.State&#39;, state )
+)
+
+// @Actions
+actions( AppStore )&lt;/pre&gt;
+
+&lt;p&gt;Neste arquivo &lt;code&gt;stores/actions&lt;/code&gt; eu exporto uma função que recebe a store e faz o registro de todas as ações que esta store deve ter. Aí a organização com relação à estrutura de pastas e a lógica como isso vai se dar, depende de você e também da sua aplicação.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusões&#34;&gt;Conclusões&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Eu fiquei bastante surpreso com o resultado disso na prática. Há projetos onde criar todos os componentes usando &lt;strong&gt;Redux&lt;/strong&gt; ou mesmo o &lt;em&gt;Inverted Redux&lt;/em&gt; é loucura, principalmente porque muitos componentes acabam trabalhando bem sozinhos, são stand-alone, e não precisam estar num flow mais complexo de relacionamento.&lt;/p&gt;
+
+&lt;p&gt;Na prática, no mundo real, há uma necessidade de se analisar quais estados realmente devem estar em sua Store. Alguns componentes apenas precisam resolver problemas de UI, ou validação, não implicando em um relacionamento mais complexo entre as partes. Você não deve criar toda uma arquitetura Redux, Flux ou qualquer que seja, se sua página apenas contém um formulário que faz um post para uma outra página depois de uma validação simples, ou mesmo ao desenvolver um sticky header.&lt;/p&gt;
+
+&lt;p&gt;Muitas vezes você se depara com soluções do mercado e não sabe se é ou não uma solução otimizada para o seu projeto. Pense que muitas soluções do mercado estão focando nos problemas das &lt;strong&gt;Single Page Applications&lt;/strong&gt;, e fazem isso com toda a razão pois &lt;em&gt;SPA&amp;#8217;s&lt;/em&gt; são difíceis de se desenvolver e mais difícil ainda é criar uma aplicação neste formato com fácil manutenção. Porém há um nicho muito grande que são as páginas que possuem ajax, possuem uma forma um pouco mais rica na interface, mas que não podem ser consideradas totalmente &lt;em&gt;SPA&amp;#8217;s&lt;/em&gt;. Você não deve desprezar  ou subestimar estas aplicações, grandes dores de cabeça costumam vir de onde menos se espera.&lt;/p&gt;
+
+&lt;p&gt;Ao meu ver existe uma supervalorização do verbo &amp;#8220;&lt;strong&gt;escalar&lt;/strong&gt;&amp;#8221; no contexto do desenvolvimento front-end. Vejo muitas soluções serem vendidas utilizando o argumento de que você deve usar isto ou aquilo pois caso contrário sua aplicação não irá escalar. Nenhuma solução é ótima por si só, não há regras inquebráveis e todas elas dependem de um contexto. É por este motivo que escolher um Framework A ou B, ou um padrão C ou D não será suficiente para que sua aplicação escale. É necessário mais que isso, experiência, boas análises de requisitos, funcionalidades e especificações, refactories constantes, organização etc. Portanto, não é um caminho simples.&lt;/p&gt;
+
+&lt;p&gt;A minha intenção com este post, além de compartilhar minhas experiências, é mostrar que o Redux abriu minha mente, minha forma de pensar, fez com que eu voltasse a pensar fora da caixa. Deve servir como solução mas também como uma inspiração, uma forma de te motivar à pensar em outras soluções, à questionar as que já tem, a seguir em frente estimulando sua criatividade.&lt;/p&gt;
+
+&lt;p&gt;Até a próxima, um grande abraço.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>A arquitetura Redux usando Jails</title>
+      <link>http://tableless.com.br/arquitetura-redux-usando-jails/</link>
+      <pubDate>Mon, 18 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/arquitetura-redux-usando-jails/</guid>
+      <description>
+
+&lt;p&gt;Ultimamente tenho me preocupado mais com arquiteturas no front-end do que propriamente com as implementações de alguns frameworks. Isso porque eu acho que realmente nos falta um pouco mais de conhecimento sistêmico, mais arquitetural, porque os problemas só estão crescendo e percebi que pelo menos eu não estava acompanhando devidamente a complexidade das aplicações desenvolvidas em Javascript.&lt;/p&gt;
+
+&lt;h2 id=&#34;uma-pequena-reflexão&#34;&gt;Uma pequena reflexão&lt;/h2&gt;
+
+&lt;p&gt;Os frameworks acabaram aparecendo nos últimos tempos e percebo que tiveram uma importância muito maior do que o nosso amadurecimento quanto aos novos desafios nas aplicações web, especificamente na linguagem Javascript. Percebo por comentários de colegas que em entrevistas a preocupação com o conhecimento em determinados frameworks é maior do que a preocupação com o pensamento abstrato do programador Javascript.&lt;/p&gt;
+
+&lt;p&gt;Eu acabei escrevendo um micro-framework, já postei ele aqui, o &lt;strong&gt;&lt;a href=&#34;http://tableless.com.br/jails-o-framework-e-arquitetura-javascript/&#34; target=&#34;_blank&#34;&gt;Jails&lt;/a&gt;&lt;/strong&gt;. Que nada mais é do que uma aplicação de um conceito de relacionamento entre as partes, uma micro-arquitetura baseada em eventos, com alguns padrões, bem simples. Ao invés de vir de fábrica lotada de features, ela apenas resolve o problema básico de &lt;strong&gt;organização.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-problema-principal-e-o-secundário&#34;&gt;O Problema principal e o secundário&lt;/h2&gt;
+
+&lt;p&gt;O &lt;strong&gt;Jails&lt;/strong&gt; não resolve todos os problemas, aliás, não deve e se devesse, não conseguiria. Eu particularmente acredito que quanto mais simples uma solução for, mais &amp;#8220;composable&amp;#8221; ela vai ser, e se possui componentes que podem ser compostos, sua aplicação tende a ser mais simples e mais otimizada para o seu problema inicial.&lt;/p&gt;
+
+&lt;p&gt;Menos tempo também se perde com manutenção de soluções que não estavam no escopo inicial. Aqui entra o velho conceito de divisão e conquista, para um problema complexo, o mais inteligente a se fazer é resolvê-lo quebrando-o em partes menores. O Jails melhorou bastante a organização e a forma de abstrair as coisas para mim sobretudo na reutilização do código, eram estes os problemas iniciais.&lt;/p&gt;
+
+&lt;p&gt;Existe porém um problema secundário, como manter a previsibilidade dos estados de uma aplicação? Um exemplo, o usuário escolhe uma opção em um dropdown, outro componente precisa ser atualizado de acordo com esta opção, em conjunto, um terceiro componente precisa atualizar o texto, e um quarto componente deve mostrar na UI algo que tem relação com a escolha feita no primeiro componente, e todos eles estão de forma espalhada na tela, não são portanto um conjunto de um mesmo módulo.&lt;/p&gt;
+
+&lt;p&gt;Quer dizer então que o Jails não resolve este problema? Claro que não, e isto não significa que é um problema sem solução. Com framework ou sem você vai resolver esse problema. A questão aqui não é apenas resolvê-lo, é como solucionar de maneira &lt;strong&gt;elegante&lt;/strong&gt;, usando uma forma que não comprometa a sanidade do seu código. Isso te ajuda diretamente na manutenção e consequentemente a ser mais ágil quando tiver que fazer alterações ou mesmo criar novas features.&lt;/p&gt;
+
+&lt;h2 id=&#34;redux-a-predictable-state-container&#34;&gt;Redux, a predictable state container&lt;/h2&gt;
+
+&lt;p&gt;Aqui entra um dos conceitos mais interessantes que vi nestes útimos tempos, não me parece ter recebido tanta atenção quanto deveria, mais é genial, pelo menos para mim. Bom, como o título sugere, ele é basicamente um container de estados para sua a aplicação, ele simplifica a arquitetura Flux, adiciona para nós alguns conceitos como reducers, imutabilidade e funções puras.&lt;/p&gt;
+
+&lt;p&gt;A idéia geral dele é, que você tenha apenas uma &lt;strong&gt;Store &lt;/strong&gt;que mantêm todos os estados da sua aplicação, e para cada ação do usuário você deve disparar uma &amp;#8220;action&amp;#8221; para esta store que por sua vez vai atualizar os estados e te notificar que esta atualização finalizou, assim, ao ser notificado você resgata estes estados que são read-only e atualiza seus componentes. As mudanças nestes estados devem ser feitas apenas usando funções puras chamadas de &amp;#8220;reducers&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Há um tempo atrás, quando ainda estava desenvolvendo o Jails, eu já havia notado que em alguns casos seria interessante manter os estados da aplicação em um objeto, fazendo estas alterações neste objeto usando métodos de array como filters, map, reduce para listas, e posteriormente atualizado a view usando um template engine, mustache por exemplo. Uma prova disso é que hoje, as apps e as controllers do Jails compartilham um objeto &lt;strong&gt;data&lt;/strong&gt; entre eles com esta finalidade.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import &#39;components/view&#39;
+import jails from &#39;jails&#39;
+jails.app(&#39;app&#39;, function(html, data){
+    this.init = ()=&amp;gt;{
+        let view = this.x(&#39;[data-component*=view]&#39;)
+        view(&#39;render&#39;, data)
+    }
+})
+&lt;/pre&gt;
+
+&lt;p&gt;E foi desta forma que resolvia estes problemas de estado da aplicação, mas que possui uma consequência. Não era trivial saber quando ou quem havia alterado aquele objeto. É o clássico problema da variável global, você não consegue dizer com facilidade qual ação foi responsável por uma mudança.&lt;/p&gt;
+
+&lt;p&gt;Outro problema é que objetos não são funções, não há callbacks. Você não consegue dizer à outros módulos que houve uma alteração neste objeto. Aí você vai se sentir tentado a usar aquelas manobras de watch, observer, two-way binding ou seja lá qual for o nome que dê para isso, para te alertar quando o objeto é alterado.&lt;/p&gt;
+
+&lt;p&gt;Hoje já temos bastante informação sobre estas técnicas e sabemos que é difícil verificar de forma recursiva se alguma propriedade do objeto alterou e não é performático.&lt;/p&gt;
+
+&lt;p&gt;É por isso que acho o Redux genial, ele utiliza alguns conceitos do paradigma funcional que resolve de maneira elegante este problema e tem esta idéia de preservar os estados da aplicação em um objeto só, que pra mim por dedução é algo interessante a se fazer hoje em dia, além disso nos garante um mínimo previsibilidade. O Redux usa o conceito de funções puras para alterar os estados e estas funções por serem puras são facilmente passíveis de composições e também são previsíveis. E o melhor, não está preso à implementação do React, é um padrão/arquitetura, um conceito que você pode usar &lt;strong&gt;ONDE VOCÊ QUISER&lt;/strong&gt;. Você prefere AngularJS? Ember? Js Vanilão? React? Não importa, e essa qualidade para mim não tem preço.&lt;/p&gt;
+
+&lt;h2 id=&#34;não-seja-um-robô-pense-por-conta-própria-8230&#34;&gt;Não seja um robô, pense por conta própria&amp;#8230;&lt;/h2&gt;
+
+&lt;p&gt;Já vi lutas ferrenhas sobre qual framework/solução usar, existem aquelas pessoas que são realmente evangelistas no sentido mais religioso, aprendem a usar alguma ferramenta e aquela é a única que presta, a única que irá salvar à todos&amp;#8230; Você já deve ter conhecido alguns destes pregadores de tecnologias certo? Bom, se eu pensasse da mesma forma, diria que deve seguir e usar o Redux em todas as suas aplicações e seguir de forma &amp;#8220;strict&amp;#8221;, usando EXATAMENTE como foi concebida.&lt;/p&gt;
+
+&lt;p&gt;A experiência dos erros que cometi me diz o contrário, não há uma solução que seja ótima para todos os problemas, e é aí que entra o propósito do meu post, só agora posso esclarecer isso.&lt;/p&gt;
+
+&lt;p&gt;Existem muitas outras fontes que ensinam de forma muito mais didática sobre o Redux, screencasts do próprio desenvolvedor que concebeu este conceito e uma documentação completa no github. Não faz sentido repassar estas informações que já estão disponíveis na web.&lt;/p&gt;
+
+&lt;p&gt;Meu intuito é passar um pouco do aprendizado e experiência que eu tive &lt;strong&gt;usando&lt;/strong&gt; e &lt;strong&gt;adaptando&lt;/strong&gt; o Redux. Talvez isso seja útil para você que trabalha com Backbone, Angular ou qualquer outro framework. Pense no seu projeto, pense nas pessoas que vão trabalhar nele, pense no quão complexo ele é ou vai ser. Use sua criatividade para adaptar algo no conceito quando ele está verboso demais, complexo demais ou quando não serve exatamente da maneira como foi concebido, o meu conselho é que não lute para fazer com que ele &amp;#8220;caiba&amp;#8221; no seu projeto exatamente como é, pense por conta própria também.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-implementação-e-mudanças&#34;&gt;A implementação e mudanças&lt;/h2&gt;
+
+&lt;p&gt;Para experimentar este conceito novo para mim, implementei um Todo List, não tão complexo quanto o &lt;a href=&#34;http://todomvc.com/&#34;&gt;TodoMVC&lt;/a&gt;, serviu apenas para poder fixar as idéias. As primeiras mudanças que fiz foi remover os &lt;strong&gt;actions creators&lt;/strong&gt; e as &lt;strong&gt;constantes&lt;/strong&gt;. Actions creators são funções que criam as actions (objetos) que são usados como informações pela Store. Uma action também possui uma propriedade &lt;strong&gt;type &lt;/strong&gt;que armazena qual o tipo de ação, ela é uma string e portanto na documentação oficial ela é referenciada através de uma constante.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function addTodo( text ){
+    return{
+        type :ADD_TODO,
+        text
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Há alguns motivos pelos quais tanto as constantes quanto as actions creators existem, principalmente em projetos muito grandes, o motivo mais óbvio é que essa granulação ajuda caso seja necessário alterar por exemplo o nome de uma constante, ou adicionar propriedades em uma action sem que seja necesário revisitar todos os lugares onde se usam as constantes ou as actions.&lt;/p&gt;
+
+&lt;p&gt;Mas no meu caso o projeto é pequeno, e a consequência disso é que ao invés de ajudar isso acaba atrapalhando um pouco na manutenção. Se o projeto é pequeno e possui apenas um lugar onde estas actions existem, este processo acaba tornando sua arquitetura burocrática desnecessariamente, você força o programador a alterar várias partes diferentes da aplicação ainda que a mudança seja algo muito simples, costumamos chamar isso de &lt;em&gt;over engineering&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;No &lt;strong&gt;Jails&lt;/strong&gt; a controller é como um módulo fechado, que controla os eventos. Para uma &lt;em&gt;todo&lt;/em&gt; list, o processo de adicionar &lt;em&gt;todos&lt;/em&gt; ou_ _remover &lt;em&gt;todos&lt;/em&gt; só fará sentido neste módulo ( neste meu projeto ). Portanto, não preciso dar tantas voltas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import &#39;components/riot-view/riot-view&#39;
+import &#39;components/submitter/submitter&#39;
+
+import jails from &#39;jails&#39;
+import store from &#39;stores/todos&#39;
+
+jails.controller(&#39;todos&#39;, function(){
+
+    const view = this.x(&#39;.view&#39;)
+
+    this.init = ()=&amp;gt;{
+
+        this.on(&#39;blur&#39;, &#39;li .form-control&#39;, save)
+        this.on(&#39;click&#39;, &#39;.remove&#39;, remove)
+        this.listen(&#39;submitter:post&#39;, add)
+
+        //...
+    }
+
+    function update( state = todos.getState() ){
+        view(&#39;update&#39;, state )
+    }
+
+    function save( id, text ){
+        let id = +e.target.title,
+            text = e.target.value
+        if ( text ){
+            store.dispatch({ id, text, type :&#39;UPDATE_TODO&#39; })
+        }
+    }
+
+    function add( e, opt ){
+        let form = e.target,
+            text = opt.params.text.trim()
+        if( text ){
+            store.dispatch({ text, type :&#39;ADD_TODO&#39; })
+        }
+    }
+
+    function remove( e ){
+        let id = +e.target.title
+        store.dispatch({ id, type :&#39;REMOVE_TODO&#39; })
+    }
+        //...
+})
+
+
+&lt;/pre&gt;
+
+&lt;p&gt;Um pouco mais direto&amp;#8230;  Como podem ver no código, o Jails abstrai a parte de eventos do DOM, e interpreta qual é a ação executada pelo usuário e delega a action para o módulo &lt;strong&gt;store&lt;/strong&gt;. Aí estão algumas ações que a minha todo list espera, como adicionar um todo, remover e salvar.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-store&#34;&gt;A Store&lt;/h2&gt;
+
+&lt;p&gt;A minha store é bem simples para este caso, não precisei fazer mudanças drásticas, o modelo da documentação já me serviu, as mudanças apenas são de forma estrutural por causa do framework que eu utilizo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import Reduxtore from &#39;modules/reduxtore/reduxtore&#39;
+import storage from &#39;modules/storage/storage&#39;
+import reducer from &#39;reducers/todos/index&#39;
+
+export default (()=&amp;gt;{
+
+    let list, store
+
+    list = storage.session.get(&#39;todos&#39;) || []
+
+    store = new Reduxtore( reducer, {
+        filter  :&#39;all&#39;,
+        todos   :list,
+        items   :list
+    })
+
+    store.subscribe(()=&amp;gt;{
+        storage.session.set(&#39;todos&#39;, store.getState().todos )
+    })
+
+    return store
+})()
+&lt;/pre&gt;
+
+&lt;p&gt;Aqui está a definição da store da minha aplicação, eu importo um módulo AMD que abstrai o processo de local storage, para poder salvar o estado da aplicação, importo um reducer que será passado como parametro para minha store, e também defino o estado inicial e os campos que minha aplicação deve conter.&lt;/p&gt;
+
+&lt;p&gt;A classe Reduxtore é apenas uma implementação que fiz em AMD do conceito de Store do Redux, seguindo a especificação, possui os métodos .&lt;strong&gt;getState()&lt;/strong&gt;, .&lt;strong&gt;dispatch()&lt;/strong&gt; e &lt;strong&gt;subscribe()&lt;/strong&gt;. Na especificação existem outros métodos, mas estes para mim por enquanto são suficientes.&lt;/p&gt;
+
+&lt;p&gt;Toda vez que quero disparar uma ação utilizo .&lt;strong&gt;dispatch()&lt;/strong&gt;, o callback de uma alteração de estado é registrado pelo método .&lt;strong&gt;subscribe()&lt;/strong&gt; e sempre que quiser resgatar o estado atual da aplicação, utilizo .&lt;strong&gt;getState()&lt;/strong&gt;. No meu caso, a minha store salva os dados no local storage e resgata-os assim que inicia.&lt;/p&gt;
+
+&lt;h2 id=&#34;reducers-e-funções-puras&#34;&gt;Reducers e Funções puras&lt;/h2&gt;
+
+&lt;p&gt;Se a Store é responsável por manter e armazenar o estado da minha aplicação, você deve se perguntar quem faz as alterações nos estados. Eu havia dito anteriormente que são os reducers, o nome pode assustar um pouco porque podemos fazer algumas assunções, mas a grosso modo, são apenas funções puras, que recebem um estado como primeiro parâmetro e uma &amp;#8220;action&amp;#8221; como segundo parâmetro.&lt;/p&gt;
+
+&lt;p&gt;De forma bem grosseira, funções puras são aquelas do tipo f(x, y) =&amp;gt; x + y , por exemplo, onde o resultado esperado como saída deve ser sempre o mesmo quando passados os mesmos valores. O que significa que para a função acima de exemplo, se x for 10 e y for 5 o resultado final SEMPRE será 15. Ela não pode ser não-determinística a ponto de te retornar um valor diferente para os mesmos parametros. Tipo : &lt;strong&gt;f(10, 5) = 15&lt;/strong&gt;,** &lt;span style=&#34;color: #ff0000&#34;&gt;f(10, 5) = 20&lt;/span&gt;**.&lt;/p&gt;
+
+&lt;p&gt;Outra característica das funções puras é o fato delas não acarretarem efeitos colaterais na sua execução, ou seja, passados x, y ela apenas irão computar x e y. Não se pode inserir um z na questão, ou executar um método de I/O como ler um arquivo , executar um ajax ou mesmo alterar um elemento do dom. Por isso as funções puras são previsíveis, o que nos ajuda e muito na sanidade da nossa aplicação, ao invés disso, o que costumamos fazer é algo do tipo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function soma( x, y ){
+    document.body.innerHTML = &#39;AHAHAHHAH&#39;
+    global.var = null
+    return x+y
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Esta função não é pura, inclusive é imunda. Esse exemplo é caricato, mas pode perceber que faz muito isso olhando pros seus códigos, esta função soma que deveria apenas somar produz efeitos colaterais, no caso acima, no DOM e numa variável global. E se retirar a linha que altera o DOM e a linha da variável global, e por algum motivo sua função retorna soma algumas vezes e outras retorna a divisão, pros mesmos parâmetros, então ela também não é pura. É interessante que mantenha em mente o que eu disse anteriormente sobre não ser um robô. Não mude todas as suas funções para funções puras. As funções impuras também tem sua utilidade.&lt;/p&gt;
+
+&lt;p&gt;Então teríamos um reducer que modificaria um determinado campo do nosso objeto que armazena os estados da nossa aplicação.&lt;/p&gt;
+
+&lt;p&gt;Abaixo segue a implementação do reducer que modifica o estado &lt;strong&gt;{ todos:[] } &lt;/strong&gt;da minha Store:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;export default function( state = [], action ){
+
+    switch( action.type ){
+
+        case &#39;ADD_TODO&#39;: return [
+            ...state, {
+                text        :action.text,
+                completed   :false,
+                edit        :false,
+                id      :(Math.random() * Math.pow(10, 20))
+            }
+        ]
+
+        case &#39;UPDATE_TODO&#39;: return state.map( item =&amp;gt;{
+            if( item.id == action.id ){
+                item.text = action.text
+                item.edit = false
+            }
+            return item
+        })
+
+        case &#39;REMOVE_TODO&#39;: return state.filter( item =&amp;gt;
+            item.id != action.id
+        )
+
+        default : return state
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como o estado &lt;strong&gt;todos &lt;/strong&gt;é uma lista, eu sempre vou retornar uma lista, todos os reducers recebem as ações disparadas, cabe a você definir à quais ações o seu reducer irá responder. Isso é muito legal no Redux, facilita e MUITO no processo de inserir novas features no seu projeto.&lt;/p&gt;
+
+&lt;p&gt;Para o estado &lt;strong&gt;filter&lt;/strong&gt; que cuida dos filtros da minha todo list como &amp;#8220;completos&amp;#8221; &amp;#8220;ativos&amp;#8221; ou &amp;#8220;todos&amp;#8221;, eu crio outro reducer, responsável por alterar apenas este estado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;export default (state = &#39;all&#39;, action) =&amp;gt;{
+    return action.filter? action.filter :state
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Este é bem simples. Este reducer sempre vai retornar valores entre &amp;#8220;all&amp;#8221;, &amp;#8220;completed&amp;#8221;, &amp;#8220;active&amp;#8221;. Note que aqui estou desconsiderando o tratamento do action.filter, portanto se for passado um estado que não está dentro dos valores que mencionei, o código irá quebrar. Mantive desta forma por questões didáticas.&lt;/p&gt;
+
+&lt;h2 id=&#34;combinação-de-reducers&#34;&gt;Combinação de Reducers&lt;/h2&gt;
+
+&lt;p&gt;Lembra que na definição da minha Store, eu podia passar apenas um reducer, certo? Como eu tenho dois para essa aplicação como eu passo estes reducers se minha store recebe apenas um?&lt;/p&gt;
+
+&lt;p&gt;Aqui é onde você percebe que as coisas encaixam&amp;#8230;  Se você tem duas funções puras que recebem um estado como primeiro parâmetro e a mesma action como segundo, basta criar uma terceira que engloba as outras duas, combinando os reducers:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import todos from &#39;reducers/todos/todo&#39;
+import visibility from &#39;reducers/todos/visibility&#39;
+
+export default ( state, action ) =&amp;gt;{
+
+            let list = todos( state.todos, action ),
+        filter   = visibility( state.filter, action ),
+        filtered = todos( list, { type  :&#39;FILTER_TODO&#39;, filter })
+
+    return {
+        filter,
+        todos   :list,
+        items   :filtered
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Este reducer é exatamente o que é importado lá em cima na nossa Store. Lembrando que na nossa Store, nos passamos um objeto com 3 estados, { &lt;strong&gt;todos, items, filter &lt;/strong&gt;}. Essa main reducer vai receber como primeiro parametro esse objeto com os 3 estados, e vai repassar cada estado para seu reespectivo reducer que por sua vez, vai retornar um novo estado dado aquela ação, e todos recebem a mesma action! \o/&lt;/p&gt;
+
+&lt;p&gt;No meu main reducer ali eu mudei um pouco, fiz diferente do modo como vi na implementação do redux no TodoMVC, eu criei  um estado a mais que é o estado &lt;strong&gt;items&lt;/strong&gt;, porque este é o que aparece para o usuário, mas não é o reflexo de todos os &lt;strong&gt;todos&lt;/strong&gt; que eu possuo. O que acontecia antes de eu adicionar esse campo é que na hora de escolher por um filtro que apenas mostrava os &lt;strong&gt;todos&lt;/strong&gt; completados a minha Store automaticamente salvava este estado no session storage e eu perdia os items que estavam &lt;strong&gt;incompletos&lt;/strong&gt; por exemplo. Então eu precisava de um campo para realmente armazenar todas as entradas que eu tinha, e outro campo chamado &amp;#8220;&lt;strong&gt;items&lt;/strong&gt;&amp;#8221; que serve de forma visual na hora de filtrar os &lt;strong&gt;todos&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Na documentação do redux usando React ele resolve esse problema dos itens filtrados na view. Eu particularmente prefiro ter &lt;strong&gt;menos lógica possível&lt;/strong&gt; na view e isso é só uma questão de preferência.&lt;/p&gt;
+
+&lt;p&gt;Essa alteração foi extremamente simples e é incrível como é fácil resolver problemas deste tipo de forma elegante, não fugi do padrão do reducer, das funções puras, e consegui reutilizar o reducer &lt;strong&gt;todos &lt;/strong&gt;apenas passando a ação de filtro para a mesma lista de items usando a mesma função salvando em outro estado.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;De fato isso melhorou bastante o desenvolvimento de aplicações complexas que estava desenvolvendo, é preciso amadurecimento nessa arquitetura ainda. Faz apenas alguns meses que estou mexendo nisso e não posso incluir essa arquitetura em qualquer projeto, então o processo de amadurecimento e experiência é lento.&lt;/p&gt;
+
+&lt;p&gt;Realmente isso resolve muitos problemas recorrentes que tinha e de quebra você ganha um poder que nem percebeu, de graça. Por concentrar todos os estados da sua aplicação em um objeto, e realizar todas as mudanças neste objeto, você pode &amp;#8220;voltar no tempo&amp;#8221;, basta fazer um subscribe na sua Store, e sempre que ela atualizar, armazene o último estado em um array. Dessa forma, como sua aplicação responde sempre à um estado, você pode incluir uma funcionalidade de &amp;#8220;undo&amp;#8221; e &amp;#8220;redo&amp;#8221;, apenas navegando entre os estados desse array =).&lt;/p&gt;
+
+&lt;p&gt;Além disso você perde menos tempo com detalhes do DOM, delegue isso para alguma lib de template, e se concentre nos estados, isso inclusive te ajuda na hora de testar o comportamento da sua aplicação, você não precisa emular o DOM, basta testar as propriedades de cada estado.&lt;/p&gt;
+
+&lt;h2 id=&#34;finalizando-8230&#34;&gt;Finalizando&amp;#8230;&lt;/h2&gt;
+
+&lt;p&gt;Bom galera, era isso que eu tinha pra falar, eu não postei a aplicação por completo para não estender ainda mais esse post, deixarei no final do post um link com o app funcionando e o código-fonte no caso de alguém se interessar. A idéia do post não é servir como referência para suas aplicações baseadas em Redux, serve apenas para instigar um pouco a curiosidade com relação à padrões e arquiteturas, deixando os frameworks em segundo plano. Há outros conceitos não discutidos como &lt;strong&gt;imutabilidade&lt;/strong&gt; e outras coisas mais, sugiro a leitura da documentação oficial para maiores detalhes.&lt;/p&gt;
+
+&lt;p&gt;O TodoApp que fiz é um projeto feito em AMD, usando o micro-framework Jails para relacionamento entre componentes e módulos, o projeto foi escrito usando a sintaxe do ES6 usando &lt;strong&gt;Babel&lt;/strong&gt; para gerar os AMD&amp;#8217;s em ES5. Estou usando como componente de renderização o &lt;a href=&#34;http://riotjs.com/&#34; target=&#34;_blank&#34;&gt;RiotJS&lt;/a&gt; que implementa virtualDOM e é extremamente leve, tornou-se minha engine padrão nos projetos para renderização de templates, embora ela seja muito mais que isso. O Riotjs é uma ótima alternativa para quem quer colocar os conceitos do React em prática.&lt;/p&gt;
+
+&lt;p&gt;Um grande abraço.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jails-org/Demos/tree/master/TodoApp&#34; target=&#34;_blank&#34;&gt;Jails TodoApp&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://egghead.io/lessons/javascript-redux-the-single-immutable-state-tree?series=getting-started-with-redux&#34; target=&#34;_blank&#34;&gt;Redux Course ( Screencasts )&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://redux.js.org/&#34; target=&#34;_blank&#34;&gt;Redux Documentation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Pure_function&#34; target=&#34;_blank&#34;&gt;Pure Functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://riotjs.com/&#34; target=&#34;_blank&#34;&gt;RiotJS&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://babeljs.io/docs/plugins/transform-es2015-modules-amd/&#34;&gt;Babel &amp;amp; AMD modules&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introdução ao Redux</title>
+      <link>http://tableless.com.br/bem-vindo-ao-redux/</link>
+      <pubDate>Mon, 04 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/bem-vindo-ao-redux/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;a href=&#34;http://redux.js.org/docs/introduction/index.html&#34;&gt;Redux&lt;/a&gt;&lt;/strong&gt; é uma maneira de pensar o desenvolvimento de aplicações criada pelo &lt;a href=&#34;https://twitter.com/dan_abramov&#34; target=&#34;_blank&#34;&gt;@dan_abramov&lt;/a&gt; que teve como principio optimizar a ideia do &lt;a href=&#34;https://facebook.github.io/flux/&#34; target=&#34;_blank&#34;&gt;Flux&lt;/a&gt;. Ela foi criada para tentar optimizar alguns obstáculos que o Flux começou a enfrentar, e também veio para simplificar a implementação do mesmo. Inspirada em conceitos da linguagem funcional &lt;a href=&#34;http://elm-lang.org/&#34; target=&#34;_blank&#34;&gt;Elm&lt;/a&gt;, e de algumas bibliotecas JS como o &lt;a href=&#34;https://facebook.github.io/immutable-js/&#34; target=&#34;_blank&#34;&gt;Immutable.js&lt;/a&gt;,  o &lt;a href=&#34;https://github.com/Yomguithereal/baobab&#34; target=&#34;_blank&#34;&gt;Baobab&lt;/a&gt;, o  &lt;a href=&#34;https://github.com/Reactive-Extensions/RxJS&#34; target=&#34;_blank&#34;&gt;RxJs&lt;/a&gt; e o próprio Flux, o Redux veio com alguns paradigmas interessantes e um pouco diferenciados do Flux.&lt;/p&gt;
+
+&lt;h2 id=&#34;triforce-do-redux&#34;&gt;Triforce do Redux&lt;/h2&gt;
+
+&lt;p&gt;O Redux é composto de três princípios que formam e definem o seu conceito. Eles são:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Um único ponto de verdade&lt;/strong&gt; &amp;#8211; Todo o estado da aplicação é mantido em apenas um único objeto chamado de Store.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;O estado é imutável&lt;/strong&gt; &amp;#8211; O estado da aplicação é inalterável, a unica maneira de afeta-lo é emitindo uma Action com a mudança.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Mudanças são feitas apenas por funções puras&lt;/strong&gt; &amp;#8211; Reducers recebem as Actions emitidas e aplicam-nas ao estado. Sempre retornando um novo estado.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Agora com os princípios estabelecidos, vamos entender o que significa cada uma dessas parte da arquitetura.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-estado&#34;&gt;O que é Estado&lt;/h2&gt;
+
+&lt;p&gt;Quando se trata de aplicações reativas, ouvimos muito falar do tal estado (ou &lt;strong&gt;state&lt;/strong&gt; em inglês), mas nem todo mundo consegue assimilar de fato o que ele representa na aplicação.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Estado&lt;/strong&gt; é ser considerado &lt;em&gt;o conjunto de dados mantidos no momento em que sua aplicação está rodando no lado do cliente&lt;/em&gt;. Qualquer atualização que envolva alteração desses dados, automaticamente essa mudança irá alterar o estado.&lt;/p&gt;
+
+&lt;h2 id=&#34;views&#34;&gt;Views&lt;/h2&gt;
+
+&lt;p&gt;Views são os arquivos finais mostrados para o usuário, na maior parte dos frameworks views são todos os arquivos HTML renderizados pelo Browser, no caso do React em especifico,  as views são consideradas componentes React, onde o contexto é renderizado através da função &lt;code&gt;render()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;actions&#34;&gt;Actions&lt;/h2&gt;
+
+&lt;p&gt;Actions (ou ações) são objetos que servem para transmitir o que será enviado de sua view para sua store.&lt;/p&gt;
+
+&lt;p&gt;Actions possuem obrigatoriamente uma propriedade &lt;strong&gt;type&lt;/strong&gt; que indica o tipo de ação que será executada,  e que por sua vez devem ser escritas sempre como constantes.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+ type: &#39;ENVIAR_MENSAGEM&#39;,
+ text: &#39;Olá Redux&#39;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Neste caso estou criando uma action que será do tipo &lt;code&gt;ENVIAR_MENSAGEM e &lt;/code&gt;a propriedade &lt;strong&gt;text&lt;/strong&gt; é apenas um parâmetro que ela irá transmitir para a store.&lt;/p&gt;
+
+&lt;h2 id=&#34;reducers&#34;&gt;Reducers&lt;/h2&gt;
+
+&lt;p&gt;Actions descrevem de fato que algo aconteceu e o papel dos Reducers é transmitir o que aconteceu para alterar devidamente sua store&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;let initialState = {
+  mensagem: &#39;Olá Mundo&#39;
+}
+
+function olaMundo(state = initialState, action) {
+  switch (action.type) {
+    case ENVIAR_MENSAGEM:
+      return Object.assign({}, state, {
+        mensagem: action.text
+      })
+    
+    case APAGAR_MENSAGEM:
+      return Object.assign({}, state, {
+        mensagem: &#39;&#39;
+      })
+    
+    default:
+      return state
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Vamos analisar o código acima:&lt;/p&gt;
+
+&lt;p&gt;Primeiro gostaria de avisar que estou implementando usando ES2015, então sugiro para quem ainda não experimentou, de uma olhada &lt;a href=&#34;https://babeljs.io/docs/learn-es2015/&#34; target=&#34;_blank&#34;&gt;neste link&lt;/a&gt; que é uma referência bem bacana sobre o que mudou.&lt;/p&gt;
+
+&lt;p&gt;Em primeiro lugar eu declarei o estado inicial da aplicação com uma propriedade &lt;code&gt;mensagem&lt;/code&gt; e disse que seu valor é &lt;strong&gt;Olá Mundo&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Criei uma função chamada de &lt;strong&gt;olaMundo&lt;/strong&gt; com dois parâmetros (state que já declarado como meu estado inicial e a action que foi emitida para acionar este reducer) e nela que está a mágica. Note que ela possui um &lt;code&gt;switch&lt;/code&gt; com duas condições, explicarei apenas a primeira, pois as duas basicamente tem o mesmo resultado.&lt;/p&gt;
+
+&lt;p&gt;Quando a Ação &lt;code&gt;ENVIAR_MENSAGEM&lt;/code&gt; é emitida para este reducer, ele irá atribuir o valor que a action transmiti ao estado e a função &lt;code&gt;Object.Assign()&lt;/code&gt; será responsável por criar a cópia do estado e envia-lo à store.&lt;/p&gt;
+
+&lt;h2 id=&#34;store&#34;&gt;Store&lt;/h2&gt;
+
+&lt;p&gt;Além de manter o estado da aplicação como já falado antes. A Store também tem algumas outras responsabilidades, são Elas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Permitir a leitura do estado através do método &lt;code&gt;getState()&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;Permitir que o estado seja alterado pelos &lt;strong&gt;Reducers&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Registrar &lt;strong&gt;Listeners&lt;/strong&gt; para escutar o estado à partir do método &lt;code&gt;subscribe(listener)&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;Manipular os &lt;strong&gt;Listeners&lt;/strong&gt; registrados.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;migrando-para-o-redux&#34;&gt;Migrando Para o Redux&lt;/h2&gt;
+
+&lt;p&gt;Como é dito na própria documentação oficial do Redux, ele nao é algo que te deixará preso e impossibilitado de mudar, mas claro, caso queira adota-lo, algumas tomadas de decisões terão de ser feitas.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Redux is not a monolithic framework&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;O Redux também é uma maneira de se pensar, note que todos os passos que eu mostrei não são exclusivos do React, ou do Angular por exemplo, a biblioteca em si foi documentada usando o React, mas nada te impede de implementar a ideia em qualquer outro Framework como o Angular.&lt;/p&gt;
+
+&lt;p&gt;E para quem usa o Backbone também existe uma lib citada pelo próprio Redux para você que queira fazer a migração.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Lembrando que o Redux não é de forma alguma um concorrente do Flux, ou das outras implementações do mesmo. E que esse post é apenas uma breve introdução ao assunto. Deixei alguns links interessantes nas referencias para quem possam começar ou continuar a estudar Redux.&lt;/p&gt;
+
+&lt;h3 id=&#34;para-ler-mais&#34;&gt;Para ler mais&lt;/h3&gt;
+
+&lt;p&gt;Um ótimo exemplo para entender mais sobre o que eu escrevi acima pode ser encontrado em &lt;a href=&#34;https://github.com/reactjs/redux/tree/master/examples/todomvc&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;;&lt;/p&gt;
+
+&lt;p&gt;A documentação completa pode ser vista através &lt;a href=&#34;http://redux.js.org/&#34; target=&#34;_blank&#34;&gt;deste link&lt;/a&gt;;&lt;/p&gt;
+
+&lt;p&gt;E caso tenha lido o post sobre &lt;a href=&#34;http://tableless.com.br/introducao-ao-electron/&#34; target=&#34;_blank&#34;&gt;Electron.js&lt;/a&gt; e queira iniciar o desenvolvimento de aplicações Desktop usando React + Redux aqui esta o &lt;a href=&#34;https://github.com/henriquesosa/electron-intro&#34; target=&#34;_blank&#34;&gt;repositório&lt;/a&gt; que criei com uma breve introdução ao assunto.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/redbooth/backbone-redux&#34; target=&#34;_blank&#34;&gt;Migração do Backbone.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/wbuchwalter/ng-redux&#34; target=&#34;_blank&#34;&gt;Migrando o Angular.js para Redux.&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

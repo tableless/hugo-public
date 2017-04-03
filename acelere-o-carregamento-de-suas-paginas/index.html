@@ -1,0 +1,291 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/acelere-o-carregamento-de-suas-paginas/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/acelere-o-carregamento-de-suas-paginas/">Acelere o carregamento de suas páginas</a></h1>
+  <p class="tb-hero-p">
+    
+    Também conhecido como o Santo Graal das páginas de internet, encontrar o carregamento perfeito não é tarefa fácil.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/jean-carlo-emer">Jean Carlo Emer</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Muita coisa já foi escrita sobre este assunto, originalmente em português temos o renomado guia <a href="http://browserdiet.com/pt">Como perder peso no browser</a> cujos autores são feras e a série intitulada <a href="http://tableless.com.br/performance-frontend-parte1">Performance front-end</a> aqui mesmo no Tableless. As iniciativas gringas são muitas com destaque ao <a href="http://developer.yahoo.com/yslow">YSlow</a> e às <a href="http://developer.yahoo.com/performance/rules.html">práticas do Yahoo! para melhorar performance</a>.</p>
+
+<p>Neste ponto, se ainda continua nesta leitura, você deve estar se perguntando se existe alguma técnica que não é coberta por alguma destas referências. Há sim. Porém já deixo o aviso, o que veremos a seguir não substitui outras técnicas voltadas a ganho de performance, assim como muitas outras, é apenas uma técnica complementar.</p>
+
+<h2 id="carregamento-especulativo">Carregamento especulativo</h2>
+
+<p>Uma tentativa de acelerar o carregamento já foi vendida no Brasil como uma funcionalidade incrível creditada a discadores de internet. Sim, discadores. Os pacotes de <em>software</em> incluíam um navegador especial. A função deste era identificar os <em>hiperlinks</em> já no carregamento da página e requisitar por eles sem que o usuário tomasse conhecimento. Assim, quando o usuário seguisse algum <em>hiperlink</em>, o seu conteúdo já estava disponível.</p>
+
+<p>O resultado desta técnica é um tanto desastroso por duas perspectivas. Muito do conteúdo requisitado nunca era utilizado desperdiçando banda de internet e processamento do cliente e servidor. E em segundo, porque já naquele tempo as páginas <a href="http://tableless.com.br/o-grande-desencontro-http-com-o-html">faziam mal uso de <em>hiperlinks</em></a> para operar manipulação e exclusão de recursos.</p>
+
+<p>Esta técnica já não é mais utilizada, provando que requisitar mais do que se precisa não é uma solução inteligente.</p>
+
+<h2 id="carregando-apenas-conteúdo">Carregando apenas conteúdo</h2>
+
+<p>Nas aplicações tradicionais, o carregamento de JavaScript e CSS, nossos <em>assets</em>, despendem <strong>até metade do tempo</strong> total de carregamento da página. Se considerarmos que, para tirar proveito do <em>cache</em>, estes <em>assets</em> serão os mesmos em diferentes páginas. O próximo passo é reaproveitar uma única página durante a navegação.</p>
+
+<p>A técnica consiste em alterar o comportamento padrão dos <em>hyperlinks</em> fazendo com que o endereço indicado no atributo <code>href</code> seja requisitado assincronamente. O resultado da requisição é analisado e apenas o conteúdo de interesse é substituído. O principal ganho de performance se deve ao fato das folhas de estilo e <em>scripts</em> não serem requisitados durante a navegação.</p>
+
+<h3 id="bibliotecas">Bibliotecas</h3>
+
+<h4 id="jquery-pjax">jQuery PJAX</h4>
+
+<p>Criada por um dos fundadores do GitHub, a biblioteca <a href="https://github.com/defunkt/jquery-pjax">PJAX</a> implementa a técnica utilizando jQuery. Para testar seu funcionamento, basta navegar por um repositório no próprio GitHub.</p>
+
+<p>A biblioteca permite indicar quais <em>hyperlinks</em> terão seu comportamento modificado e qual o <em>container</em> que deve ser utilizado para depositar o conteúdo retornado pela requisição. O conteúdo retornado pela requisição deve ser tratado no <em>back-end</em> para retornar estritamente o que precisa ser depositado no <em>container</em>. Isto é possível graças a um cabeçalho adicionado a requisição que garante sua identificação no <em>back-end</em>. Mesmo que a intenção seja substituir o <code>&lt;body&gt;</code>, é aconselhado remover o <code>&lt;head&gt;</code> mantendo apenas a <em>tag</em> <code>&lt;title&gt;</code>. Isto garante um ganho de performance ainda mais significativo.</p>
+
+<h4 id="turbolinks">Turbolinks</h4>
+
+<p>O Turbolinks é um misto de biblioteca JavaScript e código <em>back-end</em> que implementa a  técnica de carregamento de conteúdo no Ruby on Rails sem depender de jQuery. A <em>gem</em>, como são chamados os pacotes de Ruby, é padrão a partir da versão 4.0 do <em>framework</em>.</p>
+
+<p>A biblioteca foi desenvolvida pela 37Signals para ser utilizada na versão <em>mobile</em> do seu principal produto, o Campfire. O que atesta que a técnica é praticável em dispositivos móveis modernos.</p>
+
+<p>Diferente da biblioteca PJAX, o Turbolinks não permite que seja configurado o <em>container</em> de destino do conteúdo, todo o conteúdo do <code>&lt;body&gt;</code> é substituído. Por causa disto, a aplicação não precisa sofrer nenhuma modificação no seu _back-end_ para utilizar a <em>gem</em>: o conteúdo esperado é o mesmo de uma requisição tradicional de página. Como veremos a seguir, os desafios para se utilizar o Turbolinks e mesmo a PJAX, residem no <em>front-end</em> da aplicação</p>
+
+<h3 id="como-a-técnica-é-possível">Como a técnica é possível</h3>
+
+<p>Requisições assíncronas já são usadas frequentemente e enfrentam praticamente nenhum problema de suporte. Nos primórdios, <em>iframes</em> e API de <code>ActiveXObject</code> eram usados para possibilitar este tipo de requisição. Atualmente, grande parte dos navegadores suportam a API de <code>XMLHttpRequest</code> apesar da <a href="http://www.w3.org/TR/XMLHttpRequest">especificação estar em rascunho desde 2006</a>.</p>
+
+<p>Note que a técnica é fundamentalmente calcada na mudança da barra de endereço sem que resulte no carregamento de uma nova página. A barra de endereço está intimamente ligada com a seção de histórico onde os navegadores armazenam as páginas acessadas. Antigamente, este histórico podia apenas ser retrocedido e avançado através da interface JavaScript <code>window.history</code>.</p>
+
+<p>Uma nova especificação, associada com o <a href="http://www.w3.org/TR/2011/WD-html5-20110113/history.html">HTML5</a>, permite manipular o histórico e consequentemente a barra de endereço. Como se trata de uma funcionalidade nova, seu <a href="http://caniuse.com/#feat=history">suporte é restrito a navegadores modernos</a>. As bibliotecas PJAX e Turbolinks fazem uma <strong>detecção da funcionalidade</strong> e operam no modelo de navegação tradicional caso esta não esteja disponível.</p>
+
+<p>A nova API de <em>history</em> permite adicionar novas entradas com a função <code>window.history.pushState</code>. A função recebe os parâmetros <code>data</code> e <code>title</code>, utilizados para referenciar esta entrada no histórico. O último parâmetro <code>url</code> se trata do endereço a ser mostrado na barra de endereço. A API também define um evento <code>popstate</code> que permite identificar quando o usuário navega por entradas adicionadas ao histórico. Vejamos o funcionamento com um exemplo:</p>
+
+<pre><code>window.addEventListener('popstate', function(event) {
+  console.log(event.state);
+}, false
+
+window.history.pushState({ tableless: 'sample' }, 'Fake Post', 'http://tableless.com.br/fake-post');
+</code></pre>
+
+<p>Como já observamos, a execução da função <code>pushState</code> irá adicionar uma entrada no histórico de navegação e alterar a barra de endereço para <em><a href="http://tableless.com.br/fake-post">http://tableless.com.br/fake-post</a></em>. Na ocasião de o usuário retroceder o histórico de navegação, a barra de endereço será alterada para seu endereço inicial e o evento <code>popstate</code> será disparado. O valor da propriedade <code>state</code> do evento é aquele definido pelo parâmetro <code>data</code> na chamada de <code>pushState</code>. O <em>console</em> será preenchido com <code>Object {tableless: &quot;sample&quot;}</code>.</p>
+
+<p>Dependendo da implementação da API no navegador, o evento <code>popstate</code> será disparado logo no carregamento da página. Neste caso, o <em>console</em> será preenchido com <code>undefined</code>.</p>
+
+<h3 id="dicas-importantes">Dicas importantes</h3>
+
+<p>Fazendo uso das bibliotecas, seu projeto ser tornará uma aplicação que carrega suas páginas assincronamente. Um pré requisito para o que discutiremos a seguir é compreender o comportamento dos <em>scripts</em>. Sempre que um <em>script</em> não é disponibilizado no documento, a única maneira de executá-lo é através da API do DOM. Nestes casos, o seu carregamento será assíncrono e sua execução é condicionada ao término do <em>download</em>. Note, <strong>não há garantia de ordem de execução quando temos mais de um script</strong>.</p>
+
+<h4 id="jquery-pjax-1">jQuery PJAX</h4>
+
+<p>A biblioteca analisa o conteúdo retornado pela requisição a procura de <em>scripts</em>. Caso o arquivo indicado pelo <code>src</code> ainda não faça parte da aplicação, o <em>script</em> é adicionado ao <code>&lt;head&gt;</code>. <strong>Apenas estes serão executados sem garantia de ordem</strong>.</p>
+
+<p>O ideal é incluir os <em>scripts</em> no <code>&lt;head&gt;</code> e assistir aos eventos <code>pjax:start</code> e <code>pjax:end</code>, disparados imediatamente antes e depois de alterar o conteúdo,  para atribuir e remover comportamentos. Entenda que a biblioteca mantém em <em>cache</em> todos os conteúdos requisitados para agilizar a navegação pelo histórico. Isto matém ativos os comportamentos atribuídos. O impacto é ainda maior se o conteúdo assiste a eventos do <code>&lt;body&gt;</code> ou outros objetos globais. A remoção dos comportamentos passa a ser de extrema importância para evitar <em>memory leaks</em>.</p>
+
+<h4 id="turbolinks-1">Turbolinks</h4>
+
+<p>A biblioteca <strong>executa todos os <em>scripts</em> contidos no <code>&lt;body&gt;</code></strong> sem garantia de ordem. Um dos problemas mais comuns se dá quando a biblioteca é ativada em aplicações que seguem a boa prática de inserir os <em>scripts</em> antes do <code>&lt;/body&gt;</code>. Os <em>scripts</em> que tenham alguma dependência, <em>plugins</em> jQuery, por exemplo, passam a depender da sorte para funcionar. A solução é mover os <em>scripts</em> para o <code>&lt;head&gt;</code> ou marcar aqueles que não devem ser executados com o atributo <code>data-turbolinks-eval</code> igual a <code>false</code>.</p>
+
+<p>Uma prática comum quando posicionamos <em>scripts</em> no <code>&lt;head&gt;</code> é acessar o DOM utilizando funções como <code>jQuery.ready </code>para garantir que já esteja acessível. O maior impacto no uso do Turbolinks é que eventos de <em>load</em> não serão mais disparados durante a navegação, <code>jQuery.ready </code>não irá funcionar. A biblioteca dispara os eventos <code>page:receive</code> e <code>page:load</code> antes e depois de alterar o conteúdo. Os comportamentos precisam ser atribuídos com base nestes eventos.</p>
+
+<p>A biblioteca ainda permite que os <em>assets</em> que contenham o atributo <code>data-turbolinks-track</code> sejam analisados a cada requisição. Caso uma mudanças seja identificada, a página é completamente recarregada.</p>
+
+<p>Assim como a PJAX, o Turbolinks também implementa uma estratégia de <em>cache</em>. O conteúdo, quando trazido imediatamente do <em>cache</em>, dispara o evento <code>page:restore</code>. Em seguida, para atualizar o conteúdo, a requisição é refeita. Todas as mudanças de conteúdo, que sempre serão duas nestes casos, são seguidas dos eventos <code>page:change</code> e <code>page:update</code>.</p>
+
+<p>Gerenciar todos estes eventos pode ser complicado, ainda mais se já estiver acostumado a utilizar <code>jQuery.ready</code>. A solução é adotar o <em>plugin</em> <a href="https://github.com/kossnocorp/jquery.turbolinks">jQuery Turbolinks</a>. Mas não se esqueça, a mesma dica de remoção dos comportamentos mencionada na seção a respeito da PJAX são válidas aqui para evitar <em>memory leaks</em>.</p>
+
+<p>Um último desafio é fazer com que outras bibliotecas JavaScript sejam compatíveis com o Turbolinks. Serviços comuns como Google Analytics e <em>widgets</em> do Facebook e Twitter podem não funcionar adequadamente. Um projeto muito interessante chamado <a href="http://reed.github.io/turbolinks-compatibility">Turbolinks Compatibility</a> apresenta estratégias para tornar compatível uma série de bibliotecas.</p>
+
+<h3 id="futuro-das-bibliotecas">Futuro das bibliotecas</h3>
+
+<p>Formulários ainda são um problema, o Turbolinks não endereça este caso de uso e o PJAX apenas o faz de maneira experimental. O agravante é maior quando o formulário inclui envio de arquivos.</p>
+
+<p>A especificação em rascunho do XMLHttpRequest Level 2 permite o envio de arquivos com informação de progresso através de requisições assíncronas. Esta é uma funcionalidade muito interessante para aplicações que fazem <em>upload</em> de muitos arquivos em série, por exemplo. O <a href="http://caniuse.com/xhr2">suporte da API</a> já é muito bom em navegadores modernos.</p>
+
+<h2 id="conclusão">Conclusão</h2>
+
+<p>A biblioteca PJAX é uma alternativa muito boa por permitir atualizar seções específicas da página. Ao mesmo tempo, para uma implementação inicial, a biblioteca permite também o carregamento total do conteúdo da página.</p>
+
+<p>Turbolinks é uma ótima alternativa para implementar a técnica de carregamento de conteúdo em aplicações Ruby on Rails. Se você quiser ir um pouco além, podendo inclusive enviar formulários, a biblioteca <a href="https://github.com/igor-alexandrov/wiselinks">Wiselinks</a> pode ser uma ótima tentativa.</p>
+
+<h3 id="evoluindo-ainda-mais-a-sua-aplicação">Evoluindo ainda mais a sua aplicação</h3>
+
+<p>Talvez não pareça tão natural, mas o próximo passo é utilizar uma biblioteca como o Backbone.js. Através dela é possível gerenciar cada um dos <em>containers</em> que podem sofrer atualização de conteúdo através do construtor <code>Backbone.View</code>.</p>
+
+<p>Os endereços serão gerenciados pelo <code>Backbone.Router</code> que inclusive utiliza <code>window.history.pushState</code>. Note a semelhança, todas as páginas que o roteador conhece devem ser implementadas no <em>back-end</em> para quando o usuário acessar o endereço diretamente. O Backbone.js ainda disponibiliza os construtores de <code>Model</code> e <code>Collection</code> para gerenciar os dados da sua aplicação.</p>
+
+<h3 id="por-fim">Por fim</h3>
+
+<p>Os ganhos em rapidez de carregamento podem ser bastante significativos, mas a aplicação precisa ser repensada e adequada. É preciso testar constantemente a aplicação em busca de <em>memory leaks</em>.  Apenas adicionar uma das bibliotecas de carregamento de conteúdo assíncrono e esperar que tudo funcione não é uma alternativa. Mas não deixe de tentar, o usuário agradece.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

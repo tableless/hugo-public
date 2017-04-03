@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Elvis on Tableless</title>
+    <link>http://tableless.com.br/author/elvis/index.xml</link>
+    <description>Recent content in Elvis on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/elvis/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Migrando do MySQL para Mongo</title>
+      <link>http://tableless.com.br/migrando-mysql-para-mongo/</link>
+      <pubDate>Sun, 22 Mar 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/migrando-mysql-para-mongo/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;O Mongodb é um banco de dados NoSql, open-source e escrito em C++ que salva seus dados em formato JSON(usando BSON — uma versão binária de JSON) utilizando chaves e valores para isso.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/03/documentos.png&#34;&gt;&lt;img class=&#34; size-full wp-image-47555 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/03/documentos.png&#34; alt=&#34;documentos&#34; width=&#34;176&#34; height=&#34;81&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O que mais diferencia o Mongo dos outros bancos NoSQL é a simplicidade em converter instruções SQL.&lt;/p&gt;
+
+&lt;p&gt;Alem de ser muito simples de instalar e usar, com binários e drivers disponíveis para os principais sistemas operacionais e linguagens de programação, ele ainda é suportado pelas mais populares linguagens tais como: C, C#, C++, Haskell, Java™, JavaScript, Perl, PHP, Python, Ruby e Scala.&lt;/p&gt;
+
+&lt;h3 id=&#34;vantagens&#34;&gt;Vantagens&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;escalabilidade&lt;/li&gt;
+&lt;li&gt;flexibilidade&lt;/li&gt;
+&lt;li&gt;manipulação de dados em grande porte&lt;/li&gt;
+&lt;li&gt;desempenho&lt;/li&gt;
+&lt;li&gt;facilidade nas consultas&lt;/li&gt;
+&lt;li&gt;comunidade ativa&lt;/li&gt;
+&lt;li&gt;Sharding&lt;/li&gt;
+&lt;li&gt;GridFS&lt;/li&gt;
+&lt;li&gt;Replica set&lt;/li&gt;
+&lt;li&gt;Orientando a documentos&lt;/li&gt;
+&lt;li&gt;Schema livre&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;desvantagens&#34;&gt;Desvantagens&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Alteração de todos os registros&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;iniciando-a-conversão-do-mysql-para-o-mongodb&#34;&gt;Iniciando a conversão do MYSQL para o MONGODB ?&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;Criando uma tabela&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;CREATE TABLE `agenda` (
+
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`nome` varchar(125) DEFAULT NULL,
+`email` varchar(125) DEFAULT NULL,
+`telefone` varchar(11) DEFAULT NULL,
+PRIMARY KEY (`id`)
+);&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Criando uma coleção&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;db.createCollection( &#34;agenda&#34; )&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Inserir registro na tabela&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;INSERT INTO agenda(id,nome,email,telefone) VALUES (NULL,&#39;Tiozinho&#39;,&#39;tio@gmail.com&#39;,&#39;9999-9999&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Inseriando registro na coleção&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;db.agenda.insert({nome:&#34;Tiozinho&#34; , email: &#34;tio@gmail.com&#34; , telefone: &#34;9999-9999&#34; });&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Buscando registros na tabela&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;//Lista todos os registros
+SELECT * FROM agenda&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;//Lista apenas o definido no paramentro
+SELECT * FROM agenda WHERE id = 1 // 1 é o parametro
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Buscando registro na coleção&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;//Lista todos os registros
+db.agenda.find()
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;//Lista apenas o definido no parâmetro
+db.agenda.find({id:1}) // {id:1} é o parâmetro
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Excluindo registro na tabela&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;DELETE FROM agenda WHERE id = 1&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Excluindo registro da coleção&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;db.agenda.remove({id:1});
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Atualizando um registro na tabela&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;UPDATE agenda SET email = &#39;tiozinho@gmail.com&#39; WHERE id = 1;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Atualizando um registro na coleção&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;//Buscando o Tiozinho
+var agd = db.agenda.find({id:1});
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;//Alterando apenas o email
+agd.email = &#34;tiozinho@gmail.com&#34;;
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;//Atualizando na coleção
+db.agenda.save(agd);
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Extras:&lt;/strong&gt; Lembrando ainda temos diversas funções do relacional que podemos utilizar tranquilo no mongodb, dentre elas podemos citar:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;drop()&lt;/li&gt;
+&lt;li&gt;dropDataBase()&lt;/li&gt;
+&lt;li&gt;update()&lt;/li&gt;
+&lt;li&gt;count()&lt;/li&gt;
+&lt;li&gt;limit()&lt;/li&gt;
+&lt;li&gt;sort()&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;No próximo post utilizaremos todas as funções acima e ainda daremos uma alteração especial nas consultas utilizando mongo, espero vocês e até o próximo.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

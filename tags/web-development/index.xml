@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Web Development on Tableless</title>
+    <link>http://tableless.com.br/tags/web-development/index.xml</link>
+    <description>Recent content in Web Development on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/web-development/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Como criar aplicações em tempo real usando Node.js e RethinkDB</title>
+      <link>http://tableless.com.br/como-criar-aplicacoes-em-tempo-real-usando-node-js-e-rethinkdb/</link>
+      <pubDate>Wed, 22 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/como-criar-aplicacoes-em-tempo-real-usando-node-js-e-rethinkdb/</guid>
+      <description>
+
+&lt;h2 id=&#34;sobre-o-rethinkdb&#34;&gt;Sobre o RethinkDB&lt;/h2&gt;
+
+&lt;p&gt;Se você precisa de um banco de dados NoSQL que funcione com dados JSON e tenha suporte completo para buscas em tempo real e uma mistura de modelos entre SQL e NoSQL, então uma boa opção é o RethinkDB.&lt;/p&gt;
+
+&lt;p&gt;Trata-se de uma base de dados em código aberto em que todos os dados JSON são persistidos em tabelas como um banco de dados SQL convencional, permitindo que você execute queries entre múltiplas tabelas utilizando o comando clássico &lt;strong&gt;join&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mas você também pode persistir arrays e sub-documentos como está acostumado a fazer com o MongoDB, CouchDB ou PostgreSQL.&lt;/p&gt;
+
+&lt;p&gt;Há alguns materiais bacanas no RethinkDB, como:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Suporte ao GeoSpartial;&lt;/li&gt;
+&lt;li&gt;API para lidar com strings, datas, booleanos e documentos;&lt;/li&gt;
+&lt;li&gt;API para Math;&lt;/li&gt;
+&lt;li&gt;Suporte ao Map-reduce;&lt;/li&gt;
+&lt;li&gt;Cliente HTTP para capturar alguns dados externos;&lt;/li&gt;
+&lt;li&gt;Changefeeds , que é uma busca em tempo real;&lt;/li&gt;
+&lt;li&gt;Suporte para index (simples, composto e multi);&lt;/li&gt;
+&lt;li&gt;Painel de administrador nativo da web;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;desenvolvendo-o-aplicativo&#34;&gt;Desenvolvendo o aplicativo&lt;/h2&gt;
+
+&lt;p&gt;E então, que tal desenvolver algo útil usando o RethinkDB? Para explorar a busca em tempo real, vamos construir uma timeline global simples utilizando o recurso &lt;a href=&#34;http://rethinkdb.com/docs/changefeeds/javascript&#34;&gt;changefeed&lt;/a&gt; para listar todos os dados na timeline em tempo real, com o uso do Node.js, Express, Socket.IO e o RethinkDB.&lt;/p&gt;
+
+&lt;p&gt;Primeiro, você precisa instalar o RethinkDB. Antes de começar escrevendo os códigos abaixo, para instalar esse banco de dados eu recomendo que você leia e siga as instruções deste link &lt;a href=&#34;http://rethinkdb.com/docs/install&#34;&gt;http://rethinkdb.com/docs/install&lt;/a&gt; de acordo com seu sistema operacional.&lt;/p&gt;
+
+&lt;p&gt;Depois de instalá-lo, execute os comandos abaixo para iniciar o projeto:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;bash&#34;&gt;mkdir timeline
+cd timeline
+npm init
+npm install--save express socket.io rethinkdb
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora, vamos trabalhar! Para simplificar as coisas nós vamos usar o código do ES6 da versão nativa &lt;strong&gt;Node v6.x.x&lt;/strong&gt;, e o backend será um único arquivo de código para fins de estudo, mas se você precisa desenvolver um servidor backend complexo e bem estruturado utilizando o RethinkDB, dê uma olhada neste projeto &lt;a href=&#34;https://github.com/caio-ribeiro-pereira/node-api-examples&#34;&gt;node-api-examples&lt;/a&gt;, o qual possui uma lista com alguns exemplos de APIs utilizando os mesmos roteadores web e bancos de dados. Existem alguns exemplos do uso do RethinkDB com Koa, Express e o Hapi.js.&lt;/p&gt;
+
+&lt;p&gt;Bem, vamos criar o servidor backend de nossa aplicação. Você pode criar o arquivo &lt;code&gt;index.js&lt;/code&gt; por meio do código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;javascript&#34;&gt;const http = require(&#39;http&#39;);
+const fs = require(&#39;fs&#39;);
+const express = require(&#39;express&#39;);
+const socketIO = require(&#39;socket.io&#39;);
+const r = require(&#39;rethinkdb&#39;);
+const config = require(&#39;./config.json&#39;);
+
+// Loading Express, HTTP, Socket.IO and RethinkDB
+const db = Object.assign(config.rethinkdb, {
+    db: &#39;timeline&#39;
+});
+const app = express();
+const server = http.Server(app);
+const io = socketIO(server);
+
+// Connecting to RethinkDB server
+r.connect(db)
+    .then(conn =&amp;gt; {
+        // Index route which renders the index.html
+        app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+            fs.readFile(`${__dirname}/index.html`, (err, html) =&amp;gt; {
+                res.end(html || err);
+            });
+        });
+        // The changefeed is provided by change() function
+        // which emits broadcast of new messages for all clients
+        r.table(&#39;messages&#39;)
+            .changes()
+            .run(conn)
+            .then(cursor =&amp;gt; {
+                cursor.each((err, data) =&amp;gt; {
+                    const message = data.new_val;
+                    io.sockets.emit(&#39;/messages&#39;, message);
+                });
+            });
+        // Listing all messages when new user connects into socket.io
+        io.on(&#39;connection&#39;, (client) =&amp;gt; {
+            r.table(&#39;messages&#39;)
+                .run(conn)
+                .then(cursor =&amp;gt; {
+                    cursor.each((err, message) =&amp;gt; {
+                        io.sockets.emit(&#39;/messages&#39;, message);
+                    });
+                });
+            // Listening the event from client and insert new messages
+            client.on(&#39;/messages&#39;, (body) =&amp;gt; {
+                const {
+                    name,
+                    message
+                } = body;
+                const data = {
+                    name,
+                    message,
+                    date: new Date()
+                };
+                r.table(&#39;messages&#39;).insert(data).run(conn);
+            });
+        });
+        server.listen(3000, () =&amp;gt; console.log(&#39;Timeline Server!&#39;));
+    })
+    .error(err =&amp;gt; {
+        console.log(&#39;Can\&#39;t connect to RethinkDB&#39;);
+        throw err;
+    });
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Existem alguns detalhes importantes que você precisa saber quando for usar o RethinkDB. Primeiro, todas as funções desse módulo funcionam usando callbacks ou &lt;a href=&#34;https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise&#34;&gt;Promessas&lt;/a&gt;. Se você escolher as promessas, você pode criar funções assíncronas bem estruturadas com gerentes de erros melhores.&lt;/p&gt;
+
+&lt;p&gt;O recurso &lt;strong&gt;changefeed&lt;/strong&gt; (via &lt;code&gt;r.table(&#39;messages&#39;).changes()&lt;/code&gt;) é um subscriber do banco de dados, o qual é uma query observadora e retorna qualquer modificação de uma tabela. A combinação com o &lt;code&gt;io.sockets.emit()&lt;/code&gt; permite que o servidor envie dados em tempo real para o cliente.&lt;/p&gt;
+
+&lt;p&gt;Agora, vamos criar um script simples de migração para preparar o banco de dados antes de rodar o servidor. Essa migração é muito comum em bancos de dados relacionais. Crie o arquivo &lt;code&gt;database.js&lt;/code&gt; com o script abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;javascript&#34;&gt;const r = require(&#39;rethinkdb&#39;);
+const config = require(&#39;./config.json&#39;);
+let conn;
+
+r.connect(config.rethinkdb)
+    .then(connection =&amp;gt; {
+        console.log(&#39;Connecting RethinkDB...&#39;);
+        conn = connection;
+        return r.dbCreate(&#39;timeline&#39;).run(conn);
+    })
+    .then(() =&amp;gt; {
+        console.log(&#39;Database &#34;timeline&#34; created!&#39;);
+        return r.db(&#39;timeline&#39;).tableCreate(&#39;messages&#39;).run(conn);
+    })
+    .then(() =&amp;gt; console.log(&#39;Table &#34;messages&#34; created!&#39;))
+    .error(err =&amp;gt; console.log(err))
+    .finally(() =&amp;gt; process.exit(0));
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;E não se esqueça de criar o arquivo &lt;code&gt;config.json&lt;/code&gt;, o qual possui dados para conectar no servidor RethinkDB:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;javascript&#34;&gt;{
+    &#34;rethinkdb&#34;: {
+        &#34;host&#34;: &#34;localhost&#34;,
+        &#34;port&#34;: 28015
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Para finalizar nossa aplicação, precisamos criar o arquivo &lt;code&gt;index.html&lt;/code&gt;, que será a parte do lado do cliente para os usuários enviarem mensagens na timeline.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+
+&amp;lt;head&amp;gt;
+    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+    &amp;lt;title&amp;gt;Timeline&amp;lt;/title&amp;gt;
+    &amp;lt;meta name=&#34;viewport&#34; content=&#34;width=device-width,initial-scale=1&#34;&amp;gt;
+    &amp;lt;script src=&#34;http://tableless.com.br/socket.io/socket.io.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;/head&amp;gt;
+
+&amp;lt;body&amp;gt;
+    &amp;lt;form style=&#34;text-align:center;margin:50px 0&#34;&amp;gt;
+        &amp;lt;label for=&#34;name&#34;&amp;gt;Name:&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;text&#34; id=&#34;name&#34; /&amp;gt;
+        &amp;lt;label for=&#34;message&#34;&amp;gt;Message:&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;text&#34; id=&#34;message&#34; /&amp;gt;
+        &amp;lt;button type=&#34;submit&#34;&amp;gt;Send&amp;lt;/button&amp;gt;
+    &amp;lt;/form&amp;gt;
+    &amp;lt;fieldset style=&#34;padding: 20px;width:50%;margin:0 auto&#34;&amp;gt;
+        &amp;lt;legend style=&#34;text-align:center&#34;&amp;gt;Timeline&amp;lt;/legend&amp;gt;
+        &amp;lt;p id=&#34;messages&#34;&amp;gt;&amp;lt;/p&amp;gt;
+    &amp;lt;/fieldset&amp;gt;
+    &amp;lt;script&amp;gt;
+        (function() {
+            var socket = io();
+            var form = document.querySelector(&#39;form&#39;);
+            form.addEventListener(&#39;submit&#39;, function(e) {
+                e.preventDefault();
+                var name = e.target.querySelector(&#39;#name&#39;);
+                var message = e.target.querySelector(&#39;#message&#39;);
+                var data = {
+                    name: name.value,
+                    message: message.value
+                };
+                socket.emit(&#39;/messages&#39;, data);
+                e.target.reset();
+            });
+            socket.on(&#39;/messages&#39;, function(data) {
+                var messages = document.querySelector(&#39;#messages&#39;);
+                var message = &#39;&amp;lt;b&amp;gt;&#39; + data.name + &#39;:&amp;lt;/b&amp;gt; &#39; +
+                    data.message + &#39;&amp;lt;br /&amp;gt;&#39;;
+                messages.innerHTML += message;
+            });
+        })();
+    &amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+
+&amp;lt;/html&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora nós estamos prontos para rodar essa aplicação! Mas antes de iniciar o servidor, na primeira vez você deve executar a migração do banco de dados para criar o banco de dados e tabela para este projeto. Para isso, execute o seguinte comando:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;node database.js
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Se tudo der certo, você pode iniciar o servidor ao executar:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;node index.js
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;E você pode brincar enviando mensagens nesta aplicação acessando o endereço &lt;a href=&#34;http://localhost:3000&#34;&gt;http://localhost:3000&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;protegendo-o-aplicativo&#34;&gt;Protegendo o aplicativo&lt;/h2&gt;
+
+&lt;p&gt;Se quiser saber mais sobre como começar protegendo seu aplicativo, basta acessar este &lt;a href=&#34;https://blog.jscrambler.com/jscrambler-101-first-use&#34;&gt;tutorial&lt;/a&gt;, que irá ajudar nos primeiros passos de uso do &lt;a href=&#34;https://www.jscrambler.com&#34;&gt;Jscrambler&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;O RethinkDB é o incrível NoSQL! Esse banco de dados pode oferecer suporte total para aplicações de tempo real apenas utilizando o changefeed + socket.io. &lt;a href=&#34;http://rethinkdb.com/docs/changefeeds/javascript&#34;&gt;Neste link&lt;/a&gt;, você pode ler mais sobre o que é possível criar usando o changefeeds. Quase todas as funções podem executar usando as Promises, que fazem com que você escreva um código melhor e você pode facilmente usar o recurso &lt;strong&gt;ES7 async/await&lt;/strong&gt; para simplificar as funções de promessas também.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>API para Autenticar usuários com JWT e Passport</title>
+      <link>http://tableless.com.br/autenticar-usuarios-com-jwt-e-passport/</link>
+      <pubDate>Wed, 19 Oct 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/autenticar-usuarios-com-jwt-e-passport/</guid>
+      <description>
+
+&lt;p&gt;Neste artigo nós vamos explorar os principais conceitos e implementações da autenticação de usuário utilizando o mecanismo chamado JWT (&lt;em&gt;&lt;a href=&#34;https://jwt.io&#34;&gt;JSON Web Token&lt;/a&gt;&lt;/em&gt;) por meio de um módulo Passport. Afinal, este é um importante passo para se certificar de que os usuários façam uma autenticação segura dentro de uma API baseada em REST.&lt;/p&gt;
+
+&lt;p&gt;Antes de começarmos, vamos criar uma simples API em REST, que será utilizada ao longo deste post. Para simplificar nosso exemplo, nós vamos criar uma Express API. Para começar, vamos configurar nosso projeto, abrir o terminal e digitar o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;mkdir my-api
+cd my-api
+npm init&lt;/pre&gt;
+
+&lt;p&gt;O &lt;strong&gt;npm init&lt;/strong&gt; mostra um questionário simples para configurar algumas descrições e gerar o arquivo &lt;strong&gt;package.json&lt;/strong&gt;, o principal arquivo que usaremos para instalar alguns módulos para nosso projeto. Você pode responder cada questão como preferir. Depois disso, instale o framework &lt;strong&gt;express&lt;/strong&gt; e o módulo &lt;strong&gt;body-parser&lt;/strong&gt; usando este comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;npm install express body-parser --save&lt;/pre&gt;
+
+&lt;p&gt;Agora que temos o módulo Express instalado, vamos escrever nosso código para a API. Para isso, crie o arquivo &lt;strong&gt;index.js&lt;/strong&gt; com o código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// index.js
+var express = require(&#34;express&#34;);
+var bodyParser = require(&#34;body-parser&#34;);
+var app = express();
+
+app.use(bodyParser.json());
+
+app.get(&#34;/&#34;, function(req, res) {
+  res.json({status: &#34;My API is alive!&#34;});
+});
+
+app.listen(3000, function() {
+  console.log(&#34;My API is running...&#34;);
+});
+module.exports = app;
+&lt;/pre&gt;
+
+&lt;p&gt;Neste post usaremos um array simples de dados de usuários para facilitar a implementação do JWT. No entanto, em aplicações reais é altamente recomendável usar um banco de dados em vez de um simples array. Então, usaremos esse array apenas para exemplo. Nós precisaremos de uma lista de dados de usuários a qual será utilizada para verificar se a solicitação é de um usuário autenticado. Para isso, crie o arquivo &lt;strong&gt;users.js&lt;/strong&gt; com o código a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// users.js
+// Fake list of users to be used in the authentication
+var users = [
+{id: 1, name: &#34;John&#34;, email: &#34;john@mail.com&#34;, password: &#34;john123&#34;},
+{id: 2, name: &#34;Sarah&#34;, email: &#34;sarah@mail.com&#34;, password: &#34;sarah123&#34;}
+];
+
+module.exports = users;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora nós temos uma API simples o suficiente para explorar como implementar a autenticação JWT nas próximas sessões.&lt;/p&gt;
+
+&lt;h2 id=&#34;introdução-ao-passport-js-e-jwt&#34;&gt;Introdução ao Passport.js e JWT&lt;/h2&gt;
+
+&lt;h3 id=&#34;sobre-o-passport-js&#34;&gt;SOBRE O PASSPORT.JS&lt;/h3&gt;
+
+&lt;p&gt;Há um módulo Node.js muito bacana e fácil de trabalhar com autenticação de usuários, e ele é chamado de &lt;strong&gt;Passport&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Passport é um framework extremamente flexível e modular. Ele permite que você trabalhe com as principais estratégias de autenticação, que são: &lt;strong&gt;Basic &amp;amp; Digest&lt;/strong&gt;, &lt;strong&gt;OpenID&lt;/strong&gt;, &lt;strong&gt;OAuth&lt;/strong&gt;, &lt;strong&gt;OAuth 2.0&lt;/strong&gt; e &lt;strong&gt;JWT&lt;/strong&gt;. Além disso, ele também permite trabalhar com serviços de autenticação externos, como &lt;strong&gt;Facebook&lt;/strong&gt;, &lt;strong&gt;Google+&lt;/strong&gt;, &lt;strong&gt;Twitter&lt;/strong&gt;, entre outros. Aliás, no site oficial da framework, &lt;strong&gt;há uma lista com mais de 300 estratégias de autenticação&lt;/strong&gt;, criadas e mantidas por terceiros.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-56151&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/site-passport.jpg&#34; alt=&#34;site-passport&#34; width=&#34;1135&#34; height=&#34;617&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;O site oficial do Passport é: &lt;a href=&#34;http://passportjs.org&#34;&gt;passportjs.org&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;sobre-a-jwt&#34;&gt;SOBRE A JWT&lt;/h3&gt;
+
+&lt;p&gt;JWT (&lt;em&gt;JSON Web Tokens&lt;/em&gt;) é uma estratégia de autenticação para APIs em REST simples e segura. Trata-se de um padrão aberto para autenticações web e é totalmente baseada em requests JSON entre o cliente e servidor. Seu mecanismo de autenticação funciona da seguinte maneira:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;O cliente faz uma solicitação uma única vez ao enviar as credenciais de login e senha;&lt;/li&gt;
+&lt;li&gt;O servidor valida as credenciais e, se tudo estiver certo, ele retorna para o cliente um JSON com um token que codifica dados de um usuário logado no sistema;&lt;/li&gt;
+&lt;li&gt;Após receber o token, o cliente pode armazená-lo da forma que preferir, seja por LocalStorage, Cookie ou outros mecanismos de armazenamento do lado do cliente;&lt;/li&gt;
+&lt;li&gt;Toda vez que o cliente acessa uma rota que requere autenticação, ele apenas envia esse token para a API para autenticar e liberar os dados de consumo;&lt;/li&gt;
+&lt;li&gt;O servidor sempre valida esse token para permitir ou bloquear uma solicitação de cliente.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-56152&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/site-jwt.jpg&#34; alt=&#34;site-jwt&#34; width=&#34;1135&#34; height=&#34;609&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para detalhes específicos sobre JWT, acesse &lt;a href=&#34;http://jwt.io&#34;&gt;jwt.io&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando-passport-e-jwt&#34;&gt;Instalando Passport e JWT&lt;/h2&gt;
+
+&lt;p&gt;Para começar a diversão, nós utilizaremos os seguintes módulos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;passport&lt;/strong&gt;: como um mecanismo de autenticação;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;passport-jwt&lt;/strong&gt;: como estratégia de autenticação JWT para Passport;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;jwt-simple&lt;/strong&gt;: como codificador e decodificador para tokens JSON;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Agora, vamos instalar tudo isso rodando este comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;npm install passport passport-jwt jwt-simple --save&lt;/pre&gt;
+
+&lt;p&gt;Para começar esta implementação, primeiro nós vamos criar um arquivo &lt;strong&gt;config.js&lt;/strong&gt; para adicionar dois itens de configuração para o JWT (&lt;strong&gt;jwtSecret&lt;/strong&gt; e &lt;strong&gt;jwtSession&lt;/strong&gt;):&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// config.js
+module.exports = {
+jwtSecret: &#34;MyS3cr3tK3Y&#34;,
+jwtSession: {session: false}
+};&lt;/pre&gt;
+
+&lt;p&gt;O campo &lt;strong&gt;jwtSecret&lt;/strong&gt; mantém uma string de chave secreta que serve como base para &lt;strong&gt;codificar&lt;/strong&gt; e &lt;strong&gt;decodificar&lt;/strong&gt; os tokens. É altamente aconselhável utilizar uma string complexa com vários caracteres diferentes e &lt;strong&gt;nunca compartilhar essa chave secreta em público&lt;/strong&gt;, pois se isso vazar, você deixará sua aplicação vulnerável, permitindo que qualquer pessoa má intencionada acesse o sistema e gerencie os tokens de usuários logados sem informar as credenciais corretas no processo de autenticação.&lt;/p&gt;
+
+&lt;p&gt;Para finalizar, o último campo incluído é o &lt;strong&gt;jwtSession&lt;/strong&gt;, que possui o objeto {session:false}. Esse item é utilizado para informar o Passport que a API não irá gerenciar a sessão.&lt;/p&gt;
+
+&lt;h2 id=&#34;implementando-a-autenticação-jwt&#34;&gt;Implementando a autenticação JWT&lt;/h2&gt;
+
+&lt;p&gt;Agora que já temos as configurações do Passport e JWT prontas, vamos implementar as principais regras sobre quais o cliente será autenticado em nossa API. Para começar, vamos implementar as regras de autenticação, que também terão funções intermediárias fornecidas pelo Passport para utilizar dentro das rotas da API. Este código terá duas funções principais e uma intermediária. A middleware (intermediária) será executada no momento em que a aplicação começa a rodar, e ela basicamente recebe em sua ligação uma &lt;strong&gt;payload&lt;/strong&gt; (carga útil) que contém um &lt;strong&gt;JSON decodificado&lt;/strong&gt;, o qual foi decodificado utilizando a chave secreta &lt;strong&gt;cfg.jwtSecret&lt;/strong&gt;. Esse &lt;strong&gt;payload&lt;/strong&gt; útil terá o &lt;strong&gt;ID&lt;/strong&gt; atribuído, o qual será o &lt;strong&gt;ID&lt;/strong&gt; do usuário para ser utilizado como argumento para procurar um usuário no banco de dados. No nosso caso, esse &lt;strong&gt;ID&lt;/strong&gt; será utilizado para pegar um dado de usuário da array de usuários do arquivo &lt;strong&gt;users.js&lt;/strong&gt;. Como essa função intermediária será acessada frequentemente, para evitar processos desnecessários, vamos enviar um simples objeto contendo apenas o &lt;strong&gt;ID&lt;/strong&gt; do usuário com a seguinte função de retorno:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;done(null, {id: user.id});&lt;/pre&gt;
+
+&lt;p&gt;Essa middleware será injetada por meio da função &lt;strong&gt;passport.use(strategy)&lt;/strong&gt;. Para finalizar, duas funções serão inclusas por meio do Passport para serem utilizadas na aplicação. São as funções &lt;strong&gt;initialize()&lt;/strong&gt;, que aciona o Passport e a &lt;strong&gt;authenticate()&lt;/strong&gt;, que é utilizada para autenticar o acesso para uma rota.&lt;/p&gt;
+
+&lt;p&gt;Para entender melhor essa implementação, vamos criar na pasta raiz o arquivo &lt;strong&gt;auth.js&lt;/strong&gt; com o seguinte código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// auth.js
+var passport = require(&#34;passport&#34;);
+var passportJWT = require(&#34;passport-jwt&#34;);
+var users = require(&#34;./users.js&#34;);
+var cfg = require(&#34;./config.js&#34;);
+var ExtractJwt = passportJWT.ExtractJwt;
+var Strategy = passportJWT.Strategy;
+var params = {
+  secretOrKey: cfg.jwtSecret,
+  jwtFromRequest: ExtractJwt.fromAuthHeader()
+};
+
+module.exports = function() {
+  var strategy = new Strategy(params, function(payload, done) {
+    var user = users[payload.id] || null;
+    if (user) {
+      return done(null, {id: user.id});
+    } else {
+      return done(new Error(&#34;User not found&#34;), null);
+    }
+  });
+  passport.use(strategy);
+  return {
+    initialize: function() {
+      return passport.initialize();
+    },
+    authenticate: function() {
+      return passport.authenticate(&#34;jwt&#34;, cfg.jwtSession);
+    }
+  };
+};&lt;/pre&gt;
+
+&lt;p&gt;A validação da JWT começa quando uma nova estratégia é instanciada pelo &lt;strong&gt;new Strategy()&lt;/strong&gt;. Esse objeto, então, recebe dois importantes argumentos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;secretOrkey&lt;/strong&gt;: a chave secreta JWT&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;jwtFromRequest&lt;/strong&gt;: define para onde os tokens serão enviados na resposta (header, querystring, body). Veja mais neste link: &lt;a href=&#34;http://npmjs.com/package/passport-jwt#extracting-the-jwt-from-the-request&#34;&gt;npmjs.com/package/passport-jwt#extracting-the-jwt-from-the-request&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Dentro dos callbacks da estratégia você pode fazer qualquer validação que preferir. No nosso caso, nós apenas estamos buscando pelo usuário correto se a solicitação enviar o &lt;strong&gt;payload.id&lt;/strong&gt; correto. &lt;strong&gt;No mundo real, você pode escrever autenticações para encontrar usuários em uma base de dados.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora, para carregar o &lt;strong&gt;auth.js&lt;/strong&gt; durante o tempo de boot (inicialização) do servidor e iniciar o middleware do Passport pelo &lt;strong&gt;app.use(auth.initialize())&lt;/strong&gt;, edite o arquivo &lt;strong&gt;index.js&lt;/strong&gt; da seguinte forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// index.js
+var express = require(&#34;express&#34;);
+var bodyParser = require(&#34;body-parser&#34;);
+var auth = require(&#34;./auth.js&#34;)();
+var app = express();
+
+app.use(bodyParser.json());
+app.use(auth.initialize());
+
+app.get(&#34;/&#34;, function(req, res) {
+  res.json({status: &#34;My API is alive!&#34;});
+});
+
+app.listen(3000, function() {
+  console.log(&#34;My API is running...&#34;);
+});
+
+module.exports = app;&lt;/pre&gt;
+
+&lt;h2 id=&#34;gerando-tokens-para-usuários-autenticados&#34;&gt;Gerando tokens para usuários autenticados&lt;/h2&gt;
+
+&lt;p&gt;Para finalizar a autenticação em JWT, nós vamos criar uma rota para gerar tokens de usuários que irão se autenticar utilizando seus e-mails e senhas no sistema, e vamos também fazer uma refatoração na rota principal para que seus acessos carreguem apropriadamente a autenticação dos dados de usuário. Ao fazer isso, nós finalizamos essa etapa de autenticação, tornando nossa aplicação mais confiável e segura.&lt;/p&gt;
+
+&lt;p&gt;Agora, vamos criar o &lt;strong&gt;/token&lt;/strong&gt; finalizador. Esta rota será responsável por gerar um token codificado com uma &lt;strong&gt;payload&lt;/strong&gt;, dada ao usuário que envia o e-mail e senha corretos por meio da &lt;strong&gt;req.body.email&lt;/strong&gt; e &lt;strong&gt;req.body.password&lt;/strong&gt; na solicitação.&lt;/p&gt;
+
+&lt;p&gt;O &lt;strong&gt;payload&lt;/strong&gt; terá apenas o ID do usuário. A geração do token ocorre pelo módulo &lt;strong&gt;jwt-simple&lt;/strong&gt; usando a função &lt;strong&gt;jwt.encode(payload, cfg.jwtSecret)&lt;/strong&gt;, a qual obrigatoriamente utilizará a mesma chave secreta &lt;strong&gt;jwtSecret&lt;/strong&gt;, criada dentro do arquivo &lt;strong&gt;config.js&lt;/strong&gt;. Para simplificar o manipulador de erros desse endpoint, qualquer erro será criado utilizando o código de status &lt;strong&gt;HTTP 401 &amp;#8211; Unauthorized&lt;/strong&gt; a partir do uso da função &lt;strong&gt;res.sendStatus(401)&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para incluir essa regra de geração de tokens, vamos editar o arquivo &lt;strong&gt;index.js&lt;/strong&gt; utilizando o seguinte código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// index.js
+var express = require(&#34;express&#34;);
+var bodyParser = require(&#34;body-parser&#34;);
+var jwt = require(&#34;jwt-simple&#34;);
+var auth = require(&#34;./auth.js&#34;)();
+var users = require(&#34;./users.js&#34;);
+var cfg = require(&#34;./config.js&#34;);
+var app = express();
+
+app.use(bodyParser.json());
+app.use(auth.initialize());
+
+app.get(&#34;/&#34;, function(req, res) {
+  res.json({status: &#34;My API is alive!&#34;});
+});
+
+app.post(&#34;/token&#34;, function(req, res) {
+  if (req.body.email &amp;&amp; req.body.password) {
+    var email = req.body.email;
+    var password = req.body.password;
+    var user = users.find(function(u) {
+      return u.email === email &amp;&amp; u.password === password;
+    });
+    if (user) {
+      var payload = {id: user.id};
+      var token = jwt.encode(payload, cfg.jwtSecret);
+      res.json({token: token});
+    } else {
+      res.sendStatus(401);
+    }
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.listen(3000, function() {
+  console.log(&#34;My API is running...&#34;);
+});
+
+module.exports = app;&lt;/pre&gt;
+
+&lt;p&gt;E para finalizar nossa API, vamos criar uma rota privada, a qual irá produzir o dado autenticado do usuário. Essa rota deve utilizar o middleware &lt;strong&gt;auth.authenticate()&lt;/strong&gt; rodando antes da rota com a função &lt;strong&gt;app.get(“/user”)&lt;/strong&gt;. Essa rota privada irá rodar apenas para token autenticado e você pode utilizar o objeto &lt;strong&gt;req.user.id&lt;/strong&gt; dentro dela, pois esse dado estará disponível se você enviar o token correto, e com essa ID nós vamos produzir um JSON com o usuário autenticado por meio da função &lt;strong&gt;res.json(users[req.user.id])&lt;/strong&gt;. Para criar esta rota, vamos editar o arquivo &lt;strong&gt;index.js&lt;/strong&gt; novamente. Confira como ele fica:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;// index.js
+var express = require(&#34;express&#34;);
+var bodyParser = require(&#34;body-parser&#34;);
+var jwt = require(&#34;jwt-simple&#34;);
+var auth = require(&#34;./auth.js&#34;)();
+var users = require(&#34;./users.js&#34;);
+var cfg = require(&#34;./config.js&#34;);
+var app = express();
+
+app.use(bodyParser.json());
+app.use(auth.initialize());
+
+app.get(&#34;/&#34;, function(req, res) {
+  res.json({status: &#34;My API is alive!&#34;});
+});
+
+app.get(&#34;/user&#34;, auth.authenticate(), function(req, res) {
+  res.json(users[req.user.id]);
+});
+
+app.post(&#34;/token&#34;, function(req, res) {
+  if (req.body.email &amp;&amp; req.body.password) {
+    var email = req.body.email;
+    var password = req.body.password;
+    var user = users.find(function(u) {
+      return u.email === email &amp;&amp; u.password === password;
+    });
+    if (user) {
+      var payload = {id: user.id};
+      var token = jwt.encode(payload, cfg.jwtSecret);
+      res.json({token: token});
+    } else {
+      res.sendStatus(401);
+    }
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.listen(3000, function() {
+  console.log(&#34;My API is running...&#34;);
+});
+
+module.exports = app;&lt;/pre&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Parabéns! Nós terminamos uma implementação extremamente importante para vários tipos de aplicações, que é o &lt;strong&gt;processo de autenticação&lt;/strong&gt;. Graças à JWT, agora nós temos um mecanismo seguro para autenticação de usuários entre cliente e servidor utilizando apenas dados JSON. Antes de lançar a sua aplicação, não esqueça de garantir que ela não é adulterada, arruinando a experiência de utilização. Caso tenha interesse, você pode testar a versão &lt;a href=&#34;https://jscrambler.com/account/signup/?ref=http://tableless.com.br/&#34;&gt;trial gratuita&lt;/a&gt; do Jscrambler que em poucos minutos você já configura sua aplicação na plataforma para aplicar proteção no código-fonte de seus projetos.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

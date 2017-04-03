@@ -1,0 +1,339 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/scoped-css/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/scoped-css/">Scoped CSS</a></h1>
+  <p class="tb-hero-p">
+    
+    Scoped CSS é um novo recurso do HTML5 nos permite definir estilos que serão aplicados apenas em um determinado escopo de marcação.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/almir-filho">Almir Filho</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Scoped CSS é uma pequena novidade no HTML5 que nos permite inserir estilos CSS que sejam apenas aplicado em um determinado lugar de uma página, de modo que os estilos restantes da mesma página não sejam afetados. Para isso, foi definido um novo atributo <strong>scoped</strong> que deve ser utilizado na <em>tag</em> <strong><style></strong>.</p>
+
+<p>Pela definição da especificação:</p>
+
+<blockquote>
+<p>O atributo <strong>scoped</strong> é um atributo <em>booleano</em>. Se for setado, indica que os estilos <span style="color: #808080">(</span><span style="color: #808080">da <em>tag</em> <strong><style></strong>)</span> serão aplicados apenas na sub-árvore do elemento pai deste mesmo elemento <span style="color: #808080">(<strong><style></strong>)</span>, ao contrário de todo o documento.</p>
+
+<p>— WHATWG</p>
+</blockquote>
+
+<h2 id="antes-de-tudo">Antes de tudo</h2>
+
+<p>Se você quiser testar os exemplos mostrados neste post no browser, terá que usar o Google Chrome versão 20 ou superior, pois é o único que já dá suporte a <strong>scoped CSS</strong>. Com seu Chrome aberto, digite na barra de endereços: <strong>chrome://flags</strong>. Vai abrir a tela de configurações das <em>flags</em> do Chrome, procure por <strong>Enable <style scoped></strong>, e ative a opção (se já não estiver ativada). Agora o reinicie e é só mandar ver.</p>
+
+<h2 id="show-me-the-del-money-del-code">Show me the <del>money</del> code</h2>
+
+<p>Para entendermos melhor, vamos a parte boa, nerds! No trecho de HTML abaixo, temos um cenário bem simples: 2 parágrafos soltos e 2 parágrafos agrupados em uma <strong><div></strong>. Dentro da <strong><div></strong> há também um elemento <strong><style></strong> que define a cor vermelha para os parágrafos (<strong><p></strong>):</p>
+
+<pre class="lang-html">&lt;p&gt;I was crowned with a spike right thru my head.&lt;/p&gt;
+&lt;p&gt;But it's all right now, in fact, it's a gas!&lt;/p&gt;
+&lt;div&gt;
+    &lt;style&gt;
+        p { color: red } /* parágrafos vermelhos */
+    &lt;/style&gt;
+    &lt;p&gt;But it's all right, Im jumpin jack flash,&lt;/p&gt;
+    &lt;p&gt;Its a gas! gas! gas!&lt;/p&gt;
+&lt;/div&gt;
+</pre>
+
+<p>OK, do jeito como está no código acima, o navegador aplicará os estilos de <strong><style></strong> em <strong>toda a página</strong>, ou seja, todos os parágrafos (<strong><p></strong>) serão da cor vermelha:</p>
+
+<div class="exemplo-almir" style="border: 1px solid #ddd;background: #eee;padding: 10px;margin-bottom: 10px;color: red">
+  I was crowned with a spike right thru my head.<br /> But it&#8217;s all right now, in fact, it&#8217;s a gas!</p> 
+  
+  <div>
+    But it&#8217;s all right, Im jumpin jack flash,<br /> Its a gas! gas! gas!
+  </div>
+</div>
+
+<p>Aplicando o atributo <strong>scoped</strong> em <strong><style></strong>, os estilos apenas serão aplicados ao mesmo escopo, ou seja, nos dois últimos parágrafos:</p>
+
+<pre class="lang-html">&lt;p&gt;I was crowned with a spike right thru my head.&lt;/p&gt;
+&lt;p&gt;But it's all right now, in fact, it's a gas!&lt;/p&gt;
+&lt;div&gt;
+    &lt;!-- aplicando atributo scoped --&gt;
+    &lt;style scoped&gt;
+        p { color: red }
+    &lt;/style&gt;
+    &lt;p&gt;But it's all right, Im jumpin jack flash,&lt;/p&gt;
+    &lt;p&gt;Its a gas! gas! gas!&lt;/p&gt;
+&lt;/div&gt;
+</pre>
+
+<p>E o resultado será:</p>
+
+<div class="exemplo-almir" style="border: 1px solid #ddd;background: #eee;padding: 10px;margin-bottom: 10px">
+  I was crowned with a spike right thru my head.<br /> But it&#8217;s all right now, in fact, it&#8217;s a gas!</p> 
+  
+  <div style="color: red">
+    But it&#8217;s all right, Im jumpin jack flash,<br /> Its a gas! gas! gas!
+  </div>
+</div>
+
+<h2 id="grande-coisa-8230">Grande coisa&#8230;</h2>
+
+<p>É isso que você deve estar pensando agora. &#8220;Grande coisa, não precisamos disso, apenas podemos definir uma <strong>classe</strong> ou <strong>id</strong> e estilizá-los <em>like the old times</em>&#8220;. Eu concordo que devemos utilizar determinadas soluções apenas quando for realmente necessário, eu mesmo não sairia por ai inserindo estilos <strong><style scoped></strong> em tudo quanto é lugar. Iria ser uma zona.</p>
+
+<h2 id="o-pulo-do-gato">O pulo do gato</h2>
+
+<p>Algumas aplicações podem acrescentar elementos <strong><style></strong> programaticamente a uma página. Nestes casos, há o perigo de que as novas regras afetem o conteúdo da página de forma não intencional. Ao utilizar o atributo <strong>scoped</strong>, as aplicações podem impedir que este infeliz efeito colateral aconteça.</p>
+
+<p>Sendo assim, utilizar <strong>scoped</strong> em estilos pode ser uma solução elegante para a <strong>componentização</strong> de aplicações <em>web</em> de terceiros. Hoje em dia (quase) todo mundo faz uso de <em>plugins</em> de <em>widgets</em> e de diversos tipos em suas aplicações, e muita gente faz <a title="Mashup (Wikipedia)" href="http://pt.wikipedia.org/wiki/Mashup_(aplica%C3%A7%C3%A3o_web)" target="_blank"><em>mashups</em></a> com várias dessas aplicações, misturando tudo em uma única solução. Isto não é nenhuma novidade – há muito tempo.</p>
+
+<p>Então, o que acontece? Sabendo que muitas pessoas reutilizarão um determinado <em>plugin</em>, são usados diversos nomes de classes CSS de uma maneira a evitar conflitos com os estilos de outros <em>sites</em> – onde farão uso desses <em>plugins</em>.</p>
+
+<p>Um ótimo exemplo é o <a href="http://disqus.com" title="Disqus">Disqus</a>. Para usar o Disqus, apenas precisamos inserir um pequeno <em>script</em> na nossa página, e ele cuidará de todo o resto. Ao visitar uma página que utiliza o Discus, esse <em>script</em> incluirá as marcações necessárias para os comentários já inseridos e seu formulário, além de seus estilos CSS, imagens, e até mesmo outros <em>scripts</em>. Ou seja, é um exemplo completo de aplicação de terceiros rodando em sites do mundo inteiro. Agora, se formos analisar os códigos HTML que são inseridos, teremos nomes de classes CSS como: <strong>dsq-comments</strong>, <strong>dsq-comments-head</strong>, <strong>dsq-comments-body</strong>, <strong>dsq-comments-message</strong>, <strong>dsq-comments-eu-gosto-de-rolling-stones</strong>, <strong>dsq-comments-tudo-o-que-der-na-telha</strong>, etc. Como seria legal se esses nomes super extensos não fossem mais necessários, hein?</p>
+
+<h2 id="problemas">Problemas</h2>
+
+<p>Em meus testes, encontrei alguns empecilhos. Tentei utilizar <strong>scoped</strong> primeiramente em elementos que já tinham sido estilizados – não deu certo –, depois tentei aninhar estilos <strong>scoped</strong> e também não funcionou – francamente, não sei se é certo/possível fazer isto, e mesmo assim, penso que isso não serviria pra nada, é o tipo de coisa que só iria complicar a nossa vida (e de complexidade, já basta ser desenvolvedor web nos dias atuais), mas, pelo bem da ciência, realizei esse teste (aparentemente) inútil.</p>
+
+<h4 id="aplicando-scoped-a-elementos-já-estilizados">Aplicando <em>scoped</em> a elementos já estilizados</h4>
+
+<p>Quando a página já possuía estilos – por exemplo, no <strong><head></strong> – as propriedades que já tinham sido definidas não eram modificadas pelos estilos <strong>scoped</strong>, apenas aquelas que ainda não tinham sido alteradas por nenhum CSS. Por exemplo:</p>
+
+<pre class="lang-html">&lt;head&gt;
+    &lt;style&gt;
+        p { color: gray }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;p&gt;I was crowned with a spike right thru my head.&lt;/p&gt;
+    &lt;p&gt;But it's all right now, in fact, it's a gas!&lt;/p&gt;
+    &lt;div&gt;
+        &lt;style scoped&gt;
+            p {
+                color: red;
+                font-size: 1.4em;
+            }
+        &lt;/style&gt;
+        &lt;p&gt;But it's all right, Im jumpin jack flash,&lt;/p&gt;
+        &lt;p&gt;Its a gas! gas! gas!&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+</pre>
+
+<p>Se tentarmos fazer como acima, o resultado será:</p>
+
+<div class="exemplo-almir" style="border: 1px solid #ddd;background: #eee;padding: 10px;margin-bottom: 10px;color: gray">
+  I was crowned with a spike right thru my head.<br /> But it&#8217;s all right now, in fact, it&#8217;s a gas!</p> 
+  
+  <div style="color: gray;font-size: 1.4em">
+    But it&#8217;s all right, Im jumpin jack flash,<br /> Its a gas! gas! gas!
+  </div>
+</div>
+
+<p>Perceba que o único estilo de escopo que foi aplicado foi a regra <strong>font-size: 1.4em</strong> e a cor vermelha simplesmente foi ignorada. Sinceramente eu não faço a mínima ideia do porquê disto, também não vejo muito sentido – poderia até ser um erro de implementação do navegador, mas não posso afirmar isto com tanta veemência.</p>
+
+<h4 id="a-pseudo-classe-scope">A pseudo-classe :scope</h4>
+
+<p>Depois de muito pesquisar, achei uma &#8220;solução&#8221;, por assim dizer. Eis que existe uma **pseudo-classe <strong>:scope</strong>! Se usarmos esse cara como seletor das regras, tudo funciona perfeitamente. No exemplo acima, só faríamos:</p></p>
+
+<pre class="lang-html">&lt;style scoped&gt;
+    /* adicionando a pseudo-classe :scope */
+    :scope p {
+        color: red;
+        font-size: 1.4em;
+    }
+&lt;/style&gt;
+</pre>
+
+<p>Agora sim, tudo como esperado:</p>
+
+<div class="exemplo-almir" style="border: 1px solid #ddd;background: #eee;padding: 10px;margin-bottom: 30px;color: gray">
+  I was crowned with a spike right thru my head.<br /> But it&#8217;s all right now, in fact, it&#8217;s a gas!</p> 
+  
+  <div style="color: red;font-size: 1.4em">
+    But it&#8217;s all right, Im jumpin jack flash,<br /> Its a gas! gas! gas!
+  </div>
+</div>
+
+<h4 id="aninhando-estilos-scoped">Aninhando estilos <em>scoped</em></h4>
+
+<p>Tentei também aninhar estilos <strong>scoped</strong>, mas parece que isso não funciona legal, e acredito que seja proposital. Mas essa parte eu deixo com vocês 😉 Testem colocar um <strong><style scoped></strong> dentro de outro. Aqui mesmo eu não consegui muito resultado, ocorre o mesmo problema com as propriedades CSS que já foram definidas – são ignoradas e não funcionam nem mesmo adicionando a pseudo-classe <strong>:scoped</strong>. Se alguém obtiver algum resultado diferente do meu, comenta ai!</p>
+
+<h2 id="suporte">Suporte</h2>
+
+<p>No momento, apenas Google Chrome versão 20+.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

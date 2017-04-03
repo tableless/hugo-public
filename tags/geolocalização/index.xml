@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Geolocalização on Tableless</title>
+    <link>http://tableless.com.br/tags/geolocaliza%C3%A7%C3%A3o/index.xml</link>
+    <description>Recent content in Geolocalização on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/geolocaliza%C3%A7%C3%A3o/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Está perdido? Geolocalização!</title>
+      <link>http://tableless.com.br/esta-perdido-geolocalizacao/</link>
+      <pubDate>Mon, 22 Apr 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/esta-perdido-geolocalizacao/</guid>
+      <description>
+
+&lt;p&gt;No passado a localização dos usuários era baseada em IP. A precisão não era lá grande coisa, pois a posição do usuário era baseada em um &amp;#8220;chute&amp;#8221; de acordo com o seu IP. Graças ao HTML5 e sua API de Geolocalização ou Geolocation (já falamos sobre isso aqui no artigo &lt;a href=&#34;http://tableless.com.br/creme-de-papaia-e-geolocalizacao/&#34;&gt;Creme de papaia e Geolocalização&lt;/a&gt;) podemos saber a posição do usuário de forma muito mais precisa e com isso é possível escrever aplicações mais úteis.&lt;/p&gt;
+
+&lt;h2 id=&#34;suporte-a-geolocalização&#34;&gt;Suporte a geolocalização&lt;/h2&gt;
+
+&lt;p&gt;Antes de colocar a mão na massa é importante saber os browsers que dão suporte a essa API:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Internet Explorer 9 ou superior&lt;/li&gt;
+&lt;li&gt;Firefox 3.5 ou superior&lt;/li&gt;
+&lt;li&gt;Safari 5.0 ou superior&lt;/li&gt;
+&lt;li&gt;Chrome 7.0 ou superior&lt;/li&gt;
+&lt;li&gt;Opera 10.6 ou superior&lt;/li&gt;
+&lt;li&gt;Safari (iOS) 3.2 ou superior&lt;/li&gt;
+&lt;li&gt;Andriod (browser padrão do SO) 2.1 ou superior&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;criando-uma-aplicação&#34;&gt;Criando uma aplicação&lt;/h2&gt;
+
+&lt;p&gt;Um exemplo de aplicação dessa API pode ser um site ou uma web app de uma empresa de guincho para carro ou auto socorro.&lt;/p&gt;
+
+&lt;p&gt;Vamos imaginar que o dono dessa empresa quer saber a localização dos seu clientes. Com essa informação em mão ele pode informar inicialmente o cliente se ele atende ou não a região que o cliente se localiza.&lt;/p&gt;
+
+&lt;h3 id=&#34;etapas-ou-fluxo-da-aplicação&#34;&gt;Etapas ou fluxo da aplicação&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;O cliente acessa o site da empresa de guincho através de seu smartphone (que permita a geolocalização).&lt;/li&gt;
+&lt;li&gt;O site obtém a posição do usuário.&lt;/li&gt;
+&lt;li&gt;O site verifica se o cliente está em uma região atendida e caso positivo informa ao cliente o preço do serviço.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;primeiro-passo-8211-pegando-a-posição-do-usuários&#34;&gt;Primeiro passo &amp;#8211; Pegando a posição do usuários&lt;/h2&gt;
+
+&lt;p&gt;Nosso primeiro trecho de código é bem simples: pegamos a posição de latitude e longitude e mostramos essa informação no console.&lt;/p&gt;
+
+&lt;p&gt;Você pode testá-lo aqui &lt;a href=&#34;http://jsfiddle.net/pererinha/Mg9T5/&#34;&gt;http://jsfiddle.net/pererinha/Mg9T5/&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function getPosition(){
+  // Verifica se o browser do usuario tem suporte a Geolocation
+  if ( navigator.geolocation ){
+    navigator.geolocation.getCurrentPosition( function( posicao ){
+      console.log( posicao.coords.latitude, posicao.coords.longitude );
+    } );
+  }
+}
+
+$( document ).ready( function(){
+  getPosition();
+} );&lt;/pre&gt;
+
+&lt;p&gt;Primeiro verificamos se o browser do usuário tem suporte a Geolocation. Caso positivo chamamos o método &lt;strong&gt;navigator.geolocation.getCurrentPosition&lt;/strong&gt; e passamos uma função anônima como parâmetro. Se der tudo certo, a API chama essa função anônima e passa para ela um objeto com as coordenadas do usuário. Mas e algo der errado?&lt;/p&gt;
+
+&lt;h2 id=&#34;segundo-passo-8211-tratando-erros&#34;&gt;Segundo passo &amp;#8211; Tratando erros&lt;/h2&gt;
+
+&lt;p&gt;Agora o nosso código ficará um pouco mais completo, vamos criar uma função que será chamada caso a Geolocalização apresente um erro.&lt;/p&gt;
+
+&lt;p&gt;Para testar: &lt;a href=&#34;http://jsfiddle.net/pererinha/Y49kd/&#34;&gt;http://jsfiddle.net/pererinha/Y49kd/&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function getPosition(){
+  // Verifica se o browser do usuario tem suporte a geolocation
+  if ( navigator.geolocation ){
+    navigator.geolocation.getCurrentPosition( 
+
+    // sucesso! 
+    function( posicao ){
+      console.log( posicao.coords.latitude, posicao.coords.longitude );
+    },
+
+    // erro 🙁
+    function ( erro ){
+      var erroDescricao = &#39;Ops, &#39;;
+      switch( erro.code ) {
+        case erro.PERMISSION_DENIED:
+          erroDescricao += &#39;usuário não autorizou a Geolocation.&#39;;
+        break;
+        case erro.POSITION_UNAVAILABLE:
+          erroDescricao += &#39;localização indisponível.&#39;;
+        break;
+        case erro.TIMEOUT:
+          erroDescricao += &#39;tempo expirado.&#39;;
+        break;
+        case erro.UNKNOWN_ERROR:
+         erroDescricao += &#39;não sei o que foi, mas deu erro!&#39;;
+        break;
+      }
+      console.log( erroDescricao )
+    }
+   );
+  }
+}
+
+$( document ).ready( function(){
+  getPosition();
+} );&lt;/pre&gt;
+
+&lt;h3 id=&#34;terceiro-passo-8211-juntando-tudo&#34;&gt;Terceiro passo &amp;#8211; Juntando tudo&lt;/h3&gt;
+
+&lt;p&gt;Bom, já deu para entender como funciona o tal do Geolocation. Agora vamos organizar melhor esse código e começar a utilizar os dados da posição do usuário.&lt;/p&gt;
+
+&lt;p&gt;Olha como ficou o script final. Para testar &lt;a href=&#34;http://jsfiddle.net/pererinha/dKSY5/&#34;&gt;http://jsfiddle.net/pererinha/dKSY5/&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Objeto oficina com os dados da oficina
+var Oficina = {
+  posicao : {
+    latitude : -25.435946,
+    longitude: -49.273365   
+  },
+  valorPorKM : 5,
+  distanciaMaxima : 15,
+
+  // Funcao que ira verificar se o cliente esta por perto e ira calcular o valor do servico
+  calculaOPreco : function( posicao ){
+  var distancia = Distancia.distanciaEntreDoisPontos( posicao, this.posicao );
+  // Verifica se o cliente nao estah muito longe
+  if( distancia &amp;lt;= this.distanciaMaxima ){
+    // Duas casas decimais e troca o . por ,
+    var valor = ( this.valorPorKM * distancia ).toFixed( 2 ).toString().replace( &#39;.&#39;, &#39;,&#39; );
+    if ( confirm( &#39;O custo do guincho será R$ &#39; + valor + &#39;. Posso mandar?&#39; ) ){
+      alert( &#39;O guincho chegará em alguns minutos!&#39; );
+    }
+  } else {
+    // Somente duas cadas decimais ja eh o suficiente
+    distancia = distancia.toFixed( 2 );
+    alert( &#39;Ops, você está muito longe, a distância máxima que atendemos é &#39; +  this.distanciaMaxima + &#39; KM e você está há &#39; + distancia + &#39; KM!&#39; );
+  }
+  }
+};
+
+// Objeto localizacao, aqui estao as funcoes para trabalhar com a api geolocation
+var Localizacao = {
+
+  // Inicia
+  inicia : function(){
+
+  // Funcao que serah chamada quando o browser retornar a posicao do usuario
+  var sucesso = function( posicao ){
+    Oficina.calculaOPreco( posicao.coords );
+  };
+
+  // Funcao que serah chamada caso de algum erro nesse processo de obter a posicao
+  var erro = function( erro ){
+    var erroDescricao = &#39;Ops, &#39;;
+    switch( erro.code ) {
+      case erro.PERMISSION_DENIED:
+        erroDescricao += &#39;usuário não autorizou a Geolocation.&#39;;
+      break;
+      case erro.POSITION_UNAVAILABLE:
+        erroDescricao += &#39;localização indisponível.&#39;;
+      break;
+      case erro.TIMEOUT:
+        erroDescricao += &#39;tempo expirado.&#39;;
+      break;
+      case erro.UNKNOWN_ERROR:
+        erroDescricao += &#39;não sei o que foi, mas deu erro!&#39;;
+      break;
+    }
+    alert( erroDescricao )
+  };
+
+  // Verifica se o browser do usuario tem suporte a geolocation
+  if ( navigator.geolocation ){
+    navigator.geolocation.getCurrentPosition( sucesso, erro );
+  } else {
+    erro();
+  }
+  }
+};
+
+// Objeto para calcular a distancia entre dois pontos
+var Distancia = {
+  distanciaEntreDoisPontos : function( pontoInicial, pontoFinal ){
+    var R = 6371; // Radio da Terra
+    var dLat = this.graus2Radianos( pontoFinal.latitude - pontoInicial.latitude ); 
+    var dLon = this.graus2Radianos( pontoFinal.longitude - pontoInicial.longitude ); 
+    var a = Math.sin( dLat/2 ) * Math.sin( dLat/2 ) + Math.cos( this.graus2Radianos( pontoInicial.latitude ) ) * Math.cos( this.graus2Radianos( pontoFinal.latitude ) ) * Math.sin( dLon/2 ) * Math.sin( dLon/2 ); 
+    var c = 2 * Math.atan2( Math.sqrt( a ), Math.sqrt( 1-a ) ); 
+    var d = R * c; 
+    return d;
+  },
+  graus2Radianos : function( graus ){
+    return graus * ( Math.PI/180 )
+  }
+};
+
+$( document ).ready( function(){
+  Localizacao.inicia();
+} );&lt;/pre&gt;
+
+&lt;p&gt;Nessa última versão o código já está mais organizado. E também já temos alguns objetos novos. O código está todo documentado e está bem simples de entender.&lt;/p&gt;
+
+&lt;p&gt;Temos três objetos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Oficina&lt;/li&gt;
+&lt;li&gt;Localizacao&lt;/li&gt;
+&lt;li&gt;Distancia&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;objeto-oficina&#34;&gt;Objeto Oficina&lt;/h3&gt;
+
+&lt;p&gt;Esse objeto contém as informações sobre a oficina e um método que verifica a distância do cliente e o preço do serviço.&lt;/p&gt;
+
+&lt;h3 id=&#34;objeto-localizacao&#34;&gt;Objeto Localizacao&lt;/h3&gt;
+
+&lt;p&gt;Esse objeto contém as os métodos para trabalharmos com a api de Geolocation, do primeiro e segundo passo.&lt;/p&gt;
+
+&lt;h3 id=&#34;objeto-distancia&#34;&gt;Objeto Distancia&lt;/h3&gt;
+
+&lt;p&gt;Esse objeto tem um método importante que é o &lt;strong&gt;distanciaEntreDoisPontos&lt;/strong&gt; esse método calcula a distância entre dois pontos e retorna o valor em kilômetros.&lt;/p&gt;
+
+&lt;p&gt;Adaptado dessa formula &lt;a href=&#34;http://stackoverflow.com/questions/27928/how-do-i-calculate-distance-between-two-latitude-longitude-points&#34;&gt;http://stackoverflow.com/questions/27928/how-do-i-calculate-distance-between-two-latitude-longitude-points&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h1 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h1&gt;
+
+&lt;p&gt;Isso seria o básico para começar a brincar com essa api tão legal que é o Geolocation.&lt;/p&gt;
+
+&lt;p&gt;Dois plugins, para o Chrome, que podem te ajudar bastante.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Geo Location Chrome Extension: Esse plugin te mostra a sua posição. &lt;a href=&#34;https://chrome.google.com/webstore/detail/ebpepkmcecplhjpdfiojfjbjofekjhcp&#34;&gt;https://chrome.google.com/webstore/detail/ebpepkmcecplhjpdfiojfjbjofekjhcp&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Manual Geolocation: Com esse plugin você pode definir a sua localização manualmente. &lt;a href=&#34;https://chrome.google.com/webstore/detail/manual-geolocation/mfodligkojepnddfhkbkodbamcagfhlo&#34;&gt;https://chrome.google.com/webstore/detail/manual-geolocation/mfodligkojepnddfhkbkodbamcagfhlo&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Em um próximo artigo veremos sobre conseguir a latitude e longitude do usuário a partir de seu endereço e mais alguns parâmetros que podemos utilizar com o método &lt;strong&gt;navigator.geolocation.getCurrentPosition&lt;/strong&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Creme de papaia e Geolocalização</title>
+      <link>http://tableless.com.br/creme-de-papaia-e-geolocalizacao/</link>
+      <pubDate>Wed, 28 Nov 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/creme-de-papaia-e-geolocalizacao/</guid>
+      <description>&lt;p&gt;Eu não sou um grande apreciador de doces, mas uma das minhas sobremesas preferidas é o popular &lt;a href=&#34;http://guiadacozinha.uol.com.br/receitas/1722-Receita-de-Creme-de-papaia-com-cassis&#34;&gt;creme de mamão papaia com licor de cassis&lt;/a&gt;. Sempre achei que essa era a combinação perfeita para uma sobremesa, especialmente no calor. Mas o mamão papaia é um grande injustiçado. Se você perguntar para qualquer pessoa o nome de uma sobremesa feita com mamão papaia, com certeza a grande maioria vai dizer &amp;#8220;creme de papaia com licor de cassis&amp;#8221;. Falta de criatividade? Pois é. O mesmo acontece com a API de Geolocalização do HTML5.&lt;/p&gt;
+
+&lt;p&gt;Sim, a &lt;a href=&#34;http://www.w3.org/TR/2010/CR-geolocation-API-20100907/&#34;&gt;API de Geolocalização&lt;/a&gt; (documentação mantida pelo &lt;a href=&#34;http://www.w3.org/2008/geolocation/&#34;&gt;W3C Geolocation Working Group&lt;/a&gt;) acaba sendo sub-aproveitada em diversos projetos. Faça pesquisa rápida no escritório ou uma busca pelo Google que você vai se deparar com uma grande quantidade de exemplos utilizando Geolocalização baseadas simplesmente na &lt;a href=&#34;http://html5demos.com/geo&#34;&gt;interface do Google Maps para obter sua localização atual&lt;/a&gt;. Uma ótima utilização da API, mas não a única.&lt;/p&gt;
+
+&lt;p&gt;Da mesma forma que existem &lt;a href=&#34;http://cybercook.terra.com.br/resultado.php?palavra1=mamao+papaya&amp;amp;ingredientes=S&#34;&gt;diversas de receitas de sobremesa utilizando mamão papaia&lt;/a&gt;, existem diversas aplicações interessantes para o uso da API de Geolocalização. Basta exercitar a criatividade. Não estou dizendo que uma aplicação que identifica minha localização seja inútil. Pelo contrário. Consigo identificar serviços e estabelecimentos próximos de forma muito precisa. Mas podemos ir um pouco além.&lt;/p&gt;
+
+&lt;p&gt;Veja este exemplo de &lt;a href=&#34;http://www.html5rocks.com/en/tutorials/geolocation/trip_meter/&#34;&gt;Trip Meter&lt;/a&gt;. Utilizando a API de Geolocalização você consegue identificar sua localização inicial e comparar com a localização final e ainda incrementar com o tempo percorrido, pontos turísticos interessantes, etc. Nesse mesmo exemplo, você pode fazer um cruzamento de dados e &lt;a href=&#34;http://demo.tutorialzine.com/2012/05/weather-forecast-geolocation-jquery/&#34;&gt;calcular a previsão do tempo da cidade que você está passando nesse exato momento&lt;/a&gt;. Muito útil para acompanhar todo o seu itinerário de viagem.&lt;/p&gt;
+
+&lt;p&gt;Mas e no meu dia-a-dia, como fazer uso da API de Geolocalização de uma forma mais útil? Bem, você pode criar um website de venda de produtos que pode utilizar a localização do usuário para determinar o custo do frete, ou um conversor de moedas extrangeiras por exemplo. Pode ainda criar um sistema para verificar disponibilidade de vagas em hotéis ou aluguel de casas conforme a localização do usuário. Pode parecer estranho uma pessoa chegar a uma cidade sem ter hotel reservado, mas não é. &lt;a href=&#34;http://www.malapronta.com.br/blog/2010/12/16/como-o-brasileiro-planeja-suas-ferias/&#34;&gt;Uma pesquisa feita em 2010 pelo site MalaPronta.com&lt;/a&gt; mostra que 67% dos usuários do site fazem a reserva do hotel com menos de 30 dias de antecedência. Já uma &lt;a href=&#34;http://www.tripadvisor.com/PressCenter-i4720-c1-Press_Releases.html&#34;&gt;pesquisa feita pelo website Trip Advisor&lt;/a&gt; aponta que grande parte de seus usuários utilizam dispositivos móveis para planejar suas viagens. Ainda sobre viagens, &lt;a href=&#34;http://travel.usatoday.com/hotels/post/2012/04/survey-reveals-hotels-guests-want-wifi-over-everything-else/666250/1&#34;&gt;outra pesquisa mostra que hospedes preferem Wifi do que qualquer outro serviço do hotel&lt;/a&gt;. A internet móvel possibilita aplicações inimagináveis na web.&lt;/p&gt;
+
+&lt;p&gt;E como anda o suporte a API de Geolocalização nos dispositivos? Bem, seu status atual de &lt;a href=&#34;http://www.w3.org/TR/2010/CR-geolocation-API-20100907/&#34;&gt;Canditata a Recomendação no W3C&lt;/a&gt; pode dar uma idéia. Fazendo uma rápida pesquisa pelo &lt;a href=&#34;http://caniuse.com/#feat=geolocation&#34;&gt;CanIUse.com&lt;/a&gt; podemos ver que mais de 80% dos navegadores pesquisados dão suporte a API (inclusive os browsers de dispositivos móveis). Mas e sobre a minha privacidade? A especificação é bem clara: &lt;a href=&#34;http://www.w3.org/TR/2010/CR-geolocation-API-20100907/#security&#34;&gt;&lt;em&gt;User agents must not send location information to Web sites without the express permission of the user&lt;/em&gt;&lt;/a&gt;. A escolha de permitir ou não o compartilhamento da sua localização está nas mãos do usuário.&lt;/p&gt;
+
+&lt;p&gt;Fazer uso dos recursos do HTML5 é muito mais simples do que se imagina. Com um pouco de JavaScript você &lt;a href=&#34;http://dev.opera.com/articles/view/how-to-use-the-w3c-geolocation-api/&#34;&gt;pode começar a brincar e fazer experimentos com essa API&lt;/a&gt; identificando latitude, longitude e integrando com o Google Maps para começar. Esse é apenas o primeiro passo.&lt;/p&gt;
+
+&lt;p&gt;Você vai ver que utilizar a API de Geolocalização do HTML5 é mamão com açúcar (Desculpe. Não podia deixar esse trocadilho fora do post).&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

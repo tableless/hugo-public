@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>James Clébio on Tableless</title>
+    <link>http://tableless.com.br/author/james-cl%C3%A9bio/index.xml</link>
+    <description>Recent content in James Clébio on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/james-cl%C3%A9bio/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Cache busting: entrega inteligente de assets</title>
+      <link>http://tableless.com.br/cache-busting-entrega-inteligente-de-assets/</link>
+      <pubDate>Thu, 18 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/cache-busting-entrega-inteligente-de-assets/</guid>
+      <description>
+
+&lt;h2 id=&#34;definição&#34;&gt;Definição&lt;/h2&gt;
+
+&lt;p&gt;Cache busting nada mais é do que uma técnica para contornar o problema do carregamento de versões antigas dos assets armazenados em cache no navegador do cliente.&lt;/p&gt;
+
+&lt;h2 id=&#34;problema&#34;&gt;Problema&lt;/h2&gt;
+
+&lt;p&gt;Na verdade, essa é uma questão de longa data. Muitos desenvolvedores utilizam-se do incremento de variáveis com códigos aleatórios no final das chamadas (querystrings) dos assets para contornar o problema, o que, de acordo com &lt;a href=&#34;http://stevesouders.com/&#34;&gt;Steve Souders&lt;/a&gt;, guru em performance de sites na web, não é uma boa prática.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;stylesheet&#34; href=&#34;assets/main.css?v=786523&#34;&amp;gt; &amp;lt;!-- NÃO RECOMENDADO! --&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Segundo Souders, &lt;a href=&#34;http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/&#34;&gt;o uso de querystrings não é bom&lt;/a&gt; porque faz com que normalmente o browser recarregue o asset da origem. Para o ambiente de desenvolvimento isso seria o ideal. Para o usuário final isso não seria bom, pois o comportamento de seu navegador seria alterado em termos do número de conexões que são abertas, ignorando o uso do cache e comprometendo a performance de carregamento da página.&lt;/p&gt;
+
+&lt;h2 id=&#34;solução&#34;&gt;Solução&lt;/h2&gt;
+
+&lt;p&gt;Para resolver o problema sem a utilização de querystrings, o ideal é que todos os arquivos de assets que estão sendo requisitados na página sejam renomeados. Logicamente que as chamadas para esses assets renomeados também precisam ser atualizadas na página. Sabemos que fazer esse processo manualmente seria algo árduo, quase insano. Então como fazê-lo de forma elegante, automatizada?&lt;/p&gt;
+
+&lt;p&gt;A fórmula mágica para que isso aconteça de maneira prática é o &lt;a href=&#34;https://github.com/hollandben/grunt-cache-bust&#34;&gt;grunt-cache-bust&lt;/a&gt;, um plugin para o &lt;a href=&#34;http://tableless.com.br/grunt-voce-deveria-estar-usando/&#34;&gt;Grunt&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;show-me-the-code&#34;&gt;Show me the code&lt;/h3&gt;
+
+&lt;p&gt;Vou supor que você já conhece o &lt;a href=&#34;http://gruntjs.com/&#34;&gt;Grunt&lt;/a&gt; e que há uma &lt;em&gt;index.html&lt;/em&gt; na raiz de seu projeto, ok? Sendo assim, irei focar apenas na utilização do plugin.&lt;/p&gt;
+
+&lt;p&gt;A princípio você só precisa seguir 4 passos básicos para usar o grunt-cache-bust:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Instale o plugin usando o seguinte comando:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre class=&#34;lang-sh&#34;&gt;npm install grunt-cache-bust --save-dev
+&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Em seu &lt;em&gt;Gruntfile.js&lt;/em&gt;, adicione a seguinte propriedade ao objeto passado como parâmetro em &lt;em&gt;grunt.initConfig&lt;/em&gt;:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;cacheBust: {
+  options: {
+    encoding: &#39;utf8&#39;,
+    length: 16
+  },
+  scripts: {
+    files: [{
+      src: [&#39;index.html&#39;]
+    }]
+  }
+}
+&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Ainda em seu &lt;em&gt;Gruntfile.js&lt;/em&gt;, adicione a seguinte linha para ativar o plugin:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;grunt.loadNpmTasks(&#39;grunt-cache-bust&#39;);
+&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Tudo certo, agora é só rodar a task e voilà!&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre class=&#34;lang-sh&#34;&gt;grunt cacheBust
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;resultado&#34;&gt;Resultado&lt;/h3&gt;
+
+&lt;p&gt;Lembra que na raíz de seu projeto há uma &lt;em&gt;index.html&lt;/em&gt;? Então, basicamente a task vai varrer esse documento buscando por chamadas de assets (CSS, JS, imagens e favicons), copiar esses arquivos com um novo nome e atualizar o source de cada chamada encontrada com o novo nome do arquivo. Esse novo nome terá o formato {nome}.{hash}.{extensão}, onde {hash} seria um código aleatório.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;index.html&lt;/em&gt; antes:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script src=&#34;assets/main.js&#34;&amp;gt;&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;index.html&lt;/em&gt; depois:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script src=&#34;assets/main.6419373d85d7afe3.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Lindo, né?&lt;/p&gt;
+
+&lt;p&gt;Vale lembrar que o plugin irá ignorar automaticamente chamadas que apontam para CDNs.&lt;/p&gt;
+
+&lt;p&gt;A propriedade &lt;a href=&#34;https://github.com/hollandben/grunt-cache-bust#options&#34;&gt;options&lt;/a&gt; do plugin oferece uma porção de possibilidades interessantes que flexibilizam a utilização do cache busting, como por exemplo manter ou não os arquivos originais dos assets requisitados, escolher o algoritmo e tamanho das hashes, ignorar chamadas de assets através de regex, etc. Enfim, considere dar uma boa olhada na &lt;a href=&#34;https://github.com/hollandben/grunt-cache-bust#getting-started&#34;&gt;documentação oficial do plugin&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Cache busting é algo realmente útil no ciclo de desenvolvimento web. Chega de &lt;em&gt;Cmd+Shift+R&lt;/em&gt; ou &lt;em&gt;Ctrl+F5&lt;/em&gt;, né?&lt;/p&gt;
+
+&lt;p&gt;Se você tem alguma outra solução para essa questão, utilizando Gulp ou outra ferramenta, conta pra gente aqui nos comentários. A comunidade agradece! ;D&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

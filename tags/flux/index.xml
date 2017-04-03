@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Flux on Tableless</title>
+    <link>http://tableless.com.br/tags/flux/index.xml</link>
+    <description>Recent content in Flux on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/flux/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Introdução ao Redux</title>
+      <link>http://tableless.com.br/bem-vindo-ao-redux/</link>
+      <pubDate>Mon, 04 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/bem-vindo-ao-redux/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;a href=&#34;http://redux.js.org/docs/introduction/index.html&#34;&gt;Redux&lt;/a&gt;&lt;/strong&gt; é uma maneira de pensar o desenvolvimento de aplicações criada pelo &lt;a href=&#34;https://twitter.com/dan_abramov&#34; target=&#34;_blank&#34;&gt;@dan_abramov&lt;/a&gt; que teve como principio optimizar a ideia do &lt;a href=&#34;https://facebook.github.io/flux/&#34; target=&#34;_blank&#34;&gt;Flux&lt;/a&gt;. Ela foi criada para tentar optimizar alguns obstáculos que o Flux começou a enfrentar, e também veio para simplificar a implementação do mesmo. Inspirada em conceitos da linguagem funcional &lt;a href=&#34;http://elm-lang.org/&#34; target=&#34;_blank&#34;&gt;Elm&lt;/a&gt;, e de algumas bibliotecas JS como o &lt;a href=&#34;https://facebook.github.io/immutable-js/&#34; target=&#34;_blank&#34;&gt;Immutable.js&lt;/a&gt;,  o &lt;a href=&#34;https://github.com/Yomguithereal/baobab&#34; target=&#34;_blank&#34;&gt;Baobab&lt;/a&gt;, o  &lt;a href=&#34;https://github.com/Reactive-Extensions/RxJS&#34; target=&#34;_blank&#34;&gt;RxJs&lt;/a&gt; e o próprio Flux, o Redux veio com alguns paradigmas interessantes e um pouco diferenciados do Flux.&lt;/p&gt;
+
+&lt;h2 id=&#34;triforce-do-redux&#34;&gt;Triforce do Redux&lt;/h2&gt;
+
+&lt;p&gt;O Redux é composto de três princípios que formam e definem o seu conceito. Eles são:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Um único ponto de verdade&lt;/strong&gt; &amp;#8211; Todo o estado da aplicação é mantido em apenas um único objeto chamado de Store.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;O estado é imutável&lt;/strong&gt; &amp;#8211; O estado da aplicação é inalterável, a unica maneira de afeta-lo é emitindo uma Action com a mudança.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Mudanças são feitas apenas por funções puras&lt;/strong&gt; &amp;#8211; Reducers recebem as Actions emitidas e aplicam-nas ao estado. Sempre retornando um novo estado.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Agora com os princípios estabelecidos, vamos entender o que significa cada uma dessas parte da arquitetura.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-estado&#34;&gt;O que é Estado&lt;/h2&gt;
+
+&lt;p&gt;Quando se trata de aplicações reativas, ouvimos muito falar do tal estado (ou &lt;strong&gt;state&lt;/strong&gt; em inglês), mas nem todo mundo consegue assimilar de fato o que ele representa na aplicação.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Estado&lt;/strong&gt; é ser considerado &lt;em&gt;o conjunto de dados mantidos no momento em que sua aplicação está rodando no lado do cliente&lt;/em&gt;. Qualquer atualização que envolva alteração desses dados, automaticamente essa mudança irá alterar o estado.&lt;/p&gt;
+
+&lt;h2 id=&#34;views&#34;&gt;Views&lt;/h2&gt;
+
+&lt;p&gt;Views são os arquivos finais mostrados para o usuário, na maior parte dos frameworks views são todos os arquivos HTML renderizados pelo Browser, no caso do React em especifico,  as views são consideradas componentes React, onde o contexto é renderizado através da função &lt;code&gt;render()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;actions&#34;&gt;Actions&lt;/h2&gt;
+
+&lt;p&gt;Actions (ou ações) são objetos que servem para transmitir o que será enviado de sua view para sua store.&lt;/p&gt;
+
+&lt;p&gt;Actions possuem obrigatoriamente uma propriedade &lt;strong&gt;type&lt;/strong&gt; que indica o tipo de ação que será executada,  e que por sua vez devem ser escritas sempre como constantes.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+ type: &#39;ENVIAR_MENSAGEM&#39;,
+ text: &#39;Olá Redux&#39;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Neste caso estou criando uma action que será do tipo &lt;code&gt;ENVIAR_MENSAGEM e &lt;/code&gt;a propriedade &lt;strong&gt;text&lt;/strong&gt; é apenas um parâmetro que ela irá transmitir para a store.&lt;/p&gt;
+
+&lt;h2 id=&#34;reducers&#34;&gt;Reducers&lt;/h2&gt;
+
+&lt;p&gt;Actions descrevem de fato que algo aconteceu e o papel dos Reducers é transmitir o que aconteceu para alterar devidamente sua store&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;let initialState = {
+  mensagem: &#39;Olá Mundo&#39;
+}
+
+function olaMundo(state = initialState, action) {
+  switch (action.type) {
+    case ENVIAR_MENSAGEM:
+      return Object.assign({}, state, {
+        mensagem: action.text
+      })
+    
+    case APAGAR_MENSAGEM:
+      return Object.assign({}, state, {
+        mensagem: &#39;&#39;
+      })
+    
+    default:
+      return state
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Vamos analisar o código acima:&lt;/p&gt;
+
+&lt;p&gt;Primeiro gostaria de avisar que estou implementando usando ES2015, então sugiro para quem ainda não experimentou, de uma olhada &lt;a href=&#34;https://babeljs.io/docs/learn-es2015/&#34; target=&#34;_blank&#34;&gt;neste link&lt;/a&gt; que é uma referência bem bacana sobre o que mudou.&lt;/p&gt;
+
+&lt;p&gt;Em primeiro lugar eu declarei o estado inicial da aplicação com uma propriedade &lt;code&gt;mensagem&lt;/code&gt; e disse que seu valor é &lt;strong&gt;Olá Mundo&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Criei uma função chamada de &lt;strong&gt;olaMundo&lt;/strong&gt; com dois parâmetros (state que já declarado como meu estado inicial e a action que foi emitida para acionar este reducer) e nela que está a mágica. Note que ela possui um &lt;code&gt;switch&lt;/code&gt; com duas condições, explicarei apenas a primeira, pois as duas basicamente tem o mesmo resultado.&lt;/p&gt;
+
+&lt;p&gt;Quando a Ação &lt;code&gt;ENVIAR_MENSAGEM&lt;/code&gt; é emitida para este reducer, ele irá atribuir o valor que a action transmiti ao estado e a função &lt;code&gt;Object.Assign()&lt;/code&gt; será responsável por criar a cópia do estado e envia-lo à store.&lt;/p&gt;
+
+&lt;h2 id=&#34;store&#34;&gt;Store&lt;/h2&gt;
+
+&lt;p&gt;Além de manter o estado da aplicação como já falado antes. A Store também tem algumas outras responsabilidades, são Elas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Permitir a leitura do estado através do método &lt;code&gt;getState()&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;Permitir que o estado seja alterado pelos &lt;strong&gt;Reducers&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Registrar &lt;strong&gt;Listeners&lt;/strong&gt; para escutar o estado à partir do método &lt;code&gt;subscribe(listener)&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;Manipular os &lt;strong&gt;Listeners&lt;/strong&gt; registrados.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;migrando-para-o-redux&#34;&gt;Migrando Para o Redux&lt;/h2&gt;
+
+&lt;p&gt;Como é dito na própria documentação oficial do Redux, ele nao é algo que te deixará preso e impossibilitado de mudar, mas claro, caso queira adota-lo, algumas tomadas de decisões terão de ser feitas.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Redux is not a monolithic framework&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;O Redux também é uma maneira de se pensar, note que todos os passos que eu mostrei não são exclusivos do React, ou do Angular por exemplo, a biblioteca em si foi documentada usando o React, mas nada te impede de implementar a ideia em qualquer outro Framework como o Angular.&lt;/p&gt;
+
+&lt;p&gt;E para quem usa o Backbone também existe uma lib citada pelo próprio Redux para você que queira fazer a migração.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Lembrando que o Redux não é de forma alguma um concorrente do Flux, ou das outras implementações do mesmo. E que esse post é apenas uma breve introdução ao assunto. Deixei alguns links interessantes nas referencias para quem possam começar ou continuar a estudar Redux.&lt;/p&gt;
+
+&lt;h3 id=&#34;para-ler-mais&#34;&gt;Para ler mais&lt;/h3&gt;
+
+&lt;p&gt;Um ótimo exemplo para entender mais sobre o que eu escrevi acima pode ser encontrado em &lt;a href=&#34;https://github.com/reactjs/redux/tree/master/examples/todomvc&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;;&lt;/p&gt;
+
+&lt;p&gt;A documentação completa pode ser vista através &lt;a href=&#34;http://redux.js.org/&#34; target=&#34;_blank&#34;&gt;deste link&lt;/a&gt;;&lt;/p&gt;
+
+&lt;p&gt;E caso tenha lido o post sobre &lt;a href=&#34;http://tableless.com.br/introducao-ao-electron/&#34; target=&#34;_blank&#34;&gt;Electron.js&lt;/a&gt; e queira iniciar o desenvolvimento de aplicações Desktop usando React + Redux aqui esta o &lt;a href=&#34;https://github.com/henriquesosa/electron-intro&#34; target=&#34;_blank&#34;&gt;repositório&lt;/a&gt; que criei com uma breve introdução ao assunto.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/redbooth/backbone-redux&#34; target=&#34;_blank&#34;&gt;Migração do Backbone.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/wbuchwalter/ng-redux&#34; target=&#34;_blank&#34;&gt;Migrando o Angular.js para Redux.&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

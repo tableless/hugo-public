@@ -1,0 +1,761 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ruby on Tableless</title>
+    <link>http://tableless.com.br/tags/ruby/index.xml</link>
+    <description>Recent content in Ruby on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/ruby/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Bower na prática</title>
+      <link>http://tableless.com.br/bower-na-pratica/</link>
+      <pubDate>Wed, 15 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/bower-na-pratica/</guid>
+      <description>
+
+&lt;p&gt;A maioria das linguagens já possuem ferramentas para automatizar e facilitar esse tipo de tarefa.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo: Java &amp;#8211; (Maven e Ivy), Ruby &amp;#8211; (Rubygems), Python &amp;#8211; (pip), entre outras.&lt;/p&gt;
+
+&lt;p&gt;No desenvolvimento front-end, uma ferramenta que vem ganhando bastante espaço nessa área é o &lt;a title=&#34;bower.io&#34; href=&#34;http://bower.io/&#34; target=&#34;_blank&#34;&gt;Bower&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Como o bower é para gerenciar componentes de front-end, pode ser adicionado em qualquer projeto, independente do seu back-end ser Java, Ruby, Python, Node, PHP, etc.&lt;/p&gt;
+
+&lt;p&gt;Andei pesquisando a respeito dessa ferramenta e senti a falta de artigos em português que ensinem o passo-a-passo de como incorpora-lo em nossas aplicações, por isso resolvi escrever esse tutorial, ajudar com que todos possam dar seus primeiros passos com o &lt;a title=&#34;bower.io&#34; href=&#34;http://bower.io/&#34; target=&#34;_blank&#34;&gt;Bower&lt;/a&gt; e melhorar o gerenciamento de dependências dos seus respectivos front-ends.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalação&#34;&gt;Instalação&lt;/h2&gt;
+
+&lt;p&gt;Inicialmente é necessário primeiro que você tenha o &lt;a href=&#34;http://nodejs.org/&#34;&gt;Node&lt;/a&gt; junto com o &lt;a href=&#34;https://npmjs.org/&#34; title=&#34;npmjs.org&#34;&gt;NPM&lt;/a&gt; instalado na sua máquina. Caso contrário, basta acessar o &lt;a href=&#34;http://nodejs.org/&#34;&gt;nodejs.org&lt;/a&gt;, fazer download e instalar. Bem simples!&lt;/p&gt;
+
+&lt;p&gt;Feito isso, vamos para o terminal/cmd e instalar o bower com o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;sh&#34;&gt;npm install -g bower&lt;/pre&gt;
+
+&lt;p&gt;Para quem ainda não conhece, o &lt;a href=&#34;https://npmjs.org/&#34; title=&#34;npmjs.org&#34;&gt;NPM&lt;/a&gt;  é um gerenciador de pacotes de programas que rodam com o Node. Aqui estamos basicamente mandando ele instalar o bower no nosso computador, uma coisa que gostaria de ressaltar é a opção &lt;code&gt;-g&lt;/code&gt; que está dizendo para o npm instalar o bower globalmente em nossa máquina, assim ele já fica nas nossas variáveis de ambiente e podemos utiliza-lo facilmente em outros projetos.&lt;/p&gt;
+
+&lt;h2 id=&#34;adicionando-o-bower-ao-projeto&#34;&gt;Adicionando o Bower ao projeto&lt;/h2&gt;
+
+&lt;p&gt;Nesse exemplo, vamos ilustrar um projeto web simples, sem back-end, mas garanto que vai ficar fácil de entender como incorpora-lo ao seu projeto, independente da linguagem. Caso vocês tenham alguma dúvida, perguntem nos comentários que vou me esforçar para ajudar.&lt;/p&gt;
+
+&lt;p&gt;Nosso projeto vai se chamar &lt;strong&gt;&amp;#8220;zombie-striker&amp;#8221;&lt;/strong&gt; e terá a seguinte estrutura:&lt;/p&gt;
+
+&lt;pre&gt;|zombie-striker/
+|--assets/
+|----scripts/
+|----styles/
+|----images/
+|--index.html&lt;/pre&gt;
+
+&lt;p&gt;Para adicionarmos o bower, vamos até a pasta do projeto &amp;#8220;/zombie-striker&amp;#8221; e digitar o comando:&lt;/p&gt;
+
+&lt;pre&gt;bower init&lt;/pre&gt;
+
+&lt;p&gt;O bower irá iniciar um wizard para gerar o arquivo &amp;#8220;bower.json&amp;#8221; pedindo pra você completar as seguintes informações:&lt;/p&gt;
+
+&lt;pre&gt;# nome do projeto
+name:zombie-striker 
+
+# versão do projeto
+version:0.0.1
+
+# descrição do projeto
+description: app to strike zombies with bower
+
+# arquivo principal do seu projeto
+main file: assets/scripts/main.js
+
+# palavras-chaves 
+keywords: zombie striker
+
+# autores do projeto
+authors: &#34;Diogo Vecchiati http://divecch.com&#34;
+
+# tipo de licença
+license: MIT
+
+#homepage do projeto
+homepage: &#34;https://github.com/diRex/zombie-striker&#34;
+
+# se você gostaria que o bower adicionasse os components já instalados, como dependências no arquivo json.
+set currently installed components as dependencies?(y/n) n
+
+# se você gostaria de adicionar o ignore list default do bower
+add commonly ignored files to ignore list?(y/n) y
+
+# se você gostaria de tornar esse pacote privado para que não seja acidentalmente publicado no registro de pacotes do bower.
+would you like to mark this package as private which prevents it from beig accidentally published to the registry?(y/n) y&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Observação&lt;/strong&gt;: Algumas das opções acimas são válidas apenas para pacotes que vão ser distribuídos como novos componentes, por exemplo: caso você esteja criando um novo framework e queira disponibilizar aos demais através do bower .Porém, não é nosso caso, então podemos utilizar o &amp;#8220;bower.json&amp;#8221; gerado pelo wizard e modificar de acordo com a nossa necessidade. Caso você queira, pode pular a etapa de wizard do &lt;code&gt;bower init&lt;/code&gt; e  criar o &amp;#8220;bower.json&amp;#8221; na mão com as opções que você queira.&lt;/p&gt;
+
+&lt;p&gt;Ao terminar o wizard, você terá um &amp;#8220;bower.json&amp;#8221; parecido com esse:&lt;/p&gt;
+
+&lt;pre&gt;{
+    &#34;name&#34;: &#34;zombie-striker&#34;,
+    &#34;version&#34;: &#34;0.0.1&#34;,
+    &#34;authors&#34;: [
+        &#34;Diogo Vecchiati &amp;lt;http://divecch.com&amp;gt;&#34;
+    ],
+    &#34;description&#34;: &#34;app to strike zombies with bower&#34;,
+    &#34;main&#34;: &#34;assets/scripts/main.js&#34;,
+    &#34;keywords&#34;: [
+        &#34;zombie&#34;
+    ],
+    &#34;license&#34;: &#34;MIT&#34;,
+    &#34;homepage&#34;: &#34;https://github.com/diRex/zombie-striker&#34;,
+    &#34;private&#34;: true,
+    &#34;ignore&#34;: [
+        &#34;**/.*&#34;,
+        &#34;node_modules&#34;,
+        &#34;bower_components&#34;,
+        &#34;test&#34;,
+        &#34;tests&#34;
+    ]
+}&lt;/pre&gt;
+
+&lt;h2 id=&#34;adicionando-dependências&#34;&gt;Adicionando dependências&lt;/h2&gt;
+
+&lt;p&gt;Como de costume na maioria dos projetos front-end, vamos utilizar o JQuery como dependência. Vou mostrar duas maneiras de fazer isso.&lt;/p&gt;
+
+&lt;h4 id=&#34;editando-o-arquivo-8220-bower-json-8221&#34;&gt;Editando o arquivo &amp;#8220;bower.json&amp;#8221;&lt;/h4&gt;
+
+&lt;p&gt;Você pode editar o seu arquivo &amp;#8220;bower.json&amp;#8221; e adicionar&lt;/p&gt;
+
+&lt;pre&gt;...
+    &#34;ignore&#34;: [
+        &#34;**/.*&#34;,
+        &#34;node_modules&#34;,
+        &#34;bower_components&#34;,
+        &#34;test&#34;,
+        &#34;tests&#34;
+    ]
+        &#34;dependencies&#34;: {
+                &#34;jquery&#34;: &#34;~2.0.3&#34;
+        }
+}&lt;/pre&gt;
+
+&lt;p&gt;e em seguida executar:&lt;/p&gt;
+
+&lt;pre&gt;bower install&lt;/pre&gt;
+
+&lt;p&gt;Toda vez que você executa o &lt;code&gt;bower install&lt;/code&gt;, ele verifica quais as dependências existentes no seu arquivo &amp;#8220;bower.json&amp;#8221; e caso elas não estejam presentes na pasta de componentes serão instaladas.&lt;/p&gt;
+
+&lt;h4 id=&#34;executando-o-comando-bower-install&#34;&gt;Executando o comando bower install&lt;/h4&gt;
+
+&lt;p&gt;Outra maneira é executando o camando &lt;code&gt;bower install &amp;lt;package&amp;gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;bower install jquery --save&lt;/pre&gt;
+
+&lt;p&gt;A opção &lt;code&gt;--save&lt;/code&gt; serve para adicionar o componente no &amp;#8220;dependencies&amp;#8221; do &amp;#8220;bower.json&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Por padrão, o diretório que o bower utiliza pra salvar os componentes instalados é &amp;#8220;bower_components/&amp;#8221;, caso você queira modificar, basta criar um arquivo chamado &amp;#8220;.bowerrc&amp;#8221; com o seguinte conteúdo:&lt;/p&gt;
+
+&lt;pre&gt;{
+    &#34;directory&#34;:&#34;assets/components&#34;
+}&lt;/pre&gt;
+
+&lt;p&gt;Depois de alterar o diretório dos componentes, o ideal é que você remova o diretório anterior, &amp;#8220;bower_componentes&amp;#8221; e execute o &lt;code&gt;bower install&lt;/code&gt;, pra ele fazer download das dependências novamente. Ou simplesmente renomeie 😛&lt;/p&gt;
+
+&lt;p&gt;Para importar o jquery no nosso projeto é o mesmo &amp;#8220;arroz com feijão&amp;#8221;, só adicionar a tag script no html:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;script src=&#34;assets/components/jquery/jquery.min.js&#34;&lt;/pre&gt;
+
+&lt;h2 id=&#34;pesquisando-componentes&#34;&gt;Pesquisando componentes&lt;/h2&gt;
+
+&lt;p&gt;Caso você queira pesquisar mais componentes para adicionar ao seu projeto, é só utilizar o &lt;code&gt;bower search&lt;/code&gt;. Por exemplo, quero adicionar o bootstrap ao meu projeto, mas não sei o nome correto do pacote.&lt;/p&gt;
+
+&lt;pre&gt;bower search bootstrap&lt;/pre&gt;
+
+&lt;p&gt;Assim você consegue listar todos os pacotes que tenham relação com o bootstrap, é bem confuso de ver no terminal,como acontece na pesquisa de qualquer gerenciador de pacotes, mas da pra encontrar.&lt;/p&gt;
+
+&lt;h2 id=&#34;dicas&#34;&gt;Dicas&lt;/h2&gt;
+
+&lt;h4 id=&#34;não-versione-o-diretório-de-componentes&#34;&gt;Não versione o diretório de componentes&lt;/h4&gt;
+
+&lt;p&gt;Não versione a pasta que vc estiver utilizando pra salvar os componentes gerenciados pelo bower, se a sua pasta for a padrão(&amp;#8220;bower_components/&amp;#8221;), coloque no seu .gitignore, assim você deixa seu repositório mais leve e evita conflitos de libs que foram adicionadas por diferentes desenvolvedores.&lt;/p&gt;
+
+&lt;h4 id=&#34;atenção-com-as-dependências&#34;&gt;Atenção com as dependências&lt;/h4&gt;
+
+&lt;p&gt;Mantenham todas as dependências configuradas no &amp;#8220;bower.json&amp;#8221; algumas vezes pode acontecer de você executar um &lt;code&gt;bower install jquery&lt;/code&gt;, esquecer da opção &lt;code&gt;--save&lt;/code&gt; ou esquecer de adicionar manualmente no &amp;#8220;bower.json&amp;#8221; Quando outro desenvolvedor for participar do seu projeto e executar um &lt;code&gt;bower install&lt;/code&gt;, o jquery não vai estar lá.&lt;/p&gt;
+
+&lt;h4 id=&#34;ferramenta-visual-para-pesquisa-de-pacotes&#34;&gt;Ferramenta visual para pesquisa de pacotes&lt;/h4&gt;
+
+&lt;p&gt;Outra forma de visualizar os componentes registrados no bower de maneira mais agradável é através do site: &lt;a href=&#34;http://sindresorhus.com/bower-components/&#34;&gt;http://sindresorhus.com/bower-components/&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;That&amp;#8217;s all folks&lt;/strong&gt;, espero que tenham gostado, que passem a utilizar o bower em seus projetos, pois facilita muito controlar quais dependências existentes no projeto. Se quiserem pesquisar mais sobre as possibilidades que o bower oferece, basta acessar o site oficial: &lt;a href=&#34;http://bower.io/&#34;&gt;http://bower.io/&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Qualquer dúvida, critica ou sugestões comentem aqui em baixo.&lt;/p&gt;
+
+&lt;p&gt;[]&amp;#8217;s !!!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando um blog com Octopress e Github Pages</title>
+      <link>http://tableless.com.br/criando-um-blog-com-octopress-e-github-pages/</link>
+      <pubDate>Thu, 19 Dec 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-um-blog-com-octopress-e-github-pages/</guid>
+      <description>
+
+&lt;p&gt;Já faz pouco mais de uma semana que venho estudando o Octopress para o desenvolvimento do meu &lt;a title=&#34;divecch.com&#34; href=&#34;http://divecch.com&#34; target=&#34;_blank&#34;&gt;blog&lt;/a&gt;. Hoje vou mostrar como iniciar seu blog utilizando essa ferramenta e falar um pouco sobre como está sendo a experiência de criar um blog totalmente estático, sem a necessidade de um server-side.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a title=&#34;Octopress Official Page&#34; href=&#34;http://octopress.org/&#34; target=&#34;_blank&#34;&gt;Octopress&lt;/a&gt; é um framework criado por &lt;a title=&#34;Brandon Mathis Website&#34; href=&#34;http://brandonmathis.com/&#34; target=&#34;_blank&#34;&gt;Brandon Mathis&lt;/a&gt; com o &lt;a title=&#34;Jekyll Framework&#34; href=&#34;http://jekyllrb.com/&#34; target=&#34;_blank&#34;&gt;Jekyll&lt;/a&gt;, que é uma ferramenta Ruby para gerar sites estáticos a partir de templates HTML, CSS, Javascript, arquivos de configurações e markdowns. Também possui algumas tarefas automatizadas com o rake, para criar, novos posts, gerar o conteúdo estático, fazer deploy, etc. Eu nunca havia trabalhado com esse tipo de ferramenta e achei bem interessante essa ideia, porém o Octopress é totalmente voltado pra blogs e nesse pouco tempo de uso já senti algumas limitações, estou começando a cogitar a ideia de criar uma ferramenta dessas pra abranger outros segmentos além de blogs, mas isso é uma história para outro post. Bom, chega de blá, blá, blá e vamos pra prática!&lt;/p&gt;
+
+&lt;h3 id=&#34;como-instalar&#34;&gt;Como instalar&lt;/h3&gt;
+
+&lt;p&gt;Antes de começar, certifiquem-se que vocês possuem instalado o &lt;strong&gt;&lt;a title=&#34;Ruby&#34; href=&#34;https://www.ruby-lang.org/pt/&#34; target=&#34;_blank&#34;&gt;ruby&lt;/a&gt; – versão &amp;gt; 1.9.3&lt;/strong&gt; e &lt;a title=&#34;Git&#34; href=&#34;http://git-scm.com/&#34; target=&#34;_blank&#34;&gt;&lt;strong&gt;git&lt;/strong&gt;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora basta fazer clone do repositório do Octopress e adicionar o nome do blog no final do comando. No nosso exemplo vamos utilizar “blog-zueiro”:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;sh&#34;&gt;git clone git://github.com/imathis/octopress.git blog-zueiro
+cd blog-zueiro&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Dentro da pasta “blog-zueiro”, execute os seguintes comandos:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;sh&#34;&gt;gem install bundler
+rbenv rehash   # caso esteja utilizando o rbenv
+bundle install # baixa todas as dependências do projeto
+rake install   # instala o tema default do octopress
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Pronto, temos toda a estrutura do nosso “blog-zueiro” pronta.&lt;/p&gt;
+
+&lt;h3 id=&#34;rodando-no-localhost&#34;&gt;Rodando no localhost&lt;/h3&gt;
+
+&lt;p&gt;Para visualizar nosso blog localmente, basta executar:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;sh&#34;&gt;rake generate   # gera todos os arquivos estáticos do nosso blog.
+rake preview    # inicia um servidor local na porta 4000
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;aeee, agora podemos visualizar nosso “blog-zueiro” acessando &lt;a href=&#34;http://localhost:4000&#34;&gt;http://localhost:4000&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;configurações-básicas&#34;&gt;Configurações básicas:&lt;/h3&gt;
+
+&lt;p&gt;Uma das grandes vantagens que notei no Octopress, é a parte de customizar seu blog através do arquivo de configurações, que fica em “&lt;strong&gt;/_config.yml&lt;/strong&gt;”.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;yaml&#34;&gt;
+url:            # url do seu blog: joseh.github.io
+title:          # Titulo do blog: Zueiro na Net
+subtitle:       # Subtítulo do blog (Slogan)
+author:         # Nome do autor do blog.
+simple_search:  # Engine da barra de pesquisa no site, default é o google.
+description:    # Descrição do blog
+date_format:    # Formato de data, no nosso caso “%d/%m/%Y”
+subscribe_rss:  # Url para os feeds do seu blog, por padrão é o arquivo /atom.xml
+subscribe_email:# Url para inscrever-se por e-mail (serviço obrigatório)
+email:          # E-mail para o feed RSS.
+root:           # rootpath das nossas urls (default: /)
+permalink:      # formato da url para os posts do nosso blog
+source:         # diretório dos source do projeto
+destination:    # diretório dos arquivos finais
+plugins:        # diretório dos plugins que você for utilizar no projeto
+code_dir:       # diretório para os code snippets 
+category_dir:   # diretório das paginas de categoria do blog
+pygments:       # opção para ativar o syntax highlighting do python pygments
+paginate:       # numero de posts por pagina na pagina de blog index
+pagination_dir: # diretório base para a paginação
+recent_posts:   # quantidade de posts recentes a serem exibidos no sidebar do blog
+default_asides: # assides que vão ser apresentados no sidebar do blog
+blog_index_asides: # assides serão exibidos na página de blog index
+post_asides:    # assides que serão exibidos na página de algum post
+page_asides:    # assides que serão exibidos em uma página comum
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;dica:&lt;/strong&gt; os assides são componentes que ficam exibindo na lateral do blog, como o “Recent Posts” que ficam no diretório &lt;strong&gt;source/_includes/assides&lt;/strong&gt;, lá você pode modificar , como por exemplo trocar os títulos pra português, ou alterar a estrutura do html e inserir novos códigos ruby para customizar seu asside.&lt;/p&gt;
+
+&lt;p&gt;Caso você queira criar novos assides, basta criar um novo arquivo em &lt;strong&gt;source/_includes/custom/assides/&lt;/strong&gt; e adicionar ele no default_assides do arquivo &lt;strong&gt;_config.yml&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;primeiro-post&#34;&gt;Primeiro post&lt;/h3&gt;
+
+&lt;p&gt;Legal, temos nosso blog configurado e rodando localmente mas ainda não tem nenhum conteúdo. O Octopress fornece uma rake task para automatizar a criação de postagens. Então vamos lá, vamos criar nossa primeira postagem com o título “começando a zueira na net”:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;sh&#34;&gt;rake new_post[“começando a zueira na net”]&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Com isso, foi gerado um arquivo .makdown dentro da pasta “blog-zueiro/source/_posts” com o seguinte aspecto:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;sh&#34;&gt;layout: post
+title: &#34;começando a zueira na net&#34;
+date: 2013-11-29 11:14:44 -0200
+comments: true
+categories:
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;layout:&lt;/strong&gt; é referente ao layout que ele vai usar pra página. Esses layouts ficam dentro da pasta “blog-zueiro/source/_layouts”, caso você queira, pode criar seu próprio layout dentro dessa tela e alterar o markdown para utilizar ele.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;titulo:&lt;/strong&gt; é o titulo do post&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;data:&lt;/strong&gt; é a data de criação&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;comments:&lt;/strong&gt; é se o seu post vai ter comentários ou não (true | false)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;categories:&lt;/strong&gt; são as categorias relacionadas ao seu post, por exemplo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;sh&#34;&gt;categories: [zueiro na net, blog, octopress, ruby]&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;author:&lt;/strong&gt; é o autor do post&lt;/p&gt;
+
+&lt;p&gt;Agora basta escrever nosso post:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;sh&#34;&gt;---
+layout: post
+title: &#34;começando a zueira na net&#34;
+date: 2013-11-29 11:14:44 -0200
+comments: true
+categories:[zueiro na net, blog, octopress, ruby]
+author: Zeh Zueiro
+---
+Cheguei na net e to afim de zueira, meu primeiro post é sobre...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;dica:&lt;/strong&gt; existem vários editores de arquivos markdown que facilita na hora de inserir links, imagens, etc. Teve dois que eu utilizei e gostei bastante que é o &lt;a href=&#34;https://stackedit.io&#34;&gt;https://stackedit.io&lt;/a&gt; e o &lt;a href=&#34;http://mouapp.com/&#34;&gt;http://mouapp.com&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;deploy-para-o-githubpages&#34;&gt;Deploy para o GithubPages&lt;/h3&gt;
+
+&lt;p&gt;Ótimo, já temos a estrutura do nosso blog pronta, já criamos nosso primeiro post, agora quero mostrar pro meus amigos, afinal, de que adianta eu ter um blog que só eu vejo???&lt;/p&gt;
+
+&lt;p&gt;Pra colocar nosso blog no ar, vamos utilizar o Github Pages que é suportado nativamente pelo Octopress e a hospedagem é free.&lt;/p&gt;
+
+&lt;p&gt;Primeiro acesse sua conta no github.com e crie um repositório com o seguinte padrão: &lt;strong&gt;username.github.io&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Então se seu username for &lt;strong&gt;joseh&lt;/strong&gt;, o repositório deverá se chamar: &lt;strong&gt;joseh.github.io&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Volte novamente pro terminal e execute:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;sh&#34;&gt;rake setup_github_pages&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Nesse momento ele vai pedir pra você inserir o repositório do github, o que a gente criou agora pouco: &lt;a href=&#34;http://github.com/joseh/joseh.github.io.git&#34;&gt;http://github.com/joseh/joseh.github.io.git&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;e em seguida:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;sh&#34;&gt;
+rake generate # para gerar o conteúdo estático do blog
+rake deploy   # para subir fazer subir seu blog pro repositório que configuramos.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;agora você pode visualizar seu blog no endereço &lt;strong&gt;joseh.github.io&lt;/strong&gt;, lembrando que algumas vezes podem levar até 10 minutos pro github disponibilizar seu site online.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;possíveis problemas:&lt;/strong&gt; caso sua pagina não esteja online depois de 10 min, verifique se o seu repositório esta no padrão correto: username.github.io, inclusive respeitando maiúsculas e minúsculas.&lt;/p&gt;
+
+&lt;p&gt;No meu caso, meu usuário é diRex, então meu repositório teve que ficar diRex.github.io. Se estiver errado, renomeie seu repositório pelo github e execute novamente o rake setup_github_pages pra configurar o repositório com o novo nome.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;dica:&lt;/strong&gt; o Octopress já vem com dois branches configurados, um master, onde vai ficar os arquivos de produção do blog e um source, onde ficam, obviamente, o source do seu projeto. Então, quando for atualizar o source do seu projeto no github…:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;sh&#34;&gt;git add .
+git commit -m “mensagem”
+git push origin source
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;e pra baixar as atualizações do source em outra máquina:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;sh&#34;&gt;git pull origin source&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;socializando-nosso-blog&#34;&gt;Socializando nosso blog&lt;/h3&gt;
+
+&lt;p&gt;Nesse mesmo arquivo &lt;strong&gt;_config.yml&lt;/strong&gt; temos algumas configurações que permitem adicionar algumas interações com as redes sociais:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Github&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;yaml&#34;&gt;github_user:                    # usuário do github
+github_repo_count: 0            # quantidade de repositórios que vão ser exibidos
+github_show_profile_link: true  # exibir link para o perfil
+github_skip_forks: true         # não exibir forks
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Twitter&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;yaml&#34;&gt;twitter_user:                 # usuário do twitter
+twitter_tweet_button: true    # exibir botão de tweet
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Google Plus&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;yaml&#34;&gt;google_plus_one: false        # exibir botão +1
+google_plus_one_size: medium  # tamanho do botão
+googleplus_user:              # usuário do gplus
+googleplus_hidden: false      # esconder botão +1 dos assets
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Pinboard&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;yaml&#34;&gt;pinboard_user:       # usuário do pinboard
+pinboard_count: 3    # quantidade de bookmarks exibidos
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Delicious&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;yaml&#34;&gt;delicious_user:      # usuário do delicious
+delicious_count: 3   # quantidade de bookmarks exibidos
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Disqus Comments&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;yaml&#34;&gt;disqus_short_name:                # short name do seu disqus app
+disqus_show_comment_count: false  # exibir quantidade de comentários
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Disqus é uma plataforma de comentários, caso você não preencher o short name do disqus, seu blog não vai ter comentários, a menos que utilize os comentários do facebook, como vou ensinar a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Facebook&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;yaml&#34;&gt;facebook_like: false     # exibir botões de curtir e compartilhar
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora é só escolher quais opções você quer adicionar no seu blog para ter maior interação com seus visitantes XD!&lt;/p&gt;
+
+&lt;h3 id=&#34;comentários-com-o-facebook&#34;&gt;Comentários com o Facebook&lt;/h3&gt;
+
+&lt;p&gt;Uma coisa que não vem por padrão no Octopress e que eu queria colocar no meu blog, são os comentários com o Facebook. Acho que facilita mais do que usar o Disqus, pois grande maioria do pessoal já tem conta no Facebook.&lt;/p&gt;
+
+&lt;p&gt;Como acho que outras pessoas também irão sentir essa necessidade, vou mostrar como fazer pra colocar essa funcionalidade no seu blog.&lt;/p&gt;
+
+&lt;p&gt;Primeiro crie uma app para o facebook: &lt;a href=&#34;https://developers.facebook.com/apps&#34;&gt;https://developers.facebook.com/apps&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora vamos até o doc de comentários do facebook: &lt;a href=&#34;https://developers.facebook.com/docs/plugins/comments/&#34;&gt;https://developers.facebook.com/docs/plugins/comments/&lt;/a&gt; e preencha os campos de acordo com a imagem a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://lh5.googleusercontent.com/7oygYA9JHZZUrF9NHv0OgZSFLSKSJ-MujapA0gUnm1M=w733-h453-no&#34; alt=&#34;image&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Clique em &lt;strong&gt;Get Code&lt;/strong&gt; e ele vai gerar pra você dois trechos de códigos, um javascript e um html. O javascript você deve substituir pelo código que tem dentro do arquivo &lt;strong&gt;source/_includes/facebook_like.html&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;O código html você coloca onde for exibir os comentários, no meu caso coloquei em &lt;strong&gt;source/_includes/post/sharing.html&lt;/strong&gt; para exibir em baixo dos botões de curtir e compartilhar.&lt;/p&gt;
+
+&lt;h3 id=&#34;customizar-layout&#34;&gt;Customizar layout&lt;/h3&gt;
+
+&lt;p&gt;O Octopress utiliza o pré-processador de css SaSS nos seus templates, esse está sendo meu primeiro contato com pré processadores e realmente traz muitas facilidades, quem quiser ficar por dentro de como o SaSS funciona, acesse: &lt;a href=&#34;http://sass-lang.com/.&#34;&gt;http://sass-lang.com/.&lt;/a&gt; Toda customização do layout pode ser feita através dos arquivos .scss que ficam na pasta /sass.&lt;/p&gt;
+
+&lt;h3 id=&#34;criando-novas-páginas&#34;&gt;Criando novas páginas&lt;/h3&gt;
+
+&lt;p&gt;Caso você queira adicionar uma página mais paginas no seu blog, como uma página de contato:&lt;/p&gt;
+
+&lt;pre&gt;rake new_page[“contato”]&amp;lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;e o arquivo da sua nova página será criado em &lt;strong&gt;source/contato/index.markdown&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;trafego-de-acesso-com-google-analytics&#34;&gt;Trafego de acesso com google analytics&lt;/h3&gt;
+
+&lt;p&gt;Ter uma analise do trafego de acesso do seu site é crucial para tomar decisões na hora de melhorar o seu conteúdo online. Para quem ainda não usou o google analytics, essa é uma boa hora pra ver como funciona, eu mesmo ainda não tinha utilizado e estou me divertindo vendo os relatórios de acesso, locais de onde o blog recebe visitas e tudo mais.&lt;/p&gt;
+
+&lt;p&gt;Pra adicionar o analytics aos seu blog, basta criar uma conta em www.google.com/analytics/‎ e obter um ID de acompanhamento. Depois disso, só adicionar esse ID no arquivo _config.yml:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;google_analytics_tracking_id: XX-99999999-9
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;custom-domain&#34;&gt;Custom domain&lt;/h3&gt;
+
+&lt;p&gt;Para finalizar, caso você queira usar um custom domain, como por exemplo: exemplo.com,&lt;/p&gt;
+
+&lt;p&gt;tudo que precisa fazer é criar um arquivo chamado CNAME dentro da pasta &lt;strong&gt;source/&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora vá até o seu provedor de dominio, e configure o subdominio &lt;code&gt;www.exemplo.com&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;para apontar pro seu endereço do github: &lt;strong&gt;username.github.io&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Caso você também queira usar o naked name &lt;code&gt;exemplo.com&lt;/code&gt;, modifique o seu registro de dns do tipo A para apontar pro ip &lt;code&gt;204.232.175.78&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;E isso é tudo pessoal, kkkk! Espero que tenham gostado do post, curtam, comentem, compartilhem. Críticas quanto ao texto também são bem vindas. Se conhecerem outras ferramentas que possuem o mesmo propósito de gerar conteúdo estático, comentem também!&lt;/p&gt;
+
+&lt;p&gt;Gostaria também de agradecer o grande Diego Eis pelo espaço e pela iniciativa do Tableless. Parabéns!&lt;/p&gt;
+
+&lt;p&gt;vlw !!!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Servindo sites estáticos com Jekyll</title>
+      <link>http://tableless.com.br/jekyll-servindo-sites-estaticos/</link>
+      <pubDate>Mon, 11 Nov 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/jekyll-servindo-sites-estaticos/</guid>
+      <description>
+
+&lt;p&gt;O &lt;a href=&#34;http://tableless.com.br/servicos/front-end.php&#34;&gt;Tableless produz código front-end&lt;/a&gt; HTML/CSS/JAVASCRIPT para vários tipos de clientes, grandes ou pequenos. Os clientes querem ao final do projeto arquivos estáticos, em uma estrutura de arquivos decente e código bem organizado e isso não é algo tão trivial assim.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-problema&#34;&gt;O problema&lt;/h2&gt;
+
+&lt;p&gt;O primeiro problema que temos quando iniciamos a produção de um site, é como resolver as partes de layout que são repetidas em todas as páginas do projeto, por exemplo: header, footer, sidebar e essas coisas. Já vi vários dos meus alunos mantendo sites com dezenas de páginas, sem nem ao menos usar um simples include de PHP. Eu os perdoo por que a maioria estava começando. Mesmo assim é algo muito amador manter um site dessa forma. No Tableless, durante algum tempo, por conveniência, usávamos simples includes do PHP para prevenir repetições. Escolhemos PHP por conveniência, &lt;a href=&#34;http://tableless.com.br/servicos/wordpress.php&#34;&gt;já que produzimos muitos sites em WordPress&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Um dos problemas estava resolvido. O segundo problema era: como entregar isso para o cliente?&lt;/p&gt;
+
+&lt;p&gt;Eu não poderia simplesmente enviar um pacote com vários arquivos &lt;strong&gt;.php&lt;/strong&gt; para um cliente que trabalhava com ASP ou Python.&lt;/p&gt;
+
+&lt;p&gt;Logo começamos a usar o &lt;strong&gt;wget&lt;/strong&gt; para percorrer o projeto e transformar as páginas em HTML estático. Não demorou muito para desistirmos disso. Embora seja tudo automático, não era o ideal. Precisávamos ter algo mais inteligente para isso. Foi aí que surgiu em nossas vidas algumas ferramentas para gerar sites estáticos. Conhecemos o Jekyll, Middleman e alguns outros. Hoje vamos falar um pouco do &lt;a href=&#34;http://jekyllrb.com&#34;&gt;Jekyll&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;jekyll&#34;&gt;Jekyll&lt;/h2&gt;
+
+&lt;p&gt;O Jekyll é um gerador de códigos estáticos. A ideia é que você crie páginas e até mesmo um blog de forma estática, usando HTML que você já conhece, junto com alguns truques que irão ajudá-lo a converter seu site em arquivos estáticos, pronto para ser publicado. Ele é baseado em vários formatos como Markdown para formatação de textos e posts e um padrão de template chamado Liquid com um pouco de YAML para exibir e guardar os dados das variáveis. Não se preocupe com a sopa de letras, por enquanto. Mais à frente no texto você vai entender um pouco mais.&lt;/p&gt;
+
+&lt;h2 id=&#34;estrutura-de-diretórios&#34;&gt;Estrutura de diretórios&lt;/h2&gt;
+
+&lt;p&gt;A coisa toda é muito simples: todo o arquivo que tiver &lt;strong&gt;_&lt;/strong&gt; (underline) na frente do nome, o Jekyll vai ignorar no pacote final, quando converter seu projeto. Veja uma estrutura de um dos nossos projetos:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2013/11/Screen-Shot-2013-11-10-at-5.09.22-PM.png&#34; alt=&#34;Screen Shot 2013-11-10 at 5.09.22 PM&#34; width=&#34;265&#34; height=&#34;277&#34; class=&#34;alignnone size-full wp-image-39447&#34; srcset=&#34;uploads/2013/11/Screen-Shot-2013-11-10-at-5.09.22-PM.png 265w, uploads/2013/11/Screen-Shot-2013-11-10-at-5.09.22-PM-160x168.png 160w&#34; sizes=&#34;(max-width: 265px) 100vw, 265px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A pasta &lt;strong&gt;_includes&lt;/strong&gt; guarda arquivos que serão reutilizados nas páginas do projeto, tipo o header, footer, sidebar e etc ou qualquer outra coisa de acordo com sua necessidade.&lt;/p&gt;
+
+&lt;p&gt;Na pasta &lt;strong&gt;_layouts&lt;/strong&gt; você vai colocar os padrões de layout de páginas. Imagine que existam páginas com formatos de estruturas diferentes. É aí que você vai organizar essas coisas.&lt;/p&gt;
+
+&lt;p&gt;Para você ter um exemplo, nesse projeto fizemos apenas uma estrutura básica que usamos para home e para as páginas internas. Embora as páginas tenham estruturas diferentes, decidimos usar apenas um arquivo default para incluir por padrão em todas as páginas o header e o footer. As estruturas das páginas foram definidas de acordo com o código específico em cada uma das páginas. Veja o código do arquivo &lt;strong&gt;default.html&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-yaml&#34;&gt;{% include header.html %}
+
+{{ content }}
+
+{% include footer.html %}
+&lt;/pre&gt;
+
+&lt;p&gt;Ridículo, né?&lt;/p&gt;
+
+&lt;p&gt;Ah! O &lt;code&gt;{{ content }}&lt;/code&gt; é uma variável que exibe o conteúdo das páginas. É como o &lt;code&gt;the_content()&lt;/code&gt; do WordPress. É ali que o Jekyll vai inserir o conteúdo das páginas que você criar. No nosso caso, o código encontrado em &lt;strong&gt;defail-view.html, index e results&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;A pasta &lt;strong&gt;_site&lt;/strong&gt; é o build do seu projeto. É ali que o Jekyll coloca a versão final estática do site, pronto para ser publicado.&lt;/p&gt;
+
+&lt;p&gt;Tem gente que deixa a pasta _site versionável no GIT, tem gente que bota no &lt;strong&gt;.ignore&lt;/strong&gt;. Aí vai de você decidir o que achar melhor.&lt;/p&gt;
+
+&lt;p&gt;As URLs ficam assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;.
+|-- _config.yml
+|-- _includes/
+|-- _layouts/
+|-- _posts/
+|-- _site/
+|-- detail-view.html    # =&amp;gt; http://projeto.com/detail-view.html
+|-- index.html    # =&amp;gt; http://projeto.com
+└── results.html  # =&amp;gt; http://projeto.com/results.html
+&lt;/pre&gt;
+
+&lt;p&gt;Se você inserir um arquivo &lt;strong&gt;index.html&lt;/strong&gt; nas pastas, a url das páginas vão ficar assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;.
+|-- _config.yml
+|-- _includes/
+|-- _layouts/
+|-- _posts/
+|-- _site/
+|-- detail-view/
+|---- index.html    # =&amp;gt; http://projeto.com/detail-view/
+|-- index.html    # =&amp;gt; http://projeto.com
+|-- results/
+└──── index.html    # =&amp;gt; http://projeto.com/results/
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;estrutura-de-código&#34;&gt;Estrutura de código&lt;/h2&gt;
+
+&lt;p&gt;A estrutura de código dos arquivos é muito simples de se entender, mas para alguns pode ser um pouco estranha por não ter familiaridade com estruturas de dados como YAML. Mas isso é simples e você aprende rápido, tenho certeza. Continue lendo para você ver como é fácil.&lt;/p&gt;
+
+&lt;h3 id=&#34;sem-banco-de-dados&#34;&gt;Sem banco de dados&lt;/h3&gt;
+
+&lt;p&gt;Para começar, você não mantém um banco de dados e é isso que faz toda a graça. O conteúdo do seu site ficar guardado nos arquivos de cada página. Você não precisa levantar um servidor de MySQL. Todas as informações do site estarão nos arquivos que você criar para cada página. Ou seja, nada de queries, nada de templates tags do WordPress.&lt;/p&gt;
+
+&lt;h4 id=&#34;yaml-e-liquid&#34;&gt;YAML e Liquid&lt;/h4&gt;
+
+&lt;p&gt;O formato YAML é conhecido pela facilidade de leitura. Ele foi criado para ser fácil da gente entender e também escrever. Ou seja, ele é um formato simples para escrevermos manualmente, mas também para manipularmos via programação. É aqui que o Jekyll começa a ficar legal. Essa estrutura é usada também no Middleman e no DocPad. Logo, aprendendo aqui, você já vai saber mais ou menos como funciona nos outros geradores.&lt;/p&gt;
+
+&lt;p&gt;Qualquer arquivo que contém um bloco YAML &amp;#8211; que o pessoal do Jekyll chama de &lt;strong&gt;front-matter&lt;/strong&gt; &amp;#8211; será processado como um arquivo especial. O front-matter &lt;strong&gt;precisa ser a primeira coisa do arquivo&lt;/strong&gt; e deve estar num formato válido de YAML. Toda página do seu site feito em Jekyll precisa começar com essa estrutura:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-yaml&#34;&gt;---
+layout: default
+title: Home
+---
+&lt;/pre&gt;
+
+&lt;p&gt;Simples, ahn? O bloco é demarcado pelos três traços no começo e no fim. TEM que ser três traços. Nem mais, nem menos. O código YAML são as duas variáveis &lt;strong&gt;layout&lt;/strong&gt; e &lt;strong&gt;title&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Neste bloco você pode usar variáveis predefinidas ou criar suas próprias variáveis. Essas variáveis estarão disponíveis para você acessar usando as tags do formato Liquid. Você já vai ver mais abaixo, primeiro vamos entender as duas variáveis acima.&lt;/p&gt;
+
+&lt;p&gt;A variável &lt;strong&gt;layout&lt;/strong&gt; indica que você está usando a estrutura de template do &lt;strong&gt;default.html&lt;/strong&gt;. Lembra a estrutura de arquivos e diretórios que mostramos logo no início? Os nomes que você coloca ali na variável &lt;strong&gt;layout&lt;/strong&gt; são os nomes dos arquivos que estão dentro da pasta &lt;strong&gt;_layouts&lt;/strong&gt;, sem a extensão &lt;strong&gt;.html&lt;/strong&gt;. Logo, se você tiver um arquivo ali dentro chamado &lt;strong&gt;no-sidebar.html&lt;/strong&gt;, indicando um formato de página que não vai ter sidebar, o valor da variável &lt;strong&gt;layout&lt;/strong&gt; será &lt;strong&gt;no-sidebar&lt;/strong&gt;. Fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-yaml&#34;&gt;---
+layout: no-sidebar
+title: Página Interna
+---
+&lt;/pre&gt;
+
+&lt;p&gt;A segunda variável é a &lt;strong&gt;title&lt;/strong&gt;. Aqui é uma variável criada por mim, que será usada para ser o título da página. Veja abaixo como a gente puxa o valor da variável &lt;strong&gt;title&lt;/strong&gt; que definimos acima, usando o formato Liquid.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;title&amp;gt; {{ page.title }} &amp;lt;/title&amp;gt;
+    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+...
+&lt;/pre&gt;
+
+&lt;p&gt;O &lt;strong&gt;{{ page.title }}&lt;/strong&gt; está dizendo que nesse local, ao renderizar o site, o Jekyll irá colocar o título da página atual.&lt;/p&gt;
+
+&lt;p&gt;O formato &lt;a href=&#34;http://docs.shopify.com/themes/liquid-basics&#34;&gt;Liquid&lt;/a&gt; é um formato de template muito simples. A sua sintaxe é muito parecida com outros tipos de padrões de templates, como por exemplo o &lt;a href=&#34;http://tableless.com.br/templates-client-side-com-mustache-js/&#34;&gt;Mustache.js&lt;/a&gt;. Logo, não tem muito segredo. Você abre duas chaves &lt;strong&gt;{{&lt;/strong&gt;, coloca o nome da variável e depois fecha com duas chaves novamente &lt;strong&gt;}}&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;entendendo-mais-sobre-as-variáveis&#34;&gt;Entendendo mais sobre as variáveis&lt;/h4&gt;
+
+&lt;p&gt;Você usa o prefixo &lt;strong&gt;page&lt;/strong&gt; para puxar os dados da página. Qualquer coisa que esteja ali no front-matter vai ser puxado usado o &lt;strong&gt;page&lt;/strong&gt; antes. Se você quiser pegar o nome do site, por exemplo, ou qualquer outra coisa referente ao site inteiro, você usa o prefixo &lt;strong&gt;site&lt;/strong&gt;. Um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;title&amp;gt; {{ page.title }} - {{ site.name }} &amp;lt;/title&amp;gt;
+    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+...
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse caso, as informações referentes ao site não estarão no &lt;strong&gt;front-matter&lt;/strong&gt;, mas em um arquivo de configuração, que o Jekyll vai ler sempre quando for iniciado. Esse arquivo se chama &lt;strong&gt;_config.yml&lt;/strong&gt;. Você vai escrevê-lo no mesmo formato que o front-matter. Um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-yml&#34;&gt;&lt;strong&gt;name:&lt;/strong&gt; Nome do Projeto
+&lt;strong&gt;source:&lt;/strong&gt;      .
+&lt;strong&gt;destination:&lt;/strong&gt; ./_site
+&lt;strong&gt;plugins:&lt;/strong&gt;     ./_plugins
+&lt;strong&gt;layouts:&lt;/strong&gt;     ./_layouts
+&lt;strong&gt;css_folder:&lt;/strong&gt;  &#39;assets/stylesheets&#39;
+&lt;strong&gt;js_folder:&lt;/strong&gt;  &#39;assets/javascripts&#39;
+&lt;strong&gt;img_folder:&lt;/strong&gt;  &#39;assets/images&#39;
+&lt;strong&gt;include:&lt;/strong&gt;     [&#39;.htaccess&#39;]
+&lt;strong&gt;exclude:&lt;/strong&gt;     []
+&lt;strong&gt;keep_files:&lt;/strong&gt;  [&#39;.git&#39;,&#39;.svn&#39;]
+&lt;strong&gt;timezone:&lt;/strong&gt;    nil
+
+...
+
+&lt;/pre&gt;
+
+&lt;p&gt;Há outras variáveis globais que podem não estar aí no &lt;strong&gt;_config.yml&lt;/strong&gt;. Por exemplo a &lt;strong&gt;{{ site.pages }}&lt;/strong&gt; que retorna a lista de páginas do site.&lt;/p&gt;
+
+&lt;p&gt;Há uma série de variáveis disponíveis &lt;a href=&#34;http://jekyllrb.com/docs/frontmatter/&#34;&gt;aqui&lt;/a&gt; e você pode ver as &lt;a href=&#34;http://jekyllrb.com/docs/variables/&#34;&gt;variáveis globais aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;entendendo-o-config-yml&#34;&gt;Entendendo o _config.yml&lt;/h3&gt;
+
+&lt;p&gt;O &lt;strong&gt;_config.yml&lt;/strong&gt; guarda as configurações do seu projeto. Ele deve estar sempre no root do seu projeto. Sempre que você inicia um novo projeto Jekyll, ele cria um _config.yml. Você pode ver um exemplo abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-yml&#34;&gt;source:      .
+destination: ./_site
+plugins:     ./_plugins
+layouts:     ./_layouts
+include:     [&#39;.htaccess&#39;]
+exclude:     []
+keep_files:  [&#39;.git&#39;,&#39;.svn&#39;]
+gems:        []
+timezone:    nil
+encoding:    nil
+
+future:      true
+show_drafts: nil
+limit_posts: 0
+pygments:    true
+
+relative_permalinks: true
+
+permalink:     date
+paginate_path: &#39;page:num&#39;
+
+markdown:      maruku
+markdown_ext:  markdown,mkd,mkdn,md
+textile_ext:   textile
+
+excerpt_separator: &#34;\n\n&#34;
+
+safe:        false
+host:        0.0.0.0
+port:        4000
+baseurl:     /
+url:         http://localhost:4000
+lsi:         false
+
+maruku:
+  use_tex:    false
+  use_divs:   false
+  png_engine: blahtex
+  png_dir:    images/latex
+  png_url:    /images/latex
+
+rdiscount:
+  extensions: []
+
+redcarpet:
+  extensions: []
+
+kramdown:
+  auto_ids: true
+  footnote_nr: 1
+  entity_output: as_char
+  toc_levels: 1..6
+  smart_quotes: lsquo,rsquo,ldquo,rdquo
+  use_coderay: false
+
+  coderay:
+    coderay_wrap: div
+    coderay_line_numbers: inline
+    coderay_line_numbers_start: 1
+    coderay_tab_width: 4
+    coderay_bold_every: 10
+    coderay_css: style
+
+redcloth:
+  hard_breaks: true
+&lt;/pre&gt;
+
+&lt;p&gt;Para ficar mais fácil, eu ainda adiciono uma ou outra opção personalizada no _config.yml, como por exemplo o caminho do CSS e do Javascript:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-yml&#34;&gt;css_folder:  &#39;assets/stylesheets&#39;
+js_folder:  &#39;assets/javascripts&#39;
+img_folder: &#39;assets/images&#39;
+&lt;/pre&gt;
+
+&lt;p&gt;Assim eu chamo os assets assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;title&amp;gt; {{ page.title }} - {{ site.name }} &amp;lt;/title&amp;gt;
+    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+
+    &amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;{{ site.css_folder }}/bootstrap.min.css&#34;&amp;gt;
+    &amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;{{ site.css_folder }}/style.css&#34;&amp;gt;
+
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+
+...
+
+&lt;/pre&gt;
+
+&lt;p&gt;Bem legal, né?&lt;/p&gt;
+
+&lt;p&gt;Não precisa entender todas as variáveis que eles colocam ali no &lt;strong&gt;_config.yml&lt;/strong&gt;. Basta entender que dá para criar novas variáveis personalizadas e que você pode modificar os valores das variáveis existentes. Há muita coisa ali que você não precisa usar. Mesmo assim, se você tiver muitos outros dados para usar, você pode importar em formato YAML entro da pasta &lt;strong&gt;_data&lt;/strong&gt;, que eu não vou detalhar sobre isso aqui, por enquanto.&lt;/p&gt;
+
+&lt;h3 id=&#34;quick-start&#34;&gt;Quick start&lt;/h3&gt;
+
+&lt;p&gt;Para iniciar um projeto e começar a fuçar nas coisas é fácil.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;~ $ gem install jekyll
+~ $ jekyll new nome-projeto
+~ $ cd nome-projeto
+~/nome-projeto $ jekyll serve --w
+&lt;/pre&gt;
+
+&lt;p&gt;O parâmetro &lt;strong&gt;&amp;#8211;w&lt;/strong&gt; ou &lt;strong&gt;&amp;#8211;watch&lt;/strong&gt; serve para que a cada vez que você fizer uma modificação nos arquivos do projeto, o Jekyll faz um build automático do projeto. Aí é só fazer um refresh no site e ver as modificações.&lt;/p&gt;
+
+&lt;p&gt;O Jekyll vai subir seu site na porta :4000, é só seguir para: &lt;a href=&#34;http://localhost:4000/&#34;&gt;http://localhost:4000/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Lembre-se que você precisa ter Ruby instalado na sua máquina, já que o Jekyll é uma GEM.&lt;/p&gt;
+
+&lt;p&gt;Feito isso, dá uma fuçada na pasta do projeto. Você vai perceber que existe uma pasta &lt;strong&gt;_posts&lt;/strong&gt; que eu não citei nesse artigo.&lt;/p&gt;
+
+&lt;p&gt;O Jekyll pode ser usado para criar um blog. Os posts são arquivos escritos em Markdown e que são automaticamente transformados em arquivos HTML e guardados em pastas organizadas por ordem cronológica. Coisa fina! Talvez em um próximo post eu explique melhor esse módulo.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Eu, pessoalmente, prefiro Jekyll ao Middleman. Os dois são bem parecidos. Mas eu acho Jekyll bem mais simples. Eu uso Middeman em outros projetos e vou tentar preparar um post explicando o básico para vocês sobre ele.&lt;/p&gt;
+
+&lt;p&gt;Se você tem Windows e estiver muito afim de fazer isso tudo funcionar, leia esse post do Nando ensinando como faz para instalar &lt;a href=&#34;http://simplesideias.com.br/configurando-ruby-rails-mysql-e-git-no-windows&#34;&gt;Ruby, Rails, MySQL e Git no Windows&lt;/a&gt; ou compra um Mac.&lt;/p&gt;
+
+&lt;p&gt;A comunidade Ruby ajudou muito o mundo front-end com várias ferramentas que ajudam a automatizar processos de desenvolvimento. É por isso que geralmente os front-ends que trabalham em projetos com Ruby conseguem se virar melhor em determinados pontos. Mas essa é uma outra história. 😉&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

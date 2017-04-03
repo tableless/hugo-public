@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Javascript Legível on Tableless</title>
+    <link>http://tableless.com.br/tags/javascript-leg%C3%ADvel/index.xml</link>
+    <description>Recent content in Javascript Legível on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/javascript-leg%C3%ADvel/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>JavaScript de forma assíncrona e legível</title>
+      <link>http://tableless.com.br/javascript-de-forma-assincrona-e-legivel/</link>
+      <pubDate>Mon, 30 Dec 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/javascript-de-forma-assincrona-e-legivel/</guid>
+      <description>&lt;p&gt;A programação assíncrona possui a vantagem de gerar códigos perfomáticos. Em certos casos, a implementação de diversas funções assíncronas encadeadas através de funções _callback_ pode prejudicar a leitura e a manutenção do código. Para demonstrar esse encadeamento, vamos utilizar um trecho de código que utiliza a &lt;a href=&#34;http://tableless.com.br/introducao-ao-selenium-2/&#34; title=&#34;Introdução ao Selenium 2&#34;&gt;API do Selenium 2&lt;/a&gt;. Baseado em um &lt;a href=&#34;https://saucelabs.com/docs/ondemand/getting-started/env/js/se2/linux&#34; title=&#34;Exemplo oficial do SauceLabs de como utilizar o Selenium 2 com o NodeJS&#34;&gt;exemplo do site do SauceLabs&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;A API do Selenium WebDriver pode ser utilizada por diversas linguagem de programação, porém, em nosso exemplo, iremos utilizar o NodeJS (JavaScript) e o gerenciador de pacotes NPM, que podem ser baixados no &lt;a href=&#34;http://nodejs.org/download/&#34; title=&#34;Site oficial do NodeJS&#34;&gt;site oficial&lt;/a&gt;. O NPM é necessário para instalar o &lt;a href=&#34;http://phantomjs.org/&#34; title=&#34;Site oficial do PhantomJS&#34;&gt;PhantomJS&lt;/a&gt; e o &lt;a href=&#34;https://github.com/admc/wd&#34; title=&#34;Repositório GitHub do WD&#34;&gt;WD&lt;/a&gt;, utilizando o seguinte &lt;em&gt;script&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-ssh&#34;&gt;npm install -g phantomjs&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-ssh&#34;&gt;npm install wd&lt;/pre&gt;
+
+&lt;p&gt;O NodeJS possui dois tipos de dependências: global ou local. Quando uma dependência é global, o pacote passa a ser executável, tornando possível a utilização da dependência através da linha de comando. Já as dependências locais são instaladas no diretório corrente, dentro de _node&lt;em&gt;modules&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;O primeiro &lt;em&gt;script&lt;/em&gt;, utilizando o parâmetro &lt;strong&gt;-g&lt;/strong&gt;, instala o &lt;a href=&#34;http://phantomjs.org/&#34; title=&#34;Site oficial do PhantomJS&#34;&gt;PhantomJS&lt;/a&gt; como dependência global, que é um WebKit headless totalmente em JavaScript e possui suporte rápido e nativo para vários padrões web como manipulação de DOM, seletores CSS, JSON, Canvas e SVG.&lt;/p&gt;
+
+&lt;p&gt;Já o segundo &lt;em&gt;script&lt;/em&gt;, instala como dependência local o &lt;a href=&#34;https://github.com/admc/wd&#34; title=&#34;Repositório GitHub do WD&#34;&gt;WD&lt;/a&gt;, que é um cliente NodeJS para facilitar o acesso à API do Selenium 2 e suporta &lt;a href=&#34;https://github.com/admc/wd/blob/master/doc/api.md&#34; title=&#34;Documentação da API do WD&#34;&gt;métodos&lt;/a&gt; como: fazer requisições GET e POST, clicar no botão VOLTAR do navegador, fazer refresh no navegador, pegar um _printscreen_ da tela atual, redimensionar e mover a janela do navegador, submeter formulário, digitar texto, usar &lt;em&gt;cookies&lt;/em&gt;, selecionar um elemento DOM, clicar e mover um elemento, etc.&lt;/p&gt;
+
+&lt;p&gt;Após a instalação das dependências, vamos criar um arquivo com &lt;a href=&#34;http://callbackhell.com/&#34; title=&#34;Introdução sobre callback hell - vários callbacks encadeados&#34;&gt;vários _callbacks_ encadeados&lt;/a&gt;. Esse código possui seis passos: _(i)&lt;em&gt; abrir o navegador, &lt;/em&gt;(ii)&lt;em&gt; acessar uma página de teste, &lt;/em&gt;(iii)&lt;em&gt; verificar o título da página, &lt;/em&gt;(iv) &lt;em&gt;submeter um formulário, &lt;/em&gt;(v)&lt;em&gt; verificar a url da página após enviar o formulário e &lt;/em&gt;(vi)_ fechar o navegador. Algo bem simples. Suficiente para ressaltar a quantidade de _callbacks_ encadeados.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;um-exemplo-COM-varios-callbacks-encadeados.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var webdriver = require(&#39;wd&#39;),
+    assert    = require(&#39;assert&#39;),
+    browser   = webdriver.remote({
+      hostname: &#34;localhost&#34;,
+      port: 8910
+    });
+
+browser.init({}, function(erro, id_da_sessao, recursos_webdriver) {
+  console.log(&#39;navegador aberto&#39;);
+  browser.get(&#34;http://saucelabs.com/test/guinea-pig&#34;, function(erro) {
+    console.log(&#39;pagina de teste aberta&#39;);
+    browser.title(function(erro, title) {
+      console.log(&#39;verificando titulo da pagina...&#39;);
+      assert.ok( title.indexOf(&#39;I am a page title - Sauce Labs&#39;)===0, &#39;titulo NAO esta correto&#39;);
+      browser.elementById(&#39;submit&#39;, function(erro, elemento) {
+        console.log(&#39;botao enviar encontrado&#39;);
+        browser.clickElement(elemento, function(erro) {
+          console.log(&#39;botao clicado&#39;);
+          browser.eval(&#34;window.location.href&#34;, function(erro, href) {
+            console.log(&#39;verificando url da pagina...&#39;);
+            assert.ok(href.indexOf(&#39;guinea&#39;)&amp;gt;0, &#39;pagina NAO esta correta&#39;);
+            browser.quit(function(erro){
+              console.log(&#39;navegador fechado&#39;);
+            });
+          });
+        });
+      });
+    });
+  });
+});&lt;/pre&gt;
+
+&lt;p&gt;Um detalhe importante sobre assincronismo é que, na maioria dos casos, os _callbacks_ possuem como parâmetro uma variável de erro, que serve para impedir a execução dos _callbacks_ subsequentes, caso haja algum problema.&lt;/p&gt;
+
+&lt;p&gt;Criado o arquivo exemplo, é preciso, em um outro terminal, rodar o PhantomJS em modo WebDriver, digitando o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-ssh&#34;&gt;phantomjs --webdriver=localhost:8910&lt;/pre&gt;
+
+&lt;p&gt;Com o PhantomJS rodando em segundo plano, execute o exemplo usando o &lt;em&gt;node&lt;/em&gt;. Segue o comando e uma ilustração do resultado obtido:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-ssh&#34;&gt;node um-exemplo-COM-varios-callbacks-encadeados.js&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://a248.e.akamai.net/camo.github.com/4e876b931ca0cd673f3707ebdc8bd60407ae1b9d/687474703a2f2f69313336382e70686f746f6275636b65742e636f6d2f616c62756d732f61673138322f69676f727269626569726f6c696d612f756d2d6578656d706c6f2d434f4d2d766172696f732d63616c6c6261636b732d656e6361646561646f735f7a707362636262323735642e706e67&#34; alt=&#34;ilustração do resultado obtido após executar o exemplo COM vários callbacks encadeados&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para evitar tantos _callbacks_ encadeados, vamos utilizar a biblioteca &lt;a href=&#34;https://github.com/caolan/async&#34; title=&#34;Repositório GitHub da biblioteca Async&#34;&gt;Async&lt;/a&gt; que prover várias funções que facilitam a programação assíncrona em JavaScript. Nesse exemplo, usaremos a função &lt;a href=&#34;https://github.com/caolan/async#waterfall&#34; title=&#34;âncora para as especificações da função waterfall da biblioteca Async&#34;&gt;&lt;strong&gt;waterfall&lt;/strong&gt;&lt;/a&gt;. Uma alternativa mais leve para código Front-End é a biblioteca &lt;a href=&#34;http://underscorejs.org/&#34; title=&#34;Site oficial da biblioteca Underscore&#34;&gt;Underscore&lt;/a&gt;. Para instalar o Async, utilize o seguinte &lt;em&gt;script&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-ssh&#34;&gt;npm install async&lt;/pre&gt;
+
+&lt;p&gt;Agora vamos criar um outro arquivo sem tantos encadeamentos.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;um-exemplo-SEM-varios-callbacks-encadeados.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var webdriver = require(&#39;wd&#39;),
+    async     = require(&#39;async&#39;),
+    assert    = require(&#39;assert&#39;),
+    browser   = webdriver.remote({
+      hostname: &#34;localhost&#34;,
+      port: 8910
+    });
+
+async.waterfall([
+  function(callback_navegador_aberto) {
+    browser.init({}, callback_navegador_aberto);
+  },
+  function(id_da_sessao, recursos_webdriver, callback_pagina_aberta) {
+    console.log(&#39;navegador aberto&#39;);
+    browser.get(&#34;http://saucelabs.com/test/guinea-pig&#34;, callback_pagina_aberta);
+  },
+  function(callback_titulo) {
+    console.log(&#39;pagina de teste aberta&#39;);
+    browser.title(callback_titulo);
+  },
+  function(title, callback_elemento_encontrado) {
+    console.log(&#39;verificando titulo da pagina...&#39;);
+    assert.ok( title.indexOf(&#39;I am a page title - Sauce Labs&#39;)===0, &#39;titulo NAO esta correto&#39;);
+    browser.elementById(&#39;submit&#39;, callback_elemento_encontrado);
+  },
+  function(elemento, callback_botao_clicado) {
+    console.log(&#39;botao enviar encontrado&#39;);
+    browser.clickElement(elemento, callback_botao_clicado);
+  },
+  function(callback_verificar_url) {
+    console.log(&#39;botao clicado&#39;);
+    browser.eval(&#34;window.location.href&#34;, callback_verificar_url);
+  },
+  function(href, callback_navegador_fechado) {
+    console.log(&#39;verificando url da pagina...&#39;);
+    assert.ok(href.indexOf(&#39;guinea&#39;)&amp;gt;0, &#39;pagina NAO esta correta&#39;);
+    browser.quit(callback_navegador_fechado);
+  },
+  function(callback_final) {
+    console.log(&#39;navegador fechado&#39;);
+    callback_final();
+  }
+], function(erro){
+  erro &amp;&amp; console.log(&#39;algum erro ocorreu&#39;, erro);
+});&lt;/pre&gt;
+
+&lt;p&gt;Lembre-se que o PhantomJS ainda deve estar rodando em segundo plano para executar o segundo código de exemplo. Segue o comando e uma ilustração do resultado obtido:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-ssh&#34;&gt;node um-exemplo-SEM-varios-callbacks-encadeados.js&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://i1368.photobucket.com/albums/ag182/igorribeirolima/um-exemplo-SEM-varios-callbacks-encadeados_zps1a8a9ad0.png&#34; alt=&#34;ilustração do resultado obtido após executar o exemplo SEM vários callbacks encadeados&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Esse trecho de código exemplifica como vários _callbacks_ encadeados podem ser evitados com o uso de uma estrutura de controle. Para quem se interessar, todo código está disponível em um &lt;a href=&#34;https://gist.github.com/igorlima/7930016&#34; title=&#34;Gist - JavaScript de forma assíncrona e elegível&#34;&gt;gist&lt;/a&gt;. Muito obrigado.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Nando Kstro Net on Tableless</title>
+    <link>http://tableless.com.br/author/nando-kstro-net/index.xml</link>
+    <description>Recent content in Nando Kstro Net on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/nando-kstro-net/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Silex 2 &amp; Middlewares 101 – Parte 02</title>
+      <link>http://tableless.com.br/silex-2-middlewares-101-parte-02/</link>
+      <pubDate>Sun, 19 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/silex-2-middlewares-101-parte-02/</guid>
+      <description>
+
+&lt;p&gt;Estamos de volta com mais um post da série sobre o micro-framework Silex! Desta vez, vamos fazer uma parada para atualizar a versão do nosso micro-framework, para versão 2.*!&lt;/p&gt;
+
+&lt;p&gt;A partir deste post vamos escrever baseada nesta versão e falaremos ao longo de cada post, sobre as principais diferenças em relação as versões passadas! Vamos lá!&lt;/p&gt;
+
+&lt;h2 id=&#34;silex-2&#34;&gt;Silex 2&lt;/h2&gt;
+
+&lt;p&gt;Uma das grandes mudanças do micro-framework, foi o seu componente de Dependency Injection, o Pimple. O que impactou diretamente na parte de services.  Houveram algumas implementações na parte de controllers básicos e também alguns serviços internos que foram renomeados ou integrados diretamente no micro-fw. Como comentei, veremos cada particularidade nas mudanças ao longo dos posts!&lt;/p&gt;
+
+&lt;h3 id=&#34;atualizando-para-a-versa-o-2&#34;&gt;Atualizando para a versão 2&lt;/h3&gt;
+
+&lt;p&gt;Para atualizarmos o Silex para sua versão mais recente, precisamos alterar nosso arquivo composer.json. Nosso composer.json fica da seguinte forma, em relação ao &lt;a href=&#34;https://tableless.com.br/conhecendo-e-instalando-o-silex/&#34; target=&#34;_blank&#34;&gt;primeiro post&lt;/a&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-json&#34;&gt;{
+    &#34;require&#34; : {
+    &#34;silex/silex&#34; : &#34;2.*&#34;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora, basta executarmos um composer update em nosso terminal para obtermos o Silex atualizado!&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;size-full wp-image-57045 aligncenter&#34; src=&#34;uploads/2017/01/Screen-Shot-2017-01-23-at-13.36.09.png&#34; alt=&#34;&#34; width=&#34;582&#34; height=&#34;631&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-continuação&#34;&gt;Middlewares (Continuação)&lt;/h2&gt;
+
+&lt;p&gt;Em &lt;a href=&#34;https://tableless.com.br/silex-middlewares-101-parte-1/&#34; target=&#34;_blank&#34;&gt;nosso último post&lt;/a&gt;, da série, falamos sobre os middlewares de aplicação, como vimos, seu impacto abrange todo o app!&lt;/p&gt;
+
+&lt;h3 id=&#34;middlewares-de-rota&#34;&gt;Middlewares de Rota&lt;/h3&gt;
+
+&lt;p&gt;A diferença entre os middlewares de rota pros middlewares de aplicação, além do escopo que abrange apenas a rota na qual o middleware está definido, é que os middlewares de rota não possuem o método &lt;code&gt;finish&lt;/code&gt;, apenas o &lt;code&gt;before&lt;/code&gt; e o &lt;code&gt;after&lt;/code&gt;. O comportamento é o mesmo. Veja o código a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+require __DIR__ . &#39;/vendor/autoload.php&#39;;
+
+use Silex\Application;
+
+$app = new Application();
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content!&#39;);
+})
+-&amp;gt;before(function(){
+    print &#39;Before Route Middleware | &#39;;
+})
+-&amp;gt;after(function(){ print &#39; After Route Middleware&#39;; }); 
+
+$app-&amp;gt;run();&lt;/pre&gt;
+
+&lt;p&gt;No código acima temos os dois middlewares de rotas disponíveis, porém os mesmos só serão executados quando acessarmos a rota / (Rota principal de nosso app), mantendo o mesmo comportamento dos de aplicação.&lt;/p&gt;
+
+&lt;h3 id=&#34;definindo-ordem-de-execução&#34;&gt;Definindo ordem de execução&lt;/h3&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Podemos encadear quantos middlewares quisermos, para Rota e para Aplicação, e também definirmos uma ordem de execução.  Por padrão, os middlewares serão executados na ordem em que estão escritos, seguindo suas regras! Porém, o Silex nos disponibiliza duas constantes para alterarmos a ordem de execução dos mesmos. São elas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Application::EARLY_EVENT;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Application::LATE_EVENT;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Vejamos o código a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;$app = new Application();
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content!&#39;);
+})
+-&amp;gt;before(function(){
+    print &#39;Executará segundo por conta do LateEvent&#39;;
+}, Application::LATE_EVENT)
+-&amp;gt;before(function(){ 
+    print &#39;Executará primeiro por conta do EarlyEvent&#39;; 
+}, Application::EARLY_EVENT); 
+&lt;/pre&gt;
+
+&lt;p&gt;O código acima, por padrão, executaria os middlewares before na ordem em que seguem, porém o primeiro middleware a ser executado será o segundo before e logo em seguida o primeiro before definido. Isso acontece por conta da ordem de prioridade estabelecida com as contantes, onde, tudo que tiver EARLY_EVENT executará primeiro, e LATE_EVENT executará por último.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Bom, vamos chegando ao fim de mais um post sobre o micro-framework Silex, até o momento já temos o conhecimento geral de como os middlewares funcionam e com certeza eles serão bem úteis em determinados cenários quando você estiver utilizando o Silex em suas criações! Nas próximas postagens falaremos mais sobre o micro-framework, especificamente sobre como os Services trabalham! Nos vemos lá!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Silex Middlewares 101 – Parte 1</title>
+      <link>http://tableless.com.br/silex-middlewares-101-parte-1/</link>
+      <pubDate>Sun, 26 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/silex-middlewares-101-parte-1/</guid>
+      <description>
+
+&lt;p&gt;Fala pessoal! Tudo bem? Espero que sim! Depois de uma longa temporada retorno com mais este post sobre o micro-framework Silex! Desta vez abordarei o uso dos middlewares no mesmo.&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares&#34;&gt;Middlewares&lt;/h2&gt;
+
+&lt;p&gt;Os middlewares no Silex são utilizados para mudar o comportamento padrão do mesmo, os middlewares se mostram muito úteis quando pensamos na validação de tokens de acesso, save de logs e muitas outras tarefas. Basicamente temos dois tipos de middlewares, os de aplicação e os de rota. Mostraremos as diferenças abaixo:&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-de-aplicação&#34;&gt;Middlewares De Aplicação&lt;/h2&gt;
+
+&lt;p&gt;Como o próprio nome já diz, esses middlewares impactam a aplicação como um todo e são três. Vamos ver como cada um funciona logo abaixo:&lt;/p&gt;
+
+&lt;h3 id=&#34;before-method&#34;&gt;Before Method&lt;/h3&gt;
+
+&lt;p&gt;O método &lt;code&gt;before();&lt;/code&gt; é sempre executado antes de suas rotas, no escopo de aplicação ele será acionado sempre que um usuário fizer alguma requisição a mesma. Veja o código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app = new Application();
+
+$app-&amp;gt;before(function(){
+    //Sua lógica aqui.
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Middlewares&#39;);
+});
+
+$app-&amp;gt;run();
+&lt;/pre&gt;
+
+&lt;p&gt;Das linhas 5 a 7 temos a definição do nosso middleware &lt;code&gt;before&lt;/code&gt;, como comentado, sempre que nossa aplicação for acessada, o middleware será acionado antes da execução da rota em questão. O before se torna muito útil para validação de tokens de acesso, validação de sessão, transformação de dados, dentre outros.&lt;/p&gt;
+
+&lt;h3 id=&#34;after-method&#34;&gt;After Method&lt;/h3&gt;
+
+&lt;p&gt;O &lt;code&gt;after();&lt;/code&gt;, apesar do nome sugestivo, não quer dizer que o mesmo será executado após a chamada da rota, calma vô explicar!&lt;/p&gt;
+
+&lt;p&gt;O &lt;code&gt;after&lt;/code&gt; executa antes da saída do response da rota chamada!&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app-&amp;gt;after(function(){
+    //Exemplo
+    print &#39;After Middleware | &#39;;
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content!&#39;);
+});
+
+#...
+&lt;/pre&gt;
+
+&lt;p&gt;A saida do código acima seria algo como:&lt;/p&gt;
+
+&lt;p&gt;``Fala pessoal! Tudo bem? Espero que sim! Depois de uma longa temporada retorno com mais este post sobre o micro-framework Silex! Desta vez abordarei o uso dos middlewares no mesmo.&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-1&#34;&gt;Middlewares&lt;/h2&gt;
+
+&lt;p&gt;Os middlewares no Silex são utilizados para mudar o comportamento padrão do mesmo, os middlewares se mostram muito úteis quando pensamos na validação de tokens de acesso, save de logs e muitas outras tarefas. Basicamente temos dois tipos de middlewares, os de aplicação e os de rota. Mostraremos as diferenças abaixo:&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-de-aplicação-1&#34;&gt;Middlewares De Aplicação&lt;/h2&gt;
+
+&lt;p&gt;Como o próprio nome já diz, esses middlewares impactam a aplicação como um todo e são três. Vamos ver como cada um funciona logo abaixo:&lt;/p&gt;
+
+&lt;h3 id=&#34;before-method-1&#34;&gt;Before Method&lt;/h3&gt;
+
+&lt;p&gt;O método &lt;code&gt;before();&lt;/code&gt; é sempre executado antes de suas rotas, no escopo de aplicação ele será acionado sempre que um usuário fizer alguma requisição a mesma. Veja o código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app = new Application();
+
+$app-&amp;gt;before(function(){
+    //Sua lógica aqui.
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Middlewares&#39;);
+});
+
+$app-&amp;gt;run();
+&lt;/pre&gt;
+
+&lt;p&gt;Das linhas 5 a 7 temos a definição do nosso middleware &lt;code&gt;before&lt;/code&gt;, como comentado, sempre que nossa aplicação for acessada, o middleware será acionado antes da execução da rota em questão. O before se torna muito útil para validação de tokens de acesso, validação de sessão, transformação de dados, dentre outros.&lt;/p&gt;
+
+&lt;h3 id=&#34;after-method-1&#34;&gt;After Method&lt;/h3&gt;
+
+&lt;p&gt;O &lt;code&gt;after();&lt;/code&gt;, apesar do nome sugestivo, não quer dizer que o mesmo será executado após a chamada da rota, calma vô explicar!&lt;/p&gt;
+
+&lt;p&gt;O &lt;code&gt;after&lt;/code&gt; executa antes da saída do response da rota chamada!&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app-&amp;gt;after(function(){
+    //Exemplo
+    print &#39;After Middleware | &#39;;
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content!&#39;);
+});
+
+#...
+&lt;/pre&gt;
+
+&lt;p&gt;A saida do código acima seria algo como:&lt;/p&gt;
+
+&lt;p&gt;``&lt;/p&gt;
+
+&lt;p&gt;Um caso de uso para tal, seria a transformação do response dentre outras tarefas!&lt;/p&gt;
+
+&lt;h3 id=&#34;finish-method&#34;&gt;Finish Method&lt;/h3&gt;
+
+&lt;p&gt;Existe ainda o middleware &lt;code&gt;finish();&lt;/code&gt;, esse sim! É executado após a execução da rota em questão!&lt;/p&gt;
+
+&lt;p&gt;Vamos ao exemplo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app-&amp;gt;finish(function(){
+    //Exemplo
+    print &#39;Finish middleware&#39;;
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content | &#39;);
+});
+#...
+&lt;/pre&gt;
+
+&lt;p&gt;A saída do código seria:&lt;/p&gt;
+
+&lt;p&gt;```Fala pessoal! Tudo bem? Espero que sim! Depois de uma longa temporada retorno com mais este post sobre o micro-framework Silex! Desta vez abordarei o uso dos middlewares no mesmo.&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-2&#34;&gt;Middlewares&lt;/h2&gt;
+
+&lt;p&gt;Os middlewares no Silex são utilizados para mudar o comportamento padrão do mesmo, os middlewares se mostram muito úteis quando pensamos na validação de tokens de acesso, save de logs e muitas outras tarefas. Basicamente temos dois tipos de middlewares, os de aplicação e os de rota. Mostraremos as diferenças abaixo:&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-de-aplicação-2&#34;&gt;Middlewares De Aplicação&lt;/h2&gt;
+
+&lt;p&gt;Como o próprio nome já diz, esses middlewares impactam a aplicação como um todo e são três. Vamos ver como cada um funciona logo abaixo:&lt;/p&gt;
+
+&lt;h3 id=&#34;before-method-2&#34;&gt;Before Method&lt;/h3&gt;
+
+&lt;p&gt;O método &lt;code&gt;before();&lt;/code&gt; é sempre executado antes de suas rotas, no escopo de aplicação ele será acionado sempre que um usuário fizer alguma requisição a mesma. Veja o código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app = new Application();
+
+$app-&amp;gt;before(function(){
+    //Sua lógica aqui.
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Middlewares&#39;);
+});
+
+$app-&amp;gt;run();
+&lt;/pre&gt;
+
+&lt;p&gt;Das linhas 5 a 7 temos a definição do nosso middleware &lt;code&gt;before&lt;/code&gt;, como comentado, sempre que nossa aplicação for acessada, o middleware será acionado antes da execução da rota em questão. O before se torna muito útil para validação de tokens de acesso, validação de sessão, transformação de dados, dentre outros.&lt;/p&gt;
+
+&lt;h3 id=&#34;after-method-2&#34;&gt;After Method&lt;/h3&gt;
+
+&lt;p&gt;O &lt;code&gt;after();&lt;/code&gt;, apesar do nome sugestivo, não quer dizer que o mesmo será executado após a chamada da rota, calma vô explicar!&lt;/p&gt;
+
+&lt;p&gt;O &lt;code&gt;after&lt;/code&gt; executa antes da saída do response da rota chamada!&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app-&amp;gt;after(function(){
+    //Exemplo
+    print &#39;After Middleware | &#39;;
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content!&#39;);
+});
+
+#...
+&lt;/pre&gt;
+
+&lt;p&gt;A saida do código acima seria algo como:&lt;/p&gt;
+
+&lt;p&gt;``Fala pessoal! Tudo bem? Espero que sim! Depois de uma longa temporada retorno com mais este post sobre o micro-framework Silex! Desta vez abordarei o uso dos middlewares no mesmo.&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-3&#34;&gt;Middlewares&lt;/h2&gt;
+
+&lt;p&gt;Os middlewares no Silex são utilizados para mudar o comportamento padrão do mesmo, os middlewares se mostram muito úteis quando pensamos na validação de tokens de acesso, save de logs e muitas outras tarefas. Basicamente temos dois tipos de middlewares, os de aplicação e os de rota. Mostraremos as diferenças abaixo:&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-de-aplicação-3&#34;&gt;Middlewares De Aplicação&lt;/h2&gt;
+
+&lt;p&gt;Como o próprio nome já diz, esses middlewares impactam a aplicação como um todo e são três. Vamos ver como cada um funciona logo abaixo:&lt;/p&gt;
+
+&lt;h3 id=&#34;before-method-3&#34;&gt;Before Method&lt;/h3&gt;
+
+&lt;p&gt;O método &lt;code&gt;before();&lt;/code&gt; é sempre executado antes de suas rotas, no escopo de aplicação ele será acionado sempre que um usuário fizer alguma requisição a mesma. Veja o código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app = new Application();
+
+$app-&amp;gt;before(function(){
+    //Sua lógica aqui.
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Middlewares&#39;);
+});
+
+$app-&amp;gt;run();
+&lt;/pre&gt;
+
+&lt;p&gt;Das linhas 5 a 7 temos a definição do nosso middleware &lt;code&gt;before&lt;/code&gt;, como comentado, sempre que nossa aplicação for acessada, o middleware será acionado antes da execução da rota em questão. O before se torna muito útil para validação de tokens de acesso, validação de sessão, transformação de dados, dentre outros.&lt;/p&gt;
+
+&lt;h3 id=&#34;after-method-3&#34;&gt;After Method&lt;/h3&gt;
+
+&lt;p&gt;O &lt;code&gt;after();&lt;/code&gt;, apesar do nome sugestivo, não quer dizer que o mesmo será executado após a chamada da rota, calma vô explicar!&lt;/p&gt;
+
+&lt;p&gt;O &lt;code&gt;after&lt;/code&gt; executa antes da saída do response da rota chamada!&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app-&amp;gt;after(function(){
+    //Exemplo
+    print &#39;After Middleware | &#39;;
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content!&#39;);
+});
+
+#...
+&lt;/pre&gt;
+
+&lt;p&gt;A saida do código acima seria algo como:&lt;/p&gt;
+
+&lt;p&gt;``&lt;/p&gt;
+
+&lt;p&gt;Um caso de uso para tal, seria a transformação do response dentre outras tarefas!&lt;/p&gt;
+
+&lt;h3 id=&#34;finish-method-1&#34;&gt;Finish Method&lt;/h3&gt;
+
+&lt;p&gt;Existe ainda o middleware &lt;code&gt;finish();&lt;/code&gt;, esse sim! É executado após a execução da rota em questão!&lt;/p&gt;
+
+&lt;p&gt;Vamos ao exemplo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app-&amp;gt;finish(function(){
+    //Exemplo
+    print &#39;Finish middleware&#39;;
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content | &#39;);
+});
+#...
+&lt;/pre&gt;
+
+&lt;p&gt;A saída do código seria:&lt;/p&gt;
+
+&lt;p&gt;```&lt;/p&gt;
+
+&lt;p&gt;Muito útil para save de logs dentre outras tarefas!&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Esses são os middlewares de aplicação do Silex Framework, percebemos que os mesmos tornam nossos trabalhos bem mais simplificados em determinados casos, só precisamos tomar um pouco de cuidado para não deixa-los um tanto quanto complexos, evitando assim dor de cabeça futura!&lt;/p&gt;
+
+&lt;p&gt;Em nosso próximo post, ainda sobre Middlewares, abordaremos os middlewares de rotas e algumas particularidades dos middlewares como um todo!&lt;/p&gt;
+
+&lt;p&gt;O código completo deste post você pode encontrar no &lt;a href=&#34;https://goo.gl/LI4BsY&#34; target=&#34;_blank&#34;&gt;gist&lt;/a&gt;. Abraços e até a próxima!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Rotas dinâmicas no Silex</title>
+      <link>http://tableless.com.br/silex-rotas-dinamicas/</link>
+      <pubDate>Mon, 13 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/silex-rotas-dinamicas/</guid>
+      <description>
+
+&lt;p&gt;Continuando nossa jornada sobre o &lt;strong&gt;Silex Framework&lt;/strong&gt;, neste post falarei sobre rotas dinâmicas. Se você não está familiarizado com o Silex, confira nosso primeiro post _&lt;a href=&#34;http://tableless.com.br/conhecendo-e-instalando-o-silex/&#34; target=&#34;_blank&#34;&gt;Conhecendo e instalando o Silex&lt;/a&gt;_.&lt;/p&gt;
+
+&lt;p&gt;Rotas dinâmicas são a possibilidade de passar parâmetros nas rotas da sua aplicação. O Silex possui diversos métodos para facilitar o uso dessa dinâmica em suas rotas.&lt;/p&gt;
+
+&lt;h2 id=&#34;utilização&#34;&gt;Utilização&lt;/h2&gt;
+
+&lt;p&gt;Para tornar sua rota dinâmica, veja o código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+use Silex\Application;
+require &#39;vendor/autoload.php&#39;;
+$app = new Application();
+$app-&amp;gt;get(&#39;users/{name}&#39;, function($name){
+    return &#39;Olá, &#39; . $name;
+});
+$app-&amp;gt;run();
+&lt;/pre&gt;
+
+&lt;p&gt;O que nos interessa nesse momento, são as linhas de 5 e 6. Na linha 5 definimos nossa rota &lt;em&gt;users&lt;/em&gt;, que receberá requisições do tipo &lt;code&gt;GET&lt;/code&gt;. Perceba que entre chaves &lt;code&gt;{}&lt;/code&gt;, incluímos um elemento chamado &lt;code&gt;name&lt;/code&gt;, ou seja, esse é o parâmetro da nossa rota &lt;em&gt;users&lt;/em&gt;. Agora tudo que passarmos na URL após chamada a rota, poderemos manipular em nosso &lt;em&gt;callback&lt;/em&gt;, mas para isso devemos passar o mesmo parâmetro da rota como parâmetro do nosso &lt;em&gt;callback&lt;/em&gt;, como mostrado na mesma linha 5. Na linha 6 apenas retornamos como saída o valor passado na rota. Por exemplo, se acessarmos no navegador o seguinte link &lt;code&gt;http://url_de_minha_app.com.br/users/Nando&lt;/code&gt;, teríamos como saída:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Olá, Nando&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você deseja passar mais parâmetros, apenas separe os mesmos com &lt;code&gt;/&lt;/code&gt;, como mostrado abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+...
+$app-&amp;gt;get(&#39;users/{name}/{email}&#39;, function($name, $email){
+    //Sua_logica_aqui
+});
+...
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;valores-default&#34;&gt;Valores Default&lt;/h2&gt;
+
+&lt;p&gt;Se você deseja definir um valor &lt;em&gt;default&lt;/em&gt; para seus parâmetros de rota, é muito simples. O Silex possui um método para isso. Através do método &lt;code&gt;value()&lt;/code&gt; você definirá valores padrões para estes parâmetros, e quando acessar suas rotas sem informar nenhum valor esperado, entra em ação os valores definidos por padrão. Para usar o método &lt;code&gt;value()&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+...
+$app-&amp;gt;get(&#39;users/{name}&#39;, function($name){
+    return &#39;Olá, &#39; . $name;
+})
+-&amp;gt;value(&#39;name&#39;, NULL);
+...
+&lt;/pre&gt;
+
+&lt;p&gt;Na linha 6 defino o método &lt;code&gt;value&lt;/code&gt; que têm como primeiro parâmetro o nome definido para o parâmetro da rota, e o segundo parâmetro do método &lt;code&gt;value&lt;/code&gt; recebe o valor &lt;em&gt;default&lt;/em&gt; que você desejar. Sempre que acessarmos a rota &lt;em&gt;users&lt;/em&gt; sem definir nenhum valor após a mesma, nosso parâmetro &lt;code&gt;name&lt;/code&gt; receberá o valor NULL. A partir daí você fica livre para tratar como quiser a lógica da sua aplicação.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-método-convert&#34;&gt;O método convert()&lt;/h2&gt;
+
+&lt;p&gt;Se você deseja garantir o tipo do valor passado ou apenas deseja conversões simples com estes valores, o método &lt;code&gt;convert&lt;/code&gt; foi feito para tal operação. Para utilizá-lo:&lt;/p&gt;
+
+&lt;pre&gt;...
+$app-&amp;gt;get(&#39;users/{name}&#39;, function($name){
+    return &#39;Olá, &#39; . $name;
+})
+-&amp;gt;value(&#39;name&#39;, NULL)
+-&amp;gt;convert(&#39;name&#39;, function($name){ return (string) $name; });
+...
+&lt;/pre&gt;
+
+&lt;p&gt;O método recebe 2 parâmetros: o primeiro é o nome do parâmetro informado na rota e o segundo um &lt;em&gt;callback&lt;/em&gt;, onde realizamos nossas conversões. Neste exemplo, garanto apenas que os valores passados na rota &lt;code&gt;users&lt;/code&gt; serão de fato do tipo &lt;code&gt;string&lt;/code&gt;, como mostrado na linha 6 do código acima.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Vimos como é simples trabalhar com rotas dinâmicas em nossas aplicações Silex, e com os métodos auxiliares nossa aplicação de rotas fica ainda mais robusta.&lt;/p&gt;
+
+&lt;p&gt;Na sessão &lt;a href=&#34;http://silex.sensiolabs.org/doc/usage.html&#34; target=&#34;_blank&#34;&gt;&amp;#8216;Usage&amp;#8217;&lt;/a&gt; da documentação do Silex, você encontrará mais opções além das mostradas aqui.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Conhecendo e instalando o Silex</title>
+      <link>http://tableless.com.br/conhecendo-e-instalando-o-silex/</link>
+      <pubDate>Tue, 30 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/conhecendo-e-instalando-o-silex/</guid>
+      <description>
+
+&lt;p&gt;O &lt;a href=&#34;http://silex.sensiolabs.org/&#34; target=&#34;_blank&#34;&gt;Silex&lt;/a&gt; é um micro framework baseado nos componentes do &lt;a href=&#34;http://symfony.com/&#34; target=&#34;_blank&#34;&gt;Symfony&lt;/a&gt;. Foi desenvolvido por &lt;a href=&#34;http://fabien.potencier.org/&#34; target=&#34;_blank&#34;&gt;Fabien Potencier&lt;/a&gt;, o mesmo criador do Symfony.&lt;/p&gt;
+
+&lt;p&gt;O Silex foi concebido para a criação de aplicações pequenas com foco na agilidade, extensibilidade e para ser facilmente testável. Ele provê um sistema de rotas muito poderoso, e se propõe a resolvê-las através dos Services e Providers, conceitos que veremos mais à frente. Você perceberá que ele é facilmente estendido e suas funcionalidades recebem uma vantagem através dessas integrações.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalação&#34;&gt;Instalação&lt;/h2&gt;
+
+&lt;p&gt;Para instalar o Silex em nossos projetos é muito simples: precisamos apenas do &lt;a href=&#34;https://getcomposer.org&#34; target=&#34;_blank&#34;&gt;Composer&lt;/a&gt; para gerenciar nossas dependências.&lt;/p&gt;
+
+&lt;p&gt;Mas afinal, o que é o Composer? O Composer é um gerenciador de dependências para aplicações PHP, baseado nas GEMs do Ruby e no NPM do Node.JS. Com o Composer você pode facilmente gerenciar a instalação de pacotes de terceiros, bem como preparar o seu pacote para que ele fique disponível para os desenvolvedores que utilizam essa ferramenta. Tudo que precisaremos é de um arquivo composer.json na raiz de nosso projeto. Utilizaremos &lt;code&gt;api-events&lt;/code&gt; como nome da nossa pasta.&lt;/p&gt;
+
+&lt;p&gt;Na raiz dessa pasta crie um arquivo composer.json com o seguinte conteúdo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-json&#34;&gt;{
+    &#34;require&#34; : {
+    &#34;silex/silex&#34; : &#34;^1.2&#34;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O composer.json é o arquivo que o Composer lê para poder realizar as tarefas de download e instalação dos pacotes especificados.&lt;/p&gt;
+
+&lt;p&gt;Agora vamos instalar o Composer em nosso projeto. O Composer pode ser utilizado de duas maneiras: de forma local e de forma global. Abordarei aqui a forma local. Para instalá-lo em sistemas Unix, você precisará da &lt;em&gt;lib curl&lt;/em&gt; disponível. Se você utiliza o Windows, baixe o executável &lt;a href=&#34;https://getcomposer.org/Composer-Setup.exe&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;. O seguinte comando, executado via terminal (e na raiz de nosso projeto), deve instalar o Composer para você:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/curl-composer.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-49783 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/curl-composer.png&#34; alt=&#34;Curl Composer&#34; width=&#34;902&#34; height=&#34;72&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O comando fará o download e irá compilar o composer.phar e arquivos &lt;a href=&#34;http://php.net/phar&#34;&gt;&lt;code&gt;.phar&lt;/code&gt;&lt;/a&gt;, que são extensões executáveis do PHP. Agora que temos o arquivo de configuração e o Composer em nosso projeto, podemos instalar nossas dependências, ou seja, o Silex propriamente dito. É muito simples realizar a instalação dos pacotes: na raiz do seu projeto, execute o seguinte comando:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;php composer.phar install&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;É preciso que você tenha o &lt;a href=&#34;http://www.php-cli.com/&#34; target=&#34;_blank&#34;&gt;php-cli&lt;/a&gt; disponível em seu terminal. O comando acima verificará o arquivo &lt;code&gt;composer.json&lt;/code&gt; e logo em seguida fará o download do Silex, conforme requerido no arquivo &lt;code&gt;.json&lt;/code&gt; da versão 1.2. Após tudo concluído, você verá uma imagem semelhante a essa:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/packages-installed.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-49784 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/packages-installed.png&#34; alt=&#34;Silex - Packages instalados&#34; width=&#34;742&#34; height=&#34;769&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O Composer instalou o Silex bem como as dependências utilizadas pelo mesmo dentro da pasta &lt;code&gt;vendor&lt;/code&gt; do nosso projeto. Além do download, ele também mapeia os &lt;em&gt;namespaces&lt;/em&gt; dos pacotes e cria um _autoload._ Através deste &lt;em&gt;autoload&lt;/em&gt; teremos acesso a todos os pacotes baixados até o momento.&lt;/p&gt;
+
+&lt;h2 id=&#34;silex-hello-world&#34;&gt;Silex: Hello World!&lt;/h2&gt;
+
+&lt;p&gt;Agora que nossas dependências foram baixadas e instaladas, podemos começar a utilizar nosso micro framework: crie um arquivo &lt;code&gt;index.php&lt;/code&gt; na raiz da sua pasta e adicione a abertura do código PHP utilizando o seguinte comando:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;echo &amp;quot;&amp;lt;?php &amp;quot; &amp;gt; index.php&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Abaixo segue o código do index na íntegra:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+use Silex\Application;
+require &#39;vendor/autoload.php&#39;;
+$app = new Application();
+$app-&amp;gt;get(&#39;/&#39;, function(){
+    return &#39;Hello World&#39;;
+});
+$app-&amp;gt;run();
+&lt;/pre&gt;
+
+&lt;p&gt;Na linha 2 informo ao meu script para utilizar o Silex com o namespace &lt;code&gt;Silex\Application&lt;/code&gt;. Para ter acesso aos namespaces dos pacotes baixados (como comentado anteriormente sobre o autoload) precisamos adicionar o mesmo em nosso index. Para isso utilizamos o &lt;code&gt;require&lt;/code&gt; na linha 3. Na linha 4 simplesmente instanciamos nosso micro framework. O já citado poderoso sistema de rotas pode ser visto das linhas 5 a 6, onde utilizamos o método &lt;code&gt;get&lt;/code&gt;. O método &lt;code&gt;get&lt;/code&gt; manipula as requisições GET vindas do _client_ e no nosso caso fazemos o seguinte:&lt;/p&gt;
+
+&lt;p&gt;Quando o cliente realizar uma requisição do tipo GET em nossa rota raiz, referenciada através da &lt;code&gt;/&lt;/code&gt;, nós executaremos o que for passado dentro do &lt;em&gt;callback&lt;/em&gt;, o segundo parâmetro do método &lt;code&gt;get&lt;/code&gt; do &lt;code&gt;Silex\Application&lt;/code&gt;. Como queremos apenas realizar (imprimir) um &amp;#8220;Hello World&amp;#8221;, vamos retornar essa &lt;em&gt;string&lt;/em&gt; em nosso &lt;em&gt;callback&lt;/em&gt; para a rota raiz.&lt;/p&gt;
+
+&lt;p&gt;E por fim, para que as respostas emitidas pelo Silex sejam enviadas ao browser ou a quem as solicitou, utilizamos o método &lt;code&gt;run&lt;/code&gt; em nossa linha 8. Ao rodar nosso app no browser, temos a seguinte resposta:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Hello World&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Podemos ver o quão simples é utilizar esse micro framework através dos processos vistos até aqui. Para os próximos artigos, vamos nos aprofundar mais neste micro framework e ver como utilizá-lo melhor em casos reais.&lt;/p&gt;
+
+&lt;p&gt;Por hora, pratique os conhecimentos aqui passados. Nos vemos em breve!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,644 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/criando-um-plugin-javascript-sem-jquery/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/criando-um-plugin-javascript-sem-jquery/">Criando um plugin JavaScript (sem jQuery!)</a></h1>
+  <p class="tb-hero-p">
+    
+    Com a evolução dos navegadores e suas implementações de JavaScript e CSS3, será que precisamos mesmo utilizar jQuery em nossos projetos?
+    
+  </p>
+      <span class="tb-author">por <a href="/author/davi-ferreira">Davi Ferreira</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Neste artigo vamos criar um slider de imagens utilizando apenas JavaScript e CSS3, sem nenhuma biblioteca. O resultado final é um script de aproximadamente 160 linhas e menos de 3kb minificado. Poderia ser menor do que isso, mas nosso código vai ser extensível e 100% válido em uma <a href="http://tableless.com.br/qualidade-codigo-javascript/" title="Assegurando a qualidade do seu código JavaScript">verificação JSLint</a>.</p>
+
+<hr />
+
+<p><a href="http://tableless.com.br/anatomia-de-um-plugin-jquery/" title="Anatomia de um plugin jQuery">Um plugin jQuery</a> é basicamente um código que pode ser aplicado em um ou mais elementos do DOM. Para justificar sua existência, um plugin precisa ser, principalmente, flexível.</p>
+
+<p>O objetivo final é podermos instanciar nosso plugin com a seguinte chamada:</p>
+
+<pre class="lang-javascript">var slider = new JSlider('.slider');</pre>
+
+<p>Antes de tudo vamos precisar de um pequeno trecho de CSS que garantirá o estilo básico do nosso slider.</p>
+
+<pre class="lang-css">.jslider-stage {
+    position: relative;
+}
+
+.jslider-track {
+    overflow: hidden;
+}
+
+.jslider-track ul {
+    transition: margin-left .5s ease;
+    -webkit-transition: margin-left .5s ease;
+    -moz-transition: margin-left .5s ease;
+    -o-transition: margin-left .5s ease;
+}
+
+.jslider-track ul li {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.jslider-navigation {
+    position: absolute;
+    top: 0;
+    width: 60px;
+    height: 80px;
+    background: #000;
+    color: #fff;
+}
+.jslider-stage .left {
+    left: 0;
+}</pre>
+
+<p>Não vou explicar muito as declarações acima já que o nosso foco principal é o código JavaScript. O mais importante é que toda a parte de animação, responsável pelas transições entre imagens, é feita via CSS3, representando um belo ganho de performance:</p>
+
+<pre class="lang-css">.jslider-track ul {
+    transition: margin-left .5s ease;
+    -webkit-transition: margin-left .5s ease;
+    -moz-transition: margin-left .5s ease;
+    -o-transition: margin-left .5s ease;
+}</pre>
+
+<p>Pensando um pouco na composição do código do nosso plugin, vamos criar dois objetos: um que será responsável pelo plugin em si e outro para representar cada slider instanciado na página. O próximo passo, então, é criar duas funções construtoras para nossos objetos:</p>
+
+<pre class="lang-javascript">function JSlider(selector) {
+    this.init(selector);
+}
+
+function JSliderStage(el) {
+    this.doc = document;
+    this.init(el);
+}</pre>
+
+<p>JSlider é o objeto do nosso plugin que armazenará um ou mais objetos JSliderStage.</p>
+
+<p>O objeto JSlider possui um único método, <em>init</em>, responsável por inicializar nosso plugin e os objetos do tipo stage. Este método receberá um único parâmetro, o seletor no qual aplicaremos o plugin.</p>
+
+<pre class="lang-javascript">JSlider.prototype.init = function (selector) {
+    var elements = document.querySelectorAll(selector),
+        i;
+
+    this.slidersList = [];
+
+    if (elements.length &lt; 1) {
+        return;
+    }
+
+    for (i = 0; i &lt; elements.length; i += 1) {
+        this.slidersList.push(new JSliderStage(elements[i]));
+    }
+};</pre>
+
+<p>Não existem classes em JavaScript, tudo é um objeto. No entanto, com o uso de prototypes, conseguimos criar objetos que servem como modelos. Ao adicionar um método ao prototype de um objeto, todas as instâncias que compartilham o mesmo prototype automaticamente herdam este novo método.</p>
+
+<p>Agora chegou a hora de estruturarmos o objeto responsável pelo slider em si. Vamos, antes de tudo, montar uma lista das funcionalidades a serem implementadas.</p>
+
+<ol>
+<li>inicialização, listando as imagens encontradas no seletor;</li>
+<li>construção do &#8220;palco&#8221;, definindo as dimensões de acordo com a maior foto;</li>
+<li>construção do &#8220;trilho&#8221; e carregamento das imagens;</li>
+<li>construção e inicialização da navegação entre imagens e</li>
+<li>carregamento de uma nova página.</li>
+</ol>
+
+<p>O palco &#8220;esconde&#8221; boa parte do trilho que armazena as imagens, exibindo apenas a imagem atual. Ao clicar nos botões de navegação, o usuário desloca esse trilho no eixo X.</p>
+
+<h3 id="queryselectorall">querySelectorAll</h3>
+
+<p>O método <em>querySelectorAll</em>, nativo do JavaScript, tem funcionamento parecido com um seletor jQuery, podendo receber tanto um id como uma classe. Primeiro verificamos se foi encontrado algum elemento e depois instanciamos os objetos JSliderStage para cada elemento encontrado.</p>
+
+<h2 id="1-inicialização">1. Inicialização</h2>
+
+<p>A função de inicialização é responsável por configurar os valores padrões de algumas variáveis e listar as imagens disponíveis no elemento pai. Caso não exista nenhuma imagem, nosso plugin cancela qualquer execução.</p>
+
+<pre class="lang-javascript">JSliderStage.prototype.init = function (el) {
+    this.root = el;
+    this.currentPage = 1;
+    this.images = this.root.querySelectorAll('img');
+
+    if (this.images.length === 0) {
+        return;
+    }
+
+    this.build();
+};</pre>
+
+<h2 id="2-palco">2. Palco</h2>
+
+<p>Para construir o palco precisamos definir uma largura e uma altura máxima, baseada nas maiores imagens &#8211; é isso que o método <em>getPageDimensions</em> faz.</p>
+
+<pre class="lang-javascript">JSliderStage.prototype.build = function () {
+    this.getPageDimensions()
+        .createStage()
+        .initNavigation();
+    this.root.innerHTML = '';
+    this.root.appendChild(this.stage);
+};
+
+JSliderStage.prototype.getPageDimensions = function () {
+    var i;
+    this.pageWidth = this.pageHeight = 0;
+    for (i = 0; i &lt; this.images.length; i += 1) {
+        if (this.images[i].width &gt; this.pageWidth) {
+            this.pageWidth = this.images[i].width;
+        }
+        if (this.images[i].height &gt; this.pageHeight) {
+            this.pageHeight = this.images[i].height;
+        }
+    }
+    return this;
+};
+
+JSliderStage.prototype.createStage = function () {
+    this.stage = this.doc.createElement('div');
+    this.stage.className = 'jslider-stage';
+    this.stage.style.width = this.pageWidth + 'px';
+
+    this.buildTrack()
+        .loadImages();
+
+    this.stage.appendChild(this.sliderTrack);
+
+    return this;
+};</pre>
+
+<p>O método <em>createStage</em> adiciona ao DOM os elementos necessários para nosso palco e executa dois outros métodos: um para carregar o trilho e outro para carregar as imagens. Por fim, iniciamos a navegação com o método <em>initNavigation</em>.</p>
+
+<h3 id="createelement">createElement</h3>
+
+<p>Este método da API JavaScript permite a criação de elementos que depois podem ser inseridos na árvore do DOM. É recomendado, por questões de performance, finalizar toda e qualquer manipulação antes de adicionar o elemento ao DOM.</p>
+
+<h3 id="appendchild">appendChild</h3>
+
+<p>O método appendChild adiciona um elemento criado a outro já existente na árvore do DOM. É semelhante aos métodos append/appendTo do jQuery.</p>
+
+<h2 id="3-trilho">3. Trilho</h2>
+
+<p>Nosso trilho é um elemento DIV com uma lista (UL) contendo as imagens do slider. A largura do DIV corresponde à largura da maior imagem, enquanto que a largura da lista representa a soma da largura de todas as imagens. Dessa forma, através do nosso CSS lá do início, a lista de imagens fica &#8220;escondida&#8221; atrás da DIV principal do trilho.</p>
+
+<pre class="lang-javascript">JSliderStage.prototype.buildTrack = function () {
+    this.sliderTrack = this.doc.createElement('div');
+    this.sliderTrack.className = 'jslider-track';
+    this.sliderTrack.style.height = this.pageHeight + 'px';
+    return this;
+};
+
+JSliderStage.prototype.loadImages = function () {
+    var i,
+        li;
+
+    this.imageList = this.doc.createElement('ul');
+    this.imageList.style.width = (this.images.length * this.pageWidth) + 'px';
+
+    for (i = 0; i &lt; this.images.length; i += 1) {
+        li = this.doc.createElement('li');
+        li.style.width = this.pageWidth + 'px';
+        li.style.height = this.pageHeight + 'px';
+        li.appendChild(this.images[i]);
+        this.imageList.appendChild(li);
+    }
+
+    this.sliderTrack.appendChild(this.imageList);
+};</pre>
+
+<h2 id="4-navegação">4. Navegação</h2>
+
+<p>Finalizando nosso slide, precisamos implementar a navegação entre imagens. O método <em>initNavigation</em> cria, caso necessário, os botões de anterior e próximo.</p>
+
+<pre class="lang-javascript">JSliderStage.prototype.initNavigation = function () {
+    var positionTop = ((this.pageHeight / 2) - 40) + 'px';
+
+    if (this.images.length &lt; 2) {
+        return this;
+    }
+
+    this.createNavigationButton('left', positionTop)
+        .createNavigationButton('right', positionTop);
+
+    this.navButtonsList = this.stage.querySelectorAll('.jslider-navigation');
+
+    return this;
+};
+
+JSliderStage.prototype.createNavigationButton = function (direction, positionTop) {
+    var navButton = this.doc.createElement('a'),
+        self = this,
+        slidingLeft = (direction === 'left'),
+        page;
+
+    navButton.className = 'jslider-navigation ' + direction + (slidingLeft ? ' off' : '');
+    navButton.style.top = positionTop;
+    navButton.href = '#';
+    navButton.innerHTML = (slidingLeft ? '&lsaquo;' : '&rsaquo;');
+
+    navButton.onclick = function (e) {
+        e.preventDefault();
+        page = (slidingLeft ? self.currentPage - 1 : self.currentPage + 1);
+        self.gotoPage(page);
+    };
+
+    this.stage.appendChild(navButton);
+
+    return this;
+};</pre>
+
+<p>Já o método <em>gotoPage</em> é responsável por carregar a imagem correta e habilitar/desabilitar os botões de navegação de acordo com a imagem atual.</p>
+
+<pre class="lang-javascript">JSliderStage.prototype.gotoPage = function (page) {
+    var marginLeft = (-1) * ((page - 1) * this.pageWidth);
+    if (page &lt; 1 || page &gt; this.images.length) {
+        return;
+    }
+
+    this.setNavigationState(page);
+
+    this.imageList.style.marginLeft = marginLeft + 'px';
+    this.currentPage = page;
+};
+
+JSliderStage.prototype.setNavigationState = function (page) {
+    if (page === 1) {
+        this.navButtonsList[0].classList.add('off');
+        this.navButtonsList[1].classList.remove('off');
+    } else {
+        this.navButtonsList[0].classList.remove('off');
+        if (page === this.images.length) {
+            this.navButtonsList[1].classList.add('off');
+        } else {
+            this.navButtonsList[1].classList.remove('off');
+        }
+    }
+};</pre>
+
+<h3 id="escopo">escopo</h3>
+
+<p>No método <em>createNavigationButton</em> armazenamos o objeto <em>this</em> na variável self. Isso é necessário porque precisamos referenciar o escopo anterior quando associamos a navegação no evento de clique dos links. Se tivéssemos utilizado diretamente o <em>this</em>, estaríamos referenciando o escopo do clique, o que não era nosso objetivo. Além de self, é comum encontrar nomes como instance e that em variáveis que armazenam o escopo atual de um método.</p>
+
+<h3 id="classlist">classList</h3>
+
+<p>A propriedade classList permite a manipulação de classes em um elemento do DOM. Podemos consultar, remover a adicionar novas classes.</p>
+
+<h2 id="todo">TODO</h2>
+
+<p>É claro que o código final é bem simples, mas a ideia principal era mostrar que nem sempre precisamos utilizar jQuery em nossas aplicações, mesmo com o jQuery disponível na estrutura do projeto.</p>
+
+<p>Finalizando, algumas melhorias que ficam de dever de casa para vocês:</p>
+
+<ul>
+<li>temporizador para trocar imagens, sendo configurável na inicialização do plugin</li>
+<li>suporte a browsers mais antigos, mantendo a funcionalidade</li>
+<li>carregamento de qualquer conteúdo nos slides, não só imagens</li>
+<li>navegação via teclado</li>
+<li>exibir miniaturas navegáveis</li>
+<li><a href="http://tableless.com.br/testando-seu-codigo-jquery-com-jasmine-parte-1/" title="Testando seu código jQuery com Jasmine – Parte 1">escrever testes com Jasmine</a></li>
+</ul>
+
+<h2 id="código-completo-do-plugin">Código completo do plugin</h2>
+
+<p><a href="http://jsfiddle.net/jnQJu/" target="_blank">Nosso plugin em ação no jsFiddle</a></p>
+
+<pre class="lang-javascript">/*jslint browser:true */
+'use strict';
+
+function JSlider(selector) {
+    this.init(selector);
+}
+
+function JSliderStage(el) {
+    this.doc = document;
+    this.init(el);
+}
+
+JSlider.prototype.init = function (selector) {
+    var elements = document.querySelectorAll(selector),
+        i;
+
+    this.slidersList = [];
+
+    if (elements.length &lt; 1) {
+        return;
+    }
+
+    for (i = 0; i &lt; elements.length; i += 1) {
+        this.slidersList.push(new JSliderStage(elements[i]));
+    }
+};
+
+JSliderStage.prototype.init = function (el) {
+    this.root = el;
+    this.currentPage = 1;
+    this.images = this.root.querySelectorAll('img');
+
+    if (this.images.length === 0) {
+        return;
+    }
+
+    this.build();
+};
+
+JSliderStage.prototype.build = function () {
+    this.getPageDimensions()
+        .createStage()
+        .initNavigation();
+    this.root.innerHTML = '';
+    this.root.appendChild(this.stage);
+};
+
+JSliderStage.prototype.getPageDimensions = function () {
+    var i;
+    this.pageWidth = this.pageHeight = 0;
+    for (i = 0; i &lt; this.images.length; i += 1) {
+        if (this.images[i].width &gt; this.pageWidth) {
+            this.pageWidth = this.images[i].width;
+        }
+        if (this.images[i].height &gt; this.pageHeight) {
+            this.pageHeight = this.images[i].height;
+        }
+    }
+    return this;
+};
+
+JSliderStage.prototype.createStage = function () {
+    this.stage = this.doc.createElement('div');
+    this.stage.className = 'jslider-stage';
+    this.stage.style.width = this.pageWidth + 'px';
+
+    this.buildTrack()
+        .loadImages();
+
+    this.stage.appendChild(this.sliderTrack);
+
+    return this;
+};
+
+JSliderStage.prototype.buildTrack = function () {
+    this.sliderTrack = this.doc.createElement('div');
+    this.sliderTrack.className = 'jslider-track';
+    this.sliderTrack.style.height = this.pageHeight + 'px';
+    return this;
+};
+
+JSliderStage.prototype.loadImages = function () {
+    var i,
+        li;
+
+    this.imageList = this.doc.createElement('ul');
+    this.imageList.style.width = (this.images.length * this.pageWidth) + 'px';
+
+    for (i = 0; i &lt; this.images.length; i += 1) {
+        li = this.doc.createElement('li');
+        li.style.width = this.pageWidth + 'px';
+        li.style.height = this.pageHeight + 'px';
+        li.appendChild(this.images[i]);
+        this.imageList.appendChild(li);
+    }
+
+    this.sliderTrack.appendChild(this.imageList);
+};
+
+JSliderStage.prototype.initNavigation = function () {
+    var positionTop = ((this.pageHeight / 2) - 40) + 'px';
+
+    if (this.images.length &lt; 2) {
+        return this;
+    }
+
+    this.createNavigationButton('left', positionTop)
+        .createNavigationButton('right', positionTop);
+
+    this.navButtonsList = this.stage.querySelectorAll('.jslider-navigation');
+
+    return this;
+};
+
+JSliderStage.prototype.createNavigationButton = function (direction, positionTop) {
+    var navButton = this.doc.createElement('a'),
+        self = this,
+        slidingLeft = (direction === 'left'),
+        page;
+
+    navButton.className = 'jslider-navigation ' + direction + (slidingLeft ? ' off' : '');
+    navButton.style.top = positionTop;
+    navButton.href = '#';
+    navButton.innerHTML = (slidingLeft ? '&lsaquo;' : '&rsaquo;');
+
+    navButton.onclick = function (e) {
+        e.preventDefault();
+        page = (slidingLeft ? self.currentPage - 1 : self.currentPage + 1);
+        self.gotoPage(page);
+    };
+
+    this.stage.appendChild(navButton);
+
+    return this;
+};
+
+JSliderStage.prototype.gotoPage = function (page) {
+    var marginLeft = (-1) * ((page - 1) * this.pageWidth);
+    if (page &lt; 1 || page &gt; this.images.length) {
+        return;
+    }
+
+    this.setNavigationState(page);
+
+    this.imageList.style.marginLeft = marginLeft + 'px';
+    this.currentPage = page;
+};
+
+JSliderStage.prototype.setNavigationState = function (page) {
+    if (page === 1) {
+        this.navButtonsList[0].classList.add('off');
+        this.navButtonsList[1].classList.remove('off');
+    } else {
+        this.navButtonsList[0].classList.remove('off');
+        if (page === this.images.length) {
+            this.navButtonsList[1].classList.add('off');
+        } else {
+            this.navButtonsList[1].classList.remove('off');
+        }
+    }
+};</pre>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

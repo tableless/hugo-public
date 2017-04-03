@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Loca Files on Tableless</title>
+    <link>http://tableless.com.br/tags/loca-files/index.xml</link>
+    <description>Recent content in Loca Files on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/loca-files/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>File API – Trabalhando com Arquivos Locais Usando Javascript</title>
+      <link>http://tableless.com.br/file-api-trabalhando-com-arquivos-locais-usando-javascript/</link>
+      <pubDate>Tue, 08 Apr 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/file-api-trabalhando-com-arquivos-locais-usando-javascript/</guid>
+      <description>
+
+&lt;p&gt;A atividade exercida localmente para a leitura de arquivos fornecidos pelo cliente na web sempre foi a de selecionar o arquivo e enviá-los ao servidor para que este possa, de alguma forma, fazer a leitura e retornar os dados de leitura para o cliente. Esta é a prática usual. Mas o HTML5 veio com suas API para desmistificar o usual.&lt;/p&gt;
+
+&lt;p&gt;A File API desmitifica a prática de enviar um arquivo para o servidor para que ele possa ser lido. Sim, você pode ler arquivos no navegador, usando a capacidade processamento do cliente, e liberando seu servidor para executar atividades que somente ele possa executar.&lt;/p&gt;
+
+&lt;p&gt;Mas, afinal, como funciona esta tal de File API? Bem, ela provê um padrão para executar as seguintes atividades:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Selecionar arquivos ou uma lista de arquivos;&lt;/li&gt;
+&lt;li&gt;Ler alguns atributos dos arquivos selecionados, e;&lt;/li&gt;
+&lt;li&gt;Ler o conteúdo dos arquivos selecionados.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Bem, mas você pode estar imaginando que agora é possível criar uma aplicação que irá, ao ser carregado no navegador, fazer a leitura de arquivos do usuário  fazendo aquilo para o qual foi construído. Infelizmente não, mas felizmente no que se diz respeito a segurança. Você só poderá manipular arquivos locais que o usuário prover acesso conscientemente, única e exclusivamente por este meio.&lt;/p&gt;
+
+&lt;h3 id=&#34;selecionar-arquivos-e-ler-seus-atributos&#34;&gt;Selecionar Arquivos e Ler Seus Atributos&lt;/h3&gt;
+
+&lt;p&gt;Para selecionarmos um arquivo podemos criar um elemento &lt;em&gt;input&lt;/em&gt; com a propriedade &lt;em&gt;type&lt;/em&gt; igual a _file. _Com isto o usuário poderá escolher o arquivo que será selecionado. Vamos exibir os atributos do arquivo selecionado em um parágrafo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt; &amp;lt;input id=&#34;inputFile&#34; type=&#34;file&#34;&amp;gt;
+ &amp;lt;p id=&#34;atributos&#34;&amp;gt;&amp;lt;/p&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora que podemos selecionar o arquivo, vamos pegar alguns atributos. É possível pegar os  seguintes atributos do arquivo selecionado: nome, tipo de arquivo e tamanho do arquivo. Como fazer isto? Veja abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;function pegarArquivo(arquivoSelecionado) {
+    if(arquivoSelecionado.files){
+       var file = arquivoSelecionado.files[0];
+       document.getElementById(&#39;atributos&#39;).innerHTML =
+                             &#39;  nome do arquivo: &#39;+file.name +
+                             &#39;;  tipo do arquivo: &#39;+file.type +
+                             &#39;;  tamanho do arquivo: &#39;+file.size + &#39; bytes&#39;
+                   }   
+                                          }&lt;/pre&gt;
+
+&lt;p&gt;O que estamos fazendo acima é pegar o arquivo selecionado no elemento &lt;em&gt;input&lt;/em&gt;, verificar se tem algum arquivo selecionado e pegar os atributos de nome, tipo e  tamanho do arquivo no índice zero. Em seguida estes são exibidos no parágrafo com o &lt;em&gt;id&lt;/em&gt; atributos.&lt;/p&gt;
+
+&lt;p&gt;É claro que pegar as propriedades de um arquivo pode ser útil para muitas atividades. Mas o que mais impressiona na File API é possibilidade de leitura do conteúdo de arquivos. Vamos ver como isto é possível?&lt;/p&gt;
+
+&lt;h3 id=&#34;filereader&#34;&gt;FileReader&lt;/h3&gt;
+
+&lt;p&gt;É possível ler arquivos na memória do cliente por meio de uma interface da File API chamada FileReader. A FileReader fornece métodos, atributos e eventos que permitem a leitura de arquivos de forma assíncrona.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;input id=&#34;inputImage&#34; type=&#34;file&#34; onchange=&#34;pegaArquivo(this.files)&#34;&amp;gt;
+&amp;lt;div id=&#34;imgLocal&#34;&amp;gt;&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Os elementos acima possibilitam a seleção de uma imagem para carregamento no navegador. Posteriormente as imagens serão exibidas na &lt;em&gt;div&lt;/em&gt; mostrada acima.&lt;/p&gt;
+
+&lt;p&gt;O script para carregar a imagem selecionada e exibi-la para o usuário, utiliza o método onload do objeto FileReader , conforme mostra o código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;function pegaArquivo(files){
+    var imgLoca = document.getElementById(&#39;imgLocal&#39;)
+    var file = files[0];
+    var img = document.createElement(&#34;img&#34;);
+        img.file = file;
+
+        imgLocal.appendChild(img)
+
+    var reader = new FileReader();
+        reader.onload = (function(aImg) {return function(e) {aImg.src = e.target.result;};})(img);
+        reader.readAsDataURL(file);
+}&lt;/pre&gt;
+
+&lt;p&gt;Primeiro, nós lemos os atributos de um arquivo, agora nós carregamos um arquivo de imagem. Mas na verdade o que eu quero mostrar para vocês é a capacidade de leitura de um arquivo csv. Um arquivo do tipo csv pode conter dados, que quando carregados, possibilita a geração de tabelas, gráficos e todas as formas de exibição de dados possíveis. Novamente digo que isto poderia ser feito pelo servidor, mas não queremos consumir ciclos do servidor desnecessariamente.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;input type=&#34;file&#34; id=&#34;inputCSV&#34; onchange=&#34;pegaCSV(this)&#34;&amp;gt;
+&amp;lt;div id=&#34;CSVsaida&#34;&amp;gt;&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Acima nós criamos uma tag input com type file para carregarmos o nosso arquivo csv. No evento onchage estamos executando uma função que irá fazer a mágica para nós. Em seguida temo uma tag onde serão exibidos os dados do csv após carregado.&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;var leitorDeCSV = new FileReader()
+window.onload = function init() {
+    leitorDeCSV.onload = leCSV;
+}&lt;/pre&gt;
+
+&lt;p&gt;Acima nós criamos uma variável do tipo FileReader logo na sequência atribuímos a função leCSV ao evento de onload. Sendo assim, no momento em que o arquivo csv for carregado ele disparará a função leCSV.&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;function pegaCSV(inputFile) {
+     var file = inputFile.files[0];
+     leitorDeCSV.readAsText(file);
+}&lt;/pre&gt;
+
+&lt;p&gt;Agora nós contruímos a função que será executada para selecionar o arquivo csv.&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;function leCSV(evt) {
+
+  var fileArr = evt.target.result.split(&#39;\n&#39;);
+  var strDiv = &#39;&amp;lt;table&amp;gt;&#39;;
+
+  for (var i=0; i&amp;lt;fileArr.length; i++) {
+       strDiv += &#39;&amp;lt;tr&amp;gt;&#39;;
+       var fileLine = fileArr[i].split(&#39;,&#39;);
+           for (var j=0; j&amp;lt;fileLine.length; j++) {
+                strDiv += &#39;&amp;lt;td&amp;gt;&#39;+fileLine[j].trim()+&#39;&amp;lt;/td&amp;gt;&#39;;
+      }
+      strDiv += &#39;&amp;lt;/tr&amp;gt;&#39;;
+  }
+
+      strDiv += &#39;&amp;lt;/table&amp;gt;&#39;;
+      var CSVsaida = document.getElementById(&#39;CSVsaida&#39;);
+      CSVsaida.innerHTML = strDiv;
+}&lt;/pre&gt;
+
+&lt;p&gt;Quando o evento de onload for disparado ele executará a função acima, nela o arquivo csv lido será usado para contruir tabelas com suas linhas e colunas e o resultado final será inserido na tag CSVsaida.&lt;/p&gt;
+
+&lt;p&gt;Com este &lt;a title=&#34;CSV File API&#34; href=&#34;http://jsfiddle.net/bruiz/273dC/3/embedded/result/&#34; target=&#34;_blank&#34;&gt;EXEMPLO&lt;/a&gt;, não temos dúvidas do poder deste padrão web. De fato poderemos simplificar muito o trabalho de leitura de arquivos. Agora fica por sua curiosidade e necessidade explorar a File API.&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;line-height: 1.5em&#34;&gt;Bons estudos e bom trabalho!&lt;/span&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

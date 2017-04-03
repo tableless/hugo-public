@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Criar Imagem No Docker on Tableless</title>
+    <link>http://tableless.com.br/tags/criar-imagem-no-docker/index.xml</link>
+    <description>Recent content in Criar Imagem No Docker on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/criar-imagem-no-docker/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Iniciando com o Docker: Criando suas próprias imagens</title>
+      <link>http://tableless.com.br/iniciando-com-o-docker-criando-suas-proprias-imagens/</link>
+      <pubDate>Thu, 28 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/iniciando-com-o-docker-criando-suas-proprias-imagens/</guid>
+      <description>
+
+&lt;p&gt;No artigo &lt;a href=&#34;http://tableless.com.br/iniciando-com-o-docker-dicas-praticas-para-comecar-usar-agora-mesmo/&#34; target=&#34;_blank&#34;&gt;anterior&lt;/a&gt;, eu descrevi alguns comandos básicos e como iniciar com o pé direito no mundo do &lt;strong&gt;Docker&lt;/strong&gt;, trazendo de forma direta alguns conceitos que com o passar do tempo se tornaram fundamentais no meu fluxo de desenvolvimento.&lt;/p&gt;
+
+&lt;p&gt;Hoje eu quero partir um pouco mais para o lado prático da coisa, vamos construir uma imagem para encapsular uma pequena aplicação em &lt;strong&gt;GO&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;primeiros-passos&#34;&gt;Primeiros passos&lt;/h2&gt;
+
+&lt;p&gt;O arquivo de manifesto do Docker é o Dockerfile, nele você coloca as instruções de como você quer que sua imagem seja construída. Você pode na construção da imagem setar outro arquivo com o parâmetro -f.&lt;/p&gt;
+
+&lt;p&gt;Abaixo temos um exemplo de Dockerfile, esse é um exemplo de um app em go já compilado para ubuntu então eu só preciso copiar o arquivo executável elasticpush para dentro do docker:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;FROM debian:jessie
+RUN mkdir /app
+ENV ACCESS_TOKEN abc
+ENV SECRET_TOKEN xyz
+COPY ./bin/elasticpush /app/elasticpush
+ENTRYPOINT [“/app/elasticpush”]
+&lt;/pre&gt;
+
+&lt;p&gt;Detalhando os comandos utilizados:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;FROM&lt;/strong&gt;: Este é o comando mais importante, pois ele especifica a imagem base para a construção de uma nova. Na maioria das vezes a imagem especificada vai ser uma distribuição linux, se essa imagem não for encontrada na máquina local, o docker tentará buscar em algum repository. Caso queira, por exemplo, fazer a build do seu app em GO dentro do container, você vai precisar de uma imagem que tenha o GO instalado e configurado. Outra forma também seria criar diversas instruções com o comando &lt;em&gt;RUN&lt;/em&gt; para fazer essa instalação.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RUN&lt;/strong&gt;: Esse comando serve para executar outros comandos que a versão do sistema operacional permite. Por exemplo, se for debian vc pode instalar pacotes com apt-get, se for CentOS você pode utilizar o yum para pegar as dependências que seu serviço precisa para rodar. Com o RUN você também pode criar arquivos, pastas, enfim acho que deu pra entender que ele executa os mesmo comando do que você executaria na sua máquina, logo você consegue fazer praticamente tudo, e deixar a sequência de comandos versionada aqui dentro.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;ENV&lt;/strong&gt;: Serve para você setar variáveis de ambiente, você pode tanto deixar essas variáveis setadas de forma fixa dentro do Dockerfile quanto passá-las dinamicamente na hora que você instanciar o container. Para passar essas variáveis de ambiente na instanciação do container basta usar o parâmetro -e.&lt;/p&gt;
+
+&lt;p&gt;Exemplo: _docker run -e ACCESS&lt;em&gt;TOKEN=abcd [nome da imagem]&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;COPY&lt;/strong&gt;: O COPY serve para você poder copiar arquivos e pastas para dentro da imagem do Docker, nesse exemplo eu copiei o arquivo elasticpush que estava dentro da pasta bin na minha máquina local para dentro da pasta /app na imagem do docker.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;ENTRYPOINT&lt;/strong&gt;: Com esse parâmetro você pode setar se quer que algo seja executado na hora da instanciação do container. Então, quando você der um &lt;em&gt;docker run&lt;/em&gt; nessa imagem, ela já vai instanciar e executar o programa que está no caminho que você colocar entre colchetes. No nosso caso queremos que essa imagem execute nossa aplicação do Elasticpush, o mesmo vale para quaisquer outros serviços como Redis, Elasticsearch, Nodejs, etc&amp;#8230;&lt;/p&gt;
+
+&lt;h2 id=&#34;build-8211-construíndo-a-imagem&#34;&gt;Build &amp;#8211; Construíndo a imagem&lt;/h2&gt;
+
+&lt;p&gt;A essa altura provavelmente você já tem o Docker instalado na sua máquina, caso contrário ensinamos a fazer isso nesse &lt;a href=&#34;http://elasticpush.com/blog/iniciando-com-o-docker-dicas-praticas-para-comecar-a-usar-agora-mesmo/&#34; target=&#34;_blank&#34;&gt;artigo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para construir a imagem você precisa executar o seguinte comando, na mesma pasta que está o &lt;strong&gt;Dockerfile&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;em&gt;sudo docker build -t app/elasticpush .&lt;/em&gt;&lt;/pre&gt;
+
+&lt;p&gt;Eu escolhi que o nome da minha imagem fosse app/elasticpush, mas isso fica a seu critério, escolha o nome que melhor se adéque ao seu serviço.&lt;/p&gt;
+
+&lt;p&gt;Executado o comando, se tudo correr bem terá uma saída semelhante a essa:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;Sending build context to Docker daemon 45.03 MB
+ Sending build context to Docker daemon
+ Step 0 : FROM debian:jessie
+ — &amp;gt; a582cd499e0f
+ Step 1 : RUN mkdir /app
+ — &amp;gt; Using cache
+ — &amp;gt; 3763257cc26e
+ Step 2 : COPY ./bin/elasticpush /app/elasticpush
+ — &amp;gt; cc4b56f3fd8e
+ Removing intermediate container 0bb2091ca437
+ Step 3 : ENTRYPOINT /app/elasticpush
+ —&amp;gt; Running in ad99734cd065
+ — &amp;gt; 3ffec68d5499
+ Removing intermediate container ad99734cd065
+ Successfully built 3ffec68d5499
+ &lt;/pre&gt;
+
+&lt;p&gt;Agora você já tem uma imagem construída. Execute o seguinte comando:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;sudo docker images&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;A imagem com a tag que você escolheu vai estar listada. A partir dessa imagem você pode iniciar o container com o seguinte comando:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;sudo docker run -d [nome da imagem]&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Observe que utilizei o parâmetro -d que serve para jogar em segundo plano a inicialização do container, o que é opcional. Após isso será entregue um token que identifica o container, tipo esse:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;19895b08f19d7a4436afa1cb8af8f815939000d5468c7db10c4498317fd81cc3&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Para navegar dentro do container utilize o seguinte comando:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;sudo docker exec -it 19895b08f19d7a4436afa1cb8af8f815939000d5468c7db10c4498317fd81cc3 bash&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Com isso você estará dentro do container para caso precise fazer alguma coisa específica. Para sair é só digitar &lt;strong&gt;exit&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Bom pessoal, por enquanto é isso, uma dica que dou é tentar criar imagens mais complexas do que a que eu exemplifiquei, caso tenham alguma dúvida é só deixar um comentário.&lt;/p&gt;
+
+&lt;p&gt;Até a próxima!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

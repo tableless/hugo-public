@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Jefersson Nathan on Tableless</title>
+    <link>http://tableless.com.br/author/jefersson-nathan/index.xml</link>
+    <description>Recent content in Jefersson Nathan on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/jefersson-nathan/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>BDD na prática – Parte 1</title>
+      <link>http://tableless.com.br/bdd-na-pratica-parte-1/</link>
+      <pubDate>Wed, 09 Apr 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/bdd-na-pratica-parte-1/</guid>
+      <description>
+
+&lt;p&gt;Se você não sabe o que é &lt;strong&gt;Behavior driven development,&lt;/strong&gt; para ter um melhor proveito desse artigo,  leia uma &lt;a href=&#34;http://tableless.com.br/introducao-ao-behavior-driven-development/&#34;&gt;introdução ao BDD&lt;/a&gt; antes de prosseguir.&lt;/p&gt;
+
+&lt;p&gt;Para começo de conversa, estaremos fazendo uma abordagem prática sobre testes de comportamento. Para isso, utilizaremos a biblioteca para testes &lt;a href=&#34;http://behat.org/&#34;&gt;behat&lt;/a&gt;. Vamos ao nosso arquivo &lt;code&gt;composer.json:&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+    &#34;require-dev&#34;: {
+        &#34;behat/behat&#34;: &#34;2.4.*@stable&#34;
+    },
+    &#34;config&#34;: {
+        &#34;bin-dir&#34;: &#34;bin/&#34;
+    }
+}&lt;/pre&gt;
+
+&lt;p&gt;Se ainda não estiver familiarizado com o uso do &lt;strong&gt;composer&lt;/strong&gt; para gerenciamento de dependências de seus projetos em php, vale a pena dar uma olhada em &lt;a href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34;&gt;composer para iniciantes&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora, basta instalar nossas dependências com o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sh&#34;&gt;$ composer install&lt;/pre&gt;
+
+&lt;p&gt;&lt;img class=&#34;size-full wp-image-42015 aligncenter&#34; alt=&#34;Captura de tela 2014-04-06 13.52.43&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/Captura-de-tela-2014-04-06-13.52.43.png&#34; width=&#34;684&#34; height=&#34;816&#34; srcset=&#34;uploads/2014/04/Captura-de-tela-2014-04-06-13.52.43.png 684w, uploads/2014/04/Captura-de-tela-2014-04-06-13.52.43-400x477.png 400w&#34; sizes=&#34;(max-width: 684px) 100vw, 684px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;De forma alternativa, você poderá fazer uma instalação global baixando o arquivo &lt;code&gt;behat.phar&lt;/code&gt; e deixando acessível de seu sistema operacional, geralmente esse processo é simples, e basta criar um link simbólico em &lt;code&gt;/usr/local/bin&lt;/code&gt; para o arquivo que deseja executar.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-funciona&#34;&gt;Como funciona?&lt;/h2&gt;
+
+&lt;p&gt;Se dermos uma olhada na estrutura que o &lt;em&gt;&lt;strong&gt;composer&lt;/strong&gt;&lt;/em&gt; criou para a gente, notaremos que um diretório &lt;strong&gt;&lt;em&gt;feature&lt;/em&gt;&lt;/strong&gt; foi criado. Nesse diretório criaremos os arquivos *&lt;strong&gt;.feature&lt;/strong&gt; que descreverão um conjunto de ações para atingir um determinado objetivo.&lt;/p&gt;
+
+&lt;p&gt;Para começar criaremos o arquivo &lt;strong&gt;example.feature&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;size-full wp-image-42019 aligncenter&#34; alt=&#34;Estrutura de diretórios&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/Captura-de-tela-2014-04-06-14.25.49.png&#34; width=&#34;407&#34; height=&#34;95&#34; srcset=&#34;uploads/2014/04/Captura-de-tela-2014-04-06-14.25.49.png 407w, uploads/2014/04/Captura-de-tela-2014-04-06-14.25.49-400x93.png 400w&#34; sizes=&#34;(max-width: 407px) 100vw, 407px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você estiver usando o &lt;strong&gt;Sublime Text&lt;/strong&gt;, instale essa extensão &lt;a href=&#34;https://www.dropbox.com/s/xb6mmsxy5qdtjja/Captura%20de%20tela%202014-04-06%2014.47.25.png&#34;&gt;https://github.com/omissis/sublime-behat-syntax&lt;/a&gt; que provê highlight em arquivos *.feature&lt;/p&gt;
+
+&lt;p&gt;No nosso arquivo &lt;strong&gt;example.feature&lt;/strong&gt;, iremos descrever nosso cenário, o que queremos &lt;em&gt;testar.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-42024&#34; alt=&#34;Captura de tela 2014-04-06 14.54.18&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/Captura-de-tela-2014-04-06-14.54.18.png&#34; width=&#34;609&#34; height=&#34;474&#34; srcset=&#34;uploads/2014/04/Captura-de-tela-2014-04-06-14.54.18.png 609w, uploads/2014/04/Captura-de-tela-2014-04-06-14.54.18-400x311.png 400w&#34; sizes=&#34;(max-width: 609px) 100vw, 609px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Com uma &lt;strong&gt;feature&lt;/strong&gt; já escrita, iremos executar o &lt;em&gt;behat&lt;/em&gt; para nos dar a descrição e métodos dessa feature em PHP, daí prosseguiremos com a implementação dos métodos que eles nos forneceu. Para isso basta executarmos o arquivo &lt;strong&gt;behat&lt;/strong&gt;, dentro da pasta &lt;strong&gt;bin&lt;/strong&gt; que foi criada pelo &lt;em&gt;composer&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sh&#34;&gt;$ bin/behat features/example.feature&lt;/pre&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-42029&#34; alt=&#34;Behat feature&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/Captura-de-tela-2014-04-06-15.07.06.png&#34; width=&#34;684&#34; height=&#34;620&#34; srcset=&#34;uploads/2014/04/Captura-de-tela-2014-04-06-15.07.06.png 684w, uploads/2014/04/Captura-de-tela-2014-04-06-15.07.06-400x362.png 400w&#34; sizes=&#34;(max-width: 684px) 100vw, 684px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Assim, o &lt;strong&gt;behat&lt;/strong&gt; cospe pra nos um código PHP para que coloquemos na classe de feature. E aí começaremos a &lt;em&gt;codar&lt;/em&gt; os cenários. No arquivo &lt;code&gt;features/bootstrap/FeatureContext.php&lt;/code&gt; colaremos o código que foi fornecido pelo &lt;strong&gt;behat&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+
+use Behat\Behat\Context\BehatContext;
+
+class FeatureContext extends BehatContext
+{
+    /** @Given /^some step with &#34;([^&#34;]*)&#34; argument$/ */
+    public function someStepWithArgument($argument1)
+    {
+        return $argument1;
+    }
+
+    /** @Given /^number step with (\d+)$/ */
+    public function numberStepWith($argument1)
+    {
+        return $argument1;
+    }
+}&lt;/pre&gt;
+
+&lt;p&gt;Aqui temos uma classe simples, que &lt;strong&gt;não testa nada&lt;/strong&gt;, mais é um bom ponto de partidada para entender como funciona a ferramenta e o esquema de testes de comportamento. Pois &lt;em&gt;codar&lt;/em&gt; os cenários deve ser a parte mais fácil do processo, se você tem &lt;strong&gt;steps&lt;/strong&gt; bem definidos.&lt;/p&gt;
+
+&lt;p&gt;para rodar esse testes execute o seguinte comando.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sh&#34;&gt;$ bin/behat features/example.feature&lt;/pre&gt;
+
+&lt;h2 id=&#34;hello-world&#34;&gt;Hello world&lt;/h2&gt;
+
+&lt;p&gt;Agora que temos uma ideia de como o &lt;strong&gt;behat&lt;/strong&gt; trabalha, faremos o clássico &lt;strong&gt;hello world&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Em nosso arquivo &lt;code&gt;example.feature&lt;/code&gt; descreveremos o seguinte cenário:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-42040&#34; alt=&#34;Hello world feature behat&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/Captura-de-tela-2014-04-06-16.53.08.png&#34; width=&#34;605&#34; height=&#34;333&#34; srcset=&#34;uploads/2014/04/Captura-de-tela-2014-04-06-16.53.08.png 605w, uploads/2014/04/Captura-de-tela-2014-04-06-16.53.08-400x220.png 400w&#34; sizes=&#34;(max-width: 605px) 100vw, 605px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Nesse cenário estaremos testando que quando passarmos a string &lt;strong&gt;Hello world,&lt;/strong&gt; nossa classe tem que concatenar nossa string a uma exclamação. Com isso já poderemos escrever nossa classe PHP para testar essa &lt;strong&gt;feature.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+
+use Behat\Behat\Context\BehatContext;
+
+class FeatureContext extends BehatContext
+{
+    private $_string;
+
+    /** @Given /^some step with &#34;([^&#34;]*)&#34; argument$/ */
+    public function someStepWithArgument($string)
+    {
+        $this-&amp;gt;_string = strtolower($string);
+    }
+
+    /**
+     * @Then /^i have &#34;([^&#34;]*)&#34;$/
+     */
+    public function iHave($expected)
+    {
+        if (0 !== strcmp(strtolower($expected), $this-&amp;gt;_string.&#39;!&#39;))
+            throw new Exception(&#39;Wrong &#34;hello world&#34; received: &#39;.$this-&amp;gt;_string );
+
+        return $expected;
+    }
+}&lt;/pre&gt;
+
+&lt;p&gt;Se executarmos o teste com o &lt;strong&gt;behat&lt;/strong&gt;, poderemos ver como está o nosso cenário.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-42045&#34; alt=&#34;Behat hello world execution&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/Captura-de-tela-2014-04-06-17.16.30.png&#34; width=&#34;740&#34; height=&#34;494&#34; srcset=&#34;uploads/2014/04/Captura-de-tela-2014-04-06-17.16.30.png 740w, uploads/2014/04/Captura-de-tela-2014-04-06-17.16.30-400x267.png 400w&#34; sizes=&#34;(max-width: 740px) 100vw, 740px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Escrever testes de comportamento é sempre bom, e podemos consulta-los sempre, seja pra esclarecer uma regra de negócio ou para integrar novas pessoas ao time de desenvolvimento. Vendo os cenários sabemos exatamente o que uma classe/entidade deve fazer. Seu objetivo e contexto ficam claros. Os incentivo fortemente a implantar uma cultura de testes de software em sua empresa e projetos. Você tem muito a ganhar a longo prazo.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introdução ao Behavior Driven Development</title>
+      <link>http://tableless.com.br/introducao-ao-behavior-driven-development/</link>
+      <pubDate>Fri, 21 Feb 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/introducao-ao-behavior-driven-development/</guid>
+      <description>
+
+&lt;p&gt;O &lt;strong&gt;BDD&lt;/strong&gt; &lt;em&gt;(Behavior Driven Development ou Desenvolvimento guiado por comportamento)&lt;/em&gt;, é uma resposta ao &lt;strong&gt;TDD&lt;/strong&gt;, criado em 2003, por &lt;em&gt;Dan North&lt;/em&gt;, e tem se expandido bastante nos últimos anos. Seu foco é obter um código testado a partir de um conjunto de cenários que descrevem como a aplicação ou unidade de código deverá se comportar em determinada situação.&lt;/p&gt;
+
+&lt;h3 id=&#34;as-práticas-de-bdd-incluem&#34;&gt;As práticas de &lt;strong&gt;BDD&lt;/strong&gt; incluem:&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Envolver as partes interessadas no processo através de &lt;em&gt;Outside-in Development&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Usar linguagem ubíqua para descrever o comportamento de uma aplicação&lt;/li&gt;
+&lt;li&gt;Automatizar os exemplos para provê um feedback rápido e testes de regressão&lt;/li&gt;
+&lt;li&gt;Usar &lt;strong&gt;&lt;em&gt;SHOULD&lt;/em&gt;&lt;/strong&gt; na hora de descrever o comportamento de software para ajudar esclarecer responsabilidades e permitir que funcionalidades do software sejam questionadas&lt;/li&gt;
+&lt;li&gt;Usar dublês de teste &lt;em&gt;(mocks, stubs, fakes, dummies, spies)&lt;/em&gt; para auxiliar na colaboração entre módulos e códigos que ainda não foram escritos&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;e-8230&#34;&gt;E&amp;#8230;&lt;/h2&gt;
+
+&lt;p&gt;O grande lance do BDD, é que nos trabalhamos com comportamentos de uma maneira que&lt;/p&gt;
+
+&lt;p&gt;qualquer pessoa possa entender ou escrever novos testes. Baseado no que espera que&lt;/p&gt;
+
+&lt;p&gt;a aplicação executa o aferir uma ação específica.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Qual a vantagem disso?&lt;/em&gt; O especialista do domínio pode escrever testes.&lt;/p&gt;
+
+&lt;p&gt;O gerente de projetos pode escrever testes. o PO pode escrever testes baseados&lt;/p&gt;
+
+&lt;p&gt;no que ele espera da aplicação. O padeiro da esquina pode escrever testes&lt;/p&gt;
+
+&lt;p&gt;também. Qualquer um pode descrever o que espera da aplicação sem a necessidade&lt;/p&gt;
+
+&lt;p&gt;de ter habilidades de um programador.&lt;/p&gt;
+
+&lt;h2 id=&#34;cenários&#34;&gt;Cenários&lt;/h2&gt;
+
+&lt;p&gt;Cada cenário descreve uma ação que será aferida e testada. Eles devem conter&lt;/p&gt;
+
+&lt;p&gt;passos lógicos e simple de como obter um resultado específico a partir de uma sequência&lt;/p&gt;
+
+&lt;p&gt;de ações.&lt;/p&gt;
+
+&lt;p&gt;Exemplo:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cenário 1:&lt;/strong&gt; &lt;em&gt;Quantidade de items no estoque&lt;/em&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Dado que há 5 items no estoque&lt;/li&gt;
+&lt;li&gt;E um cliente comprou 2 items do estoque&lt;/li&gt;
+&lt;li&gt;Então quando contar os items restantes no estoque&lt;/li&gt;
+&lt;li&gt;Terei 3 items&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Como podemos perceber, desenvolvedores podem se concentrar exclusivamente nas razões pelas quais o código deve ser criado, e não em detalhes técnicos, além de minimizar traduções entre a linguagem técnica na qual o código é escrito e outras linguagens de domínio.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

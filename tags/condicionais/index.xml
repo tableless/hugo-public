@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Condicionais on Tableless</title>
+    <link>http://tableless.com.br/tags/condicionais/index.xml</link>
+    <description>Recent content in Condicionais on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/condicionais/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Usando condicionais no Sass – Control Directives</title>
+      <link>http://tableless.com.br/usando-condicionais-sass-control-directives/</link>
+      <pubDate>Mon, 25 Aug 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/usando-condicionais-sass-control-directives/</guid>
+      <description>
+
+&lt;p&gt;Ter a possibilidade de usar condicionais no CSS é uma daquelas coisas que fazem os pré-processadores de CSS tão sensuais.&lt;/p&gt;
+
+&lt;p&gt;No Sass essas condicionais são chamadas de &lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#control_directives__expressions&#34; title=&#34;Control Directives&#34;&gt;**Diretivas de controle**&lt;/a&gt;, ou em inglês, que é mais chique, &amp;#8220;Control Directives&amp;#8221;. As funções são &lt;strong&gt;@if&lt;/strong&gt;, &lt;strong&gt;@for&lt;/strong&gt;, &lt;strong&gt;@each&lt;/strong&gt; e &lt;strong&gt;@while&lt;/strong&gt;. São as condicionais tradicionais que estamos acostumados a usar nas outras linguagens.&lt;/p&gt;
+
+&lt;h2 id=&#34;if&#34;&gt;@if&lt;/h2&gt;
+
+&lt;p&gt;Se algo for qualquer coisa diferente de falso, execute determinado comando.&lt;/p&gt;
+
+&lt;p&gt;Um uso bastante simples é da própria documentação do Sass:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;$type: monster;
+p {
+  @if $type == ocean {
+    color: blue;
+  } @else if $type == matador {
+    color: red;
+  } @else if $type == monster {
+    color: green;
+  } @else {
+    color: black;
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como era de se esperar, existe um &lt;strong&gt;@else&lt;/strong&gt; para nos dar todo o apoio. Esse exemplo acima é bastante simples. Se você tem uma variável qualquer, no nosso caso &lt;strong&gt;monster&lt;/strong&gt;, e essa variável pode mudar de valor em determinado lugar do código. Se mudar, há uma série de condições ali.&lt;/p&gt;
+
+&lt;p&gt;Um exemplo mais real:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;$color1: #f9f9f9;
+p {
+    @if (lightness($color1) &amp;lt; 30) {
+    background-color: white
+    } @else {
+    background-color: black
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ali estamos medindo a quantidade de branco que há na variável &lt;strong&gt;$color1&lt;/strong&gt;, que irá receber um código de cor. Se for menor que 30% de luz (claridade), background black no elemento, caso contrário, background white.&lt;/p&gt;
+
+&lt;h2 id=&#34;for&#34;&gt;@for&lt;/h2&gt;
+
+&lt;p&gt;Inicia uma variável e executa uma ação, incrementando essa variável um determinado número de vezes. Para cada repetição, um a variável de contador é usada para ajustar o código de saída.&lt;/p&gt;
+
+&lt;p&gt;Muito útil. Para você fazer códigos como o de baixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.item-1 {
+  width: 10px;
+  font-size: 10px; 
+}
+.item-2 {
+  width: 20px;
+  font-size: 20px; 
+}
+.item-3 {
+  width: 30px;
+  font-size: 30px; 
+}
+.item-4 {
+  width: 40px;
+  font-size: 40px; 
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Você faria uma condição assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;@for $i from 1 through 4 {
+  .item-#{$i} { 
+        width: 10px * $i; 
+        font-size: 10px * $i;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Outro truque interessante é que se você colocar o primeiro número maior que o segundo, assim: &lt;code&gt;@for $i from 4 through 1&lt;/code&gt;, a função irá decrementar em vez de incrementar a variável. O resultado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.item-4 {
+  width: 40px;
+  font-size: 40px; 
+}
+
+.item-3 {
+  width: 30px;
+  font-size: 30px; 
+}
+
+.item-2 {
+  width: 20px;
+  font-size: 20px; 
+}
+
+.item-1 {
+  width: 10px;
+  font-size: 10px; 
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Simple like that.&lt;/p&gt;
+
+&lt;h2 id=&#34;each&#34;&gt;@each&lt;/h2&gt;
+
+&lt;p&gt;Define uma variável para item de uma lista de valores, produzindo blocos de código utilizando os valores da lista.&lt;/p&gt;
+
+&lt;p&gt;Neste artigo fala sobre &lt;a href=&#34;http://tableless.com.br/utilizando-maps-sass/&#34;&gt;Maps Structure do Sass&lt;/a&gt;, e dá uma boa noção do que o &lt;strong&gt;@each&lt;/strong&gt; pode fazer. Mas um exemplo rápido. Para um código assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.tema-azul body {
+  background-color: #0176bb;
+}
+
+.tema-vermelho body {
+  background-color: #e3413e;
+}
+
+.tema-amarelo body {
+  background-color: #f8e042;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Você teria um Sass assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;$cores: (
+  azul: #0176bb, 
+  vermelho: #e3413e, 
+  amarelo: #f8e042
+);
+
+@each $tema, $cor in $cores {
+  .tema-#{tema} body {
+     background-color: $cor;
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Você gerencia basicamente um bloco de CSS e as variáveis para adicionar ou remover cores.&lt;/p&gt;
+
+&lt;h2 id=&#34;while&#34;&gt;@while&lt;/h2&gt;
+
+&lt;p&gt;Repete um determinado bloco e código enquanto determinado estado for verdadeiro.&lt;/p&gt;
+
+&lt;p&gt;O exemplo mais bacana que pode ser mostrado aqui é a criação de um grid básico. Para ter um código como este abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.column-grid-1{
+  width: 60px;
+}
+
+.column-grid-2 {
+  width: 150px;
+}
+
+.column-grid-3 {
+  width: 240px;
+}
+
+.column-grid-4 {
+  width: 330px;
+}
+
+.column-grid-5 {
+  width: 420px;
+}
+
+.column-grid-6 {
+  width: 510px;
+}
+
+.column-grid-7 {
+  width: 600px;
+}
+
+.column-grid-8 {
+  width: 690px;
+}
+
+.column-grid-9 {
+  width: 780px;
+}
+
+.column-grid-10 {
+  width: 870px;
+}
+
+.column-grid-11 {
+  width: 960px;
+}
+
+.column-grid-12 {
+  width: 1050px; 
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;O código seria algo mais ou menos assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sass&#34;&gt;$i: 1
+$column-width: 60px
+
+@while $i &amp;lt; 13 {
+  .grid-#{$i} { 
+    column-width: $column-width; 
+   }
+  $column-width: $column-width + 90px;
+  $i: $i + 1;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Claro, para fazer um grid um pouco mais complexo, usando porcentagens, guardando o valor do gutter em uma variável, roas e etc você precisa de um pouco mais. &lt;a href=&#34;http://bjorkoy.com/2010/05/css-grids-with-sass/&#34;&gt;Veja esse artigo aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Eu não gosto de usar pré-processadores. &lt;a href=&#34;http://tableless.com.br/pre-processadores-usar-ou-nao-usar/&#34;&gt;Eu já falei disso aqui há muito tempo&lt;/a&gt;. Se você for fazer um site simples, sem muitas grandes ambições, nada muito complicado, talvez não seja necessário usar um Sass da vida. Contudo, em várias ocasiões, ter essas e outras funções que citamos aqui, o ganho na produtividade é enorme. Aí sim esses penduricalhos começam a valer a pena. 😉&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

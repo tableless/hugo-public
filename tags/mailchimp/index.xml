@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Mailchimp on Tableless</title>
+    <link>http://tableless.com.br/tags/mailchimp/index.xml</link>
+    <description>Recent content in Mailchimp on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/mailchimp/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Assinatura de newsletter com PHP integrada à API do Mailchimp</title>
+      <link>http://tableless.com.br/assinatura-de-newsletter-com-php-integrada-a-api-do-mailchimp/</link>
+      <pubDate>Tue, 10 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/assinatura-de-newsletter-com-php-integrada-a-api-do-mailchimp/</guid>
+      <description>
+
+&lt;p&gt;O Mailchimp tem uma &lt;a href=&#34;https://apidocs.mailchimp.com/&#34; target=&#34;_blank&#34;&gt;API bem completa&lt;/a&gt;. Arrisco dizer que é possível fazer uma interface com muitas das funcionalidades de gerenciamento de listas, envios, etc usando a API — fica a dica para quem quiser desenvolver uma aplicação explorando alguma lacuna que o painel do Mailchimp deixa a desejar.&lt;/p&gt;
+
+&lt;p&gt;Eu sabia da existência da API faz algum tempo, mas usava uma função simples de exportação de CSV em alguns projetos. Mas dependendo da frequência de disparo das newsletters, exportar um arquivo e importar no Mailchimp começa a ser um tanto trabalhoso. Então esse é o meu caso de uso: um formulário de newsletter.&lt;/p&gt;
+
+&lt;p&gt;Aí alguém diz: “Mas você está reinventando a roda! O Mailchimp te dá um formulário pronto, você não precisa integrar com a API, basta gerar o código, copiar e colar.” E eu respondo: “Sim, existe essa possibilidade, mas e se além de enviar para o Mailchimp você precisa gravar na sua base de dados esses e-mails? E se a opção de assinatura da newsletter é um checkbox (opt-in) em um formulário de cadastro?” Acho que assim temos uma ideia melhor de quando usar a API para a captação de e-mails.&lt;/p&gt;
+
+&lt;p&gt;Então, vamos botar a mão no código:&lt;/p&gt;
+
+&lt;h2 id=&#34;1-chave-da-api&#34;&gt;1. Chave da API&lt;/h2&gt;
+
+&lt;p&gt;Mas, ops! Antes de ir para a programação, toda integração com a API precisa de uma chave para autenticação. Para gerar essa chave você precisa entrar na sua conta do Mailcimp (se você não tem uma conta, criar uma nova é bem simples e não tem custo), e seguir o seguinte caminho:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;no menu do usuário (canto direito superior), ir em &lt;strong&gt;“Account”&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;na aba &lt;strong&gt;“Extras”&lt;/strong&gt;, selecionar &lt;strong&gt;“API keys”&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;nessa tela você pode criar uma chave (&lt;strong&gt;“Create API key”&lt;/strong&gt;).&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;A chave gerada é sua forma de autenticação na API, então deve ser mantida em segurança.&lt;/p&gt;
+
+&lt;h2 id=&#34;2-instalação&#34;&gt;2 Instalação&lt;/h2&gt;
+
+&lt;p&gt;Existe um &lt;a href=&#34;https://bitbucket.org/mailchimp/mailchimp-api-php&#34; target=&#34;_blank&#34;&gt;SDK PHP oficial do Mailchimp&lt;/a&gt;. Você pode instalar &lt;a href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34; target=&#34;_blank&#34;&gt;usando o Composer&lt;/a&gt;, incluindo a seguinte dependência no seu arquivo &lt;strong&gt;composer.json&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&#34;mailchimp/mailchimp&#34;: &#34;2.0.*&#34;&lt;/pre&gt;
+
+&lt;p&gt;E executando o &lt;strong&gt;composer install&lt;/strong&gt; (ou &lt;strong&gt;update&lt;/strong&gt; se for um projeto já existente).&lt;/p&gt;
+
+&lt;p&gt;Mas se você não está usando o Composer (está desenvolvendo um tema ou plugin de WordPress, por exemplo) pode baixar o &lt;a href=&#34;https://bitbucket.org/mailchimp/mailchimp-api-php/get/master.zip&#34; target=&#34;_blank&#34;&gt;pacote com o SDK&lt;/a&gt;. Caso opte por esse tipo de instalação, provavelmente vai ser necessário incluir no seu código um &lt;strong&gt;require&lt;/strong&gt; para a classe principal: &lt;strong&gt;src/Mailchimp.php&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;3-integrando&#34;&gt;3 Integrando&lt;/h2&gt;
+
+&lt;p&gt;Vamos começar usando um formulário HTML simples, com apenas dois inputs: e-mail e cidade. Estou optando por usar esses dados, porque quero mostrar como usar campos personalizados com a API. O arquivo &lt;strong&gt;newsletter.php&lt;/strong&gt; deve ser algo assim:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;form action=&#34;mailchimp.php&#34; method=&#34;post&#34;&amp;gt;
+  &amp;lt;h1&amp;gt;Newsletter&amp;lt;/h1&amp;gt;
+  &amp;lt;label&amp;gt;E-mail&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&#34;email&#34; name=&#34;email&#34;&amp;gt;&amp;lt;br&amp;gt;
+  &amp;lt;label&amp;gt;Cidade&amp;lt;/label&amp;gt;
+  &amp;lt;input type=&#34;text&#34; name=&#34;city&#34;&amp;gt;&amp;lt;br&amp;gt;
+  &amp;lt;button type=&#34;submit&#34;&amp;gt;Assinar!&amp;lt;/button&amp;gt;
+&amp;lt;/form&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Obs.: Como o foco é o uso da API, não estou me preocupando com a estética do formulário, ok? 😉&lt;/p&gt;
+
+&lt;p&gt;Seguindo vamos para o arquivo &lt;strong&gt;mailchimp.php&lt;/strong&gt;, que receberá os dados enviados pele formulário:&lt;/p&gt;
+
+&lt;p&gt;Primeiro começamos definindo algumas configurações, usando constantes:&lt;/p&gt;
+
+&lt;pre&gt;define(&#39;MAILCHIMP_API_KEY&#39;,  &#39;&#39;); // Sua chave da API
+define(&#39;MAILCHIMP_LIST_ID&#39;,  &#39;&#39;); // O ID da sua lista
+define(&#39;MAILCHIMP_CITY_TAG&#39;, &#39;&#39;); // A tag do campo personalizado que usaremos&lt;/pre&gt;
+
+&lt;p&gt;Tem duas informações novas aqui: o &lt;strong&gt;ID da lista&lt;/strong&gt; e a &lt;strong&gt;tag do campo&lt;/strong&gt; personalizado. Conseguimos esses dados no painel do Mailchimp, assim:&lt;/p&gt;
+
+&lt;h3 id=&#34;id-da-lista&#34;&gt;ID da lista&lt;/h3&gt;
+
+&lt;p&gt;Na lista para qual você quer adicionar as assinaturas (se você não tem nenhuma lista na sua conta, precisará criar uma antes de continuar), no menu &lt;strong&gt;“Settings”&lt;/strong&gt; vá até &lt;strong&gt;“List name and defaults”&lt;/strong&gt;. Nessa tela, do lado direto, existe uma pequena sessão com o título &lt;strong&gt;“List ID”&lt;/strong&gt;, dali você vai copiar um código, tipicamente formado por letras e números.&lt;/p&gt;
+
+&lt;h3 id=&#34;tag-do-campo&#34;&gt;Tag do campo&lt;/h3&gt;
+
+&lt;p&gt;Ainda na lista e novamente no menu &lt;strong&gt;“Settings”&lt;/strong&gt; você vai até o link &lt;strong&gt;“List fields and *|MERGE|* tags”&lt;/strong&gt;. Ali você vai copiar a tag correspondente ao campo usado no form, que no nosso exemplo é o &lt;strong&gt;“Cidade”&lt;/strong&gt;. O que você precisa é o valor que está no input, algo parecido com &lt;strong&gt;“MMERGE3”&lt;/strong&gt; — esse número no final muda de um campo para outro.&lt;/p&gt;
+
+&lt;p&gt;Caso você ainda não tenha criado nenhum campo personalizado, você pode criar um agora.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Continuando com o código&amp;#8230;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Para usar um nome mais claro no código (e evitar usar as globais do PHP), vou repassar o conteúdo recebido do form para uma nova variável:&lt;/p&gt;
+
+&lt;pre&gt;$form = $_POST;&lt;/pre&gt;
+
+&lt;p&gt;Na sequência vou fazer uma validação bem básica dos dados, apenas verificando se os campos foram preenchidos. Provavelmente você vai querer fazer algo mais eficaz, como verificar se o formato do e-mail é válido ou se o nome da cidade tem um mínimo de caracteres, por exemplo.&lt;/p&gt;
+
+&lt;pre&gt;if (!empty($form[&#39;email&#39;]) &amp;&amp; !empty($form[&#39;city&#39;])) {
+  $mailchimp = new Mailchimp(MAILCHIMP_API_KEY);
+  $lists = new Mailchimp_Lists($mailchimp);
+  $email = [
+    &#39;email&#39; =&amp;gt; $form[&#39;email&#39;],
+  ];
+  $merge = [
+    MAILCHIMP_CITY_TAG =&amp;gt; $form[&#39;city&#39;],
+  ];
+  $lists-&amp;gt;subscribe(
+    MAILCHIMP_LIST_ID, // ID da lista
+    $email,            // O e-mail do assinante
+    $merge,            // Campos personalizados
+    &#39;html&#39;,            // Tipo de e-mail recebido
+    false              // Confirmar assinatura por e-mail (opt-in duplo)?
+  );
+  echo &#39;Newsletter assinada!&#39;;
+} else {
+  echo &#39;Por favor preencha os campos. &amp;lt;a href=&#34;newsletter.php&#34;&amp;gt;Voltar&amp;lt;/a&amp;gt;&#39;;
+}&lt;/pre&gt;
+
+&lt;p&gt;Se você usou um e-mail que ainda não está na lista para testar o formulário, vai ver que ele funciona a primeira vez, mas nos envios seguintes o PHP indica uma exceção. Se o teste foi feito com um e-mail já cadastrado, nem o primeiro envio funcionou.&lt;/p&gt;
+
+&lt;p&gt;Isso acontece porque o SDK do Mailchimp usa exceções para indicar qualquer coisa que impeça a chamada à API de ser executada com sucesso, incluindo a tentativa de assinatura com um e-mail já cadastrado. Para tratar esses casos, vamos fazer a seguinte alteração no código que está dentro do &lt;strong&gt;if&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;try {
+    $mailchimp = …
+
+    ...
+
+    echo &#39;Newsletter assinada!&#39;;
+  } catch (Mailchimp_List_AlreadySubscribed $e) {
+    echo &#39;Você já assinou a newsletter.&#39;;
+  } catch (Mailchimp_Email_AlreadySubscribed $e) {
+    echo &#39;Você já assinou a newsletter.&#39;;
+  } catch (Mailchimp_Email_NotExists $e) {
+    echo &#39;O e-mail informado não existe.&#39;;
+  } catch (Mailchimp_Invalid_Email $e) {
+    echo &#39;O e-mail informado é inválido.&#39;;
+  } catch (Mailchimp_List_InvalidImport $e) {
+    echo &#39;Dados inválidos, provavelmente seu e-mail.&#39;;
+  } catch (Exception $e) {
+    echo $e-&amp;gt;getMessage(); // Não mostre isso para o usuário
+  }&lt;/pre&gt;
+
+&lt;p&gt;Dessa forma conseguimos tratar algumas exceções mais comuns que o SDK pode lançar e devolver um feedback para o usuário, assim ele é capaz de corrigir as informações e tentar novamente.&lt;/p&gt;
+
+&lt;p&gt;Para os outros casos, fazemos um tratamento genérico apenas exibindo a mensagem da exceção. Isso é o suficiente para um exemplo como esse aqui, mas não é o ideal para um código real que vai para produção, porque pode expôr bugs e informações sensíveis da sua aplicação. Então recomendo fazer um tratamento mais adequado, como gravar em um arquivo de log ou &lt;a href=&#34;http://tableless.com.br/rastreando-excecoes-no-php-com-o-airbrake/&#34; target=&#34;_blank&#34;&gt;usar um rastreador de bugs&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora quando você submeter o formulário com um e-mail já cadastrado, verá a mensagem: &lt;strong&gt;“Você já assinou a newsletter.”&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Essa integração é bem básica, mas dá uma ideia do que é possível fazer com a API do Mailchimp. Como falei no início, você pode ir muito mais além do que um formulário de captação de e-mails. E mesmo em se tratando da assinatura de listas, você pode refinar o código que apresentei e integrar em um formulário de cadastro do seu site, e até adicionar novos campos.&lt;/p&gt;
+
+&lt;p&gt;Caso tenha alguma dúvida ou encontre algum erro, fique a vontade para usar os comentários.&lt;/p&gt;
+
+&lt;p&gt;Ah! O código completo está disponível no GitHub: &lt;a href=&#34;https://github.com/straube/mailchimp-sample-form&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/straube/mailchimp-sample-form&#34;&gt;https://github.com/straube/mailchimp-sample-form&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Formulário responsivo com MailChimp</title>
+      <link>http://tableless.com.br/formulario-responsivo-com-mailchimp/</link>
+      <pubDate>Fri, 06 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/formulario-responsivo-com-mailchimp/</guid>
+      <description>
+
+&lt;p&gt;Há cada dia mais utilizamos serviços disponíveis na web que tem um plano básico e gratuito que permite integrações. Nos últimos meses tenho feito formulários com frequência usando uma abordagem bem simples. Vou mostrar agora como criar um formulário responsivo, integrando com MailChimp e usando jQuery Validate.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-html&#34;&gt;O HTML&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar o formulário da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;section&amp;gt;
+  &amp;lt;h1&amp;gt;CREATE RESPONSIVE FORM WITH INTEGRATE MAILCHIMP&amp;lt;/h1&amp;gt;
+  &amp;lt;form id=&#34;form-contact&#34; method=&#34;POST&#34; action=&#34;mailchimp-contact.php&#34;&amp;gt;
+    &amp;lt;div class=&#34;input&#34;&amp;gt;
+      &amp;lt;label for=&#34;name&#34;&amp;gt;Name&amp;lt;/label&amp;gt;
+      &amp;lt;input type=&#34;text&#34; id=&#34;name&#34; name=&#34;name&#34; placeholder=&#34;Your name&#34; required&amp;gt;
+    &amp;lt;/div&amp;gt;
+
+    ...
+    
+    &amp;lt;div class=&#34;input txt&#34;&amp;gt;
+      &amp;lt;label for=&#34;message&#34;&amp;gt;Message&amp;lt;/label&amp;gt;
+      &amp;lt;textarea id=&#34;message&#34; name=&#34;message&#34; cols=&#34;10&#34; rows=&#34;5&#34; placeholder=&#34;Its message leaves&#34; required&amp;gt;&amp;lt;/textarea&amp;gt;
+    &amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;buttons&#34;&amp;gt;
+      &amp;lt;span class=&#34;form-message&#34;&amp;gt;&amp;lt;/span&amp;gt;
+      &amp;lt;input type=&#34;submit&#34; value=&#34;SEND&#34; /&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;/form&amp;gt;
+&amp;lt;/section&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-form-mailchimp/demo-only-elements.html&#34; target=&#34;_blank&#34; title=&#34;Ver demo sem style.&#34;&gt;Ver demo sem style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-css&#34;&gt;O CSS&lt;/h2&gt;
+
+&lt;p&gt;Para cada label e input foi adicionado uma &lt;code&gt;div.input&lt;/code&gt; para inserir uma formatação por grupo.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-form-está-centralizado-com-max-width&#34;&gt;O form está centralizado com max-width:&lt;/h3&gt;
+
+&lt;p&gt;Por ser um elemento &amp;#8216;block&amp;#8217;, vamos definir o tamanho máximo que ele pode ter.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;form {
+&amp;nbsp; margin: 0 auto;
+&amp;nbsp; max-width: 850px;
+&amp;nbsp; padding: 20px 10px;
+&amp;nbsp; background-color: rgba(255,255,255,0.4)
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;o-grupo-div-input-com-50-em-8216-width-8217-do-form&#34;&gt;O grupo div.input com 50% em &amp;#8216;width&amp;#8217; do form:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input {
+  float: left;
+  width: 48%;
+  padding: 0 1% 20px;
+  position: relative;
+}
+
+.input.txt { width: 98%; } /*textarea 100%*/
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;os-labels&#34;&gt;Os labels:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input label {
+  display: block;
+  padding-bottom: 5px;
+  color: #666;
+}
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input label.error {
+  position: absolute;
+  right: 18px;
+  top: 35px;
+  color: #f00;
+}&lt;/pre&gt;
+
+&lt;p&gt;O label.error é gerado pelo jQuery validate e adicionado seguido dos campos.&lt;/p&gt;
+
+&lt;h3 id=&#34;os-campos&#34;&gt;Os campos:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input input,
+.input textarea {
+  padding-top: 10px;
+  padding-bottom: 9px;
+  border: none;
+  font-size: 16px;
+  font-weight: 100;
+  font-family: &#34;Helvetica Neue&#34;, Helvetica, Arial, sans-serif;
+}
+
+.input input {
+  width: 94%;
+  padding-left: 3%;
+  padding-right: 3%;
+}
+
+.input textarea {
+  width: 97%;
+  padding-left: 1.5%;
+  padding-right: 1.5%;
+}&lt;/pre&gt;
+
+&lt;p&gt;Formatamos os campos para ter 100% de tamanho do elemento pai &amp;#8216;div.input&amp;#8217;.&lt;/p&gt;
+
+&lt;p&gt;Sempre que redimensionar não haverá quebras, portanto, responsivo meu amigo.&lt;/p&gt;
+
+&lt;h3 id=&#34;agora-um-capricho-para-resoluções-pequenas&#34;&gt;Agora um capricho para resoluções pequenas.&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@media screen and (max-width: 520px) {
+  .input {
+    width: 98%;
+  }
+}&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-form-mailchimp/demo-style-elements.html&#34; target=&#34;_blank&#34; title=&#34;Ver demo com style.&#34;&gt;Ver demo com style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-jquery-mailchimp&#34;&gt;O jQuery + MailChimp&lt;/h2&gt;
+
+&lt;p&gt;Com o HTML e CSS prontos, vamos adicionar o JavaScript que é fácil. Como dependemos do jQuery e não podemos iniciar de qualquer forma, segue uma estrutura bem legal:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function(){
+  var contact = function(){
+    var init = function() {
+      //initialize code
+    };
+    
+&amp;nbsp;   //more functions
+
+    return {init: init};
+  }();
+
+  //jQuery loaded
+  $(document).ready(contact.init);
+})();&lt;/pre&gt;
+
+&lt;p&gt;Como sabemos exatamente qual função vai executar quando a jQuery carregar, adicionaremos o jQuery Validate no init:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var init = function() {
+  $(&amp;#039;#form-contact&amp;#039;).validate({
+    rules : {
+      name: &#34;required&#34;,
+      email: { required: true, email: true },
+      phone: { required: true, minlength: 14 },
+      company: &#34;required&#34;,
+      message: &#34;required&#34;
+    },
+    messages: {
+      name: &#34;*&#34;,
+      email: { required: &#34;*&#34;, email: &#34;*&#34; },
+      phone: { required: &#34;*&#34;, minlength: &#34;*&#34; },
+      company: &#34;*&#34;,
+      message: &#34;*&#34;
+    }
+  });
+};&lt;/pre&gt;
+
+&lt;p&gt;Agora que estamos validando todos os campos, que tal adicionar um ajax para deixar nosso formulário bem suave e uma função para exibir mensagens de sucesso ou erro, veja:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var init = function() {
+  $(&amp;#039;#form-contact&amp;#039;).validate({
+    rules : {
+      ...
+    },
+    messages: {
+      ...
+    },
+    submitHandler: function(form) {
+      var $form = $(form);
+
+      var params = {
+        name: $form.find(&amp;#039;#name&amp;#039;).val(),
+        email: $form.find(&amp;#039;#email&amp;#039;).val(),
+        phone: $form.find(&amp;#039;#phone&amp;#039;).val(),
+        company: $form.find(&amp;#039;#company&amp;#039;).val(),
+        message: $form.find(&amp;#039;#message&amp;#039;).val()
+      };
+
+      $.ajax({
+        type: $form.attr(&amp;#039;method&amp;#039;),
+        url: $form.attr(&amp;#039;action&amp;#039;),
+        data: params,
+        success: function( data ) {
+          if(data == &#34;true&#34;) {
+            $form.find(&amp;#039;.input input&amp;#039;).val(&#34;&#34;);
+            $form.find(&amp;#039;.input textarea&amp;#039;).val(&#34;&#34;);
+            setMessage(&#34;Mission accomplished. &amp;lt;strong&amp;gt;&#34;+ params.email +&#34;&amp;lt;/strong&amp;gt; was successfully added to list.&#34;, &#34;success&#34;);
+          } else {
+            setMessage(&#34;Mission failed. &amp;lt;strong&amp;gt;&#34;+ params.email +&#34;&amp;lt;/strong&amp;gt; not was added to list.&#34;, &#34;error&#34;);
+          }
+        },
+        error: function( data ) {
+          setMessage(&#34;Mission failed in connection. Try again.&#34;, &#34;error&#34;);
+        }
+      });
+
+      return false;
+    }
+  });
+};
+
+var setMessage = function($message, $type) {
+  $(&amp;#039;.form-message&amp;#039;).html($message).addClass($type);
+
+  setTimeout(function(){
+    $(&amp;#039;.form-message&amp;#039;).removeClass($type);
+  }, 6000);
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Via &amp;#8216;submitHandler&amp;#8217; do &lt;a href=&#34;http://jQueryvalidation.org/&#34; target=&#34;_blank&#34;&gt;jQuery Validate&lt;/a&gt;, vamos disparar por ajax todos os dados preenchidos e travar o post do form com &amp;#8216;return false&amp;#8217; no final da função. Assim evitamos aquele redirecionamento de post.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-php&#34;&gt;O PHP&lt;/h3&gt;
+
+&lt;p&gt;Como definimos com &amp;#8216;method&amp;#8217; e &amp;#8216;action&amp;#8217; para o nosso formulário, segue o código para resgatar os dados:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+    require_once &amp;#039;MCAPI.class.php&amp;#039;;
+    $api = new MCAPI(&amp;#039;casiuach1293kajsc912319203cja23s-us9&amp;#039;);
+    $merge_vars = array(&amp;#039;NAME&amp;#039;=&amp;gt;$_POST[&#34;name&#34;], &#39;PHONE&#39;=&amp;gt;$_POST[&#34;phone&#34;], &#39;COMPANY&#39;=&amp;gt;$_POST[&#34;company&#34;], &#39;MESSAGE&#39;=&amp;gt;$_POST[&#34;message&#34;]);
+    
+    // Submit subscriber data to MailChimp
+    // For parameters doc, refer to: http://apidocs.mailchimp.com/api/1.3/listsubscribe.func.php
+    $retval = $api-&amp;gt;listSubscribe( &amp;#039;12938asd98&amp;#039;, $_POST[&#34;email&#34;], $merge_vars, &amp;#039;html&amp;#039;, false, true );
+    
+    if ($api-&amp;gt;errorCode){
+        echo &#34;false&#34;;
+    } else {
+        echo &#34;true&#34;;
+    }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Dependemos da MCAPI.class que você pode verificar na &lt;a href=&#34;https://apidocs.mailchimp.com/api/example-code/&#34; target=&#34;_blank&#34;&gt;documentação&lt;/a&gt; ou baixar &lt;a href=&#34;https://codeload.github.com/sunarlim/mailchimp-subscribe/zip/master&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;, só lembrando que precisa adicionar sua API Key e List ID.&lt;/p&gt;
+
+&lt;h2 id=&#34;pronto&#34;&gt;PRONTO&lt;/h2&gt;
+
+&lt;p&gt;Nosso formulário é responsivo e integrado ao mailchimp.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://css4html.com.br/demos/responsive-form-mailchimp/&#34; target=&#34;_blank&#34; title=&#34;Veja como ficou o resultado final&#34;&gt;Veja como ficou o resultado final&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/palloi/responsive-form-mailchimp/&#34; target=&#34;_blank&#34; title=&#34;Veja o código completo no github&#34;&gt;Veja o c&amp;oacute;digo completo no github&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;É isso ae pessoal, obrigado.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

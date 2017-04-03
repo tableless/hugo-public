@@ -1,0 +1,435 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/fluxo-de-execucao-assincrono-em-javascript-promises/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/fluxo-de-execucao-assincrono-em-javascript-promises/">Fluxo de execução assíncrono em JavaScript – Promises</a></h1>
+  <p class="tb-hero-p">
+    
+    Este é o segundo artigo de uma série que trata de execução assíncrona no JavaScript. Neste vamos ver algumas limitações das callbacks e como as &lt;em&gt;promises&lt;/em&gt; podem ser um recurso poderoso de programação.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/jean-carlo-emer">Jean Carlo Emer</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>No <a href="http://tableless.com.br/fluxo-de-execucao-assincrono-em-javascript-callbacks">primeiro artigo da série</a> falamos sobre o que é execução assíncrona, quais APIs executam código assincronamente e como se livrar de dores de cabeça quando utilizando <em>callbacks</em>.</p>
+
+<p>Uma série de problemas encontradas ao utilizar <em>callbacks</em> foram explorados junto com suas soluções. Aprendemos a utilizar <em>closures</em>, contornar o tratamento de excessões, reconhecer o comportamento do <code>this</code> e evitar o Callback Hell. O que veremos a seguir são algumas das reais limitações das <em>callbacks</em>.</p>
+
+<h2 id="limitações-das-callbacks">Limitações das Callbacks</h2>
+
+<p>Apenas uma <em>callback</em> pode ser associada a um determinado evento do <em>loop</em> interno de eventos do JavaScript.</p>
+
+<pre class="lang-javascript">var xmlhttp = new XMLHttpRequest()
+xmlhttp.open('GET', 'http://url.com', true)
+xmlhttp.onreadystatechange = function callback() {}
+xmlhttp.send()
+</pre>
+
+<p>Veja acima o exemplo de uma chamada tradicional Ajax que só aceita uma única <em>callback</em> para lidar com o retorno do servidor. As funções mais antigas da API do DOM enfrentavam este problema para lidar com eventos: <code>document.getElementById('bla').onclick = callback</code>.</p>
+
+<p>Algumas APIs suavizam este problema ao modelar suas interações através de uma interface orientada a eventos. Desta maneira, um único evento da API pode ter mais de uma <em>callback</em> a ser executada no futuro. Cada <em>callback</em> associada a um evento da API será registrada no <em>loop</em> de eventos do JavaScript.</p>
+
+<p>Fazemos isto com frequência utilizando jQuery para associar <em>callbacks</em> a eventos do DOM. Cada linha do código abaixo pode muito bem estar distribuída entre módulos da sua aplicação:</p>
+
+<pre class="lang-javascript">element.on('click', callback1)
+element.on('click', callback2)
+element.on('click', callback3)
+</pre>
+
+<p>Porém, para os casos da API não suportar o modelo de eventos, atribuir múltiplas <em>callbacks</em> resulta em um alto acoplamento. Como exemplo, observe o código abaixo que não pode ser facilmente distribuído em diferentes módulos da aplicação:</p>
+
+<pre class="lang-javascript">xmlhttp.onreadystatechange = function callback() {
+  callback1()
+  callback2()
+  callback3()
+}
+</pre>
+
+<p>Outro ponto que já deve ter notado é que sempre nos referimos a <em>callbacks</em> como porções de código a serem executadas em um tempo conveniente <strong>no futuro</strong>. Isto porque o modelo de <em>callbacks</em> não possui memória. Sempre que o fluxo de execução associado a <em>callback</em> achar oporturno, esta será executada.</p>
+
+<p>Observe o caso em que é preciso esperar que o documento esteja carregado para executar um determinado código. O DOM expõe o evento <code>DOMContentLoaded</code> que indica justamente o instante em que o documento está totalmente carregado. Mas este evento ocorre uma única vez.</p>
+
+<p>Os módulos da aplicação que dependem do carregamento do documento devem ser definidos antes deste evento disparar, ou nunca serão executados. Com o domínio de técnicas que temos até aqui, conseguimos contornar este problema de uma maneira grosseira. Teremos apenas que garantir que o código a seguir seja executado antes do documento estar completamente carregado. Sua função é indicar através da variável <code>isReady</code> se o documento está carregado:</p>
+
+<pre class="lang-javascript">window.isReady = false
+document.addEventListener('DOMContentLoaded', function (){ 
+  window.isReady = true
+})
+</pre>
+
+<p>E então, nos módulos da aplicação, teremos que implementar uma lógica baseada na variável <code>isReady</code>. É preciso conferir se o documento está carregado e caso contrário, atribuir uma <em>callback</em> ao evento de carregamento:</p>
+
+<pre class="lang-javascript">if (isReady) {
+  callback1()
+} else {
+  document.addEventListener('DOMContentLoaded', callback1)
+}
+</pre>
+
+<p>As limitações e dificuldades já estão claras até aqui, mas podemos adicionar um tanto mais de complexidade. Podemos supor que estes mesmos módulos que dependem de o documento estar completo, também dependem da resposta de uma requisição assíncrona que retorna o perfil do usuário. Além da variável <code>isReady</code> teríamos mais outra, digamos <code>isProfileLoaded</code> para controlar os diferentes carregamentos.</p>
+
+<p>Em resumo: <strong>algumas APIs aceitam uma única <em>callback</em>, <em>callbacks</em> não matém memória e são difíceis de coordenar quando temos fluxos assíncronos executando em paralelo</strong>. Conheceremos a seguir as <em>promises</em> que prometem (sic) solucionar todos estes problemas.</p>
+
+<h2 id="introdução">Introdução</h2>
+
+<p>Uma promessa representa o possível resultado de uma operação assíncrona. Alguns exemplos serão mais fáceis para esclarecer como as promessas funcionam. Vamos assumir que a função <code>get</code> retorna uma <em>promise</em> de uma requisição Ajax.</p>
+
+<p>O código a seguir irá requisitar o perfil de um usuário:</p>
+
+<pre class="lang-javascript"><code>var profile = get('profile.json')</code></pre>
+
+<p>Através da função <code>then</code> é possível atribuir duas <em>callbacks</em> a uma promessa. A primeira das <em>callbacks</em> será executada quando tudo ocorrer bem, chamaremos estas de <strong>callbacks de sucesso</strong>. A segunda delas é executada em caso de erro, chamaremos de <strong>callbacks de falha</strong>. Podemos utilzar nossa <em>promise</em> <code>get</code> da maneira seguinte:</p>
+
+<pre class="lang-javascript">profile.then(function (response) {
+  // requisição Ajax executada com sucesso,
+  // perfil do usuário retornado
+}, function onRejected() {
+  // falha na requisição Ajax
+});
+</pre>
+
+<p>As promessas são valores que podemos passar para os diferentes módulos da nossa aplicação. <strong>Além disto, as promessas possuem memória</strong>. Mesmo depois de a requisição por <code>profile.json</code> completar, podemos adicionar novas <em>callbacks</em> através do <code>then</code>. Promessas aceitam múltiplas <em>callbacks</em>.</p>
+
+<pre class="lang-javascript">var profile = get('profile.json')
+
+var basket = new Basket(profile)
+var toolbar = new Toolbar(profile)
+
+function Basket(profile) {
+  profile.then(this.setup, this.error)
+}
+
+// ...
+</pre>
+
+<h2 id="criando-promises">Criando Promises</h2>
+
+<p>Uma parcela importante para compreender o funcionamento das <em>promises</em> é exercitar sua criação. O exemplo abaixo cria uma promessa que termina bem em 50% dos casos:</p>
+
+<pre class="lang-javascript">var randomPromise = new Promise(function (fulfill, reject) {
+  if (Math.random() &gt; .5) {
+    fulfill('success')
+  } else {
+    reject('fail')
+  }
+}
+</pre>
+
+<p>As funções <code>fulfill</code> e <code>reject</code> permitem resolver (terminar bem) ou rejeitar a promessa. Aumentado o nível de detalhes: ao chamar <code>fulfill</code>, as <em>callbacks</em> de sucesso atribuídas a promessa através do <code>then</code> são executadas; para o caso de <code>reject</code> ser disparado, as <em>callbacks</em> de falha é que serão executadas. <strong>Os valores passados para <code>fulfill</code> e <code>reject</code> ficam memorizados na promessa</strong> e são sempre passados para as <em>callbacks</em> de sucesso e falha respectivamente.</p>
+
+<p>Existem dois atalhos para criação de promessas. São as funções <code>Promise.resolve</code> e <code>Promise.reject</code>. Estas funções criam uma promessa resolvida ou rejeitada respectivamente. O código abaixo irá imprimir &#8220;salve&#8221; em um diálogo de alerta:</p>
+
+<pre class="lang-javascript">Promise.resolve('salve').then(function (message) { 
+  alert(message)
+})
+</pre>
+
+<p>Como último exercício, vamos escrever a função <code>get</code> que fomos apresentados anteriormente:</p>
+
+<pre class="lang-javascript">function get(url) {
+  return new Promise(function (fulfill, reject) {
+    var req = new XMLHttpRequest()
+    req.open('GET', url)
+
+    req.onload = function () {
+      if (req.status == 200) {
+        fulfill(req.response)
+      } else {
+        reject(Error(req.statusText))
+      }
+    }
+
+    req.send()
+  })
+}
+</pre>
+
+<p>A promessa instanciada no interior da função, como deve ser, encapsula uma operação assíncrona. A requisição Ajax é disparada pela promessa. O resultado da requisição resolve ou rejeita a promessa no interior da <em>callback</em> de <code>onload</code>.</p>
+
+<p>Vale lembrar que as funções Ajax da jQuery já retornam promessas. A função <code>get</code> que acabamos de criar é equivalente a função <code>$.get</code> da jQuery.</p>
+
+<h2 id="encadeando-promises">Encadeando Promises</h2>
+
+<p>Encadeamento ou <em>chaining</em> é bastante comum no universo JavaScript desde a popularização da jQuery. Usando promessas, é possível chamar um <code>then</code> após outro conforme abaixo:</p>
+
+<pre class="lang-javascript">parser.start()
+  .then(getFiles)
+  .then(generateIndex)
+  .then(generatePosts)
+</pre>
+
+<p>Cada função passada para o <code>then</code> pode retornar um valor ou mesmo uma promessa. Aquilo que for retornado será passado para o próximo <code>then</code>.</p>
+
+<p>Voltando a nosso exemplo, para o caso de <code>getFiles</code> disparar uma requisição assíncrona e retornar uma <em>promise</em>, o <code>generateIndex</code> será chamado apenas quando esta promessa for resolvida. O <code>generateIndex</code> poderá então processar os arquivos e retorná-los. Na sequência, a função <code>generatePosts</code> irá receber os mesmos arquivos e fará seu trabalho.</p>
+
+<p>Um detalhe do funcionamento deve ajudar no entendimento. Uma nova promessa é criada a cada chamada de <code>then</code> com o valor retornado pela sua <em>callback</em> de sucesso ou falha. Esta nova promessa é que será utilizada pelo próximo <code>then</code> do encadeamento. Para o caso da <em>callback</em> não retornar um valor promessa, a função <code>Promise.resolve</code> será chamada.</p>
+
+<p>Graças a este comportamento, a rejeição é tratada de um jeito bem poderoso em meio a um encadeamento. Sempre que a promessa é rejeitada, a primeira <em>callback</em> de falha do encadeamento é chamada. <strong>Esta <em>callback</em> terá como missão tratar a falha</strong>. O valor retornado pela <em>callback</em> de falha irá <strong>disparar as próximas <em>callbacks</em> de sucesso do encadeamento a não ser que esta retorne uma promessa rejeitada</strong>.</p>
+
+<p>O código a seguir irá imprimir o erro &#8220;Oops&#8221; e a mensagem &#8220;Tudo certo&#8221; no <em>console</em> do navegador. Nele usaremos o <code>catch(callback)</code> que é equivalente a <code>then(null, callback)</code>.</p>
+
+<pre class="lang-javascript">Promise.resolve('Yep')
+  .then(function(data) {
+     return Promise.reject('Oops')
+  }, function (error) {
+    // nada de errado com a promise Yep
+  })  
+  .catch(function (error) {
+    console.error(error)
+    // o erro é tratado por esta primeira callback de falha
+    return 'Tudo certo'
+  })
+  .then(function (message) {
+    // o valor retornado pela callback de falha é transformado
+    // em uma promessa resolvida
+    console.log(message)
+  })
+</pre>
+
+<h2 id="tratando-excessões">Tratando Excessões</h2>
+
+<p>No primeiro artigo conhecemos o quanto excessões podem ser uma dor de cabeça quando utilizamos <em>callbacks</em>. As promessas possuem um mecanismo muito mais inteligente e fácil para lidar com excessões.</p>
+
+<p>Sempre que uma <em>callback</em> de sucesso ou falha disparar uma excessão, uma promessa de rejeição é criada. A função de <em>parser</em> de JSON, por exemplo, dispara uma excessão quando recebe um JSON inválido. O código a seguir abre uma janela de diálogo informando que há algo de errado com o JSON passado:</p>
+
+<pre class="lang-javascript">Promise.resolve('oops')
+  .then(function (data) { 
+    JSON.parse(data) 
+  })
+  .catch(function (err) { 
+    alert(err.message) 
+  })
+</pre>
+
+<p>Até aqui, vimos que promessas possuem memória e aceitam mais de uma <em>callback</em>. Por serem valores, <em>promises</em> podem ser facilmente passadas para os módulos da nossa aplicação. Vimos também que promessas possuem um mecanismo poderoso para contornar falhas e excessões. O único tópico que falta é lidar com paralelismo.</p>
+
+<h2 id="trabalhando-com-paralelismo">Trabalhando com paralelismo</h2>
+
+<p>O paralelismo acontece sempre que utilizamos simultaneamente recursos computacionais com o objetivo de reduzir o tempo necessário para resolver um determinado problema. O navegador faz isto a todo tempo quando, por exemplo, requisita diversas imagens para o servidor.</p>
+
+<p>Quando falávamos das limitações das <em>callbacks</em>, apresentamos o problema de um módulo da aplicação que precisava esperar o documento estar carregado e também ter os dados do perfil de usuário carregados via Ajax. Podemos tratar estas duas tarefas como operações assíncronas paralelas.</p>
+
+<p>O primeiro passo é criar uma promessa que deve resolver quando o documento estiver carregado. Esta promessa é equivalente a variável <code>isReady</code> que criamos no início do arquivo:</p>
+
+<pre class="lang-javascript">var documentReady = new Promise(function (fulfill) {
+  document.addEventListener('DOMContentLoaded', fulfill)
+})
+</pre>
+
+<p>Note que, assim como o código do da variável <code>isReady</code>, este código deve ser adicionado ao documento antes que o evento <code>DOMContentLoaded</code> seja disparado. A <a href="https://github.com/jquery/jquery/blob/842958e7aecd0d75a7ee9e2aaec83457701aa2f3/src/core/ready.js">promessa retornada pela jQuery</a> através de <code>$.ready.promise()</code> tem comportamento semelhante porém é bem mais robusta. Usaremos esta e a função <code>$.get</code> da jQuery para carregar as informações do usuário.</p>
+
+<p>Tudo o que precisamos é a função <code>Promise.all</code> que permite esperar que duas ou mais promessas estejam resolvidas. A <em>callback</em> de sucesso do <code>then</code> a seguir será chamada com a lista de resultados retornados pelas promessas:</p>
+
+<pre class="lang-javascript">var profile = $.get('profile.json')
+var ready = $.ready.promise()
+
+Promise.all([
+  profile,
+  ready
+])
+  .then(function (results) {
+    var profileData = results[0]
+    /* podemos disparar o comportamento do 
+       módulo a partir daqui */
+  }, function (result) {
+    // recebe o resultado da primeira promessa que falhar
+  })
+</pre>
+
+<p>Outra função interessante é a <code>Promise.race</code>. Como você deve imaginar, esta função tem uso semelhante à anterior com a diferença que as <em>callbacks</em> de sucesso são chamadas assim que a primeira promessa for resolvida. Funções como esta podem ser bem interessantes para definir <em>timeout</em> para outras tarefas.</p>
+
+<h2 id="conclusão">Conclusão</h2>
+
+<p>As promessas são um conceito um tanto antigo e existem diversas implementações. No universo JavaScript, existe uma discussão sobre qual o padrão mais adequado. O padrão <a href="https://promisesaplus.com">Promises/A+</a> é o mais aceito e muitas <a href="http://blog.jquery.com/2015/07/13/jquery-3-0-and-jquery-compat-3-0-alpha-versions-released">bibliotecas tem feito esforço para ficarem compatíveis a ele</a>. Os exemplos mostrados aqui seguem este padrão.</p>
+
+<p>Promessas também possuem seus pontos contra, <a href="http://sealedabstract.com/code/broken-promises">alguns artigos alertam</a>, por exemplo, para o fato de que memorizar todos os resultados pode pesar bastante na memória ocupada pela aplicação.</p>
+
+<p>Todos os fatores devem ser considerados quando optamos por utilizar uma determinada tecnologia. Mesmo assim, espero que os exemplos que vimos aqui o tenham convencido de que promessas são um recurso a mais para escrever aplicações melhores.</p>
+
+<p>Os problemas enfrentados quando utilizamos puramente <em>callbacks</em> estão intimamente ligados com o fato de tentarmos soluções baseadas em controle de fluxo ao invés de dependências entre valores. <em>Promises</em> são ótimas aliadas nesta briga, lembre-se que: <strong>programação funcional é sobre trabalhar com valores e não com funções</strong>.</p>
+
+<p style="text-align: center;">
+  ***
+</p>
+
+<p>Ufa, esta leitura deve ter sido um tanto pesada. Alguns conceitos não são nada fáceis, tentei deixá-los o mais claro possível e apoiados por exemplos.</p>
+
+<p>O próximo e último artigo da série irá tratar de <em>generators</em> e como estes podem ser utilizados em conjunto com as promessas. Veremos também algumas propostas futuras para lidar com execução de código assíncrono no JavaScript.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

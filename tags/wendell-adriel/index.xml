@@ -1,0 +1,1489 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Wendell Adriel on Tableless</title>
+    <link>http://tableless.com.br/tags/wendell-adriel/index.xml</link>
+    <description>Recent content in Wendell Adriel on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/wendell-adriel/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Entendendo o async e o await em JavaScript</title>
+      <link>http://tableless.com.br/entendendo-o-async-e-o-await-em-javascript/</link>
+      <pubDate>Tue, 12 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/entendendo-o-async-e-o-await-em-javascript/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;As funcionalidades &lt;code&gt;async&lt;/code&gt; / &lt;code&gt;await&lt;/code&gt; não conseguiram chegar para o ES6, mas isso não significa que elas não irão chegar ao JavaScript. Enquanto escrevo esse post, ela é uma proposta na &lt;a href=&#34;https://github.com/tc39/ecma262/tree/82bebe057c9fca355cfbfeb36be8e42f18c61e94&#34; target=&#34;_blank&#34;&gt;fase 3&lt;/a&gt; e está sendo trabalhada ativamente. As funcionalidades já estão no &lt;a href=&#34;https://blogs.windows.com/msedgedev/2015/09/30/asynchronous-code-gets-easier-with-es2016-async-function-support-in-chakra-and-microsoft-edge/&#34; target=&#34;_blank&#34;&gt;Edge&lt;/a&gt; e devem chegar a outros browsers assim que chegar na &lt;a href=&#34;https://twitter.com/bterlson/status/692464374842290176&#34; target=&#34;_blank&#34;&gt;fase 4&lt;/a&gt; &amp;#8211; pavimentando seu caminho para inclusão na próxima edição da linguagem (veja também: &lt;a href=&#34;https://tc39.github.io/process-document/&#34; target=&#34;_blank&#34;&gt;Processo TC39&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h2 id=&#34;utilizando-promises&#34;&gt;Utilizando Promises&lt;/h2&gt;
+
+&lt;p&gt;Vamos supor que tenhamos o código abaixo. Aqui eu estou encapsulando uma chamada &lt;code&gt;HTTP&lt;/code&gt; em uma &lt;code&gt;Promise&lt;/code&gt;. A promise executa o &lt;code&gt;body&lt;/code&gt; caso haja sucesso e é rejeitada com um &lt;code&gt;err&lt;/code&gt; caso contrário. Ela puxa o HTML de um artigo aleatório &lt;a href=&#34;https://ponyfoo.com/&#34; target=&#34;_blank&#34;&gt;desse blog&lt;/a&gt; toda vez que é executada.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var request = require(&#39;request&#39;);
+
+function getRandomPonyFooArticle () {
+  return new Promise((resolve, reject) =&amp;gt; {
+    request(&#39;https://ponyfoo.com/articles/random&#39;, (err, res, body) =&amp;gt; {
+      if (err) {
+        reject(err); return;
+      }
+      resolve(body);
+    });
+  });
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Uma utilização típica da promise mostrada anteriormente está no código abaixo. Nele nós construímos um encadeamento de promises transformando o HTML da página em Markdown de um subconjunto de seu DOM e então imprimimos de forma amigável no terminal utilizando um &lt;code&gt;console.log&lt;/code&gt;. Sempre lembre de adicionar um &lt;code&gt;.catch&lt;/code&gt; para suas promises.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var hget = require(&#39;hget&#39;);
+var marked = require(&#39;marked&#39;);
+var Term = require(&#39;marked-terminal&#39;);
+
+printRandomArticle();
+
+function printRandomArticle () {
+  getRandomPonyFooArticle()
+    .then(html =&amp;gt; hget(html, {
+      markdown: true,
+      root: &#39;main&#39;,
+      ignore: &#39;.at-subscribe,.mm-comments,.de-sidebar&#39;
+    }))
+    .then(md =&amp;gt; marked(md, {
+      renderer: new Term()
+    }))
+    .then(txt =&amp;gt; console.log(txt))
+    .catch(reason =&amp;gt; console.error(reason));
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Esse código foi “melhor que utilizar callbacks” quando se trata da sensação de como foi ler o código sequencialmente.&lt;/p&gt;
+
+&lt;h2 id=&#34;usando-generators&#34;&gt;Usando generators&lt;/h2&gt;
+
+&lt;p&gt;Nós já exploramos os generators como uma forma de deixar o html disponível de uma maneira sintética e síncrona &lt;a href=&#34;https://ponyfoo.com/articles/es6-generators-in-depth&#34; target=&#34;_blank&#34;&gt;no passado&lt;/a&gt;. Mesmo que o código agora seja um pouco síncrono, existe um pouco de encapsulamento envolvido, e generators podem não ser a melhor maneira de chegar aos resultados que queremos, então vamos continuar utilizando Promises.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function getRandomPonyFooArticle (gen) {
+  var g = gen();
+  request(&#39;https://ponyfoo.com/articles/random&#39;, (err, res, body) =&amp;gt; {
+    if (err) {
+      g.throw(err); return;
+    }
+    g.next(body);
+  });
+}
+
+getRandomPonyFooArticle(function* printRandomArticle () {
+  var html = yield;
+  var md = hget(html, {
+    markdown: true,
+    root: &#39;main&#39;,
+    ignore: &#39;.at-subscribe,.mm-comments,.de-sidebar&#39;
+  });
+  var txt = marked(md, {
+    renderer: new Term()
+  });
+  console.log(txt);
+});
+&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Lembre-se que você deve encapsular a chamada ao yield em um bloco try / catch para preservar o tratamento de erros que adicionamos quando usamos promises.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Nem precisamos falar que usar generators dessa maneira não permite que escalemos bem nossas aplicações. Além de envolver uma sintaxe não intuitiva nessa mistura, seu código iterador será altamente acoplado ao generator que está sendo consumido. Isso faz com que você terá de modificar ele toda vez que uma nova expressão de &lt;code&gt;await&lt;/code&gt; for inserida no generator. A melhor alternativa é utilizar uma nova funcionalidade que está chegando: &lt;strong&gt;Funções Assíncronas&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;utilizando-async-await&#34;&gt;Utilizando &lt;code&gt;async&lt;/code&gt; / &lt;code&gt;await&lt;/code&gt;&lt;/h2&gt;
+
+&lt;p&gt;Quando as &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; finalmente chegarem, seremos capazes de pegar nossa implementação baseada em promises e tirar a vantagem do estilo de &lt;strong&gt;“aparência síncrona”&lt;/strong&gt; dos generators. Outro benefício dessa abordagem é que não teremos que alterar o &lt;code&gt;getRandomPonyFooArticle&lt;/code&gt;, enquanto ele retornar uma promise ele poderá ser aguardado.&lt;/p&gt;
+
+&lt;p&gt;Perceba que o &lt;code&gt;await&lt;/code&gt; só poderá ser utilizado em funções marcadas com a palavra chave &lt;code&gt;async&lt;/code&gt;. Ele funciona similarmente aos generators, suspendendo a execução em seu contexto até que a promise seja entregue. Se a expressão esperada não for uma promise, ela é transformada em uma promise.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;read();
+
+async function read () {
+  var html = await getRandomPonyFooArticle();
+  var md = hget(html, {
+    markdown: true,
+    root: &#39;main&#39;,
+    ignore: &#39;.at-subscribe,.mm-comments,.de-sidebar&#39;
+  });
+  var txt = marked(md, {
+    renderer: new Term()
+  });
+  console.log(txt);
+}
+&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Novamente &amp;#8211; assim como os generators &amp;#8211; lembre-se que você deverá encapsular o await em um bloco try / catch para que possamos capturar e tratar erros esperados das promises das funções assíncronas.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Além disso, uma &lt;strong&gt;Função Assíncrona&lt;/strong&gt; sempre irá retornar uma &lt;code&gt;Promise&lt;/code&gt;. Essa promise é rejeitada em caso de exceções não tratadas ou é resolvida e enviada como retorno da função assíncrona caso contrário. Isso nos permite invocar uma Função assíncrona e misturar isso com uma continuação baseada em promises normalmente. O exemplo a seguir mostra como as duas maneiras podem ser combinadas.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;async function asyncFun () {
+  var value = await Promise
+    .resolve(1)
+    .then(x =&amp;gt; x * 3)
+    .then(x =&amp;gt; x + 5)
+    .then(x =&amp;gt; x / 2);
+  return value;
+}
+asyncFun().then(x =&amp;gt; console.log(`x: ${x}`));
+// &amp;lt;- &amp;#039;x: 4&amp;#039;
+&lt;/pre&gt;
+
+&lt;p&gt;Voltando ao nosso exemplo anterior, ele mostra que podemos usar o &lt;code&gt;return txt&lt;/code&gt; da nossa função &lt;code&gt;async read&lt;/code&gt; e permitir que os “consumidores” possam dar continuidade utilizando promises ou até mesmo uma outra &lt;strong&gt;Função Assíncrona&lt;/strong&gt;. Dessa maneira, nossa função read deve se preocupar apenas com imprimir um markdown de forma legível no terminal de um artigo aleatório do Pony Foo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;async function read () {
+  var html = await getRandomPonyFooArticle();
+  var md = hget(html, {
+    markdown: true,
+    root: &#39;main&#39;,
+    ignore: &#39;.at-subscribe,.mm-comments,.de-sidebar&#39;
+  });
+  var txt = marked(md, {
+    renderer: new Term()
+  });
+  return txt;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Então você poderá adicionar mais tarde um &lt;code&gt;await read()&lt;/code&gt; em outra &lt;strong&gt;Função Assíncrona&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;async function write () {
+  var txt = await read();
+  console.log(txt);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ou poderá simplesmente utilizar promises para dar continuação.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;read().then(txt =&amp;gt; console.log(txt));
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;bifurcação-no-caminho&#34;&gt;Bifurcação no caminho&lt;/h2&gt;
+
+&lt;p&gt;No fluxo assíncrono de código é comum executar duas ou mais tarefas concorrentemente. Enquanto as &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; facilitam a escrita de código assíncrono, elas também transformam elas mesmas em um código que é serial, ou seja, código que executa uma operação por vez. Uma função com múltiplos &lt;code&gt;await&lt;/code&gt; irá ser suspensa uma vez em cada &lt;code&gt;await&lt;/code&gt; até que a &lt;code&gt;Promise&lt;/code&gt; chegue (antes de retomar a execução e mover para o próximo &lt;code&gt;await&lt;/code&gt;, não diferente de como podemos ver com os generators e o &lt;code&gt;yield&lt;/code&gt;).&lt;/p&gt;
+
+&lt;p&gt;Para contornar isso você pode usar o &lt;code&gt;Promise.all&lt;/code&gt; para criar uma única promise que você irá dar o &lt;code&gt;await&lt;/code&gt; nela. O único problema é pegar o hábito de utilizar o &lt;code&gt;Promise.all&lt;/code&gt; ao invés de deixar tudo ocorrer em série, como também pode diminuir a performance do seu código.&lt;/p&gt;
+
+&lt;p&gt;O exemplo a seguir mostra como você pode utilizar o &lt;code&gt;await&lt;/code&gt; em três diferentes promises que poderiam ser executadas concorrentemente. Dado que o &lt;code&gt;await&lt;/code&gt; suspende a sua &lt;strong&gt;Função Assíncrona&lt;/strong&gt; e que o &lt;code&gt;await Promise.all&lt;/code&gt; resulta em um &lt;strong&gt;array de results&lt;/strong&gt;, nós podemos desestruturar para puxar resultados individualmente do array.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;async function concurrent () {
+  var [r1, r2, r3] = await Promise.all([p1, p2, p3]);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Até um tempo atrás havia uma alternativa para o código acima: &lt;code&gt;await*&lt;/code&gt;, onde você não precisava encapsular as promises com o &lt;code&gt;Promise.all&lt;/code&gt;. O &lt;strong&gt;Babel 5&lt;/strong&gt; ainda suporta essa sintaxe, mas ela foi tirada da documentação e também do &lt;strong&gt;Babel 6&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;async function concurrent () {
+  var [r1, r2, r3] = await* [p1, p2, p3];
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Você ainda pode utilizar algo como &lt;code&gt;all = Promise.all.bind(Promise)&lt;/code&gt; para obter uma alternativa ao &lt;code&gt;Promise.all&lt;/code&gt;. Partindo desse ponto, você pode fazer o mesmo para o &lt;code&gt;Promise.race&lt;/code&gt;, que não tinha um equivalente para &lt;code&gt;await*&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const all = Promise.all.bind(Promise);
+async function concurrent () {
+  var [r1, r2, r3] = await all([p1, p2, p3]);
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tratamento-de-erros&#34;&gt;Tratamento de Erros&lt;/h2&gt;
+
+&lt;p&gt;Note que &lt;strong&gt;erros são engolidos “silenciosamente” nas Funções Assíncronas&lt;/strong&gt; &amp;#8211; assim como em &lt;code&gt;Promises&lt;/code&gt; normais. A menos que você adicione blocos &lt;code&gt;try&lt;/code&gt; / &lt;code&gt;catch&lt;/code&gt; ao redor de chamadas &lt;code&gt;await&lt;/code&gt;, exceções não capturadas &amp;#8211; independentemente se ocorreram no corpo da sua &lt;strong&gt;Função Assíncrona&lt;/strong&gt; ou enquanto estava suspensa durante o &lt;code&gt;await&lt;/code&gt; &amp;#8211; irão rejeitar a &lt;code&gt;Promise&lt;/code&gt; retornada pela &lt;strong&gt;Função Assíncrona&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Naturalmente isso pode ser visto como um ponto forte: você tem a capacidade de tirar proveito das convenções do uso do &lt;code&gt;try&lt;/code&gt; / &lt;code&gt;catch&lt;/code&gt;, algo que você era incapaz de realizar com o uso de &lt;code&gt;callbacks&lt;/code&gt; &amp;#8211; e de alguma forma utilizar com &lt;code&gt;Promises&lt;/code&gt;. Nesse sentido, &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; são semelhantes aos generators, onde você também tinha a capacidade de tirar proveito do uso do &lt;code&gt;try&lt;/code&gt; / &lt;code&gt;catch&lt;/code&gt; graças à suspensão da execução da função tornando um fluxo assíncrono em um código síncrono.&lt;/p&gt;
+
+&lt;p&gt;Além disso, você também é capaz de capturar exceções de fora da &lt;strong&gt;Função Assíncrona&lt;/strong&gt;, simplesmente adicionando uma cláusula &lt;code&gt;.catch&lt;/code&gt; à &lt;code&gt;Promise&lt;/code&gt; que eles retornam. Enquanto isso é uma forma flexível de combinar o tratamento de erros utilizando &lt;code&gt;try&lt;/code&gt; / &lt;code&gt;catch&lt;/code&gt; com cláusulas &lt;code&gt;.catch&lt;/code&gt; nas &lt;code&gt;Promises&lt;/code&gt;, também pode levar a uma grande confusão e deixar com que erros fiquem sem tratamento.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;read()
+  .then(txt =&amp;gt; console.log(txt))
+  .catch(reason =&amp;gt; console.error(reason));
+&lt;/pre&gt;
+
+&lt;p&gt;Nós devemos ter cuidado e educarmos a nós mesmos sobre as diferentes formas em que podemos encontrar, tratar, registrar e prevenir as exceções.&lt;/p&gt;
+
+&lt;h2 id=&#34;utilizando-async-await-hoje&#34;&gt;Utilizando &lt;code&gt;async&lt;/code&gt; / &lt;code&gt;await&lt;/code&gt; hoje&lt;/h2&gt;
+
+&lt;p&gt;Uma das formas de se utilizar &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; em seu código hoje é através do &lt;strong&gt;Babel&lt;/strong&gt;. Isso envolve uma série de módulos, mas você pode sempre criar um módulo que encapsula todos esses outros em um se você preferir. Eu incluí um &lt;code&gt;npm-run&lt;/code&gt; como uma maneira útil de se manter tudo em pacotes instalados localmente.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;npm i -g npm-run
+npm i -D \
+  browserify \
+  babelify \
+  babel-preset-es2015 \
+  babel-preset-stage-3 \
+  babel-runtime \
+  babel-plugin-transform-runtime
+
+echo &#39;{
+  &#34;presets&#34;: [&#34;es2015&#34;, &#34;stage-3&#34;],
+  &#34;plugins&#34;: [&#34;transform-runtime&#34;]
+}&#39; &amp;gt; .babelrc
+&lt;/pre&gt;
+
+&lt;p&gt;O exemplo a seguir irá compilar o arquivo &lt;code&gt;example.js&lt;/code&gt; utilizando o &lt;strong&gt;browserify&lt;/strong&gt; enquanto utiliza o &lt;strong&gt;babelify&lt;/strong&gt; para habilitar o suporte às &lt;strong&gt;Funções Assíncronas&lt;/strong&gt;. Você pode então enviar o script para o &lt;strong&gt;node&lt;/strong&gt; ou &lt;strong&gt;salvar em disco&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;npm-run browserify -t babelify example.js | node
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;leitura-adicional&#34;&gt;Leitura adicional&lt;/h2&gt;
+
+&lt;p&gt;O rascunho das &lt;a href=&#34;https://tc39.github.io/ecmascript-asyncawait/&#34; target=&#34;_blank&#34;&gt;especificações para Funções Assíncronas&lt;/a&gt; é bem curto e deve ser uma leitura interessante se você quer aprender mais sobre essa funcionalidade que está por vir.&lt;/p&gt;
+
+&lt;p&gt;Eu colei um pedaço de código abaixo com a finalidade de ajudar você a entender como &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; funcionam internamente. Mesmo que não possamos criar novas palavras chave, é importante em termos de compreensão saber o que está acontecendo atrás dar curtinas do &lt;code&gt;async&lt;/code&gt; / &lt;code&gt;await&lt;/code&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;É útil saber que &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; internamente se aproveitam dos &lt;strong&gt;generators&lt;/strong&gt; e das &lt;strong&gt;promises&lt;/strong&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;O código a seguir mostra como uma declaração de uma &lt;strong&gt;Função Assíncrona&lt;/strong&gt; pode ser transformada em uma função comum que retorna o resultado alimentando a &lt;code&gt;spawn&lt;/code&gt; com um generator &amp;#8211; onde nós iremos considerar o &lt;code&gt;await&lt;/code&gt; como o equivalente sintático para &lt;code&gt;yield&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;async function example (a, b, c) {
+  example function body
+}
+
+function example (a, b, c) {
+  return spawn(function* () {
+    example function body
+  }, this);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Na &lt;code&gt;spawn&lt;/code&gt;, uma promise é encapsulada em volta do código que irá percorrer o generator &amp;#8211; composta do código do usuário &amp;#8211; em série, repassando valores para o “generator” (corpo da &lt;strong&gt;Função Assíncrona&lt;/strong&gt;). Com isso podemos observar que &lt;strong&gt;Funções Assíncronas&lt;/strong&gt; são um &lt;code&gt;syntactic sugar&lt;/code&gt; que utiliza generators e promises, isso faz com que seja importante você entender como cada uma dessas partes trabalham para que você possa ter um melhor entendimento em como você pode misturar, comparar e combinar diferentes tipos de fluxo de código assíncrono juntos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function spawn (genF, self) {
+  return new Promise(function (resolve, reject) {
+    var gen = genF.call(self);
+    step(() =&amp;gt; gen.next(undefined));
+    function step (nextF) {
+      var next;
+      try {
+        next = nextF();
+      } catch(e) {
+        // finished with failure, reject the promise
+        reject(e);
+        return;
+      }
+      if (next.done) {
+        // finished with success, resolve the promise
+        resolve(next.value);
+        return;
+      }
+      // not finished, chain off the yielded promise and `step` again
+      Promise.resolve(next.value).then(
+        v =&amp;gt; step(() =&amp;gt; gen.next(v)),
+        e =&amp;gt; step(() =&amp;gt; gen.throw(e))
+      );
+    }
+  });
+}
+&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Os pedaços de códigos mostrados devem ajudá-lo a compreender como o algoritmo do &lt;code&gt;async&lt;/code&gt; / &lt;code&gt;await&lt;/code&gt; itera sobre uma sequência de generators (expressões &lt;code&gt;await&lt;/code&gt;), encapsulando cada item na sequência em uma promise e então encadeando com a próxima sequência. Quando a sequência terminar ou uma das promises são rejeitadas ou a promise é retornada para a função que chamou o generator.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Artigo traduzido e adaptado de: &lt;a href=&#34;https://ponyfoo.com/articles/understanding-javascript-async-await&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://ponyfoo.com/articles/understanding-javascript-async-await&#34;&gt;https://ponyfoo.com/articles/understanding-javascript-async-await&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Sass vs. LESS vs. Stylus: Batalha dos Pré-processadores</title>
+      <link>http://tableless.com.br/sass-vs-less-vs-stylus-batalha-dos-pre-processadores/</link>
+      <pubDate>Mon, 28 Mar 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/sass-vs-less-vs-stylus-batalha-dos-pre-processadores/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;Pré-processadores CSS3 são linguagens criadas com um único propósito de adicionar funcionalidades legais e criativas para o CSS sem quebrar a compatibilidade entre browsers. Os pré-processadores disponibilizam milhares de funcionalidades, e nesse artigo iremos falar sobre as mais utilizadas e conhecidas e algumas nem tanto conhecidas. Vamos começar:&lt;/p&gt;
+
+&lt;h2 id=&#34;sintaxe&#34;&gt;Sintaxe&lt;/h2&gt;
+
+&lt;p&gt;A parte mais importante ao escrever códigos utilizando um pré-processador é entender a sua sintaxe. Felizmente para nós, a sintaxe é (ou pode ser) idêntica à do CSS puro para os três pré-processadores.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-e-less&#34;&gt;Sass e LESS&lt;/h3&gt;
+
+&lt;p&gt;Ambos utilizam o a sintaxe padrão do CSS. Isso faz com que seja extremamente fácil converter um arquivo CSS já existente para qualquer um deles. Sass utiliza arquivos com extensão .scss e LESS com extensão .less. Uma configuração básica de um arquivo Sass ou LESS pode ser como abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.scss ou style.less */
+h1 {
+    color: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ter notado, isso é apenas CSS puro, que compila perfeitamente em ambos pré-processadores (Sass e LESS).&lt;/p&gt;
+
+&lt;p&gt;É importante notar que Sass também tem uma sintaxe mais antiga, que omite ponto e vírgula e as chaves. Ainda pode ser usado, mas como é uma sintaxe antiga, não iremos utilizá-la depois deste exemplo. A sintaxe utiliza arquivos com a extensão .sass e são da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.sass */
+h1
+    color: #0982c1
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Observação pessoal:&lt;/strong&gt; Essa sintaxe não é por causa de ser mais antiga e sim pois no início o &lt;strong&gt;Sass&lt;/strong&gt; era parte de um outro pré-processador chamado &lt;strong&gt;Haml&lt;/strong&gt; criado por desenvolvedores &lt;strong&gt;Ruby&lt;/strong&gt;, e por causa disso as folhas de estilo escritas com &lt;strong&gt;Sass&lt;/strong&gt; utilizavam uma sintaxe como a do &lt;strong&gt;Ruby&lt;/strong&gt;, sem chaves, ponto e vírgula e controlado por identação.&lt;/p&gt;
+
+&lt;h3 id=&#34;stylus&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;p&gt;A sintaxe para o Stylus é muito mais adaptável. Utiliza arquivos com extensão .styl, aceita a sintaxe padrão do CSS, porém também aceita algumas variações onde chaves, dois-pontos e ponto e vírgula são todos opcionais. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.styl */
+h1 {
+    color: #0982c1;
+}
+/* omitindo chaves */
+h1
+    color: #0982c1;
+
+/* omitindo dois-pontos e ponto e vírgula
+h1
+    color: #0982c1
+&lt;/pre&gt;
+
+&lt;p&gt;Utilizar diferentes variações em um mesmo arquivo também é válido, então o seguinte código seria compilado sem erros.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;h1 {
+    color #0982c1
+}
+h2
+    font-size: 1.2em
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;variáveis&#34;&gt;Variáveis&lt;/h2&gt;
+
+&lt;p&gt;Variáveis podem ser declaradas e usadas através das folhas de estilo. Elas podem ter qualquer valor que seja um valor em CSS (por exemplo: cores, números [unidades também], ou texto), e podem ser referenciadas em qualquer lugar das nossas folhas de estilo.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;p&gt;Variáveis em Sass tem seu nome começado o símbolo &amp;#8220;$&amp;#8221; e o nome e o seu valor são separados com dois-pontos, assim como uma propriedade CSS.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;$mainColor: #0982c1;
+$siteWidth: 1024px;
+$borderStyle: dotted;
+
+body {
+    color: $mainColor;
+    border: 1px $borderStyle $mainColor;
+    max-width: $siteWidth;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;p&gt;Varíaves em LESS são praticamente iguais as variáveis no Sass, exceto por começarem seus nomes com o símbolo &amp;#8220;@&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mainColor: #0982c1;
+@siteWidth: 1024px;
+@borderStyle: dotted;
+
+body {
+    color: @mainColor;
+    border: 1px @borderStyle @mainColor;
+    max-width: @siteWidth;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-1&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;p&gt;Variáveis em Stylus não precisam começar com nenhum símbolo, porém ele permite a utilização do símbolo &amp;#8220;$&amp;#8221;. Como sempre, o ponto e vírgula para finalizar não é necessário, mas um sinal de igual entre o nome da variável e seu valor é. Uma coisa importante para se notar é que na versão 0.22.4 do Stylus variáveis com nome começados com o símbolo &amp;#8220;@&amp;#8221; são compiladas, porém não aplicam seu valor quando referenciadas. Em oturas palavras, não faça isso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;mainColor = #0982c1;
+siteWidth = 1024px;
+$borderStyle = dotted;
+
+body
+    color mainColor
+    border 1px $borderStyle mainColor
+    max-width siteWidth
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Cada um dos arquivos acima irão compilar no mesmo CSS. Você pode usar sua imaginação para ver quão úteis variáveis podem ser. Não precisaremos mais ao mudar uma cor reescrever a mesma vinte vezes, ou querer mudar a largura de nosso site e ter de procurar por todo o site para fazer isso. Aqui está o CSS depois de compilado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    color: #0982c1;
+    border: 1px dotted #0982c1;
+    max-width: 1024px.
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;aninhamento&#34;&gt;Aninhamento&lt;/h2&gt;
+
+&lt;p&gt;Se precisarmos referenciar múltiplos elementos com o mesmo pai em nosso CSS, pode ser entediante ficar digitanto o pai toda vez.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+}
+section nav {
+    height: 25px;
+}
+section nav a {
+    color: #0982c1;
+}
+section nav a:hover {
+    text-decoration: underline;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao invés disso, usando um pré-processador, podemos escrever os seletores filhos dentro das chaves do elemento pai. O símbolo &amp;#8220;&amp;amp;&amp;#8221; é usado para referenciar o seletor pai.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-less-e-stylus&#34;&gt;Sass, LESS e Stylus&lt;/h3&gt;
+
+&lt;p&gt;Todos os três pré-processdores utilizam a mesma sintaxe para aninhar seletores.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+
+    nav {
+        height: 25px;
+
+        a {
+            color: #0982c1;
+
+            &amp;:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-1&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Abaixo está o CSS compilado do código escrito acima. Está exatamente igual ao mostrado no começo &amp;#8211; que conveniente!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+}
+section nav {
+    height: 25px;
+}
+section nav a {
+    color: #0982c1;
+}
+section nav a:hover {
+    text-decoration: underline;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;mixins&#34;&gt;Mixins&lt;/h2&gt;
+
+&lt;p&gt;Mixins são funções que permitem reusar propriedades através de nossas folhas de estilo. Ao invés de procurar por todas nossas folhas de estilo e mudar uma propriedade várias vezes, podemos apenas mudar dentro de nosso mixin. Isso pode ser realmente útil para estilização de elementos específicos e para &amp;#8220;vendor prefixes&amp;#8221; (moz-*, o-*, etc). Quando os mixins são chamados de dentro de um seletor CSS, os argumentos são reconhecidos e os estilos dentro do mixin são aplicados ao seletor.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-1&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em Sass chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+@mixin error($borderWidth: 2px) {
+    border: $borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    @include error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    @include error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-1&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em LESS chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+.error(@borderWidth: 2px) {
+    border: @borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    .error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    .error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-2&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em Stylus chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+error(borderWidth = 2px) {
+    border: borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-2&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Todos pré-processadores irão compilar o mesmo código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.generic-error {
+    padding: 20px;
+    margin: 4px;
+    border: 2px solid #f00;
+    color: #f00;
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    border: 5px solid #f00;
+    color: #f00;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;herança&#34;&gt;Herança&lt;/h2&gt;
+
+&lt;p&gt;Quando estamos escrevendo CSS da velha maneira, nós usaríamos o seguinte código para aplicar o mesmo estilo para múltiplos elementos de uma só vez:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;p,
+u,
+ol {
+    /* estilos aqui */
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Isso funciona perfeitamente, mas se depois precisássemos de estilizar os elementos individualmente, outro seletor deveria ser criado para cada um e rapidamente poderia ficar cada vez mais bagunçado e difícil de manter. Podemos utilizar herança para resolver isso. Herança é a habilidade de outros seletores CSS herdarem as propriedades de outro seletor.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-e-stylus&#34;&gt;Sass e Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+
+p {
+    @extend .block; /* Herda estilos do seletor &#39;.block&#39; */
+    border: 1px solid #eee;
+}
+ul, ol {
+    @extend .block; /* Herda estilos do seletor &#39;.block&#39; */
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-sass-e-stylus&#34;&gt;CSS Compilado (Sass e Stylus)&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block, p, ul, ol {
+    margin: 10px 5px;
+    padding: 2px;
+}
+p {
+    border: 1px solid #eee;
+}
+ul, ol {
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-2&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;p&gt;LESS não tem suporte a herança de estilos como Sass e Stylus. Ao invés de adicionar diversos seletores para um grupo de propriedades, ele trata herança como um mixin sem argumentos e importa os estilos para dentro de seus próprios seletores. O problema disso é que propriedades são repetidas em sua folha de estilo compilada. Abaixo segue como deve-se utilizar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+ 
+p {
+    .block; /* Herda estilos do seletor &#39;.block&#39; */
+    border: 1px solid #eee;
+}
+ul, ol {
+    .block; /* Herda estilos do seletor &#39;.block&#39; */
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Observação pessoal:&lt;/strong&gt; Como mencionado nos comentários, o LESS tem suporte a herança e pode ser feita com a seguinte sintaxe:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;p {
+        &amp;:extend(.block);
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-less&#34;&gt;CSS Compilado (LESS)&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+p {
+    margin: 10px 5px;
+    padding: 2px;
+    border: 1px solid #eee;
+}
+ul,
+ol {
+    margin: 10px 5px;
+    padding: 2px;
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ver, os estilos do seletor .block foram inseridas nos seletores que queríamos aplicar a herança. É importante notar que a prioridade das propriedades pode se tornar um problema, então devemos ter bastante cautela.&lt;/p&gt;
+
+&lt;h2 id=&#34;importação&#34;&gt;Importação&lt;/h2&gt;
+
+&lt;p&gt;Na comunidade CSs, importar CSS é visto com maus olhos por utilizar diversas chamadas HTTP. Importar com um pré-processador funciona de forma diferente no entanto. Se você importar um arquivo com qualquer um dos três pré-processadores, ele irá literalmente pegar todo o conteúdo do arquivo durante a importação e gerar apenas um arquivo. Lembre-se que arquivos .css comuns importados compilam com o código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@import &#34;file.css&#34;;
+&lt;/pre&gt;
+
+&lt;p&gt;Lembre-se também que mixins e variáveis podem ser importadas e usadas em sua folha de estilo principal. Importação faz com que possamos criar arquivos separados para uma melhor organização.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-less-e-stylus-1&#34;&gt;Sass, LESS e Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* arquivo.{extensao} */
+body {
+    background: #eee;
+}
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@import &#34;reset.css&#34;;
+@import &#34;arquivo.{extensao}&#34;;
+ 
+p {
+    background: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-3&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;h2 id=&#34;introdução-1&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;-&amp;gt;Pré-processadores produzem CSS que funciona em todos os browsers&lt;/p&gt;
+
+&lt;p&gt;Pré-processadores CSS3 são linguagens criadas com um único propósito de adicionar funcionalidades legais e criativas para o CSS sem quebrar a compatibilidade entre browsers. Eles fazem isso compilando o código que escrevemos em CSS puro que pode ser usado em qualquer browser de agora até a era das pedras. Os pré-processadores disponibilizam milhares de funcionalidades, e nesse artigo iremos falar sobre as mais utilizadas e conhecidas e algumas nem tanto conhecidas. Vamos começar&lt;/p&gt;
+
+&lt;h2 id=&#34;sintaxe-1&#34;&gt;Sintaxe&lt;/h2&gt;
+
+&lt;p&gt;A parte mais importante ao escrever códigos utilizando um pré-processador CSS é entender a sua sintaxe. Felizmente para nós, a sintaxe é (ou pode ser) idêntica à do CSS puro para os três pré-processadores.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-e-less-1&#34;&gt;Sass e LESS&lt;/h3&gt;
+
+&lt;p&gt;Ambos utilizam o a sintaxe padrão do CSS. Isso faz com que seja extremamente fácil converter um arquivo CSS já existente para qualquer um deles. Sass utiliza arquivos com extensão .scss e LESS com extensão .less. Uma configuração básica de um arquivo Sass ou LESS pode ser como abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.scss ou style.less */
+h1 {
+    color: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ter notado, isso é apenas CSS puro, que compila perfeitamente em ambos pré-processadores (Sass e LESS).&lt;/p&gt;
+
+&lt;p&gt;É importante notar que Sass também tem uma sintaxe mais antiga, que omite ponto e vírgula e as chaves. Ainda pode ser usado, mas como é uma sintaxe antiga, não iremos utilizá-la depois deste exemplo. A sintaxe utiliza arquivos com a extensão .sass e são da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.sass */
+h1 {
+    color: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-3&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;p&gt;A sintaxe para o Stylus é muito mais adaptável. Utiliza arquivos com extensão .styl, aceita a sintaxe padrão do CSS, porém também aceita algumas variações onde chaves, dois-pontos e ponto e vírgula são todos opcionais. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* style.styl */
+h1 {
+    color: #0982c1;
+}
+/* omitindo chaves */
+h1
+    color: #0982c1;
+
+/* omitindo dois-pontos e ponto e vírgula
+h1
+    color: #0982c1
+&lt;/pre&gt;
+
+&lt;p&gt;Utilizar diferentes variações em um mesmo arquivo também é válido, então o seguinte código seria compilado sem erros.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;h1 {
+    color #0982c1
+}
+h2
+    font-size: 1.2em
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;variáveis-1&#34;&gt;Variáveis&lt;/h2&gt;
+
+&lt;p&gt;Variáveis podem ser declaradas e usadas através das folhas de estilo. Elas podem ter qualquer valor que seja um valor em CSS (por exemplo: cores, números [unidades também], ou texto), e podem ser referenciadas em qualquer lugar das nossas folhas de estilo.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-2&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;p&gt;Variáveis em Sass tem seu nome começado o símbolo &amp;#8220;$&amp;#8221; e o nome e o seu valor são separados com dois-pontos, assim como uma propriedade CSS.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;$mainColor: #0982c1;
+$siteWidth: 1024px;
+$borderStyle: dotted;
+
+body {
+    color: $mainColor;
+    border: 1px $borderStyle $mainColor;
+    max-width: $siteWidth;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-3&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;p&gt;Varíaves em LESS são praticamente iguais as variáveis no Sass, exceto por começarem seus nomes com o símbolo &amp;#8220;@&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mainColor: #0982c1;
+@siteWidth: 1024px;
+@borderStyle: dotted;
+
+body {
+    color: @mainColor;
+    border: 1px @borderStyle @mainColor;
+    max-width: @siteWidth;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-4&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;p&gt;Variáveis em Stylus não precisam começar com nenhum símbolo, porém ele permite a utilização do símbolo &amp;#8220;$&amp;#8221;. Como sempre, o ponto e vírgula para finalizar não é necessário, mas um sinal de igual entre o nome da variável e seu valor é. Uma coisa importante para se notar é que na versão 0.22.4 do Stylus variáveis com nome começados com o símbolo &amp;#8220;@&amp;#8221; são compiladas, porém não aplicam seu valor quando referenciadas. Em oturas palavras, não faça isso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;mainColor = #0982c1;
+siteWidth = 1024px;
+$borderStyle = dotted;
+
+body
+    color mainColor
+    border 1px $borderStyle mainColor
+    max-width siteWidth
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-4&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Cada um dos arquivos acima irão compilar no mesmo CSS. Você pode usar sua imaginação para ver quão úteis variáveis podem ser. Não precisaremos mais ao mudar uma cor reescrever a mesma vinte vezes, ou querer mudar a largura de nosso site e ter de procurar por todo o site para fazer isso. Aqui está o CSS depois de compilado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    color: #0982c1;
+    border: 1px dotted #0982c1;
+    max-width: 1024px.
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;aninhamento-1&#34;&gt;Aninhamento&lt;/h2&gt;
+
+&lt;p&gt;Se precisarmos referenciar múltiplos elementos com o mesmo pai em nosso CSS, pode ser entediante ficar digitanto o pai toda vez.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+}
+section nav {
+    height: 25px;
+}
+section nav a {
+    color: #0982c1;
+}
+section nav a:hover {
+    text-decoration: underline;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao invés disso, usando um pré-processador, podemos escrever os seletores filhos dentro das chaves do elemento pai. O símbolo &amp;#8220;&amp;amp;&amp;#8221; é usado para referenciar o seletor pai.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-less-e-stylus-2&#34;&gt;Sass, LESS e Stylus&lt;/h3&gt;
+
+&lt;p&gt;Todos os três pré-processdores utilizam a mesma sintaxe para aninhar seletores.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+
+    nav {
+        height: 25px;
+
+        a {
+            color: #0982c1;
+
+            &amp;:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-5&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Abaixo está o CSS compilado do código escrito acima. Está exatamente igual ao mostrado no começo &amp;#8211; que conveniente!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;section {
+    margin: 10px;
+}
+section nav {
+    height: 25px;
+}
+section nav a {
+    color: #0982c1;
+}
+section nav a:hover {
+    text-decoration: underline;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;mixins-1&#34;&gt;Mixins&lt;/h2&gt;
+
+&lt;p&gt;Mixins são funções que permitem reusar propriedades através de nossas folhas de estilo. Ao invés de procurar por todas nossas folhas de estilo e mudar uma propriedade várias vezes, podemos apenas mudar dentro de nosso mixin. Isso pode ser realmente útil para estilização de elementos específicos e para &amp;#8220;vendor prefixes&amp;#8221; (moz-*, o-*, etc). Quando os mixins são chamados de dentro de um seletor CSS, os argumentos são reconhecidos e os estilos dentro do mixin são aplicados ao seletor.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-3&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em Sass chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+@mixin error($borderWidth: 2px) {
+    border: $borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    @include error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    @include error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-4&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em LESS chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+.error(@borderWidth: 2px) {
+    border: @borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    .error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    .error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-5&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/* Mixin em Stylus chamado error com argumento $borderWidth opcional, caso não seja fornecido, utiliza o valor padrão de 2px; */
+error(borderWidth = 2px) {
+    border: borderWidth solid #f00;
+    color: #f00;
+}
+
+.generic-error {
+    padding: 20px;
+    margin: 4px;
+    error(); /* Aplica estilos do mixin error */
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    error(5px); /* Aplica estilos do mixin error com argumento $borderWidth = 5px */
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-6&#34;&gt;CSS Compilado&lt;/h3&gt;
+
+&lt;p&gt;Todos pré-processadores irão compilar o mesmo código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.generic-error {
+    padding: 20px;
+    margin: 4px;
+    border: 2px solid #f00;
+    color: #f00;
+}
+.login-error {
+    left: 12px;
+    position: absolute;
+    top: 20px;
+    border: 5px solid #f00;
+    color: #f00;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;herança-1&#34;&gt;Herança&lt;/h2&gt;
+
+&lt;p&gt;Quando estamos escrevendo CSS da velha maneira, nós usaríamos o seguinte código para aplicar o mesmo estilo para múltiplos elementos de uma só vez:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;p,
+u,
+ol {
+    /* estilos aqui */
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Isso funciona perfeitamente, mas se depois precisássemos de estilizar os elementos individualmente, outro seletor deveria ser criado para cada um e rapidamente poderia ficar cada vez mais bagunçado e difícil de manter. Podemos utilizar herança para resolver isso. Herança é a habilidade de outros seletores CSS herdarem as propriedades de outro seletor.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-e-stylus-1&#34;&gt;Sass e Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+
+p {
+    @extend .block; /* Herda estilos do seletor &#39;.block&#39; */
+    border: 1px solid #eee;
+}
+ul, ol {
+    @extend .block; /* Herda estilos do seletor &#39;.block&#39; */
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-sass-e-stylus-1&#34;&gt;CSS Compilado (Sass e Stylus)&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block, p, ul, ol {
+    margin: 10px 5px;
+    padding: 2px;
+}
+p {
+    border: 1px solid #eee;
+}
+ul, ol {
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-5&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;p&gt;LESS não tem suporte a herança de estilos como Sass e Stylus. Ao invés de adicionar diversos seletores para um grupo de propriedades, ele trata herança como um mixin sem argumentos e importa os estilos para dentro de seus próprios seletores. O problema disso é que propriedades são repetidas em sua folha de estilo compilada. Abaixo segue como deve-se utilizar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+ 
+p {
+    .block; /* Herda estilos do seletor &#39;.block&#39; */
+    border: 1px solid #eee;
+}
+ul, ol {
+    .block; /* Herda estilos do seletor &#39;.block&#39; */
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;css-compilado-less-1&#34;&gt;CSS Compilado (LESS)&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.block {
+    margin: 10px 5px;
+    padding: 2px;
+}
+p {
+    margin: 10px 5px;
+    padding: 2px;
+    border: 1px solid #eee;
+}
+ul,
+ol {
+    margin: 10px 5px;
+    padding: 2px;
+    color: #333;
+    text-transform: uppercase;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ver, os estilos do seletor .block foram inseridas nos seletores que queríamos aplicar a herança. É importante notar que a prioridade das propriedades pode se tornar um problema, então devemos ter bastante cautela.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@import &#34;reset.css&#34;;
+body {
+    background: #eee;
+}
+p {
+    background: #0982c1;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;funções-de-cores&#34;&gt;Funções de Cores&lt;/h2&gt;
+
+&lt;p&gt;Funções de cores são funções nativas que transformam uma cor por compilação. Podem ser extremamente úteis para criar gradientes, escurecer cores no &amp;#8220;hover&amp;#8221; de elementos e muito mais.&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-4&#34;&gt;Sass&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;lighten($color, 10%); /* retorna uma cor 10% mais clara que $color */
+darken($color, 10%);  /* retorna uma cor 10% mais escura $color */
+ 
+saturate($color, 10%);   /* retorna uma cor 10% mais saturada que $color */
+desaturate($color, 10%); /* retorna uma cor 10% menos saturada que $color */
+ 
+grayscale($color);  /* retorna $color na escala de cinza */
+complement($color); /* retorna cor complementar de $color */
+invert($color);     /* retorna cor inversa de $color */
+ 
+mix($color1, $color2, 50%); /* mistura $color1 com $color2 com um peso de 50% */
+&lt;/pre&gt;
+
+&lt;p&gt;Essas é apenas uma pequena lista de funções de cores disponíveis no Sass. A lista completa das funções de cores disponíveis no Sass pode ser encontrada na &lt;a href=&#34;http://sass-lang.com/documentation/Sass/Script/Functions.html&#34; target=&#34;_blank&#34;&gt;documentação do Sass&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Funções de cores podem ser usadas em qualquer lugar que uma cor é válida no CSS. Veja um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;$color: #0982C1;
+ 
+h1 {
+    background: $color;
+    border: 3px solid darken($color, 50%);
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;less-6&#34;&gt;LESS&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;lighten(@color, 10%); /* retorna uma cor 10% mais clara que @color */
+darken(@color, 10%);  /* retorna uma cor 10% mais escura @color */
+ 
+saturate(@color, 10%);   /* retorna uma cor 10% mais saturada que @color */
+desaturate(@color, 10%); /* retorna uma cor 10% menos saturada que @color */
+ 
+spin(@color, 10); /* retorna uma cor 10 graus acima na matiz/tonalidade que @color */
+spin(@color, -10); /* retorna uma cor 10 graus abaixo na matiz/tonalidade que @color */
+ 
+mix(@color1, @color2); /* mistura @color1 com @color2 */
+&lt;/pre&gt;
+
+&lt;p&gt;A lista de todas as funções disponíveis no LESS pode encontrada na &lt;a href=&#34;http://lesscss.org/#-color-functions&#34; target=&#34;_blank&#34;&gt;documentação LESS&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Veja um exemplo de como usar uma função de cores no LESS:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@color: #0982C1;
+ 
+h1 {
+    background: @color;
+    border: 3px solid darken(@color, 50%);
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;stylus-6&#34;&gt;Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;lighten(color, 10%); /* retorna uma cor 10% mais clara que &#39;color&#39; */
+darken(color, 10%);  /* retorna uma cor 10% mais escura &#39;color&#39; */
+ 
+saturate(color, 10%);   /* retorna uma cor 10% mais saturada que &#39;color&#39; */
+desaturate(color, 10%); /* retorna uma cor 10% menos saturada que &#39;color&#39; */
+&lt;/pre&gt;
+
+&lt;p&gt;A lista completa de todas funções de cores disponíveis no Stylus pode ser encontrada na &lt;a href=&#34;http://stylus-lang.com/docs/bifs.html&#34; target=&#34;_blank&#34;&gt;documentação Stylus&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Veja um exemplo de como usar uma função de cores no Stylus:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;color = #0982C1
+ 
+h1
+    background color
+    border 3px solid darken(color, 50%)
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;operações&#34;&gt;Operações&lt;/h2&gt;
+
+&lt;p&gt;Fazer cálculos no CSS é bastante útil e agora totalmente possível. É bem simples e é dessa maneira que fazemos:&lt;/p&gt;
+
+&lt;h3 id=&#34;sass-less-e-stylus-3&#34;&gt;Sass, LESS e Stylus&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    margin: (14px/2);
+    top: 50px + 100px;
+    right: 100px - 50px;
+    left: 10 * 10;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;aplicações-práticas&#34;&gt;Aplicações Práticas&lt;/h2&gt;
+
+&lt;p&gt;Nós falamos de diversas funcionalidades e novas coisas que pré-processadores podem fazer, mas não mostramos nada na prática ainda. Veja uma pequena lista de aplicações no mundo real em que um pré-processador é um salva-vidas.&lt;/p&gt;
+
+&lt;h3 id=&#34;vendor-prefixes&#34;&gt;Vendor Prefixes&lt;/h3&gt;
+
+&lt;p&gt;Essa é uma das principais razões para se usar um pré-processador e por um motivo bom &amp;#8211; economia gigante de tempo e lágrimas. Criar um mixin para cuidar dos vendor prefixes é fácil e nos salva de uma codificação repetitiva e dolorosa. Veja como fazer:&lt;/p&gt;
+
+&lt;h4 id=&#34;sass-5&#34;&gt;Sass&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mixin border-radius($values) {
+    -webkit-border-radius: $values;
+        -moz-border-radius: $values;
+            border-radius: $values;
+}
+ 
+div {
+    @include border-radius(10px);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;less-7&#34;&gt;LESS&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.border-radius(@values) {
+    -webkit-border-radius: @values;
+        -moz-border-radius: @values;
+            border-radius: @values;
+}
+ 
+div {
+    .border-radius(10px);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;stylus-7&#34;&gt;Stylus&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;border-radius(values) {
+    -webkit-border-radius: values;
+        -moz-border-radius: values;
+            border-radius: values;
+}
+ 
+div {
+    border-radius(10px);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;css-compilado-7&#34;&gt;CSS Compilado&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div {
+    -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+            border-radius: 10px;
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;texto-3d&#34;&gt;Texto 3D&lt;/h3&gt;
+
+&lt;p&gt;Simular um texto 3D utilizando diversos text-shadows é uma grande ideia. O único problema é que mudar a cor depois de criar é difícil e incômodo. Usando mixins e funções de cores, podemos criar um texto 3D e mudar sua cor sem nenhuma dificuldade.&lt;/p&gt;
+
+&lt;h4 id=&#34;sass-6&#34;&gt;Sass&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mixin text3d($color) {
+    color: $color;
+    text-shadow: 1px 1px 0px darken($color, 5%),
+            2px 2px 0px darken($color, 10%),
+            3px 3px 0px darken($color, 15%),
+            4px 4px 0px darken($color, 20%),
+            4px 4px 2px #000;
+}
+ 
+h1 {
+    font-size: 32pt;
+    @include text3d(#0982c1);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;less-8&#34;&gt;LESS&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.text3d(@color) {
+    color: @color;
+    text-shadow: 1px 1px 0px darken(@color, 5%),
+            2px 2px 0px darken(@color, 10%),
+            3px 3px 0px darken(@color, 15%),
+            4px 4px 0px darken(@color, 20%),
+            4px 4px 2px #000;
+}
+ 
+span {
+    font-size: 32pt;
+    .text3d(#0982c1);
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;stylus-8&#34;&gt;Stylus&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;text3d(color)
+    color: color
+    text-shadow: 1px 1px 0px darken(color, 5%), 2px 2px 0px darken(color, 10%), 3px 3px 0px darken(color, 15%), 4px 4px 0px darken(color, 20%), 4px 4px 2px #000
+span
+    font-size: 32pt
+    text3d(#0982c1)
+&lt;/pre&gt;
+
+&lt;p&gt;Escolhi escrever os &amp;#8220;text-shadows&amp;#8221; do Stylus em apenas uma linha pois omiti as chaves.&lt;/p&gt;
+
+&lt;h4 id=&#34;css-compilado-8&#34;&gt;CSS Compilado&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;span {
+    font-size: 32pt;
+    color: #0982c1;
+    text-shadow: 1px 1px 0px #097bb7, 
+            2px 2px 0px #0875ae, 
+            3px 3px 0px #086fa4, 
+            4px 4px 0px #07689a, 
+            4px 4px 2px #000;
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;resultado-final&#34;&gt;Resultado Final&lt;/h4&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://cdn.tutsplus.com/net/uploads/legacy/1144_preprocshootout/text3d.png&#34; alt=&#34;Texto 3D&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;colunas&#34;&gt;Colunas&lt;/h3&gt;
+
+&lt;p&gt;Usar operações numéricas e variáveis para colunas é uma ideia que tive da primeira vez que estava brincando com pré-processadores CSS. Declarando a largura desejada em uma variável, podemos facilmente alterá-la sem precisar de nenhum cálculo mental. Veja como fazer:&lt;/p&gt;
+
+&lt;h4 id=&#34;sass-7&#34;&gt;Sass&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;$siteWidth: 1024px;
+$gutterWidth: 20px;
+$sidebarWidth: 300px;
+ 
+body {
+    margin: 0 auto;
+    width: $siteWidth;
+}
+.content {
+    float: left;
+    width: $siteWidth - ($sidebarWidth+$gutterWidth);
+}
+.sidebar {
+    float: left;
+    margin-left: $gutterWidth;
+    width: $sidebarWidth;
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;less-9&#34;&gt;LESS&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@siteWidth: 1024px;
+@gutterWidth: 20px;
+@sidebarWidth: 300px;
+ 
+body {
+    margin: 0 auto;
+    width: @siteWidth;
+}
+.content {
+    float: left;
+    width: @siteWidth - (@sidebarWidth+@gutterWidth);
+}
+.sidebar {
+    float: left;
+    margin-left: @gutterWidth;
+    width: @sidebarWidth;
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;stylus-9&#34;&gt;Stylus&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;siteWidth = 1024px;
+gutterWidth = 20px;
+sidebarWidth = 300px;
+ 
+body {
+    margin: 0 auto;
+    width: siteWidth;
+}
+.content {
+    float: left;
+    width: siteWidth - (sidebarWidth+gutterWidth);
+}
+.sidebar {
+    float: left;
+    margin-left: gutterWidth;
+    width: sidebarWidth;
+}
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;css-compilado-9&#34;&gt;CSS Compilado&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    margin: 0 auto;
+    width: 1024px;
+}
+.content {
+    float: left;
+    width: 704px;
+}
+.sidebar {
+    float: left;
+    margin-left: 20px;
+    width: 300px;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;peculiaridades-notáveis&#34;&gt;Peculiaridades Notáveis&lt;/h2&gt;
+
+&lt;p&gt;Existem algumas peculiaridades ao usar um pré-processador CSS. Irei falar de algumas engraçadas, mas se você está realmente interessado em encontrar todas elas eu recomendo você vasculhar toda a documentação, ou melhor, começar a usar um pré-processador na sua codificação diária.&lt;/p&gt;
+
+&lt;h3 id=&#34;relatório-de-erros&#34;&gt;Relatório de Erros&lt;/h3&gt;
+
+&lt;p&gt;Se você já escreveu CSS por uma boa quantia de tempo, tenho certeza que você já chegou a um ponto onde você tinha um erro em algum lugar e simplesmente não conseguia o encontrar. Se você é como eu, provavelmente passou a tarde toda arrancando os cabelos fora e comentando diversas coisas para caçar o erro.&lt;/p&gt;
+
+&lt;p&gt;Pré-processadores CSS relatam os erros. Simples assim. Se tem alguma coisa errada em seu códigom ele te fala onde e, se você estiver com sorte até mesmo o porquê. Você pode dar uma olhada &lt;a href=&#34;http://tjholowaychuk.com/post/5002088731/stylus-vs-sass-vs-less-error-reporting&#34; target=&#34;_blank&#34;&gt;nesse post&lt;/a&gt; caso esteja interessado em ver como os erros são relatados em diferentes pré-processadores.&lt;/p&gt;
+
+&lt;h3 id=&#34;comentários&#34;&gt;Comentários&lt;/h3&gt;
+
+&lt;p&gt;Quando um pré-processador CSS está compilando, qualquer comentário escrito com barras duplas &amp;#8220;//&amp;#8221; é excluído e qualquer comentários escrito com barra e asterisco &amp;#8220;/* */&amp;#8221; não é alterado. Dito isso, use comentários com barras duplas para comentários que você queira na versão não compilada e comentários com barra e asterisco para comentários que serão visíveis após a compilação.&lt;/p&gt;
+
+&lt;p&gt;Observação: Se você compilar os arquivos, minificando-os, todos comentários são excluídos.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Cada um dos pré-processadores que falamos (Sass, LESS e Stylus) possui um modo único de realizar a mesma tarefa &amp;#8211; dando a nós desenvolvedor a habilidade de usar funcionalidades úteis mantendo a compatibilidade entre browsers e um código limpo.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Mesmo não sendo uma exigência para o desenvolvimento, pré-processadores podem economizar muito tempo e tem funcionalidades bastante úteis.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Eu aconselho todos vocês a utilizar e testar a maior quantidade de pré-processadores possível, pois assim você poderá escolher efetivamente um favorito e saber o porquê ele é seu favorito dentre tantos outros. Se você ainda não testou usar nenhum pré-processador para escrever seu CSS, eu recomendo grandemente a você testar.&lt;/p&gt;
+
+&lt;p&gt;Você tem alguma funcionalidade de seu pré-processador favorito que não foi mencionada? Há algo que algum pré-processador possa fazer e outros não? Conte-nos nos comentários abaixo!&lt;/p&gt;
+
+&lt;p&gt;Traduzido e adaptado de: &lt;a href=&#34;http://code.tutsplus.com/tutorials/sass-vs-less-vs-stylus-preprocessor-shootout--net-24320&#34;&gt;http://code.tutsplus.com/tutorials/sass-vs-less-vs-stylus-preprocessor-shootout&amp;#8211;net-24320&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Exercícios Simples de JavaScript para Entrevista</title>
+      <link>http://tableless.com.br/exercicios-simples-de-javascript-para-entrevista/</link>
+      <pubDate>Tue, 26 Jan 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/exercicios-simples-de-javascript-para-entrevista/</guid>
+      <description>
+
+&lt;p&gt;Qualquer um pode aprender teoria lendo posts de blogs, mas muitas pessoas nunca a entendem. Então para ter certeza que o(a) candidato(a) realmente entende sobre o tópico que ele(a) está falando, é uma boa ideia testar o seus conhecimentos através de exercícios. Exercícios não devem demorar muito e eles podem mostrar o nível de proficiência do candidato imediatamente.&lt;/p&gt;
+
+&lt;p&gt;Estes são alguns exercícios que podem ser aplicados em entrevistas.&lt;/p&gt;
+
+&lt;h2 id=&#34;contexto-call-apply&#34;&gt;Contexto(call, apply)&lt;/h2&gt;
+
+&lt;p&gt;Essa é a forma que queremos usar &amp;#8220;someFn&amp;#8221;. O(a) candidato(a) deve implementá-la:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var result = someFun({ someProperty: &#39;interview&#39; }, function() {
+    console.log(&#39;This pointing to&#39;. this);
+});
+
+console.log(&#39;Result is&#39;, result);
+
+// Resultado esperado
+This pointing to { someProperty: &#39;interview&#39; }
+Result is 1
+&lt;/pre&gt;
+
+&lt;p&gt;Solução:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var someFn = function(obj, cb) {
+    cb.call(obj);
+    return 1;
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;adicional&#34;&gt;Adicional&lt;/h3&gt;
+
+&lt;p&gt;Você pode modificar a função para checar se o(a) candidato(a) sabe como usar o &amp;#8220;apply&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var result = someFn({ someProperty: &#39;interview&#39; }, function (param1, param2) {
+    console.log(&#39;This pointing to&#39;, this);
+    console.log(&#39;Param 1 is&#39;, param1);
+    console.log(&#39;Param 2 is&#39;, param2);
+}, [&#39;cool&#39;, &#39;interview&#39;]);
+
+console.log(&#39;Result is&#39;, result);
+
+// Resultado esperado
+This pointing to { someProperty: &#39;interview&#39; }
+Param 1 is &#34;cool&#34;
+Param 2 is &#34;interview&#34;
+Result is 1
+&lt;/pre&gt;
+
+&lt;p&gt;Solução:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var someFn = function (obj, cb, params) {
+    cb.apply(obj, params);
+    return 1;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;prototype-e-iteração&#34;&gt;Prototype e Iteração&lt;/h2&gt;
+
+&lt;p&gt;Definir um método nativo chamado &amp;#8220;each&amp;#8221; para iterar em um array, com a opção de passar o contexto como segundo argumento.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var arr = [1, 2, 3];
+arr.each(function (arrayItem, counter) {
+    console.log(&#39;index&#39;, counter);
+    console.log(&#39;item&#39;, arrayItem);
+
+    arr[counter] = arrayItem + 1;
+}, this);
+&lt;/pre&gt;
+
+&lt;p&gt;Solução:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;Array.prototype.each = Array.prototype.each || function (cb, context) {
+    for (var i = 0; i &amp;lt; this.length; i++) {
+        cb.call(context || this, this[i], i);
+    }
+};
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;escopo&#34;&gt;Escopo&lt;/h2&gt;
+
+&lt;p&gt;Definir &amp;#8220;someFn&amp;#8221; que irá funcionar da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var counter = someFn(1);
+console.log(&#39;First call&#39;, counter(3));
+console.log(&#39;Second call&#39;, counter(1));
+console.log(&#39;Third call&#39;, counter(5));
+
+// Resultado esperado
+First call 4
+Second call 5
+Third call 10
+&lt;/pre&gt;
+
+&lt;p&gt;Solução:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var someFn = function (start) {
+    var private = start;
+
+    return function (increment) {
+        private += increment;
+
+        return private;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Traduzido de: &lt;a href=&#34;http://goschevski.com/simple-javascript-interview-exercises/&#34;&gt;http://goschevski.com/simple-javascript-interview-exercises/&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

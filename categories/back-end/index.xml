@@ -1,0 +1,2178 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Back End on Tableless</title>
+    <link>http://tableless.com.br/categories/back-end/index.xml</link>
+    <description>Recent content in Back End on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/categories/back-end/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Teste de carga em APIs utilizando Artillery</title>
+      <link>http://tableless.com.br/teste-de-carga-em-apis-utilizando-artillery/</link>
+      <pubDate>Mon, 06 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/teste-de-carga-em-apis-utilizando-artillery/</guid>
+      <description>&lt;p&gt;Independente do produto que você esteja criando, é sempre importante assegurar a qualidade do mesmo fazendo uma bateria de testes antes de colocar no mercado. Se tratando de desenvolvimento de software, existem algumas métricas que são essenciais para deixar claro para todos os envolvidos no projeto, incluindo seus usuários, o quanto determinado sistema/aplicativo é confiável para suportar o uso do público.&lt;/p&gt;
+
+&lt;p&gt;Dentro da área de qualidade de software, existem diversos tipos de testes que visam atingir o objetivo citado acima, de mostrar a todos que o produto é estável e robusto, alguns deles: teste de integração, teste unitário, teste de penetração, teste de regressão e por aí vai.&lt;/p&gt;
+
+&lt;p&gt;Este post tem como objetivo falar um pouco sobre o teste de carga, que em sua essência foi criado para simular quantidades diferentes de tentativa de acesso a determinado sistema ou device, tendo como saída um relatório de como o software se comportou em determinado cenário.&lt;/p&gt;
+
+&lt;p&gt;Quando falamos de APIs e escalonamento de infra, é interessante saber o número exato de requisições que o servidor (ou servidores) consegue responder corretamente em um tempo aceitável para seus clientes.&lt;/p&gt;
+
+&lt;p&gt;Caso você já tenha tentado fazer algo do tipo, provavelmente se deparou com o JMeter, que é uma das ferramentas mais famosas e completas para esse tipo de trabalho. Porém, a curva de aprendizado com o JMeter é um pouco longa, pois existem muitas configurações/opções que o usuário acaba se perdendo no início, até encontrar o que realmente precisa para o seu caso.&lt;figure class=&#34;graf graf--figure&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;graf-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*1hZHPrQKHwCctBX7bFOPmw.png&#34; /&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;Na tentativa de tornar esse processo de teste de carga um pouco mais amigável ao usuário, foi criado o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://artillery.io/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Artillery&lt;/a&gt;, uma ferramenta que com poucos passos permite você simular diversos tipos de cenários para teste de serviços que estejam utilizando para comunicação http e/ou web sockets.&lt;/p&gt;
+
+&lt;p&gt;Basicamente você precisa ter o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;node&lt;/a&gt; e o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://www.npmjs.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;npm&lt;/a&gt; instalado para poder começar a brincadeira.&lt;/p&gt;
+
+&lt;p&gt;Para instalar o Artillery:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ npm install -g artillery&lt;/pre&gt;
+
+&lt;p&gt;Para testar sua instalação:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ artillery dino&lt;/pre&gt;
+
+&lt;p&gt;Caso tenha aparecido um dinossauro em seu terminal, está tudo certo e você pode seguir adiante.&lt;/p&gt;
+
+&lt;p&gt;Para começar a rodar seus testes de carga, é necessário criar um arquivo de configuração. Você pode dar qualquer nome a ele, mas para esse artigo, criarei um chamado &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;artillery.yml&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Neste cara que você colocará todas as informações referentes a sua API, como endpoint, rotas e cenários. Você pode tanto testar rotas/recursos isolados, quanto cenários mais complexos, como por exemplo um processo de compra em um ecommerce, que basicamente teria uma rota para buscar os produtos, outra pra fazer checkout e outra para pagamento.&lt;/p&gt;
+
+&lt;p&gt;Segue abaixo um exemplo desse arquivo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;config:
+  target: &#39;&lt;a class=&#34;markup--anchor markup--pre-anchor&#34; href=&#34;http://localhost:3000%27&#34; target=&#34;_blank&#34; rel=&#34;nofollow noopener noopener&#34;&gt;http://localhost:3000&#39;&lt;/a&gt;
+  phases:
+    - duration: 60
+      arrivalRate: 20
+scenarios:
+  -
+    name: &#39;Listagem de usuários&#39;
+    flow:
+    - get:
+        url: &#34;/users&#34;&lt;/pre&gt;
+
+&lt;p&gt;No arquivo acima colocamos o endpoint da nossa API, o atributo &lt;em&gt;duration&lt;/em&gt; representa a duração deste ciclo de teste em segundos e o &lt;em&gt;arrivalRate&lt;/em&gt; o número de novos usuários por segundo.&lt;/p&gt;
+
+&lt;p&gt;Para rodar o teste, rode o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ artillery run artillery.yml&lt;/pre&gt;
+
+&lt;p&gt;Após a execução, temos o seguinte resultado:&lt;figure class=&#34;graf graf--figure&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;graf-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*iuh0Z_BoqM4epjC2pOvt_A.png&#34; /&gt;&lt;figcaption class=&#34;imageCaption&#34;&gt;Output do Artillery&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;Todas as métricas de tempo são em milis, &lt;em class=&#34;markup--em markup--p-em&#34;&gt;RPS&lt;/em&gt; (request per second), &lt;em class=&#34;markup--em markup--p-em&#34;&gt;codes&lt;/em&gt; são os códigos HTTP e o número de respostas com o mesmo, no caso acima, tivemos 1200 (60&amp;#215;20, como configuramos) requisições em 60 segundos e todas retornaram 200. &lt;em class=&#34;markup--em markup--p-em&#34;&gt;Scenarios launched&lt;/em&gt; são os ‘usuários virtuais’ criados e &lt;em class=&#34;markup--em markup--p-em&#34;&gt;Scenarios completed&lt;/em&gt; são quantos deles conseguiram executar o cenário com sucesso.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;Importante: &lt;/strong&gt;Enquanto o teste estiver rodando, um preview do resultado vai sendo printado no terminal a cada 10 segundos, mas só no final você tem os números consolidados do teste completo.&lt;/p&gt;
+
+&lt;p&gt;Agora você pode ir alterando números de usuários concorrentes, quantidade de tempo do teste, novos cenários, simulando fluxos mais complexos e etc.&lt;/p&gt;
+
+&lt;p&gt;Vale a pena dar uma olhada na &lt;a href=&#34;https://artillery.io/docs/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;documentação&lt;/a&gt; que é super objetiva e simples de entender.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Silex 2 &amp; Middlewares 101 – Parte 02</title>
+      <link>http://tableless.com.br/silex-2-middlewares-101-parte-02/</link>
+      <pubDate>Sun, 19 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/silex-2-middlewares-101-parte-02/</guid>
+      <description>
+
+&lt;p&gt;Estamos de volta com mais um post da série sobre o micro-framework Silex! Desta vez, vamos fazer uma parada para atualizar a versão do nosso micro-framework, para versão 2.*!&lt;/p&gt;
+
+&lt;p&gt;A partir deste post vamos escrever baseada nesta versão e falaremos ao longo de cada post, sobre as principais diferenças em relação as versões passadas! Vamos lá!&lt;/p&gt;
+
+&lt;h2 id=&#34;silex-2&#34;&gt;Silex 2&lt;/h2&gt;
+
+&lt;p&gt;Uma das grandes mudanças do micro-framework, foi o seu componente de Dependency Injection, o Pimple. O que impactou diretamente na parte de services.  Houveram algumas implementações na parte de controllers básicos e também alguns serviços internos que foram renomeados ou integrados diretamente no micro-fw. Como comentei, veremos cada particularidade nas mudanças ao longo dos posts!&lt;/p&gt;
+
+&lt;h3 id=&#34;atualizando-para-a-versa-o-2&#34;&gt;Atualizando para a versão 2&lt;/h3&gt;
+
+&lt;p&gt;Para atualizarmos o Silex para sua versão mais recente, precisamos alterar nosso arquivo composer.json. Nosso composer.json fica da seguinte forma, em relação ao &lt;a href=&#34;https://tableless.com.br/conhecendo-e-instalando-o-silex/&#34; target=&#34;_blank&#34;&gt;primeiro post&lt;/a&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-json&#34;&gt;{
+    &#34;require&#34; : {
+    &#34;silex/silex&#34; : &#34;2.*&#34;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora, basta executarmos um composer update em nosso terminal para obtermos o Silex atualizado!&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;size-full wp-image-57045 aligncenter&#34; src=&#34;uploads/2017/01/Screen-Shot-2017-01-23-at-13.36.09.png&#34; alt=&#34;&#34; width=&#34;582&#34; height=&#34;631&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-continuação&#34;&gt;Middlewares (Continuação)&lt;/h2&gt;
+
+&lt;p&gt;Em &lt;a href=&#34;https://tableless.com.br/silex-middlewares-101-parte-1/&#34; target=&#34;_blank&#34;&gt;nosso último post&lt;/a&gt;, da série, falamos sobre os middlewares de aplicação, como vimos, seu impacto abrange todo o app!&lt;/p&gt;
+
+&lt;h3 id=&#34;middlewares-de-rota&#34;&gt;Middlewares de Rota&lt;/h3&gt;
+
+&lt;p&gt;A diferença entre os middlewares de rota pros middlewares de aplicação, além do escopo que abrange apenas a rota na qual o middleware está definido, é que os middlewares de rota não possuem o método &lt;code&gt;finish&lt;/code&gt;, apenas o &lt;code&gt;before&lt;/code&gt; e o &lt;code&gt;after&lt;/code&gt;. O comportamento é o mesmo. Veja o código a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+require __DIR__ . &#39;/vendor/autoload.php&#39;;
+
+use Silex\Application;
+
+$app = new Application();
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content!&#39;);
+})
+-&amp;gt;before(function(){
+    print &#39;Before Route Middleware | &#39;;
+})
+-&amp;gt;after(function(){ print &#39; After Route Middleware&#39;; }); 
+
+$app-&amp;gt;run();&lt;/pre&gt;
+
+&lt;p&gt;No código acima temos os dois middlewares de rotas disponíveis, porém os mesmos só serão executados quando acessarmos a rota / (Rota principal de nosso app), mantendo o mesmo comportamento dos de aplicação.&lt;/p&gt;
+
+&lt;h3 id=&#34;definindo-ordem-de-execução&#34;&gt;Definindo ordem de execução&lt;/h3&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Podemos encadear quantos middlewares quisermos, para Rota e para Aplicação, e também definirmos uma ordem de execução.  Por padrão, os middlewares serão executados na ordem em que estão escritos, seguindo suas regras! Porém, o Silex nos disponibiliza duas constantes para alterarmos a ordem de execução dos mesmos. São elas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Application::EARLY_EVENT;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Application::LATE_EVENT;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Vejamos o código a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;$app = new Application();
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content!&#39;);
+})
+-&amp;gt;before(function(){
+    print &#39;Executará segundo por conta do LateEvent&#39;;
+}, Application::LATE_EVENT)
+-&amp;gt;before(function(){ 
+    print &#39;Executará primeiro por conta do EarlyEvent&#39;; 
+}, Application::EARLY_EVENT); 
+&lt;/pre&gt;
+
+&lt;p&gt;O código acima, por padrão, executaria os middlewares before na ordem em que seguem, porém o primeiro middleware a ser executado será o segundo before e logo em seguida o primeiro before definido. Isso acontece por conta da ordem de prioridade estabelecida com as contantes, onde, tudo que tiver EARLY_EVENT executará primeiro, e LATE_EVENT executará por último.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Bom, vamos chegando ao fim de mais um post sobre o micro-framework Silex, até o momento já temos o conhecimento geral de como os middlewares funcionam e com certeza eles serão bem úteis em determinados cenários quando você estiver utilizando o Silex em suas criações! Nas próximas postagens falaremos mais sobre o micro-framework, especificamente sobre como os Services trabalham! Nos vemos lá!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Adicionando SSL no NGINX com o Let’s Encrypt</title>
+      <link>http://tableless.com.br/adicionando-ssl-no-nginx-com-o-lets-encrypt/</link>
+      <pubDate>Fri, 02 Dec 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/adicionando-ssl-no-nginx-com-o-lets-encrypt/</guid>
+      <description>
+
+&lt;p&gt;O &lt;strong&gt;Let&amp;#8217;s Encrypt&lt;/strong&gt; é uma forma fácil, automatizada e gratuita de se inserir &lt;strong&gt;&lt;a href=&#34;https://www.1and1.com/certificado-ssl&#34;&gt;SSL&lt;/a&gt;&lt;/strong&gt; em uma aplicação &lt;em&gt;web&lt;/em&gt;. A utilização do &lt;strong&gt;SSL&lt;/strong&gt; é bem importante quando se há autenticação, tráfego de dados privados ou até mesmo para ser melhor colocado no &lt;em&gt;ranking&lt;/em&gt; do &lt;em&gt;Google&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Neste artigo vou demonstrar como gerar e adicionar o &lt;strong&gt;SSL&lt;/strong&gt; no &lt;strong&gt;NGINX&lt;/strong&gt; com a ferramenta &lt;strong&gt;Let&amp;#8217;s Encrypt&lt;/strong&gt;. Irei utilizar o sistema operacional &lt;em&gt;Debian&lt;/em&gt; para executar os comandos, mas estes podem ser facilmente modificados para serem executados em qualquer &lt;em&gt;distro&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;instalandooletsencrypt&#34;&gt;Instalando o Let&amp;#8217;s Encrypt:&lt;/h4&gt;
+
+&lt;p&gt;Clone o projeto no &lt;em&gt;github&lt;/em&gt; e redirecione para o caminho &lt;strong&gt;/opt/letsencrypt&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ sudo git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt
+&lt;/pre&gt;
+
+&lt;p&gt;É necessário ter o &lt;em&gt;git&lt;/em&gt; instalado, caso não tenha:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ sudo apt-get install git
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;preparandoonginxparaservalidado&#34;&gt;Preparando o NGINX para ser validado:&lt;/h4&gt;
+
+&lt;p&gt;O &lt;strong&gt;Let&amp;#8217;s Encrypt&lt;/strong&gt; valida se o domínio realmente é seu, então para isso é necessário adicionar uma regra no seu &lt;em&gt;site&lt;/em&gt; do &lt;strong&gt;NGINX&lt;/strong&gt;. Adicione o &lt;strong&gt;location&lt;/strong&gt; &lt;em&gt;^/.well-known&lt;/em&gt; no seu site &lt;strong&gt;(/etc/nginx/sites-enabled/yoursite)&lt;/strong&gt;, como por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;server {  
+    listen 80;
+    server_name your-domain.com.br;
+
+    location ~ ^/.well-known {
+        root /var/www/yoursite;
+    }
+
+    location / {
+        return 301 https://www.$server_name$request_uri;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Este &lt;strong&gt;location&lt;/strong&gt; será requisitado pelo &lt;strong&gt;Let&amp;#8217;s Encrypt&lt;/strong&gt; para confirmar sua identidade. Lembrando que você deve substituir o &lt;strong&gt;root&lt;/strong&gt; e o &lt;strong&gt;server_name&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Após adicionar o &lt;em&gt;well-known&lt;/em&gt;, reinicie o seu &lt;strong&gt;NGINX&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ sudo systemctl restart nginx
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;É bom lembrar que o seu domínio deve estar apontando para sua aplicação para obter sucesso com o &lt;strong&gt;SSL&lt;/strong&gt;.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;gerandoosslcomoletsencrypt&#34;&gt;Gerando o SSL com o Let&amp;#8217;s Encrypt:&lt;/h4&gt;
+
+&lt;p&gt;Substitua no comando abaixo, o caminho &lt;strong&gt;/var/www/yoursite&lt;/strong&gt; pelo diretório raiz do seu site no &lt;strong&gt;NGINX&lt;/strong&gt;, e também o &lt;strong&gt;yourdomain.com.br&lt;/strong&gt; e &lt;strong&gt;www.yourdomain.com.br&lt;/strong&gt; pelo seu domínio:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ sudo /opt/letsencrypt/letsencrypt-auto certonly -a webroot --webroot-path=/var/www/yoursite -d yourdomain.com.br -d www.yourdomain.com.br
+&lt;/pre&gt;
+
+&lt;p&gt;Neste processo irá ser solicitado seu &lt;em&gt;e-mail&lt;/em&gt;, para caso necessite da recuperação de seu certificado.&lt;/p&gt;
+
+&lt;h4 id=&#34;adicionandoocertificadoemsuaaplicao&#34;&gt;Adicionando o certificado em sua aplicação:&lt;/h4&gt;
+
+&lt;p&gt;Após o certificado ser gerado com sucesso, altere novamente o seu arquivo de regras do seu site &lt;strong&gt;(/etc/nginx/sites-enabled/yoursite)&lt;/strong&gt;, adicionando mais um &lt;strong&gt;server&lt;/strong&gt;, desta vez o de &lt;strong&gt;ssl&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;server {  
+    listen 443 ssl;
+    server_name yourdomain.com.br www.yourdomain.com.br;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+    }
+
+    location ~ ^/.well-known {
+        root /var/www/yoursite;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/yourdomain.com.br/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com.br/privkey.pem;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Lembrando que você deve alterar o &lt;strong&gt;location /&lt;/strong&gt; com as configurações específicas da sua aplicação web.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Reinicie novamente o seu &lt;strong&gt;NGINX&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ sudo systemctl restart nginx
+&lt;/pre&gt;
+
+&lt;p&gt;Entre em seu domínio utilizando o &lt;strong&gt;https&lt;/strong&gt; e veja se o processo ocorreu com sucesso.&lt;/p&gt;
+
+&lt;h4 id=&#34;conferindoaqualidadedoseussl&#34;&gt;Conferindo a qualidade do seu SSL:&lt;/h4&gt;
+
+&lt;p&gt;Altere &lt;em&gt;example.com&lt;/em&gt; pelo seu domínio:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.ssllabs.com/ssltest/analyze.html?d=example.com&#34;&gt;https://www.ssllabs.com/ssltest/analyze.html?d=example.com&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;melhorandoaqualidadedoseucertificado&#34;&gt;Melhorando a qualidade do seu certificado:&lt;/h4&gt;
+
+&lt;p&gt;É importante validar as cifras utilizadas, limitar a versão do protocolo &lt;strong&gt;SSL&lt;/strong&gt;, entre outras coisas. Para isso, recomendo a leitura do seguinte tópico na wiki da Mozilla, &lt;a href=&#34;https://wiki.mozilla.org/Security/Server_Side_TLS&#34;&gt;Server Side TLS&lt;/a&gt;. Existe também o &lt;a href=&#34;https://mozilla.github.io/server-side-tls/ssl-config-generator&#34;&gt;Mozilla SSL Configuration Generator&lt;/a&gt;, um gerador de configuração &lt;strong&gt;SSL&lt;/strong&gt; para diversos servidores de aplicação.&lt;/p&gt;
+
+&lt;h4 id=&#34;renovandoseucertificadocomcrontab&#34;&gt;Renovando seu certificado com crontab:&lt;/h4&gt;
+
+&lt;p&gt;O certificado gerado é válido por 3 meses, para facilitar a renovação, você pode criar um &lt;em&gt;cronjob&lt;/em&gt; para fazer este trabalho:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ crontab -e
+&lt;/pre&gt;
+
+&lt;p&gt;Adicione no final do arquivo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;0 0 1 */2 * /opt/letsencrypt/letsencrypt-auto renew --quiet --no-self-upgrade  
+0 0 1 */2 * systemctl reload nginx  
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;concluindo&#34;&gt;Concluindo:&lt;/h3&gt;
+
+&lt;p&gt;Neste artigo foi demonstrando a geração do &lt;strong&gt;SSL&lt;/strong&gt; para o &lt;strong&gt;NGINX&lt;/strong&gt;, mas este mesmos passos podem ser facilmente executados em qualquer servidor de aplicação, com algumas modificações. Lembrando que existem outros comandos específicos da ferramenta &lt;strong&gt;Let&amp;#8217;s Encrypt&lt;/strong&gt;, como &lt;strong&gt;letsencrypt-apache&lt;/strong&gt; que faz todo o trabalho pra você no caso do &lt;em&gt;Apache&lt;/em&gt;, mas tentei demonstrar a forma genérica, que pode servir para outros servidores.&lt;/p&gt;
+
+&lt;h3 id=&#34;referências-e-links&#34;&gt;Referências e Links:&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://letsencrypt.org&#34;&gt;https://letsencrypt.org&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/certbot/certbot&#34;&gt;https://github.com/certbot/certbot&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-16-04&#34;&gt;https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-16-04&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.nginx.com/blog/free-certificates-lets-encrypt-and-nginx&#34;&gt;https://www.nginx.com/blog/free-certificates-lets-encrypt-and-nginx&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;O certificado &lt;a href=&#34;https://www.1and1.com/certificado-ssl&#34;&gt;SSL&lt;/a&gt; também pode ser contratado na &lt;a href=&#34;https://www.1and1.com/&#34;&gt;1&amp;amp;1&lt;/a&gt; ou Certisign.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Features que sua API REST precisa ter desde o início</title>
+      <link>http://tableless.com.br/features-que-sua-api-rest-precisa-ter-desde-o-inicio/</link>
+      <pubDate>Thu, 17 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/features-que-sua-api-rest-precisa-ter-desde-o-inicio/</guid>
+      <description>
+
+&lt;p&gt;Eu tenho trabalhado com dados suavemente flutuando através do protocolo http por um tempo e agora eu tenho esse sentimento altruísta de que eu posso contribuir com os desenvolvedores mais jovens com algumas histórias sobre os desafios que enfrentei durante a minha jornada.&lt;/p&gt;
+
+&lt;p&gt;Este artigo basicamente tem o objetivo de listar e discutir sobre alguns pontos importantes que sua API, possivelmente, poderia abraçar desde o início do projeto, a fim de acelerar o processo de desenvolvimento para todos em sua equipe.&lt;/p&gt;
+
+&lt;h2 id=&#34;autenticação-e-autorização&#34;&gt;Autenticação e Autorização&lt;/h2&gt;
+
+&lt;p&gt;Se você se preocupa com quem vai acessar seus endpoints, é necessário prestar atenção sobre este tópico. Existem algumas especificações conhecidas para lidar com este assunto, principalmente &lt;a href=&#34;https://jwt.io/&#34;&gt;JWT&lt;/a&gt;, &lt;a href=&#34;https://oauth.net/&#34;&gt;OAuth&lt;/a&gt; e &lt;a href=&#34;https://oauth.net/2/&#34;&gt;OAuth2&lt;/a&gt;. Estas abordagens irão abranger a maioria dos cenários em seus aplicativos, mas às vezes você será desafiado a criar um novo tipo de camada de segurança para atender algum requisito específico, neste caso, tente não reinventar a roda e adapte suas necessidades em um desses listados.&lt;/p&gt;
+
+&lt;h2 id=&#34;query-filtering-sorting-e-pagination&#34;&gt;Query, Filtering, Sorting e Pagination&lt;/h2&gt;
+
+&lt;p&gt;Assim que o seu banco de dados cresce, você vai começar a notar que alguns recursos estão demorando muito para serem recuperados. As abordagens comuns para esta situação são: armazenar em cache seus objetos (próximo tópico) e / ou criar a paginação / filtragem. Se você pode obter o seu recurso com algo como:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;shiny.api.com/resources?query[type=2]&amp;limit=5&amp;start=1&amp;order=[name]&lt;/pre&gt;
+
+&lt;p&gt;&amp;#8230;seus clients serão capazes de selecionar apenas o que eles realmente precisam para processar uma página ou tela específica. É bom para dar uma certa autonomia para seus consumidores. Próximo nível deste assunto é &lt;a href=&#34;http://graphql.org/learn/&#34;&gt;GraphQL&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;cache&#34;&gt;Cache&lt;/h2&gt;
+
+&lt;p&gt;Uma boa maneira de recuperar seus recursos incrivelmente rápido é desenvolver alguma estratégia de cache. O custo de suas requisições serão menores uma vez que seus dados estarão prontos para serem consumidos em um banco de dados in-memory. Com algum esforço você pode lidar com isso usando &lt;a href=&#34;http://redis.io/&#34;&gt;Redis&lt;/a&gt; ou &lt;a href=&#34;https://memcached.org/&#34;&gt;Memcached&lt;/a&gt;. Boa sorte com sua expiração de cache. Confira algumas reflexões sobre este tema com o &lt;a href=&#34;http://blog.remarkablelabs.com/2012/12/russian-doll-caching-cache-digests-rails-4-countdown-to-2013&#34;&gt;Russian Doll Caching&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;wrappers-e-summarized-fields&#34;&gt;Wrappers e Summarized Fields&lt;/h2&gt;
+
+&lt;p&gt;Às vezes, você precisará fornecer alguns campos calculados &amp;#8211; ou quaisquer dados agregados em geral &amp;#8211; em suas respostas e para esse cenário, posso sugerir-lhe montar algo nessa linha:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;{
+  &#34;summay&#34;: {
+    &#34;total&#34;: 2
+    &#34;averageAge&#34;: 22
+  },
+  &#34;data&#34;:[
+  {
+    &#34;name&#34;: &#34;John&#34;,
+    &#34;age&#34;: 22
+  },
+  {
+    &#34;name&#34;: &#34;Mary&#34;,
+    &#34;age&#34;: 22
+  }
+  ]
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;hateos&#34;&gt;HATEOS&lt;/h2&gt;
+
+&lt;p&gt;HATEOAS significa &lt;em&gt;Hypermedia as the application state of the engine&lt;/em&gt;. É uma abordagem que permite que os clientes interpretem de forma autônima e dinâmica o estado atual de um recurso e as transições que podem ser iniciados decorrente deste mesmo estado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;{
+  &#34;id&#34;: 276,
+  &#34;amount&#34;: 90.00,
+  &#34;links&#34;: [
+  {
+    &#34;type&#34;: &#34;orders&#34;,
+    &#34;rel&#34;: &#34;self&#34;,
+    &#34;href&#34;: &#34;/orders/ 276&#34;
+  },
+  {
+    &#34;type&#34;: &#34;customer&#34;,
+    &#34;rel&#34;: &#34;order&#39;s customer&#34;,
+    &#34;href&#34;: &#34;/orders/276/customers&#34;
+  }
+  ]
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Sobre o JSON acima, você pode tirar as seguintes conclusões:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Dentro do array &amp;#8220;links&amp;#8221; são todas as &amp;#8216;transições&amp;#8217; possíveis com o recurso, neste caso, podem acessar o cliente que criou as ordens com o URI /orders/276/customers.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;rel:auto&lt;/strong&gt; significa que esta URI é a referência do estado atual, neste caso, a ordem com ID 276. &lt;strong&gt;rel&lt;/strong&gt;, em geral, representa a relação entre a ligação com o recurso atual.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;type&lt;/strong&gt; indica o tipo de recurso que é o link em questão.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ao padronizar seus serviços RESTful usando HATEOAS você permite que os clientes usem os recursos de maneiras mais fáceis, afinal de contas, as possibilidades de navegação entre os estados serão listadas em cada hit em seus recursos.&lt;/p&gt;
+
+&lt;p&gt;Conforme descrito em um &lt;a href=&#34;http://martinfowler.com/articles/richardsonMaturityModel.html&#34;&gt;post&lt;/a&gt; de Martin Fowler, HATEOAS em sua API é o último passo para atingir a &amp;#8216;Glória de REST&amp;#8221;, o estado da arte.&lt;/p&gt;
+
+&lt;h2 id=&#34;message-queue&#34;&gt;Message Queue&lt;/h2&gt;
+
+&lt;p&gt;Aposto que você tem algumas rotas em suas APIs que são síncronas mas não precisam necessariamente ser. Alguns casos de uso para uso de fila de mensagens são: enviar e-mails após alguma ação, redimensionamento de imagem, codificação de vídeo, etc. Uma prática comum para esta situação é colocar essas ações em uma fila de mensagens para serem processadas posteriormente de forma assíncrona. Dê uma olhada na &lt;a href=&#34;https://www.rabbitmq.com/&#34;&gt;RabbitMQ&lt;/a&gt; ou &lt;a href=&#34;https://kafka.apache.org/&#34;&gt;Kafka&lt;/a&gt;, ambas são grandes soluções.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211;&lt;/p&gt;
+
+&lt;p&gt;É isso aí. Pelo menos para mim estes são os principais aspectos que eu vi nos últimos anos no desenvolvimento de novos apis http/rpc/rest. Se você acha que existem alguns outros pontos importantes para mencionar, por favor deixe nos comentários e conversamos sobre 🙂&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando aplicações portáveis entre diferentes SGBDs usando PDO(PHP Data Objects)</title>
+      <link>http://tableless.com.br/criando-aplicacoes-portaveis-entre-diferentes-sgbds-usando-pdophp-data-objects/</link>
+      <pubDate>Mon, 26 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-aplicacoes-portaveis-entre-diferentes-sgbds-usando-pdophp-data-objects/</guid>
+      <description>&lt;p&gt;Quero apresentar nesse artigo as principais funcionalidades do PDO. PDO é uma biblioteca que implementa abstração ao acesso dos dados, ou seja, ela utiliza um driver específico, para cada SGBD (Sistema Gerenciador de Banco de Dados), tornando possível a portabilidade da base de dados de sua aplicação, sem que a mesma sofra danos ou que você passe horas e horas reescrevendo linhas e mais linhas de código.&lt;/p&gt;
+
+&lt;p&gt;O primeiro passo é habilitar o driver do PDO no php.ini retirando o &amp;#8220;;&amp;#8221; da sua frente;&lt;/p&gt;
+
+&lt;p&gt;No Windows:&lt;/p&gt;
+
+&lt;pre&gt;extension=php_pdo.dll
+extension=php_pdo_mysql.dll&lt;/pre&gt;
+
+&lt;p&gt;No Linux:&lt;/p&gt;
+
+&lt;pre&gt;extension=pdo.so
+extension=pdo_mysql.so
+&lt;/pre&gt;
+
+&lt;p&gt;Consideremos o seguinte banco de dados:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;create database livraria;
+use livraria;
+create table livros(
+id int not null auto_increment,
+titulo varchar(75) not null,
+preco decimal(10,2) not null,
+estoque int not null,
+PRIMARY KEY (id));
+&lt;/pre&gt;
+
+&lt;p&gt;Estabelecemos a conexão com o Banco de dados no nosso arquivo connect.php&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;//Local do banco
+$host = &#34;localhost&#34;;
+//Nome do banco de dados
+$db = &#34;livraria&#34;;
+//Seu Usuário no banco de dados
+$user = &#34;root&#34;;
+//Senha do banco de dados
+$pass = &#34;&#34;;
+//Estabelecendo a conexão
+try
+{
+  /**
+   *Agora o pulo do gato,aqui é onde a mágica acontece, precisamos especificar o banco de dados 
+que iremos trabalhar,no nosso caso, optei pelo mysql. Em seguida especificamos o local 
+e o nome do banco de dados e por último o usuário e a senha
+    */
+    $pdo = new PDO(&#34;mysql:host=$host;dbname=$db&#34;, $user, $pass);
+}
+catch (Exception $e)
+{
+    echo &#34;Erro ao estabelecer conexão com o banco de dados:&#34;.$e-&amp;gt;getMessage();
+    die;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para inserir no Banco de dados criamos o arquivo insert.php.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/**
+ * Insere conexão com o banco de dados estabelecida anteriormente 
+ */
+include &#39;connect.php&#39;;
+/**
+ * Variáveis que podem receber os valores do seu formulário
+ */
+ $titulo = &#34;Padrões de Projeto - PHP&#34;;
+ $preco = 140.5;
+ $estoque = 5;
+
+try 
+{   /**
+    *Aqui preparamos primeiramente nossa instrução de inserção e como valores, 
+passamos as &#34;?&#34;(interrogações) para referencia-las com o parâmetro passado pela função bindParam. 
+    * */
+    $sql=&#34;INSERT INTO `livros` (`titulo`, `preco`, `estoque`) VALUES (?, ?, ?)&#34;;
+    $stmt = $pdo-&amp;gt;prepare($sql);
+    $stmt-&amp;gt;bindParam(1,$titulo);
+    $stmt-&amp;gt;bindParam(2,$preco);
+    $stmt-&amp;gt;bindParam(3,$estoque);
+    
+    if($stmt-&amp;gt;execute())
+        echo &#34;Gravado com Sucesso&#34;;
+    else
+        throw new Exception(&#34;Erro ao gravar informação&#34;);
+
+}
+catch (Exception $e) 
+{
+    echo $e-&amp;gt;getMessage();   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para atualizar os arquivos no banco de dados utilizamos nosso arquivo update.php:&lt;/p&gt;
+
+&lt;pre&gt;/**
+*   Inclusão da minha Conexão
+* */
+include &#39;connect.php&#39;;
+/**
+ * Variáveis que vem do seu formulário html  
+ */
+$titulo = &#34;Padrões de Projeto - PHP&#34;;
+$preco = 60;
+$estoque = 5;
+try 
+{   
+       /**
+    *Aqui preparamos nossa instrução de atualização dos dados  
+    * */
+    $sql=&#34;UPDATE `livros` SET `preco` = ?, `estoque`= ? WHERE `titulo` = ?&#34;;
+    $stmt = $pdo-&amp;gt;prepare($sql);
+    $stmt-&amp;gt;bindParam(1,$preco);
+    $stmt-&amp;gt;bindParam(2,$estoque);
+    $stmt-&amp;gt;bindParam(3,$titulo);
+
+    if($stmt-&amp;gt;execute())
+        echo &#34;Atualizado com Sucesso&#34;;
+    else
+        throw new Exception(&#39;Erro ao Atualizar&#39;);
+
+} 
+catch (Exception $e) 
+{
+    echo $e-&amp;gt;getMessage();   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para listar os dados no list.php:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;include &#39;conect.php&#39;;
+   //listando os livros
+   $sql = &#34;SELECT * FROM livros&#34;;
+   $dados = $pdo-&amp;gt;query($sql);
+/**
+*fetch()-&amp;gt;Retorna a próxima linha do resultado.
+*fetchAll()-&amp;gt; Retorna um array com todos os resultados.
+*fetchObject()-&amp;gt; Retorna a próxima linha do resultado como objeto.
+*fetchColumn()-&amp;gt; Retorna uma coluna da próxima linha do resultado.
+**/
+while ($result = $dados-&amp;gt;fetch())
+{   
+ echo $result[&#39;titulo&#39;] . &#34; - &#34;. $result[&#39;preco&#39;]. &#34;-&#34;. $result[&#39;estoque&#39;].&#34;
+&#34;;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;E para deletar os arquivos criamos o delete.php:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/**
+ *  Inclusão da minha Conexão
+ **/
+include &#39;conect.php&#39;;
+/**
+ * Variáveis que vem do seu formulário html  
+ */
+$titulo = &#34;Padrões de Projeto - PHP&#34;;
+$preco = 60;
+$estoque = 5;
+
+try 
+{   
+    /**
+    * Aqui preparamos nossa instrução de exclusão dos dados.  
+    **/
+      $sql=&#34;DELETE FROM `livros` WHERE `titulo` = ?&#34;;
+    $stmt = $pdo-&amp;gt;prepare($sql);
+    $stmt-&amp;gt;bindParam(1,$titulo);
+
+    if($stmt-&amp;gt;execute())
+        echo &#34;Deletado com Sucesso&#34;;
+    else
+        throw new Exception(&#39;Erro ao Deletar&#39;);
+
+} 
+catch (Exception $e) 
+{
+    echo $e-&amp;gt;getMessage();   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Métodos da classe PDO:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;exec int Utilizado para insert, update e delete
+query PDOStatement Utilizado para resultados tabulares, comando select.
+prepare PDOStatement Cria um prepared statement, utilizado para dados variáveis.
+&lt;/pre&gt;
+
+&lt;p&gt;Trabalhar com PDO tem várias vantagens, além da portabilidade, existe também a questão da segurança, mas isso é cena para os próximos capítulos. Aconselho que visitem a &lt;a href=&#34;http://php.net/manual/pt_BR/class.pdostatement.php&#34;&gt;documentação&lt;/a&gt; para que possam ter acesso a informação completa da biblioteca, pois a mesma é muito rica e fornecerá ao desenvolvedor inúmeras vantagens que facilitarão no dia a dia do seu desenvolvimento. Obrigado ^^!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/Anrahh/pdo_tableless&#34;&gt;clique aqui para baixar o código completo.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Referências&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.diogomatheus.com.br/blog/php/trabalhando-com-pdo-no-php/&#34;&gt;http://www.diogomatheus.com.br/blog/php/trabalhando-com-pdo-no-php/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://php.net/manual/en/book.pdo.php&#34;&gt;http://php.net/manual/en/book.pdo.php&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.php.net/manual/en/pdo.drivers.php&#34;&gt;http://www.php.net/manual/en/pdo.drivers.php&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Upload de imagens desmistificado com simpleGallery.js</title>
+      <link>http://tableless.com.br/upload-de-imagens-desmistificado-com-simplegallery-js/</link>
+      <pubDate>Wed, 07 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/upload-de-imagens-desmistificado-com-simplegallery-js/</guid>
+      <description>
+
+&lt;p&gt;Olá pessoal, tudo bem?&lt;/p&gt;
+
+&lt;p&gt;Neste artigo vou procurar abordar algo comum no dia-a-dia de qualquer desenvolver, o &amp;#8220;temido&amp;#8221; upload de imagens. No processo utilizarei NodeJS e Express para o back-end. A grande sacada será a utilização da lib &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;, que nos auxiliará no front-end.&lt;/p&gt;
+
+&lt;h2 id=&#34;passos-iniciais&#34;&gt;Passos iniciais..&lt;/h2&gt;
+
+&lt;p&gt;A seguir criaremos um servidor bem simples. Utilizarei o package &amp;#8220;Multer&amp;#8221; como middleware para as requisições de arquivo. Não vou prezar por segurança nem boas práticas, já que este artigo é apenas para encorajar aqueles que ainda possuem dificuldades.&lt;/p&gt;
+
+&lt;p&gt;Primeiro começaremos com a instalação do NodeJS e NPM, para mais informações:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://nodejs.org/en/&#34;&gt;https://nodejs.org/en/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.npmjs.org/post/85484771375/how-to-install-npm&#34;&gt;http://blog.npmjs.org/post/85484771375/how-to-install-npm&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Após NodeJS e NPM instalados, é hora de criarmos nosso &lt;code&gt;package.json&lt;/code&gt;, que será responsável por armazenar o nome do app, versão, nossos packages etc. Abra o terminal e digite:&lt;/p&gt;
+
+&lt;pre&gt;npm init /my-upload-app
+cd my-upload-app
+mkdir public&lt;/pre&gt;
+
+&lt;p&gt;Após todos os dados inseridos, partiremos para a inclusão dos packages que utilizaremos.&lt;/p&gt;
+
+&lt;pre&gt;npm install --save-dev express multer&lt;/pre&gt;
+
+&lt;p&gt;Este comando instalará as últimas versões de cada package, permitindo a sua utilização junto ao NodeJS.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-o-server&#34;&gt;Criando o Server&lt;/h2&gt;
+
+&lt;p&gt;Com tudo instalado, basta criar um arquivo em nosso diretório chamado de &lt;code&gt;index.js&lt;/code&gt;. Este conterá o básico para criar nossa API e seus respectivos endpoints. Estou utilizando o Hello World do próprio Express, que está presente &lt;a href=&#34;http://expressjs.com/pt-br/starter/hello-world.html&#34;&gt;neste&lt;/a&gt; link.&lt;/p&gt;
+
+&lt;pre&gt;const express = require(&#39;express&#39;)
+const app = express()
+
+app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+ res.sendFile(&#39;public/index.html&#39;)
+})
+
+app.listen(3000, () =&amp;gt; console.log(&#39;Lstening on port 3000!&#39;))
+
+&lt;/pre&gt;
+
+&lt;p&gt;Isto já é o suficiente para rodar nosso server (digite &lt;code&gt;node index.js&lt;/code&gt;). Tudo que estiver dentro da pasta &lt;code&gt;/public&lt;/code&gt; obviamente será considerado como público e &amp;#8220;visível&amp;#8221; ao browser.&lt;/p&gt;
+
+&lt;p&gt;Sem mais delongas, vamos partir para o endpoint que receberá os arquivos e retornará um JSON com as respectivas URL&amp;#8217;s, ele também será responsável por armazenar nossas imagens na pasta &lt;code&gt;/uploads&lt;/code&gt;. Neste ponto utilizo uma configuração mínima do &amp;#8216;Multer&amp;#8217;, você pode melhorar este processo limitando os arquivos por tamanho, tipo, quantidade etc. Para mais informações, clique &lt;a href=&#34;https://github.com/expressjs/multer&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre&gt;const express = require(&#39;express&#39;)
+const app = express()
+const multer = require(&#39;multer&#39;)
+
+const upload = multer({ dest: &#39;public/uploads/&#39; }) // Configuramos o destino dos arquivos.
+
+app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+ res.sendFile(&#39;public/index.html&#39;)
+})
+
+app.post(&#39;/upload&#39;, upload.array(&#39;gallery[]&#39;), (req, res) =&amp;gt; {
+ let gallery = []
+ req.files.map((image) =&amp;gt; gallery.push({&#39;url&#39;: `http://localhost:3000/uploads/${image.filename}`}))
+ res.status(200).json(gallery)
+})
+
+app.listen(3000, () =&amp;gt; console.log(&#39;Listening on port 3000!&#39;))&lt;/pre&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Agora nossa API já está 100% funcional. Para testar, submeta um POST com as imagens para a url &lt;code&gt;http://localhost:3000/uploads&lt;/code&gt;. Você receberá uma resposta formato JSON com a URL das imagens enviadas.&lt;/p&gt;
+
+&lt;h2 id=&#34;já-no-front-end&#34;&gt;Já no Front-End..&lt;/h2&gt;
+
+&lt;p&gt;Com a nossa API criada, agora precisamos configurar o nosso front-end. Para isto, vamos iniciar criando um &lt;code&gt;index.html&lt;/code&gt; dentro da pasta &lt;code&gt;/public&lt;/code&gt;. Após criado, é hora de escrevermos nosso HTML:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+ &amp;lt;head&amp;gt;
+ &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Upload App&amp;lt;/title&amp;gt;
+ &amp;lt;/head&amp;gt;
+ &amp;lt;body&amp;gt;
+ &amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+ &amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;
+ &amp;lt;label for=&#34;&#34;&amp;gt;Image Gallery&amp;lt;/label&amp;gt;
+ &amp;lt;div class=&#34;input-upload btn&#34;&amp;gt;
+ Upload
+ &amp;lt;input class=&#34;upload&#34; type=&#34;file&#34; multiple=&#34;multiple&#34; accept=&#34;image/*&#34;&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=&#34;gallery-container&#34;&amp;gt;&amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+ &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Até agora nenhuma novidade, um formulário &lt;code&gt;enctype=&amp;quot;multipart/form-data&amp;quot;&lt;/code&gt; com os campos necessários para enviarmos as fotos para nossa API.&lt;/p&gt;
+
+&lt;h2 id=&#34;8220-hora-do-show-8221&#34;&gt;&amp;#8220;Hora do show!&amp;#8221;&lt;/h2&gt;
+
+&lt;p&gt;Chegou a hora de implementarmos o &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;, uma lib JS vanilla, de apenas 2kb gzipped. Esta será responsável por submeter as imagens e salvar o JSON de retorno em algum input hidden, em nosso exemplo, utilizaremos o padrão da lib que será:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Também faremos a inclusão do CSS e JS, que pode ser encontrado no próprio repositório do &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;. Ou via NPM/Bower, basta procurar por: &lt;code&gt;simple-gallery-js&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;https://github.com/RubaXa/Sortable&#34;&gt;Sortable&lt;/a&gt;, uma lib JS vanilla, será responsável por permitir a reordenação de nossa galeria.&lt;/p&gt;
+
+&lt;p&gt;O código final fica assim:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+ &amp;lt;head&amp;gt;
+ &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Upload App&amp;lt;/title&amp;gt;
+ &amp;lt;link rel=&#34;stylesheet&#34; href=&#34;https://raw.githubusercontent.com/fccoelho7/simpleGallery.js/master/dist/simple-gallery.min.css&#34; media=&#34;screen&#34; charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;/head&amp;gt;
+ &amp;lt;body&amp;gt;
+ &amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+ &amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;
+ &amp;lt;label for=&#34;&#34;&amp;gt;Image Gallery&amp;lt;/label&amp;gt;
+ &amp;lt;div class=&#34;input-upload btn&#34;&amp;gt;
+Upload
+ &amp;lt;input class=&#34;upload&#34; type=&#34;file&#34; multiple=&#34;multiple&#34; accept=&#34;image/*&#34;&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=&#34;gallery-container&#34;&amp;gt;&amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+
+&amp;lt;script src=&#34;https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.4.2/Sortable.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script src=&#34;https://raw.githubusercontent.com/fccoelho7/simpleGallery.js/master/dist/simple-gallery.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+ new SimpleGallery(&#39;.form-upload&#39;);
+ &amp;lt;/script&amp;gt;
+ &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;mas-pera&#34;&gt;Mas pera!&lt;/h2&gt;
+
+&lt;p&gt;&amp;#8220;Eu tenho minha API de uploads em uma URL e meu formulário será enviado para outro endpoint, como farei isso?&amp;#8221; Bom, caso você não deseje utilizar o mesmo endpoint para upload de imagens e requisição do formulário, o &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt; nos permite criar um segundo &lt;strong&gt;action. &lt;/strong&gt;Basta inserir um &lt;code&gt;data-action-gallery&lt;/code&gt;, como no exemplo abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; data-action-gallery=&#34;/uploads&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;por-fim&#34;&gt;Por fim.&lt;/h2&gt;
+
+&lt;p&gt;Outras opções como: trocar o name do input que receberá o JSON das url&amp;#8217;s e a classe que conterá a galeria também são possíveis, para mais informações acesse o repositório oficial do &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O conteúdo deste artigo pode ser encontrado &lt;a href=&#34;https://github.com/fccoelho7/simple-gallery-demo&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Bom, é isso. Espero que tenha gostado e perdido o medo quando o assunto é &amp;#8220;upload de imagens&amp;#8221;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Construindo uma página com login no JSF</title>
+      <link>http://tableless.com.br/construindo-uma-pagina-com-login-no-jsf/</link>
+      <pubDate>Tue, 06 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/construindo-uma-pagina-com-login-no-jsf/</guid>
+      <description>
+
+&lt;p&gt;Neste post vou falar sobre um assunto um pouco trivial e que qualquer iniciante no framework &lt;strong&gt;JSF&lt;/strong&gt; pode se perder: &lt;strong&gt;As fases do JSF e onde interceptar a navegação para que o usuário realize a autenticação&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;É importante que você saiba o que é JSF e como configurá-lo em seu editor, aqui estarei utilizando o Eclipse, caso não saiba como configurar em seu editor, ao final, deixarei alguns links para lhe ajudar.&lt;/p&gt;
+
+&lt;p&gt;Vamos la =) .&lt;/p&gt;
+
+&lt;h2 id=&#34;fases-do-jsf&#34;&gt;Fases do JSF&lt;/h2&gt;
+
+&lt;p&gt;O JSF funciona através de fases que são invocadas a partir do momento que abrimos uma página.&lt;/p&gt;
+
+&lt;p&gt;Então, o JSF executa um processo para coletar as informações, validar e criar a página de resposta que será enviada ao usuário.&lt;/p&gt;
+
+&lt;p&gt;Este processo é composto por 6 fases:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55231&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/fases-jsf.png&#34; alt=&#34;Fases do JSF&#34; width=&#34;748&#34; height=&#34;411&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h3 id=&#34;restore-view&#34;&gt;Restore View&lt;/h3&gt;
+
+&lt;p&gt;Fase onde o JSF criará uma árvore de componentes, contendo um objeto para cada componente visual do formulário e, se for a primeira exibição da página, ele pula todas as fases e vai para a &lt;strong&gt;Render Response&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se a página já foi exibida, o framework buscará pela árvore já existente.&lt;/p&gt;
+
+&lt;h3 id=&#34;apply-request-values&#34;&gt;Apply Request Values&lt;/h3&gt;
+
+&lt;p&gt;Nesta fase, o framework pega os valores do formulário, eles são recebidos como Strings independente do tipo.&lt;/p&gt;
+
+&lt;h3 id=&#34;process-validation&#34;&gt;Process Validation&lt;/h3&gt;
+
+&lt;p&gt;O JSF converte os valores existentes para os tipos que estão vinculados nas propriedades dos Managed Beans.&lt;/p&gt;
+
+&lt;p&gt;Após a conversão, é feita a validação desses valores.&lt;/p&gt;
+
+&lt;p&gt;Se ocorrer algum erro em qualquer dessas etapas, o JSF redireciona para a fase Render Response.&lt;/p&gt;
+
+&lt;h3 id=&#34;update-model-values&#34;&gt;Update Model Values&lt;/h3&gt;
+
+&lt;p&gt;Os dados convertidos são colocados nos objetos Managed Beans que estão vinculados.&lt;/p&gt;
+
+&lt;h3 id=&#34;invoke-application&#34;&gt;Invoke Application&lt;/h3&gt;
+
+&lt;p&gt;O método do atributo action que está vinculado a algum botão que foi acionado é avalido pela Expression Language e seu valor é retornado.&lt;/p&gt;
+
+&lt;h3 id=&#34;render-response&#34;&gt;Render Response&lt;/h3&gt;
+
+&lt;p&gt;O JSF processa a página recebida pelas fases anteriores e gera o código XHTML para o usuário.&lt;/p&gt;
+
+&lt;h2 id=&#34;criação-do-login&#34;&gt;Criação do Login&lt;/h2&gt;
+
+&lt;p&gt;Primeiramente vamos criar nosso xhtml com os campos e botões para login vinculado com um Managed Bean e outro xhtml para ser a página inicial após o login do usuário.&lt;/p&gt;
+
+&lt;p&gt;A página deve ter os campos vinculados a um Managed Bean chamado usuário e um botão vinculado a algum método para logar.&lt;/p&gt;
+
+&lt;p&gt;Este foi meu código, claro, há diversos meios diferente para se fazer o mesmo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;?xml version=&#34;1.0&#34; encoding=&#34;ISO-8859-1&#34; ?&amp;gt;
+&amp;lt;!DOCTYPE html PUBLIC &#34;-//W3C//DTD XHTML 1.0 Strict//EN&#34; &#34;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&#34;&amp;gt;
+&amp;lt;html xmlns=&#34;http://www.w3.org/1999/xhtml&#34;
+      xmlns:h=&#34;http://java.sun.com/jsf/html&#34;
+      xmlns:f=&#34;http://java.sun.com/jsf/core&#34;
+&gt;
+&amp;lt;h:head&amp;gt;
+&amp;lt;meta http-equiv=&#34;Content-Type&#34; content=&#34;text/html; charset=ISO-8859-1&#34; /&amp;gt;
+&amp;lt;title&amp;gt;Login&amp;lt;/title&amp;gt;
+&amp;lt;/h:head&amp;gt;
+&amp;lt;h:body&amp;gt;
+    &amp;lt;h:form&amp;gt;
+        &amp;lt;h:panelGrid columns=&#34;2&#34;&amp;gt; 
+            &amp;lt;h:outputLabel value=&#34;Usuário:&#34; /&amp;gt;
+            &amp;lt;h:inputText value=&#34;#{usuario.usuario}&#34; size=&#34;20&#34; /&amp;gt;
+            
+            &amp;lt;h:outputLabel value=&#34;Senha:&#34; /&amp;gt;
+            &amp;lt;h:inputSecret value=&#34;#{usuario.senha}&#34; size=&#34;20&#34; /&amp;gt;
+                
+            &amp;lt;h:commandButton value=&#34;Logar&#34; action=&#34;#{usuario.logar}&#34; /&amp;gt;
+        &amp;lt;/h:panelGrid&amp;gt;
+        &amp;lt;h:messages /&amp;gt;    
+    &amp;lt;/h:form&amp;gt;
+&amp;lt;/h:body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;E este foi o resultado:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55232&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/result-jsf-login.png&#34; alt=&#34;Formulário de login XHTMl&#34; width=&#34;261&#34; height=&#34;89&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;No método logar vou verificar se o usuário e a senha correspondem ao meu nome: &amp;#8220;Julio&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Caso o usuário ou a senha forem diferentes de &amp;#8220;Julio&amp;#8221;, exibirei uma mensagem informando que o usuário é inválido.&lt;/p&gt;
+
+&lt;p&gt;Em outros casos será invocado um &lt;em&gt;DAO&lt;/em&gt;, que verificará se o usuário existe na base de dados ou o que for preciso.&lt;/p&gt;
+
+&lt;p&gt;Crie, também, uma página de resposta caso o usuário esteja correto.&lt;/p&gt;
+
+&lt;p&gt;Segue o código da classe Usuário:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;package root;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
+
+@ManagedBean
+@SessionScoped
+public class Usuario {
+    private String usuario = &#34;&#34;;
+    private String senha = &#34;&#34;;
+    
+    public String logar(){
+        if(usuario.equals(&#34;Julio&#34;) &amp;&amp; senha.equals(&#34;Julio&#34;)){
+            return &#34;pag-sucesso&#34;;
+        }
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, &#34;Usuário inválido&#34;, &#34;Usuário inválido&#34;);
+        ctx.addMessage(null, msg);
+        return &#34;&#34;;              
+    }
+    
+    
+    public String getUsuario() {
+        return usuario;
+    }
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
+    }
+    public String getSenha() {
+        return senha;
+    }
+    public void setSenha(String senha) {
+        this.senha = senha;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;E, também, o código do XHTML de resposta em caso de sucesso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;?xml version=&#34;1.0&#34; encoding=&#34;ISO-8859-1&#34; ?&amp;gt;
+&amp;lt;!DOCTYPE html PUBLIC &#34;-//W3C//DTD XHTML 1.0 Strict//EN&#34; &#34;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&#34;&amp;gt;
+&amp;lt;html xmlns=&#34;http://www.w3.org/1999/xhtml&#34;
+      xmlns:h=&#34;http://java.sun.com/jsf/html&#34;
+      xmlns:f=&#34;http://java.sun.com/jsf/core&#34;
+&gt;
+&amp;lt;h:head&amp;gt;
+&amp;lt;meta http-equiv=&#34;Content-Type&#34; content=&#34;text/html; charset=ISO-8859-1&#34; /&amp;gt;
+&amp;lt;title&amp;gt;Sucesso!!&amp;lt;/title&amp;gt;
+&amp;lt;/h:head&amp;gt;
+&amp;lt;h:body&amp;gt;
+    Usuário logado!!!
+&amp;lt;/h:body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;testes&#34;&gt;Testes&lt;/h3&gt;
+
+&lt;p&gt;Vamos testar nossa página:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55233&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/teste-jsf.png&#34; alt=&#34;Teste do login em sucesso&#34; width=&#34;295&#34; height=&#34;111&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Primeiramente coloquei os campos de modo correto, ou seja, com os valores em &amp;#8220;Julio&amp;#8221;, e após pressionar o botão &amp;#8220;Logar&amp;#8221; a página de sucesso foi retornada como esperado.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55234&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/teste-jsf-sucesso.png&#34; alt=&#34;teste-jsf-sucesso&#34; width=&#34;159&#34; height=&#34;62&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Mas tem um problema, conseguimos acessarmos diretamente a página de sucesso, pois não há nenhuma validação se o usuário está logado. Em casos de sistemas grandes, isso pode ser um enorme problema, pois qualquer usuário poderia ter acesso a informações não permitidas.&lt;/p&gt;
+
+&lt;h3 id=&#34;correção&#34;&gt;Correção&lt;/h3&gt;
+
+&lt;p&gt;Devemos criar um login que valide se o usuário já está no sistema, então vamos criar uma classe que sirva como ouvinte entre as fases do JSF.&lt;/p&gt;
+
+&lt;p&gt;Para isto, é preciso:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Criar uma classe que implemente a interface &lt;strong&gt;PhaseListener&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Registrar no faces-config.xml.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Criarei uma classe chamada &amp;#8220;Listener&amp;#8221; que implementa a interface PhaseListener.&lt;/p&gt;
+
+&lt;p&gt;Esta interface possui 3 métodos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;beforePhase: código que será executado antes do processamento da fase;&lt;/li&gt;
+&lt;li&gt;afterPhase: código que será executado após o processamento da fase;&lt;/li&gt;
+&lt;li&gt;getPhaseId: retorna um Enum com o nome da fase atual.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Devemos implementar nosso método para verificar se o usuário está logado no método &amp;#8220;afterPhase&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Para verificar se a página que está sendo acessada é diferente da página &amp;#8220;login.xhtml&amp;#8221; devemos pegar a instância atual do &amp;#8220;FacesContext&amp;#8221; e, partir dele, pegar o ViewRoot e o ViewId que contém o nome da página atual:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;package root;
+
+import javax.faces.application.Application;
+import javax.faces.application.NavigationHandler;
+import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.PhaseListener;
+
+public class Listener implements PhaseListener{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void beforePhase(PhaseEvent arg0) {
+    }
+
+    @Override
+    public void afterPhase(PhaseEvent arg0) {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        if(!ctx.getViewRoot().getViewId().equals(&#34;/login.xhtml&#34;)){
+                    
+        }
+    }
+
+    @Override
+    public PhaseId getPhaseId() {
+        return null;
+    }
+
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Após isto, é preciso verificar se o usuário está logado, isto pode ser feito com um atributo booleano na classe Usuario ou verificar se os parâmetros estão de acordo com o que queremos, vou utilizar esta segunda opção.&lt;/p&gt;
+
+&lt;p&gt;Para pegar o objeto Usuario que queremos, devemos utilizar o objeto &amp;#8220;Application&amp;#8221; a partir do FacesContext atual, através do método &amp;#8220;getApplication&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Então utilizamos o método &amp;#8220;evaluateExpressionGet&amp;#8221; do objeto &amp;#8220;Application&amp;#8221;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;package root;
+
+import javax.faces.application.Application;
+import javax.faces.application.NavigationHandler;
+import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.PhaseListener;
+
+public class Listener implements PhaseListener{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void beforePhase(PhaseEvent arg0) {
+    }
+
+    @Override
+    public void afterPhase(PhaseEvent arg0) {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        if(!ctx.getViewRoot().getViewId().equals(&#34;/login.xhtml&#34;)){
+            Application app = ctx.getApplication();
+            Usuario u = app.evaluateExpressionGet(ctx, &#34;#{usuario}&#34;, Usuario.class);
+        }
+    }
+
+    @Override
+    public PhaseId getPhaseId() {
+        return null;
+    }
+
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora aplicamos nossa validação, no meu caso apenas peguei o atributo usuario a partir do objeto Usuario atual e verifiquei se é diferente de &amp;#8220;Julio&amp;#8221;, se for, &lt;strong&gt;retorno a navegação para a página login&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Isto é feito a partir do objeto &amp;#8220;NavigationHandler&amp;#8221; conseguido a através do objeto &amp;#8220;Application&amp;#8221; e invoco o método &amp;#8220;handleNavigation&amp;#8221;, que altera o fluxo. Por último chamo o método &amp;#8220;renderResponse&amp;#8221; do FacesContext.&lt;/p&gt;
+
+&lt;p&gt;E, claro, devemos indicar ao Listener qual fase que desejamos interceptar, que no nosso caso é a &amp;#8220;Restore View&amp;#8221; indicando no método &amp;#8220;getPhaseId&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;&amp;quot;lang-java&#34;&gt;package root;
+
+import javax.faces.application.Application;
+import javax.faces.application.NavigationHandler;
+import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.PhaseListener;
+
+public class Listener implements PhaseListener{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void beforePhase(PhaseEvent arg0) {
+    }
+
+    @Override
+    public void afterPhase(PhaseEvent arg0) {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        if(!ctx.getViewRoot().getViewId().equals(&#34;/login.xhtml&#34;)){
+            Application app = ctx.getApplication();
+            Usuario u = app.evaluateExpressionGet(ctx, &#34;#{usuario}&#34;, Usuario.class);
+            if(!u.getUsuario().equals(&#34;Julio&#34;)){
+                NavigationHandler handler = app.getNavigationHandler();
+                handler.handleNavigation(ctx, &#34;&#34;, &#34;login&#34;);
+                ctx.renderResponse();
+            }
+        }
+    }
+
+    @Override
+    public PhaseId getPhaseId() {
+        return PhaseId.RESTORE_VIEW;
+    }
+}&lt;/pre&gt;
+
+&lt;p&gt;Para que funcione, precisamos registrar no faces-config.xml que ele é um Listener.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-xml&#34;&gt;&amp;lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&amp;gt;
+&amp;lt;faces-config
+    xmlns=&#34;http://xmlns.jcp.org/xml/ns/javaee&#34;
+    xmlns:xsi=&#34;http://www.w3.org/2001/XMLSchema-instance&#34;
+    xsi:schemaLocation=&#34;http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd&#34;
+    version=&#34;2.2&#34;&amp;gt;
+    &amp;lt;lifecycle&amp;gt;
+        &amp;lt;phase-listener&amp;gt;root.Listener&amp;lt;/phase-listener&amp;gt;
+    &amp;lt;/lifecycle&amp;gt;
+
+&amp;lt;/faces-config&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora ao tentarmos entrar na página de sucesso diretamente, ele não vai.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55235&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/resultado-final-jsf.png&#34; alt=&#34;Resultado final&#34; width=&#34;479&#34; height=&#34;267&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para quem deseja obter a URL correta, apenas adicionar &amp;#8220;?faces-redirect=true&amp;#8221; ao final da String de redirecionamento no Listener:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;package root;
+
+import javax.faces.application.Application;
+import javax.faces.application.NavigationHandler;
+import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.PhaseListener;
+
+public class Listener implements PhaseListener{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void beforePhase(PhaseEvent arg0) {
+    }
+
+    @Override
+    public void afterPhase(PhaseEvent arg0) {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        if(!ctx.getViewRoot().getViewId().equals(&#34;/login.xhtml&#34;)){
+            Application app = ctx.getApplication();
+            Usuario u = app.evaluateExpressionGet(ctx, &#34;#{usuario}&#34;, Usuario.class);
+            if(!u.getUsuario().equals(&#34;Julio&#34;)){
+                NavigationHandler handler = app.getNavigationHandler();
+                handler.handleNavigation(ctx, &#34;&#34;, &#34;login?faces-redirect=true&#34;);
+                ctx.renderResponse();
+            }
+        }
+    }
+
+    @Override
+    public PhaseId getPhaseId() {
+        return PhaseId.RESTORE_VIEW;
+    }
+
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Então:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55236&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/alteracao-param-jsf-2.png&#34; alt=&#34;Entrada no browser&#34; width=&#34;439&#34; height=&#34;92&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Retorna:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55237&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/alteracao-param-jsf-3.png&#34; alt=&#34;Resposta no browser&#34; width=&#34;383&#34; height=&#34;193&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Obtendo o resultado desejado.&lt;/p&gt;
+
+&lt;p&gt;Comente em caso de dúvidas ou falhas =D.&lt;/p&gt;
+
+&lt;p&gt;Em meu blog tem alguns outros artigos deste mesmo tipo, se deseja ver: &lt;a href=&#34;http://jcdourado.github.io&#34;&gt;http://jcdourado.github.io&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Obrigado!!&lt;/p&gt;
+
+&lt;p&gt;Segue alguns links de artigos e alguns livros que ajudam nessa caminhada:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.devmedia.com.br/jsf-session-criando-um-modulo-de-login/30975&#34;&gt;http://www.devmedia.com.br/jsf-session-criando-um-modulo-de-login/30975&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.devmedia.com.br/java-web-criando-uma-tela-de-login-com-jpa-jsf-primefaces-e-mysql/32456&#34;&gt;http://www.devmedia.com.br/java-web-criando-uma-tela-de-login-com-jpa-jsf-primefaces-e-mysql/32456&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.universidadejava.com.br/materiais/jsf-tela-login/&#34;&gt;http://www.universidadejava.com.br/materiais/jsf-tela-login/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Livro: &lt;strong&gt;JSF Eficaz&lt;/strong&gt; &amp;#8211; Casa do Código.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JPA de A à Z – Por que conhecer?</title>
+      <link>http://tableless.com.br/jpa-de-z-por-que-conhecer/</link>
+      <pubDate>Tue, 30 Aug 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/jpa-de-z-por-que-conhecer/</guid>
+      <description>&lt;p&gt;Não dá pra negar que o Java é uma linguagem bastante verbosa e quando falávamos em juntar o Java com um banco de dados ai sim dava pra ver o tamanho do problema.&lt;/p&gt;
+
+&lt;p&gt;Se não tivéssemos cuidado era muito fácil perder o controle da complexidade de nossas entidades e consultas.&lt;/p&gt;
+
+&lt;p&gt;Antes de entendermos sobre a  JPA, é necessário entender que costumávamos utilizar em nossos projetos o JDBC (Java Database Connectivity) que é uma API presente no Java desde a versão 1.1 da plataforma. Mesmo sendo uma API bem antiga ela ainda continua sendo atualizada e modificada pela comunidade e pela Oracle.&lt;/p&gt;
+
+&lt;p&gt;Resumidamente o JDBC é o antecessor da JPA porque ela era a principal forma de executar nossas querys SQL de select, update, delete, insert e até mesmo executar funções presentes no banco de dados. U&lt;span style=&#34;line-height: 1.5&#34;&gt;m detalhe interessante sobre o JDBC são seus Drivers de conexão, sendo cada banco de dados é responsável por desenvolver e atualizar o seu Driver. Isso facilitava muito a vida do desenvolvedor porque esses Drivers visam encapsular boa parte do código necessário para se conseguir uma conexão, então era uma preocupação a menos que tínhamos que ter.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;Mas nem tudo eram flores quando usávamos o JDBC, porque além de ter que escrever códigos SQL direto no Java, tínhamos também que instanciar uma conexão, buscar a conexão com o banco de dados. Dai era preciso preparar um outro objeto para poder manipular a consulta informando os valores dos parâmetros e só então executávamos a consulta.&lt;/p&gt;
+
+&lt;p&gt;Acabávamos tendo um trabalho tedioso só para executar uma consulta, todavia o ciclo não acabava nisso, depois era preciso fazer um casting do retorno da consulta para com objeto que queríamos manipular e como se não fosse suficiente também era necessário lembrar de fechar as conexões com o banco de dados.&lt;/p&gt;
+
+&lt;p&gt;É preciso entender que estamos falando de muito tempo atrás, um tempo em que as facilidades da JPA ainda não existiam e que muita especificação que existe hoje nasceu das dificuldades do passado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;public class ProdutoDAO {
+
+    Connection dbConnection;
+
+    public ProdutoDAO(Connection con) {
+        this.dbConnection = con;
+    }
+
+    public void salva(Produto produto) throws SQLException {
+        String sql = &#34;INSERT INTO PRODUTO (NOME, DESCRICAO) VALUES (?,?)&#34;;
+
+        try (PreparedStatement prStmt = dbConnection.prepareStatement(sql,
+                Statement.RETURN_GENERATED_KEYS)) {
+
+            prStmt.setString(1, produto.getNome());
+            prStmt.setString(2, produto.getDescricao());
+            prStmt.execute();
+
+            try (ResultSet rs = prStmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    int id = rs.getInt(1);
+                    produto.setId(id);
+                }
+            }
+
+        }
+    }
+
+    public List lista() throws SQLException {
+        List produtos = new ArrayList();
+
+        String sql = &#34;SELECT * FROM PRODUTO&#34;;
+
+        try (PreparedStatement prStmt = dbConnection.prepareStatement(sql)) {
+            prStmt.execute();
+
+            converterQueryEmProdutos(produtos, prStmt);
+        }
+
+        return produtos;
+    }
+
+    public List busca(Produto produto) throws SQLException {
+
+        String sql = &#34;SELECT * FROM PRODUTO WHERE DESCRICAO like ?&#34;;
+        List produtos = new ArrayList();
+
+        try (PreparedStatement prdStmt = dbConnection.prepareStatement(sql)) {
+            prdStmt.setString(1, produto.getDescricao);
+            prdStmt.execute();
+
+            converterQueryEmProdutos(produtos, prdStmt);
+        }
+
+        return produtos;
+    }
+
+    private void converterQueryEmProdutos(List produtos, PreparedStatement prdStmt) throws SQLException {
+
+        try (ResultSet rs = prdStmt.getResultSet()) {
+            while (rs.next()) {
+                int id = rs.getInt(1);
+                String nomeProduto = rs.getString(&#34;nome&#34;);
+                String descricaoProduto = rs.getString(&#34;descricao&#34;);
+                Produto produto = new Produto(nomeProduto, descricaoProduto);
+                produto.setId(id);
+                produtos.add(produto);
+            }
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Olhando pra esse código podemos passar um baita sufoco se por acaso algum dia o analista de requisitos resolva mexer nos atributos da entidadeProduto. Nessa DAO de exemplo só foi criada poucas consultas, mas vamos usar nossa criatividade e imaginar que na verdade existem 10 e o analista resolveu mudar o nome da coluna &amp;#8220;DESCRICAO&amp;#8221; para &amp;#8220;TIPO_PRODUTO&amp;#8221;, uma pequena mudança de nomenclatura já é suficiente para que perdêssemos tempo refatorando boa parte de nosso código.&lt;/p&gt;
+
+&lt;p&gt;Foi para evitar todo esse trabalho que surgiu o conceito ORM (Object Relational Mapping) que traduzindo livremente de acordo com a minha vontade quer dizer: “Estou salvando a sua alma transformando os dados de um banco de dados que estão no paradigma relacional para o paradigma orientado a objetos que você tanto precisa”.&lt;/p&gt;
+
+&lt;p&gt;Junto com a ORM também surgiu o Hibernate que é o framework JPA mais famoso e utilizado no momento. Só por curiosidade saiba que a JPA surgiu por causa dele, viram que a ideia era tão boa que resolveram transformar a implementação do Hibernate em uma especificação e até hoje muita coisa que é implementada no framework posteriormente vira especificação na JPA.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Mas o que é JPA?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;JPA significa Java Persistence API e como já falei ela é uma especificação que nasceu de uma JSR (Java Specification Requests) que basicamente são pedidos para mudanças na linguagem, entenda a JPA como um contrato, normas, regras ou interface e que todos os Frameworks Java que trabalham com persistência de dados devem implementa-la. Além do Hibernate também temos outros Framworks como por exemplo o OpenJPA, o Batoo e o EclipseLink.&lt;/p&gt;
+
+&lt;p&gt;Então basicamente a JPA é uma especificação que regulamenta ferramentas muito poderosas que utilizamos no nosso dia a dia para automatizar e economizar tempo de desenvolvimento. Essa especificação nos ajuda em todos os processos quando precisamos trabalhar com um banco de dados, sendo assim podemos usa-la para executar consultas, inserts, updates e deletes.&lt;/p&gt;
+
+&lt;p&gt;Lembra daquele código verboso? Como sera que ele ficaria se fosse escrito utilizando a JPA?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;public Produto obterPorId(Produto produto) {
+        return manager.find(Produto.class, produto.getId());
+    }
+
+    @SuppressWarnings(&#34;unchecked&#34;)
+    public List obterTodos() {
+        return manager.createQuery(&#34;SELCT p FROM Produto p&#34;).getResultList();
+    }
+&lt;/pre&gt;
+
+&lt;p&gt;Repare que no método &lt;strong&gt;obterPorId&lt;/strong&gt; não foi necessário criar uma única query SQL para executar a consulta por ID, também não foi preciso fazer nenhum casting a JPA se encarregou de fazer tudo isso pra gente. Agora olhando o método &lt;strong&gt;obterTodos &lt;/strong&gt;temos uma String que se parece muito com uma query SQL só que não é, a essa String damos o nome de JPQL (Java Persistence Query Language) e vamos conhecer mais sobre ela em outro momento.&lt;/p&gt;
+
+&lt;p&gt;Por fim espero que você nos acompanhe nos próximos posts porque vamos aprender mais sobre essa ferramenta poderosa em conjunto com boas práticas. A ideia é de que os posts não sejam muito longos e também não sejam só tutorias de JPA, aqui iremos explorar os conceitos, apresentar exemplos e colocar minha experiência em ação com as boas práticas.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Você sabe paginar dados no MySQL corretamente?</title>
+      <link>http://tableless.com.br/voce-sabe-paginar-dados-no-mysql-corretamente/</link>
+      <pubDate>Fri, 15 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/voce-sabe-paginar-dados-no-mysql-corretamente/</guid>
+      <description>
+
+&lt;p&gt;Esta postagem já começa com uma pergunta: &lt;strong&gt;Será que sabemos realmente fazer uma paginação de dados da forma correta?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p style=&#34;text-align: center;&#34;&gt;
+  &lt;strong&gt;ATENÇÃO!&lt;/strong&gt; Não irei falar do uso de nenhum framework PHP, bibliotecas de ORM ou plugins em JavaScript. Irei tratar sobre a consulta ao banco de dados, somente.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  Talvez você conheça esta funcionalidade do MySQL, e talvez até comentará que isto é algo &amp;#8220;muito básico&amp;#8221;, mas vale lembrar: &lt;em&gt;&amp;#8220;Nem todos sabem de tudo. A internet é uma grande comunidade.&amp;#8221;&lt;/em&gt;
+&lt;/p&gt;
+
+&lt;h2 id=&#34;como-a-maioria-faria&#34;&gt;Como a maioria faria&lt;/h2&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  A grande maioria de nós simplesmente iria executar 2 instruções de SELECT no MySQL. Uma para retornar o total dos registros e outra para paginar estes registros. Alguns, talvez, fariam a consulta de todos os registros no banco e depois limitariam os registros no PHP (Vish!).
+&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  As nossas consultas ao banco ficariam algo mais ou menos assim:
+&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/** Recuperamos o total de registros **/
+SELECT * FROM pessoa
+
+/** Recuperamos somente os 10 primeiros registros **/
+SELECT * FROM pessoa LIMIT 0,10
+&lt;/pre&gt;
+
+&lt;p&gt;Certo, talvez esta execução de comandos não tenha afetado o desempenho do seu site ou aplicação até o momento.&lt;/p&gt;
+
+&lt;p&gt;Agora, imagine ter que tratar milhares de registros, para diversos usuários ao mesmo tempo. Haja memória e servidor para isto!&lt;/p&gt;
+
+&lt;p&gt;Como desenvolvedores, sempre temos que prezar por um excelente desempenho e a utilização mínima de recursos em nossas aplicações, que podem tomar proporções que não imaginamos na sua criação.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-mysql-nos-dá-uma-força&#34;&gt;O MySQL nos dá uma força&lt;/h2&gt;
+
+&lt;p&gt;Existe um parâmetro no MySQL que é pouco conhecido da maioria desenvolvedores. Ele foi criado justamente para facilitar as paginações de registros em uma consulta.&lt;/p&gt;
+
+&lt;p&gt;Com somente um comando SELECT você terá a quantidade de registros e os seus dados paginados de forma simples, e sem uma grande curva de aprendizado. Veja como é simples:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/** Recupera somente os 10 primeiros registros **/
+SELECT SQL_CALC_FOUND_ROWS * FROM pessoa LIMIT 0,10
+
+/** Retorna o total de linhas do comando SELECT anterior sem considerar o LIMIT **/
+SELECT FOUND_ROWS();
+&lt;/pre&gt;
+
+&lt;p&gt;Que simples e útil é esta função do MySQL! Não existem grandes modificações para serem feitas. Como exemplo, eu adaptei facilmente alguns frameworks que desenvolvi para aumentar a performance.&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  Você pode saber mais destas funções do MySQL &lt;a href=&#34;http://dev.mysql.com/doc/refman/5.7/en/information-functions.html#function_found-rows&#34; target=&#34;_blank&#34;&gt;diretamente na documentação do próprio banco&lt;/a&gt;.
+&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  Além disto, o site &lt;a href=&#34;https://www.percona.com/blog/2007/08/28/to-sql_calc_found_rows-or-not-to-sql_calc_found_rows/&#34; target=&#34;_blank&#34;&gt;Percona trás uma análise da performance do comando&lt;/a&gt;, mas em resumo, o site diz:
+&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p style=&#34;text-align: center;&#34;&gt;
+  &lt;em&gt;&amp;#8220;Se você tem ÍNDICES nas suas cláusulas WHERE, é melhor não utilizar o SQL_CALC_FOUND_ROWS e utilizar 2 consultas.&lt;/em&gt;&lt;br /&gt; &lt;em&gt;Mas caso você não tenha ÍNDICES em suas cláusulas WHERE, se você usar o SQL_CALC_FOUND_ROWS será mais eficiente.&amp;#8221;&lt;/em&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p style=&#34;text-align: center;&#34;&gt;
+  &lt;strong&gt;Para cada realidade, uma aplicação é válida. Utilizar esta função não é REGRA, mas conhecimento sempre fará diferença em nossas carreiras.&lt;/strong&gt;
+&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  Espero que tenha servido para agregar ao conhecimento de alguém. Grande abraço, e até a próxima!
+&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Vulnerabilidades em Sistemas Web</title>
+      <link>http://tableless.com.br/vulnerabilidades-em-sistemas-web/</link>
+      <pubDate>Mon, 11 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/vulnerabilidades-em-sistemas-web/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-são-vulnerabilidades-em-sistemas-web&#34;&gt;O que são vulnerabilidades em sistemas web?&lt;/h2&gt;
+
+&lt;p&gt;Vulnerabilidades em sistemas web são uma realidade cada vez mais crescente na internet. Primeiro deixem-me explicar rapidamente como funciona a comunicação entre o &lt;em&gt;browser&lt;/em&gt; e o servidor web. Sistemas web funcionam com uma dupla muito conhecida neste ramo: requisição e resposta.&lt;/p&gt;
+
+&lt;p&gt;A requisição se origina do lado do usuário (pelo Chrome, IE, Firefox, Safari, cURL, etc) composta de elementos como &lt;em&gt;header&lt;/em&gt;, URL, método, parâmetros, &lt;em&gt;cookies&lt;/em&gt;, etc. Ela é enviada para um servidor web que responde pelo domínio (o &amp;#8216;www.algumacoisa.com.br&amp;#8217;) da requisição. Por sua vez, o servidor processa a requisição e retorna para o usuário a resposta (42?), também composta de partes conhecidas como &lt;em&gt;header&lt;/em&gt;, &lt;em&gt;body&lt;/em&gt;, &lt;em&gt;code&lt;/em&gt;, &lt;em&gt;cookies&lt;/em&gt;, etc.&lt;/p&gt;
+
+&lt;p&gt;As vulnerabilidades web nascem quando determinadas partes oriundas da requisição, são processadas sem o devido tratamento pelo servidor. Essas partes podem ser &lt;em&gt;cookies&lt;/em&gt; mal configurados, o ID de uma sessão exposta no navegador e até mesmo os parâmetros passados pela URL ou num formulário de &lt;em&gt;login&lt;/em&gt;, por exemplo. Essas informações, quando não são tratadas no servidor se caracteriza como uma falha de segurança, deixando assim o próprio servidor suscetível à ataques específicos através da exploração dessas falhas.&lt;/p&gt;
+
+&lt;h3 id=&#34;como-sei-se-minha-url-ou-melhor-se-meu-site-está-vulnerável-através-de-minha-url&#34;&gt;Como sei se minha URL, ou melhor, se meu site está vulnerável através de minha URL?&lt;/h3&gt;
+
+&lt;p&gt;Entre as várias formas existentes para explorar vulnerabilidades web, a Nº 01 do &lt;a href=&#34;https://www.owasp.org/index.php/Top_10_2013-Top_10&#34; target=&#34;_blank&#34;&gt;Top 10&lt;/a&gt; da OWASP (&lt;em&gt;Open Web Application Security Project&lt;/em&gt;) é a &lt;em&gt;A1 &amp;#8211; Injection&lt;/em&gt;, injeção direta de código malicioso através de parâmetros enviados pela requisição, ou seja, pelo usuário. A OWASP é uma organização que visa orientar desenvolvedores, analistas, arquitetos e empresas quanto aos riscos das vulnerabilidades em sistemas web.&lt;/p&gt;
+
+&lt;p&gt;Existe um teste bem simples para saber se  existem vulnerabilidades em sua URL: forçando um erro. Tomemos como exemplo um ambiente web, com um banco de dado MySQL, a aplicação em PHP e a URL no padrão:&lt;/p&gt;
+
+&lt;p style=&#34;text-align: center&#34;&gt;
+  http://www.meudominio.com.br/produtos.php?id=15
+&lt;/p&gt;
+
+&lt;p&gt;A extensão da URL não importa muito nesse momento, o problema está nos parâmetros, e estou supondo um banco de dados MySQL apenas para exemplificar o erro.&lt;/p&gt;
+
+&lt;p class=&#34;lang-php&#34;&gt;
+  Digamos então que, no lado do servidor, naquele arquivo &lt;em&gt;produtos.php&lt;/em&gt; que fica na raiz do site, existe uma linha de código que recebe via GET o parâmetro &amp;#8216;id&amp;#8217; e nosso amiguinho que o desenvolveu implementou a regra de busca de produto no banco de dados com a seguinte consulta SQL:
+&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;$id = $_GET[&#39;id&#39;];&amp;lt;br /&amp;gt;
+$sql = &amp;quot;SELECT * FROM produtos WHERE produtos.id = {$id}&amp;quot;;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Até aí tudo bem, o código funciona, isso se o valor passado no parâmetro &amp;#8216;id&amp;#8217; da URL sempre for um número. Entendeu? E se eu substituir o valor do parâmetro &amp;#8216;id&amp;#8217; na URL por uma letra, ou até mesmo acrescentar um simples apóstrofo após o número 15 e o servidor retornar algo do tipo:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &amp;#8220;15&amp;#8221; LIMIT 1&amp;#8242; at line 1&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Não quero assustar ninguém, mas alguém com conhecimentos avançados em consultas SQL pode explorar essa falha de segurança e como resultado obter acesso a todo o banco de dados da aplicação, podendo assim baixar dados sigilosos, como número de cartões de crédito, ou obter acesso ao sistema como um usuário autenticado, quebrando a encriptação de senhas através de força bruta, isso se a senha estiver encriptada. Tudo isso através de sua URL.&lt;/p&gt;
+
+&lt;p&gt;Essa técnica é chamada de Injeção de SQL (SQL Injection), quando o atacante tenta alterar o código SQL para conseguir acesso à essas informações, direto do banco de dados e segundo a OWASP é considerada uma das vulnerabilidades em sistemas web mais comuns.&lt;/p&gt;
+
+&lt;h3 id=&#34;como-faço-para-me-proteger&#34;&gt;Como faço para me proteger?&lt;/h3&gt;
+
+&lt;p&gt;Lembra daquela parte do código que recebeu o parâmetro &amp;#8216;id&amp;#8217; da URL? Pois então, uma solução bem prática seria fazer o parse (forçar o valor) para o tipo inteiro, que no PHP poderia ficar assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;$id = (int) $_GET[&#39;id&#39;];&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Dessa forma, qualquer valor que não fosse um número inteiro seria forçado para um simples 0 (zero).&lt;/p&gt;
+
+&lt;p&gt;Existem outras formas de se explorar falhas como essa, seja através da URL ou de formulários, mas para mitigá-las é necessário realizar uma varredura em todo o código em que a aquisição de dados através de parâmetros se faz presente, e realizando as devidas correções.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Por que utilizar Go/Golang no seu backend?</title>
+      <link>http://tableless.com.br/por-que-utilizar-gogolang-no-seu-backend/</link>
+      <pubDate>Tue, 28 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/por-que-utilizar-gogolang-no-seu-backend/</guid>
+      <description>
+
+&lt;p&gt;O tempo passa e quando você é viciado no que faz, no meu caso, codar, a busca por se aprimorar ou descobrir novas maneiras de resolver os problemas da sua área nunca param, assim sendo, um belo dia, cheguei até o &lt;strong&gt;Go&lt;/strong&gt; e desde então não parei mais de aprender sobre a linguagem. A ideia é a cada semana fazer um post sobre, iniciando agora com uma simples introdução e sugestões de artigos para se animar.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter&#34; src=&#34;http://synflood.at/tmp/golang-slides/images/gophercolor.png&#34; alt=&#34;Imagem do gopher&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que--gogolang&#34;&gt;O que é Go/Golang?&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;Go&lt;/strong&gt; ou &lt;strong&gt;Golang&lt;/strong&gt; &amp;#8211; termo que facilita buscas no google &amp;#8211; é uma linguagem &lt;em&gt;open source&lt;/em&gt; criada em 2009 pelo &lt;strong&gt;Google&lt;/strong&gt;, mais especificamente por caras como &lt;em&gt;Rob Pike&lt;/em&gt; e &lt;em&gt;Ken Thompson&lt;/em&gt;. Caso você não conheça, são engenheiros renomados, que tiveram grande influência na história da computação e em projetos &lt;em&gt;open source&lt;/em&gt; de grande escala, pra citar um bem &amp;#8220;simples&amp;#8221;: &lt;strong&gt;Unix&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Só por esta constatação, você já poderia largar tudo e seguir os passos deles cegamente, afinal, Rob e Ken provavelmente não estariam trabalhando em algo meia boca. Brincadeiras à parte, a Go foi criada com objetivos simples, dentre os principais, ter a rapidez do C, mas ser um pouco mais legível e/ou fácil de programar. Inclusive, nos meus primeiros passos com a linguagem, pude sentir exatemente isso. &lt;a href=&#34;https://www.youtube.com/watch?v=FTl0tl9BGdc&#34; target=&#34;_blank&#34;&gt;Aqui&lt;/a&gt; tem um vídeo bem massa do Rob dizendo o porquê você deve aprender Go.&lt;/p&gt;
+
+&lt;h3 id=&#34;por-que-eu-usaria-go&#34;&gt;Por que eu usaria Go?&lt;/h3&gt;
+
+&lt;p&gt;Acima, eu disse algumas vantagens de utilizar a linguagem, porém, a lista é bem mais vasta. Tentarei compilar os pontos que mais me chamam atenção e que possivelmente seriam casos de uso para você utilizá-la:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Go é incrivelmente ‘leve’ em termos de uso de memória. Existe &lt;a href=&#34;http://www.iron.io/how-we-went-from-30-servers-to-2-go/&#34; target=&#34;_blank&#34;&gt;um caso conhecido&lt;/a&gt; de uma companhia que rodava um serviço em Ruby utilizando 50 servidores e foram para 2 com Go.&lt;/li&gt;
+&lt;li&gt;Concorrência é um dos pontos fortes da linguagem, se você precisar sobrecarregar um backend com diversos processamentos simultâneos, as &lt;code&gt;goroutines&lt;/code&gt; e &lt;code&gt;channels&lt;/code&gt; &lt;a href=&#34;https://matt.aimonetti.net/posts/2012/11/27/real-life-concurrency-in-go/&#34; target=&#34;_blank&#34;&gt;vão te ajudar bastante&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;Compila muito rápido.&lt;/li&gt;
+&lt;li&gt;Tem &lt;em&gt;garbage collector&lt;/em&gt;, você não precisa se preocupar tanto com memória como nos seus dias de C.&lt;/li&gt;
+&lt;li&gt;É fortemente tipada. (eu pelo menos acho isso bom, phpeiros)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;quem-est-usando-go&#34;&gt;Quem está usando Go?&lt;/h3&gt;
+
+&lt;p&gt;Existe uma infinidade de empresas que ao descobrirem os poderes mágicos de Go, foram migrando seus serviços/backend. Abaixo algumas grandes:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Uber &amp;#8211; &lt;a href=&#34;https://eng.uber.com/go-geofence/&#34; target=&#34;_blank&#34;&gt;How we built uber engineering’s highest query per second service using Go&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Docker &amp;#8211; &lt;a href=&#34;http://pt.slideshare.net/jpetazzo/docker-and-go-why-did-we-decide-to-write-docker-in-go&#34; target=&#34;_blank&#34;&gt;Why did we decide to write Docker in Go?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Dropbox &amp;#8211; &lt;a href=&#34;https://blogs.dropbox.com/tech/2014/07/open-sourcing-our-go-libraries/&#34; target=&#34;_blank&#34;&gt;Open sourcing our Go libraries&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;OpenShift &amp;#8211; &lt;a href=&#34;https://blog.gopheracademy.com/birthday-bash-2014/openshift-3-old-dogs-new-tricks/&#34; target=&#34;_blank&#34;&gt;OpenShift3 and Go &amp;#8211; Teaching Old Dogs New Tricks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Twitter &amp;#8211; &lt;a href=&#34;https://blog.twitter.com/2015/handling-five-billion-sessions-a-day-in-real-time&#34; target=&#34;_blank&#34;&gt;Handling five billion sessions a day – in real time&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Enfim, existem muito mais empresas que se importam e/ou tem necessidade de melhorar a performance de seus serviços e grande parte delas estão olhando para Go e outras linguagens com poderes maiores do que as ‘enterprise languages’ que vemos há anos por aí nas grandes empresas do país.&lt;/p&gt;
+
+&lt;p&gt;Espero que o post tenha sido informativo e inspirador para você descobrir mais sobre a linguagem Go.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Silex Middlewares 101 – Parte 1</title>
+      <link>http://tableless.com.br/silex-middlewares-101-parte-1/</link>
+      <pubDate>Sun, 26 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/silex-middlewares-101-parte-1/</guid>
+      <description>
+
+&lt;p&gt;Fala pessoal! Tudo bem? Espero que sim! Depois de uma longa temporada retorno com mais este post sobre o micro-framework Silex! Desta vez abordarei o uso dos middlewares no mesmo.&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares&#34;&gt;Middlewares&lt;/h2&gt;
+
+&lt;p&gt;Os middlewares no Silex são utilizados para mudar o comportamento padrão do mesmo, os middlewares se mostram muito úteis quando pensamos na validação de tokens de acesso, save de logs e muitas outras tarefas. Basicamente temos dois tipos de middlewares, os de aplicação e os de rota. Mostraremos as diferenças abaixo:&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-de-aplicação&#34;&gt;Middlewares De Aplicação&lt;/h2&gt;
+
+&lt;p&gt;Como o próprio nome já diz, esses middlewares impactam a aplicação como um todo e são três. Vamos ver como cada um funciona logo abaixo:&lt;/p&gt;
+
+&lt;h3 id=&#34;before-method&#34;&gt;Before Method&lt;/h3&gt;
+
+&lt;p&gt;O método &lt;code&gt;before();&lt;/code&gt; é sempre executado antes de suas rotas, no escopo de aplicação ele será acionado sempre que um usuário fizer alguma requisição a mesma. Veja o código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app = new Application();
+
+$app-&amp;gt;before(function(){
+    //Sua lógica aqui.
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Middlewares&#39;);
+});
+
+$app-&amp;gt;run();
+&lt;/pre&gt;
+
+&lt;p&gt;Das linhas 5 a 7 temos a definição do nosso middleware &lt;code&gt;before&lt;/code&gt;, como comentado, sempre que nossa aplicação for acessada, o middleware será acionado antes da execução da rota em questão. O before se torna muito útil para validação de tokens de acesso, validação de sessão, transformação de dados, dentre outros.&lt;/p&gt;
+
+&lt;h3 id=&#34;after-method&#34;&gt;After Method&lt;/h3&gt;
+
+&lt;p&gt;O &lt;code&gt;after();&lt;/code&gt;, apesar do nome sugestivo, não quer dizer que o mesmo será executado após a chamada da rota, calma vô explicar!&lt;/p&gt;
+
+&lt;p&gt;O &lt;code&gt;after&lt;/code&gt; executa antes da saída do response da rota chamada!&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app-&amp;gt;after(function(){
+    //Exemplo
+    print &#39;After Middleware | &#39;;
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content!&#39;);
+});
+
+#...
+&lt;/pre&gt;
+
+&lt;p&gt;A saida do código acima seria algo como:&lt;/p&gt;
+
+&lt;p&gt;``Fala pessoal! Tudo bem? Espero que sim! Depois de uma longa temporada retorno com mais este post sobre o micro-framework Silex! Desta vez abordarei o uso dos middlewares no mesmo.&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-1&#34;&gt;Middlewares&lt;/h2&gt;
+
+&lt;p&gt;Os middlewares no Silex são utilizados para mudar o comportamento padrão do mesmo, os middlewares se mostram muito úteis quando pensamos na validação de tokens de acesso, save de logs e muitas outras tarefas. Basicamente temos dois tipos de middlewares, os de aplicação e os de rota. Mostraremos as diferenças abaixo:&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-de-aplicação-1&#34;&gt;Middlewares De Aplicação&lt;/h2&gt;
+
+&lt;p&gt;Como o próprio nome já diz, esses middlewares impactam a aplicação como um todo e são três. Vamos ver como cada um funciona logo abaixo:&lt;/p&gt;
+
+&lt;h3 id=&#34;before-method-1&#34;&gt;Before Method&lt;/h3&gt;
+
+&lt;p&gt;O método &lt;code&gt;before();&lt;/code&gt; é sempre executado antes de suas rotas, no escopo de aplicação ele será acionado sempre que um usuário fizer alguma requisição a mesma. Veja o código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app = new Application();
+
+$app-&amp;gt;before(function(){
+    //Sua lógica aqui.
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Middlewares&#39;);
+});
+
+$app-&amp;gt;run();
+&lt;/pre&gt;
+
+&lt;p&gt;Das linhas 5 a 7 temos a definição do nosso middleware &lt;code&gt;before&lt;/code&gt;, como comentado, sempre que nossa aplicação for acessada, o middleware será acionado antes da execução da rota em questão. O before se torna muito útil para validação de tokens de acesso, validação de sessão, transformação de dados, dentre outros.&lt;/p&gt;
+
+&lt;h3 id=&#34;after-method-1&#34;&gt;After Method&lt;/h3&gt;
+
+&lt;p&gt;O &lt;code&gt;after();&lt;/code&gt;, apesar do nome sugestivo, não quer dizer que o mesmo será executado após a chamada da rota, calma vô explicar!&lt;/p&gt;
+
+&lt;p&gt;O &lt;code&gt;after&lt;/code&gt; executa antes da saída do response da rota chamada!&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app-&amp;gt;after(function(){
+    //Exemplo
+    print &#39;After Middleware | &#39;;
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content!&#39;);
+});
+
+#...
+&lt;/pre&gt;
+
+&lt;p&gt;A saida do código acima seria algo como:&lt;/p&gt;
+
+&lt;p&gt;``&lt;/p&gt;
+
+&lt;p&gt;Um caso de uso para tal, seria a transformação do response dentre outras tarefas!&lt;/p&gt;
+
+&lt;h3 id=&#34;finish-method&#34;&gt;Finish Method&lt;/h3&gt;
+
+&lt;p&gt;Existe ainda o middleware &lt;code&gt;finish();&lt;/code&gt;, esse sim! É executado após a execução da rota em questão!&lt;/p&gt;
+
+&lt;p&gt;Vamos ao exemplo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app-&amp;gt;finish(function(){
+    //Exemplo
+    print &#39;Finish middleware&#39;;
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content | &#39;);
+});
+#...
+&lt;/pre&gt;
+
+&lt;p&gt;A saída do código seria:&lt;/p&gt;
+
+&lt;p&gt;```Fala pessoal! Tudo bem? Espero que sim! Depois de uma longa temporada retorno com mais este post sobre o micro-framework Silex! Desta vez abordarei o uso dos middlewares no mesmo.&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-2&#34;&gt;Middlewares&lt;/h2&gt;
+
+&lt;p&gt;Os middlewares no Silex são utilizados para mudar o comportamento padrão do mesmo, os middlewares se mostram muito úteis quando pensamos na validação de tokens de acesso, save de logs e muitas outras tarefas. Basicamente temos dois tipos de middlewares, os de aplicação e os de rota. Mostraremos as diferenças abaixo:&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-de-aplicação-2&#34;&gt;Middlewares De Aplicação&lt;/h2&gt;
+
+&lt;p&gt;Como o próprio nome já diz, esses middlewares impactam a aplicação como um todo e são três. Vamos ver como cada um funciona logo abaixo:&lt;/p&gt;
+
+&lt;h3 id=&#34;before-method-2&#34;&gt;Before Method&lt;/h3&gt;
+
+&lt;p&gt;O método &lt;code&gt;before();&lt;/code&gt; é sempre executado antes de suas rotas, no escopo de aplicação ele será acionado sempre que um usuário fizer alguma requisição a mesma. Veja o código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app = new Application();
+
+$app-&amp;gt;before(function(){
+    //Sua lógica aqui.
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Middlewares&#39;);
+});
+
+$app-&amp;gt;run();
+&lt;/pre&gt;
+
+&lt;p&gt;Das linhas 5 a 7 temos a definição do nosso middleware &lt;code&gt;before&lt;/code&gt;, como comentado, sempre que nossa aplicação for acessada, o middleware será acionado antes da execução da rota em questão. O before se torna muito útil para validação de tokens de acesso, validação de sessão, transformação de dados, dentre outros.&lt;/p&gt;
+
+&lt;h3 id=&#34;after-method-2&#34;&gt;After Method&lt;/h3&gt;
+
+&lt;p&gt;O &lt;code&gt;after();&lt;/code&gt;, apesar do nome sugestivo, não quer dizer que o mesmo será executado após a chamada da rota, calma vô explicar!&lt;/p&gt;
+
+&lt;p&gt;O &lt;code&gt;after&lt;/code&gt; executa antes da saída do response da rota chamada!&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app-&amp;gt;after(function(){
+    //Exemplo
+    print &#39;After Middleware | &#39;;
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content!&#39;);
+});
+
+#...
+&lt;/pre&gt;
+
+&lt;p&gt;A saida do código acima seria algo como:&lt;/p&gt;
+
+&lt;p&gt;``Fala pessoal! Tudo bem? Espero que sim! Depois de uma longa temporada retorno com mais este post sobre o micro-framework Silex! Desta vez abordarei o uso dos middlewares no mesmo.&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-3&#34;&gt;Middlewares&lt;/h2&gt;
+
+&lt;p&gt;Os middlewares no Silex são utilizados para mudar o comportamento padrão do mesmo, os middlewares se mostram muito úteis quando pensamos na validação de tokens de acesso, save de logs e muitas outras tarefas. Basicamente temos dois tipos de middlewares, os de aplicação e os de rota. Mostraremos as diferenças abaixo:&lt;/p&gt;
+
+&lt;h2 id=&#34;middlewares-de-aplicação-3&#34;&gt;Middlewares De Aplicação&lt;/h2&gt;
+
+&lt;p&gt;Como o próprio nome já diz, esses middlewares impactam a aplicação como um todo e são três. Vamos ver como cada um funciona logo abaixo:&lt;/p&gt;
+
+&lt;h3 id=&#34;before-method-3&#34;&gt;Before Method&lt;/h3&gt;
+
+&lt;p&gt;O método &lt;code&gt;before();&lt;/code&gt; é sempre executado antes de suas rotas, no escopo de aplicação ele será acionado sempre que um usuário fizer alguma requisição a mesma. Veja o código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app = new Application();
+
+$app-&amp;gt;before(function(){
+    //Sua lógica aqui.
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Middlewares&#39;);
+});
+
+$app-&amp;gt;run();
+&lt;/pre&gt;
+
+&lt;p&gt;Das linhas 5 a 7 temos a definição do nosso middleware &lt;code&gt;before&lt;/code&gt;, como comentado, sempre que nossa aplicação for acessada, o middleware será acionado antes da execução da rota em questão. O before se torna muito útil para validação de tokens de acesso, validação de sessão, transformação de dados, dentre outros.&lt;/p&gt;
+
+&lt;h3 id=&#34;after-method-3&#34;&gt;After Method&lt;/h3&gt;
+
+&lt;p&gt;O &lt;code&gt;after();&lt;/code&gt;, apesar do nome sugestivo, não quer dizer que o mesmo será executado após a chamada da rota, calma vô explicar!&lt;/p&gt;
+
+&lt;p&gt;O &lt;code&gt;after&lt;/code&gt; executa antes da saída do response da rota chamada!&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app-&amp;gt;after(function(){
+    //Exemplo
+    print &#39;After Middleware | &#39;;
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content!&#39;);
+});
+
+#...
+&lt;/pre&gt;
+
+&lt;p&gt;A saida do código acima seria algo como:&lt;/p&gt;
+
+&lt;p&gt;``&lt;/p&gt;
+
+&lt;p&gt;Um caso de uso para tal, seria a transformação do response dentre outras tarefas!&lt;/p&gt;
+
+&lt;h3 id=&#34;finish-method-1&#34;&gt;Finish Method&lt;/h3&gt;
+
+&lt;p&gt;Existe ainda o middleware &lt;code&gt;finish();&lt;/code&gt;, esse sim! É executado após a execução da rota em questão!&lt;/p&gt;
+
+&lt;p&gt;Vamos ao exemplo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+#...
+$app-&amp;gt;finish(function(){
+    //Exemplo
+    print &#39;Finish middleware&#39;;
+});
+
+$app-&amp;gt;get(&#39;/&#39;, function(Application $app) {
+    return $app-&amp;gt;escape(&#39;Router Content | &#39;);
+});
+#...
+&lt;/pre&gt;
+
+&lt;p&gt;A saída do código seria:&lt;/p&gt;
+
+&lt;p&gt;```&lt;/p&gt;
+
+&lt;p&gt;Muito útil para save de logs dentre outras tarefas!&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Esses são os middlewares de aplicação do Silex Framework, percebemos que os mesmos tornam nossos trabalhos bem mais simplificados em determinados casos, só precisamos tomar um pouco de cuidado para não deixa-los um tanto quanto complexos, evitando assim dor de cabeça futura!&lt;/p&gt;
+
+&lt;p&gt;Em nosso próximo post, ainda sobre Middlewares, abordaremos os middlewares de rotas e algumas particularidades dos middlewares como um todo!&lt;/p&gt;
+
+&lt;p&gt;O código completo deste post você pode encontrar no &lt;a href=&#34;https://goo.gl/LI4BsY&#34; target=&#34;_blank&#34;&gt;gist&lt;/a&gt;. Abraços e até a próxima!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JPA Hibernate – Como funciona a anotação @version?</title>
+      <link>http://tableless.com.br/hibernate-como-funciona-anotacao-version/</link>
+      <pubDate>Sun, 19 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/hibernate-como-funciona-anotacao-version/</guid>
+      <description>&lt;p&gt;Recentemente um colega de trabalho me perguntou qual era função da anotação &lt;strong&gt;@version&lt;/strong&gt; presente nas entidades aqui do projeto. Achei interessante essa pergunta e resolvi fazer da resposta o meu primeiro post no blog.&lt;/p&gt;
+
+&lt;p&gt;Para responder essa de pergunta temos que lembrar que todo banco de dados possui um controle de concorrência entre transações (se necessário solicitem nos comentários que faço um post explicando a fundo sobre isso). Para esse post só precisamos conhecer o método de controle &lt;em&gt;Optimistic concurrency control&lt;/em&gt; (controle de concorrência otimista).&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;Optimistic concurrency control&lt;/em&gt; (OCC)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;_Optimistic concurrency control _ou controle de concorrência otimista é um método aplicado nas transações de bancos de dados relacionais. Nesse método se acredita que a probabilidade de que duas transações utilizarem o mesmo objeto é minima, logo nada é verificado enquanto a transação está sendo executada e isso faz com que o custo dela diminua.&lt;/p&gt;
+
+&lt;p&gt;Normalmente essa técnica funciona bem em Frameworks ORM porque eles conseguem escalonar as transações para que ocorra pouca ou nenhuma interferência. Mas no caso de ocorrer uma interferência o que acontece? Simples, alguma transação escolhida pelo Hibernate vai ser abortada e terá que ser recomeçada pelo cliente.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;A anotação @version&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora que sabemos superficialmente o que é um controle de concorrência e o método &lt;strong&gt;OCC &lt;/strong&gt;fica mais fácil compreender a importância do &lt;strong&gt;@version&lt;/strong&gt; em nossas entidades. Tenha em mente que ao adicionar um atributo com essa anotação não precisamos nos preocupar em alterar seu valor porque o Hibernate fica encarregado dessa função.&lt;/p&gt;
+
+&lt;p&gt;Para usarmos o método de concorrência otimista só precisamos declarar um atributo com o nome &lt;strong&gt;version&lt;/strong&gt; em nossa entidade. Normalmente ele é do tipo numérico e também pode ser do tipo data, mas não recomendo essa pratica e vou explicar o motivo no final deste post, abaixo temos um exemplo da classe Consulta.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;@Entity
+@Table(name = &#34;CONSULTAS&#34;, schema = &#34;tableless&#34;)
+public class Consultas{
+@Id
+@GeneratedValue(strategy = GenerationType.AUTO)
+@Column(name = &#34;ID_CONSULTA&#34;)
+private Integer numero;
+
+@Temporal(TemporalType.TIMESTAMP)
+@Column(name = &#34;DATA_CONSULTA&#34;)
+private Date dataConsulta;
+
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = &#34;PACIENTE_CODIGO&#34;)
+private Pacientes paciente;
+
+@Version
+private Integer version;
+
+//getter e setter
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Com esse mapeamento o Hibernate vai usar automaticamente o número da versão para verificar se o objeto utilizado na transição foi atualizado desde a ultima vez em que ele foi requisitado. Pelo código SQL a baixo podemos ver a presença do atributo version tanto no trecho do SET como na cláusula WHERE isso acontece porque o Hibernate vai buscar o objeto no banco de dados usando também o número da versão e vai incrementar esse número ao mesmo tempo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;UPDATE CONSULTAS 
+SET DATA_CONSULTA = ?, PACIENTE_CODIGO = ?, version = ?
+WHERE ID_CONSULTA = ? 
+AND version = ?&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;@version com Data&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Usar um tipo data no atributo version é uma prática que não recomendo porque no banco de dados a coluna será do tipo &lt;strong&gt;TIMESTAMP &lt;/strong&gt;e isso pode acabar permitindo que duas ou mais transações possam ser executadas com o mesmo objeto ao mesmo tempo dependendo da precisão do fuso horário configurada no banco de dados, c&lt;span style=&#34;line-height: 1.5&#34;&gt;aso essa situação acabe acontecendo vamos acabar tendo uma violação de normalização. Algumas pessoas preferem utilizar o tipo data para conseguirem visualizar &amp;#8220;quando&amp;#8221; aquele objeto foi alterado pela ultima vez, caso essa seja sua necessidade recomendo que crie um novo atributo em sua classe ao invés de utilizar a anotação &lt;strong&gt;@version&lt;/strong&gt; como data.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;
+  Por fim espero que esse post te ajude a trabalhar com controle de concorrência no Hibernate. Dúvidas, sugestões, correções, elogios nos comentários ou no meu twitter. Xablau!
+&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando aplicações CLI utilizando Node.js</title>
+      <link>http://tableless.com.br/criando-aplicacoes-cli-utilizando-node-js/</link>
+      <pubDate>Tue, 03 May 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-aplicacoes-cli-utilizando-node-js/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;As aplicações que se utilizam da linha de comando do Sistema Operacional são comumente chamadas de &lt;code&gt;CLI Applications&lt;/code&gt; ou &lt;code&gt;Command-Line Interface Applications&lt;/code&gt;.  O que isto quer dizer? Estas aplicações só sofrerão alguma interação caso ela seja feita através de um Shell (BASH, DOS, ZSH, entre outros), mediante entrada de texto.&lt;/p&gt;
+
+&lt;p&gt;Este tipo de aplicação é contrária as &lt;code&gt;GUI Applications&lt;/code&gt; ou &lt;code&gt;Graphical User Interface Applications&lt;/code&gt;, que permitem o usuário interagir com a aplicação através de ícones, disposição dos elementos na tela, utilizando-se do Mouse para isto.&lt;/p&gt;
+
+&lt;h2 id=&#34;por-que-utilizar-cli&#34;&gt;Por que utilizar CLI?&lt;/h2&gt;
+
+&lt;p&gt;Um dos principais motivos é a agilidade com que algumas tarefas podem ser executadas. Por utilizar apenas texto, algumas tarefas triviais são mais simples de serem executadas. Por exemplo, para copiar todos os arquivos com terminação &lt;code&gt;.js&lt;/code&gt; de um diretório para outro:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;GUI:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Abrir o gerenciador de arquivos&lt;/li&gt;
+&lt;li&gt;Navegar entre os diretórios até achar o desejado&lt;/li&gt;
+&lt;li&gt;Selecionar todos os arquivos que terminam com &lt;code&gt;.js&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Copiar os arquivos&lt;/li&gt;
+&lt;li&gt;Trocar de diretório no gerenciador de arquivos&lt;/li&gt;
+&lt;li&gt;Colar os arquivos&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;CLI:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Abrir o terminal&lt;/li&gt;
+&lt;li&gt;Executar o comando de cópia &lt;code&gt;cp *.js destinationfolder&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-full wp-image-53787&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/tableless.gif&#34; alt=&#34;Cópia de arquivos exemplo&#34; width=&#34;639&#34; height=&#34;114&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Além disto, você consegue automatizar diversas tarefas criando arquivos executáveis, simplesmente executando estes arquivos (que podem ser em bash, python, ou qualquer outra linguagem que rode em ambiente Shell).&lt;/p&gt;
+
+&lt;h2 id=&#34;como-fazer-cli-applications-com-javascript&#34;&gt;Como fazer CLI Applications com Javascript?&lt;/h2&gt;
+
+&lt;p&gt;Antes de tudo, faça o download do &lt;a href=&#34;https://nodejs.org/en/download/&#34; target=&#34;_blank&#34;&gt;NodeJS&lt;/a&gt;, que é o &lt;em&gt;runtime&lt;/em&gt; utilizado para executar Javascript no server-side.&lt;/p&gt;
+
+&lt;p&gt;Após ter o Node instalado, vá até o seu terminal e execute os seguintes comandos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34; style=&#34;padding-left: 30px&#34;&gt;mkdir tableless-cli
+cd tableless-cli
+npm init--yes
+&lt;/pre&gt;
+
+&lt;p&gt;Estes comandos irão gerar um arquivo chamado &lt;code&gt;package.json&lt;/code&gt;, que terá o seguinte formato:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+  &#34;name&#34;: &#34;tableless-cli&#34;,
+  &#34;version&#34;: &#34;1.0.0&#34;,
+  &#34;description&#34;: &#34;&#34;,
+  &#34;main&#34;: &#34;index.js&#34;,
+  &#34;scripts&#34;: {
+    &#34;test&#34;: &#34;echo \&#34;Error: no test specified\&#34; &amp;&amp; exit 1&#34;
+  },
+  &#34;keywords&#34;: [],
+  &#34;author&#34;: &#34;&#34;,
+  &#34;license&#34;: &#34;ISC&#34;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O &lt;code&gt;package.json&lt;/code&gt; é um arquivo de configuração do &lt;code&gt;NPM&lt;/code&gt;&lt;code&gt;(Node Package Manager)&lt;/code&gt; que é utilizado como um descritor do seu projeto, além de manusear suas dependências, e o mais importante para nós neste tutorial, transformar seu arquivo Javascript em um executável no sistema.&lt;/p&gt;
+
+&lt;p&gt;Nosso projeto vai consistir de um arquivo javascript que, ao ser executado, nos trará a previsão do tempo da cidade passada como parâmetro. Esta previsão do tempo será resgatada através de uma busca para a API de Geocoding do &lt;a href=&#34;https://developers.google.com/maps/documentation/geocoding/intro?hl=pt-br#GeocodingRequests&#34; target=&#34;_blank&#34;&gt;Google Maps&lt;/a&gt;, e em seguida para a API do &lt;a href=&#34;http://forecast.io&#34; target=&#34;_blank&#34;&gt;forecast.io&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Vamos criar nosso arquivo index.js dentro de uma pasta &lt;code&gt;bin&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34; style=&#34;padding-left: 30px&#34;&gt;mkdir bin
+cd bin
+touch index.js
+&lt;/pre&gt;
+
+&lt;p&gt;E, dentro do nosso package.json, vamos dizer ao npm que quando o comando &amp;#8220;forecast&amp;#8221; for executado no terminal, queremos que execute o arquivo &lt;code&gt;./bin/index.js&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+  &#34;name&#34;: &#34;tableless-cli&#34;,
+  &#34;version&#34;: &#34;1.0.0&#34;,
+  &#34;description&#34;: &#34;&#34;,
+  &#34;main&#34;: &#34;index.js&#34;,
+  &#34;scripts&#34;: {
+    &#34;test&#34;: &#34;echo \&#34;Error: no test specified\&#34; &amp;&amp; exit 1&#34;
+  },
+  &#34;keywords&#34;: [],
+  &#34;author&#34;: &#34;&#34;,
+  &#34;license&#34;: &#34;ISC&#34;,
+  &#34;bin&#34;: {
+    &#34;forecast&#34;: &#34;./bin/index.js&#34;
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;No nosso arquivo &lt;code&gt;index.js&lt;/code&gt;, vamos dizer para o sistema que o arquivo deve ser executado utilizando o NodeJS e vamos importar uma biblioteca padrão para realizar chamadas HTTPS.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;#! /usr/bin/env node
+  var https = require(&#39;https&#39;)
+&lt;/pre&gt;
+
+&lt;p&gt;Vamos adicionar mais duas linhas de códigos para testarmos se está tudo funcionando.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;#! /usr/bin/env node
+  var https = require(&#39;https&#39;)
+  var arguments = process.argv.splice(2, process.argv.length -1).join(&#39; &#39;)
+  console.log(arguments);
+&lt;/pre&gt;
+
+&lt;p&gt;A linha &lt;strong&gt;3&lt;/strong&gt; captura os argumentos passados para nossa aplicação, ignorando os dois primeiros itens. Eles são ignorados pois são o caminho dos executáveis que farão nossa aplicação ser executada, e nós não precisamos desta informação. Além disto, transformamos o &lt;code&gt;Array&lt;/code&gt; de argumentos para uma &lt;code&gt;String&lt;/code&gt;, através do comando &lt;code&gt;.join(&#39; &#39;)&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Voltando a pasta onde o arquivo &lt;code&gt;package.json&lt;/code&gt; está, vá até seu terminal e execute os seguintes comandos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34; style=&#34;padding-left: 30px&#34;&gt;npm link
+forecast
+&lt;/pre&gt;
+
+&lt;p&gt;O comando &lt;code&gt;npm link&lt;/code&gt; irá transformar em executável nosso arquivo dentro do sistema, deixando-o disponível para ser executado, e o comando &lt;code&gt;forecast&lt;/code&gt; foi o que definimos dentro do nosso &lt;code&gt;package.json&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Pronto, criamos nosso primeiro executável! Agora vamos fazer uma busca para a API do Google Maps para transformar o endereço digitado em Latitude e Longitude.&lt;/p&gt;
+
+&lt;p&gt;Para fazermos a busca para a API do Google Maps, precisamos de mais uma biblioteca padrão do Node.js: &lt;code&gt;querystring&lt;/code&gt;. Utilizaremos a função &lt;code&gt;stringify&lt;/code&gt; dela, para podermos normalizar o texto que enviaremos para a API.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;#! /usr/bin/env node
+var https = require(&#39;https&#39;)
+var querystring = require(&#39;querystring&#39;)
+
+var arguments = process.argv.splice(2, process.argv.length -1).join(&#39; &#39;)
+var search    = querystring.stringify({ address: arguments })
+
+https
+  .get(&#39;https://maps.googleapis.com/maps/api/geocode/json?&#39; + search, function(res){
+    var data = &#39;&#39;
+    
+    res.on(&#39;data&#39;, function(newData){
+      data += newData
+    });
+
+    res.on(&#39;end&#39;, function(){
+      var location = JSON.parse(data).results[0].geometry.location
+    })
+  })
+&lt;/pre&gt;
+
+&lt;p&gt;Na linha 9, estamos fazendo uma chamada https para a API do google maps passando como parâmetro o que foi passado para nossa aplicação.&lt;/p&gt;
+
+&lt;p&gt;Na linha 18, obtemos como resultado da busca a Latitude e a Longitude da nossa pesquisa. Por prática estou usando apenas o primeiro resultado, mas sinta-se a vontade para brincar com os resultados da API.&lt;/p&gt;
+
+&lt;p&gt;Até agora, geramos um arquivo javascript executável através da linha de comando que faz uma busca na API do Google para um endereço passado como parâmetro.&lt;/p&gt;
+
+&lt;h2 id=&#34;utilizando-a-api-do-forecast&#34;&gt;Utilizando a API do Forecast.&lt;/h2&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://forecast.io&#34;&gt;Forecast&lt;/a&gt; é um site que mostra a condição do tempo e possui uma API muito boa para que nós, desenvolvedores, possamos aproveitar. É necessário uma &lt;code&gt;key&lt;/code&gt; para fazermos uma requisição e, na versão gratuita, podemos fazer no máximo 1.000 chamadas por dia para a API. Como não teremos um volume muito grande de chamadas, vamos utilizá-la.&lt;/p&gt;
+
+&lt;p&gt;Para conseguir sua key de acesso, faça o cadastro &lt;a href=&#34;https://developer.forecast.io/&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Vamos utilizar agora o objeto de Geolocalização que obtivemos da API do Google Maps para fazermos uma chamada para API do Forecast.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;#! /usr/bin/env node
+var https = require(&#39;https&#39;)
+var querystring = require(&#39;querystring&#39;)
+
+var arguments = process.argv.splice(2, process.argv.length -1).join(&#39; &#39;)
+var search    = querystring.stringify({ address: arguments })
+
+https
+  .get(&#39;https://maps.googleapis.com/maps/api/geocode/json?&#39; + search, function(res){
+    var data = &#39;&#39;
+    
+    res.on(&#39;data&#39;, function(newData){
+      data += newData
+    });
+
+   res.on(&#39;end&#39;, function(){
+      var location = JSON.parse(data).results[0].geometry.location
+      var options = querystring.stringify({ units: &#39;si&#39;, lang: &#39;pt&#39; })
+      https
+        .get(&#39;https://api.forecast.io/forecast//&#39; + location.lat +&#39;,&#39; + location.lng + &#39;?&#39; + options, function(resForecast){
+          var data = &#39;&#39;
+
+          resForecast.on(&#39;data&#39;, function(newData){
+            data += newData
+          });
+
+          resForecast.on(&#39;end&#39;, function(){
+            var json = JSON.parse(data)
+            console.log(&#39;Temperatura Atual: &#39; + json.currently.temperature + &#39; ºC&#39;)
+            console.log(&#39;Sensação Térmica: &#39; + json.currently.apparentTemperature + &#39; ºC&#39;)
+            console.log(json.daily.summary)
+          })
+        })
+    })
+  })
+&lt;/pre&gt;
+
+&lt;p&gt;Com isto, finalizamos nossa aplicação. Foi feita uma chamada para a API do Forecast passando a latitude e longitude descobertas através da API do Google Maps.&lt;/p&gt;
+
+&lt;p&gt;Utilizamos o retorno da API do Forecast para mostrar no terminal algumas das informações retornadas. As opções que foram passadas para a API do Forecast foram utilizadas para formatar tanto o sistema de medidas (&lt;code&gt;units: &#39;si&#39;&lt;/code&gt;), quanto o idioma de retorno: (&lt;code&gt;lang: &#39;pt&#39;&lt;/code&gt;).&lt;/p&gt;
+
+&lt;p&gt;Executando a aplicação após ela estar finalizada:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/3EFswyb-Imgur.gif&#34; alt=&#34;Finalizado a aplicação&#34; width=&#34;858&#34; height=&#34;152&#34; class=&#34;alignnone size-full wp-image-53802&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Fazer aplicações que serão executadas na linha de comando com NodeJS é muito simples, e requer conhecimentos apenas da linguagem. Estas aplicações poderão ser executadas em qualquer Sistema Operacional (Windows, Linux, Mac) e podem nos ajudar e muito na resolução de tarefas corriqueiras do dia a dia.&lt;/p&gt;
+
+&lt;p&gt;O código desta aplicação está no meu &lt;a href=&#34;https://github.com/igorsantana/tableless-cli&#34;&gt;github&lt;/a&gt;, para quem quiser dar uma olhada.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Consumo eficiente de recursos computacionais de servidores de aplicação web com Node.js</title>
+      <link>http://tableless.com.br/consumo-eficiente-de-recursos-computacionais-de-servidores-de-aplicacao-web-com-node-js/</link>
+      <pubDate>Thu, 28 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/consumo-eficiente-de-recursos-computacionais-de-servidores-de-aplicacao-web-com-node-js/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;INTRODUÇÃO&lt;/h2&gt;
+
+&lt;p&gt;Nos últimos anos, houve um considerável crescimento do número de usuários e volume de dados na Internet. Em 2014, cerca de 3 bilhões de pessoas no mundo usavam a internet e 43.6% das residências em todo mundo possuíam algum forma de acesso a grande rede. Os sites de redes sociais têm registrado, ao longo dos anos, um crescimento exponencial, o Facebook, por exemplo, possuía no final de 2013, 1,3 bilhões de usuários ativos, enquanto o Twitter, maior &lt;em&gt;microblog&lt;/em&gt; internacional, registrava, na mesma época, 646 milhões de usuários ativos, responsáveis por 58 milhões de &lt;em&gt;tweets&lt;/em&gt; postados diariamente (ITU, 2014). Nesse cenário, as aplicações necessitam atender esse grande número de acesso simultâneo mantendo estabilidade e desempenho satisfatório.&lt;/p&gt;
+
+&lt;p&gt;Duas possíveis soluções podem ser utilizadas para resolução de problemas de picos de acessos simultâneos: 1) a substituição da máquina antiga por uma mais robusta, com maior capacidade de processamento; e 2) incorporar novas máquinas, a fim de atender o aumento da demanda dos clientes. Não obstante, as aplicações – &lt;em&gt;software&lt;/em&gt; – necessitam utilizar mecanismos e paradigmas capazes de extrair a capacidade máxima de processamento do &lt;em&gt;hardware&lt;/em&gt;, ou seja, atender um maior número de requisições com o mínimo possível de recursos computacionais.&lt;/p&gt;
+
+&lt;p&gt;Por conseguinte, Node.js pode ser uma alternativa eficiente em aplicações com um alto número de requisições simultâneas por ter em seu modelo de programação as estratégias já mencionadas.&lt;/p&gt;
+
+&lt;p&gt;Para verificar a eficiência do Node.js foi montado um ambiente controlado para execução de testes de performance, simulando um alto número de acessos simultâneos a uma aplicação de “Hello World”, que tem como saída uma mensagem de “Hello World” e a hora de execução do &lt;em&gt;script&lt;/em&gt;. Na execução dos testes foi analisado o consumo de recursos computacionais da plataforma Node.js em relação a outras tecnologias.&lt;/p&gt;
+
+&lt;h2 id=&#34;metodologia&#34;&gt;METODOLOGIA&lt;/h2&gt;
+
+&lt;p&gt;Foi considerado como universo desta pesquisa, servidores de aplicações web que necessitam atender um grande número de requisições simultâneas. Para amostragem foram selecionadas plataformas que utilizam entradas e saídas não bloqueantes como estratégia para melhoramento de desempenho: a) Node.js; b) Thin; c) Twistted; e d) Tornado.&lt;/p&gt;
+
+&lt;p&gt;A coleta dos dados foi realizada durante a execução de testes de performance, em um ambiente controlado, utilizando a ferramenta Apache JMeter. Antes do teste, o plugin ServerAgent, do Apache JMeter, foi configurado no sistema operacional da aplicação servidora, para permitir a coleta dos dados referentes ao uso de memória e CPU. Foram utilizadas 05 (cinco) máquinas virtuais, com sistema operacional Debian 7.5 e em cada uma dessas máquinas foi instalado uma plataforma da amostragem. Acessos simultâneos de 100, 500 e 1.000 usuários, foram originados do Apache JMeter e direcionados a cada um dos hosts da amostragem, que executavam um código de “Hello, World!”.&lt;/p&gt;
+
+&lt;p&gt;Os dados obtidos por ocasião da execução do teste de carga objetivaram trazer subsídios para interpretar a eficiência e consumo de recursos da plataforma Node.js em relação as demais plataformas da amostra. A análise dos dados levou em consideração 04 (quatro) indicadores de desempenho, dividido em dois grupos: a) indicadores de serviço: disponibilidade e tempo de resposta; e b) indicadores de eficiência: consumo de recursos e throughput (vazão).&lt;/p&gt;
+
+&lt;h2 id=&#34;resultados&#34;&gt;RESULTADOS&lt;/h2&gt;
+
+&lt;p&gt;Com base nos testes realizados percebeu-se que, Node.js demonstrou ter maior desempenho que todas as outras plataformas. Sendo capaz de atender quase o dobro de requisições por segundo, em relação à Thin, tecnologia que demonstrou desempenho mais próximo ao Node.js.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53919&#34; style=&#34;width: 574px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53919 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/tempo_resposta.png&#34; alt=&#34;Resultado do tempo médio de resposta&#34; width=&#34;564&#34; height=&#34;332&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Figura 1 &amp;#8211; Resultado do tempo médio de resposta (em milissegundos)
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;No aspecto tempo de resposta, como pode ser observado na figura acima, o Node.js teve o melhor tempo, gastando metade do tempo utilizado pela plataforma Thin, que ficou em segundo lugar.&lt;/p&gt;
+
+&lt;p&gt;Salienta-se que, em todas as plataformas, o tempo médio de resposta quando 1.000 (um mil) requisições concorrentes estavam sendo executadas não foi um tempo aceitável para ambientes de produção, justificado pela pouca capacidade dos recursos computacionais dos servidores em que as aplicações estavam sendo executadas. Todavia, os aspectos aqui analisados são as diferenças dos resultados apresentados entre as plataformas analisadas, uma vez que todas aplicações foram executadas nas mesmas condições de infraestrutura e hardware.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53918&#34; style=&#34;width: 574px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53918 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/req_por_segundo.png&#34; alt=&#34;Resultado do throughput (vazão)&#34; width=&#34;564&#34; height=&#34;332&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Figura 2 &amp;#8211; Resultado do throughput (vazão)
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Este é um indicador do grupo dos indicadores orientados a eficiência, e um dos principais fatores a ser analisado no teste, pois expressa a capacidade do servidor em atender requisições durante um determinado período. No gráfico da figura 2, está exposto o número de requisições executadas por segundo e é notável que das plataformas analisadas, Node.js apresentou o melhor índice de requisições, chegando a obter mais de 500 requisições por segundo para os testes de 1.000 requisições concorrentes, enquanto a plataforma que obteve o segundo melhor índice alcançou, no melhor caso, um valor acima de 400 requisições por segundo, sendo com apenas 100 requisições simultâneas. É visível a grande diferença entre as plataformas, chegando a ter um aumento de desempenho de quase 50% utilizando os mesmo recursos de hardware.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53917&#34; style=&#34;width: 488px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53917 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/erros.png&#34; alt=&#34;Porcentagem de erros durante os testes&#34; width=&#34;478&#34; height=&#34;164&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Tabela 1 &amp;#8211; Porcentagem de erros durante os testes
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Quanto ao consumo dos recursos computacionais, todas as tecnologias tiveram um consumo bastante alto nas avaliações com mais 100 requisições concorrentes. Thin, não conseguiu completar com sucesso todas as requisições, nos testes de 500 requisições teve uma taxa de erro de 0,44%. Já nas avaliações com 1.000 requisições, essa taxa aumentou para 2,32%, conforme a tabela 1.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53921&#34; style=&#34;width: 574px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53921 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/uso_memoria.png&#34; alt=&#34;Resultado do consumo de memória RAM&#34; width=&#34;564&#34; height=&#34;332&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Figura 3 &amp;#8211; Resultado do consumo de memória RAM
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;No indicador consumo de memória RAM, figura 3, praticamente todas as plataformas tiveram consumo constante e estável. Das plataformas que conseguiram atender todas as requisições com taxas de erro “zero”, Node.js foi a que teve o menor consumo, enquanto o Twisted foi a que obteve o maior consumo de memória, porém essa diferença entre as plataformas, em geral, foi baixa.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53920&#34; style=&#34;width: 574px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53920 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/uso_cpu.png&#34; alt=&#34;Resultado consumo de CPU&#34; width=&#34;564&#34; height=&#34;332&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Figura 4 &amp;#8211; Resultado consumo de CPU
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Quanto ao uso da CPU, em geral, todas as tecnologias avaliadas tiveram um alto consumo. Das plataformas que completaram todas as requisições sem erros, em média, a Twisted foi a que apresentou o menor consumo de CPU e Tornado a que apresentou o maior índice de consumo. Node.js só ficou abaixo das demais plataformas nos testes de 100 requisições simultâneas, nas avaliações com 500 e 1000 requisições concorrentes, Node.js teve o segundo maior consumo de CPU.&lt;/p&gt;
+
+&lt;p&gt;Cabe ressaltar que apesar do consumo de memória e CPU ter sido similar entre todas as plataformas, Node.js foi superior nas questões de tempo de resposta e número de requisições por segundo, ou seja, foi capaz de atender, com sucesso, um número muito maior de requisições por segundo, com um tempo relativamente menor para atender cada requisição, utilizando a mesma capacidade de recursos de hardware das demais tecnologias.&lt;/p&gt;
+
+&lt;h2 id=&#34;considerações-finais&#34;&gt;CONSIDERAÇÕES FINAIS&lt;/h2&gt;
+
+&lt;p&gt;Analisando os resultados nos testes é possível concluir que Node.js é realmente uma alternativa para consumo eficiente dos recursos computacionais, e demonstrou ser um servidor de aplicação web de alto desempenho, tendo uma performance até 50% maior que as demais arquiteturas exploradas nos testes. Isto se deve ao fato de essa plataforma ter sido construída com esse propósito, de alto desempenho.&lt;/p&gt;
+
+&lt;p&gt;Foi possível comprovar que a performance de Node.js é bem superior a dos servidores web “event-based” comparados nesta pesquisa, permitindo que aplicações que exigem um alto de número de conexões concorrentes sejam mantidas com menos recursos computacionais, reduzindo o custo de infraestrutura dos servidores. Contudo, Node.js não é uma plataforma para todo tipo de aplicação. Em algumas situações, ela não poderá ser utilizada sozinha, mas como um suplemento em aplicações de grande porte, cabendo aos gestores e engenheiros avaliar os requisitos da aplicação e verificar se Node.js é a solução ideal para o desenvolvimento do projeto.&lt;/p&gt;
+
+&lt;h2 id=&#34;referências&#34;&gt;REFERÊNCIAS&lt;/h2&gt;
+
+&lt;p&gt;Basso, Fernando Luis. (2014) “Um estudo experimentativo e comparativo da plataforma Node.js”, &lt;a href=&#34;http://painel.passofundo.ifsul.edu.br/uploads/arq/201505221046071866349516.pdf&#34;&gt;http://painel.passofundo.ifsul.edu.br/uploads/arq/201505221046071866349516.pdf&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Bonfim, F. L., Liang, M. (2014) “Aplicações escaláveis com mean stack”, &lt;a href=&#34;http://www.inf.ufpr.br/ml09/TG/monografia.pdf&#34;&gt;http://www.inf.ufpr.br/ml09/TG/monografia.pdf&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Gros-Dubois, J. (2014) “Process-based vs Thread-based concurrency (Node.js)”, &lt;a href=&#34;https://ncombo.wordpress.com/2014/07/11/process-based-vs-thread-basedconcurrency-node-js&#34;&gt;https://ncombo.wordpress.com/2014/07/11/process-based-vs-thread-basedconcurrency-node-js&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;ITU, International Telecommunication Union. (2014) “Measuring the Information Society Report 2014”, Geneva Switzerland.&lt;/p&gt;
+
+&lt;p&gt;Junior, F. A. R. (2012) “Programação Orientada a Eventos no lado do servidor utilizando Node.js”, &lt;a href=&#34;http://www.infobrasil.inf.br/userfiles/16-S3-3-97136-Programa%C3%A7%C3%A3o%20Orientada___.pdf&#34;&gt;http://www.infobrasil.inf.br/userfiles/16-S3-3-97136-Programa%C3%A7%C3%A3o%20Orientada___.pdf&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Molyneaux, I. (2014) “The Art of Application Performance Testing: From Strategy to Tools”, Gravenstein Highway North: O’Reilly, 2ª Edição.&lt;/p&gt;
+
+&lt;p&gt;Moreira, R. H. (2013) “O que é Node.js?”, &lt;a href=&#34;http://nodebr.com/o-que-e-node-js&#34;&gt;http://nodebr.com/o-que-e-node-js&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Node.js. (2015) “About Node.js”, &lt;a href=&#34;https://nodejs.org&#34;&gt;https://nodejs.org&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Teixeira, P. (2013) “Professional Node.Js: BUILDING Javascript-Based Scalable Software.”, Indianapolis: John Wiley &amp;amp; Sons.&lt;/p&gt;
+
+&lt;p&gt;Opher, E., Niblett, P. (2011) “Event Processing in Action”. Stamford: Manning.&lt;/p&gt;
+
+&lt;p&gt;Pereira, C. R. (2011) “Aplicações web real-time com Node.Js”, Stamford: Casa do Código.&lt;/p&gt;
+
+&lt;p&gt;Ribeiro, C. (2013) “Destilando JMeter I: Introdução e Conceitos”, &lt;a href=&#34;http://www.bugbang.com.br/destilando-jmeter-i-introducao-e-conceitos&#34;&gt;http://www.bugbang.com.br/destilando-jmeter-i-introducao-e-conceitos&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

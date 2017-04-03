@@ -1,0 +1,1927 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Php on Tableless</title>
+    <link>http://tableless.com.br/tags/php/index.xml</link>
+    <description>Recent content in Php on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/php/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Upload de Arquivos com a Upin</title>
+      <link>http://tableless.com.br/upload-de-arquivos-com-upin/</link>
+      <pubDate>Sat, 12 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/upload-de-arquivos-com-upin/</guid>
+      <description>&lt;p&gt;A Upin é uma biblioteca para manipulação de arquivos em PHP Orientado a Objetos, que visa facilitar a vida de programadores iniciantes ou até profissionais. Afinal, tempo é dinheiro não é mesmo?&lt;/p&gt;
+
+&lt;p&gt;Para começar você deve baixar a versão mais atualizada da biblioteca &lt;a href=&#34;http://upin.scriptadores.com/download/&#34;&gt;nesta página&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Após ter realizado o download da biblioteca copie a pasta &lt;code&gt;class&lt;/code&gt; para dentro do diretório do seu projeto.&lt;/p&gt;
+
+&lt;p&gt;Agora, com os arquivos da biblioteca em seu projeto, você deverá criar um formulário de upload semelhante ao abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;form action=&#34;upload.php&#34; method=&#34;post&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+ &amp;lt;strong&amp;gt;Envie uma foto:&amp;lt;/strong&amp;gt; &amp;lt;input type=&#34;file&#34; name=&#34;photos[]&#34; /&amp;gt;
+ &amp;lt;br /&amp;gt;
+ &amp;lt;input type=&#34;submit&#34; /&amp;gt;
+&amp;lt;/form&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Algumas coisas na hora da criação do formulário são obrigatórias, são elas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;O atributo &lt;code&gt;enctype&lt;/code&gt; cujo valor é &lt;code&gt;multipart/form-data&lt;/code&gt; (&lt;a href=&#34;http://www.w3schools.com/tags/att_form_enctype.asp&#34; target=&#34;_blank&#34;&gt;Leia sobre&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;No atributo name do &lt;code&gt;input file&lt;/code&gt; é necessário dois couchettes ( &lt;code&gt;[]&lt;/code&gt; ) após o nome.&lt;/li&gt;
+&lt;li&gt;E uma pequena observação: Para permitir múltiplos uploads você deve adicionar o atributo &lt;code&gt;multiple.&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Tendo as informações acima em mente, e criadas, vamos para o arquivo que você definiu no atributo &lt;code&gt;action&lt;/code&gt; da sua tag &lt;code&gt;form&lt;/code&gt; (no meu caso o arquivo &lt;strong&gt;upload.php&lt;/strong&gt;).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+ require_once(&#34;class/Upload.class.php&#34;);
+ #Instanciamos a classe Upload:
+ $Upin = new Upload;
+ 
+ $Upin-&amp;gt;get(
+  &#34;imagens/&#34;, //Pasta de uploads (previamente criada)
+  $_FILES[&#34;photos&#34;][&#34;name&#34;], //Pega o nome dos arquivos, altere apenas &#34;photos&#34;
+  10, //Tamanho máximo
+  &#34;jpeg,png,jpg,gif&#34;, //Extensões permitidas
+  &#34;photos&#34;, //Atributo name do input file
+  1 //Mudar o nome? 1 = sim, 0 = não
+ );
+ $Upin-&amp;gt;run();
+ 
+ #Vamos usar o callback para mostrar as imagens enviadas.
+ if($Upin-&amp;gt;res == true){
+  foreach($Upin-&amp;gt;json as $arr){
+    echo &#34;&amp;lt;img width=200 height=180 src=&#39;perfil/&#34;.$arr.&#34;&#39; /&amp;gt;&#34;;
+  }
+ }
+&lt;/pre&gt;
+
+&lt;p&gt;Imagine você, neste exato momento, criando um sistema de múltiplos uploads do zero. Bem chato, não? Então use e abuse da Upin!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando aplicações portáveis entre diferentes SGBDs usando PDO(PHP Data Objects)</title>
+      <link>http://tableless.com.br/criando-aplicacoes-portaveis-entre-diferentes-sgbds-usando-pdophp-data-objects/</link>
+      <pubDate>Mon, 26 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-aplicacoes-portaveis-entre-diferentes-sgbds-usando-pdophp-data-objects/</guid>
+      <description>&lt;p&gt;Quero apresentar nesse artigo as principais funcionalidades do PDO. PDO é uma biblioteca que implementa abstração ao acesso dos dados, ou seja, ela utiliza um driver específico, para cada SGBD (Sistema Gerenciador de Banco de Dados), tornando possível a portabilidade da base de dados de sua aplicação, sem que a mesma sofra danos ou que você passe horas e horas reescrevendo linhas e mais linhas de código.&lt;/p&gt;
+
+&lt;p&gt;O primeiro passo é habilitar o driver do PDO no php.ini retirando o &amp;#8220;;&amp;#8221; da sua frente;&lt;/p&gt;
+
+&lt;p&gt;No Windows:&lt;/p&gt;
+
+&lt;pre&gt;extension=php_pdo.dll
+extension=php_pdo_mysql.dll&lt;/pre&gt;
+
+&lt;p&gt;No Linux:&lt;/p&gt;
+
+&lt;pre&gt;extension=pdo.so
+extension=pdo_mysql.so
+&lt;/pre&gt;
+
+&lt;p&gt;Consideremos o seguinte banco de dados:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;create database livraria;
+use livraria;
+create table livros(
+id int not null auto_increment,
+titulo varchar(75) not null,
+preco decimal(10,2) not null,
+estoque int not null,
+PRIMARY KEY (id));
+&lt;/pre&gt;
+
+&lt;p&gt;Estabelecemos a conexão com o Banco de dados no nosso arquivo connect.php&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;//Local do banco
+$host = &#34;localhost&#34;;
+//Nome do banco de dados
+$db = &#34;livraria&#34;;
+//Seu Usuário no banco de dados
+$user = &#34;root&#34;;
+//Senha do banco de dados
+$pass = &#34;&#34;;
+//Estabelecendo a conexão
+try
+{
+  /**
+   *Agora o pulo do gato,aqui é onde a mágica acontece, precisamos especificar o banco de dados 
+que iremos trabalhar,no nosso caso, optei pelo mysql. Em seguida especificamos o local 
+e o nome do banco de dados e por último o usuário e a senha
+    */
+    $pdo = new PDO(&#34;mysql:host=$host;dbname=$db&#34;, $user, $pass);
+}
+catch (Exception $e)
+{
+    echo &#34;Erro ao estabelecer conexão com o banco de dados:&#34;.$e-&amp;gt;getMessage();
+    die;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para inserir no Banco de dados criamos o arquivo insert.php.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/**
+ * Insere conexão com o banco de dados estabelecida anteriormente 
+ */
+include &#39;connect.php&#39;;
+/**
+ * Variáveis que podem receber os valores do seu formulário
+ */
+ $titulo = &#34;Padrões de Projeto - PHP&#34;;
+ $preco = 140.5;
+ $estoque = 5;
+
+try 
+{   /**
+    *Aqui preparamos primeiramente nossa instrução de inserção e como valores, 
+passamos as &#34;?&#34;(interrogações) para referencia-las com o parâmetro passado pela função bindParam. 
+    * */
+    $sql=&#34;INSERT INTO `livros` (`titulo`, `preco`, `estoque`) VALUES (?, ?, ?)&#34;;
+    $stmt = $pdo-&amp;gt;prepare($sql);
+    $stmt-&amp;gt;bindParam(1,$titulo);
+    $stmt-&amp;gt;bindParam(2,$preco);
+    $stmt-&amp;gt;bindParam(3,$estoque);
+    
+    if($stmt-&amp;gt;execute())
+        echo &#34;Gravado com Sucesso&#34;;
+    else
+        throw new Exception(&#34;Erro ao gravar informação&#34;);
+
+}
+catch (Exception $e) 
+{
+    echo $e-&amp;gt;getMessage();   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para atualizar os arquivos no banco de dados utilizamos nosso arquivo update.php:&lt;/p&gt;
+
+&lt;pre&gt;/**
+*   Inclusão da minha Conexão
+* */
+include &#39;connect.php&#39;;
+/**
+ * Variáveis que vem do seu formulário html  
+ */
+$titulo = &#34;Padrões de Projeto - PHP&#34;;
+$preco = 60;
+$estoque = 5;
+try 
+{   
+       /**
+    *Aqui preparamos nossa instrução de atualização dos dados  
+    * */
+    $sql=&#34;UPDATE `livros` SET `preco` = ?, `estoque`= ? WHERE `titulo` = ?&#34;;
+    $stmt = $pdo-&amp;gt;prepare($sql);
+    $stmt-&amp;gt;bindParam(1,$preco);
+    $stmt-&amp;gt;bindParam(2,$estoque);
+    $stmt-&amp;gt;bindParam(3,$titulo);
+
+    if($stmt-&amp;gt;execute())
+        echo &#34;Atualizado com Sucesso&#34;;
+    else
+        throw new Exception(&#39;Erro ao Atualizar&#39;);
+
+} 
+catch (Exception $e) 
+{
+    echo $e-&amp;gt;getMessage();   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para listar os dados no list.php:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;include &#39;conect.php&#39;;
+   //listando os livros
+   $sql = &#34;SELECT * FROM livros&#34;;
+   $dados = $pdo-&amp;gt;query($sql);
+/**
+*fetch()-&amp;gt;Retorna a próxima linha do resultado.
+*fetchAll()-&amp;gt; Retorna um array com todos os resultados.
+*fetchObject()-&amp;gt; Retorna a próxima linha do resultado como objeto.
+*fetchColumn()-&amp;gt; Retorna uma coluna da próxima linha do resultado.
+**/
+while ($result = $dados-&amp;gt;fetch())
+{   
+ echo $result[&#39;titulo&#39;] . &#34; - &#34;. $result[&#39;preco&#39;]. &#34;-&#34;. $result[&#39;estoque&#39;].&#34;
+&#34;;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;E para deletar os arquivos criamos o delete.php:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/**
+ *  Inclusão da minha Conexão
+ **/
+include &#39;conect.php&#39;;
+/**
+ * Variáveis que vem do seu formulário html  
+ */
+$titulo = &#34;Padrões de Projeto - PHP&#34;;
+$preco = 60;
+$estoque = 5;
+
+try 
+{   
+    /**
+    * Aqui preparamos nossa instrução de exclusão dos dados.  
+    **/
+      $sql=&#34;DELETE FROM `livros` WHERE `titulo` = ?&#34;;
+    $stmt = $pdo-&amp;gt;prepare($sql);
+    $stmt-&amp;gt;bindParam(1,$titulo);
+
+    if($stmt-&amp;gt;execute())
+        echo &#34;Deletado com Sucesso&#34;;
+    else
+        throw new Exception(&#39;Erro ao Deletar&#39;);
+
+} 
+catch (Exception $e) 
+{
+    echo $e-&amp;gt;getMessage();   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Métodos da classe PDO:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;exec int Utilizado para insert, update e delete
+query PDOStatement Utilizado para resultados tabulares, comando select.
+prepare PDOStatement Cria um prepared statement, utilizado para dados variáveis.
+&lt;/pre&gt;
+
+&lt;p&gt;Trabalhar com PDO tem várias vantagens, além da portabilidade, existe também a questão da segurança, mas isso é cena para os próximos capítulos. Aconselho que visitem a &lt;a href=&#34;http://php.net/manual/pt_BR/class.pdostatement.php&#34;&gt;documentação&lt;/a&gt; para que possam ter acesso a informação completa da biblioteca, pois a mesma é muito rica e fornecerá ao desenvolvedor inúmeras vantagens que facilitarão no dia a dia do seu desenvolvimento. Obrigado ^^!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/Anrahh/pdo_tableless&#34;&gt;clique aqui para baixar o código completo.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Referências&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.diogomatheus.com.br/blog/php/trabalhando-com-pdo-no-php/&#34;&gt;http://www.diogomatheus.com.br/blog/php/trabalhando-com-pdo-no-php/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://php.net/manual/en/book.pdo.php&#34;&gt;http://php.net/manual/en/book.pdo.php&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.php.net/manual/en/pdo.drivers.php&#34;&gt;http://www.php.net/manual/en/pdo.drivers.php&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Acelere o carregamento de seu site com PHP Caching</title>
+      <link>http://tableless.com.br/acelere-o-carregamento-de-seu-site-com-php-caching/</link>
+      <pubDate>Thu, 07 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/acelere-o-carregamento-de-seu-site-com-php-caching/</guid>
+      <description>
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Criar um site dinâmico, de fácil manutenção e que carregue rápido é o desejo de todo desenvolvedor, mas para isso não existe uma fórmula mágica, é necessário conciliar diferentes ferramentas e técnicas. &lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Mas muitos desenvolvedores iniciantes em PHP não conhecem as soluções existentes ou tem medo da curva de aprendizado que os frameworks exigem.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;O foco desse artigo é mostrar para esses desenvolvedores como uma técnica simples, utilizando apenas comandos básicos do PHP, pode acelerar o carregamento de seu site e evitar que ele fique caindo.&lt;/span&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;o-problema-a-ser-resolvido-processamento-desnecessário&#34;&gt;O problema a ser resolvido, processamento desnecessário&lt;/h3&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Para cada acesso a um site dinâmico, o servidor geralmente realiza consultas no banco de dados, executa blocos de códigos e entrega uma página pronta para exibição.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Mesmo que os acessos a uma página ocorram com poucos segundos de diferença e nada no conteúdo tenha sido alterado, o servidor irá fazer o mesmo processo para cada solicitação, quantas vezes for preciso.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Isto é um trabalho desnecessário e que exige muito processamento do servidor, principalmente em momentos de tráfego intenso, e se o servidor não der conta, o seu site ficará temporariamente fora do ar.&lt;/span&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;a-solução-php-caching&#34;&gt;A solução, PHP Caching&lt;/h3&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Também conhecido como Cache de Objetos, essa técnica executa uma página PHP e armazena o conteúdo gerado em um arquivo HTML, e para os próximos acessos, durante um certo período, o servidor irá entregar esse HTML gerado.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Sem a necessidade de consultar o banco de dados ou executar algum tipo de programação para montar a página, o servidor além de conseguir entregar uma página mais rapidamente, também suportará um número maior de acessos concorrentes.&lt;/span&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;qual-o-ganho-na-performance&#34;&gt;&lt;strong&gt;Qual o ganho na performance?&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Vai depender muito da programação do site, mas quanto mais ações forem realizadas no backend, maior será o ganho. Veja abaixo os resultados obtidos durante um teste:&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter wp-image-55365 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/phpcaching-benchmarks.jpg&#34; width=&#34;1180&#34; height=&#34;393&#34; /&gt;A versão dinâmica foi entregue em 318 ms e a versão cacheada em 14 ms, 23 vezes mais rápido.&lt;/p&gt;
+
+&lt;h2 id=&#34;desenvolvimento&#34;&gt;Desenvolvimento&lt;/h2&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Chega de teoria e vamos para a prática, criaremos juntos um exemplo que seja o mais simples possível.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Primeiro crie uma pasta no seu ambiente de desenvolvimento chamada &lt;code&gt;phpcaching&lt;/code&gt;, dentro dela crie outras duas pastas, uma chamada &lt;code&gt;paginas&lt;/code&gt; onde iremos armazenar as páginas dinâmicas em PHP e outra chamada &lt;code&gt;cache&lt;/code&gt; que irá armazenar os arquivos HTML.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Dentro da pasta &lt;code&gt;paginas&lt;/code&gt; crie um arquivo chamado &lt;code&gt;index.php&lt;/code&gt;, com o código:&lt;/span&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;html&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;head&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;    &amp;lt;title&amp;gt;PHP Caching&amp;lt;/title&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;body&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;    &amp;lt;p&amp;gt;Página gerada em: &amp;lt;?php echo date(&#39;H:i:s&#39;) ?&amp;gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;/body&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Teste a página que acabamos de criar, acessando ela pelo navegador, no meu caso o endereço é: &lt;code&gt;&lt;a href=&#34;http://localhost/phpcaching/paginas/index.php&#34;&gt;http://localhost/phpcaching/paginas/index.php&lt;/a&gt;&lt;/code&gt;&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Você verá uma página simples, que apenas mostra o horário atual toda vez que é acessada.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Agora vamos criar o nosso controlador de cache, que irá funcionar da seguinte maneira:&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter wp-image-55366 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/phpcaching-diagrama-de-atividades.jpg&#34; width=&#34;551&#34; height=&#34;551&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Sabendo a lógica de funcionamento, fica mais fácil programar nosso controlador. Crie na raiz do projeto um arquivo chamado &lt;code&gt;index.php&lt;/code&gt; com o seguinte código:&lt;/span&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+// Configurações
+$validadeEmSegundos = 60;
+$arquivoCache = &#39;cache/index.html&#39;;
+$urlDinamica = &#39;http://localhost/phpcaching/paginas/index.php&#39;;
+
+// Verifica se o arquivo cache existe e se ainda é válido
+if (file_exists($arquivoCache) &amp;&amp; (filemtime($arquivoCache) &amp;gt; time() - $validadeEmSegundos)) {
+
+    // Lê o arquivo cacheado
+    $conteudo = file_get_contents($arquivoCache);
+} else {
+
+    // Acessa a versão dinâmica
+    $conteudo = file_get_contents($urlDinamica);
+
+    // Cria o cache
+    file_put_contents($arquivoCache, $conteudo);
+}
+
+// Exibe o conteúdo da página
+echo $conteudo;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Vou explicar as funções utilizadas para caso você não conheça alguma delas:&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;file_exists&lt;/code&gt;: verifica se um arquivo existe&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;file_get_contents&lt;/code&gt;: lê o conteúdo de um arquivo&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;file_put_contents&lt;/code&gt;: escreve o conteúdo em um arquivo&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;filemtime&lt;/code&gt;: retorna o horário que o arquivo foi modificado&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;time&lt;/code&gt;: retorna o horário atual&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Agora acesse o site através do controlador de cache, no meu caso &lt;code&gt;&lt;a href=&#34;http://localhost/phpcaching/&#34;&gt;http://localhost/phpcaching/&lt;/a&gt;&lt;/code&gt;&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Repare que o horário aparece como anteriormente, mas se atualizarmos a página o horário não muda. Isto acontece porque a página exibida é a versão cacheada, que foi armazenada na pasta &lt;code&gt;cache&lt;/code&gt; com o nome &lt;code&gt;index.html&lt;/code&gt;.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto, nossa solução para cachear páginas está criada.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Esta técnica é uma maneira eficaz de aumentar a performance de seu site, sem precisar instalar algo no servidor ou algum framework no seu projeto e é recomendada para quem está iniciando no assunto.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;O código apresentado não é uma solução definitiva, mas uma base que podemos expandir de acordo com as necessidades de cada projeto, crie sua versão melhorada, faça um teste com um projeto que você já possua e analise a diferença no tempo de carregamento do site.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Eu utilizo essa técnica em um portal de notícias da minha região, e apesar do site já ter sido migrado de servidor algumas vezes, o código nunca precisou de alteração, essa é a vantagem de utilizar apenas comandos básicos do PHP.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Continuem os estudos e que a performance esteja com você.&lt;/span&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Novidade PHP 7 – Operador Null Coalesce</title>
+      <link>http://tableless.com.br/novidade-php-7-operador-null-coalesce/</link>
+      <pubDate>Fri, 19 Feb 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/novidade-php-7-operador-null-coalesce/</guid>
+      <description>&lt;p&gt;Estou começando a estudar as &lt;em&gt;features&lt;/em&gt; do PHP 7 e paralelamente irei escrever sobre elas. A primeira &lt;em&gt;feature&lt;/em&gt; que vou falar é sobre o operador &lt;strong&gt;Null Coalescing&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Este operador já existia em outras linguagens, como C# e Pearl. Eu achei muito interessante como ele melhora a legibilidade do código na checagem de variáveis.&lt;/p&gt;
+
+&lt;p&gt;A lógica do operador é a seguinte: retornar o primeiro valor que exista e não seja nulo dentre os valores passados. Em alguns casos, para pegar o valor de GET, por exemplo, utilizamos a seguinte sintaxe:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;$valor = (isset($_GET[&#39;id&#39;]))? $_GET[&#39;id&#39;] : 1;
+&lt;/pre&gt;
+
+&lt;p&gt;O trecho acima verifica se o índice ‘id’ está setado em GET, e caso esteja, ele seta na variável $valor, caso contrário, é informado o valor 1.&lt;/p&gt;
+
+&lt;p&gt;Já com o operador &lt;em&gt;null coalesce&lt;/em&gt;, este trecho fica muito mais claro e fácil de entender.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;$valor = $_GET[&#39;id&#39;] ?? 1;
+&lt;/pre&gt;
+
+&lt;p&gt;O operador &lt;strong&gt;??&lt;/strong&gt; (&lt;em&gt;null coalesce&lt;/em&gt;) ficará responsável por retornar o primeiro valor que existe e não nulo. Então, se caso não seja passado um ‘id’ via GET, o valor 1 será setado em $valor.&lt;/p&gt;
+
+&lt;p&gt;Agora, vamos imaginar que temos o seguinte cenário: precisamos setar um valor na variável $valor, só que este valor pode vir de diversos lugares e há uma ordem a ser seguida de verificação. Como você faria?&lt;/p&gt;
+
+&lt;p&gt;Com o &lt;em&gt;null coalesce&lt;/em&gt; isso torna-se muito simples:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;$valor = $_GET[&#39;id&#39;]  ?? $_POST[&#39;id&#39;] ?? 1;
+&lt;/pre&gt;
+
+&lt;p&gt;Primeiro, o operador verifica GET, caso não exista ou seja nulo, ele irá verificar POST. Caso também não exista ou seja nulo, ele irá retornar 1.&lt;/p&gt;
+
+&lt;p&gt;É isso galera. Qualquer dúvida, sugestão ou crítica é só comentar. Regards!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Constant Array no PHP 7</title>
+      <link>http://tableless.com.br/constant-array-no-php-7/</link>
+      <pubDate>Thu, 18 Feb 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/constant-array-no-php-7/</guid>
+      <description>&lt;p&gt;Até o lançamento da versão do PHP 7, só era possível criar constantes com dados do tipo &lt;em&gt;inteiro&lt;/em&gt;, &lt;em&gt;float&lt;/em&gt;, &lt;em&gt;string&lt;/em&gt;, &lt;em&gt;boolean&lt;/em&gt;, ou &lt;em&gt;NULL&lt;/em&gt;, mas com o PHP 7 agora é possível criar constantes do tipo &lt;em&gt;array&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;p&gt;Vamos lá. Definindo uma constante:&lt;/p&gt;
+
+&lt;pre&gt;define(&#34;CONSTANT&#34;, &#34;Olá Constantes.&#34;);
+echo CONSTANT; // Resultando em: &#34;Olá Constantes.&#34;
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;com-o-php-7-criando-uma-constante-do-tipo-array-matrizes&#34;&gt;Com o PHP 7 criando uma constante do tipo array (matrizes)&lt;/h3&gt;
+
+&lt;p&gt;Exemplo de constante array:&lt;/p&gt;
+
+&lt;pre&gt;// array simples:
+
+define(&#34;CONSTANT_ARRAY&#34;, [&#39;pera&#39;, &#39;uva&#39;, &#39;maça&#39;,]);
+echo &#39;Eu gosto de comer &#39; . CONSTANT_ARRAY[1];
+// Resultando em: &#34;Eu gosto de comer uva&#34;
+&lt;/pre&gt;
+
+&lt;p&gt;Também é possível usar arrays multidimensionais:&lt;/p&gt;
+
+&lt;p&gt;Exemplo de constante array multimensional:&lt;/p&gt;
+
+&lt;pre&gt;// array multidimensional:
+define(&#34;CONSTANT_ARRAY_MULTIDIMENSIONAL&#34;, [
+&#39;frutas&#39; =&amp;gt; [&#39;pera&#39;, &#39;uva&#39;, &#39;maça&#39;,],
+&#39;carros&#39; =&amp;gt; [&#39;fusca&#39;, &#39;chevette&#39;, &#39;passat&#39;,],
+&#39;mulheres&#39; =&amp;gt; [&#39;loira&#39;, &#39;ruiva&#39;, &#39;morena&#39;,],
+]);
+echo &#39;Eu gosto de comer &#39; . CONSTANT_ARRAY_MULTIDIMENSIONAL[&#39;frutas&#39;][1];
+// Resultando em: &#34;Eu gosto de comer uva&#34;
+echo &#39;&amp;lt;br&amp;gt;&#39;;
+echo &#39;meu carro é um &#39; . CONSTANT_ARRAY_MULTIDIMENSIONAL[&#39;carros&#39;][2];
+// Resultando em: &#34;Meu carro é um passat&#34;
+echo &#39;&amp;lt;br&amp;gt;&#39;;
+echo &#39;As &#39; . CONSTANT_ARRAY_MULTIDIMENSIONAL[&#39;mulheres&#39;][0] . &#39;s são mais bonitas.&#39;;
+// Resultando em: &#34;As loiras são mais bonitas.&#34;
+&lt;/pre&gt;
+
+&lt;p&gt;Só lembrando, as constantes são &lt;em&gt;case sensitive&lt;/em&gt;, ou seja, se você declarou a mesma em letras maiúsculas, só poderá usá-la com letra maiúscula.&lt;/p&gt;
+
+&lt;h3 id=&#34;usando-a-sintaxe-const&#34;&gt;Usando a sintaxe &lt;strong&gt;const&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;Também é possível utilizar a sintaxe &lt;strong&gt;const&lt;/strong&gt; para criar uma constante no PHP, mas essa só poderá ser usada dentro de uma classe:&lt;/p&gt;
+
+&lt;pre&gt;class MinhaClasse
+{
+const MINHACONSTANTE = [&#39;pera&#39;, &#39;uva&#39;, &#39;maça&#39;,];
+
+public static function constante() {
+return self::MINHACONSTANTE;
+}
+}
+&lt;/pre&gt;
+
+&lt;p&gt;No exemplo acima usei um array simples, a mesma usado no primeiro exemplo, mas agora dentro da classe &lt;em&gt;MinhaClasse&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Seu uso seria algo assim:&lt;/p&gt;
+
+&lt;pre&gt;$meuArray = MinhaClasse::constante();
+print_r($meuArray);
+&lt;/pre&gt;
+
+&lt;p&gt;O código acima irá imprimir:&lt;/p&gt;
+
+&lt;pre&gt;Array ( [0] =&amp;gt; pera [1] =&amp;gt; uva [2] =&amp;gt; maça )&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2016/01/Captura-de-tela-de-2016-01-02-16-17-16.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-52669&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/01/Captura-de-tela-de-2016-01-02-16-17-16.png&#34; alt=&#34;Constant Class PHP com array&#34; width=&#34;491&#34; height=&#34;303&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Lembrando que, para obter sucesso com os exemplos acima, é necessário ter a versão 7 do PHP ou superior. As demais versões não dão suporte á constantes do tipo &lt;em&gt;array&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;No exemplo, também foi usado a &lt;em&gt;short sintaxe&lt;/em&gt; do array. Você também pode usar a sintaxe antiga, mas é uma questão de gosto pessoal. Eu, particularmente, quando escrevo um array, sempre procuro usar a versão curta. Além de ser mais bonita e simples, também se aproxima de outras linguagens, como o JavaScript, por exemplo.&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Instalando Laravel 5.2</title>
+      <link>http://tableless.com.br/instalando-laravel-5-2/</link>
+      <pubDate>Wed, 13 Jan 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/instalando-laravel-5-2/</guid>
+      <description>
+
+&lt;p&gt;Neste artigo irei demonstrar como instalar e começar a utilizar o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;http://laravel.com/&#34; rel=&#34;nofollow&#34;&gt;Laravel&lt;/a&gt; 5.2, framework que vem ganhando visibilidade no mercado.&lt;/p&gt;
+
+&lt;p id=&#34;42c9&#34; class=&#34;graf--p graf-after--p&#34;&gt;
+  O que iremos utilizar:
+&lt;/p&gt;
+
+&lt;ul class=&#34;postList&#34;&gt;
+  &lt;li id=&#34;1067&#34; class=&#34;graf--li graf-after--p&#34;&gt;
+    &lt;a class=&#34;markup--anchor markup--li-anchor&#34; href=&#34;http://getcomposer.org/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;Composer&lt;/a&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p id=&#34;a825&#34; class=&#34;graf--p graf-after--li&#34;&gt;
+  Requisitos do servidor:
+&lt;/p&gt;
+
+&lt;ul class=&#34;postList&#34;&gt;
+  &lt;li id=&#34;e023&#34; class=&#34;graf--li graf-after--p&#34;&gt;
+    PHP versão maior ou igual a 5.5.9;
+  &lt;/li&gt;
+  &lt;li id=&#34;9d69&#34; class=&#34;graf--li graf-after--li&#34;&gt;
+    OpenSSL PHP Extension;
+  &lt;/li&gt;
+  &lt;li id=&#34;9f4e&#34; class=&#34;graf--li graf-after--li&#34;&gt;
+    PDO PHP Extension;
+  &lt;/li&gt;
+  &lt;li id=&#34;f2d1&#34; class=&#34;graf--li graf-after--li&#34;&gt;
+    Mbstring PHP Extension;
+  &lt;/li&gt;
+  &lt;li id=&#34;ee0f&#34; class=&#34;graf--li graf-after--li&#34;&gt;
+    Tokenizer PHP Extension;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;00b3.graf--h4.graf-after--li&#34;&gt;Instalando o Composer&lt;/h4&gt;
+
+&lt;p id=&#34;d940&#34; class=&#34;graf--p graf-after--h4&#34;&gt;
+  Na pasta onde localiza-se a aplicação, abra o terminal e digite:
+&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;#Caso tenha o Curl instalado
+curl -s https://getcomposer.org/installer | php
+## ou ##
+#Caso não possua o Curl instalado
+php -r &#34;readfile(&#39;https://getcomposer.org/installer&#39;);&#34; | php&lt;/pre&gt;
+
+&lt;h4 id=&#34;87d9.graf--h4.graf-after--p&#34;&gt;Baixando o Laravel Installer&lt;/h4&gt;
+
+&lt;p id=&#34;25d6&#34; class=&#34;graf--p graf-after--h4&#34;&gt;
+  Para baixar o instalador do Laravel, execute o seguinte comando:
+&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;composer global require &#34;laravel/installer&#34;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora é necessário adicioná-lo ao PATH do sistema, para que ele possa ser executado de qualquer lugar.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;export PATH=&#34;$PATH:$HOME/.composer/vendor/bin&#34;
+&lt;/pre&gt;
+
+&lt;p&gt;Uma vez feito esta sequência, o comando “laravel” já está disponível para ser usado. Para criar um novo projeto, execute o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;laravel new AppName
+&lt;/pre&gt;
+
+&lt;p&gt;Este comando irá criar toda a estrutura necessária para sua aplicação.&lt;/p&gt;
+
+&lt;h4 id=&#34;e83c.graf--h4.graf-after--p&#34;&gt;Configurando&lt;/h4&gt;
+
+&lt;p id=&#34;f600&#34; class=&#34;graf--p graf-after--h4&#34;&gt;
+  Todas as configurações do Laravel estão armazenadas no diretório “config” e estão bem documentadas.
+&lt;/p&gt;
+
+&lt;h4 id=&#34;2c0c.graf--h4.graf-after--p&#34;&gt;Permissões de Pasta&lt;/h4&gt;
+
+&lt;p id=&#34;3fdf&#34; class=&#34;graf--p graf-after--h4&#34;&gt;
+  As pastas “storage” e “bootstrap/cache” precisam ter permissão de escrita pelo servidor, ou o Laravel não funcionará corretamente.
+&lt;/p&gt;
+
+&lt;h4 id=&#34;629e.graf--h4.graf-after--p&#34;&gt;Configuração Local&lt;/h4&gt;
+
+&lt;p id=&#34;c0d5&#34; class=&#34;graf--p graf-after--h4&#34;&gt;
+  Em desenvolvimento de softwares é normal termos uma equipe para todo o processo de criação do software, e cada membro da equipe possui suas preferências quanto a nome de banco de dados, senhas etc. Para tratar isto, o Laravel utiliza arquivos “.env” (&lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://github.com/vlucas/phpdotenv&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;leia mais sobre este projeto&lt;/a&gt;). O arquivo .env deve ser ignorado em seu controle de versão. Para criar seu arquivo .env utilize o exemplo do próprio Laravel e altere as configurações de acordo com seu ambiente.
+&lt;/p&gt;
+
+&lt;h4 id=&#34;5e69.graf--h4.graf-after--p&#34;&gt;Application Key&lt;/h4&gt;
+
+&lt;p id=&#34;a431&#34; class=&#34;graf--p graf-after--h4&#34;&gt;
+  O próximo passo é setar a &lt;em&gt;application key&lt;/em&gt;, chave de segurança que será utilizada para encriptar dados em sua aplicação. Utilize o comando no Artisan para gerar sua &lt;em&gt;application key&lt;/em&gt;.
+&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;php artisan key:generate&lt;/pre&gt;
+
+&lt;h4 id=&#34;61a4.graf--h4.graf-after--figure&#34;&gt;Testando sua instalação&lt;/h4&gt;
+
+&lt;p id=&#34;e0c1&#34; class=&#34;graf--p graf-after--h4&#34;&gt;
+  Para verificar se a instalação está funcionando, utilize o Artisan para subir um servidor &lt;em&gt;built-in&lt;/em&gt;. No terminal exibirá um endereço como: http://localhost:8000. Digite o comando &amp;#8220;serve&amp;#8221; (sem r mesmo):
+&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;php artisan serve
+&lt;/pre&gt;
+
+&lt;p&gt;E é isto pessoal, mais nenhuma configuração adicional é necessária para começar a brincar com o Laravel. Agora é com você, pois há muito o que explorar neste fascinante framework. &lt;em&gt;Regards&lt;/em&gt;!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Usando GIT para atualizar arquivos no servidor de hospedagem II – Final</title>
+      <link>http://tableless.com.br/usando-git-para-atualizar-arquivos-no-servidor-de-hospedagem-ii-final/</link>
+      <pubDate>Thu, 19 Nov 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/usando-git-para-atualizar-arquivos-no-servidor-de-hospedagem-ii-final/</guid>
+      <description>
+
+&lt;p&gt;Esta é a segunda e última parte do artigo que explica como fazer um esquema simples para deploy automático usando GIT + Bitbucket&lt;/p&gt;
+
+&lt;p&gt;A mesma configuração pode ser usada em qualquer servidor GIT e qualquer serviço de hospedagem que tenha acesso via ssh e git instalado&lt;/p&gt;
+
+&lt;p&gt;Se você ainda não leu a primeira parte, segue o link: &lt;a href=&#34;http://tableless.com.br/usando-git-para-atualizar-arquivos-no-servidor-de-hospedagem&#34;&gt;http://tableless.com.br/usando-git-para-atualizar-arquivos-no-servidor-de-hospedagem&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;No artigo anterior, criamos as chaves SSH para autenticação no Bitbucket, criamos um repositório GIT e manualmente executamos o comando | git pull | para atualizar o nosso repositório.&lt;/p&gt;
+
+&lt;p&gt;Nessa segunda parte vamos executar o comando para atualização, de forma automatizada, sem precisar acessar o servidor. Vamos fazer um painel de controle para acompanhar os logs de deploy, mostrando se o comando foi executado com sucesso ou se aconteceu algum erro.&lt;/p&gt;
+
+&lt;p&gt;Gostaria de lembrar que essa é uma solução simples, existem várias maneiras de fazer deploy automatizado, eu escolhi fazer usando php e shell_exec, é mais rápido e para projetos simples isso funciona muito bem. O mesmo pode ser feito usando &lt;a href=&#34;https://pt.wikipedia.org/wiki/CGI&#34;&gt;CGI&lt;/a&gt; ou &lt;a href=&#34;https://pt.wikipedia.org/wiki/Shell_script&#34;&gt;Shell Script&lt;/a&gt;, ou ainda você pode usar um serviço online como o heroku.com, ou configurar o Capistrano, ou Jenkins, etc&amp;#8230;&lt;/p&gt;
+
+&lt;h4 id=&#34;o-comando-shell-exec-no-php&#34;&gt;O Comando shell_exec no PHP&lt;/h4&gt;
+
+&lt;p&gt;No manual do php:&lt;/p&gt;
+
+&lt;p&gt;(PHP 4, PHP 5, PHP 7)&lt;/p&gt;
+
+&lt;p&gt;shell_exec — Executa um comando via shell e retorna a saída inteira como uma string&lt;/p&gt;
+
+&lt;p&gt;Isso quer dizer que podemos executar um comando no servidor e ler o retorno desse comando, no nosso caso vamos executar o comando | git pull origin master | o mesmo comando que estávamos executando manualmente lá no servidor, lembra que tínhamos que acessar o servidor via putty, navegar até a pasta do nosso repositório e depois executar um git pull, já que isso é uma tarefa repetitiva, vamos automatizar, é isso que devemos fazer com todos os processos repetitivos.&lt;/p&gt;
+
+&lt;p&gt;Em muitos servidores de hospedagem esse comando é bloqueado por padrão, se estiver bloqueado você vai receber um aviso parecido com esse:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;Warning:  shell_exec() has been disabled for security reasons in /var/www/deploy.php on line 10&lt;/pre&gt;
+
+&lt;p&gt;No meu caso eu abri um chamado no painel da hospedagem, explicando que precisava da liberação para usar em um sistema de deploy automático usando GIT e prontamente fui atendido e o comando foi liberado.&lt;/p&gt;
+
+&lt;p&gt;Vou usar o mesmo repositório que usei para a primeira parte, &lt;a href=&#34;https://bitbucket.org/jzonta/artigo_atualizacao_arquivos&#34;&gt;https://bitbucket.org/jzonta/artigo_atualizacao_arquivos&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Vamos Começar, e vamos usar um dos termos da metodologia XP &amp;#8211; Extremme Programing, &amp;#8220;Baby Steps&amp;#8221;, vamos executar todo o processo em pequenos passos, eu vou atualizar o repositório no GIT com todos os passos, você pode acessar e ver todos os commits &amp;#8211; inclusive os errados 🙂 &amp;#8211; é bacana pra ver a evolução do código.&lt;/p&gt;
+
+&lt;p&gt;Vou criar uma pasta chamada deploy e dentro um arquivo chamado index.php, quando executado pelo navegador ele atualiza nosso servidor executando o comando git pull no servidor e imprimindo na tela o resultado do commnado.&lt;/p&gt;
+
+&lt;p&gt;A pasta deploy deve ficar dentro da pasta do seu projeto, você pode ver a estrutura que usei no repositório desse artigo no Bitbucket.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;* Note que no final do comando git pull eu adicionei &amp;#8220;2&amp;gt;&amp;amp;1&amp;#8221; isso quer dizer que alem das saídas normais eu quero exibir as saídas de erro do nosso comando no servidor.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;index.php&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&#34;utf-8&#34;/&amp;gt;
+&amp;lt;title&amp;gt;Usando GIT para atualizar arquivos no servidor de hospedagem&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+    &amp;lt;pre&amp;gt;
+    &amp;lt;?php
+        $exec = shell_exec(&#34;git pull origin master 2&amp;gt;&amp;1&#34;);
+        echo $exec;
+    ?&amp;gt;
+    &amp;lt;/pre&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;A saída na tela é a mesma que aparece quando executamos o comando lá no servidor, veja o exemplo da saída no servidor e no navegador:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/10/comando_shell_navegador.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51941&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/10/comando_shell_navegador.jpg&#34; alt=&#34;comando_shell_navegador&#34; width=&#34;657&#34; height=&#34;210&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;* Lembre-se que para enviar esse arquivo ao servidor você não deve usar o ftp, faça isso utilizando o comando |git pull|, já fizemos isso na primeira parte do artigo.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Já estamos atualizando nosso servidor apenas acessando uma url em nosso navegador \o/, mas não é só isso que queremos, eu quero que essa url seja chamada sempre que eu enviar um push para o repositório, então acesse sua conta no Bitbucket e vamos configurar isso.&lt;/p&gt;
+
+&lt;p&gt;Acesse seu repositório, no menu lateral esquerdo, clique em &amp;#8220;Configurações&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Na tela configurações clique em &amp;#8220;Webhooks&amp;#8221; e depois em &amp;#8220;Add Webhook&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;No campo &amp;#8220;Title&amp;#8221; adicione um nome de sua preferência e no campo &amp;#8220;URL&amp;#8221; adicione o endereço para a sua url que executa o comando de atualização, no meu caso a URL é &amp;#8220;&lt;a href=&#34;http://joaozonta.com.br/artigo_atualizacao_arquivos/deploy/index.php&amp;amp;#8221&#34;&gt;http://joaozonta.com.br/artigo_atualizacao_arquivos/deploy/index.php&amp;amp;#8221&lt;/a&gt;;&lt;/p&gt;
+
+&lt;p&gt;Mas não podemos deixar essa URL aberta, porque qualquer um poderia acessar e isso iria executar o comando git pull em nosso servidor, então vamos criar um token de autenticação, junto com a URL eu passo um token que mais tarde vamos validar lá no nosso código, então a URL ficaria assim: &lt;a href=&#34;http://joaozonta.com.br/artigo_atualizacao_arquivos/deploy/index.php?token=d41d8cd98f00b204e9800998ecf8427e&#34;&gt;http://joaozonta.com.br/artigo_atualizacao_arquivos/deploy/index.php?token=d41d8cd98f00b204e9800998ecf8427e&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;* Use este site para gerar seu token: &lt;a href=&#34;http://www.miraclesalad.com/webtools/md5.php&#34;&gt;http://www.miraclesalad.com/webtools/md5.php&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/10/adicionar_webhook.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51940&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/10/adicionar_webhook.jpg&#34; alt=&#34;adicionar_webhook&#34; width=&#34;850&#34; height=&#34;439&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Feito isso, toda vez que enviar um push para o Bitbucket ele vai acessar a URL, e nossa url vai disparar o comando |git pull| no servidor e os arquivos serão atualizados. Nosso deploy já esta funcionando, mas eu também quero visualizar os logs, para ter maior controle sobre oque esta acontecendo.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/10/local_git_servidor.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51943&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/10/local_git_servidor.jpg&#34; alt=&#34;local_git_servidor&#34; width=&#34;444&#34; height=&#34;352&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;*No seu repositório no Bitbucket, vc pode ver os requests que foram feitos entrando em &amp;#8220;Configurações&amp;#8221;, &amp;#8220;Web Hooks&amp;#8221;, ao lado do Title do seu webhook você clica em &amp;#8220;View Requests&amp;#8221; e pode ver todas as requisições que o Bitbucket fez para a sua URL.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;gravando-log&#34;&gt;Gravando Log&lt;/h4&gt;
+
+&lt;p&gt;Primeiro vamos gerar o texto que queremos gravar no nosso arquivo de log, poderíamos apenas colocar a saída do comando shell_exec, mas vamos adicionar a data, hora e algumas quebras de linha para deixar o nosso log mais legível, veja como ficou o código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&#34;utf-8&#34;/&amp;gt;
+&amp;lt;title&amp;gt;Usando GIT para atualizar arquivos no servidor de hospedagem&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+    &amp;lt;pre&amp;gt;
+    &amp;lt;?php
+        $exec = shell_exec(&#34;git pull origin master 2&amp;gt;&amp;1&#34;);
+        echo $exec;
+
+        $textoLog = PHP_EOL.&#34;Data: &#34;.date(d.&#34;/&#34;.m.&#34;/&#34;.Y.&#34; - &#34;.H.&#34;:&#34;.i.&#34;:&#34;.s);
+        $textoLog .= PHP_EOL.$exec;
+
+        $arquivoLog = fopen(&#39;log.txt&#39;, &#39;a+&#39;);
+        fwrite($arquivoLog, $textoLog);
+        fclose($arquivoLog);
+    ?&amp;gt;
+    &amp;lt;/pre&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Não precisa explicar muito o código php porque é bem simples, se alguém tem dúvida dobre alguma das funções usadas é só dar uma procurada no site do php (&lt;php.net&gt;) ou no google, tem bastante material.&lt;/p&gt;
+
+&lt;p&gt;Se tudo está ocorrendo como planejado, quando você executar novamente seu endereço URL ele vai criar um arquivo chamado log.txt na mesma pasta, e gravar os logs neste arquivo.&lt;/p&gt;
+
+&lt;h4 id=&#34;adicionando-token-de-validação&#34;&gt;Adicionando Token de Validação&lt;/h4&gt;
+
+&lt;p&gt;Vamos deixar nosso deploy um pouco mais seguro. Lembra que na URL que adicionamos lá no webhook do Bitbucket colocamos um token? Então, agora vamos validar esse token.&lt;/p&gt;
+
+&lt;p&gt;Criei uma variavel chamada $token e adicionei a nossa string MD5&lt;/p&gt;
+
+&lt;p&gt;Depois a variavel $tokenValido recebe true se o token enviado via post ou get for igual ao token que configuramos na variavel $token, caso contrário recebe false.&lt;/p&gt;
+
+&lt;p&gt;Depois verificamos se $tokenValido for igual a true executa o deploy se não exibe o log e um botão para atualizar manualmente.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+$token = &#34;d41d8cd98f00b204e9800998ecf8427e&#34;;
+if($_REQUEST[&#39;token&#39;] == $token)
+    $tokenValido = true;
+?&amp;gt;
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&#34;utf-8&#34;/&amp;gt;
+&amp;lt;title&amp;gt;Usando GIT para atualizar arquivos no servidor de hospedagem&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;pre&amp;gt;
+    &amp;lt;?php
+        if($tokenValido) {
+            $exec = shell_exec(&#34;git pull origin master 2&amp;gt;&amp;1&#34;);
+            echo $exec;
+
+            $textoLog = PHP_EOL.&#34;Data: &#34;.date(d.&#34;/&#34;.m.&#34;/&#34;.Y.&#34; - &#34;.H.&#34;:&#34;.i.&#34;:&#34;.s);
+            $textoLog .= PHP_EOL.$exec;
+
+            $arquivoLog = fopen(&#39;log.txt&#39;, &#39;a+&#39;);
+            fwrite($arquivoLog, $textoLog);
+            fclose($arquivoLog);
+        } else {
+            //Deve exibir o log e um botão para para executar a atualização
+        }
+    ?&amp;gt;
+&amp;lt;/pre&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;implementando-a-leitura-do-log-e-botão-para-atualizar&#34;&gt;Implementando a Leitura do Log e Botão Para Atualizar&lt;/h4&gt;
+
+&lt;p&gt;No código abaixo foi adiciona a implementação que lê o arquivo de log através do comando file() e depois exibe na tela, também foi adicionado um formulário com o botão &amp;#8220;Atualizar&amp;#8221;, caso ocorra alguma falha na atualização automática através do webhook esse botão pode ser utilizado para forçar essa atualização e executar o nosso deploy.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$token = &#34;d41d8cd98f00b204e9800998ecf8427e&#34;;
+if($_REQUEST[&#39;token&#39;] == $token)
+    $tokenValido = true;
+?&amp;gt;
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&#34;utf-8&#34;/&amp;gt;
+&amp;lt;title&amp;gt;Usando GIT para atualizar arquivos no servidor de hospedagem&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+    &amp;lt;pre&amp;gt;
+        &amp;lt;?php
+        if($tokenValido) {
+            $exec = shell_exec(&#34;git pull origin master 2&amp;gt;&amp;1&#34;);
+            echo $exec;
+
+            $textoLog = PHP_EOL.&#34;Data: &#34;.date(d.&#34;/&#34;.m.&#34;/&#34;.Y.&#34; - &#34;.H.&#34;:&#34;.i.&#34;:&#34;.s);
+            $textoLog .= PHP_EOL.$exec;
+
+            $arquivoLog = fopen(&#39;log.txt&#39;, &#39;a+&#39;);
+            fwrite($arquivoLog, $textoLog);
+            fclose($arquivoLog);
+        } else {
+        ?&amp;gt;
+            &amp;lt;form action=&#34;index.php&#34; method=&#34;post&#34;&amp;gt;
+                &amp;lt;input type=&#34;hidden&#34; name=&#34;token&#34; value=&#34;d41d8cd98f00b204e9800998ecf8427e&#34;&amp;gt;
+                &amp;lt;input type=&#34;submit&#34; value=&#34;Atualizar&#34;&amp;gt;
+            &amp;lt;/form&amp;gt;
+        &amp;lt;?php
+        $texto = file(&#39;log.txt&#39;);
+        foreach ($texto as $linha) {
+            echo $linha;
+        }
+        }
+        ?&amp;gt;
+    &amp;lt;/pre&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;adicionando-autenticação&#34;&gt;Adicionando Autenticação&lt;/h4&gt;
+
+&lt;p&gt;Tudo funcionando, mas qualquer um pode entrar na nossa URL, visualizar os logs e clicar no botão para atualizar o servidor.&lt;/p&gt;
+
+&lt;p&gt;Então vou implementar uma autenticação simples, iniciando uma sessão e usando a variável $senhaAcesso, então nossas regras seriam as seguintes:&lt;/p&gt;
+
+&lt;p&gt;Se receber o token, faz a validação, se estiver correto, atualiza o nosso servidor&lt;/p&gt;
+
+&lt;p&gt;Se receber a senhaAcesso, faz a validação se estiver correto, mostra o log e o botão para atualizar&lt;/p&gt;
+
+&lt;p&gt;Se não receber o token e nem a senhaAcesso mostra um form solicitando a senha&lt;/p&gt;
+
+&lt;p&gt;Nosso código tem apenas 3 condições no if, eu preferi deixar assim pra ficar mais fácil de entender, as condições separadas para ficar mais fácil de entender:&lt;/p&gt;
+
+&lt;pre&gt;if($tokenValido) {
+            // Se o toquem for válido
+            // Executa o comando git pull para atualizar o servidor e grava o log
+        } else if($_SESSION[&#39;usuarioValido&#39;]) {
+            // Se o usuário estiver logado mostra o log e o botão para atualizar
+        } else {
+            //Se o usuário não estiver logado mostra o formulário para logar
+        }
+&lt;/pre&gt;
+
+&lt;p&gt;Abaixo o código completo desta etapa:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+session_start();
+$token = &#34;d41d8cd98f00b204e9800998ecf8427e&#34;;
+$senhaAcesso = &#39;joaozonta&#39;;
+
+if($_REQUEST[&#39;token&#39;] == $token)
+    $tokenValido = true;
+
+if($_REQUEST[&#39;senhaAcesso&#39;] == $senhaAcesso &amp;&amp; empty($_SESSION[&#39;usuarioValido&#39;]))
+    $_SESSION[&#39;usuarioValido&#39;] = true;
+
+if($_REQUEST[&#39;sair&#39;])
+    unset($_SESSION[&#39;usuarioValido&#39;]);
+?&amp;gt;
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&#34;utf-8&#34;/&amp;gt;
+&amp;lt;title&amp;gt;Usando GIT para atualizar arquivos no servidor de hospedagem&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;pre&amp;gt;
+    &amp;lt;?php
+        if($tokenValido) {
+            $exec = shell_exec(&#34;git pull origin master 2&amp;gt;&amp;1&#34;);
+            echo $exec;
+
+            $textoLog = PHP_EOL.&#34;Data: &#34;.date(d.&#34;/&#34;.m.&#34;/&#34;.Y.&#34; - &#34;.H.&#34;:&#34;.i.&#34;:&#34;.s);
+            $textoLog .= PHP_EOL.$exec;
+
+            $arquivoLog = fopen(&#39;log.txt&#39;, &#39;a+&#39;);
+            fwrite($arquivoLog, $textoLog);
+            fclose($arquivoLog);
+        } else if($_SESSION[&#39;usuarioValido&#39;]) {
+        ?&amp;gt;
+        &amp;lt;form action=&#34;index.php&#34; method=&#34;post&#34;&amp;gt;
+            &amp;lt;input type=&#34;hidden&#34; name=&#34;token&#34; value=&#34;d41d8cd98f00b204e9800998ecf8427e&#34;&amp;gt;
+            &amp;lt;input type=&#34;submit&#34; value=&#34;Atualizar&#34;&amp;gt;
+        &amp;lt;/form&amp;gt;
+        &amp;lt;?php
+        if($_SESSION[&#39;usuarioValido&#39;])
+            echo &#39;&amp;lt;p&amp;gt;&amp;lt;a href=&#34;index.php?sair=true&#34;&amp;gt;Sair&amp;lt;/a&amp;gt;&amp;lt;/p&amp;gt;&#39;;
+            $texto = file(&#39;log.txt&#39;);
+            foreach ($texto as $linha) {
+                echo $linha;
+            }
+        } else {
+        ?&amp;gt;
+        &amp;lt;form action=&#34;index.php&#34; method=&#34;post&#34;&amp;gt;
+            &amp;lt;div&amp;gt;
+                &amp;lt;input type=&#34;text&#34; placeholder=&#34;Senha&#34; name=&#34;senhaAcesso&#34;&amp;gt; 
+            &amp;lt;/div&amp;gt;
+            &amp;lt;input type=&#34;submit&#34; value=&#34;Acessar Sistema&#34;&amp;gt;
+        &amp;lt;/form&amp;gt;
+        &amp;lt;?php
+        }
+    ?&amp;gt;
+&amp;lt;/pre&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h4&gt;
+
+&lt;p&gt;De uma maneira muito simples você pode atualizar seu servidor sem depender de um sistema complexo de deploy e sem muitas configurações.&lt;/p&gt;
+
+&lt;p&gt;Você pode implementar muitas outras opções para deixar o seu sistema cada vez mais completo, pode adicionar um botão para limpar o log ou adicionar o log em um banco de dados. Já imaginou mostrar um combo com os últimos commits realizados e você escolher qual desses commits você quer atualizar no servidor, podendo assim voltar e avançar versões.&lt;/p&gt;
+
+&lt;p&gt;Não falei sobre banco de dados nesse artigo, acho que isso pode ser tratado em outro tópico.&lt;/p&gt;
+
+&lt;p&gt;Você pode ver o exemplo funcionando em &lt;a href=&#34;http://joaozonta.com.br/artigo_atualizacao_arquivos/deploy/&#34;&gt;http://joaozonta.com.br/artigo_atualizacao_arquivos/deploy/&lt;/a&gt;, use a senha &amp;#8220;joaozonta&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;*&lt;em&gt;No exemplo que esta no ar foram comentadas as linhas que fazem o deploy automático, está apenas simulando o funcionamento.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Fique á vontade para entrar em contato para qualquer dúvida, sugestão, crítica ou erro que encontrar nesse artigo.&lt;/p&gt;
+
+&lt;p&gt;João A. Zonta&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.joaozonta.com.br&#34;&gt;joaozonta.com.br&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://twitter.com/joaozontaweb&#34;&gt;@joaozontaweb&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;mailto:joao@joaozonta.com.br&#34;&gt;joao@joaozonta.com.br&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>10 novidades do PHP 7</title>
+      <link>http://tableless.com.br/10-novidades-do-php-7/</link>
+      <pubDate>Tue, 29 Sep 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/10-novidades-do-php-7/</guid>
+      <description>
+
+&lt;p&gt;O PHP 7 está prestes a ser lançada oficialmente, até o final deste ano de 2015.&lt;/p&gt;
+
+&lt;p&gt;A versão &lt;em&gt;Release Candidate&lt;/em&gt; (RC) do PHP 7 foi lançada no dia 21 de agosto. Sendo uma versão RC, não haverá implementações novas no PHP 7.0, apenas correções de bugs.&lt;/p&gt;
+
+&lt;p&gt;Vou apresentar aqui algumas novidades e recursos novos desta versão do PHP.&lt;/p&gt;
+
+&lt;h2 id=&#34;1-desempenho-fantástico&#34;&gt;1. Desempenho Fantástico&lt;/h2&gt;
+
+&lt;p&gt;O PHP 7 teve seu motor remodelado. Com isso, houve um grande ganho de desempenho.&lt;/p&gt;
+
+&lt;p&gt;Em alguns casos, é possível alcançar &lt;a href=&#34;http://rberaldo.com.br/php-7-9-vezes-mais-rapido-que-php-5-6/&#34; target=&#34;_blank&#34;&gt;até 9 vezes mais velocidade&lt;/a&gt;. Mas esse número pode variar conforme a plataforma e a aplicação utilizada nos testes.&lt;/p&gt;
+
+&lt;p&gt;Eu utilizei o script para benchmark criado pela própria equipe do PHP, disponibilizado junto com o código-fonte da linguagem. Em comparação com a versão 5.6, consegui aproximadamente 9 vezes mais velocidade usando o PHP 7. Expliquei esse teste com mais detalhes &lt;a href=&#34;http://rberaldo.com.br/php-7-9-vezes-mais-rapido-que-php-5-6/&#34; target=&#34;_blank&#34;&gt;neste meu artigo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;MySQL Removido&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Desde o PHP 5.5, &lt;a href=&#34;http://PS: funções mysql_* estão obsoletas desde o PHP 5.5  e já foram removidas no PHP 7. Prefira usar MySQLi ou PDO. Veja mais aqui: http://www.ultimatephp.com.br/php-por-que-nao-utilizar-funcoes-mysql&#34; target=&#34;_blank&#34;&gt;as funções mysql_* eram consideradas obsoletas&lt;/a&gt;. Ou seja, tudo indicava que elas seriam removidas em um futuro bem próximo.&lt;/p&gt;
+
+&lt;p&gt;Pois bem. A hora chegou.&lt;/p&gt;
+
+&lt;p&gt;No PHP 7, as funções mysql_* (como mysql_connect(), mysql_query() e outras) deixaram de existir. Agora é preciso utilizar MySQLi ou PDO.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.ultimatephp.com.br/como-usar-pdo-com-banco-de-dados-mysql/&#34; target=&#34;_blank&#34;&gt;Recomendo utilizar PDO&lt;/a&gt;, por ser mais robusta e ser independente de SGBD.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Funções ereg_* Removidas&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Além das funções mysql_*, as funções ereg_* e eregi_* (como ereg(), ereg_replace, eregi() e outras) eram consideradas obsoletas desde o PHP 5.3.&lt;/p&gt;
+
+&lt;p&gt;Elas também foram removidas no PHP 7.&lt;/p&gt;
+
+&lt;p&gt;Agora é preciso usar as funções preg_*, da &lt;a href=&#34;http://php.net/manual/pt_BR/book.pcre.php&#34; target=&#34;_blank&#34;&gt;biblioteca PCRE&lt;/a&gt;, como preg_match e preg_replace.&lt;/p&gt;
+
+&lt;p&gt;As funções preg_* exigem delimitadores. Consequentemente, é possível utilizar &lt;a href=&#34;http://php.net/manual/pt_BR/reference.pcre.pattern.modifiers.php&#34; target=&#34;_blank&#34;&gt;modificadores&lt;/a&gt;, como &amp;#8220;i&amp;#8221; e &amp;#8220;u&amp;#8221;. O &amp;#8220;i&amp;#8221;, por exemplo, significa case-insensitive. Ou seja, se você usava eregi_*, passará a usar preg_*, sempre com o modificador &amp;#8220;i&amp;#8221;.&lt;/p&gt;
+
+&lt;h2 id=&#34;3-erros-fatais-e-exceções&#34;&gt;3. Erros Fatais e Exceções&lt;/h2&gt;
+
+&lt;p&gt;No PHP 7, erros fatais passaram a ser Exceções. Isso quer dizer que eles podem ser tratados em bloco try/catch, sem interromper a execução do script.&lt;/p&gt;
+
+&lt;p&gt;Para exemplificar, vamos executar este código (no PHP 7, não no PHP 5):&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;ereg(&#39;^[a-z]$&#39;, &#39;php7&#39;);
+echo &#34;FIM&#34;;
+&lt;/pre&gt;
+
+&lt;p&gt;Veremos este erro:&lt;/p&gt;
+
+&lt;pre&gt;Fatal error: Uncaught Error: Call to undefined function ereg()...
+&lt;/pre&gt;
+
+&lt;p&gt;E o texto &amp;#8220;FIM&amp;#8221; não será exibido. Isso ocorre pois a exceção interrompe o script.&lt;/p&gt;
+
+&lt;p&gt;Agora execute este script:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;try
+{
+    ereg(&#39;^[a-z]$&#39;, &#39;php7&#39;);
+}
+catch (Error $e)
+{
+    echo &#34;Ocorreu um erro: &#34; . $e-&amp;gt;getMessage();
+}
+
+echo &#34;FIM&#34;;
+&lt;/pre&gt;
+
+&lt;p&gt;Você verá a seguinte saída:&lt;/p&gt;
+
+&lt;pre&gt;Ocorreu um erro: Call to undefined function ereg()
+FIM
+&lt;/pre&gt;
+
+&lt;p&gt;Ou seja, nossa aplicação tratou a exceção e a execução continuou normalmente.&lt;/p&gt;
+
+&lt;h2 id=&#34;4-construtores-do-php-4-obsoletos&#34;&gt;4. Construtores do PHP 4 Obsoletos&lt;/h2&gt;
+
+&lt;p&gt;Antes do PHP 5, os construtores recebiam o mesmo nome da classe. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;class ClassePHP4
+{
+    function ClassePHP4()
+    {
+        echo &#34;Construtor chamado&#34;;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Isso continuou funcionando no PHP 5, mas era recomendado usar o método &lt;code&gt;__construct&lt;/code&gt;, ficando desta forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;class ClassePHP5
+{
+    public function __construct()
+    {
+        echo &#34;Construtor chamado&#34;;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O PHP 7 recomenda que seja usado método &lt;code&gt;__construct&lt;/code&gt; em vez do método com o mesmo nome da classe. Ou seja, o uso de construtores no padrão do PHP 4 continuará sendo possível, mas é um recurso obsoleto (&lt;em&gt;Deprecated&lt;/em&gt;).&lt;/p&gt;
+
+&lt;p&gt;Para testar isso, vamos executar este código:&lt;/p&gt;
+
+&lt;h2 id=&#34;5-indução-de-tipos-scalar-types&#34;&gt;5. Indução de Tipos: &lt;em&gt;Scalar Types&lt;/em&gt;&lt;/h2&gt;
+
+&lt;p&gt;PHP é uma linguagem &lt;strong&gt;NÃO&lt;/strong&gt; tipada.&lt;/p&gt;
+
+&lt;p&gt;Aos poucos ela vem ganhando alguns recursos que a torna fracamente tipada.&lt;/p&gt;
+
+&lt;p&gt;Isso significa que podemos criar códigos mais consistentes e menos suscetíveis a erros e problemas.&lt;/p&gt;
+
+&lt;p&gt;O PHP 5 já possui o recurso de &lt;a href=&#34;http://php.net/manual/pt_BR/language.oop5.typehinting.php&#34; target=&#34;_blank&#34;&gt;Indução de Tipos&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;É possível definir alguns tipos para parâmetros de métodos e funções. Mas só é possível definir dois tipos: arrays (o tipo &amp;#8220;array&amp;#8221;) e objetos (com o nome da classe).&lt;/p&gt;
+
+&lt;p&gt;A partir do PHP 7, poderemos usar outros tipos também: int, float, string e bool.&lt;/p&gt;
+
+&lt;p&gt;Esses tipos podem ser definidos nos parâmetros de funções e métodos, como já era feito no PHP 5. Mas agora há uma novidade: também poderemos definir o tipo do retorno.&lt;/p&gt;
+
+&lt;h2 id=&#34;6-tipo-de-retorno-de-funções-e-métodos&#34;&gt;6. Tipo de Retorno de Funções e Métodos&lt;/h2&gt;
+
+&lt;p&gt;Seguindo a mesma ideia da Indução de Tipos que vimos anteriormente, o PHP 7 vai permitir definir o tipo de retorno de uma função ou método.&lt;/p&gt;
+
+&lt;p&gt;Basta seguir esta sintaxe:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;function nomeFuncao() : tipo
+{
+    // corpo da função
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;function soma($x, $y) : float
+{
+    return $x + $y + 1.5;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;E, claro, pode usar todos os tipos suportados: int, float, string, bool, array e objeto.&lt;/p&gt;
+
+&lt;h2 id=&#34;7-novo-operador-spaceship&#34;&gt;7. Novo Operador &lt;em&gt;Spaceship&lt;/em&gt; (&lt;code&gt;&amp;lt;=&amp;gt;&lt;/code&gt;)&lt;/h2&gt;
+
+&lt;p&gt;Esse operador recebe o nome de &amp;#8220;&lt;em&gt;Spaceship&lt;/em&gt;&amp;#8221; em algumas outras linguagens, e é usado para comparação numérica.&lt;/p&gt;
+
+&lt;p&gt;Se você já usou a função &lt;code&gt;strcmp()&lt;/code&gt;, com certeza vai entender esse operador sem dificuldades.&lt;/p&gt;
+
+&lt;p&gt;Mesmo se não usou, é simples de entender.&lt;/p&gt;
+
+&lt;p&gt;Veja estes exemplos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;var_dump(2 &amp;lt;=&amp;gt; 3); // retorna -1
+var_dump(2 &amp;lt;=&amp;gt; 2); // retorna 0
+var_dump(2 &amp;lt;=&amp;gt; 1); // retorna 1
+&lt;/pre&gt;
+
+&lt;p&gt;Ou seja, o operador &lt;code&gt;&amp;lt;=&amp;gt;&lt;/code&gt; retorna um destes 3 valores:&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; retorna -1 quando o primeiro operando é menor que o segundo&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; retorna 0 quando os dois operandos são iguais&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; retorna 1 quando o segundo operando é maior que o primeiro&lt;/p&gt;
+
+&lt;h2 id=&#34;9-null-coalesce-operator-operador&#34;&gt;9. &lt;em&gt;Null Coalesce Operator&lt;/em&gt; (operador &lt;code&gt;??&lt;/code&gt;)&lt;/h2&gt;
+
+&lt;p&gt;O nome parece complicado, mas ele faz algo bem simples.&lt;/p&gt;
+
+&lt;p&gt;Ele é útil para verificar a existência de variáveis, como fazemos com valores de &lt;code&gt;$_GET&lt;/code&gt; ou &lt;code&gt;$_POST&lt;/code&gt;, usando &lt;code&gt;isset&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Ele faz com que esta linha:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;$email = $_POST[&#39;email&#39;] ?? &#39;valor padrão&#39;;
+&lt;/pre&gt;
+
+&lt;p&gt;&amp;#8230; seja transformada nesta:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;$email = isset($_POST[&#39;email&#39;]) ? $_POST[&#39;email&#39;] : &#39;valor padrão&#39;;
+&lt;/pre&gt;
+
+&lt;p&gt;Super simples!&lt;/p&gt;
+
+&lt;h2 id=&#34;10-classes-anônimas&#34;&gt;10. Classes Anônimas&lt;/h2&gt;
+
+&lt;p&gt;O PHP, a partir da versão 5.4, permite a criação de &lt;a href=&#34;http://php.net/manual/pt_BR/functions.anonymous.php&#34; target=&#34;_blank&#34;&gt;Funções Anônimas&lt;/a&gt;. Elas são úteis especialmente para criação de &lt;em&gt;callbacks&lt;/em&gt; ou para usar em parâmetros de funções, como &lt;code&gt;array_map()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;A partir do PHP 7, podemos criar Classes Anônimas também.&lt;/p&gt;
+
+&lt;p&gt;Podemos, por exemplo, fazer uma função retornar uma classe, definida ns própria expressão &lt;code&gt;return&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;function createObject()
+{
+    return new class{
+        public function test()
+        {
+            echo &#34;test&#34; . PHP_EOL;
+        }
+    };
+}
+
+$obj = createObject();
+$obj-&amp;gt;test();
+&lt;/pre&gt;
+
+&lt;p&gt;Há outros casos de uso, como em testes de software.&lt;/p&gt;
+
+&lt;p&gt;Você pode ver a proposta e alguns casos de uso no &lt;a href=&#34;https://wiki.php.net/rfc/anonymous_classes&#34; target=&#34;_blank&#34;&gt;RFC que descreve esse recurso&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;O PHP 7 traz diversas novidades. E, se você seguia as Boas Práticas e padrões que o PHP recomendava, a partir da versão 5.5, provavelmente terá pouquíssimos problemas (ou nenhum) para migrar para o PHP 7.&lt;/p&gt;
+
+&lt;p&gt;Se quiser conhecer melhor essas novidades e algumas outras, criei um &lt;a href=&#34;http://cursophp7.ultimatephp.com.br&#34; target=&#34;_blank&#34;&gt;curso gratuito&lt;/a&gt;, onde mostro com mais detalhes cada um desses novos recursos. Também mostro como instalar o PHP 7, sem afetar a sua instalação atual do PHP 5.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;a href=&#34;http://cursophp7.ultimatephp.com.br&#34; target=&#34;_blank&#34;&gt;Clique aqui e se inscreva no meu curso gratuito do PHP 7&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Bons estudos e fique de olho no PHP 7!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Formulário de e-mail e envio com PHP</title>
+      <link>http://tableless.com.br/formulario-de-e-mail-e-envio-com-php/</link>
+      <pubDate>Tue, 18 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/formulario-de-e-mail-e-envio-com-php/</guid>
+      <description>
+
+&lt;p&gt;Há anos atrás, quando queríamos colocar um formulário de e-mail em nosso site, simplesmente pegávamos um script em Perl que funcionava, mas não fazíamos ideia de como as coisas aconteciam por trás. Neste post demonstrarei que é muito simples fazer a mesma coisa em PHP. Perceba que o foco é principalmente no PHP, e não necessariamente na validação do formulário ou CSS, embora usaremos algumas boas práticas de validação.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Aviso:&lt;/strong&gt; O script apenas enviará o e-mail se estiver em um servidor. Você não conseguirá mandar o e-mail do localhost (No Wamp ou Xampp por exemplo).&lt;/p&gt;
+
+&lt;h3 id=&#34;criando-os-arquivos&#34;&gt;Criando os arquivos&lt;/h3&gt;
+
+&lt;p&gt;Criaremos quatro arquivos que irão conter nosso script.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;O index.php&lt;/code&gt;, para que a pasta sempre abra no nosso arquivo de contato (você pode renomear depois para contato.php se quiser). O arquivo &lt;code&gt;mail_ok.php&lt;/code&gt;, para exibir a mensagem que o e-mail foi enviado, e o &lt;code&gt;mail_error.php&lt;/code&gt;, contendo a mensagem de erro. Finalmente, o &lt;code&gt;mail_send.php&lt;/code&gt;, contendo o script que envia o e-mail propriamente dito.&lt;/p&gt;
+
+&lt;h3 id=&#34;index-php&#34;&gt;index.php&lt;/h3&gt;
+
+&lt;p&gt;No &lt;code&gt;index.php&lt;/code&gt; vamos fazer o nosso formulário:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+    &amp;lt;head&amp;gt;
+        &amp;lt;meta charset=&#34;utf8&#34;&amp;gt;
+        &amp;lt;title&amp;gt;Contato&amp;lt;/title&amp;gt;
+    &amp;lt;/head&amp;gt;
+    &amp;lt;body&amp;gt;
+        &amp;lt;form action=&#34;mail_send.php&#34; method=&#34;post&#34;&amp;gt;
+            &amp;lt;fieldset&amp;gt;
+                &amp;lt;label for=&#34;email&#34;&amp;gt;E-mail: &amp;lt;/label&amp;gt;
+                &amp;lt;input required name=&#34;email&#34; type=&#34;email&#34;&amp;gt;
+            &amp;lt;/fieldset&amp;gt;
+            &amp;lt;fieldset&amp;gt;
+                &amp;lt;label for=&#34;mensagem&#34;&amp;gt;Mensagem: &amp;lt;/label&amp;gt;
+                &amp;lt;textarea required name=&#34;mensagem&#34;&amp;gt;&amp;lt;/textarea&amp;gt;
+            &amp;lt;/fieldset&amp;gt;
+            &amp;lt;fieldset&amp;gt;
+                &amp;lt;button type=&#34;submit&#34;&amp;gt;Enviar&amp;lt;/button&amp;gt;
+            &amp;lt;/fieldset&amp;gt;
+        &amp;lt;/form&amp;gt;
+    &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Esse formulário contém os campos &lt;code&gt;e-mail&lt;/code&gt; e &lt;code&gt;mensagem&lt;/code&gt;, ambos campos obrigatórios.&lt;/p&gt;
+
+&lt;p&gt;Vamos agora fazer o &lt;code&gt;mail_ok.php&lt;/code&gt; e &lt;code&gt;mail_error.php&lt;/code&gt;:&lt;/p&gt;
+
+&lt;h3 id=&#34;mail-ok-php&#34;&gt;mail_ok.php&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt; &amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+    &amp;lt;head&amp;gt;
+        &amp;lt;meta charset=&#34;utf8&#34;&amp;gt;
+        &amp;lt;title&amp;gt;Sucesso&amp;lt;/title&amp;gt;
+    &amp;lt;/head&amp;gt;
+    &amp;lt;body&amp;gt;
+        &amp;lt;h1&amp;gt;Sucesso&amp;lt;/h1&amp;gt;
+        
+        &amp;lt;hr&amp;gt;
+        
+        &amp;lt;p&amp;gt;O e-mail foi enviado com sucesso.&amp;lt;/p&amp;gt;
+    &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;mail-error-php&#34;&gt;``mail_error.php&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt; &amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+    &amp;lt;head&amp;gt;
+        &amp;lt;meta charset=&#34;utf8&#34;&amp;gt;
+        &amp;lt;title&amp;gt;Erro&amp;lt;/title&amp;gt;
+    &amp;lt;/head&amp;gt;
+    &amp;lt;body&amp;gt;
+        &amp;lt;h1&amp;gt;Erro&amp;lt;/h1&amp;gt;
+        
+        &amp;lt;hr&amp;gt;
+        
+        &amp;lt;p&amp;gt;Houve um erro no envio do e-mail. &amp;lt;a href=&#34;index.php&#34;&amp;gt;Tentar novamente&amp;lt;/a&amp;gt;.&amp;lt;/p&amp;gt;
+    &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Os arquivos anteriores mostram mensagens se o e-mail foi enviado. O seguinte script PHP irá redirecionar para eles:&lt;/p&gt;
+
+&lt;h3 id=&#34;mail-send-php&#34;&gt;mail_send.php&lt;/h3&gt;
+
+&lt;pre class=&#34;lang_php prettyprint linenums&#34;&gt;&amp;lt;?php
+
+function pegaValor($valor) {
+    return isset($_POST[$valor]) ? $_POST[$valor] : &#39;&#39;;
+}
+
+function validaEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL);
+}
+
+function enviaEmail($de, $assunto, $mensagem, $para, $email_servidor) {
+    $headers = &#34;From: $email_servidor\r\n&#34; .
+               &#34;Reply-To: $de\r\n&#34; .
+               &#34;X-Mailer: PHP/&#34; . phpversion() . &#34;\r\n&#34;;
+    $headers .= &#34;MIME-Version: 1.0\r\n&#34;;
+    $headers .= &#34;Content-Type: text/html; charset=ISO-8859-1\r\n&#34;;
+  
+  mail($para, $assunto, nl2br($mensagem), $headers);
+}
+
+$email_servidor = &#34;email@servidor.com&#34;;
+$para = &#34;seu@email.com&#34;;
+$de = pegaValor(&#34;email&#34;);
+$mensagem = pegaValor(&#34;mensagem&#34;);
+$assunto = &#34;Assunto da mensagem&#34;;
+
+?&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Este último script define três funções:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;pegaValor&lt;/code&gt;: se existir, pega a váriavel enviada via &amp;#8216;post&amp;#8217;, senão, retorna uma string vazia;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;validaEmail: &lt;/code&gt;retorna se o e-mail é válido;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;enviaEmail&lt;/code&gt; : chama a função &lt;em&gt;mail&lt;/em&gt; do PHP com as variáveis que definimos.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;As variáveis &lt;code&gt;$de&lt;/code&gt; e &lt;code&gt;$mensagem&lt;/code&gt; irão pegar os valores enviados pelo formulário. Nas variáveis &lt;code&gt;$email_servidor&lt;/code&gt; e &lt;code&gt;$para&lt;/code&gt; você deverá colocar seu e-mail do servidor e o e-mail para o qual será enviado o formulário, respectivamente. A variável &lt;code&gt;$assunto&lt;/code&gt; será, obviamente, o assunto da mensagem.&lt;/p&gt;
+
+&lt;h3 id=&#34;corpo-do-script&#34;&gt;Corpo do script&lt;/h3&gt;
+
+&lt;pre class=&#34;lang_php prettyprint linenums&#34;&gt;if ($nome &amp;&amp; validaEmail($de) &amp;&amp; $mensagem) {
+    enviaEmail($de, $assunto, $mensagem, $para, $email_servidor);
+    $pagina = &#34;mail_ok.php&#34;;
+} else {
+    $pagina = &#34;mail_error.php&#34;;
+}
+
+header(&#34;location:$pagina&#34;);&lt;/pre&gt;
+
+&lt;p&gt;Esta parte do script é o controle de fluxo. Se as variáveis não forem vazias e o e-mail for válido, enviará o e-mail e atribuirá a variável &lt;code&gt;$pagina&lt;/code&gt; para &lt;code&gt;mail_ok.php&lt;/code&gt;. Caso contrário, a variável &lt;code&gt;$pagina&lt;/code&gt; será &lt;code&gt;mail_error.php. &lt;/code&gt;E finalmente, redirecionaremos a página com a função &lt;code&gt;header&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Aviso:&lt;/strong&gt; É de suma importância verificar no seu editor de texto se a codificação é &lt;strong&gt;UTF-8 sem BOM&lt;/strong&gt;. Se não for, o script irá enviar um espaço em branco antes do cabeçalho de redirecionamente, e irá aparecer o seguinte erro:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Cannot modify header information - headers already sent&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Com isso nosso script PHP está pronto. Adeus Perl!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Utilizando a API do bit.ly para gerar links encurtados para seus posts WordPress</title>
+      <link>http://tableless.com.br/utilizando-api-bit-ly-para-gerar-links-encurtados-para-seus-posts-wordpress/</link>
+      <pubDate>Wed, 29 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/utilizando-api-bit-ly-para-gerar-links-encurtados-para-seus-posts-wordpress/</guid>
+      <description>&lt;p&gt;Todo mundo sabe que é fundamental criar links de compartilhamento no seu artigo, só que no Twitter isso se restringe a 140 caracteres, e ao enviar o título do seu artigo, URL e seu usuário no Twitter pode faltar espaço. E para economizar espaço fazemos o quê? Uma das táticas é utilizar links curtos através de serviços como o &lt;a href=&#34;http://bit.ly&#34;&gt;bit.ly&lt;/a&gt;. Como tudo na programação, criamos uma maneira de automatizar nossas ações e para isso vamos ao código!&lt;/p&gt;
+
+&lt;p&gt;Primeiramente precisamos entender como a API do bit.ly funciona. Podemos fazer uma requisição via URL e a mesma nos retornará um arquivo XML:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://api.bit.ly/shorten?version=**[VERSÃO]**&amp;amp;longUrl=**[URL]**&amp;amp;login=**[LOGIN]**&amp;amp;apiKey=**[API]**&amp;amp;format=**[FORMATO]**&#34;&gt;http://api.bit.ly/shorten?version=**[VERSÃO]**&amp;amp;longUrl=**[URL]**&amp;amp;login=**[LOGIN]**&amp;amp;apiKey=**[API]**&amp;amp;format=**[FORMATO]**&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[VERSÃO]&lt;/strong&gt; &amp;#8211; A versão do XML&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[URL]&lt;/strong&gt; &amp;#8211; A URL a ser encurtada&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[LOGIN]&lt;/strong&gt; &amp;#8211; Seu login no bit.ly&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[API]&lt;/strong&gt; &amp;#8211; Seu código de API no bit.ly&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[FORMATO]&lt;/strong&gt; &amp;#8211; O formato de retorno (no nosso caso vamos usar XML)&lt;/p&gt;
+
+&lt;p&gt;Basta substituir os dados pelos seus e a requisição retornará um arquivo XML com as informações que precisamos. Veja um exemplo:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-50423 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/XML2.png&#34; alt=&#34;&#34; width=&#34;879&#34; height=&#34;288&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Bom, visto isso vamos aos códigos! Primeiramente criaremos uma função no &lt;strong&gt;functions.php&lt;/strong&gt; do seu tema, substituindo LOGIN e API por seus respectivos dados:&lt;/p&gt;
+
+&lt;pre&gt;function make_bitly_url($url,$format = &#39;xml&#39;,$version = &#39;2.0.1&#39;)
+{
+  //Set up account info
+  $bitly_login = &#39;LOGIN&#39;;
+  $bitly_api = &#39;API&#39;;
+  //create the URL
+  $bitly = &#39;http://api.bit.ly/shorten?version=&#39;.$version.&#39;&amp;longUrl=&#39;.urlencode($url).&#39;&amp;login=&#39;.$bitly_login.&#39;&amp;apiKey=&#39;.$bitly_api.&#39;&amp;format=&#39;.$format;
+  $xml = simplexml_load_file($bitly) -&amp;gt; results;
+  foreach($xml -&amp;gt; nodeKeyVal as $nodeKeyVal) {
+    return (string)$nodeKeyVal -&amp;gt; shortUrl;
+  }
+}&lt;/pre&gt;
+
+&lt;p&gt;Vamos às explicações: o código acima é basicamente um leitor de XML, e informando os seus dados ele vai formar uma URL que vai fazer uma requisição ao serviço do bit.ly e retornar o &lt;strong&gt;XML&lt;/strong&gt; que será lido pela função &lt;strong&gt;simplexml_load&lt;/strong&gt; e armazenado como um vetor na variável&lt;strong&gt; $xml&lt;/strong&gt;. Depois fazemos um loop com o &lt;strong&gt;foreach&lt;/strong&gt; por todos os itens &lt;strong&gt;nodeKeyVal&lt;/strong&gt; e retornamos a tag &lt;strong&gt;shortUrl&lt;/strong&gt; para a função que vamos chamar depois. Repare que colocamos uma (string) antes de puxar o &lt;strong&gt;$nodeKeyVal -&amp;gt; shortUrl&lt;/strong&gt;; isso é pra transformá-la em um valor retornável.&lt;/p&gt;
+
+&lt;p&gt;Como quase toda API, a do bit.ly tem limitação de requisições. Por isso precisamos armazenar as URLs encurtadas em nosso banco de dados. Vamos ao código de novo; dessa vez você vai colocar logo após iniciar o seu loop no &lt;strong&gt;single.php&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+global $short_url;
+// Checar se ja existe um URL encurtado armazenado no banco de dados
+if(get_post_meta($post-&amp;gt;ID, &#34;short_url&#34;, true) != &#34;&#34;){
+  //Short URL already exists, pull from post meta
+  $short_url = get_post_meta($post-&amp;gt;ID, &#34;short_url&#34;, true);
+}
+else {
+  // Caso não tenha, vamos criar uma
+  $full_url = get_permalink();
+  $short_url = make_bitly_url($full_url);
+  // Salvar no port_meta
+  add_post_meta($post-&amp;gt;ID, &#39;short_url&#39;, $short_url, true);
+}
+?&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;O código já está comentado mas vale explicar algumas coisas: usamos um condicional para checar se no nosso &lt;strong&gt;post_meta&lt;/strong&gt; existe uma tag &lt;strong&gt;short_url&lt;/strong&gt; diferente de um valor nulo; caso já exista ele vai pegá-la e armazenar na variável &lt;strong&gt;$short_url&lt;/strong&gt;. Caso não exista, iremos criar uma chamando a função &lt;strong&gt;make_bitly_url,&lt;/strong&gt; armazenando na variável &lt;strong&gt;$short_url&lt;/strong&gt; e depois adicionando-a ao &lt;strong&gt;post_meta.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto! Isso é quase o fim, agora só precisamos imprimir a variável &lt;strong&gt;$short_url&lt;/strong&gt;. É importante dizer que se você tentar imprimi-la antes do código que cria a variável obviamente isso não vai dar certo. Basicamente a função abaixo deve ficar depois da função acima, veja:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php echo $short_url; ?&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Bom, agora você pode usar como quiser: imprimi-la no seu artigo, criar um botão de compartilhamento, etc. Recomendo que você, depois de testar, tente implementar outras APIs e ver o resultado. Caso dê algo errado, tente habilitar o error_reporting do PHP porque vai ajudar bastante você descobrir onde está o erro. Você pode usar os comentários para me perguntar algo, será um prazer responder.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Rotas dinâmicas no Silex</title>
+      <link>http://tableless.com.br/silex-rotas-dinamicas/</link>
+      <pubDate>Mon, 13 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/silex-rotas-dinamicas/</guid>
+      <description>
+
+&lt;p&gt;Continuando nossa jornada sobre o &lt;strong&gt;Silex Framework&lt;/strong&gt;, neste post falarei sobre rotas dinâmicas. Se você não está familiarizado com o Silex, confira nosso primeiro post _&lt;a href=&#34;http://tableless.com.br/conhecendo-e-instalando-o-silex/&#34; target=&#34;_blank&#34;&gt;Conhecendo e instalando o Silex&lt;/a&gt;_.&lt;/p&gt;
+
+&lt;p&gt;Rotas dinâmicas são a possibilidade de passar parâmetros nas rotas da sua aplicação. O Silex possui diversos métodos para facilitar o uso dessa dinâmica em suas rotas.&lt;/p&gt;
+
+&lt;h2 id=&#34;utilização&#34;&gt;Utilização&lt;/h2&gt;
+
+&lt;p&gt;Para tornar sua rota dinâmica, veja o código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+use Silex\Application;
+require &#39;vendor/autoload.php&#39;;
+$app = new Application();
+$app-&amp;gt;get(&#39;users/{name}&#39;, function($name){
+    return &#39;Olá, &#39; . $name;
+});
+$app-&amp;gt;run();
+&lt;/pre&gt;
+
+&lt;p&gt;O que nos interessa nesse momento, são as linhas de 5 e 6. Na linha 5 definimos nossa rota &lt;em&gt;users&lt;/em&gt;, que receberá requisições do tipo &lt;code&gt;GET&lt;/code&gt;. Perceba que entre chaves &lt;code&gt;{}&lt;/code&gt;, incluímos um elemento chamado &lt;code&gt;name&lt;/code&gt;, ou seja, esse é o parâmetro da nossa rota &lt;em&gt;users&lt;/em&gt;. Agora tudo que passarmos na URL após chamada a rota, poderemos manipular em nosso &lt;em&gt;callback&lt;/em&gt;, mas para isso devemos passar o mesmo parâmetro da rota como parâmetro do nosso &lt;em&gt;callback&lt;/em&gt;, como mostrado na mesma linha 5. Na linha 6 apenas retornamos como saída o valor passado na rota. Por exemplo, se acessarmos no navegador o seguinte link &lt;code&gt;http://url_de_minha_app.com.br/users/Nando&lt;/code&gt;, teríamos como saída:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Olá, Nando&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você deseja passar mais parâmetros, apenas separe os mesmos com &lt;code&gt;/&lt;/code&gt;, como mostrado abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+...
+$app-&amp;gt;get(&#39;users/{name}/{email}&#39;, function($name, $email){
+    //Sua_logica_aqui
+});
+...
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;valores-default&#34;&gt;Valores Default&lt;/h2&gt;
+
+&lt;p&gt;Se você deseja definir um valor &lt;em&gt;default&lt;/em&gt; para seus parâmetros de rota, é muito simples. O Silex possui um método para isso. Através do método &lt;code&gt;value()&lt;/code&gt; você definirá valores padrões para estes parâmetros, e quando acessar suas rotas sem informar nenhum valor esperado, entra em ação os valores definidos por padrão. Para usar o método &lt;code&gt;value()&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+...
+$app-&amp;gt;get(&#39;users/{name}&#39;, function($name){
+    return &#39;Olá, &#39; . $name;
+})
+-&amp;gt;value(&#39;name&#39;, NULL);
+...
+&lt;/pre&gt;
+
+&lt;p&gt;Na linha 6 defino o método &lt;code&gt;value&lt;/code&gt; que têm como primeiro parâmetro o nome definido para o parâmetro da rota, e o segundo parâmetro do método &lt;code&gt;value&lt;/code&gt; recebe o valor &lt;em&gt;default&lt;/em&gt; que você desejar. Sempre que acessarmos a rota &lt;em&gt;users&lt;/em&gt; sem definir nenhum valor após a mesma, nosso parâmetro &lt;code&gt;name&lt;/code&gt; receberá o valor NULL. A partir daí você fica livre para tratar como quiser a lógica da sua aplicação.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-método-convert&#34;&gt;O método convert()&lt;/h2&gt;
+
+&lt;p&gt;Se você deseja garantir o tipo do valor passado ou apenas deseja conversões simples com estes valores, o método &lt;code&gt;convert&lt;/code&gt; foi feito para tal operação. Para utilizá-lo:&lt;/p&gt;
+
+&lt;pre&gt;...
+$app-&amp;gt;get(&#39;users/{name}&#39;, function($name){
+    return &#39;Olá, &#39; . $name;
+})
+-&amp;gt;value(&#39;name&#39;, NULL)
+-&amp;gt;convert(&#39;name&#39;, function($name){ return (string) $name; });
+...
+&lt;/pre&gt;
+
+&lt;p&gt;O método recebe 2 parâmetros: o primeiro é o nome do parâmetro informado na rota e o segundo um &lt;em&gt;callback&lt;/em&gt;, onde realizamos nossas conversões. Neste exemplo, garanto apenas que os valores passados na rota &lt;code&gt;users&lt;/code&gt; serão de fato do tipo &lt;code&gt;string&lt;/code&gt;, como mostrado na linha 6 do código acima.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Vimos como é simples trabalhar com rotas dinâmicas em nossas aplicações Silex, e com os métodos auxiliares nossa aplicação de rotas fica ainda mais robusta.&lt;/p&gt;
+
+&lt;p&gt;Na sessão &lt;a href=&#34;http://silex.sensiolabs.org/doc/usage.html&#34; target=&#34;_blank&#34;&gt;&amp;#8216;Usage&amp;#8217;&lt;/a&gt; da documentação do Silex, você encontrará mais opções além das mostradas aqui.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>7 funções essenciais do PHP que você deve conhecer</title>
+      <link>http://tableless.com.br/7-funcoes-essenciais-php-que-voce-deve-conhecer/</link>
+      <pubDate>Fri, 03 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/7-funcoes-essenciais-php-que-voce-deve-conhecer/</guid>
+      <description>
+
+&lt;h2 id=&#34;range&#34;&gt;range()&lt;/h2&gt;
+
+&lt;p&gt;Geralmente ao se fazer um &amp;#8220;&lt;em&gt;loop&lt;/em&gt;&amp;#8220;, utiliza-se o _while _ou &lt;em&gt;for&lt;/em&gt;. Ambas estruturas são ligeiramente &amp;#8220;&lt;em&gt;feias&lt;/em&gt;&amp;#8221; ao visualizar o código. Uma boa alternativa é utilizar o &lt;em&gt;foreach&lt;/em&gt;. Mas como fazer uma repetição, se o &lt;em&gt;foreach&lt;/em&gt; trabalha com um &lt;em&gt;array&lt;/em&gt; existente?&lt;/p&gt;
+
+&lt;p&gt;No exemplo vamos fazer um &lt;em&gt;loop&lt;/em&gt; de 5 posições, começando do número 1.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+foreach (range(1,5) as $ordem)
+{
+     print(&#39;Ordem : &#39;.$ordem.&#39;&amp;lt;br&amp;gt;&#39;);
+}
+//Resultado
+//Ordem: 1
+//Ordem: 2
+//Ordem: 3
+//Ordem: 4
+//Ordem: 5
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;array-unique&#34;&gt;array_unique()&lt;/h2&gt;
+
+&lt;p&gt;Diversas vezes nos deparamos com um &lt;em&gt;array&lt;/em&gt; e valores duplicados. Em uma experiência pessoal, trabalhei na criação de um sistema composto por uma divisão hierárquica entre setores. Nos relatórios, os usuários informavam diversos setores ao realizar os filtros. Quando os resultados eram filtrados no banco de dados, diversos códigos de setores vinham duplicados. Com isso, as _queries _do banco ficavam maiores e mais lentas.&lt;/p&gt;
+
+&lt;p&gt;Com a função _array&lt;em&gt;unique()&lt;/em&gt; resolvi meu problema. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$array = array (&#39;a&#39;,&#39;b&#39;,&#39;c&#39;,&#39;d&#39;,&#39;a&#39;);
+$unique = array_unique ($array);
+
+foreach ($unique as $letra)
+{
+     print(&#39;Letra: &#39;.$letra.&#39;&amp;lt;br&amp;gt;&#39;);
+}
+
+//Resultado
+//Letra: a
+//Letra: b
+//Letra: c
+//Letra: d
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;in-array&#34;&gt;in_array()&lt;/h2&gt;
+
+&lt;p&gt;Esta função é realmente útil para verificar se existe um determinado valor em um &lt;em&gt;array&lt;/em&gt;. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$array = array (&#39;a&#39;,&#39;b&#39;,&#39;c&#39;,&#39;d&#39;);
+
+if (in_array(&#39;a&#39;,$array))
+{
+   print(&#39;O valor está no array&#39;);
+}
+else
+{
+   print(&#39;Não está no array&#39;);
+}
+
+//Resultado: O valor está no array
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;print-r&#34;&gt;print_r()&lt;/h2&gt;
+
+&lt;p&gt;Uma mão na roda em momentos que você deseja depurar a estrutura de um determinado &lt;em&gt;array&lt;/em&gt; ou objeto no PHP. Em meus códigos, utilizo esta função sempre acompanhada da tag &lt;em&gt;pre&lt;/em&gt; do HTML, para assim exibir de forma mais amigável a estrutura do &lt;em&gt;array&lt;/em&gt; ou objeto. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$array = array (&#39;a&#39;,&#39;b&#39;,&#39;c&#39;,&#39;d&#39;);
+
+print_r($array);
+
+//Resultado: Array ( [0] =&amp;gt; a [1] =&amp;gt; b [2] =&amp;gt; c [3] =&amp;gt; d )
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;implode&#34;&gt;implode()&lt;/h2&gt;
+
+&lt;p&gt;Juntar os valores de um determinado &lt;em&gt;array&lt;/em&gt; e separá-los em uma determinada &lt;em&gt;string&lt;/em&gt;. Utilizo muito esta função para exibir listas de nomes separados por vírgula, ou para criar cláusula &lt;em&gt;IN&lt;/em&gt; no MySQL. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$array = array (&#39;a&#39;,&#39;b&#39;,&#39;c&#39;,&#39;d&#39;);
+
+print(implode(&#39;,&#39;,$array));
+
+//Resultado: a,b,c,d
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;explode&#34;&gt;explode()&lt;/h2&gt;
+
+&lt;p&gt;Esta função é o oposto da função &lt;em&gt;implode&lt;/em&gt;. Nela você informa uma &lt;em&gt;string&lt;/em&gt; e define qual separador o PHP deverá usar para dividí-la e gerar um &lt;em&gt;array&lt;/em&gt; para cada espaço dividido. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$string = &#39;O PHP é bacana.&#39;;
+
+$array = explode (&#39; &#39;,$string);
+
+print_r($array);
+
+//Resultado: Array ( [0] =&amp;gt; O [1] =&amp;gt; PHP [2] =&amp;gt; é [3] =&amp;gt; bacana. )
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;checkdate&#34;&gt;checkdate()&lt;/h2&gt;
+
+&lt;p&gt;Função muito útil do PHP para validar se uma determinada data está correta. Evita de inserirmos datas incorretas no banco de dados, acarretando erros de sintaxe, datas zeradas ou datas incorretas. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$dia = 13;
+$mes = 13;
+$ano = 2015;
+if (checkdate($mes,$dia,$ano))
+{
+    print(&#39;Data correta&#39;);
+}
+else
+{
+    print(&#39;Data incorreta&#39;);
+}
+//Resultado: Data incorreta
+&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Conhecendo e instalando o Silex</title>
+      <link>http://tableless.com.br/conhecendo-e-instalando-o-silex/</link>
+      <pubDate>Tue, 30 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/conhecendo-e-instalando-o-silex/</guid>
+      <description>
+
+&lt;p&gt;O &lt;a href=&#34;http://silex.sensiolabs.org/&#34; target=&#34;_blank&#34;&gt;Silex&lt;/a&gt; é um micro framework baseado nos componentes do &lt;a href=&#34;http://symfony.com/&#34; target=&#34;_blank&#34;&gt;Symfony&lt;/a&gt;. Foi desenvolvido por &lt;a href=&#34;http://fabien.potencier.org/&#34; target=&#34;_blank&#34;&gt;Fabien Potencier&lt;/a&gt;, o mesmo criador do Symfony.&lt;/p&gt;
+
+&lt;p&gt;O Silex foi concebido para a criação de aplicações pequenas com foco na agilidade, extensibilidade e para ser facilmente testável. Ele provê um sistema de rotas muito poderoso, e se propõe a resolvê-las através dos Services e Providers, conceitos que veremos mais à frente. Você perceberá que ele é facilmente estendido e suas funcionalidades recebem uma vantagem através dessas integrações.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalação&#34;&gt;Instalação&lt;/h2&gt;
+
+&lt;p&gt;Para instalar o Silex em nossos projetos é muito simples: precisamos apenas do &lt;a href=&#34;https://getcomposer.org&#34; target=&#34;_blank&#34;&gt;Composer&lt;/a&gt; para gerenciar nossas dependências.&lt;/p&gt;
+
+&lt;p&gt;Mas afinal, o que é o Composer? O Composer é um gerenciador de dependências para aplicações PHP, baseado nas GEMs do Ruby e no NPM do Node.JS. Com o Composer você pode facilmente gerenciar a instalação de pacotes de terceiros, bem como preparar o seu pacote para que ele fique disponível para os desenvolvedores que utilizam essa ferramenta. Tudo que precisaremos é de um arquivo composer.json na raiz de nosso projeto. Utilizaremos &lt;code&gt;api-events&lt;/code&gt; como nome da nossa pasta.&lt;/p&gt;
+
+&lt;p&gt;Na raiz dessa pasta crie um arquivo composer.json com o seguinte conteúdo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-json&#34;&gt;{
+    &#34;require&#34; : {
+    &#34;silex/silex&#34; : &#34;^1.2&#34;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O composer.json é o arquivo que o Composer lê para poder realizar as tarefas de download e instalação dos pacotes especificados.&lt;/p&gt;
+
+&lt;p&gt;Agora vamos instalar o Composer em nosso projeto. O Composer pode ser utilizado de duas maneiras: de forma local e de forma global. Abordarei aqui a forma local. Para instalá-lo em sistemas Unix, você precisará da &lt;em&gt;lib curl&lt;/em&gt; disponível. Se você utiliza o Windows, baixe o executável &lt;a href=&#34;https://getcomposer.org/Composer-Setup.exe&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;. O seguinte comando, executado via terminal (e na raiz de nosso projeto), deve instalar o Composer para você:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/curl-composer.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-49783 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/curl-composer.png&#34; alt=&#34;Curl Composer&#34; width=&#34;902&#34; height=&#34;72&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O comando fará o download e irá compilar o composer.phar e arquivos &lt;a href=&#34;http://php.net/phar&#34;&gt;&lt;code&gt;.phar&lt;/code&gt;&lt;/a&gt;, que são extensões executáveis do PHP. Agora que temos o arquivo de configuração e o Composer em nosso projeto, podemos instalar nossas dependências, ou seja, o Silex propriamente dito. É muito simples realizar a instalação dos pacotes: na raiz do seu projeto, execute o seguinte comando:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;php composer.phar install&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;É preciso que você tenha o &lt;a href=&#34;http://www.php-cli.com/&#34; target=&#34;_blank&#34;&gt;php-cli&lt;/a&gt; disponível em seu terminal. O comando acima verificará o arquivo &lt;code&gt;composer.json&lt;/code&gt; e logo em seguida fará o download do Silex, conforme requerido no arquivo &lt;code&gt;.json&lt;/code&gt; da versão 1.2. Após tudo concluído, você verá uma imagem semelhante a essa:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/packages-installed.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-49784 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/packages-installed.png&#34; alt=&#34;Silex - Packages instalados&#34; width=&#34;742&#34; height=&#34;769&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O Composer instalou o Silex bem como as dependências utilizadas pelo mesmo dentro da pasta &lt;code&gt;vendor&lt;/code&gt; do nosso projeto. Além do download, ele também mapeia os &lt;em&gt;namespaces&lt;/em&gt; dos pacotes e cria um _autoload._ Através deste &lt;em&gt;autoload&lt;/em&gt; teremos acesso a todos os pacotes baixados até o momento.&lt;/p&gt;
+
+&lt;h2 id=&#34;silex-hello-world&#34;&gt;Silex: Hello World!&lt;/h2&gt;
+
+&lt;p&gt;Agora que nossas dependências foram baixadas e instaladas, podemos começar a utilizar nosso micro framework: crie um arquivo &lt;code&gt;index.php&lt;/code&gt; na raiz da sua pasta e adicione a abertura do código PHP utilizando o seguinte comando:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;echo &amp;quot;&amp;lt;?php &amp;quot; &amp;gt; index.php&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Abaixo segue o código do index na íntegra:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+use Silex\Application;
+require &#39;vendor/autoload.php&#39;;
+$app = new Application();
+$app-&amp;gt;get(&#39;/&#39;, function(){
+    return &#39;Hello World&#39;;
+});
+$app-&amp;gt;run();
+&lt;/pre&gt;
+
+&lt;p&gt;Na linha 2 informo ao meu script para utilizar o Silex com o namespace &lt;code&gt;Silex\Application&lt;/code&gt;. Para ter acesso aos namespaces dos pacotes baixados (como comentado anteriormente sobre o autoload) precisamos adicionar o mesmo em nosso index. Para isso utilizamos o &lt;code&gt;require&lt;/code&gt; na linha 3. Na linha 4 simplesmente instanciamos nosso micro framework. O já citado poderoso sistema de rotas pode ser visto das linhas 5 a 6, onde utilizamos o método &lt;code&gt;get&lt;/code&gt;. O método &lt;code&gt;get&lt;/code&gt; manipula as requisições GET vindas do _client_ e no nosso caso fazemos o seguinte:&lt;/p&gt;
+
+&lt;p&gt;Quando o cliente realizar uma requisição do tipo GET em nossa rota raiz, referenciada através da &lt;code&gt;/&lt;/code&gt;, nós executaremos o que for passado dentro do &lt;em&gt;callback&lt;/em&gt;, o segundo parâmetro do método &lt;code&gt;get&lt;/code&gt; do &lt;code&gt;Silex\Application&lt;/code&gt;. Como queremos apenas realizar (imprimir) um &amp;#8220;Hello World&amp;#8221;, vamos retornar essa &lt;em&gt;string&lt;/em&gt; em nosso &lt;em&gt;callback&lt;/em&gt; para a rota raiz.&lt;/p&gt;
+
+&lt;p&gt;E por fim, para que as respostas emitidas pelo Silex sejam enviadas ao browser ou a quem as solicitou, utilizamos o método &lt;code&gt;run&lt;/code&gt; em nossa linha 8. Ao rodar nosso app no browser, temos a seguinte resposta:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Hello World&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Podemos ver o quão simples é utilizar esse micro framework através dos processos vistos até aqui. Para os próximos artigos, vamos nos aprofundar mais neste micro framework e ver como utilizá-lo melhor em casos reais.&lt;/p&gt;
+
+&lt;p&gt;Por hora, pratique os conhecimentos aqui passados. Nos vemos em breve!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Porque o Codeigniter ainda é uma boa opção</title>
+      <link>http://tableless.com.br/porque-codeigniter-ainda-e-uma-boa-opcao/</link>
+      <pubDate>Fri, 26 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/porque-codeigniter-ainda-e-uma-boa-opcao/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-é-codeigniter&#34;&gt;O que é Codeigniter?&lt;/h2&gt;
+
+&lt;p&gt;O &lt;strong&gt;Codeigniter&lt;/strong&gt; é um &lt;em&gt;framework&lt;/em&gt; para desenvolvimento web baseado na arquitetura MVC. Se você não sabe o que significa MVC ou não entende bem o seu funcionamento poderá encontrar maiores informações &lt;a href=&#34;http://tableless.com.br/mvc-afinal-e-o-que/&#34; target=&#34;_blank&#34;&gt;neste post&lt;/a&gt; do Tableless.&lt;/p&gt;
+
+&lt;p&gt;Este &lt;em&gt;framework&lt;/em&gt; apresenta uma estrutura que lhe permite de forma rápida fazer uso de bibliotecas para ganhar tempo e aproveitar a reutilização de código. Entenda este &lt;em&gt;framework&lt;/em&gt; como um kit de ferramentas que tornarão seu ambiente de desenvolvimento ainda mais rápido.&lt;/p&gt;
+
+&lt;h2 id=&#34;porque-o-codeigniter-ainda-é-uma-boa-opção&#34;&gt;Porque o Codeigniter ainda é uma boa opção?&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Possui uma excelente documentação: considere documentação imprescindível para qualquer ferramenta de desenvolvimento que você usar. Sem documentação suficiente você sofre muito para fazer coisas que deveriam ser simples;&lt;/li&gt;
+&lt;li&gt;Permite de forma não tão complexa ter um &lt;em&gt;engine&lt;/em&gt; segura;&lt;/li&gt;
+&lt;li&gt;Não precisa instalar \o/;&lt;/li&gt;
+&lt;li&gt;Você não terá problemas para estender classes se precisar (e acredite, você vai precisar 😀 );&lt;/li&gt;
+&lt;li&gt;Não precisa se preocupar tanto com pré-requisitos em servidores;&lt;/li&gt;
+&lt;li&gt;É muito leve em relação a outros &lt;em&gt;frameworks&lt;/em&gt;;&lt;/li&gt;
+&lt;li&gt;Não será descontinuado tão cedo. O medo já passou;&lt;/li&gt;
+&lt;li&gt;Mantém-se atualizado;&lt;/li&gt;
+&lt;li&gt;Está entre os &lt;em&gt;frameworks&lt;/em&gt; PHP favoritos para 2015 (&lt;a title=&#34;frameworks PHP favoritos 2015&#34; href=&#34;http://icl.googleusercontent.com/?lite_url=http://blog.a-way-out.net/blog/2015/03/27/php-framework-benchmark/&amp;ei=UJ3_QIlA&amp;lc=pt-BR&amp;s=1&#34; target=&#34;_blank&#34;&gt;veja aqui&lt;/a&gt;);&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Se você nunca usou o Codeigniter, veja dicas e técnicas de utilização hackeando a &lt;a title=&#34;codeigniter&#34; href=&#34;http://www.codeigniter.com/&#34; target=&#34;_blank&#34;&gt;documentação aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;faça-seu-hello-world-com-o-codeigniter&#34;&gt;Faça seu Hello World com o Codeigniter&lt;/h2&gt;
+
+&lt;p&gt;Acesse a página inicial do Codeigniter para fazer &lt;a href=&#34;http://www.codeigniter.com/download&#34; target=&#34;_blank&#34;&gt;download&lt;/a&gt; da versão atual do &lt;em&gt;framework&lt;/em&gt;. A versão utilizada para a realização deste post é a 3.0.&lt;/p&gt;
+
+&lt;p&gt;Para que você possa fazer uso do &lt;em&gt;framework&lt;/em&gt; será necessário a utilização de um servidor local. Você pode usar, por exemplo, ferramentas como o &lt;a href=&#34;https://www.apachefriends.org/pt_br/index.html&#34; target=&#34;_blank&#34;&gt;Xampp&lt;/a&gt;, que possui Apache, PHP e MySql disponíveis.&lt;/p&gt;
+
+&lt;p&gt;Após isto, descompacte o conteúdo do arquivo que você baixou no site do Codeigniter e mova o seu conteúdo para a pasta do servidor, no caso do Xampp (usando o Windows) ficaria em C:\xampp\htdocs.&lt;/p&gt;
+
+&lt;p&gt;Colocando a pasta do Codeigniter neste local será possível visualizar uma estrutura como a que segue:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter wp-image-49601 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/estrutura-inicial-codeigniter.png&#34; alt=&#34;estrutura do codeigniter&#34; width=&#34;688&#34; height=&#34;273&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Dentro da pasta &lt;em&gt;application&lt;/em&gt;, ficarão todos os arquivos importantes para o desenvolvimento da sua aplicação.  Na pasta &lt;em&gt;system&lt;/em&gt; ficam o que podemos chamar de &amp;#8220;&lt;em&gt;kernel&lt;/em&gt;&amp;#8221; do &lt;em&gt;framework&lt;/em&gt;, mas isso é assunto para outro momento. 😀&lt;/p&gt;
+
+&lt;p&gt;Dentro da pasta &lt;em&gt;application&lt;/em&gt; você encontrará duas pastas importantes para o nosso &amp;#8220;&lt;em&gt;Hello World&lt;/em&gt;&amp;#8220;, sendo elas: a pasta &lt;em&gt;controller&lt;/em&gt; e a pasta &lt;em&gt;views&lt;/em&gt;. Novamente, se você tem dúvidas sobre a nomenclatura destas pastas e como funciona a arquitetura MVC, &lt;a href=&#34;http://tableless.com.br/mvc-afinal-e-o-que/&#34; target=&#34;_blank&#34;&gt;este post&lt;/a&gt; pode te auxiliar.&lt;/p&gt;
+
+&lt;p&gt;Com o Apache inicializado, acesse o endereço: &lt;strong&gt;&lt;em&gt;&lt;a href=&#34;http://localhost/CodeIgniter-3.0.0/&#34;&gt;http://localhost/CodeIgniter-3.0.0/&lt;/a&gt;&lt;/em&gt;&lt;/strong&gt;. Será possível ver seu Codeigniter funcionando conforme a imagem a seguir:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/screenshot-localhost-2015-06-17-10-47-23.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-49602 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/screenshot-localhost-2015-06-17-10-47-23.png&#34; alt=&#34;Tela - Seja bem vindo ao Codeigniter&#34; width=&#34;1512&#34; height=&#34;394&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ao acessar a pasta &lt;em&gt;controller&lt;/em&gt; será possível visualizar o controlador responsável pela exibição desta tela. Dentro do arquivo também será possível verificar qual a _view_ chamada para exibir os dados na tela.&lt;/p&gt;
+
+&lt;p&gt;Acesse a &lt;em&gt;view&lt;/em&gt; existente (na pasta &lt;em&gt;views&lt;/em&gt;) e você poderá alterar o conteúdo HTML a ser exibido, como no exemplo abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/screenshot-localhost-2015-06-17-10-51-21.png&#34;&gt;&lt;img class=&#34;aligncenter wp-image-49603 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/screenshot-localhost-2015-06-17-10-51-21.png&#34; alt=&#34;Conteúdo HTML Hello World com Codeigniter&#34; width=&#34;302&#34; height=&#34;141&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ao acessar os arquivos conforme explicado neste post você verá como é fácil a realização deste exemplo. Até breve \o/&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Entendendo o padrão MVC na prática</title>
+      <link>http://tableless.com.br/entendendo-o-padrao-mvc-na-pratica/</link>
+      <pubDate>Thu, 25 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/entendendo-o-padrao-mvc-na-pratica/</guid>
+      <description>&lt;p&gt;Práticas modernas do PHP exigem estudo e preparação, e o padrão de projeto que merece muita atenção é o MVC. Muita gente conhece este padrão através dos &lt;em&gt;frameworks&lt;/em&gt; (isso não é um problema, eu mesmo estou neste grupo), mas ir a fundo é essencial para evitar erros e falar coisas como:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Seu MVC está errado, o &lt;em&gt;controller&lt;/em&gt; está maior que o &lt;em&gt;model&lt;/em&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Este erro de definição acontece pois em nenhum lugar está escrito que a quantidade de linhas define o padrão MVC, mas vamos entender isto melhor?&lt;/p&gt;
+
+&lt;h2 id=&#34;as-camadas-do-mvc&#34;&gt;As camadas do MVC&lt;/h2&gt;
+
+&lt;h3 id=&#34;o-que-é-model&#34;&gt;O que é &lt;em&gt;Model&lt;/em&gt;?&lt;/h3&gt;
+
+&lt;p&gt;&lt;em&gt;Model&lt;/em&gt; é onde fica a lógica da aplicação. Só isso.&lt;/p&gt;
+
+&lt;p&gt;Vai disparar um e-mail? Validar um formulário? Enviar ou receber dados do banco? Não importa. A &lt;em&gt;model&lt;/em&gt; deve saber como executar as tarefas mais diversa, mas não precisa saber quando deve ser feito, nem como mostrar estes dados.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que-é-view&#34;&gt;O que é &lt;em&gt;View&lt;/em&gt;?&lt;/h3&gt;
+
+&lt;p&gt;&lt;em&gt;View&lt;/em&gt; exibe os dados. Só isso.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;View&lt;/em&gt; não é só o HTML, mas qualquer tipo de retorno de dados, como &lt;em&gt;PDF&lt;/em&gt;, &lt;em&gt;Json&lt;/em&gt;, &lt;em&gt;XML&lt;/em&gt;, o retorno dos dados do servidor &lt;em&gt;RESTFull&lt;/em&gt;, os &lt;em&gt;tokens&lt;/em&gt; de autenticação &lt;em&gt;OAuth2&lt;/em&gt;, entre outro. Qualquer retorno de dados para uma interface qualquer (o navegador, por exemplo) é responsabilidade da &lt;em&gt;view&lt;/em&gt;. A &lt;em&gt;view&lt;/em&gt; deve saber renderizar os dados corretamente, mas não precisa saber como obtê-los ou quando renderizá-los.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que-é-controller&#34;&gt;O que é &lt;em&gt;Controller&lt;/em&gt;?&lt;/h3&gt;
+
+&lt;p&gt;O &lt;em&gt;controller&lt;/em&gt; diz quando as coisas devem acontecer. Só isso.&lt;/p&gt;
+
+&lt;p&gt;É usado para intermediar a &lt;em&gt;model&lt;/em&gt; e a _view_ de uma camada. Por exemplo, para pegar dados da &lt;em&gt;model&lt;/em&gt; (guardados em um banco) e exibir na &lt;em&gt;view&lt;/em&gt; (em uma página HTML), ou pegar os dados de um formulário (&lt;em&gt;view&lt;/em&gt;) e enviar para alguém (&lt;em&gt;model&lt;/em&gt;). Também é responsabilidade do &lt;em&gt;controller&lt;/em&gt; cuidar das requisições (&lt;em&gt;request&lt;/em&gt; e &lt;em&gt;response&lt;/em&gt;) e isso também inclui os famosos &lt;em&gt;middlewares&lt;/em&gt; (&lt;a href=&#34;http://laravel.com/&#34; target=&#34;_blank&#34;&gt;Laravel&lt;/a&gt;, &lt;a href=&#34;http://www.slimframework.com/&#34; target=&#34;_blank&#34;&gt;Slim Framework&lt;/a&gt;, &lt;a href=&#34;http://expressjs.com/&#34; target=&#34;_blank&#34;&gt;Express&lt;/a&gt;, &lt;a href=&#34;http://www.rubyonrails.com.br/&#34; target=&#34;_blank&#34;&gt;Ruby on Rails&lt;/a&gt;, etc.). O &lt;em&gt;controller&lt;/em&gt; não precisa saber como obter os dados nem como exibi-los, só quando fazer isso.&lt;/p&gt;
+
+&lt;h2 id=&#34;na-prática&#34;&gt;Na prática&lt;/h2&gt;
+
+&lt;p&gt;Uma sugestão aos desenvolvedores é criar seu próprio &lt;em&gt;framework&lt;/em&gt; de estudo (e publicar no &lt;a href=&#34;https://github.com/&#34; target=&#34;_blank&#34;&gt;GitHub&lt;/a&gt;) mas nunca os usar em produção. Esta prática te faz compreender o quanto você conhece da linguagem, e daqui a algum tempo, ver o quanto melhorou.&lt;/p&gt;
+
+&lt;p&gt;Neste estudo, vamos criar uma aplicação MVC simples com PHP, usando práticas modernas.&lt;/p&gt;
+
+&lt;p&gt;Para começar, vamos utilizar a ideia de que não devemos criar nada que já existe: este é o princípio da interoperabilidade buscada pelo &lt;a href=&#34;http://www.php-fig.org/&#34; target=&#34;_blank&#34;&gt;PHP-FIG&lt;/a&gt; (grupo formado pelas principais empresas e grupos PHP para definir boas práticas e padrões). Utilizaremos &lt;a href=&#34;http://www.php-fig.org/psr/psr-4/&#34; target=&#34;_blank&#34;&gt;PSR-4&lt;/a&gt; e &lt;a href=&#34;https://getcomposer.org/&#34; target=&#34;_blank&#34;&gt;Composer&lt;/a&gt; para gerenciar o carregamento das classes.&lt;/p&gt;
+
+&lt;p&gt;Para instalar o Composer, cito uma parte do artigo &lt;a href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34; target=&#34;_blank&#34;&gt;Composer para iniciantes&lt;/a&gt; de &lt;a href=&#34;http://www.andrebian.com/&#34; target=&#34;_blank&#34;&gt;Andre Cardoso&lt;/a&gt; aqui no Tableless:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Primeiramente você precisa realizar o download do &lt;em&gt;phar&lt;/em&gt; do composer. O &lt;a title=&#34;Descubra o que é um arquivo Phar&#34; href=&#34;https://php.net/manual/pt_BR/book.phar.php&#34; target=&#34;_blank&#34;&gt;phar&lt;/a&gt; é um empacotamento de uma aplicação e é utilizado para fornecer bibliotecas e ferramentas nas quais o desenvolvedor não tem de se preocupar com sua estrutura. Em outras palavras, é pegar e usar.&lt;/li&gt;
+&lt;li&gt;Para que você obtenha o composer há duas maneiras distintas. Através da biblioteca &lt;a title=&#34;Descubra o que é cURL&#34; href=&#34;http://en.wikipedia.org/wiki/CURL&#34; target=&#34;_blank&#34;&gt;cURL&lt;/a&gt; e através do próprio PHP. Basta selecionar uma das opções abaixo e executar em seu terminal.&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Instalando via cURL:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;curl -sS https://getcomposer.org/installer | php&lt;/code&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Instalando via PHP:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;php -r “readfile(‘https://getcomposer.org/installer’);” | php&lt;/code&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Para saber mais sobre &lt;a href=&#34;http://www.php-fig.org/psr/psr-4/&#34; target=&#34;_blank&#34;&gt;PSR-4 veja o guia oficial aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Na raiz do diretório do seu projeto crie estes 5 arquivos (e diretórios):&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;src/App/Mvc/Controller.php&lt;/li&gt;
+&lt;li&gt;src/App/Mvc/Model.php&lt;/li&gt;
+&lt;li&gt;src/App/Mvc/View.php&lt;/li&gt;
+&lt;li&gt;composer.json&lt;/li&gt;
+&lt;li&gt;index.php&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ao baixar o composer.phar (explicado acima) você também o terá no diretório raiz, junto ao composer.json e ao index.php&lt;/p&gt;
+
+&lt;p&gt;O seu arquivo composer.json deverá ter o conteúdo a seguir:&lt;/p&gt;
+
+&lt;pre&gt;{
+   &#34;autoload&#34;: {
+      &#34;psr-4&#34;: {
+         &#34;App\\&#34;: &#34;src/App&#34;
+      }
+   }
+}&lt;/pre&gt;
+
+&lt;p&gt;Rode o comando &lt;code&gt;php composer.phar install.&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;A ideia é que o nosso &lt;em&gt;controller&lt;/em&gt; carregue as informações da _model _e as envie para a &lt;em&gt;view&lt;/em&gt;. Pensando nisso, faremos com que o &lt;em&gt;controller&lt;/em&gt; carregue ambas as classes: &lt;em&gt;Model&lt;/em&gt; e &lt;em&gt;View&lt;/em&gt;. A sequência para criá-las é:&lt;/p&gt;
+
+&lt;p&gt;Conteúdo do arquivo src/App/Mvc/Controller.php:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+   namespace App\Mvc;
+   class Controller
+   {
+      ...
+   }&lt;/pre&gt;
+
+&lt;p&gt;Conteúdo do arquivo src/App/Mvc/Model.php:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+   namespace App\Mvc;
+   class Model
+   {
+      ...
+   }&lt;/pre&gt;
+
+&lt;p&gt;Conteúdo do arquivo src/App/Mvc/View.php:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+   namespace App\Mvc;
+   class View
+   {
+      ...
+   }&lt;/pre&gt;
+
+&lt;p&gt;Seguimos algumas regras da PSR-4: primeiro registramos um &lt;em&gt;namespace&lt;/em&gt; no composer.json que vai até o diretório src/App. Toda classe tem um &lt;em&gt;namespace&lt;/em&gt; e o App do começo indica o diretório que registramos (src/App). O Mvc é o diretório seguinte (ficando src/App/Mvc) e a classe tem o mesmo nome do arquivo (src/App/Mvc/Controller.php). Com isso podemos carregar as classes dinamicamente:&lt;/p&gt;
+
+&lt;p&gt;Conteúdo do arquivo index.php:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+   require &#39;vendor/autoload.php&#39;;
+   $controller = new App\Mvc\Controller();&lt;/pre&gt;
+
+&lt;p&gt;Nossa classe ainda não faz nada, então vamos testar com algo mais concreto: no Controller.php adicione um novo método chamado index() &amp;#8211; os métodos públicos de um &lt;em&gt;Controller&lt;/em&gt; são chamados de &lt;em&gt;actions&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+   namespace App\Mvc;
+   class Controller
+   {
+      public function index()
+      {
+         echo &#39;Olá mundo!&#39;;
+      }
+   }&lt;/pre&gt;
+
+&lt;p&gt;E no index.php adicione no final a linha:&lt;/p&gt;
+
+&lt;pre&gt;$controller-&amp;gt;index();&lt;/pre&gt;
+
+&lt;p&gt;Ao rodar o index.php você verá um &lt;em&gt;&amp;#8220;Olá mundo!&amp;#8221;&lt;/em&gt; na tela. Agora vamos separar este código nas camadas do MVC.&lt;/p&gt;
+
+&lt;p&gt;No &lt;em&gt;model&lt;/em&gt;, vamos criar o método que serve o texto em questão. Ele poderia carregar um componente que facilitaria as tarefas com o banco de dados, como o &lt;a href=&#34;http://www.doctrine-project.org/&#34; target=&#34;_blank&#34;&gt;Doctrine&lt;/a&gt;, por exemplo, mas aqui só retorna um texto.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+   namespace App\Mvc;
+   class Model
+   {
+      public function getText($str = &#39;Olá mundo!&#39;)
+      {
+         return $str;
+      }
+   }&lt;/pre&gt;
+
+&lt;p&gt;Na &lt;em&gt;view&lt;/em&gt; vamos imprimir este texto na tela. Poderíamos carregar um &lt;em&gt;template engine&lt;/em&gt; (&lt;a href=&#34;http://laravel.com/docs/5.0/templates&#34; target=&#34;_blank&#34;&gt;Blade&lt;/a&gt;, &lt;a href=&#34;http://twig.sensiolabs.org/&#34; target=&#34;_blank&#34;&gt;Twig&lt;/a&gt;, etc.), ou até criar o nosso próprio, mas ele só fará um &lt;em&gt;echo&lt;/em&gt; mesmo.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+   namespace App\Mvc;
+   class View
+   {
+      public function render($str)
+      {
+         echo $str;
+      }
+   }&lt;/pre&gt;
+
+&lt;p&gt;E o &lt;em&gt;controller&lt;/em&gt; intermediando tudo isso:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+   namespace App\Mvc;
+   class Controller
+   {
+      public function index()
+      {
+         $model = new Model;
+         $view = new View;
+         $view-&amp;gt;render($model-&amp;gt;getText());
+      }
+   }&lt;/pre&gt;
+
+&lt;p&gt;Rode o index.php novamente e você vai obter o mesmo resultado anterior, mas agora com uma estrutura MVC.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Note que neste exemplo a maior classe é o &lt;em&gt;controller&lt;/em&gt; (com 14 linhas) e mesmo assim não estamos &amp;#8220;quebrando o MVC&amp;#8221;. Também não há nada de absurdo, como carregar a classe &lt;em&gt;Model&lt;/em&gt; no &lt;em&gt;Controller&lt;/em&gt; e passar todas as configurações gigantescas ali dentro. Mesmo que não seja uma quebra de MVC, o &lt;em&gt;Model&lt;/em&gt; ainda vai cuidar de tudo. O ideal é mover o máximo de lógica para dentro da &lt;em&gt;Model&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Apenas para reforçar, o exemplo abaixo deveria estar dentro de um arquivo de &lt;em&gt;Model&lt;/em&gt;, e nunca no &lt;em&gt;Controller&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre&gt;$users = User::whereRaw(&#39;age &amp;gt; ? and votes = 100&#39;, [25])-&amp;gt;get();&lt;/pre&gt;
+
+&lt;p&gt;Este último exemplo foi retirado de &lt;a href=&#34;http://laravel.com/docs/5.0/eloquent&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://laravel.com/docs/5.0/eloquent&#34;&gt;http://laravel.com/docs/5.0/eloquent&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Quanto mais organizada e centralizada a lógica, melhor. Pense nisso e comece a pesquisar &lt;a href=&#34;https://www.google.com.br/search?q=Dependency+Injection&amp;oq=Dependency+Injection&amp;aqs=chrome..69i57&amp;sourceid=chrome&amp;es_sm=122&amp;ie=UTF-8&#34; target=&#34;_blank&#34;&gt;Dependency Injection&lt;/a&gt;. Isso organiza seu código ainda mais.&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

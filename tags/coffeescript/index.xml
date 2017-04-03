@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Coffeescript on Tableless</title>
+    <link>http://tableless.com.br/tags/coffeescript/index.xml</link>
+    <description>Recent content in Coffeescript on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/coffeescript/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>JavaScript com café, parte 2</title>
+      <link>http://tableless.com.br/javascript-com-cafe-parte-2/</link>
+      <pubDate>Tue, 29 May 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/javascript-com-cafe-parte-2/</guid>
+      <description>
+
+&lt;p&gt;No [artigo anterior][1] vimos as funcionalidades básicas da linguagem CoffeeScript. Falamos sobre variáveis, funções, objetos, condicionais, loops e integração com jQuery. Neste artigo, veremos algumas implementações mais avançadas, com destaque para o conceito de classes.&lt;/p&gt;
+
+&lt;h2 id=&#34;splats&#34;&gt;Splats&lt;/h2&gt;
+
+&lt;p&gt;Uma função em CoffeeScript pode receber um ou mais parâmetros definidos em sua especificação. Através de &lt;em&gt;splats&lt;/em&gt; (&amp;#8230;) podemos definir também parâmetros variáveis, ou seja, você pode passar quantos parâmetros quiser. Estes parâmetros serão convertidos pelo compilador CoffeeScript em um &lt;em&gt;array&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]lista_autores = (site, autores…) -&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;$(&amp;#8220;#nome-site&amp;#8221;).text site&lt;/p&gt;
+
+&lt;p&gt;$(&amp;#8220;#autores&amp;#8221;).text autores.join(&amp;#8220;,&amp;#8221; )[/cce]&lt;/p&gt;
+
+&lt;p&gt;O código acima resulta no seguinte JavaScript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var lista_autores,&lt;/p&gt;
+
+&lt;p&gt;__slice = [].slice;&lt;/p&gt;
+
+&lt;p&gt;lista_autores = function() {&lt;/p&gt;
+
+&lt;p&gt;var autores, site;&lt;/p&gt;
+
+&lt;p&gt;site = arguments[0], autores = 2 &amp;lt;= arguments.length ? __slice.call(arguments, 1) : [];&lt;/p&gt;
+
+&lt;p&gt;$(&amp;ldquo;#nome-site&amp;rdquo;).text(site);&lt;/p&gt;
+
+&lt;p&gt;return $(&amp;ldquo;#autores&amp;rdquo;).text(autores.join(&amp;ldquo;,&amp;rdquo;));&lt;/p&gt;
+
+&lt;p&gt;};[/cce]&lt;/p&gt;
+
+&lt;p&gt;Poderíamos, então, chamar a função &lt;strong&gt;lista_autores&lt;/strong&gt; passando &lt;strong&gt;n&lt;/strong&gt; autores nos argumentos:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]lista_autores &amp;#8220;Tableless&amp;#8221;, &amp;#8220;Davi Ferreira&amp;#8221;, &amp;#8220;Diego Eis&amp;#8221;, &amp;#8220;Zeno Rocha&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;lista_autores &amp;#8220;DaviFerreira.com&amp;#8221;, &amp;#8220;DaviFerreira&amp;#8221;, &amp;#8220;Chico Stallone&amp;#8221;[/cce]&lt;/p&gt;
+
+&lt;h2 id=&#34;classes&#34;&gt;Classes&lt;/h2&gt;
+
+&lt;p&gt;Em JavaScript, classes e objetos são uma coisa só. Um objeto não é uma instância de uma classe, como em outras linguagens. Podemos dizer que tudo é um objeto e existem &lt;em&gt;prototypes&lt;/em&gt;. Um &lt;em&gt;prototype&lt;/em&gt; é um objeto que possui suas propriedades compartilhadas por outros objetos. CoffeeScript faz uso deste recurso para criar Classes e Objetos.&lt;/p&gt;
+
+&lt;p&gt;Vejamos a declaração de uma classe:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]class Jogador&lt;/p&gt;
+
+&lt;p&gt;constructor: (nome, time) -&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;@nome = nome&lt;/p&gt;
+
+&lt;p&gt;@time = time&lt;/p&gt;
+
+&lt;p&gt;@jogos = []&lt;/p&gt;
+
+&lt;p&gt;Jogador.total_jogadores++&lt;/p&gt;
+
+&lt;p&gt;total_jogos: -&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;console.log @jogos.length&lt;/p&gt;
+
+&lt;p&gt;adiciona_jogo: (jogo) -&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;@jogos.push(jogo)&lt;/p&gt;
+
+&lt;p&gt;@total_jogadores = 0[/cce]&lt;/p&gt;
+
+&lt;p&gt;Desconstruindo o código, o &lt;em&gt;constructor&lt;/em&gt; da classe, compilado em JavaScript, vira uma função com o mesmo nome do objeto. Os métodos _total&lt;em&gt;jogos&lt;/em&gt; e _adiciona&lt;em&gt;jogo&lt;/em&gt; são &lt;em&gt;prototypes&lt;/em&gt; do objeto Jogador. E, por fim, a variável _total&lt;em&gt;jogadores&lt;/em&gt; faz referência à classe Jogador, ou seja, ao objeto original que dá origem às instâncias de jogadores. Por exemplo:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]j1 = new Jogador &amp;#8220;Zico&amp;#8221;, &amp;#8220;Flamengo&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;j1.nome # &amp;#8220;Zico&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;j1.time # &amp;#8220;Flamengo&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;Jogador.total_jogadores # 1&lt;/p&gt;
+
+&lt;p&gt;j2 = new Jogador &amp;#8220;Roberto Dinamite&amp;#8221;, &amp;#8220;Vasco&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;j2.nome # &amp;#8220;Roberto Dinamite&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;j2.time # &amp;#8220;Vasco&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;Jogador.total_jogadores # 2[/cce]&lt;/p&gt;
+
+&lt;p&gt;Portanto, existem três diferentes tipos de propriedades em uma classe CoffeeScript: 1) o &lt;em&gt;constructor&lt;/em&gt; da classe, 2) métodos (&lt;em&gt;prototypes&lt;/em&gt;) e propriedades referentes à uma instância da classe e 3) métodos e propriedades referentes ao objeto &amp;#8220;pai&amp;#8221; da classe.&lt;/p&gt;
+
+&lt;h2 id=&#34;herança&#34;&gt;Herança&lt;/h2&gt;
+
+&lt;p&gt;Em JavaScript, a herança entre classes é feita através do encadeamento de &lt;em&gt;prototypes&lt;/em&gt;. Esse encadeamento pode ser bem confuso quando falamos de muitos objetos. A linguagem CoffeeScript resolve esse problema implementando o recurso &lt;em&gt;extends&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]class Goleiro extends Jogador&lt;/p&gt;
+
+&lt;p&gt;constructor: (nome, time) -&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;super nome, time&lt;/p&gt;
+
+&lt;p&gt;@gols_sofridos = []&lt;/p&gt;
+
+&lt;p&gt;Goleiro.total_goleiros++&lt;/p&gt;
+
+&lt;p&gt;adiciona_gol_sofrido: (gol) -&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;@gols_sofridos.push(gol)&lt;/p&gt;
+
+&lt;p&gt;total_gols_sofridos: -&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;console.log @gols_sofridos.length&lt;/p&gt;
+
+&lt;p&gt;@total_goleiros = 0[/cce]&lt;/p&gt;
+
+&lt;p&gt;Notem a chamada especial &lt;em&gt;super&lt;/em&gt;, que invoca o método &lt;em&gt;constructor&lt;/em&gt; da classe Jogador. Um objeto Goleiro herda todos os métodos da classe pai (Jogador) e pode ainda sobrescrever e/ou ter seus próprios métodos e propriedades.&lt;/p&gt;
+
+&lt;h2 id=&#34;escopo&#34;&gt;Escopo&lt;/h2&gt;
+
+&lt;p&gt;É comum uma aplicação CoffeeScript vir separada em módulos. Cada módulo, como vimos no artigo anterior, está encapsulado em uma função anônima autoexecutável. E se quisermos compartilhar variáveis e funções entre os módulos?&lt;/p&gt;
+
+&lt;p&gt;Para isso, precisamos definir um escopo global, criando um elemento &lt;em&gt;root&lt;/em&gt;, por exemplo.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]root = global ? window&lt;/p&gt;
+
+&lt;p&gt;root.site = &amp;#8220;Tableless&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;root.lista_autores = (autores) -&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;console.log autores.join(&amp;#8220;, &amp;#8220;)[/cce]&lt;/p&gt;
+
+&lt;p&gt;Dessa forma, qualquer módulo tem acesso à variável &lt;em&gt;site&lt;/em&gt; e à função _lista&lt;em&gt;autores&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;switches&#34;&gt;Switches&lt;/h2&gt;
+
+&lt;p&gt;Assim como outros exemplos, um &lt;em&gt;switch&lt;/em&gt; em CoffeeScript é infinitamente mais bonito e legível do que sua parte original em JavaScript. Como em Ruby, um &lt;em&gt;switch&lt;/em&gt; CoffeeScript aceita múltiplos argumentos em um caso:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]switch time&lt;/p&gt;
+
+&lt;p&gt;when &amp;#8220;Flamengo&amp;#8221; then console.log &amp;#8220;Primeira Divisão&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;when &amp;#8220;Vasco&amp;#8221;, &amp;#8220;Botafogo&amp;#8221; then console.log &amp;#8220;Segunda Divisão&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;when &amp;#8220;Fluminense&amp;#8221; then console.log &amp;#8220;Terceira Divisão&amp;#8221;[/cce]&lt;/p&gt;
+
+&lt;p&gt;O resultado em JavaScript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]switch (time) {&lt;/p&gt;
+
+&lt;p&gt;case &amp;#8220;Flamengo&amp;#8221;:&lt;/p&gt;
+
+&lt;p&gt;console.log(&amp;#8220;Primeira Divisão&amp;#8221;);&lt;/p&gt;
+
+&lt;p&gt;break;&lt;/p&gt;
+
+&lt;p&gt;case &amp;#8220;Vasco&amp;#8221;:&lt;/p&gt;
+
+&lt;p&gt;case &amp;#8220;Botafogo&amp;#8221;:&lt;/p&gt;
+
+&lt;p&gt;console.log(&amp;#8220;Segunda Divisão&amp;#8221;);&lt;/p&gt;
+
+&lt;p&gt;break;&lt;/p&gt;
+
+&lt;p&gt;case &amp;#8220;Fluminense&amp;#8221;:&lt;/p&gt;
+
+&lt;p&gt;console.log(&amp;#8220;Terceira Divisão&amp;#8221;);&lt;/p&gt;
+
+&lt;p&gt;}[/cce]&lt;/p&gt;
+
+&lt;h2 id=&#34;operador-existencial&#34;&gt;Operador existencial&lt;/h2&gt;
+
+&lt;p&gt;Mais uma vez inspirada em Ruby, CoffeeScript implementa o operador existencial &amp;#8220;?&amp;#8221;. Este operador retorna &lt;em&gt;true&lt;/em&gt; exceto se a variável testada for &lt;strong&gt;null&lt;/strong&gt; ou &lt;strong&gt;undefined&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]time = &amp;#8220;Flamengo&amp;#8221; if primeira_divisao? and campeao_mundial?[/cce]&lt;/p&gt;
+
+&lt;p&gt;Em JavaScript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var time;&lt;/p&gt;
+
+&lt;p&gt;if ((typeof primeira_divisao !== &amp;#8220;undefined&amp;#8221; &amp;amp;&amp;amp; primeira_divisao !== null) &amp;amp;&amp;amp; (typeof campeao_mundial !== &amp;#8220;undefined&amp;#8221; &amp;amp;&amp;amp; campeao_mundial !== null)) {&lt;/p&gt;
+
+&lt;p&gt;time = &amp;#8220;Flamengo&amp;#8221;;&lt;/p&gt;
+
+&lt;p&gt;}[/cce]&lt;/p&gt;
+
+&lt;p&gt;Como vimos acima ela também pode ser utilizada para definir variáveis. O exemplo abaixo define a variável &lt;em&gt;site&lt;/em&gt; com &lt;em&gt;root.site&lt;/em&gt; se essa última existir, caso contrário utiliza o valor &amp;#8220;Tableless&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]site = root.site ? &amp;#8220;Tableless&amp;#8221;[/cce]&lt;/p&gt;
+
+&lt;p&gt;O operador condicional pode também ser utilizado para evitar uma quebra em encadeamento de métodos. Por exemplo:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]autor = artigo.retorna_autor?().total_artigos?.nome [/cce]&lt;/p&gt;
+
+&lt;p&gt;Em JavaScript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var autor, _ref;&lt;/p&gt;
+
+&lt;p&gt;autor = typeof artigo.retorna_autor === &amp;#8220;function&amp;#8221; ? (_ref = artigo.retorna_autor().total_artigos) != null ? _ref.nome : void 0 : void 0;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Desse modo, ao invés de &lt;em&gt;TypeError&lt;/em&gt;, o código acima retornaria &lt;strong&gt;undefined&lt;/strong&gt; quando qualquer um dos métodos da cadeia for &lt;strong&gt;null&lt;/strong&gt; ou &lt;strong&gt;undefined&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;ferramentas&#34;&gt;Ferramentas&lt;/h2&gt;
+
+&lt;p&gt;Através do console podemos executar todas as operações do compilador e gerar nosso código JavaScript. No entanto, algumas ferramentas facilitam esse trabalho através de interfaces gráficas:&lt;/p&gt;
+
+&lt;h3 id=&#34;livereload&#34;&gt;LiveReload&lt;/h3&gt;
+
+&lt;p&gt;Meu favorito é o [Live Reload][2], disponível como uma app para Mac e Windows e um comando para Linux. Além de compilar CoffeeScript, o LiveReload utiliza extensões para os navegadores e recarrega a página quando qualquer alteração é realizada no código (não apenas CoffeeScript).&lt;/p&gt;
+
+&lt;h3 id=&#34;codekit&#34;&gt;CodeKit&lt;/h3&gt;
+
+&lt;p&gt;Lançado recentemente, o aplicativo [CodeKit][3], disponível apenas para Mac, é um concorrente do LiveReload e, além de monitar alterações e recarregar páginas no navegador, conta também com integrações com frameworks, otimização de imagens e validação (lint) de código.&lt;/p&gt;
+
+&lt;h3 id=&#34;coffeeconsole&#34;&gt;CoffeeConsole&lt;/h3&gt;
+
+&lt;p&gt;Outra ferramenta interessante é a extensão [CoffeeConsole][4], para Chrome. Esta extensão adiciona um novo painel ao Chrome Developer Tools, possibilitando a execução de códigos CoffeeScript, similar ao console JavaScript já integrado na ferramenta.&lt;/p&gt;
+
+&lt;h2 id=&#34;mais-coffeescript&#34;&gt;Mais CoffeeScript&lt;/h2&gt;
+
+&lt;p&gt;Essa foi uma visão geral da linguagem CoffeeScript que, recentemente, entrou para o [ranking das dez linguagens mais populares no GitHub][5], desbancando ObjectC.&lt;/p&gt;
+
+&lt;p&gt;Finalizando, para aprender mais sobre CoffeeScript, indico os seguintes recursos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;[The Little Book on CoffeeScript][6] &amp;#8211; Livro disponível na íntegra online e em versões impressa, PDF e para Kindle via O&amp;#8217;Reilly.&lt;/li&gt;
+&lt;li&gt;[A sip of CoffeeScript][7] &amp;#8211; Curso interativo do pessoal da CodeSchool com vídeos e exercícios online. Bem legal!&lt;/li&gt;
+&lt;li&gt;[Smooth CoffeeScript][8] &amp;#8211; Outro livro disponível de graça online e também em PDF. Possui ainda uma versão interativa em HTML5.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;[1]: &lt;a href=&#34;http://tableless.com.br/javascript-com-cafe/&#34;&gt;http://tableless.com.br/javascript-com-cafe/&lt;/a&gt; &amp;ldquo;&amp;rdquo;
+ [2]: &lt;a href=&#34;http://livereload.com/&#34;&gt;http://livereload.com/&lt;/a&gt; &amp;ldquo;&amp;rdquo;
+ [3]: &lt;a href=&#34;http://incident57.com/codekit/&#34;&gt;http://incident57.com/codekit/&lt;/a&gt; &amp;ldquo;&amp;rdquo;
+ [4]: &lt;a href=&#34;https://github.com/snookca/CoffeeConsole&#34;&gt;https://github.com/snookca/CoffeeConsole&lt;/a&gt; &amp;ldquo;&amp;rdquo;
+ [5]: &lt;a href=&#34;https://github.com/languages&#34;&gt;https://github.com/languages&lt;/a&gt; &amp;ldquo;&amp;rdquo;
+ [6]: &lt;a href=&#34;http://arcturo.github.com/library/coffeescript/&#34;&gt;http://arcturo.github.com/library/coffeescript/&lt;/a&gt; &amp;ldquo;&amp;rdquo;
+ [7]: &lt;a href=&#34;http://www.codeschool.com/courses/coffeescript&#34;&gt;http://www.codeschool.com/courses/coffeescript&lt;/a&gt; &amp;ldquo;&amp;rdquo;
+ [8]: &lt;a href=&#34;http://autotelicum.github.com/Smooth-CoffeeScript/&#34;&gt;http://autotelicum.github.com/Smooth-CoffeeScript/&lt;/a&gt; &amp;ldquo;&amp;rdquo;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JavaScript com café</title>
+      <link>http://tableless.com.br/javascript-com-cafe/</link>
+      <pubDate>Mon, 09 Apr 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/javascript-com-cafe/</guid>
+      <description>
+
+&lt;p&gt;CoffeeScript é uma tentativa de tornar JavaScript mais agradável para nós, programadores.&lt;/p&gt;
+
+&lt;p&gt;Diferente dos frameworks e bibliotecas, que foram desenvolvidos como uma camada extra, o código escrito em CoffeeScript é compilado e resulta em JavaScript puro.&lt;/p&gt;
+
+&lt;p&gt;A sintaxe é inspirada em linguagens como Ruby e Python (principalmente Ruby), portanto você pode esperar códigos intuitivos e limpos, sem pontos-e-vírgulas, chaves e parênteses (quase).&lt;/p&gt;
+
+&lt;h2 id=&#34;instalação-comandos&#34;&gt;Instalação &amp;amp; Comandos&lt;/h2&gt;
+
+&lt;p&gt;Não vou entrar muito em detalhes sobre a instalação da linguagem. A maneira mais fácil de instalar as ferramentas para desenvolvimento em CoffeeScript é através do sistema de pacotes do NodeJS, o npm.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;bash&amp;#8221;]npm install -g coffee-script[/cce]&lt;/p&gt;
+
+&lt;p&gt;O criador do npm disponibilizou um &lt;a href=&#34;https://gist.github.com/579814&#34; title=&#34;Instruções para instalação do NodeJS e NPM&#34; target=&#34;_blank&#34;&gt;gist&lt;/a&gt; com instruções variadas para a instalação do NodeJS e seu gerenciador de pacotes.&lt;/p&gt;
+
+&lt;p&gt;Depois de seguir todos os passos necessários, para conferir se a instalação foi concluída com sucesso, digite o seguinte comando em um terminal:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;bash&amp;#8221;]coffee -v[/cce]&lt;/p&gt;
+
+&lt;p&gt;O comando &lt;em&gt;coffee&lt;/em&gt;, executado via terminal, pode ser utilizado como um console interativo, como um compilador ou como um &lt;em&gt;watcher&lt;/em&gt;. Como um &lt;em&gt;watcher&lt;/em&gt;, o comando vigia qualquer alteração em códigos-fonte CoffeeScript e, automaticamente, gera os arquivos JavaScript.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;bash&amp;#8221;]# executa o console&lt;/p&gt;
+
+&lt;p&gt;coffee&lt;/p&gt;
+
+&lt;p&gt;# compila o arquivo codigo.coffee para codigo.js&lt;/p&gt;
+
+&lt;p&gt;coffee -c codigo.coffee&lt;/p&gt;
+
+&lt;p&gt;# compila o arquivo codigo.coffee para script.js&lt;/p&gt;
+
+&lt;p&gt;coffee -co script.js codigo.coffee&lt;/p&gt;
+
+&lt;p&gt;# observa os arquivos no diretório coffeescripts e compila para o diretório javascripts&lt;/p&gt;
+
+&lt;p&gt;coffee -cwo javascripts coffeescripts[/cce]&lt;/p&gt;
+
+&lt;p&gt;Além disso, ele pode também executar diretamente um script:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;bash&amp;#8221;]coffee codigo.coffee[/cce]&lt;/p&gt;
+
+&lt;p&gt;Uma maneira mais fácil de testar e experimentar CoffeeScript é visitando o link &amp;#8220;Try CoffeeScript&amp;#8221; no &lt;a href=&#34;http://coffeescript.org&#34; title=&#34;CoffeeScript: Site oficial&#34; target=&#34;_blank&#34;&gt;site oficial da linguagem&lt;/a&gt;. Lá você pode observar, em tempo real, o resultado da transformação de CoffeeScript em JavaScript.&lt;/p&gt;
+
+&lt;h2 id=&#34;variáveis-funções&#34;&gt;Variáveis &amp;amp; Funções&lt;/h2&gt;
+
+&lt;p&gt;A simplificação começa com a declaração de variáveis, eliminando a necessidade de instanciá-las:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]mensagem = &amp;ldquo;Olá, Tableless!&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;alert mensagem[/cce]&lt;/p&gt;
+
+&lt;p&gt;O código acima resulta no seguinte JavaScript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var mensagem;&lt;/p&gt;
+
+&lt;p&gt;mensagem = &amp;ldquo;Olá, Tableless!&amp;rdquo;;&lt;/p&gt;
+
+&lt;p&gt;alert(mensagem);[/cce]&lt;/p&gt;
+
+&lt;p&gt;Já uma função em CoffeeScript é representada pela junção dos caracteres &amp;#8220;-&amp;#8221; e &amp;#8220;&amp;gt;&amp;#8221;:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]cafe = -&amp;gt; &amp;ldquo;Café!&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;JavaScript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var cafe;&lt;/p&gt;
+
+&lt;p&gt;cafe = function() {&lt;/p&gt;
+
+&lt;p&gt;return &amp;ldquo;Café!&amp;rdquo;;&lt;/p&gt;
+
+&lt;p&gt;};[/cce]&lt;/p&gt;
+
+&lt;p&gt;O compilador CoffeeScript vai sempre transformar suas funções em expressões, ou seja, funções armazenadas em variáveis.&lt;/p&gt;
+
+&lt;p&gt;Vale lembrar que assim como em Python, a indentação em CoffeeScript precisa ser seguida à risca. Seu código deve respeitar um padrão de indentação &amp;mdash; tab ou espaços, nunca os dois ao mesmo tempo.&lt;/p&gt;
+
+&lt;p&gt;O valor retornado por uma função é sempre a última linha de sua implementação. Não é necessário utilizar &lt;em&gt;return&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Os argumentos devem ser declarados antes do símbolo da função. A concatenação segue o estilo Ruby de ser:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]cafe = (sabor) -&amp;gt; &amp;ldquo;Quero café #{sabor}!&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;JavaScript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var cafe;&lt;/p&gt;
+
+&lt;p&gt;cafe = function(sabor) {&lt;/p&gt;
+
+&lt;p&gt;return &amp;ldquo;Quero café &amp;rdquo; + sabor + &amp;ldquo;!&amp;rdquo;;&lt;/p&gt;
+
+&lt;p&gt;};[/cce]&lt;/p&gt;
+
+&lt;p&gt;Eles podem ainda possuir valores padrões, caso não seja passado nenhum parâmetro:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]cafe = (sabor = &amp;ldquo;forte&amp;rdquo;) -&amp;gt; &amp;ldquo;Quero café #{sabor}!&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;E, como já deu pra perceber, quando uma função é chamada, os parênteses são opcionais:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]cafe(&amp;ldquo;suave&amp;rdquo;)&lt;/p&gt;
+
+&lt;p&gt;cafe &amp;ldquo;suave&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;[1, 2, 3, 4].slice(0, 1)&lt;/p&gt;
+
+&lt;p&gt;[1, 2, 3, 4].slice 0, 1[/cce]&lt;/p&gt;
+
+&lt;h2 id=&#34;objetos&#34;&gt;Objetos&lt;/h2&gt;
+
+&lt;p&gt;Existem duas maneiras de representar objetos em JavaScript. A primeira é utilizando &lt;em&gt;new&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]pessoa = new Pessoa();[/cce]&lt;/p&gt;
+
+&lt;p&gt;A maneira mais comum, no entanto, é utilizando a notação JSON:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]pessoa = {};[/cce]&lt;/p&gt;
+
+&lt;p&gt;Este tipo de criação é simplificado no CoffeeScript, com a remoção das chaves e vírgulas, utilizando apenas indentação para formatar o objeto:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]autor =&lt;/p&gt;
+
+&lt;p&gt;nome: &amp;ldquo;Davi Ferreira&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;especialidades: [&amp;ldquo;javascript&amp;rdquo;, &amp;ldquo;jquery&amp;rdquo;]&lt;/p&gt;
+
+&lt;p&gt;sites:&lt;/p&gt;
+
+&lt;p&gt;blog: &amp;ldquo;&lt;a href=&#34;http://www.daviferreira.com/blog&amp;quot;&#34;&gt;http://www.daviferreira.com/blog&amp;quot;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;portfolio: &amp;ldquo;&lt;a href=&#34;http://www.daviferreira.com&amp;quot;&#34;&gt;http://www.daviferreira.com&amp;quot;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;social:&lt;/p&gt;
+
+&lt;p&gt;twitter: &amp;ldquo;davitferreira&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Agora o mesmo objeto, em JavaScript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var autor;&lt;/p&gt;
+
+&lt;p&gt;autor = {&lt;/p&gt;
+
+&lt;p&gt;nome: &amp;ldquo;Davi Ferreira&amp;rdquo;,&lt;/p&gt;
+
+&lt;p&gt;especialidades: [&amp;ldquo;javascript&amp;rdquo;, &amp;ldquo;jquery&amp;rdquo;],&lt;/p&gt;
+
+&lt;p&gt;sites: {&lt;/p&gt;
+
+&lt;p&gt;blog: &amp;ldquo;&lt;a href=&#34;http://www.daviferreira.com/blog&amp;quot;&#34;&gt;http://www.daviferreira.com/blog&amp;quot;&lt;/a&gt;,&lt;/p&gt;
+
+&lt;p&gt;portfolio: &amp;ldquo;&lt;a href=&#34;http://www.daviferreira.com&amp;quot;&#34;&gt;http://www.daviferreira.com&amp;quot;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;},&lt;/p&gt;
+
+&lt;p&gt;social: {&lt;/p&gt;
+
+&lt;p&gt;twitter: &amp;ldquo;davitferreira&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;};[/cce]&lt;/p&gt;
+
+&lt;h2 id=&#34;operações-condicionais-e-comparativas&#34;&gt;Operações condicionais e comparativas&lt;/h2&gt;
+
+&lt;p&gt;As operações condicionais em CoffeeScript são bastante flexíveis e mais poderosas do que as operações nativas em JavaScript. O CoffeeScript introduz novos tipos de implementações de operações condicionais:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]alert &amp;ldquo;Frio&amp;rdquo; if temperatura &amp;lt; 20[/cce]&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]if temperatura &amp;lt; 20 then alert &amp;ldquo;Frio&amp;rdquo; else alert &amp;ldquo;Calor&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;O segundo exemplo, compilado, fica assim:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]if (temperatura &amp;lt; 20) {&lt;/p&gt;
+
+&lt;p&gt;alert(&amp;ldquo;Frio&amp;rdquo;);&lt;/p&gt;
+
+&lt;p&gt;} else {&lt;/p&gt;
+
+&lt;p&gt;alert(&amp;ldquo;Calor&amp;rdquo;);&lt;/p&gt;
+
+&lt;p&gt;}[/cce]&lt;/p&gt;
+
+&lt;p&gt;Os operadores também receberam uma repaginada, ganhando versões &amp;#8220;escritas&amp;#8221;:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]if temperatura &amp;lt; 20 and cidade is &amp;ldquo;Rio de Janeiro&amp;rdquo; then alert &amp;ldquo;Frio&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]if alarme is on and not snooze and hora is &amp;ldquo;09:00&amp;rdquo; then alert &amp;ldquo;Beep!&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Javascript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]if (alarme === true &amp;amp;&amp;amp; !snooze &amp;amp;&amp;amp; hora === &amp;ldquo;09:00&amp;rdquo;) alert(&amp;ldquo;Beep!&amp;rdquo;);[/cce]&lt;/p&gt;
+
+&lt;p&gt;Outra implementação legal é a comparação em cadeia:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;] if 12 &amp;lt; idade &amp;lt; 18 then alert &amp;ldquo;Adolescente&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Javascript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;] if (12 &amp;lt; idade &amp;amp;&amp;amp; idade &amp;lt; 18) alert(&amp;ldquo;Adolescente&amp;rdquo;);[/cce]&lt;/p&gt;
+
+&lt;h2 id=&#34;loops&#34;&gt;Loops&lt;/h2&gt;
+
+&lt;p&gt;Antes de falar sobre operações de &lt;em&gt;loop&lt;/em&gt;, vamos conhecer &lt;em&gt;ranges&lt;/em&gt; ou intervalos. Em CoffeeScript é possível declarar &lt;em&gt;ranges&lt;/em&gt; dinâmicos:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]horas = [0..24][/cce]&lt;/p&gt;
+
+&lt;p&gt;O código acima gera a lista completa, de 0 a 24. O resultado ainda pode ser trabalhado retornando apenas os quatro primeiros valores (0, 1, 2, 3):&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]horas[0..3] [/cce]&lt;/p&gt;
+
+&lt;p&gt;A manipulação de dados via loops é bem completa, com diferentes possibilidades:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]times = [&amp;ldquo;Flamengo&amp;rdquo;, &amp;ldquo;Vasco&amp;rdquo;, &amp;ldquo;Botafogo&amp;rdquo;, &amp;ldquo;Fluminense&amp;rdquo;]&lt;/p&gt;
+
+&lt;p&gt;for time in times&lt;/p&gt;
+
+&lt;p&gt;alert &amp;ldquo;Time: #{time}&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;O código acima resulta no seguinte JavaScript (!):&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var time, times, _i, _len;&lt;/p&gt;
+
+&lt;p&gt;times = [&amp;ldquo;Flamengo&amp;rdquo;, &amp;ldquo;Vasco&amp;rdquo;, &amp;ldquo;Botafogo&amp;rdquo;, &amp;ldquo;Fluminense&amp;rdquo;];&lt;/p&gt;
+
+&lt;p&gt;for (_i = 0, _len = times.length; _i &amp;lt; _len; _i++) {&lt;/p&gt;
+
+&lt;p&gt;time = times[_i];&lt;/p&gt;
+
+&lt;p&gt;alert(&amp;ldquo;Time: &amp;ldquo; + time);&lt;/p&gt;
+
+&lt;p&gt;}[/cce]&lt;/p&gt;
+
+&lt;p&gt;Outra maneira de executar um &lt;em&gt;loop&lt;/em&gt; é declarando tudo em uma única linha:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]alert &amp;ldquo;Time: #{time}&amp;rdquo; for time in times[/cce]&lt;/p&gt;
+
+&lt;p&gt;Podemos ainda manipular os dados diretamente no &lt;em&gt;loop&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]alert &amp;ldquo;#{time} &amp;#8211; RJ&amp;rdquo; for time in times[/cce]&lt;/p&gt;
+
+&lt;p&gt;E para finalizar essa parte sobre &lt;em&gt;loops&lt;/em&gt;, uma ferramenta muito útil é a &lt;em&gt;keyword&lt;/em&gt; &lt;em&gt;when&lt;/em&gt;, utilizada para filtrar os dados do &lt;em&gt;loop&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]alert &amp;ldquo;Segunda divisão!&amp;rdquo; for time in times when time isnt &amp;ldquo;Flamengo&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;h2 id=&#34;integração-com-jquery&#34;&gt;Integração com jQuery&lt;/h2&gt;
+
+&lt;p&gt;Escrever código em CoffeeScript não significa abandonar bibliotecas e frameworks JavaScript. A integração com CoffeeScript é direta:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]$ -&amp;gt; [/cce]&lt;/p&gt;
+
+&lt;p&gt;Equivale a:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]$(function() {});[/cce]&lt;/p&gt;
+
+&lt;p&gt;A premissa básica continua sendo a simplificação do código, principalmente devido a remoção de chaves, parênteses, vírgulas e pontos-e-vírgulas.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]$(window).konami -&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;$(&amp;ldquo;html&amp;rdquo;).addClass &amp;ldquo;tremetudo&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;O código acima é a implementação do Konami Code aqui no Tableless.&lt;/p&gt;
+
+&lt;p&gt;Veja o JavaScript original:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]$(window).konami(function(){&lt;/p&gt;
+
+&lt;p&gt;$(&amp;ldquo;html&amp;rdquo;).addClass(&amp;ldquo;tremetudo&amp;rdquo;)&lt;/p&gt;
+
+&lt;p&gt;});[/cce]&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Essa foi uma visão geral da linguagem. A desvantagem de implementar CoffeeScript em produtos e aplicativos grandes é o fato de ainda ser difícil debugar o código diretamente, já que as ferramentas disponíveis nos navegadores só indicam os erros no arquivo JavaScript gerado. O compilador aponta os erros de sintaxe, mas erros de lógica dão um pouco mais de trabalho.&lt;/p&gt;
+
+&lt;p&gt;Muitos aspectos ficaram de fora deste artigo, como os splats, escopo, propriedades, switches, soaks e, principalmente, classes. No próximo artigo falo mais sobre eles.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

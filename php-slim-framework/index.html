@@ -1,0 +1,340 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/php-slim-framework/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/php-slim-framework/">PHP Slim Framework</a></h1>
+  <p class="tb-hero-p">
+    
+    Iniciando com o SLIM Framework.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/george-moura">George Moura</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>O Slim Framework é um microframework PHP que facilita sua vida na hora de fazer pequenas APIs.</p>
+
+<p>Vou falar sobre um problema que tive em um projeto em uma empresa que trabalho. Lá eu codifico com diferentes linguagens de programação em pequenos sistemas. Esses sistemas precisam ser acessados por 3 filiais e os usuários se logam com o mesmo login usado no E.R.P. que eles utilizam.</p>
+
+<p>Para simplificar meu trabalho resolvi criar uma API simples para autenticar os usuários. Como eu queria usar uma estrutura REST e não queria fazer tudo na unha e nem queria colocar um framework grande como Rails, Laravel, Zend ou Django. Pesquisei sobre microframeworks PHP e cheguei ao <a href="http://www.sinatrarb.com/">Sinatra</a>, que já conhecia, e o <a href="http://flask.pocoo.org/">Flask</a> (Python). Então encontrei o <a href="http://www.slimframework.com/">Slim</a> um microframework PHP.</p>
+
+<p>Eu queria trabalhar com uma estrutura REST e o Slim já faz isso de forma muito simples criando rotas, como qualquer outro framework que trabalha com REST, a diferença é que um microframework é mais leve e não precisa de tantas configurações. É uma mão na roda para quem precisa escrever uma API. Para vocês terem ideia: em um dia consegui resolver meu problema de autenticação.</p>
+
+<h2 id="código">Código</h2>
+
+<p>Agora vamos ao código! O Slim pode ser instalado via <a href="https://getcomposer.org/">Composer</a> ou fazendo o download do código fonte, para quem não conhece ele é um gerenciador de dependências para PHP assim como <a href="http://bundler.io/">Bundler</a> é para o Ruby, nesse post vou mostrar a instalação via composer:</p>
+
+<h3 id="passo-1-8211-instalação-do-composer">Passo 1 &#8211; Instalação do composer</h3>
+
+<p>Leia o post (<a href="http://tableless.com.br/composer-para-iniciantes/">Composer para iniciantes</a>) do <a href="http://tableless.com.br/author/andrecardosodev/">Andre Cardoso</a>. Mas basicamente, para quem tem linux, é só abrir o terminal e digitar o código abaixo, se tiver windows, é só pegar o executável no site e instalar.</p>
+
+<pre class="lang-bash">curl -s https://getcomposer.org/installer | php</pre>
+
+<h3 id="passo-2-8211-criar-o-arquivo-composer-json">Passo 2 &#8211; Criar o arquivo composer.json</h3>
+
+<p>Crie um diretorio para seu projeto(no meu caso eu chamei de api) e coloque um arquivo chamado composer.json dentro dela:</p>
+
+<pre class="lang-bash">mkdir api
+cd api
+</pre>
+
+<p>No arquivo composer.json adicione as seguintes linhas:</p>
+
+<pre class="lang-json">{
+    "require": {
+        "slim/slim": "2.*"
+    }
+}
+</pre>
+
+<h3 id="passo-3-8211-instalar-as-dependências">Passo 3 &#8211; Instalar as dependências</h3>
+
+<pre class="lang-bash">composer install</pre>
+
+<p>Caso você não tenha o Composer, as suas variáveis de ambiente deverão ser assim:</p>
+
+<pre>php composer.phar install</pre>
+
+<h3 id="passo-4-8211-criação-da-app">Passo 4 &#8211; Criação da app</h3>
+
+<p>Crie um arquivo <code>index.php</code> e dentro dele coloque:</p>
+
+<pre class="lang-php">&lt;?php
+require 'vendor/autoload.php';
+
+//instancie o objeto
+$app = new \Slim\Slim();
+
+//defina a rota
+get('/', function () { 
+  echo "Hello, World!"; 
+}); 
+//rode a aplicação Slim 
+$app-&gt;run();</pre>
+
+<p>Se você acessar <code>http://localhost/api/</code> você verá a mensagem <strong>&#8220;Hello World!&#8221;</strong>.</p>
+
+<p>Mas não é isso que queremos, queremos uma API REST que retorne um JSON. Então vamos ver um exemplo bem simples. O Slim também trabalha com templates, então dentro do diretório da nossa aplicação vamos criar um diretório chamado de <code>templates</code> e dentro dele criaremos um arquivo chamado <code>default.php</code>, neste arquivo coloque o seguintes conteúdo:</p>
+
+<pre class="lang-php">&lt;?php 
+header('Content-Type: application/json; charset=utf-8');
+echo json_encode($data);
+</pre>
+
+<p>Agora voltando ao nosso arquivo <code>index.php</code> edite-o deixando da seguinte forma:</p>
+
+<pre class="lang-php">&lt;?php
+require 'vendor/autoload.php';
+
+//instancie o objeto
+$app = new \Slim\Slim(array(
+'templates.path' =&gt; 'templates'
+));
+
+//defina a rota
+$app-&gt;get('/', function () use ($app){ 
+  //defina
+  $data = array("data"=&gt;array("Hello"=&gt;"World!")); 
+  //set o arquivo de template
+  $app-&gt;render('default.php',$data,200); 
+}); 
+
+//rode a apliçicação Slim
+$app-&gt;run();</pre>
+
+<p>Quando você acessar a url novamente você verá algo como:</p>
+
+<pre class="lang-json">{"Hello":"World!"}
+</pre>
+
+<p>Agora vamos incrementar mais. No mesmo arquivo <code>index.php</code> antes de <code class="lang-php">$app-&gt;run();</code> adicione:</p>
+
+<pre>$app-&gt;group('/users',function() use ($app){
+
+  //rota para a home
+  $app-&gt;get('/',function() use ($app){
+    //exemplo de lista de usuarios
+    $users = array(
+     'users'=&gt;array(
+       'jo'=&gt;'senhadejo',
+       'luca'=&gt;'senhaluca',
+       'yasmin'=&gt;'senhayasmin',
+       'eric'=&gt;'seric'
+     )
+    );
+    $data = array(
+      'data'=&gt;$users
+      );
+    $app-&gt;render('default.php',$data,200);
+  });
+
+  //rota para login
+  $app-&gt;post('/login/',function() use ($app){
+    if(isset($_POST))
+    {
+      $data = $_POST;
+      $app-&gt;render('default.php',$data,200);
+    }
+    else
+    {
+      $app-&gt;render(404);
+    }
+  });
+
+});
+</pre>
+
+<p>Caso você esteja acessando o sistema por subdiretório crie um arquivo chamado <code>.htaccess</code> com o seguinte conteúdo:</p>
+
+<pre>RewriteEngine On
+RewriteBase /api/
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /api/index.php [L]
+</pre>
+
+<p>Perceba que adicionei o método group no arquivo <code>index.php.</code> O Slim trabalha também com grupos de rotas, então é possível criar vários grupos com rotas próprias, dessa forma podemos organizar o código e não ter que ficar digitando o mesmo código várias vezes. Com o grupo de rotas chamado /users tudo que tiver dentro dele deverá vir precedido de /users ex: (/users/login/, /users/update/).</p>
+
+<p>Acessando <code>http://localhost/api/users/</code> você verá uma lista de usuários, caso acesse <code>http://localhost/api/users/login/</code> você verá uma página de erro. Isso ocorre porque setamos apenas uma rota POST para /users/login/ e como você acessou via GET o sistema redirecionou pois não existe a rota GET para /users/login/.</p>
+
+<p>Daqui para frente é só continuar implementando coisas novas, criando uma classe para conectar ao banco de dados, utilizando outros verbos HTTP, novos templates e etc. Você pode criar classes e usá-las normalmente é só incluí-las com o require e instanciar o objeto;</p>
+
+<p>O post termina aqui. O link para documentação do Slim é esse <a href="http://docs.slimframework.com/">http://docs.slimframework.com/</a> divirtam-se e mãos a obra! ;D</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

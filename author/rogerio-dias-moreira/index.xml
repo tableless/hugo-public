@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rogerio Dias Moreira on Tableless</title>
+    <link>http://tableless.com.br/author/rogerio-dias-moreira/index.xml</link>
+    <description>Recent content in Rogerio Dias Moreira on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/rogerio-dias-moreira/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Campo input date do HTML5 e internacionalização</title>
+      <link>http://tableless.com.br/html5-input-date-e-internacionalizacao/</link>
+      <pubDate>Wed, 30 Sep 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/html5-input-date-e-internacionalizacao/</guid>
+      <description>&lt;p&gt;Alguns navegadores como Chrome, Edge e Safari já começaram a suportar o elemento &lt;input type=&amp;#8221;date&amp;#8221;&gt; com sua nova propriedade valueAsDate. Ao invés de utilizar bibliotecas para exibição de calendário e até mesmo para tratamento de datas com internacionalização, sugiro adotar estes novos recursos HTML5 com pequenos fallbacks para navegadores que não suportam.&lt;/p&gt;
+
+&lt;h3 style=&#34;text-align: left;&#34;&gt;
+  Elemento &lt;input type=&amp;#8221;date&amp;#8221;&gt;
+&lt;/h3&gt;
+
+&lt;p&gt;Este novo elemento dispensa apresentação. Sua grande vantagem é a excelente usabilidade e internacionalização automática. Veja como fica a apresentação deste elemento no Android 5:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/08/inputdateandroid.png&#34;&gt;&lt;img class=&#34;  wp-image-50884 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/08/inputdateandroid.png&#34; alt=&#34;inputdateandroid&#34; width=&#34;198&#34; height=&#34;352&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 style=&#34;text-align: left;&#34;&gt;
+  &lt;strong&gt;Propriedade valueAsDate:&lt;/strong&gt;
+&lt;/h3&gt;
+
+&lt;p&gt;Esta propriedade é a grande sacada para não termos que fazer o parse manual do texto digitado para convertê-lo para objeto Date. Caso o texto digitado ou selecionado através do calendário seja uma data válida, esta propriedade irá retornar a data num objeto e caso o texto não seja uma data a propriedade irá retornar o valor null.&lt;/p&gt;
+
+&lt;p&gt;Está fácil demais, é só usar o elemento input com tipo Date e obter ou setar o valor da data pela propriedade valueAsDate. Nem preciso me preocupar com internacionalização, que já é oferecida pelo próprio navegador compatível com ECMAScript Internationalization API(ECMA 402)&amp;#8230; é quase isso&amp;#8230; &amp;#8220;Rapadura é doce mas não é mole&amp;#8221; por dois motivos:&lt;/p&gt;
+
+&lt;p&gt;Motivo 1) O objeto Date do JavaScript pode representar datas tanto no formato GMT quanto UTC;&lt;/p&gt;
+
+&lt;p&gt;Motivo 2) ECMA 402 é bem recente sendo suportada navegadores superiores a &amp;#8220;Chome 24, Firefox 29, IE 11, Opera 15&amp;#8221; ;&lt;/p&gt;
+
+&lt;p&gt;Ambos os problemas podem ser solucionados com um pequeno entendimento de como o objeto Date trabalha, assim como pequenos fallbacks para navegadores que não suportam ECMA 402.&lt;/p&gt;
+
+&lt;h3 style=&#34;text-align: left;&#34;&gt;
+  Date &amp;#8211; GMT e UTC
+&lt;/h3&gt;
+
+&lt;p&gt;Quando executamos a operação new Date() ou trabalhamos com serialização e desserialização (JSON.parse() e JSON.stringify()), o padrão é GMT (com timezone). Quando usamos o método Date.UTC() conseguimos construir um objeto no padrão UTC (sem timezone). Então qual é a encrenca? Vamos usar tudo com timezone (inclusive no banco para não dar zica) e esqueço que existe este tal de método Date.UTC(). O problema, não consegui entender o motivo ainda, é que quando obtenho o valor do objeto valueAsDate ele vem no formato UTC (karaka véi!&amp;#8230;.). O modo mais simples para tratar isso é continuar setando a propriedade valueAsDate com Date GMT, e ao recuperar o valor, construir um novo objeto Date para que ele esteja no formato GMT.&lt;/p&gt;
+
+&lt;pre&gt;Ex: 
+dataGMT = new Date(dataUTC.getFullYear(),dataUTC.getMonth(),dataUTC.getDate())&lt;/pre&gt;
+
+&lt;p&gt;Criei uma pequena demo com código fonte completo demonstrando esta operação em: &lt;a href=&#34;http://codepen.io/rogeriodegoiania/pen/OVGWry&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://codepen.io/rogeriodegoiania/pen/OVGWry&#34;&gt;http://codepen.io/rogeriodegoiania/pen/OVGWry&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 style=&#34;text-align: left;&#34;&gt;
+  Método toLocaleDateString()
+&lt;/h3&gt;
+
+&lt;p&gt;Este método faz mágica: ele consegue formatar uma data no formato local (Internacionalização)&lt;/p&gt;
+
+&lt;pre&gt;console.log(new Date().toLocaleDateString())&lt;/pre&gt;
+
+&lt;p&gt;Para navegadores que não suportam este método podemos criar este pequeno fallback&lt;/p&gt;
+
+&lt;pre&gt;var isDateInvert = (function(){
+  var lang = window.navigator.userLanguage || window.navigator.language;
+  if (lang.substring(0,2) === &#34;en&#34;){
+    return true;
+  }
+  else{
+    return false;
+  }
+})();
+ 
+if (Date.prototype.toLocaleDateString === undefined){
+  Date.prototype.toLocaleDateString = function(){
+    if (isDateInvert){
+      return (this.getUTCMonth() + 1) + &#34;/&#34; + this.getUTCDate() + &#34;/&#34; + this.getFullYear();
+    }
+    else{
+      return this.getUTCDate() + &#34;/&#34; + (this.getUTCMonth() + 1) + &#34;/&#34; + this.getFullYear();
+    }
+  }
+}
+ 
+if (Date.prototype.toLocaleString === undefined){
+  Date.prototype.toLocaleString = function(){
+    return this;
+  }
+}&lt;/pre&gt;
+
+&lt;pre style=&#34;text-align: center;&#34;&gt;&lt;/pre&gt;
+
+&lt;h3 style=&#34;text-align: left;&#34;&gt;
+  &lt;strong&gt;Propriedade valueAsDate com defineProperty:&lt;/strong&gt;
+&lt;/h3&gt;
+
+&lt;p&gt;Para navegadores que não suportam a propriedade valueAsDate podemos criar um pequeno fallback através do método defineProperty suportado até pelo IE8. Para saber mais veja: &lt;a href=&#34;https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty&#34;&gt;https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;pre&gt;var dataProperty = {
+  set : function (value) {
+    var dia, mes, ano;
+    if (value){
+      dia = value.getDate().toString();
+      if (dia.length === 1){
+        dia = &#34;0&#34; + dia;
+      }
+      mes = (value.getMonth() + 1).toString();
+      if (mes.length === 1){
+        mes = &#34;0&#34; + mes;
+      }
+      ano = value.getFullYear().toString();&lt;/pre&gt;
+
+&lt;pre&gt;if (isDateInvert){
+        this.value = mes + &#34;/&#34; + dia + &#34;/&#34; + ano;
+      }
+      else{
+        this.value = dia + &#34;/&#34; + mes + &#34;/&#34; + ano;
+      }
+    }
+    else{
+      this.value = &#34;&#34;;
+    }
+  },
+  get : function () {
+    var valueV;
+    var valueTimeStamp;
+    var dia, mes, ano;
+    try{
+      valueV = this.value.trim().split(&#34;/&#34;);
+      if(valueV.length === 3){
+        if (isDateInvert){
+          dia = valueV[1];
+          mes = valueV[0];
+          ano = valueV[2]; 
+        }
+        else{
+          dia = valueV[0];
+          mes = valueV[1];
+          ano = valueV[2];
+        }
+ 
+        if (dia.length === 1){
+          dia = &#34;0&#34; + dia;
+        }
+        if (mes.length === 1){
+          mes = &#34;0&#34; + mes;
+        }
+        valueTimeStamp = Date.parse(ano + &#39;-&#39; + mes + &#39;-&#39; + dia);
+        if (isNaN(valueTimeStamp)){
+          return null;
+        }
+        else{
+          return new Date(parseInt(ano), (parseInt(mes) - 1), parseInt(dia));
+        }
+      }
+      else{
+        return null;
+      }
+    }
+    catch(err){
+      return null;
+    }
+  }
+}
+ 
+if (HTMLInputElement.prototype.valueAsDate === undefined){
+  Object.defineProperty(HTMLInputElement.prototype, &#39;valueAsDate&#39;, dataProperty);
+}&lt;/pre&gt;
+
+&lt;p&gt;Uma última atenção a ser tomada é em relação ao método Date.parse(). Dependendo do navegador, se o dia ou o mês não estiver no formato com duas casas o parse não é feito.&lt;/p&gt;
+
+&lt;p&gt;Acredito que já seja possível utilizar os novos recursos da &lt;strong&gt;especificação&lt;/strong&gt; de internacionalização HTML5 em alguns projetos, com pequenos fallbacks, ao invés de utilizar bibliotecas específicas de internacionalização, como globalize.js e moment.js.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Teste automatizado de API com frisby e jasmine</title>
+      <link>http://tableless.com.br/teste-automatizado-de-api-com-frisby-e-jasmine/</link>
+      <pubDate>Thu, 27 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/teste-automatizado-de-api-com-frisby-e-jasmine/</guid>
+      <description>
+
+&lt;p&gt;O &lt;a href=&#34;http://frisbyjs.com/&#34;&gt;Frisby&lt;/a&gt; é um framework para teste de API REST que roda em cima do nodejs. Seu principal apelo é a facilidade em se fazer testes automatizados de API com o apoio do framework de teste BDD jasmine.&lt;/p&gt;
+
+&lt;h3 id=&#34;instalação&#34;&gt;Instalação:&lt;/h3&gt;
+
+&lt;p&gt;Pré requisitos: nodejs, npm.&lt;/p&gt;
+
+&lt;p&gt;1) jasmine-node. Instalação global.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;sudo npm install -g jasmine-node&lt;/pre&gt;
+
+&lt;p&gt;2) frisby. Instalação local no projeto.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;sudo nam install --save-dev frisby&lt;/pre&gt;
+
+&lt;h3 id=&#34;hello-world&#34;&gt;Hello, World!&lt;/h3&gt;
+
+&lt;p&gt;Para o uso devemos instanciar seu módulo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;var frisby = require (&#39;frisby&#39;);&lt;/pre&gt;
+
+&lt;p&gt;No seu uso mais básico, passamos como parâmetro a url a ser chamada e a resposta esperada.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;frisby.create(&#39;Teste BDD&#39;).get(&#39;http://www.teste.com/pessoa/1&#39;).expectStatus(200).toss();&lt;/pre&gt;
+
+&lt;p&gt;Com o comando acima, estamos testando a API sendo que seu sucesso depende do código de retorno HTTP 200.&lt;/p&gt;
+
+&lt;p&gt;Por convenção devemos salvar este arquivo de teste com o sufixo &amp;#8216;-spec.js&amp;#8217;. Ex: &amp;#8216;pessoa-spec.js&amp;#8217;&lt;/p&gt;
+
+&lt;p&gt;Para execução do teste e para que o mesmo gere relatório no formato &amp;#8216;junitreport&amp;#8217; devemos executar o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;jasmine-node pessoa-spec.js --junitreport --output specTestReportJasmine&lt;/pre&gt;
+
+&lt;p&gt;Na prática apontamos para um pasta de teste para que todos sejam executados. Ex:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;jasmine-node spec/ --junitreport --output specTestReportJasmine&lt;/pre&gt;
+
+&lt;p&gt;Já temos o essencial para integração do teste de api com alguma ferramenta de CI como o Jenkins(&lt;a href=&#34;https://jenkins-ci.org/&#34;&gt;https://jenkins-ci.org/&lt;/a&gt;) com relatório padronizado.&lt;/p&gt;
+
+&lt;h3 id=&#34;hello-universe&#34;&gt;Hello, Universe!&lt;/h3&gt;
+
+&lt;p&gt;O framework oferece alguns recursos interessantes e de fácil implementação para testar a resposta da API REST.&lt;/p&gt;
+
+&lt;p&gt;1) Testar se a resposta HTTP contém um cabeçalho específico.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;frisby.create(&#39;Teste BDD&#39;).get(&#39;http://www.teste.com/pessoa/1&#39;)
+   .expectStatus(200)
+   .expectHeaderContains(&#39;Content-Type&#39;, &#39;json&#39;)
+   .toss();
+
+&lt;/pre&gt;
+
+&lt;p&gt;2) Testar se a resposta HTTP contém um objeto com um conteúdo específico.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;frisby.create(&#39;Teste BDD&#39;).get(&#39;http://www.teste.com/pessoa/1&#39;)
+   .expectStatus(200)
+   .expectHeaderContains(&#39;Content-Type&#39;, &#39;json&#39;)
+   .expectJSON({codigo:1,nome:&#34;fulano&#34;})
+   .toss();&lt;/pre&gt;
+
+&lt;p&gt;3) Testar se a resposta HTTP contém um objeto com um tipo específico.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;frisby.create(&#39;Teste BDD&#39;).get(&#39;http://www.teste.com/pessoa/1&#39;)
+   .expectStatus(200)
+   .expectHeaderContains(&#39;Content-Type&#39;, &#39;json&#39;)
+   .expectJSONTypes({codigo: Number})
+   .toss();&lt;/pre&gt;
+
+&lt;p&gt;4) Realizar um teste que depende da conclusão de um teste anterior.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;frisby.create(&#39;Teste BDD&#39;).get(&#39;http://www.teste.com/pessoa/1&#39;)
+   .expectStatus(200)
+   .expectHeaderContains(&#39;Content-Type&#39;, &#39;json&#39;)
+   .expectJSONTypes({codigo: Number})
+   .after(function(){
+      frisby.create(&#39;Teste BDD&#39;).delete(&#39;http://www.teste.com/pessoa/1&#39;).expectStatus(200).toss();
+   })
+   .toss();&lt;/pre&gt;
+
+&lt;p&gt;No teste acima, caso tenha sucesso ao obter informações de uma pessoa será feito um teste da exclusão da mesma.&lt;/p&gt;
+
+&lt;h4 id=&#34;integração-com-gulp-projetos-em-nodejs&#34;&gt;Integração com GULP(Projetos em nodejs)&lt;/h4&gt;
+
+&lt;p&gt;Quando a aplicação backend é feita em nodejs é interessante configurar o gulpjs(&lt;a href=&#34;http://gulpjs.com/&#34;&gt;http://gulpjs.com/&lt;/a&gt;) para o gerenciamento dos testes. No exemplo abaixo o gulp é configurado para iniciar a aplicação backend, disparar os testes e finalizar a aplicação:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;gulp.task(&#39;spec&#39;, function() {
+   var jasmine = spawn(&#39;jasmine-node&#39;, [&#39;spec/&#39;,&#39;--junitreport&#39;,&#39;--output&#39;,&#39;specTestReportJasmine&#39;]);
+   var serverApp = require(&#39;./server&#39;);
+   var resumeText = &#34;&#34;;
+ 
+   serverApp.init(8082);
+ 
+   jasmine.stdout.on(&#39;data&#39;, function (data) {
+      var texto = data.toString().trim();
+      resumeText += texto;
+   });
+   jasmine.stderr.on(&#39;data&#39;, function (data) {
+      console.log(&#39;erro: &#39; + data);
+   });
+   jasmine.on(&#39;close&#39;, function (code) {
+      console.log(&#39;*********************\n&#39; + resumeText);
+      serverApp.close();
+      process.exit();
+   });
+});&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>nth-child() e calc() – Uma proposta para o abandono de frameworks de grids responsivos</title>
+      <link>http://tableless.com.br/nth-child-calc-responsivos/</link>
+      <pubDate>Mon, 06 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/nth-child-calc-responsivos/</guid>
+      <description>
+
+&lt;blockquote&gt;
+&lt;p&gt;Apesar da adoção do _Tableless _para construção de layouts o conceito de tabela ainda persiste através de inúmeros &lt;em&gt;frameworks&lt;/em&gt; de &lt;em&gt;grids&lt;/em&gt; responsivos.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Além da semântica, o conceito &lt;em&gt;Tableless&lt;/em&gt; prega, sempre que possível, levar a responsabilidade do layout para o CSS. O problema dos &lt;em&gt;frameworks&lt;/em&gt; CSS focados em &lt;em&gt;grids&lt;/em&gt; é que a especificação do layout continua dentro do HTML, descrita através de classes CSS, ancoradas diretamente aos elementos HTML, e de forma intrusiva, ou seja, os elementos &lt;em&gt;&lt;table&gt;&lt;/em&gt; antigamente utilizados foram substituídos por elementos &lt;em&gt;&lt;div class=&amp;#8221;col-&amp;#8220;&gt;&lt;/em&gt; para a criação do layout.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-49871 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/gridLayout.png&#34; alt=&#34;Exemplo de Grid Layout&#34; width=&#34;521&#34; height=&#34;354&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Enquanto a especificação &amp;#8220;&lt;a href=&#34;http://www.w3.org/TR/css3-grid-layout/&#34; target=&#34;_blank&#34;&gt;CSS Grid Layout Module&lt;/a&gt;&amp;#8221; ainda está no forno, proponho uma alternativa simples aos &lt;em&gt;frameworks&lt;/em&gt; de &lt;em&gt;grids&lt;/em&gt; responsivos, através da dupla dinâmica &lt;em&gt;&lt;strong&gt;nth-child()&lt;/strong&gt;&lt;/em&gt; e &lt;em&gt;&lt;strong&gt;calc()&lt;/strong&gt;&lt;/em&gt; presentes no CSS3, e que são suportadas pelos navegadores modernos, inclusive o IE9 (veja mais opções de compatibilidade &lt;a href=&#34;http://caniuse.com/#search=CALC&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt; e &lt;a href=&#34;http://caniuse.com/#search=nth-child&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;). Para um rápido entendimento destes recursos também confira estes artigos: &lt;a href=&#34;http://tableless.com.br/nth-child/&#34;&gt;http://tableless.com.br/nth-child/&lt;/a&gt; e &lt;a href=&#34;http://www.maujor.com/tutorial/css3-funcao-css-calc.php&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.maujor.com/tutorial/css3-funcao-css-calc.php&#34;&gt;http://www.maujor.com/tutorial/css3-funcao-css-calc.php&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;exemplo-de-formulário&#34;&gt;Exemplo de formulário&lt;/h2&gt;
+
+&lt;p&gt;Antes de partimos para o CSS, sempre que possível, precisamos usar elementos HTML5 semânticos, atributos WAI-ARIA, entre outros padrões de acessibilidade. Para este exemplo, o uso dos elementos de entradas de dados seguirão as técnicas preconizadas pelo eMAG 3.1 (ver &lt;a href=&#34;http://emag.governoeletronico.gov.br/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://emag.governoeletronico.gov.br/&#34;&gt;http://emag.governoeletronico.gov.br/&lt;/a&gt;&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Para cada elemento de entrada de dados presente na estrutura &lt;em&gt;form -&amp;gt; fieldset&lt;/em&gt; o seguinte padrão será seguido:&lt;/p&gt;
+
+&lt;pre&gt;&lt;span style=&#34;line-height: 1.5;&#34;&gt;&amp;lt;label&amp;gt;
+    &amp;lt;span&amp;gt;XXX:&amp;lt;/span&amp;gt;
+    &amp;lt;input type=&#34;text&#34; value=&#34;&#34;&amp;gt;
+&amp;lt;/label&amp;gt;
+&lt;/span&gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora podemos aplicar o seguinte CSS para todos os elementos &lt;em&gt;&lt;label&gt;&lt;/em&gt; presentes neste padrão.&lt;/p&gt;
+
+&lt;pre&gt;form fieldset &amp;gt; label {
+    display: block;
+    float: left;
+    width: calc(100% - 10px);
+    height: 55px;
+    margin-top: 10px;
+    margin-right: 10px;
+}
+form fieldset label &amp;gt; input {
+    float: left;
+}
+label &amp;gt; input {
+    display: block;
+    width: 100%;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Por termos utilizado o &lt;em&gt;margin-right&lt;/em&gt; com 10px, este valor foi contabilizado na largura do &lt;em&gt;label&lt;/em&gt; (uso da função &lt;em&gt;calc&lt;/em&gt;) com a finalidade de que sua margem não ultrapasse os limites do contêiner. Isto foi feito para que possamos alterar o layout de uma coluna para múltiplas colunas diretamente pelo CSS. Com este estilo, cada campo de entrada de dados aparecerá disposto como uma lista, e se adaptará a largura do contêiner.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/RogerioDias-Artigo2-figura1.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-49865 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/RogerioDias-Artigo2-figura1.png&#34; alt=&#34;Exemplo de Código para Criação de Formulário&#34; width=&#34;658&#34; height=&#34;532&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O próximo passo é poder criar mais de uma &amp;#8220;coluna&amp;#8221;, para que o campo Código e Nome fiquem na mesma &amp;#8220;linha&amp;#8221; quando o tamanho da tela for grande. O campo Código terá uma largura fixa de 80px e o campo Nome preencherá o restante do espaço do contêiner descontando a largura do campo Código juntamente com a margem de 10px dos dois &lt;em&gt;labels&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/RogerioDias-Artigo2-Figura3.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-49869 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/RogerioDias-Artigo2-Figura3.png&#34; alt=&#34;Exemplo de Código para Criação de Formulário Responsivo&#34; width=&#34;789&#34; height=&#34;537&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Com estes recursos podemos alterar o layout da página HTML diretamente pelo CSS sem que a estrutura do layout fique no próprio HTML. Além de criar colunas que se adaptam a largura do contêiner, é possível criar colunas com tamanhos fixos, evitando também o uso de classes CSS, que só é encorajado quando for realmente necessário.&lt;/p&gt;
+
+&lt;p&gt;O código fonte completo e a &lt;em&gt;Demo&lt;/em&gt; deste exemplo encontra-se em &lt;a href=&#34;http://codepen.io/rogeriodegoiania/pen/GJQmzb&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://codepen.io/rogeriodegoiania/pen/GJQmzb&#34;&gt;http://codepen.io/rogeriodegoiania/pen/GJQmzb&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Ícones – SVG Sprites com CSS na prática</title>
+      <link>http://tableless.com.br/icones-svg-sprites-com-css-na-pratica/</link>
+      <pubDate>Fri, 29 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/icones-svg-sprites-com-css-na-pratica/</guid>
+      <description>
+
+&lt;p&gt;O uso de ícones com SVG pode ser usado como uma alternativa mais poderosa, semântica e leve em relação a tradicional técnica de Icon Font.&lt;/p&gt;
+
+&lt;p&gt;O artigo abaixo abordará de forma prática o uso de ícones SVG com o uso das seguintes técnicas: SVG (defs, symbol), HTML + CSS + SVG (use). Como diziao Chapolin: &amp;#8220;Sigam-me os bons!&amp;#8221;&lt;/p&gt;
+
+&lt;h2 id=&#34;obtendo-arquivos-svg&#34;&gt;Obtendo arquivos SVG&lt;/h2&gt;
+
+&lt;p&gt;O site &lt;a href=&#34;http://www.flaticon.com/&#34; title=&#34;flaticon&#34;&gt;FlatIcon&lt;/a&gt; contém alguns ícones gratuitos que podem ser baixados no formato SVG. Para este exemplo serão usados os dois arquivos SVG abaixo para compor o sprite:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.flaticon.com/free-icon/save-disk_13842&#34; title=&#34;svg&#34;&gt;http://www.flaticon.com/free-icon/save-disk_13842&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.flaticon.com/free-icon/download-arrow_64090&#34; title=&#34;svg&#34;&gt;http://www.flaticon.com/free-icon/download-arrow_64090&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A figura abaixo mostra o código fonte das duas imagens:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/figura_exemplo_svg_fonte1.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-49046&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/figura_exemplo_svg_fonte1.png&#34; alt=&#34;figura_exemplo_svg_fonte1&#34; width=&#34;1295&#34; height=&#34;744&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Percebam que existe muito &amp;#8216;lixo&amp;#8217; nos arquivos gerados pela ferramenta do site mas o que realmente importa é o grupo (&amp;#8216;&lt;g&gt;&amp;#8217;) que contém os polígonos juntamente com a informação de viewBox que está destacada.&lt;/p&gt;
+
+&lt;h2 id=&#34;montando-arquivo-svg-contendo-sprites&#34;&gt;Montando arquivo svg contendo sprites&lt;/h2&gt;
+
+&lt;p&gt;Usaremos uma técnica de SVG Symbol, juntamente com o elemento defs, para construir um arquivo SVG contendo sprites de imagens. Quando criamos um elemento &lt;code&gt;&amp;lt;symbol /&amp;gt;&lt;/code&gt; podemos reusá-lo mais tarde através do elemento &lt;code&gt;&amp;lt;use /&amp;gt;&lt;/code&gt;. O MDN tem mais detalhes sobre esses elementos: &lt;a href=&#34;https://developer.mozilla.org/pt-BR/docs/Web/SVG/Element/symbol&#34; title=&#34;svg symbol&#34;&gt;https://developer.mozilla.org/pt-BR/docs/Web/SVG/Element/symbol&lt;/a&gt; e &lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs&#34; title=&#34;svg defs&#34;&gt;https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;A figura abaixo mostra a montagem do arquivo de sprites dentro da seguinte estrutura: &lt;code&gt;&amp;lt;svg&amp;gt;&amp;lt;defs&amp;gt;&amp;lt;symbol /&amp;gt;&amp;lt;/defs&amp;gt;&amp;lt;/svg&amp;gt;&lt;/code&gt;. Para cada elemento &lt;symbol&gt; devemos atribuir um id juntamente com a viewBox da imagem e transpor os polígonos para dentro do elemento.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/figura_svg_exemplo_fonte2.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-49051&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/figura_svg_exemplo_fonte2.png&#34; alt=&#34;figura_svg_exemplo_fonte2&#34; width=&#34;1033&#34; height=&#34;327&#34; /&gt;&lt;/a&gt; Note que foi retirada a estilização (style) do SVG para que a mesma seja feita via CSS.&lt;/p&gt;
+
+&lt;h2 id=&#34;usando-ícones-svg-dentro-da-página-html&#34;&gt;Usando ícones SVG dentro da página HTML&lt;/h2&gt;
+
+&lt;p&gt;Para o uso das imagens dentro do html foi utilizado o elemento &lt;svg&gt; juntamente com o elemento &lt;use&gt; para referenciar o sprite (symbol) contido no arquivo. O atributo role=&amp;#8217;button&amp;#8217; foi utilizado obedecendo a especificação WAI-ARIA para acessibilidade, onde foi utilizado o atributo title para uma pequena descrição do que o button irá fazer.&lt;/p&gt;
+
+&lt;p&gt;O tamanho da imagem, juntamente com a cor de preenchimento, foi definida via CSS, sendo que podemos explorar efeitos simples como mudança de cor num evento mouse over, até efeitos complexos através de animações.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/figura_svg_exemplo_fonte3.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-49053&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/figura_svg_exemplo_fonte3.png&#34; alt=&#34;figura_svg_exemplo_fonte3&#34; width=&#34;820&#34; height=&#34;538&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;resultado-final&#34;&gt;Resultado final&lt;/h2&gt;
+
+&lt;p&gt;Este exemplo foi testado com Chrome e Firefox. O Internet Explorer não suporta nativamente (tinha que ser&amp;#8230;) o uso do elemento &lt;use&gt; para arquivos externos(veja &lt;a href=&#34;http://caniuse.com/#feat=svg&#34; title=&#34;caniuse&#34;&gt;http://caniuse.com/#feat=svg&lt;/a&gt;), sendo necessário o uso de polyfill (veja &lt;a href=&#34;https://github.com/jonathantneal/svg4everybody&#34; title=&#34;polyfill ie&#34;&gt;https://github.com/jonathantneal/svg4everybody&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Para quem quiser se aprofundar neste assunto não deixem de ler o seguinte artigo: &lt;a href=&#34;http://sarasoueidan.com/blog/structuring-grouping-referencing-in-svg/&#34;&gt;http://sarasoueidan.com/blog/structuring-grouping-referencing-in-svg/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;A figura abaixo mostra o resultado final.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/figura_svg_exemplo_fonte4.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-49055&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/figura_svg_exemplo_fonte4.png&#34; alt=&#34;figura_svg_exemplo_fonte4&#34; width=&#34;1292&#34; height=&#34;447&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

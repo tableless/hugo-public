@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Fadeout on Tableless</title>
+    <link>http://tableless.com.br/tags/fadeout/index.xml</link>
+    <description>Recent content in Fadeout on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/fadeout/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando efeito de fadeIn e fadeOut com javascript puro</title>
+      <link>http://tableless.com.br/criando-efeito-de-fadein-e-fadeout-com-javascript-puro/</link>
+      <pubDate>Wed, 29 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-efeito-de-fadein-e-fadeout-com-javascript-puro/</guid>
+      <description>
+
+&lt;p&gt;O uso de bibliotecas JavaScript vem crescendo muito atualmente, mas às vezes utilizamos certas bibliotecas (como a jQuery) para simples tarefas, que poderíamos fazer apenas com JavaScript.&lt;/p&gt;
+
+&lt;p&gt;Vejamos na &lt;strong&gt;Listagem 1&lt;/strong&gt; o que acontece muito nas páginas da web de hoje.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 1:&lt;/strong&gt; Pegando o atributo src de uma imagem com jQuery&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#34;#imagem&#34;).attr(&#34;src&#34;);&lt;/pre&gt;
+
+&lt;p&gt;Poderíamos usar simplesmente o JavaScript para ter o mesmo resultado usando o código da &lt;strong&gt;Listagem 2&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 2:&lt;/strong&gt; Pegando o atributo src de uma imagem com JavaScript&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;document.getElementById(&#34;imagem&#34;).src;&lt;/pre&gt;
+
+&lt;p&gt;A intenção do artigo não é desencorajar ninguém a deixar de usar jQuery, mas para quem quer ser um bom front end, um ninja front end, é bom começar a estudar o JavaScript puro. Muitos desanimam ao estudar essa tecnologia por causa da maneira um pouco &amp;#8220;diferente&amp;#8221; de obter um efeito legal e com um código curto, como acontece com o jQuery, mas com o JavaScript puro dá para se ter efeitos, digamos “muito show”.&lt;/p&gt;
+
+&lt;p&gt;Muito bem, chega de conversa, vamos dar inicio ao nosso treinamento “ninja”&amp;#8230;&lt;/p&gt;
+
+&lt;h2 id=&#34;estrutura-html-e-css&#34;&gt;Estrutura HTML e CSS&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar um pequeno exemplo para mostrar os efeitos fadeIn e fadeOut. Primeiro vamos elaborar nossa estrutura HTML, criando uma div que irá sofrer o efeitos através de dois botões.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;dica:&lt;/strong&gt; &lt;em&gt;Antes de criar algum efeito com javascript ou qualquer outra biblioteca javascript, sempre seguimos estas três ordens: Primeiro construimos a estrutura html, depois elaboramos o nosso estilo com o css, e por último, começamos a brincar com as nossas linhas de códigos javascript&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Observe a &lt;strong&gt;Listagem 3&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 3:&lt;/strong&gt; Estrutura html5 simples&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!doctype html&amp;gt;
+&amp;lt;html lang=&#34;pr-br&#34;&amp;gt;
+ &amp;lt;head&amp;gt;
+   &amp;lt;meta charset=&#34;UTF-8&#34;&amp;gt;
+   &amp;lt;title&amp;gt;Meu primeiro efeito ninja em js&amp;lt;/title&amp;gt;
+ &amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+    &amp;lt;section id=&#34;objeto&#34;&amp;gt;&amp;lt;/section&amp;gt;
+    &amp;lt;button id=&#34;fadeIn&#34;&amp;gt;&amp;lt;/button&amp;gt;
+    &amp;lt;button id=&#34;fadeOut&#34;&amp;gt;&amp;lt;/button&amp;gt;
+ &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;A marcação html é simples, temos uma tag section, que sofrerá as mudanças de opacidade, determinadas como fadeIn e fadeOut. Temos também dois botões qualquer, que serão responsáveis por chamar as funções de acordo com seu “id”.&lt;/p&gt;
+
+&lt;p&gt;Em seguida, aplicamos nosso style,conforme a &lt;strong&gt;Listagem 4&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 4:&lt;/strong&gt; Estilo CSS&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;&amp;lt;style type=&#34;text/css&#34;&amp;gt;
+   section {
+      width: 150px;
+      height: 100px;
+      background: red;
+   }
+&amp;lt;/style&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Note que só estilizamos a tag section, pois o estilo do botão não é relevante neste exemplo, só é necessário uma cor de fundo na section para que possamos visualizar ela sumindo e aparecendo.&lt;/p&gt;
+
+&lt;p&gt;agora iremos aplicar a função dos botões quando o documento for carregado. Observe a &lt;strong&gt;Listagem 5&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 5:&lt;/strong&gt; Anexando a função de clique nos botões quando o documento for lido&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+ window.onload = function(){
+    var objeto = document.getElementById(&#39;objeto&#39;);
+    document.getElementById(&#34;fadeIn&#34;).onclick = function(){
+    fadeIn(objeto,1);
+    }
+   document.getElementById(&#34;fadeOut&#34;).onclick = function(){
+    fadeOut(objeto,1);
+   }
+ }
+&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Nestas linhas de códigos acima, anexamos a função de clique para os botões e, de acordo com seu “id”, chamamos a função de fadeIn e/ou fadeOut&lt;/p&gt;
+
+&lt;p&gt;Em seguida, criaremos as funções fadeIn (que servirá para determinar quando elemento irá aparecer) e fadeOut (para determinar quando o elemento irá sumir), conforme as &lt;strong&gt;Listagens 6&lt;/strong&gt; e &lt;strong&gt;7&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 6:&lt;/strong&gt; Função  fadeIn&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function fadeIn(element,time){
+   processa(element,time,0,100);
+ }&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 7: &lt;/strong&gt;Função fadeOut&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function fadeOut(element,time){
+  processa(element,time,100,0);
+ }&lt;/pre&gt;
+
+&lt;p&gt;Estas funções tem como parâmetros element, time, intial, e end, onde:&lt;/p&gt;
+
+&lt;p&gt;·        element &amp;#8211; Elemento que sofrerá o fadeIn ou fadeOut;&lt;/p&gt;
+
+&lt;p&gt;·        time &amp;#8211; Tempo que o fade acontecerá (neste caso, um segundo);&lt;/p&gt;
+
+&lt;p&gt;·        initial &amp;#8211; Estado inicial do elemento;&lt;/p&gt;
+
+&lt;p&gt;·        end &amp;#8211; Estado final do elemento.&lt;/p&gt;
+
+&lt;p&gt;Agora criaremos uma função que será responsável por processar os efeitos de fadeIn e fadeOut, conforme abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function processa(element,time,initial,end){
+    //cógigo
+}&lt;/pre&gt;
+
+&lt;p&gt;No escopo da nossa função, declararemos uma variável responsável pelo incremento (no caso do fadeIn) ou decremento (no caso do fadeOut) do efeito. Esta variável será a chave principal para setar o efeito na opacidade do nosso elemento. Observe a &lt;strong&gt;Listagem 8.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 8&lt;/strong&gt;. Criação da variável de incremento da função processa&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;if(initial == 0){
+  increment = 2;
+   element.style.display = &#34;block&#34;;
+}else {
+  increment = -2;
+}&lt;/pre&gt;
+
+&lt;p&gt;Se o estado inicial do elemento for igual a zero, declaramos o incremento como positivo para que o elemento possa aparecer, colocando-o com um display:block. Mas se o estado inicial do elemento for diferente de zero, então declaramos o incremento como negativo, assumindo o efeito de fadeOut&lt;/p&gt;
+
+&lt;p&gt;Agora iremos declarar a opacidade inicial do nosso elemento, declarando uma variável cujo nome será &amp;#8220;opc&amp;#8221; que irá “sofrer” as mudanças de incremento ou decremento. Observe a &lt;strong&gt;Listagem 9.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 9:&lt;/strong&gt; declaração da variável de opacidade&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;if(initial == 0){
+  increment = 2;
+   element.style.display = &#34;block&#34;;
+}else {
+  increment = -2;
+}
+opc = initial;&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Obs:&lt;/strong&gt; Declaramos a variável “opc”, porque iremos precisar do valor “initial” para fazer uma verificação, em um loop mais na frente, mas também iremos precisar que o valor da variável “initial” também mude para que possamos aplicar as mudanças na tag section&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora iremos criar um intervalo para simular o efeito fadeIn / fadeOut no nosso elemento. Este intervalo irá se repetir em um intervalo de 10 milissegundos, pois queremos que aconteça o fade em um segundo (1 * 10) == (time * 10), conforme a &lt;strong&gt;Listagem 10.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 10:&lt;/strong&gt; Intervalo responsável por aplicar efeito de fadeIn ou fadeOut&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;intervalo = setInterval(function(){
+},time * 10);&lt;/pre&gt;
+
+&lt;p&gt;Dentro do nosso intervalo verificaremos se a variável opc chegou ao estado final, ou seja, se o intervalo completar o efeito de fade limpamos o mesmo, pois ele não será mais necessário. Observe a &lt;strong&gt;Listagem 11.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 11:&lt;/strong&gt; Verificando se o fade foi completado&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;intervalo = setInterval(function(){
+  if((opc == end)){
+    if(end == 0){
+    element.style.display = &#34;none&#34;;
+    }
+    clearInterval(intervalo);
+  }
+},time * 10);&lt;/pre&gt;
+
+&lt;p&gt;Note que foi feita uma nova verificação para ver se o estado final do elemento é zero. Se está em zero, então teremos que esconde-lo para que não ocupe espaço na tela.&lt;/p&gt;
+
+&lt;p&gt;Logo após a verificação, setaremos a opacidade do nosso elemento, conforme a &lt;strong&gt;Listagem 12.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 12:&lt;/strong&gt; setando a opacidade do elemento&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;}else {
+  opc += increment;
+  element.style.opacity = opc/100;
+  element.style.filter = &#34;alpha(opacity=&#34;+opc+&#34;)&#34;;
+}&lt;/pre&gt;
+
+&lt;p&gt;Os comandos dentro deste bloco serão executados a cada 10 milissegundos. Na linha “opc += increment;”, a opacidade incrementa ou decrementa. Por exemplo, se a opacidade for 0, o incremento é positivo e teremos a seguinte repetição:&lt;/p&gt;
+
+&lt;p&gt;0 + 2= 2 (na primeira execução do loop);&lt;/p&gt;
+
+&lt;p&gt;2 + 2 = 4 (na segunda execução do loop);&lt;/p&gt;
+
+&lt;p&gt;(&amp;#8230;&amp;#8230;&amp;#8230;&amp;#8230;&amp;#8230;&amp;#8230;)&lt;/p&gt;
+
+&lt;p&gt;98 + 2 = 100 (na ultima execução do loop);&lt;/p&gt;
+
+&lt;p&gt;Mas se a variável opc for  maior que  0 (no caso 100), significa que o incremento é positivo, pois no topo do escopo da nossa função processa(), temos uma verificação do parâmetro “initial”, e se initial não for igual a zero (que declaramos a variável opc = initial) a variável increment é negativa. Logo teremos a seguinte função:&lt;/p&gt;
+
+&lt;p&gt;100 &amp;#8211; 2= 98 (na primeira execução do loop);&lt;/p&gt;
+
+&lt;p&gt;98 &amp;#8211; 2 = 96 (na segunda execução do loop);&lt;/p&gt;
+
+&lt;p&gt;(&amp;#8230;&amp;#8230;&amp;#8230;&amp;#8230;&amp;#8230;)&lt;/p&gt;
+
+&lt;p&gt;98 &amp;#8211; 2 = 100 (na ultima execução do loop);&lt;/p&gt;
+
+&lt;p&gt;Já na linha “element.style.opacity = opc/100;” seta a opacidade no elemento.&lt;/p&gt;
+
+&lt;p&gt;E quem disse que o nosso efeito não é cross browser? Esta linha abaixo faz o nosso efeito de opacidade funcionar no ie8 até o ie6,&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;Element.style.filter = “alpha(opacity=”+opc+”)”;&lt;/pre&gt;
+
+&lt;p&gt;O Internet Explorer do 8 abaixo, interpreta a propriedade filter:alpha(opacity=100) como opacity:1;&lt;/p&gt;
+
+&lt;p&gt;Disponibilizei o código no github, &lt;a href=&#34;https://github.com/clovisdasilvaneto/fadein-fadeout-com-javascript-puro&#34; title=&#34;código do post&#34;&gt;clique aqui.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Um forte abraço e até a próxima.&lt;/em&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Animando com jQuery</title>
+      <link>http://tableless.com.br/animando-com-jquery/</link>
+      <pubDate>Mon, 05 Jan 2009 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/animando-com-jquery/</guid>
+      <description>
+
+&lt;p&gt;Um dos recursos mais procurados pelos designers (e programadores) em bibliotecas é animação. Existem bibliotecas e mais bibliotecas que fazem animações de diversas formas. Em prototype por exemplo, deve-se anexar a biblioteca scriptaculous para que seja possivel realizar animações. Já em mootools existem várias formas de resolver o mesmo problema, sendo assim um pouco mais complicado de lembrar de tudo isso. Por jQuery ser uma biblioteca simples com somente o funcional, o trabalho se torna mais simples, logo mais rápido de desenvolver as soluções.&lt;/p&gt;
+
+&lt;p&gt;Em jQuery &amp;#8211; como já vimos aqui e aqui, temos animações que podemos usar nos projetos: slideUp, slideDown, slideToggle, fadeIn, fadeOut e fadeTo, além de show e hide. São efeitos simples que você pode utilizar em qualquer lugar, e suas nomenclaturas também sao simples a ponto de serem intuitivas na hora do serviço de fato.&lt;/p&gt;
+
+&lt;h3 id=&#34;slide&#34;&gt;Slide&lt;/h3&gt;
+
+&lt;p&gt;Que tal experimentar fazer uma área onde o usuário clica em um botão de mostrar/ocultar menu? Com apenas duas tags, a jQuery consegue executar essa tarefa.&lt;/p&gt;
+
+&lt;p&gt;Tomemos a seguinte marcação:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;html&amp;#8221;]&lt;/p&gt;
+
+&lt;div&gt;
+  &lt;!--
+Aqui vem a área, que você pode manipulá-la como quiser,
+experimente um formulário de login ou um menu inline ou uma
+bela imagem.
+--&gt;
+&lt;/div&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Apenas com HTML e CSS fazemos a &lt;a href=&#34;http://dgmike.com.br/tableless/jquery/caixa-de-ferramentas-simples.html&#34;&gt;versão que funcionará sem javascript&lt;/a&gt;. Pense sempre dessa forma, assim você não corre o risco de fazer javascript obstrusivo. É por isso que não foi colocado o link onde o usuário clicará para aparecer e sumir com a área. Veja como ficará este &lt;a href=&#34;http://dgmike.com.br/tableless/jquery/caixa-de-ferramentas.html&#34;&gt;exemplo estilizado&lt;/a&gt; com apenas com algumas linhas de código de CSS.&lt;/p&gt;
+
+&lt;p&gt;Feita a primeira e a segunda camada (conteúdo feito no HTML e apresentação feita no CSS) partimos para a interação, que quem comanda é a jQuery. Primeiro, precisamos adicionar o link onde o usuário poderá clicar para fazer a área sumir e reaparecer, faremos isso dinamicamente com a ajuda do nosso Framework preferido. Com o método after (depois em inglês) adicionamos facilmente o nosso link.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;javascript]$(&amp;#8216;#area&amp;#8217;).after(&amp;#8216;&lt;a href=&#34;#area&#34; title=&#34;Mostrar/Esconder Área&#34;&gt;Mostrar/Esconder Área&lt;/a&gt;{#mostra-esconde-area}&amp;#8216;)[/cc]&lt;/p&gt;
+
+&lt;p&gt;Após isto, só precisamos adicionar a animação ao nosso botão, fazendo ele animar a área desejada. Com o comando toggle, nem precisamos nos preocupar com o estado no qual a área se encontra, afinal, ele vai aparecer e desaparecer conforme o necessário.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;javascript]$(&amp;#8216;#mostra-esconde-area&amp;#8217;).click(function(){&lt;/p&gt;
+
+&lt;p&gt;$(&amp;#8216;#area&amp;#8217;).slideToggle()&lt;/p&gt;
+
+&lt;p&gt;})[/cc]&lt;/p&gt;
+
+&lt;p&gt;Não esqueça que estes comandos devem estar dentro da função de inicialização da jQuery. Então o script final ficará assim.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;javascript]$(function(){&lt;/p&gt;
+
+&lt;p&gt;$(&amp;#8216;#area&amp;#8217;).after(&amp;#8216;&lt;a href=&#34;#area&#34; title=&#34;Mostrar/Esconder Área&#34;&gt;Mostrar/Esconder Área&lt;/a&gt;{#mostra-esconde-area}&amp;#8216;)&lt;/p&gt;
+
+&lt;p&gt;$(&amp;#8216;#mostra-esconde-area&amp;#8217;).click(function(){ $(&amp;#8216;#area&amp;#8217;).slideToggle() })&lt;/p&gt;
+
+&lt;p&gt;})[/cc]&lt;/p&gt;
+
+&lt;p&gt;Ao todo para fazermos a animação e a interação, não gastamos mais que cinco linhas de código javascript. Veja no &lt;a href=&#34;http://dgmike.com.br/tableless/jquery/caixa-de-ferramentas-animado.html&#34;&gt;exemplo final&lt;/a&gt; (&lt;a href=&#34;http://dgmike.com.br/tableless/jquery/caixa-de-ferramentas-simples-animado.html&#34;&gt;ou com pouco CSS&lt;/a&gt;), como esse tipo de interação pode dar um gás na sua aplicação.&lt;/p&gt;
+
+&lt;h3 id=&#34;opacidade&#34;&gt;Opacidade&lt;/h3&gt;
+
+&lt;p&gt;Uma outra propriedade que a jQuery trabalha e que pode resultar em ótimas melhorias na usabilidade do usuário é a propriedade &lt;em&gt;opacity&lt;/em&gt;. Ou seja, a transparencia dos elementos, e graças aos métodos &lt;em&gt;fadeIn&lt;/em&gt;, &lt;em&gt;fadeOut&lt;/em&gt; podemos fazer um &lt;em&gt;tooltip&lt;/em&gt; com poucas linhas de código.&lt;/p&gt;
+
+&lt;p&gt;Primeiro, escrevemos o HTML necessário. Sempre pensando de forma não obstrusiva, ou seja, se o navegador do usuário não tiver javascript habilitado, ele não deve ter sua navegabilidade atrapalhada.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;html&amp;#8221;]&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;google.com&#34; title=&#34;Encontre o que você procura&#34;&gt;Google&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;tableless.com.br&#34; title=&#34;Webstandards com Feijão e Farofa&#34;&gt;Tableless&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Com algumas linhas de CSS aplicamos uma &lt;a href=&#34;http://dgmike.com.br/tableless/jquery/tooltip-simples.html&#34;&gt;interface interessante&lt;/a&gt; para nosso menu. Para a construção usamos o atributo &lt;em&gt;title&lt;/em&gt;, assim o usuário que não estiver com o javascript habilitado poderá navegar no site vendo todos os recursos que ele teria se o javascript estivesse habilitado.&lt;/p&gt;
+
+&lt;p&gt;A primeira tarefa da jQuery é criar um span onde vamos colocar o mesmo texto do atributo. Não podemos manipular o atributo title, ele fica com o padrão do sistema operacional do usuário, já um span podemos implementar o que nossa imaginação mandar, até mesmo criar balões colocando backgrounds, se necessário.&lt;/p&gt;
+
+&lt;p&gt;Para fazer isso, precisamos usar o método &lt;em&gt;each&lt;/em&gt;, que percorre todos os elementos chamados aplicando a cada um uma diretiva específica.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;javascript]$(&amp;#8216;#menu li a&amp;#8217;).each(function(){&lt;/p&gt;
+
+&lt;p&gt;$(this).append(&amp;#8216;&lt;span&gt;&amp;#8216;+this.title+&amp;#8217;&lt;/span&gt;&amp;#8216;)&lt;/p&gt;
+
+&lt;p&gt;this.title=&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;})[/cc]&lt;/p&gt;
+
+&lt;p&gt;No método each nós passamos uma função, nessa função, a palavra-chave &amp;#8220;this&amp;#8221; indica o item que está sendo tratado pelo each (um de cada vez), ou seja, cada link específico. A cada link &lt;em&gt;appendamos&lt;/em&gt;, ou seja, adicionamos ao fim de seu conteúdo o valor de seu atributo title dentro de uma tag span. Depois, limpamos o valor de seu title. Assim, removemos o tooltip original, deixando apenas o que será aplicado nos próximos passos.&lt;/p&gt;
+
+&lt;p&gt;Agora, a mágica. Adicionamos aos links a ação de hover que irá exibir seus filhos (o span que acabamos de adicionar) e ao mesmo tempo adicionamos a ação de sumir quando ele sair, fazemos isso com o próprio hover. Poderiamos fazer isso com os métodos &lt;em&gt;show&lt;/em&gt;, &lt;em&gt;hide&lt;/em&gt; ou mesmo o &lt;em&gt;toggle&lt;/em&gt;, mas para ficar mais interessante para o usuário, resolvi usar &lt;em&gt;fadeIn&lt;/em&gt; e &lt;em&gt;fadeOut&lt;/em&gt;. Veja que mesmo assim, o código não fica tão impossível de entender.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;javascript]$(&amp;#8216;#menu li a&amp;#8217;).hover(function() {&lt;/p&gt;
+
+&lt;p&gt;$(this).children().show()&lt;/p&gt;
+
+&lt;p&gt;},function(){&lt;/p&gt;
+
+&lt;p&gt;$(this).children().hide()&lt;/p&gt;
+
+&lt;p&gt;})[/cc]&lt;/p&gt;
+
+&lt;p&gt;Enfim, aplicamos estes dois trechos de script ao nosso &amp;#8220;inicializator-jquery&amp;#8221; que fará com que esse script seja executado apenas após carregar a página, ou seja, quando todos os elementos já tiverem sido carregados. Também adicionamos ao CSS algumas linhas de código para deixar o tooltip amigável. &lt;a href=&#34;http://dgmike.com.br/tableless/jquery/tooltip-simples-animado.html&#34; title=&#34;Tooltip simples animado com JQuery&#34;&gt;Veja como é muito&lt;/a&gt; interessante esse efeito, agora com o nosso novo tooltip.&lt;/p&gt;
+
+&lt;p&gt;A jQuery manipula muito bem efeitos simples (mas que resolvem a esmagadora quantidade de problemas) que muitas bibliotecas insistem em deixar confuso demais ou complexo demais por adicionar mais e mais configurações para cada efeito. Por isso jQuery é uma ferramenta muito poderosa.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

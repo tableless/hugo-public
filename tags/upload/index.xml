@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Upload on Tableless</title>
+    <link>http://tableless.com.br/tags/upload/index.xml</link>
+    <description>Recent content in Upload on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/upload/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Upload de imagens desmistificado com simpleGallery.js</title>
+      <link>http://tableless.com.br/upload-de-imagens-desmistificado-com-simplegallery-js/</link>
+      <pubDate>Wed, 07 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/upload-de-imagens-desmistificado-com-simplegallery-js/</guid>
+      <description>
+
+&lt;p&gt;Olá pessoal, tudo bem?&lt;/p&gt;
+
+&lt;p&gt;Neste artigo vou procurar abordar algo comum no dia-a-dia de qualquer desenvolver, o &amp;#8220;temido&amp;#8221; upload de imagens. No processo utilizarei NodeJS e Express para o back-end. A grande sacada será a utilização da lib &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;, que nos auxiliará no front-end.&lt;/p&gt;
+
+&lt;h2 id=&#34;passos-iniciais&#34;&gt;Passos iniciais..&lt;/h2&gt;
+
+&lt;p&gt;A seguir criaremos um servidor bem simples. Utilizarei o package &amp;#8220;Multer&amp;#8221; como middleware para as requisições de arquivo. Não vou prezar por segurança nem boas práticas, já que este artigo é apenas para encorajar aqueles que ainda possuem dificuldades.&lt;/p&gt;
+
+&lt;p&gt;Primeiro começaremos com a instalação do NodeJS e NPM, para mais informações:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://nodejs.org/en/&#34;&gt;https://nodejs.org/en/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.npmjs.org/post/85484771375/how-to-install-npm&#34;&gt;http://blog.npmjs.org/post/85484771375/how-to-install-npm&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Após NodeJS e NPM instalados, é hora de criarmos nosso &lt;code&gt;package.json&lt;/code&gt;, que será responsável por armazenar o nome do app, versão, nossos packages etc. Abra o terminal e digite:&lt;/p&gt;
+
+&lt;pre&gt;npm init /my-upload-app
+cd my-upload-app
+mkdir public&lt;/pre&gt;
+
+&lt;p&gt;Após todos os dados inseridos, partiremos para a inclusão dos packages que utilizaremos.&lt;/p&gt;
+
+&lt;pre&gt;npm install --save-dev express multer&lt;/pre&gt;
+
+&lt;p&gt;Este comando instalará as últimas versões de cada package, permitindo a sua utilização junto ao NodeJS.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-o-server&#34;&gt;Criando o Server&lt;/h2&gt;
+
+&lt;p&gt;Com tudo instalado, basta criar um arquivo em nosso diretório chamado de &lt;code&gt;index.js&lt;/code&gt;. Este conterá o básico para criar nossa API e seus respectivos endpoints. Estou utilizando o Hello World do próprio Express, que está presente &lt;a href=&#34;http://expressjs.com/pt-br/starter/hello-world.html&#34;&gt;neste&lt;/a&gt; link.&lt;/p&gt;
+
+&lt;pre&gt;const express = require(&#39;express&#39;)
+const app = express()
+
+app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+ res.sendFile(&#39;public/index.html&#39;)
+})
+
+app.listen(3000, () =&amp;gt; console.log(&#39;Lstening on port 3000!&#39;))
+
+&lt;/pre&gt;
+
+&lt;p&gt;Isto já é o suficiente para rodar nosso server (digite &lt;code&gt;node index.js&lt;/code&gt;). Tudo que estiver dentro da pasta &lt;code&gt;/public&lt;/code&gt; obviamente será considerado como público e &amp;#8220;visível&amp;#8221; ao browser.&lt;/p&gt;
+
+&lt;p&gt;Sem mais delongas, vamos partir para o endpoint que receberá os arquivos e retornará um JSON com as respectivas URL&amp;#8217;s, ele também será responsável por armazenar nossas imagens na pasta &lt;code&gt;/uploads&lt;/code&gt;. Neste ponto utilizo uma configuração mínima do &amp;#8216;Multer&amp;#8217;, você pode melhorar este processo limitando os arquivos por tamanho, tipo, quantidade etc. Para mais informações, clique &lt;a href=&#34;https://github.com/expressjs/multer&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre&gt;const express = require(&#39;express&#39;)
+const app = express()
+const multer = require(&#39;multer&#39;)
+
+const upload = multer({ dest: &#39;public/uploads/&#39; }) // Configuramos o destino dos arquivos.
+
+app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+ res.sendFile(&#39;public/index.html&#39;)
+})
+
+app.post(&#39;/upload&#39;, upload.array(&#39;gallery[]&#39;), (req, res) =&amp;gt; {
+ let gallery = []
+ req.files.map((image) =&amp;gt; gallery.push({&#39;url&#39;: `http://localhost:3000/uploads/${image.filename}`}))
+ res.status(200).json(gallery)
+})
+
+app.listen(3000, () =&amp;gt; console.log(&#39;Listening on port 3000!&#39;))&lt;/pre&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Agora nossa API já está 100% funcional. Para testar, submeta um POST com as imagens para a url &lt;code&gt;http://localhost:3000/uploads&lt;/code&gt;. Você receberá uma resposta formato JSON com a URL das imagens enviadas.&lt;/p&gt;
+
+&lt;h2 id=&#34;já-no-front-end&#34;&gt;Já no Front-End..&lt;/h2&gt;
+
+&lt;p&gt;Com a nossa API criada, agora precisamos configurar o nosso front-end. Para isto, vamos iniciar criando um &lt;code&gt;index.html&lt;/code&gt; dentro da pasta &lt;code&gt;/public&lt;/code&gt;. Após criado, é hora de escrevermos nosso HTML:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+ &amp;lt;head&amp;gt;
+ &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Upload App&amp;lt;/title&amp;gt;
+ &amp;lt;/head&amp;gt;
+ &amp;lt;body&amp;gt;
+ &amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+ &amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;
+ &amp;lt;label for=&#34;&#34;&amp;gt;Image Gallery&amp;lt;/label&amp;gt;
+ &amp;lt;div class=&#34;input-upload btn&#34;&amp;gt;
+ Upload
+ &amp;lt;input class=&#34;upload&#34; type=&#34;file&#34; multiple=&#34;multiple&#34; accept=&#34;image/*&#34;&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=&#34;gallery-container&#34;&amp;gt;&amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+ &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Até agora nenhuma novidade, um formulário &lt;code&gt;enctype=&amp;quot;multipart/form-data&amp;quot;&lt;/code&gt; com os campos necessários para enviarmos as fotos para nossa API.&lt;/p&gt;
+
+&lt;h2 id=&#34;8220-hora-do-show-8221&#34;&gt;&amp;#8220;Hora do show!&amp;#8221;&lt;/h2&gt;
+
+&lt;p&gt;Chegou a hora de implementarmos o &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;, uma lib JS vanilla, de apenas 2kb gzipped. Esta será responsável por submeter as imagens e salvar o JSON de retorno em algum input hidden, em nosso exemplo, utilizaremos o padrão da lib que será:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Também faremos a inclusão do CSS e JS, que pode ser encontrado no próprio repositório do &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;. Ou via NPM/Bower, basta procurar por: &lt;code&gt;simple-gallery-js&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;https://github.com/RubaXa/Sortable&#34;&gt;Sortable&lt;/a&gt;, uma lib JS vanilla, será responsável por permitir a reordenação de nossa galeria.&lt;/p&gt;
+
+&lt;p&gt;O código final fica assim:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+ &amp;lt;head&amp;gt;
+ &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Upload App&amp;lt;/title&amp;gt;
+ &amp;lt;link rel=&#34;stylesheet&#34; href=&#34;https://raw.githubusercontent.com/fccoelho7/simpleGallery.js/master/dist/simple-gallery.min.css&#34; media=&#34;screen&#34; charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;/head&amp;gt;
+ &amp;lt;body&amp;gt;
+ &amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+ &amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;
+ &amp;lt;label for=&#34;&#34;&amp;gt;Image Gallery&amp;lt;/label&amp;gt;
+ &amp;lt;div class=&#34;input-upload btn&#34;&amp;gt;
+Upload
+ &amp;lt;input class=&#34;upload&#34; type=&#34;file&#34; multiple=&#34;multiple&#34; accept=&#34;image/*&#34;&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=&#34;gallery-container&#34;&amp;gt;&amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+
+&amp;lt;script src=&#34;https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.4.2/Sortable.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script src=&#34;https://raw.githubusercontent.com/fccoelho7/simpleGallery.js/master/dist/simple-gallery.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+ new SimpleGallery(&#39;.form-upload&#39;);
+ &amp;lt;/script&amp;gt;
+ &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;mas-pera&#34;&gt;Mas pera!&lt;/h2&gt;
+
+&lt;p&gt;&amp;#8220;Eu tenho minha API de uploads em uma URL e meu formulário será enviado para outro endpoint, como farei isso?&amp;#8221; Bom, caso você não deseje utilizar o mesmo endpoint para upload de imagens e requisição do formulário, o &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt; nos permite criar um segundo &lt;strong&gt;action. &lt;/strong&gt;Basta inserir um &lt;code&gt;data-action-gallery&lt;/code&gt;, como no exemplo abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; data-action-gallery=&#34;/uploads&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;por-fim&#34;&gt;Por fim.&lt;/h2&gt;
+
+&lt;p&gt;Outras opções como: trocar o name do input que receberá o JSON das url&amp;#8217;s e a classe que conterá a galeria também são possíveis, para mais informações acesse o repositório oficial do &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O conteúdo deste artigo pode ser encontrado &lt;a href=&#34;https://github.com/fccoelho7/simple-gallery-demo&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Bom, é isso. Espero que tenha gostado e perdido o medo quando o assunto é &amp;#8220;upload de imagens&amp;#8221;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Upload de arquivos com PHP</title>
+      <link>http://tableless.com.br/upload-de-arquivos-com-php/</link>
+      <pubDate>Tue, 01 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/upload-de-arquivos-com-php/</guid>
+      <description>
+
+&lt;p&gt;Neste artigo vamos aprender como fazer upload de arquivos com PHP. Porém, com alguns recursos adicionais em cada exemplo.&lt;/p&gt;
+
+&lt;p&gt;No primeiro exemplo, iremos fazer um upload básico de apenas um arquivo, assim conseguimos pegar o jeito da coisa.&lt;/p&gt;
+
+&lt;p&gt;No segundo exemplo, vamos fazer um upload de múltiplas imagens, e utilizaremos a classe WideImage para tratá-las (redimensionar, cortar e salvar).&lt;/p&gt;
+
+&lt;p&gt;E por fim, no último exemplo, vamos fazer o upload por AJAX, utilizando o Jquery Form Plugin.&lt;/p&gt;
+
+&lt;h2 id=&#34;upload-básico&#34;&gt;Upload Básico&lt;/h2&gt;
+
+&lt;p&gt;Primeiro vamos fazer um upload clássico e rápido de apenas um arquivo. Por ser apenas um exemplo, resolvi escrever o código php na mesma página do HTML, para ficar de simples compreensão, por isso, na &lt;strong&gt;action&lt;/strong&gt; do formulário temos #.&lt;/p&gt;
+
+&lt;p&gt;Um dos atributos que não podemos esquecer para fazer upload, é o que seta o &lt;strong&gt;enctype&lt;/strong&gt; ao nosso formulário.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+   &amp;lt;title&amp;gt;Basic Upload&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+   &amp;lt;form action=&#34;#&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+      &amp;lt;input type=&#34;file&#34; name=&#34;fileUpload&#34;&amp;gt;
+      &amp;lt;input type=&#34;submit&#34; value=&#34;Enviar&#34;&amp;gt;
+   &amp;lt;/form&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+&amp;lt;?php
+   if(isset($_FILES[&#39;fileUpload&#39;]))
+   {
+      date_default_timezone_set(&#34;Brazil/East&#34;); //Definindo timezone padrão
+
+      $ext = strtolower(substr($_FILES[&#39;fileUpload&#39;][&#39;name&#39;],-4)); //Pegando extensão do arquivo
+      $new_name = date(&#34;Y.m.d-H.i.s&#34;) . $ext; //Definindo um novo nome para o arquivo
+      $dir = &#39;uploads/&#39;; //Diretório para uploads
+
+      move_uploaded_file($_FILES[&#39;fileUpload&#39;][&#39;tmp_name&#39;], $dir.$new_name); //Fazer upload do arquivo
+   }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora passamos ao código PHP, primeiro verificamos se o arquivo foi enviado através do &lt;strong&gt;isset&lt;/strong&gt;. Se sim, seguimos para o upload do arquivo.&lt;/p&gt;
+
+&lt;p&gt;Primeiro definimos o timezone da aplicação, para podemos usar a função date sem problemas.&lt;/p&gt;
+
+&lt;p&gt;Como &amp;#8220;boa prática&amp;#8221; definimos uma variável com o ano, mês, dia, hora, minuto e segundo e concatenamos com a extensão do arquivo pega acima.&lt;/p&gt;
+
+&lt;p&gt;Para finalmente fazer o upload do arquivo, usamos a função &lt;strong&gt;move_uploaded_file&lt;/strong&gt;, passando dois parâmetros, primeiro o nome temporário do arquivo armazenado pelo servidor, e o novo nome do arquivo, já com diretório padrão.&lt;/p&gt;
+
+&lt;p&gt;Se você deseja pegar alguma outra informação do arquivo, a variável $_FILES contém algumas outras informações que não são usadas no exemplo, como:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;name&amp;#8217;]&lt;/strong&gt; O nome original do arquivo no computador do usuário&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;type&amp;#8217;]&lt;/strong&gt; O tipo mime do arquivo, se o browser deu esta informação (ex.: &amp;#8220;image/gif&amp;#8221;)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;size&amp;#8217;]&lt;/strong&gt; O tamanho, em bytes, do arquivo&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;tmp_name&amp;#8217;]&lt;/strong&gt; O nome temporário do arquivo, como foi guardado no servidor&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;error&amp;#8217;]&lt;/strong&gt; O código de erro associado a este upload de arquivo (adicionado no PHP 4.2.0)&lt;/p&gt;
+
+&lt;h2 id=&#34;upload-múltiplo&#34;&gt;Upload Múltiplo&lt;/h2&gt;
+
+&lt;p&gt;Para o segundo exemplo faremos o upload de múltiplas imagens. Porém, nesse exemplo utilizaremos a classe &lt;a href=&#34;http://wideimage.sourceforge.net/&#34; title=&#34;WideImage&#34; target=&#34;_blank&#34;&gt;WideImage&lt;/a&gt;, para tratarmos as imagens que foram enviadas.&lt;/p&gt;
+
+&lt;p&gt;O segredo do múltiplo upload é a adição do atributo &lt;strong&gt;multiple&lt;/strong&gt; à tag do input type=&amp;#8221;file&amp;#8221; e adicionar &lt;strong&gt;[ ]&lt;/strong&gt; ao name da tag.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+   &amp;lt;title&amp;gt;Multiple Upload&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+   &amp;lt;form action=&#34;#&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+      &amp;lt;input type=&#34;file&#34; name=&#34;fileUpload[]&#34; multiple&amp;gt;
+      &amp;lt;input type=&#34;submit&#34; value=&#34;Enviar&#34;&amp;gt;
+   &amp;lt;/form&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+&amp;lt;?php
+   if(isset($_FILES[&#39;fileUpload&#39;]))
+   {
+      require &#39;WideImage/WideImage.php&#39;; //Inclui classe WideImage à página
+
+      date_default_timezone_set(&#34;Brazil/East&#34;);
+
+      $name     = $_FILES[&#39;fileUpload&#39;][&#39;name&#39;]; //Atribui uma array com os nomes dos arquivos à variável
+      $tmp_name = $_FILES[&#39;fileUpload&#39;][&#39;tmp_name&#39;]; //Atribui uma array com os nomes temporários dos arquivos à variável
+
+      $allowedExts = array(&#34;.gif&#34;, &#34;.jpeg&#34;, &#34;.jpg&#34;, &#34;.png&#34;, &#34;.bmp&#34;); //Extensões permitidas
+
+      $dir = &#39;uploads/&#39;;
+
+      for($i = 0; $i &amp;lt; count($tmp_name); $i++) //passa por todos os arquivos
+      {
+         $ext = strtolower(substr($name[$i],-4));
+
+         if(in_array($ext, $allowedExts)) //Pergunta se a extensão do arquivo, está presente no array das extensões permitidas
+         {
+            $new_name = date(&#34;Y.m.d-H.i.s&#34;) .&#34;-&#34;. $i . $ext;
+
+            $image = WideImage::load($tmp_name[$i]); //Carrega a imagem utilizando a WideImage
+
+            $image = $image-&amp;gt;resize(170, 180, &#39;outside&#39;); //Redimensiona a imagem para 170 de largura e 180 de altura, mantendo sua proporção no máximo possível
+            $image = $image-&amp;gt;crop(&#39;center&#39;, &#39;center&#39;, 170, 180); //Corta a imagem do centro, forçando sua altura e largura
+
+            $image-&amp;gt;saveToFile($dir.$new_name); //Salva a imagem
+         }
+      }
+   }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;O código PHP deste exemplo muda um pouco comparado ao primeiro. Como neste exemplo estamos utilizando a classe WideImage, temos que inclui-la ao projeto. Em seguida, colocamos todos os nomes de arquivos enviados dentro da variável $name e todos os nomes temporários dentro da variável $tmp_name.&lt;/p&gt;
+
+&lt;p&gt;Para fazer a consistência que iremos salvar apenas imagens, criei uma array de possíveis extensões para imagens. Logo adiante, passamos por cada arquivo dentro do for, e realizamos a pergunta se a extensão do arquivo que estou pegando no for se encontra no array de extensões permitidas, se sim, continuaremos para salva-la no servidor, mas antes, redimensiono a mesma com o WideImage (sem perder a proporção), e depois corto a mesma para ter imagens apenas com as dimensões que forcei.&lt;/p&gt;
+
+&lt;h2 id=&#34;upload-com-ajax&#34;&gt;Upload com AJAX&lt;/h2&gt;
+
+&lt;p&gt;Neste último exemplo, vamos utilizar o mesmo código PHP de cima para salvar as imagens, porém, com alguns truques HTML e utilizando o &lt;a href=&#34;http://malsup.com/jquery/form/&#34; title=&#34;Jquery Form Plugin&#34; target=&#34;_blank&#34;&gt;Jquery Form Plugin&lt;/a&gt; para fazer o upload via AJAX.&lt;/p&gt;
+
+&lt;p&gt;Não repare na utilização de css inline, ou javascript incorporado ao exemplo, procurei o máximo de agilidade possível e foco no ajax.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+   &amp;lt;title&amp;gt;Multiple Upload Ajax&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+   &amp;lt;form id=&#34;formImage&#34; style=&#34;display:none&#34;&amp;gt;
+      &amp;lt;input type=&#34;file&#34; id=&#34;fileUpload&#34; name=&#34;fileUpload[]&#34; multiple onchange=&#34;saveImages()&#34;&amp;gt;
+   &amp;lt;/form&amp;gt;
+
+   &amp;lt;div id=&#34;btnFake&#34; style=&#34;background:#CCC; width:100px; height:100px; cursor:pointer;&#34;&amp;gt;&amp;lt;/div&amp;gt;
+
+   &amp;lt;script src=&#34;//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+   &amp;lt;script src=&#34;//malsup.github.io/jquery.form.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+
+   &amp;lt;script&amp;gt;
+      document.getElementById(&#39;btnFake&#39;).addEventListener(&#39;click&#39;, function(){
+         document.getElementById(&#39;fileUpload&#39;).click();
+      });
+
+      function saveImages()
+      {
+         $(&#39;#formImage&#39;).ajaxSubmit({
+            url  : &#39;multiple-upload-ajax.php&#39;,
+            type : &#39;POST&#39;
+         });
+      }
+   &amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Criei um botão &amp;#8220;personalizado&amp;#8221; para não ficarmos com aquele padrão do input type=&amp;#8221;file&amp;#8221;, que é muito feio, e escondi o form todo porque não usamos ele para mais nada além de fazer upload de imagens. Porém, no javascript eu adiciono um evento de click ao meu &lt;strong&gt;btnFake&lt;/strong&gt;, para quando clicarmos nele, o fileUpload ser clicado também, assim mascaramos o nosso botão de upload.&lt;/p&gt;
+
+&lt;p&gt;Na tag do input type=&amp;#8221;file&amp;#8221; adicionei um novo atributo, o de &lt;strong&gt;onchange&lt;/strong&gt;, para assim que selecionados os arquivos que desejo fazer upload, eles sejam enviados ao servidor, sem a necessidade de previamente clicarmos em outro botão para apenas enviar.&lt;/p&gt;
+
+&lt;p&gt;A função saveImages ativa a função ajaxSubmit do plugin jquery form, enviando o formulário completo (no caso o de id &lt;strong&gt;formImage&lt;/strong&gt;), para uma url especificada e com um método de envio do tipo POST.&lt;/p&gt;
+
+&lt;p&gt;Como disse mais acima, o código PHP é o mesmo do exemplo anterior:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+   if(isset($_FILES[&#39;fileUpload&#39;]))
+   {
+      require &#39;WideImage/WideImage.php&#39;;
+
+      date_default_timezone_set(&#34;Brazil/East&#34;);
+
+      $name     = $_FILES[&#39;fileUpload&#39;][&#39;name&#39;];
+      $tmp_name = $_FILES[&#39;fileUpload&#39;][&#39;tmp_name&#39;];
+
+      $allowedExts = array(&#34;.gif&#34;, &#34;.jpeg&#34;, &#34;.jpg&#34;, &#34;.png&#34;, &#34;.bmp&#34;);
+
+      $dir = &#39;uploads/&#39;;
+
+      for($i = 0; $i &amp;lt; count($tmp_name); $i++)
+      {
+         $ext = strtolower(substr($name[$i],-4));
+
+         if(in_array($ext, $allowedExts))
+         {
+            $new_name = date(&#34;Y.m.d-H.i.s&#34;) .&#34;-&#34;. $i . $ext;
+
+            $image = WideImage::load($tmp_name[$i]);
+
+            $image = $image-&amp;gt;resize(170, 180, &#39;outside&#39;);
+            $image = $image-&amp;gt;crop(&#39;center&#39;, &#39;center&#39;, 170, 180);
+
+            $image-&amp;gt;saveToFile($dir.$new_name);
+         }
+      }
+   }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Bom, é isso aí pessoal. Apesar de ser algo simples, muitos quando começam a conhecer PHP tem dúvidas desse tipo.&lt;/p&gt;
+
+&lt;p&gt;Espero que todos consigam. Bons estudos!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

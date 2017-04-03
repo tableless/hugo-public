@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Leobetosouza on Tableless</title>
+    <link>http://tableless.com.br/author/leobetosouza/index.xml</link>
+    <description>Recent content in Leobetosouza on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/leobetosouza/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Desempenho e eventos jQuery: event delegation</title>
+      <link>http://tableless.com.br/desempenho-e-eventos-jquery-event-delegation/</link>
+      <pubDate>Wed, 10 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/desempenho-e-eventos-jquery-event-delegation/</guid>
+      <description>
+
+&lt;p&gt;Todo mundo que leva a experiência de uso da sua página um pouco a sério já se pegou pensando &amp;#8220;uso um plugin pronto ou faço eu mesmo?&amp;#8221; e caso cogite usar algo já pronto, acaba em dúvida sobre quais das várias opções usar.&lt;/p&gt;
+
+&lt;p&gt;Esses dias eu resolvi estudar o código de algumas opções disponíveis. Fiquei com medo.&lt;/p&gt;
+
+&lt;p&gt;Existem algumas falhas que nós desenvolvedores cometemos no desenvolvimento usando jQuery que são críticas e comuns. Hoje eu quero falar sobre uma delas em especial:&lt;/p&gt;
+
+&lt;h1 id=&#34;excesso-de-event-listeners-pela-página&#34;&gt;Excesso de &lt;em&gt;event listeners&lt;/em&gt; pela página&lt;/h1&gt;
+
+&lt;p&gt;Acho que todo mundo já escreveu um código similar a este:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$( &#39;.foo&#39; ).click( callback );&lt;/pre&gt;
+
+&lt;p&gt;Você sabe o que esse código faz? Ele coloca em todos os elementos com a classe &lt;em&gt;foo&lt;/em&gt; da sua página um &lt;em&gt;event listener&lt;/em&gt; que dispara um &lt;em&gt;callback handler&lt;/em&gt; sempre que o usuário clicar nele. No caso esse &lt;em&gt;listener&lt;/em&gt; dispara a função &lt;em&gt;callback&lt;/em&gt;. Legal e útil, né?&lt;/p&gt;
+
+&lt;p&gt;Agora imagine que você tenha 100 elementos com a classe &lt;em&gt;foo&lt;/em&gt;. Serão 100 &lt;em&gt;event listeners&lt;/em&gt; para o navegador tomar conta. Imagine que você coloque outros &lt;em&gt;listeners&lt;/em&gt; para outros eventos e seletores. Dá pra perceber que essa conta não escala muito bem, né?&lt;/p&gt;
+
+&lt;p&gt;A melhor maneira de resolver isso é com &lt;em&gt;event delegation&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h1 id=&#34;event-delegation&#34;&gt;Event Delegation&lt;/h1&gt;
+
+&lt;p&gt;Vamos supor que nossa class &lt;em&gt;foo&lt;/em&gt; seja aplicada à &lt;code&gt;&amp;lt;tr&amp;gt;&lt;/code&gt; de um tipo de tabela específica. Algo assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;table class=&#34;tar&#34;&amp;gt;
+    &amp;lt;tr class=&#34;foo&#34;&amp;gt;...&amp;lt;/tr&amp;gt;
+    &amp;lt;tr class=&#34;foo&#34;&amp;gt;...&amp;lt;/tr&amp;gt;
+    ...
+&amp;lt;/table&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Se a gente colocar um &lt;em&gt;listener&lt;/em&gt; diretamente na class da tabela (.&lt;em&gt;tar&lt;/em&gt;) mandando ele ouvir os eventos internos que ocorrerem nos elementos (.&lt;em&gt;foo&lt;/em&gt;), vamos reduzir o número de &lt;em&gt;listeners&lt;/em&gt; espalhados pela página.&lt;/p&gt;
+
+&lt;p&gt;Como se faz isso, Léo?&lt;/p&gt;
+
+&lt;p&gt;Assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$( &#39;.tar&#39; ).on( &#39;click&#39;, &#39;.foo&#39;, callback );&lt;/pre&gt;
+
+&lt;p&gt;Essa linha de código basicamente diz: sempre que houver um evento de clique nos elementos com classe &lt;em&gt;tar&lt;/em&gt; selecionados, verifique se esse evento foi disparado por um elemento interno com a classe &lt;em&gt;foo&lt;/em&gt;. Se sim, execute a função &lt;em&gt;callback&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Isso pode ser feito pois os eventos do DOM normalmente são transmitidos (ou propagam) (ou propagam) à todos os seus elementos pais na árvore &lt;a href=&#34;https://developer.mozilla.org/pt-BR/docs/Glossario/DOM&#34;&gt;DOM&lt;/a&gt;. Esse é o caso do evento de clique.&lt;/p&gt;
+
+&lt;p&gt;Logo, o exemplo acima teria quase o mesmo efeito caso fosse escrito desse jeito:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$( document ).on( &#39;click&#39;, &#39;.foo&#39;, callback );&lt;/pre&gt;
+
+&lt;p&gt;Você pode adicionar um &lt;em&gt;event listener&lt;/em&gt; para responder a cliques no documento inteiro e só executar o &lt;em&gt;callback&lt;/em&gt; caso o clique tenha ocorrido em elementos especificados, nesse caso ‘_.foo_’.&lt;/p&gt;
+
+&lt;p&gt;Lembra que a gente está falando de melhora de desempenho? Se você forçar o navegador a ouvir todos os cliques na sua página e só executar em casos específicos, você estará disperdiçando recursos. Não faça isso, a não ser que seja extremamente necessário. Busque sempre  fixar seus eventos em elementos &lt;em&gt;wrappers&lt;/em&gt;, como aquele &lt;table&gt; do exemplo.&lt;/p&gt;
+
+&lt;h2 id=&#34;elementos-adicionados-dinâmicamente&#34;&gt;&lt;strong&gt;Elementos adicionados dinâmicamente&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Usar &lt;em&gt;event delegation&lt;/em&gt; ainda garante um bônus: ter &lt;em&gt;event handlers&lt;/em&gt; disparados por elementos que foram adicionados dinamicamente à página.&lt;/p&gt;
+
+&lt;p&gt;Digamos que o &lt;em&gt;listener&lt;/em&gt; seja criado durante o &lt;a href=&#34;http://api.jquery.com/ready/&#34;&gt;document ready&lt;/a&gt;, como tradicionalmente é feito:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$( document ).ready(function () {
+    $( &#39;.foo&#39; ).on( &#39;click&#39;, callback );
+});&lt;/pre&gt;
+
+&lt;p&gt;O &lt;em&gt;handler&lt;/em&gt; será anexado somente aos elementos com a classe &lt;em&gt;foo&lt;/em&gt; existentes no momento em que o documento for carregado.&lt;/p&gt;
+
+&lt;p&gt;Se posteriormente você criar novos elementos com a classe &lt;em&gt;foo&lt;/em&gt; (como respostas à ações do usuário, AJAX, etc.), eles não vão ter o &lt;em&gt;event listener&lt;/em&gt; e não ocorrerá o efeito desejado quando o usuário clica-los.&lt;/p&gt;
+
+&lt;p&gt;Se nós delegarmos isso para um elemento pai das &lt;tr class=&amp;#8221;foo&amp;#8221;&gt;, como no caso o &lt;table class=&amp;#8221;tar&amp;#8221;&gt;, não teremos esse problema.&lt;/p&gt;
+
+&lt;h1 id=&#34;as-devtools-são-suas-amigas&#34;&gt;As &lt;em&gt;DevTools&lt;/em&gt; são suas amigas&lt;/h1&gt;
+
+&lt;p&gt;É possível inspecionar o documento através do &lt;em&gt;DevTools&lt;/em&gt; do seu navegador e identificar quais &lt;em&gt;event listeners&lt;/em&gt; estão anexados em cada elemento. Essa pode ser uma boa estratégia inicial para auditar a sua página e verificar quais eventos podem ser anexados em elementos mais específicos, além de eliminar possíveis excessos no &lt;em&gt;document&lt;/em&gt;.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_49318&#34; style=&#34;width: 1450px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/devtools-chrome-evtdelegation.jpg&#34;&gt;&lt;img class=&#34;size-full wp-image-49318&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/devtools-chrome-evtdelegation.jpg&#34; alt=&#34;Screenshot de uma janela do Google Chrome mostrando a aba de eventos do inspector&#34; width=&#34;1440&#34; height=&#34;223&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Aba de eventos do Chrome DevTools
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/devtools-firefox-evtdelegation.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-49319&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/devtools-firefox-evtdelegation.jpg&#34; alt=&#34;Screenshot de uma janela do Mozilla Firefoz Developer Edition mostrando os de eventos no inspector&#34; width=&#34;1440&#34; height=&#34;296&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h1&gt;
+
+&lt;p&gt;Cada &lt;em&gt;event listener&lt;/em&gt; que criamos é incluído na memória utilizada pelo navegador, o excesso deles pode causar um uso excessivo de memória e deixar a sua página bem pesada. Assim como não é recomendável observar os eventos em muitos elementos, não é para fixar tudo em um único elemento pai, como o próprio &lt;em&gt;document&lt;/em&gt;, pois você corre o risco de ter muitos &lt;em&gt;listeners&lt;/em&gt; sendo disparados ao mesmo tempo atoa, o que pode deixar as interações de sua página bem lentas.&lt;/p&gt;
+
+&lt;p&gt;Nem muito específico, nem muito genérico. O importante é observar que a utilização de &lt;em&gt;event delegation&lt;/em&gt; com o jQuery pode ser otimizada e que se deve tomar cuidado para não trocar uma má prática por outra.&lt;/p&gt;
+
+&lt;p&gt;No próximo artigo vou falar sobre como evitar colisão e duplicação de eventos.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

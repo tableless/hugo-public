@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Almir Filho on Tableless</title>
+    <link>http://tableless.com.br/author/almir-filho/index.xml</link>
+    <description>Recent content in Almir Filho on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/almir-filho/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Capturando erros JS LIKE-A-BOSS</title>
+      <link>http://tableless.com.br/capturando-erros-js-like-a-boss/</link>
+      <pubDate>Wed, 12 Dec 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/capturando-erros-js-like-a-boss/</guid>
+      <description>
+
+&lt;p&gt;O evento &lt;strong&gt;onerror&lt;/strong&gt; é disparado quando há erros no script. Estes erros geralmente pertencem a duas categorias:&lt;/p&gt;
+
+&lt;h4 id=&#34;erros-de-sintaxe&#34;&gt;Erros de sintaxe&lt;/h4&gt;
+
+&lt;p&gt;Antes de serem executados, &lt;em&gt;scripts&lt;/em&gt; passam por uma análise sintática (operação mais conhecida como &lt;em&gt;parsing&lt;/em&gt;) – afim de encontrar erros de sintaxe antes da execução do &lt;em&gt;script&lt;/em&gt;. Qualquer um dos erros abaixo são erros de sintaxe:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;!-- string não fechada --&amp;gt;
+&amp;lt;script&amp;gt;&#34;oops, fiz merd*&amp;lt;/script&amp;gt;
+&amp;lt;!-- for errado --&amp;gt;
+&amp;lt;script&amp;gt;for(;)&amp;lt;/script&amp;gt;
+&amp;lt;!-- ??? (só pode ser coisa de estagiário) --&amp;gt;
+&amp;lt;script&amp;gt;chamaFuncao() = &#39;estagiario maluco&#39;&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;erros-de-runtime-exceções-não-tratadas&#34;&gt;Erros de &lt;em&gt;runtime&lt;/em&gt; (Exceções não tratadas)&lt;/h4&gt;
+
+&lt;p&gt;Um &lt;em&gt;script&lt;/em&gt; pode até ser válido sintaticamente, ou seja, pode ter sido analisado com sucesso pelo &lt;em&gt;parser&lt;/em&gt; JS, mas mesmo assim ainda pode haver erros em tempo de execução (&lt;em&gt;runtime&lt;/em&gt;). Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// chamar métodos não definidos
+dartVader.comerTorta() // &lt;a title=&#34;dartVader.comerTorta()&#34; href=&#34;http://d.pr/VRVy&#34; target=&#34;_blank&#34;&gt;clique aqui&lt;/a&gt; para mais informações.
+// ler índices inexistentes
+var lordSidious = jedi[ &#39;palpatine&#39; ];
+// ler propriedades inexistentes
+var paciencia = hanSolo.paciencia;
+// mensagens de erro manuais
+throw &#39;Noooooooooooooooooooo!&#39;;&lt;/pre&gt;
+
+&lt;h2 id=&#34;erros-temos-que-pegar&#34;&gt;Erros: temos que pegar&lt;/h2&gt;
+
+&lt;p&gt;Apenas precisamos tratar o evento &lt;strong&gt;onerror&lt;/strong&gt; de &lt;strong&gt;window&lt;/strong&gt;, e para isso precisamos definir o seguinte &lt;em&gt;callback&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre&gt;// navegadores antigos
+window.onerror = function( message, filename, lineno ){
+    // trate o erro
+}
+
+// navegadores modernos
+window.addEventListener( &#39;error&#39;, function( event ){
+    // a mensagem de erro
+    console.log( event.message );
+    // a url de onde ocorreu o erro
+    console.log( event.filename );
+    // o número da linha onde ocorreu o erro
+    console.log( event.lineno );
+});
+
+// jQuery
+$(window).on( &#39;error&#39;, function( event ){
+    // event tem os mesmos dados do exemplo anterior
+});&lt;/pre&gt;
+
+&lt;p&gt;A função que trata o evento &lt;strong&gt;onerror&lt;/strong&gt;recebe 3 valores (como mostrado acima):&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Mensagem&lt;/strong&gt;: A mensagem de erro que o navegador joga (&lt;strong&gt;message&lt;/strong&gt; ou &lt;strong&gt;event.message&lt;/strong&gt; dos trechos código acima). Por exemplo: &amp;#8220;&lt;em&gt;Uncaught ReferenceError: comerTorta is not defined&lt;/em&gt;&amp;#8220;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;URL&lt;/strong&gt;: O endereço URL de onde ocorreu o erro (&lt;strong&gt;filename&lt;/strong&gt; ou &lt;strong&gt;event.filename&lt;/strong&gt; dos trechos código acima).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Linha&lt;/strong&gt;: O número da linha do documento ou &lt;em&gt;script&lt;/em&gt; de onde ocorreu o erro (&lt;strong&gt;lineno&lt;/strong&gt; ou &lt;strong&gt;event.lineno&lt;/strong&gt; dos trechos de código acima). Pode ser no contexto de um documento HTML (se o &lt;em&gt;script&lt;/em&gt; for &lt;em&gt;inline&lt;/em&gt;) ou de um arquivo &lt;strong&gt;.js&lt;/strong&gt; (se o &lt;em&gt;script&lt;/em&gt; for externo). Neste caso, o valor de &lt;strong&gt;filename&lt;/strong&gt;/&lt;strong&gt;event.filename&lt;/strong&gt; será o caminho de um arquivo &lt;strong&gt;.js&lt;/strong&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Por padrão, a função retorna &lt;strong&gt;false&lt;/strong&gt;, o que significa que a mensagem de erro será jogada no &lt;em&gt;console&lt;/em&gt; de erros. Se quisermos suprimir as mensagens de erro no &lt;em&gt;console&lt;/em&gt; (não aconselhável), apenas precisamos retornar &lt;strong&gt;true&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;window.addEventListener( &#39;error&#39;, function( event ){
+    return true;
+});&lt;/pre&gt;
+
+&lt;h2 id=&#34;customize-mensagens-de-erro&#34;&gt;Customize mensagens de erro&lt;/h2&gt;
+
+&lt;p&gt;Já que agora temos o poder de fazer o que quiser com nossas mensagens de erro, também podemos ter aparência customizada para elas. Podemos alcançar isso facilmente como no &lt;em&gt;script&lt;/em&gt; abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;window.addEventListener( &#39;error&#39;, function( event ){
+    var boxError = document.createElement( &#39;div&#39; );
+    boxError.className  = &#39;box-error&#39;;
+
+    boxError.innerHTML  = &#39;&amp;lt;h4&amp;gt;Erro de JS:&amp;lt;/h4&amp;gt;&#39;;
+    boxError.innerHTML += &#39;&amp;lt;p class=&#34;msg&#34;&amp;gt;&#39;+ event.message +&#39;&amp;lt;/p&amp;gt;&#39;;
+    boxError.innerHTML += &#39;&amp;lt;p&amp;gt;Em: &#39;+ event.filename +&#39;&amp;lt;/p&amp;gt;&#39;;
+    boxError.innerHTML += &#39;&amp;lt;p&amp;gt;Linha: &#39;+ event.lineno +&#39;&amp;lt;/p&amp;gt;&#39;;
+
+    document.body.appendChild( boxError );
+    return false;
+});&lt;/pre&gt;
+
+&lt;p&gt;O &lt;em&gt;script&lt;/em&gt; acima basicamente cria uma nova &lt;strong&gt;&lt;div&gt;&lt;/strong&gt;, monta o conteúdo da mensagem e a mostra no final. Agora é só definir o CSS para a classe &lt;strong&gt;.box-error&lt;/strong&gt; e &lt;em&gt;voilá,&lt;/em&gt; mensagens de erro customizadas.&lt;/p&gt;
+
+&lt;h2 id=&#34;tenha-feedback-da-sua-aplicação&#34;&gt;Tenha feedback da sua aplicação&lt;/h2&gt;
+
+&lt;p&gt;A maior utilidade que encontrei para isso é a possibilidade de fazer &lt;strong&gt;&lt;em&gt;logging&lt;/em&gt; de erros&lt;/strong&gt;. Numa aplicação, poderíamos por exemplo, fazer uma &lt;em&gt;requisição&lt;/em&gt; &lt;em&gt;ajax&lt;/em&gt; para nosso servidor salvar as informações do erro corrente e uma base de dados qualquer, e assim poderíamos gerar relatórios de erros da nossa aplicação com base nestes dados coletados, ou seja, graças a estas informações, estaríamos promovendo uma atitude focada na melhoria constante dos serviços.&lt;/p&gt;
+
+&lt;h4 id=&#34;mantendo-as-coisas-simples-com-o-google-analytics&#34;&gt;Mantendo as coisas simples com o Google Analytics&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2012/12/Final-result.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-7566&#34; alt=&#34;&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2012/12/Final-result.jpg&#34; width=&#34;600&#34; height=&#34;143&#34; srcset=&#34;uploads/2012/12/Final-result.jpg 600w, uploads/2012/12/Final-result-300x71.jpg 300w&#34; sizes=&#34;(max-width: 600px) 100vw, 600px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pra quem já usa o &lt;strong&gt;Google Analytics&lt;/strong&gt;, aqui vai uma idéia que iria simplificar bastante o ato de fazer &lt;em&gt;log&lt;/em&gt; de erros: em vez de fazer uma requisição &lt;em&gt;ajax&lt;/em&gt; para o servidor da nossa aplicação, poderíamos simplesmente disparar &lt;a title=&#34;Eventos customizados do Google Analytics&#34; href=&#34;https://developers.google.com/analytics/devguides/collection/gajs/eventTrackerGuide?hl=pt-PT&#34; target=&#34;_blank&#34;&gt;eventos customizados do Google Analytics&lt;/a&gt; (com o método &lt;strong&gt;_trackEvent()&lt;/strong&gt;), e assim teríamos essas informações prontas com os relatórios bonitinhos da ferramenta – o que nos economizaria o trabalho de desenvolver toda uma estrutura para isso: criar uma tabela de erros no nosso banco de dados, escrever o &lt;em&gt;backend&lt;/em&gt; que receberia as requisições &lt;em&gt;ajax,&lt;/em&gt; e finalmente, implementar relatórios de erros.&lt;/p&gt;
+
+&lt;h2 id=&#34;suporte&#34;&gt;Suporte&lt;/h2&gt;
+
+&lt;p&gt;O evento &lt;strong&gt;window.onerror&lt;/strong&gt; é suportado por todos os navegadores atuais: Chrome 13+, Firefox 6.0+, Opera 11.60+, Safari 5.1+ e Internet Explorer 5.5+ (quem diria!).&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Scoped CSS</title>
+      <link>http://tableless.com.br/scoped-css/</link>
+      <pubDate>Thu, 13 Sep 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/scoped-css/</guid>
+      <description>
+
+&lt;p&gt;Scoped CSS é uma pequena novidade no HTML5 que nos permite inserir estilos CSS que sejam apenas aplicado em um determinado lugar de uma página, de modo que os estilos restantes da mesma página não sejam afetados. Para isso, foi definido um novo atributo &lt;strong&gt;scoped&lt;/strong&gt; que deve ser utilizado na &lt;em&gt;tag&lt;/em&gt; &lt;strong&gt;&lt;style&gt;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Pela definição da especificação:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;O atributo &lt;strong&gt;scoped&lt;/strong&gt; é um atributo &lt;em&gt;booleano&lt;/em&gt;. Se for setado, indica que os estilos &lt;span style=&#34;color: #808080&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color: #808080&#34;&gt;da &lt;em&gt;tag&lt;/em&gt; &lt;strong&gt;&lt;style&gt;&lt;/strong&gt;)&lt;/span&gt; serão aplicados apenas na sub-árvore do elemento pai deste mesmo elemento &lt;span style=&#34;color: #808080&#34;&gt;(&lt;strong&gt;&lt;style&gt;&lt;/strong&gt;)&lt;/span&gt;, ao contrário de todo o documento.&lt;/p&gt;
+
+&lt;p&gt;— WHATWG&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;antes-de-tudo&#34;&gt;Antes de tudo&lt;/h2&gt;
+
+&lt;p&gt;Se você quiser testar os exemplos mostrados neste post no browser, terá que usar o Google Chrome versão 20 ou superior, pois é o único que já dá suporte a &lt;strong&gt;scoped CSS&lt;/strong&gt;. Com seu Chrome aberto, digite na barra de endereços: &lt;strong&gt;chrome://flags&lt;/strong&gt;. Vai abrir a tela de configurações das &lt;em&gt;flags&lt;/em&gt; do Chrome, procure por &lt;strong&gt;Enable &lt;style scoped&gt;&lt;/strong&gt;, e ative a opção (se já não estiver ativada). Agora o reinicie e é só mandar ver.&lt;/p&gt;
+
+&lt;h2 id=&#34;show-me-the-del-money-del-code&#34;&gt;Show me the &lt;del&gt;money&lt;/del&gt; code&lt;/h2&gt;
+
+&lt;p&gt;Para entendermos melhor, vamos a parte boa, nerds! No trecho de HTML abaixo, temos um cenário bem simples: 2 parágrafos soltos e 2 parágrafos agrupados em uma &lt;strong&gt;&lt;div&gt;&lt;/strong&gt;. Dentro da &lt;strong&gt;&lt;div&gt;&lt;/strong&gt; há também um elemento &lt;strong&gt;&lt;style&gt;&lt;/strong&gt; que define a cor vermelha para os parágrafos (&lt;strong&gt;&lt;p&gt;&lt;/strong&gt;):&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;p&amp;gt;I was crowned with a spike right thru my head.&amp;lt;/p&amp;gt;
+&amp;lt;p&amp;gt;But it&#39;s all right now, in fact, it&#39;s a gas!&amp;lt;/p&amp;gt;
+&amp;lt;div&amp;gt;
+    &amp;lt;style&amp;gt;
+        p { color: red } /* parágrafos vermelhos */
+    &amp;lt;/style&amp;gt;
+    &amp;lt;p&amp;gt;But it&#39;s all right, Im jumpin jack flash,&amp;lt;/p&amp;gt;
+    &amp;lt;p&amp;gt;Its a gas! gas! gas!&amp;lt;/p&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;OK, do jeito como está no código acima, o navegador aplicará os estilos de &lt;strong&gt;&lt;style&gt;&lt;/strong&gt; em &lt;strong&gt;toda a página&lt;/strong&gt;, ou seja, todos os parágrafos (&lt;strong&gt;&lt;p&gt;&lt;/strong&gt;) serão da cor vermelha:&lt;/p&gt;
+
+&lt;div class=&#34;exemplo-almir&#34; style=&#34;border: 1px solid #ddd;background: #eee;padding: 10px;margin-bottom: 10px;color: red&#34;&gt;
+  I was crowned with a spike right thru my head.&lt;br /&gt; But it&amp;#8217;s all right now, in fact, it&amp;#8217;s a gas!&lt;/p&gt; 
+  
+  &lt;div&gt;
+    But it&amp;#8217;s all right, Im jumpin jack flash,&lt;br /&gt; Its a gas! gas! gas!
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Aplicando o atributo &lt;strong&gt;scoped&lt;/strong&gt; em &lt;strong&gt;&lt;style&gt;&lt;/strong&gt;, os estilos apenas serão aplicados ao mesmo escopo, ou seja, nos dois últimos parágrafos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;p&amp;gt;I was crowned with a spike right thru my head.&amp;lt;/p&amp;gt;
+&amp;lt;p&amp;gt;But it&#39;s all right now, in fact, it&#39;s a gas!&amp;lt;/p&amp;gt;
+&amp;lt;div&amp;gt;
+    &amp;lt;!-- aplicando atributo scoped --&amp;gt;
+    &amp;lt;style scoped&amp;gt;
+        p { color: red }
+    &amp;lt;/style&amp;gt;
+    &amp;lt;p&amp;gt;But it&#39;s all right, Im jumpin jack flash,&amp;lt;/p&amp;gt;
+    &amp;lt;p&amp;gt;Its a gas! gas! gas!&amp;lt;/p&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;E o resultado será:&lt;/p&gt;
+
+&lt;div class=&#34;exemplo-almir&#34; style=&#34;border: 1px solid #ddd;background: #eee;padding: 10px;margin-bottom: 10px&#34;&gt;
+  I was crowned with a spike right thru my head.&lt;br /&gt; But it&amp;#8217;s all right now, in fact, it&amp;#8217;s a gas!&lt;/p&gt; 
+  
+  &lt;div style=&#34;color: red&#34;&gt;
+    But it&amp;#8217;s all right, Im jumpin jack flash,&lt;br /&gt; Its a gas! gas! gas!
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&#34;grande-coisa-8230&#34;&gt;Grande coisa&amp;#8230;&lt;/h2&gt;
+
+&lt;p&gt;É isso que você deve estar pensando agora. &amp;#8220;Grande coisa, não precisamos disso, apenas podemos definir uma &lt;strong&gt;classe&lt;/strong&gt; ou &lt;strong&gt;id&lt;/strong&gt; e estilizá-los &lt;em&gt;like the old times&lt;/em&gt;&amp;#8220;. Eu concordo que devemos utilizar determinadas soluções apenas quando for realmente necessário, eu mesmo não sairia por ai inserindo estilos &lt;strong&gt;&lt;style scoped&gt;&lt;/strong&gt; em tudo quanto é lugar. Iria ser uma zona.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-pulo-do-gato&#34;&gt;O pulo do gato&lt;/h2&gt;
+
+&lt;p&gt;Algumas aplicações podem acrescentar elementos &lt;strong&gt;&lt;style&gt;&lt;/strong&gt; programaticamente a uma página. Nestes casos, há o perigo de que as novas regras afetem o conteúdo da página de forma não intencional. Ao utilizar o atributo &lt;strong&gt;scoped&lt;/strong&gt;, as aplicações podem impedir que este infeliz efeito colateral aconteça.&lt;/p&gt;
+
+&lt;p&gt;Sendo assim, utilizar &lt;strong&gt;scoped&lt;/strong&gt; em estilos pode ser uma solução elegante para a &lt;strong&gt;componentização&lt;/strong&gt; de aplicações &lt;em&gt;web&lt;/em&gt; de terceiros. Hoje em dia (quase) todo mundo faz uso de &lt;em&gt;plugins&lt;/em&gt; de &lt;em&gt;widgets&lt;/em&gt; e de diversos tipos em suas aplicações, e muita gente faz &lt;a title=&#34;Mashup (Wikipedia)&#34; href=&#34;http://pt.wikipedia.org/wiki/Mashup_(aplica%C3%A7%C3%A3o_web)&#34; target=&#34;_blank&#34;&gt;&lt;em&gt;mashups&lt;/em&gt;&lt;/a&gt; com várias dessas aplicações, misturando tudo em uma única solução. Isto não é nenhuma novidade – há muito tempo.&lt;/p&gt;
+
+&lt;p&gt;Então, o que acontece? Sabendo que muitas pessoas reutilizarão um determinado &lt;em&gt;plugin&lt;/em&gt;, são usados diversos nomes de classes CSS de uma maneira a evitar conflitos com os estilos de outros &lt;em&gt;sites&lt;/em&gt; – onde farão uso desses &lt;em&gt;plugins&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Um ótimo exemplo é o &lt;a href=&#34;http://disqus.com&#34; title=&#34;Disqus&#34;&gt;Disqus&lt;/a&gt;. Para usar o Disqus, apenas precisamos inserir um pequeno &lt;em&gt;script&lt;/em&gt; na nossa página, e ele cuidará de todo o resto. Ao visitar uma página que utiliza o Discus, esse &lt;em&gt;script&lt;/em&gt; incluirá as marcações necessárias para os comentários já inseridos e seu formulário, além de seus estilos CSS, imagens, e até mesmo outros &lt;em&gt;scripts&lt;/em&gt;. Ou seja, é um exemplo completo de aplicação de terceiros rodando em sites do mundo inteiro. Agora, se formos analisar os códigos HTML que são inseridos, teremos nomes de classes CSS como: &lt;strong&gt;dsq-comments&lt;/strong&gt;, &lt;strong&gt;dsq-comments-head&lt;/strong&gt;, &lt;strong&gt;dsq-comments-body&lt;/strong&gt;, &lt;strong&gt;dsq-comments-message&lt;/strong&gt;, &lt;strong&gt;dsq-comments-eu-gosto-de-rolling-stones&lt;/strong&gt;, &lt;strong&gt;dsq-comments-tudo-o-que-der-na-telha&lt;/strong&gt;, etc. Como seria legal se esses nomes super extensos não fossem mais necessários, hein?&lt;/p&gt;
+
+&lt;h2 id=&#34;problemas&#34;&gt;Problemas&lt;/h2&gt;
+
+&lt;p&gt;Em meus testes, encontrei alguns empecilhos. Tentei utilizar &lt;strong&gt;scoped&lt;/strong&gt; primeiramente em elementos que já tinham sido estilizados – não deu certo –, depois tentei aninhar estilos &lt;strong&gt;scoped&lt;/strong&gt; e também não funcionou – francamente, não sei se é certo/possível fazer isto, e mesmo assim, penso que isso não serviria pra nada, é o tipo de coisa que só iria complicar a nossa vida (e de complexidade, já basta ser desenvolvedor web nos dias atuais), mas, pelo bem da ciência, realizei esse teste (aparentemente) inútil.&lt;/p&gt;
+
+&lt;h4 id=&#34;aplicando-scoped-a-elementos-já-estilizados&#34;&gt;Aplicando &lt;em&gt;scoped&lt;/em&gt; a elementos já estilizados&lt;/h4&gt;
+
+&lt;p&gt;Quando a página já possuía estilos – por exemplo, no &lt;strong&gt;&lt;head&gt;&lt;/strong&gt; – as propriedades que já tinham sido definidas não eram modificadas pelos estilos &lt;strong&gt;scoped&lt;/strong&gt;, apenas aquelas que ainda não tinham sido alteradas por nenhum CSS. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;head&amp;gt;
+    &amp;lt;style&amp;gt;
+        p { color: gray }
+    &amp;lt;/style&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+    &amp;lt;p&amp;gt;I was crowned with a spike right thru my head.&amp;lt;/p&amp;gt;
+    &amp;lt;p&amp;gt;But it&#39;s all right now, in fact, it&#39;s a gas!&amp;lt;/p&amp;gt;
+    &amp;lt;div&amp;gt;
+        &amp;lt;style scoped&amp;gt;
+            p {
+                color: red;
+                font-size: 1.4em;
+            }
+        &amp;lt;/style&amp;gt;
+        &amp;lt;p&amp;gt;But it&#39;s all right, Im jumpin jack flash,&amp;lt;/p&amp;gt;
+        &amp;lt;p&amp;gt;Its a gas! gas! gas!&amp;lt;/p&amp;gt;
+    &amp;lt;/div&amp;gt;
+&amp;lt;/body&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Se tentarmos fazer como acima, o resultado será:&lt;/p&gt;
+
+&lt;div class=&#34;exemplo-almir&#34; style=&#34;border: 1px solid #ddd;background: #eee;padding: 10px;margin-bottom: 10px;color: gray&#34;&gt;
+  I was crowned with a spike right thru my head.&lt;br /&gt; But it&amp;#8217;s all right now, in fact, it&amp;#8217;s a gas!&lt;/p&gt; 
+  
+  &lt;div style=&#34;color: gray;font-size: 1.4em&#34;&gt;
+    But it&amp;#8217;s all right, Im jumpin jack flash,&lt;br /&gt; Its a gas! gas! gas!
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Perceba que o único estilo de escopo que foi aplicado foi a regra &lt;strong&gt;font-size: 1.4em&lt;/strong&gt; e a cor vermelha simplesmente foi ignorada. Sinceramente eu não faço a mínima ideia do porquê disto, também não vejo muito sentido – poderia até ser um erro de implementação do navegador, mas não posso afirmar isto com tanta veemência.&lt;/p&gt;
+
+&lt;h4 id=&#34;a-pseudo-classe-scope&#34;&gt;A pseudo-classe :scope&lt;/h4&gt;
+
+&lt;p&gt;Depois de muito pesquisar, achei uma &amp;#8220;solução&amp;#8221;, por assim dizer. Eis que existe uma **pseudo-classe &lt;strong&gt;:scope&lt;/strong&gt;! Se usarmos esse cara como seletor das regras, tudo funciona perfeitamente. No exemplo acima, só faríamos:&lt;/p&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;style scoped&amp;gt;
+    /* adicionando a pseudo-classe :scope */
+    :scope p {
+        color: red;
+        font-size: 1.4em;
+    }
+&amp;lt;/style&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora sim, tudo como esperado:&lt;/p&gt;
+
+&lt;div class=&#34;exemplo-almir&#34; style=&#34;border: 1px solid #ddd;background: #eee;padding: 10px;margin-bottom: 30px;color: gray&#34;&gt;
+  I was crowned with a spike right thru my head.&lt;br /&gt; But it&amp;#8217;s all right now, in fact, it&amp;#8217;s a gas!&lt;/p&gt; 
+  
+  &lt;div style=&#34;color: red;font-size: 1.4em&#34;&gt;
+    But it&amp;#8217;s all right, Im jumpin jack flash,&lt;br /&gt; Its a gas! gas! gas!
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&#34;aninhando-estilos-scoped&#34;&gt;Aninhando estilos &lt;em&gt;scoped&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Tentei também aninhar estilos &lt;strong&gt;scoped&lt;/strong&gt;, mas parece que isso não funciona legal, e acredito que seja proposital. Mas essa parte eu deixo com vocês 😉 Testem colocar um &lt;strong&gt;&lt;style scoped&gt;&lt;/strong&gt; dentro de outro. Aqui mesmo eu não consegui muito resultado, ocorre o mesmo problema com as propriedades CSS que já foram definidas – são ignoradas e não funcionam nem mesmo adicionando a pseudo-classe &lt;strong&gt;:scoped&lt;/strong&gt;. Se alguém obtiver algum resultado diferente do meu, comenta ai!&lt;/p&gt;
+
+&lt;h2 id=&#34;suporte&#34;&gt;Suporte&lt;/h2&gt;
+
+&lt;p&gt;No momento, apenas Google Chrome versão 20+.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

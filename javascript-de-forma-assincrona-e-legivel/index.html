@@ -1,0 +1,312 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/javascript-de-forma-assincrona-e-legivel/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/javascript-de-forma-assincrona-e-legivel/">JavaScript de forma assíncrona e legível</a></h1>
+  <p class="tb-hero-p">
+    
+    A programação assíncrona possui a vantagem de gerar códigos perfomáticos. Em certos casos, a implementação de diversas funções assíncronas encadeadas através de funções _callback_ pode prejudicar a leitura e a manutenção do código. Para demonstrar esse encadeamento, vamos utilizar um trecho de código que utiliza a API do Selenium 2. Baseado em um exemplo do site do SauceLabs.
+A API do Selenium WebDriver pode ser utilizada por diversas linguagem de programação, porém, em nosso exemplo, iremos utilizar o NodeJS (JavaScript) e o gerenciador de pacotes NPM, que podem ser baixados no site oficial.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/igor-ribeiro-lima">Igor Ribeiro Lima</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      <p>A programação assíncrona possui a vantagem de gerar códigos perfomáticos. Em certos casos, a implementação de diversas funções assíncronas encadeadas através de funções _callback_ pode prejudicar a leitura e a manutenção do código. Para demonstrar esse encadeamento, vamos utilizar um trecho de código que utiliza a <a href="http://tableless.com.br/introducao-ao-selenium-2/" title="Introdução ao Selenium 2">API do Selenium 2</a>. Baseado em um <a href="https://saucelabs.com/docs/ondemand/getting-started/env/js/se2/linux" title="Exemplo oficial do SauceLabs de como utilizar o Selenium 2 com o NodeJS">exemplo do site do SauceLabs</a>.</p>
+
+<p>A API do Selenium WebDriver pode ser utilizada por diversas linguagem de programação, porém, em nosso exemplo, iremos utilizar o NodeJS (JavaScript) e o gerenciador de pacotes NPM, que podem ser baixados no <a href="http://nodejs.org/download/" title="Site oficial do NodeJS">site oficial</a>. O NPM é necessário para instalar o <a href="http://phantomjs.org/" title="Site oficial do PhantomJS">PhantomJS</a> e o <a href="https://github.com/admc/wd" title="Repositório GitHub do WD">WD</a>, utilizando o seguinte <em>script</em>:</p>
+
+<pre class="lang-ssh">npm install -g phantomjs</pre>
+
+<pre class="lang-ssh">npm install wd</pre>
+
+<p>O NodeJS possui dois tipos de dependências: global ou local. Quando uma dependência é global, o pacote passa a ser executável, tornando possível a utilização da dependência através da linha de comando. Já as dependências locais são instaladas no diretório corrente, dentro de _node<em>modules</em>.</p>
+
+<p>O primeiro <em>script</em>, utilizando o parâmetro <strong>-g</strong>, instala o <a href="http://phantomjs.org/" title="Site oficial do PhantomJS">PhantomJS</a> como dependência global, que é um WebKit headless totalmente em JavaScript e possui suporte rápido e nativo para vários padrões web como manipulação de DOM, seletores CSS, JSON, Canvas e SVG.</p>
+
+<p>Já o segundo <em>script</em>, instala como dependência local o <a href="https://github.com/admc/wd" title="Repositório GitHub do WD">WD</a>, que é um cliente NodeJS para facilitar o acesso à API do Selenium 2 e suporta <a href="https://github.com/admc/wd/blob/master/doc/api.md" title="Documentação da API do WD">métodos</a> como: fazer requisições GET e POST, clicar no botão VOLTAR do navegador, fazer refresh no navegador, pegar um _printscreen_ da tela atual, redimensionar e mover a janela do navegador, submeter formulário, digitar texto, usar <em>cookies</em>, selecionar um elemento DOM, clicar e mover um elemento, etc.</p>
+
+<p>Após a instalação das dependências, vamos criar um arquivo com <a href="http://callbackhell.com/" title="Introdução sobre callback hell - vários callbacks encadeados">vários _callbacks_ encadeados</a>. Esse código possui seis passos: _(i)<em> abrir o navegador, </em>(ii)<em> acessar uma página de teste, </em>(iii)<em> verificar o título da página, </em>(iv) <em>submeter um formulário, </em>(v)<em> verificar a url da página após enviar o formulário e </em>(vi)_ fechar o navegador. Algo bem simples. Suficiente para ressaltar a quantidade de _callbacks_ encadeados.</p>
+
+<p><strong>um-exemplo-COM-varios-callbacks-encadeados.js</strong></p>
+
+<pre class="lang-js">var webdriver = require('wd'),
+    assert    = require('assert'),
+    browser   = webdriver.remote({
+      hostname: "localhost",
+      port: 8910
+    });
+
+browser.init({}, function(erro, id_da_sessao, recursos_webdriver) {
+  console.log('navegador aberto');
+  browser.get("http://saucelabs.com/test/guinea-pig", function(erro) {
+    console.log('pagina de teste aberta');
+    browser.title(function(erro, title) {
+      console.log('verificando titulo da pagina...');
+      assert.ok( title.indexOf('I am a page title - Sauce Labs')===0, 'titulo NAO esta correto');
+      browser.elementById('submit', function(erro, elemento) {
+        console.log('botao enviar encontrado');
+        browser.clickElement(elemento, function(erro) {
+          console.log('botao clicado');
+          browser.eval("window.location.href", function(erro, href) {
+            console.log('verificando url da pagina...');
+            assert.ok(href.indexOf('guinea')&gt;0, 'pagina NAO esta correta');
+            browser.quit(function(erro){
+              console.log('navegador fechado');
+            });
+          });
+        });
+      });
+    });
+  });
+});</pre>
+
+<p>Um detalhe importante sobre assincronismo é que, na maioria dos casos, os _callbacks_ possuem como parâmetro uma variável de erro, que serve para impedir a execução dos _callbacks_ subsequentes, caso haja algum problema.</p>
+
+<p>Criado o arquivo exemplo, é preciso, em um outro terminal, rodar o PhantomJS em modo WebDriver, digitando o seguinte comando:</p>
+
+<pre class="lang-ssh">phantomjs --webdriver=localhost:8910</pre>
+
+<p>Com o PhantomJS rodando em segundo plano, execute o exemplo usando o <em>node</em>. Segue o comando e uma ilustração do resultado obtido:</p>
+
+<pre class="lang-ssh">node um-exemplo-COM-varios-callbacks-encadeados.js</pre>
+
+<p><img src="https://a248.e.akamai.net/camo.github.com/4e876b931ca0cd673f3707ebdc8bd60407ae1b9d/687474703a2f2f69313336382e70686f746f6275636b65742e636f6d2f616c62756d732f61673138322f69676f727269626569726f6c696d612f756d2d6578656d706c6f2d434f4d2d766172696f732d63616c6c6261636b732d656e6361646561646f735f7a707362636262323735642e706e67" alt="ilustração do resultado obtido após executar o exemplo COM vários callbacks encadeados" /></p>
+
+<p>Para evitar tantos _callbacks_ encadeados, vamos utilizar a biblioteca <a href="https://github.com/caolan/async" title="Repositório GitHub da biblioteca Async">Async</a> que prover várias funções que facilitam a programação assíncrona em JavaScript. Nesse exemplo, usaremos a função <a href="https://github.com/caolan/async#waterfall" title="âncora para as especificações da função waterfall da biblioteca Async"><strong>waterfall</strong></a>. Uma alternativa mais leve para código Front-End é a biblioteca <a href="http://underscorejs.org/" title="Site oficial da biblioteca Underscore">Underscore</a>. Para instalar o Async, utilize o seguinte <em>script</em>:</p>
+
+<pre class="lang-ssh">npm install async</pre>
+
+<p>Agora vamos criar um outro arquivo sem tantos encadeamentos.</p>
+
+<p><strong>um-exemplo-SEM-varios-callbacks-encadeados.js</strong></p>
+
+<pre class="lang-js">var webdriver = require('wd'),
+    async     = require('async'),
+    assert    = require('assert'),
+    browser   = webdriver.remote({
+      hostname: "localhost",
+      port: 8910
+    });
+
+async.waterfall([
+  function(callback_navegador_aberto) {
+    browser.init({}, callback_navegador_aberto);
+  },
+  function(id_da_sessao, recursos_webdriver, callback_pagina_aberta) {
+    console.log('navegador aberto');
+    browser.get("http://saucelabs.com/test/guinea-pig", callback_pagina_aberta);
+  },
+  function(callback_titulo) {
+    console.log('pagina de teste aberta');
+    browser.title(callback_titulo);
+  },
+  function(title, callback_elemento_encontrado) {
+    console.log('verificando titulo da pagina...');
+    assert.ok( title.indexOf('I am a page title - Sauce Labs')===0, 'titulo NAO esta correto');
+    browser.elementById('submit', callback_elemento_encontrado);
+  },
+  function(elemento, callback_botao_clicado) {
+    console.log('botao enviar encontrado');
+    browser.clickElement(elemento, callback_botao_clicado);
+  },
+  function(callback_verificar_url) {
+    console.log('botao clicado');
+    browser.eval("window.location.href", callback_verificar_url);
+  },
+  function(href, callback_navegador_fechado) {
+    console.log('verificando url da pagina...');
+    assert.ok(href.indexOf('guinea')&gt;0, 'pagina NAO esta correta');
+    browser.quit(callback_navegador_fechado);
+  },
+  function(callback_final) {
+    console.log('navegador fechado');
+    callback_final();
+  }
+], function(erro){
+  erro && console.log('algum erro ocorreu', erro);
+});</pre>
+
+<p>Lembre-se que o PhantomJS ainda deve estar rodando em segundo plano para executar o segundo código de exemplo. Segue o comando e uma ilustração do resultado obtido:</p>
+
+<pre class="lang-ssh">node um-exemplo-SEM-varios-callbacks-encadeados.js</pre>
+
+<p><img src="http://i1368.photobucket.com/albums/ag182/igorribeirolima/um-exemplo-SEM-varios-callbacks-encadeados_zps1a8a9ad0.png" alt="ilustração do resultado obtido após executar o exemplo SEM vários callbacks encadeados" /></p>
+
+<p>Esse trecho de código exemplifica como vários _callbacks_ encadeados podem ser evitados com o uso de uma estrutura de controle. Para quem se interessar, todo código está disponível em um <a href="https://gist.github.com/igorlima/7930016" title="Gist - JavaScript de forma assíncrona e elegível">gist</a>. Muito obrigado.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

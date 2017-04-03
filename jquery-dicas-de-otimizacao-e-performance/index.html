@@ -1,0 +1,346 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/jquery-dicas-de-otimizacao-e-performance/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/jquery-dicas-de-otimizacao-e-performance/">jQuery: dicas de otimização e performance</a></h1>
+  <p class="tb-hero-p">
+    
+    Performance é um aspecto muito importante em aplicações web. Confira algumas dicas simples de como otimizar seu código jQuery.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/davi-ferreira">Davi Ferreira</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>A grande maioria dos desenvolvedores jQuery não se preocupa muito com performance e otimização. Afinal, o mantra do framework, &#8220;write less, do more&#8221;, envolve esconder a parte feia do Javascript e, muitas vezes, acrescentar camadas desnecessárias.</p>
+
+<p>Neste artigo apresento algumas dicas de como melhorar a performance de sua aplicação jQuery. No entanto, vale lembrar que não é necessário otimizar nenhum código escrito previamente, já que a otimização dificilmente compensará o trabalho.</p>
+
+<h2 id="1-mantenha-se-atualizado">#1: Mantenha-se atualizado</h2>
+
+<p>Procure utilizar sempre a última versão estável do jQuery. A cada nova versão lançada são introduzidas inúmeras melhorias de performance nos métodos do framework.</p>
+
+<p>Da versão 1.3 para a 1.4, por exemplo, houve um ganho de 50% na performance da execução dos testes padrão do jQuery.</p>
+
+<p>Fique ligado nas mudanças. O lançamento de uma nova versão vem sempre acompanhando de notas sobre as novas funcionalidades, um changelog, como [este aqui][1].</p>
+
+<h2 id="2-não-utilize-jquery">#2: Não utilize jQuery!</h2>
+
+<p>Em alguns momentos não é necessário utilizar jQuery. Apesar de ser fácil de utilizar e muito mais bonito de ler, o framework é apenas mais uma camada no desenvolvimento, uma &#8220;maquiagem&#8221; para o Javascript.</p>
+
+<p>Em projetos pequenos você pode, se quiser, abolir totalmente o jQuery: é realmente necessário incluir os ~30kb do framework? Não dá pra resolver com Javascript puro?</p>
+
+<p>Já em projetos maiores, mesmo incluindo o jQuery, em alguns casos é melhor não utilizá-lo. Por exemplo:</p>
+
+<pre class="javascript">size: function() {
+    return this.length;
+},
+</pre>
+
+<p>Acima está o código-fonte do método size, do jQuery. O que ele faz? Nada além de retornar o tamanho do objeto utilizando o método nativo length. Logo, é mais rápido utilizar diretamente o length!</p>
+
+<pre class="javascript">$('.menu').size()
+$('.menu').length
+</pre>
+
+<p>O mesmo vale para retornar o ID de um elemento:</p>
+
+<pre class="javascript">$(this).attr('id')
+this.id
+</pre>
+
+<p>O seletor $(this), aliás, somente deve ser utilizado quando for necessário um método que só existe no jQuery. Nos outros casos, sempre dê preferência ao this nativo do Javascript.</p>
+
+<p>Também é comum utilizar jQuery para alterar o CSS de um elemento, por exemplo:</p>
+
+<pre class="javascript">$('#menu').css('display', 'block');
+</pre>
+
+<p>Olhando o <a href="https://github.com/jquery/jquery/blob/master/src/css.js#L121">código-fonte</a> do jQuery, o método .css() possui aproximadamente 20 linhas (sem contar outros métodos chamados). A atribuição acima poderia ser executada da seguinte forma, com uma única linha:</p>
+
+<pre class="javascript">document.getElementById('menu').style.display = 'block';
+</pre>
+
+<p>Os próprios métodos jQuery possuem camadas dentro do framework. Ao invés de utilizar o método $.getJSON, por exemplo, você pode chamar diretamente o método $.ajax com os parâmetros type: &#8216;GET&#8217; e dataType: &#8216;json&#8217;.</p>
+
+<p>Vale a pena dar uma olhada no [código-fonte][3] do jQuery para entender o que o framework faz por baixo dos panos e até que ponto é válido utilizá-lo.</p>
+
+<h2 id="3-seletores">#3: Seletores</h2>
+
+<p>Procure sempre ser o mais específico possível em um seletor. Quanto mais específico, mais rápido. Opte sempre por utilizar o ID do elemento. Mesmo quando for preciso utilizar uma classe no seletor, utilize o ID do elemento pai.</p>
+
+<p>Os seletores que utilizam o ID ou a tag de um elemento são mais rápidos por um simples motivo: ambos utilizam métodos nativos do Javascript document.getElementbyId() e document.getElementsByTagname().</p>
+
+<p>Evite utilizar seletores com atributos e/ou pseudo-seletores, a menos que seja extremamente necessário.</p>
+
+<p>Outra dica importante: dê preferência ao método .find() quando precisar achar elementos filhos de um elemento com ID. Por exemplo, ao invés de $(&#8216;#container p&#8217;) utilize $(&#8216;#container&#8217;).find(&#8216;p&#8217;), dessa forma o escopo da busca fica limitado ao primeiro objeto. O mesmo vale para seletores de classes e pseudo-seletores.</p>
+
+<h2 id="4-cache-de-elementos">#4: Cache de elementos</h2>
+
+<p>Esta é uma dica simples, mas que pode adicionar ganhos de performance consideráveis. Procure sempre armazenar em uma variável o objeto jQuery retornado por um seletor, principalmente quando o seletor está dentro de um loop.</p>
+
+<p>Por exemplo:</p>
+
+<pre class="javascript">var menu = $('#menu');
+var itens = ['Home', 'Contato', 'Sobre'];
+for(x in itens)
+    menu.append('
+
+<li>
+  '+itens[x]+'
+</li>');
+</pre>
+
+<p>Ao invés de:</p>
+
+<pre class="javascript">var itens = ['Home', 'Contato', 'Sobre'];
+for(x in itens)
+    $('#menu').append('
+
+<li>
+  '+itens[x]+'
+</li>');
+</pre>
+
+<p>No exemplo acima, o seletor $(&#8216;#menu&#8217;) seria executado 3 vezes, ou seja, o elemento seria buscado no DOM três vezes seguidas, sem nenhuma alteração.</p>
+
+<p>Conforme citei na abertura do artigo, cachear seletores é uma prática que vai contra o &#8220;write less, do more&#8221; do jQuery. Seu código pode ficar um pouco mais &#8220;sujo&#8221;, mas, em contrapartida, fica também mais rápido.</p>
+
+<h2 id="5-encadeamento-de-métodos">#5: Encadeamento de métodos</h2>
+
+<p>Encadear métodos sempre foi uma das funcionalidades mais legais do jQuery e, se você ainda não faz uso dessa técnica, é por aqui que você deve começar.</p>
+
+<pre class="javascript">$('#container').addClass('corpo');
+$('#container').width(940);
+$('#container').height(300);
+</pre>
+
+<p>Vira:</p>
+
+<pre class="javascript">$('#container').addClass('corpo')
+               .width(940)
+               .height(300);
+</pre>
+
+<p>Quase todos os métodos e plugins retornam (ou deveriam retornar) um objeto jQuery. Além de melhorar a leitura, essa prática também afeta diretamente a performance do seu código já que o seletor só é executado uma única vez.</p>
+
+<h2 id="6-dom">#6: DOM</h2>
+
+<p>Qualquer tipo de manipulação no DOM envolve um processo bem lento. No geral, você deve fugir desse tipo de implementação, principalmente se ela não possuir nenhum tipo de cache.</p>
+
+<p>O ideal é manipular já com os dados finais e completos. Não manipule o DOM em um loop, por exemplo.</p>
+
+<p>Utilizando o exemplo da dica de caching, poderíamos alterar para ficar ainda mais otimizado:</p>
+
+<pre class="javascript">var menu = $('#menu');
+var itens = ['Home', 'Contato', 'Sobre'];
+var html = '';
+for(x in itens){
+    html += '
+
+<li>
+  '+itens[x]+'
+</li>';
+}
+menu.append(html);
+menu.show();
+</pre>
+
+<p>Repare que o método .append() foi chamado apenas uma vez, já recebendo o HTML completo concatenado.</p>
+
+<h2 id="7-dry-don-8217-t-repeat-yourself">#7: DRY (Don&#8217;t Repeat Yourself)</h2>
+
+<p>O jQuery disponibiliza um alto nível de personalização, permitindo que você [escreva seus seletores][4] e [seus plugins][5].</p>
+
+<p>Evite repetir blocos de código. Evite repetir seletores. Evite repetir manipulações no DOM (faça tudo o que precisa fazer uma única vez!). Esta é uma dica muito importante para performance, já que qualquer código repetido significa alguns bytes ou kbytes a mais na sua aplicação.</p>
+
+<p>Mathias Bynens disponibilizou um <a href="http://speakerdeck.com/u/mathiasbynens/p/faster-javascript-execution-for-the-lazy-developer">uma apresentação genial</a> sobre DRY e Javascript, vale a pena conferir.</p>
+
+<h2 id="como-medir-a-performance-da-sua-aplicação">Como medir a performance da sua aplicação?</h2>
+
+<p>O site <a href="http://jsperf.com/">jsPerf</a> permite a criação de testes de performance para códigos javascript, utilizando jQuery ou não. É um bom lugar para você começar a comparar diferentes tipos de implementação. <a href="http://www.slideshare.net/mathiasbynens/using-jsperf-correctly">Esta apresentação</a> dá dicas e ensina a utilizar a ferramenta.</p>
+
+<p>Você também pode (e deve) utilizar a aba profile do Firebug e/ou do Chrome Developer Tools. <a href="http://michaelsync.net/2007/09/10/firebug-tutorial-logging-profiling-and-commandline-part-ii">Aqui</a> tem um tutorial antigo, mas bacana, sobre o Firebug e <a href="http://www.youtube.com/watch?v=OxW1dCjOstE">aqui</a> você encontra um tutorial sobre o Chrome Developer Tools.</p>
+
+<p>[1]: <a href="http://blog.jquery.com/2011/11/21/jquery-1-7-1-released/">http://blog.jquery.com/2011/11/21/jquery-1-7-1-released/</a> &ldquo;&rdquo;</p>
+
+<p>[3]: <a href="https://github.com/jquery/jquery">https://github.com/jquery/jquery</a> &ldquo;&rdquo;
+ [4]: <a href="http://tableless.com.br/jquery-seletores-personalizados/">http://tableless.com.br/jquery-seletores-personalizados/</a> &ldquo;&rdquo;
+ [5]: <a href="http://tableless.com.br/anatomia-de-um-plugin-jquery/">http://tableless.com.br/anatomia-de-um-plugin-jquery/</a> &ldquo;&rdquo;</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

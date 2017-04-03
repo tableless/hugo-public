@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/introducao-de-como-executar-testes-unitarios-em-diferentes-tipos-de-navegadores/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/introducao-de-como-executar-testes-unitarios-em-diferentes-tipos-de-navegadores/">Introdução de como executar testes unitários em diferentes tipos de navegadores</a></h1>
+  <p class="tb-hero-p">
+    
+    Entenda um pouco mais sobre testes unitários e como executá-los em diversas plataformas.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/igor-ribeiro-lima">Igor Ribeiro Lima</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      <p><a href="https://saucelabs.com/" title="SauceLabs">SauceLabs</a> é uma plataforma de teste que possibilita realizar testes automáticos ou manuais em aplicações móveis e web (incluindo navegadores como Internet Explorer, Opera, Safari, Android, iPhone, Chrome etc). Essa plataforma permite executar os testes em diversas linguagem de programação, porém, em nosso exemplo, iremos utilizar o NodeJS (JavaScript).</p>
+
+<p>O NodeJS e o Gerenciador de Pacotes do Node (traduzido do inglês Node Package Manager &#8211; NPM) podem ser baixados no <a href="http://nodejs.org/download/" title="site oficial NodeJS">site oficial</a>. Esse gerenciador de pacotes permite a interação com um repositório online via linha de comando, facilitando a instalação de várias ferramentas.</p>
+
+<p>Nesse exemplo, será utilizado uma ferramenta chamada <a href="https://github.com/airportyh/testem" title="documentação do Test'em">Test&#8217;em</a>, que é gerenciada e instalada pelo NPM. Essa ferramenta permite rodar os testes unitários de JavaScript localmente em diferentes plataformas, tornando a execução mais fácil e divertida. Test&#8217;em suporta vários frameworks de teste, tais como: Jasmine, QUnit e Mocha. Para instalar, basta digitar no terminal:</p>
+
+<pre class="lang-ssh">npm install testem -g</pre>
+
+<p>No exemplo, será utilizado o framework Jasmine. Mesmo código do <a href="https://saucelabs.com/docs/javascript-unit-testing-tutorial" title="tutorial oficial do SauceLabs">tutorial oficial do SauceLabs</a>. As especificações do código estão descritas no arquivo PastaSpec.js e a implementação no arquivo Pasta.js. Ambos arquivos encontra-se abaixo:</p>
+
+<p><strong>PastaSpec.js</strong></p>
+
+<pre class="lang-js">describe("Pasta", function() { 
+  it("should make spaghetti bolognese", function() { 
+    var pasta = new Pasta(); 
+    pasta.add("tomatoes"); 
+    pasta.add("garlic"); 
+    pasta.add("olive"); 
+    pasta.add("herbs"); 
+    pasta.add("meat"); 
+    expect(pasta.getType()).toEqual("bolognese"); 
+    expect(pasta.isTasty()).toEqual(true); 
+  }); 
+
+  it("should make pasta with no sauce", function() { 
+    var pasta = new Pasta(); 
+    pasta.add("meat"); 
+    expect(pasta.getType()).toEqual(undefined); 
+    // pasta with no sauce? yeah that's not too tasty 
+    expect(pasta.isTasty()).toEqual(false); 
+  }); 
+});</pre>
+
+<p><strong>Pasta.js</strong></p>
+
+<pre class="lang-js">function Pasta() { 
+  // recipes for good pasta sauces 
+  this.sauces = { 
+    'bolognese': ["tomatoes", "garlic", "olive", "herbs", "meat"] 
+  }; 
+  this.sauceIngredients = []; 
+} 
+
+Pasta.prototype.add = function (ingredient) { 
+  this.sauceIngredients.push(ingredient); 
+}; 
+
+Pasta.prototype.getType = function () { 
+  for (var posssibleSauce in this.sauces) { 
+    var ingredientsValid = true; 
+    // checking if arrays are equal 
+    if (!(this.sauceIngredients.sort() &gt; this.sauces[posssibleSauce].sort() || 
+          this.sauceIngredients.sort() &lt; this.sauces[posssibleSauce].sort())) { 
+      return posssibleSauce; 
+    } 
+  } 
+  return undefined; 
+}; 
+
+Pasta.prototype.isTasty = function () { 
+  if (this.getType() !== undefined) { return true; } 
+  return false; 
+};</pre>
+
+<p>Uma vez criado o arquivo de especificação &#8216;PastaSpec.js&#8217; e a implementação &#8216;Pasta.js&#8217;, é preciso criar um arquivo de configuração &#8216;<em>testem.json</em>&#8216;. Necessário apenas informar o framework utilizado e os arquivos JavaScript. Conforme escrito abaixo:</p>
+
+<p><strong>testem.json</strong></p>
+
+<pre class="lang-js">{ 
+  "framework": "jasmine", 
+  "src_files": [ 
+    "Pasta.js", 
+    "PastaSpec.js" 
+  ] 
+}</pre>
+
+<p>O Test&#8217;em usa como padrão a porta 7357. O parâmetro &#8216;&#8211;port&#8217; serve para especificar uma outra. Nesse caso, vamos utilizar a 8080, digitando:</p>
+
+<pre class="lang-ssh">testem --port=8080</pre>
+
+<p>Após a execução do comando, o resultado dos testes pode ser visto pela url <strong><a href="http://localhost:8080/">http://localhost:8080/</a></strong>. Caso a url seja aberta no Chrome, os testes serão executados no navegador Chrome. Caso aberta no Safari, será executado no Safari. Como ilustra a figura seguinte.</p>
+
+<p><img src="https://camo.githubusercontent.com/4c25f04b60b6f6aaff1b50a0069ca0f5487860be/687474703a2f2f7332312e706f7374696d672e6f72672f6e72393273783469762f6a61736d696e655f74657374735f6f6e5f74657374656d2e706e67" alt="testing Jasmine code on Test'em" /></p>
+
+<p>Para testar o código em diversos navegadores ou diversos sistemas operacionais, não é necessário ter máquinas virtuais nem mesmo outros dispositivos, como celulares ou tablet. O Sauce Labs prover o conector <a href="http://saucelabs.com/downloads/Sauce-Connect-latest.zip" title="Sauce Connect">Sauce Connect</a>. Com ele é possível criar uma conexão entre a nossa máquina e os servidores do SauceLabs, assim é possível rodar os testes dentro do firewall do Sauce Labs Cloud. Cloud que disponibiliza mais de <a href="https://saucelabs.com/docs/platforms" title="plataformas SauceLabs">200 plataformas</a>, que inclui dispositivos móveis, diversos SO e navegadores. Uma vez baixado o Sauce Connect, essa conexão é feita pelo comando:</p>
+
+<pre class="lang-ssh">java -jar Sauce-Connect.jar --tunnel-identifier "tabless" $SAUCE_USERNAME $SAUCE_ACCESS_KEY</pre>
+
+<p>Vale ressaltar que _$SAUCE<em>USERNAME</em> e <em>$SAUCE_ACCESS_KEY</em> são variáveis de ambientes. Método recomendado para evitar a divulgação de dados privados. Para obter dados de acesso, acesse a <a href="https://saucelabs.com/signup" title="página de cadastro do SauceLabs">página de cadastro</a>. Após a criação da conta, uma chave de acesso já é fornecida, conforme é ilustrado na figura abaixo.</p>
+
+<p><img src="https://camo.githubusercontent.com/b29a04372bbe9224392df879736467128316054e/687474703a2f2f7332312e706f7374696d672e6f72672f63673666346a786e722f73617563656c6162735f6163636f756e745f706167652e706e67" alt="página inicial da conta SauceLabs" /></p>
+
+<p>Na página inicial, o botão <strong>New Interactive Session</strong> permite a criação de uma instância de navegador. Uma popup (ilustrada na imagem abaixo) será exibida ao clicar no botão, com várias opções de sistema operacional e de navegador.</p>
+
+<p><img src="https://camo.githubusercontent.com/7de3c788dc9a56a153bada645514034a442ae6d4/687474703a2f2f7332312e706f7374696d672e6f72672f736f693230616834372f6e65775f696e7465726163746976655f73657373696f6e5f706f7075702e706e67" alt="popup para a criação de uma nova instância de navegador do SauceLabs" /></p>
+
+<p>Ao instanciar o navegador, é possível visualizar o resultado dos testes no terminal (ilustração na imagem abaixo). Os testes sempre serão executados novamente caso haja alguma alteração tanto no código quanto nas especificações, possibilitando assim a prática de TDD ou BDD, utilizando qualquer tipo de navegador.</p>
+
+<p><img src="https://camo.githubusercontent.com/404afe58a076603719c0448fbc1a41ca92c85e0c/687474703a2f2f7332312e706f7374696d672e6f72672f74687a39366e6369762f697061645f73617563656c6162735f73657373696f6e2e706e67" alt="instancia de um iPad do SauceLabs" /></p>
+
+<p>Esse exemplo contempla apenas a execução de testes de forma manual. Essas ferramentas que foram utilizadas também oferecem suporte para a automatização de testes, mas isso ficará para um próximo capítulo. Para quem se interessar, todo código está disponível em um <a href="https://gist.github.com/igorlima/7649954" title="gist do exemplo">gist</a>. Muito obrigado.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

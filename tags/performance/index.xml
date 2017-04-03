@@ -1,0 +1,2304 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Performance on Tableless</title>
+    <link>http://tableless.com.br/tags/performance/index.xml</link>
+    <description>Recent content in Performance on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/performance/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Acelere o carregamento de seu site com PHP Caching</title>
+      <link>http://tableless.com.br/acelere-o-carregamento-de-seu-site-com-php-caching/</link>
+      <pubDate>Thu, 07 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/acelere-o-carregamento-de-seu-site-com-php-caching/</guid>
+      <description>
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Criar um site dinâmico, de fácil manutenção e que carregue rápido é o desejo de todo desenvolvedor, mas para isso não existe uma fórmula mágica, é necessário conciliar diferentes ferramentas e técnicas. &lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Mas muitos desenvolvedores iniciantes em PHP não conhecem as soluções existentes ou tem medo da curva de aprendizado que os frameworks exigem.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;O foco desse artigo é mostrar para esses desenvolvedores como uma técnica simples, utilizando apenas comandos básicos do PHP, pode acelerar o carregamento de seu site e evitar que ele fique caindo.&lt;/span&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;o-problema-a-ser-resolvido-processamento-desnecessário&#34;&gt;O problema a ser resolvido, processamento desnecessário&lt;/h3&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Para cada acesso a um site dinâmico, o servidor geralmente realiza consultas no banco de dados, executa blocos de códigos e entrega uma página pronta para exibição.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Mesmo que os acessos a uma página ocorram com poucos segundos de diferença e nada no conteúdo tenha sido alterado, o servidor irá fazer o mesmo processo para cada solicitação, quantas vezes for preciso.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Isto é um trabalho desnecessário e que exige muito processamento do servidor, principalmente em momentos de tráfego intenso, e se o servidor não der conta, o seu site ficará temporariamente fora do ar.&lt;/span&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;a-solução-php-caching&#34;&gt;A solução, PHP Caching&lt;/h3&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Também conhecido como Cache de Objetos, essa técnica executa uma página PHP e armazena o conteúdo gerado em um arquivo HTML, e para os próximos acessos, durante um certo período, o servidor irá entregar esse HTML gerado.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Sem a necessidade de consultar o banco de dados ou executar algum tipo de programação para montar a página, o servidor além de conseguir entregar uma página mais rapidamente, também suportará um número maior de acessos concorrentes.&lt;/span&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;qual-o-ganho-na-performance&#34;&gt;&lt;strong&gt;Qual o ganho na performance?&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Vai depender muito da programação do site, mas quanto mais ações forem realizadas no backend, maior será o ganho. Veja abaixo os resultados obtidos durante um teste:&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter wp-image-55365 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/phpcaching-benchmarks.jpg&#34; width=&#34;1180&#34; height=&#34;393&#34; /&gt;A versão dinâmica foi entregue em 318 ms e a versão cacheada em 14 ms, 23 vezes mais rápido.&lt;/p&gt;
+
+&lt;h2 id=&#34;desenvolvimento&#34;&gt;Desenvolvimento&lt;/h2&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Chega de teoria e vamos para a prática, criaremos juntos um exemplo que seja o mais simples possível.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Primeiro crie uma pasta no seu ambiente de desenvolvimento chamada &lt;code&gt;phpcaching&lt;/code&gt;, dentro dela crie outras duas pastas, uma chamada &lt;code&gt;paginas&lt;/code&gt; onde iremos armazenar as páginas dinâmicas em PHP e outra chamada &lt;code&gt;cache&lt;/code&gt; que irá armazenar os arquivos HTML.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Dentro da pasta &lt;code&gt;paginas&lt;/code&gt; crie um arquivo chamado &lt;code&gt;index.php&lt;/code&gt;, com o código:&lt;/span&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;html&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;head&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;    &amp;lt;title&amp;gt;PHP Caching&amp;lt;/title&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;body&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;    &amp;lt;p&amp;gt;Página gerada em: &amp;lt;?php echo date(&#39;H:i:s&#39;) ?&amp;gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;/body&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;font-weight: 400&#34;&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Teste a página que acabamos de criar, acessando ela pelo navegador, no meu caso o endereço é: &lt;code&gt;&lt;a href=&#34;http://localhost/phpcaching/paginas/index.php&#34;&gt;http://localhost/phpcaching/paginas/index.php&lt;/a&gt;&lt;/code&gt;&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Você verá uma página simples, que apenas mostra o horário atual toda vez que é acessada.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Agora vamos criar o nosso controlador de cache, que irá funcionar da seguinte maneira:&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter wp-image-55366 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/phpcaching-diagrama-de-atividades.jpg&#34; width=&#34;551&#34; height=&#34;551&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Sabendo a lógica de funcionamento, fica mais fácil programar nosso controlador. Crie na raiz do projeto um arquivo chamado &lt;code&gt;index.php&lt;/code&gt; com o seguinte código:&lt;/span&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+// Configurações
+$validadeEmSegundos = 60;
+$arquivoCache = &#39;cache/index.html&#39;;
+$urlDinamica = &#39;http://localhost/phpcaching/paginas/index.php&#39;;
+
+// Verifica se o arquivo cache existe e se ainda é válido
+if (file_exists($arquivoCache) &amp;&amp; (filemtime($arquivoCache) &amp;gt; time() - $validadeEmSegundos)) {
+
+    // Lê o arquivo cacheado
+    $conteudo = file_get_contents($arquivoCache);
+} else {
+
+    // Acessa a versão dinâmica
+    $conteudo = file_get_contents($urlDinamica);
+
+    // Cria o cache
+    file_put_contents($arquivoCache, $conteudo);
+}
+
+// Exibe o conteúdo da página
+echo $conteudo;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Vou explicar as funções utilizadas para caso você não conheça alguma delas:&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;file_exists&lt;/code&gt;: verifica se um arquivo existe&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;file_get_contents&lt;/code&gt;: lê o conteúdo de um arquivo&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;file_put_contents&lt;/code&gt;: escreve o conteúdo em um arquivo&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;filemtime&lt;/code&gt;: retorna o horário que o arquivo foi modificado&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;&lt;code&gt;time&lt;/code&gt;: retorna o horário atual&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Agora acesse o site através do controlador de cache, no meu caso &lt;code&gt;&lt;a href=&#34;http://localhost/phpcaching/&#34;&gt;http://localhost/phpcaching/&lt;/a&gt;&lt;/code&gt;&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Repare que o horário aparece como anteriormente, mas se atualizarmos a página o horário não muda. Isto acontece porque a página exibida é a versão cacheada, que foi armazenada na pasta &lt;code&gt;cache&lt;/code&gt; com o nome &lt;code&gt;index.html&lt;/code&gt;.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto, nossa solução para cachear páginas está criada.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Esta técnica é uma maneira eficaz de aumentar a performance de seu site, sem precisar instalar algo no servidor ou algum framework no seu projeto e é recomendada para quem está iniciando no assunto.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;O código apresentado não é uma solução definitiva, mas uma base que podemos expandir de acordo com as necessidades de cada projeto, crie sua versão melhorada, faça um teste com um projeto que você já possua e analise a diferença no tempo de carregamento do site.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Eu utilizo essa técnica em um portal de notícias da minha região, e apesar do site já ter sido migrado de servidor algumas vezes, o código nunca precisou de alteração, essa é a vantagem de utilizar apenas comandos básicos do PHP.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;font-weight: 400&#34;&gt;Continuem os estudos e que a performance esteja com você.&lt;/span&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Não se preocupe tanto com o Time To First Byte</title>
+      <link>http://tableless.com.br/nao-se-preocupe-tanto-com-o-time-to-first-byte/</link>
+      <pubDate>Mon, 11 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/nao-se-preocupe-tanto-com-o-time-to-first-byte/</guid>
+      <description>&lt;p&gt;O pessoal da &lt;a href=&#34;https://blog.cloudflare.com/ttfb-time-to-first-byte-considered-meaningles/&#34;&gt;CloudFlare fez um teste muito interessante&lt;/a&gt;, provando que a medida TTFB (Time To First Byte) não é tão precisa para provarmos que a resposta do servidor de um site é rápida.&lt;/p&gt;
+
+&lt;p&gt;O que eles fizeram: em um servidor de teste eles criaram um delay de resposta HTTP para entender o que realmente é medido. A resposta foi que o TTFB não é uma medida tão útil assim. Quando um browser faz o request de uma página no servidor, ele envia alguns headers para especificar algumas coisas como os formatos de respostas aceitos. O servidor responde dizendo que a página está disponível e envia mais alguns headers contendo informações sobre a página, depois, finalmente, envia o conteúdo da página.&lt;/p&gt;
+
+&lt;p&gt;No teste da CloudFlare o servidor se comportou um pouco diferente. Quando ele recebe o request, ele enviou a primeira letra do termo &lt;strong&gt;HTTP/1.1 200 OK&lt;/strong&gt; (ou seja, a letra H) e depois esperou por 10 segundos antes de enviar o resto dos headers e a página em si. O &lt;a href=&#34;https://github.com/jgrahamc/ttfb&#34;&gt;código que eles usaram foi escrito em GO&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se você fizer um teste no WebPageTest com a página do servidor de teste do TTFB, o WebPageTest vai reportar o tempo do TTFB que o &lt;strong&gt;H&lt;/strong&gt; legou para chegar no servidor e não o tempo que a página em si foi enviada.&lt;/p&gt;
+
+&lt;p&gt;Medir o TTFB (Time To First Byte) remotamente, significa que você também está medindo a latência, o que obscurece o que o TTFB realmente tenta medir: quão rápido é o servidor para responder a um request.&lt;/p&gt;
+
+&lt;p&gt;No artigo deles há uma descrição bem completa sobre toda essa história. O que me tira um pouco do peso, porque o WebPageTest avisou que o TTFB do Tableless é de 6 segundos. Nenhuma desculpa para não diminuir isso, mas vale pensar no que é mais importante. 😉&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://blog.cloudflare.com/ttfb-time-to-first-byte-considered-meaningles/&#34;&gt;Confira o artigo na íntegra&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Animações fluídas à 60fps</title>
+      <link>http://tableless.com.br/animacoes-fluidas-60fps/</link>
+      <pubDate>Mon, 29 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/animacoes-fluidas-60fps/</guid>
+      <description>
+
+&lt;p&gt;Existem diversas maneiras da página interagir com o usurário, e uma dessas maneiras é a interação com animações. Podem ser desde animações mais triviais como o scroll de um elemento, até animações mais complexas como gráficos de jogos.&lt;/p&gt;
+
+&lt;p&gt;Algumas vezes sentimos nossa UI engasgar durante essas interações, dando o sentimento de que algo está sendo executado com muito esforço. E pode apostar que é isso mesmo.&lt;/p&gt;
+
+&lt;p&gt;Para criar essas animações o browser basicamente se comporta como outros softwares que reproduzem vídeo, gerando uma sequência de imagens e renderizando elas na tela do seu dispositivo.&lt;/p&gt;
+
+&lt;p&gt;Vou resumir o processo executado pelo browser para gerar essa sequencia de quadros, e como o nosso pode influenciar esse processo de forma negativa ou positiva.&lt;/p&gt;
+
+&lt;h2 id=&#34;30fps-ou-60fps&#34;&gt;30fps ou 60fps?&lt;/h2&gt;
+
+&lt;p&gt;Como foi dito acima, o browser procura renderizar cerca de 60 quadros por segundo. Mas essa deve ser a nossa meta? Dá pra sentir diferença?&lt;/p&gt;
+
+&lt;p&gt;Alguns estudos dizem que 30fps é o suficiente para a percepção humana, porém 60fps é ideal pois dá uma sensação de fluidez.&lt;/p&gt;
+
+&lt;p&gt;Pessoalmente, percebo diferença entre 30fps e 60fps, acima disso não. Se você quiser fazer um teste dá uma olhada &lt;a href=&#34;http://frames-per-second.appspot.com/&#34; target=&#34;_blank&#34;&gt;nesse site&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Acredito que o ideal é entregar o mais próximo possível dos 60fps, assim fica mais fácil agradar gregos e troianos.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-trampo-do-browser&#34;&gt;O Trampo do Browser&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_fluxo_de_renderização_do_browser.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-49672 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_fluxo_de_renderização_do_browser.png&#34; alt=&#34;Fluxo de renderização de um frame&#34; width=&#34;800&#34; height=&#34;230&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O fluxo acima resume as etapas que o browser pode seguir para criar um frame. Nosso código pode influenciar esse fluxo, podendo diminuir o trabalho executado pela engine de renderização. Vamos conhecer cada etapa e descobrir como o código que escrevemos influencia essa sequencia.&lt;/p&gt;
+
+&lt;h3 id=&#34;dom&#34;&gt;DOM&lt;/h3&gt;
+
+&lt;p&gt;Ocorre sempre que o DOM é alterado.&lt;/p&gt;
+
+&lt;p&gt;Criar ou remover um elemento dispara essa etapa. Esse é um dos motivos pelos quais o acesso ao DOM é sagrado, e não deve ser feito em vão.&lt;/p&gt;
+
+&lt;p&gt;Exemplos:&lt;/p&gt;
+
+&lt;p&gt;Incluir ou remover &lt;em&gt;trs&lt;/em&gt; em um &lt;em&gt;tbody&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Alterar o texto de algum elemento.&lt;/p&gt;
+
+&lt;h3 id=&#34;cssom&#34;&gt;CSSOM&lt;/h3&gt;
+
+&lt;p&gt;Ocorre sempre que alguma regra de estilo é alterada.&lt;/p&gt;
+
+&lt;p&gt;Pode ser causado por uma nova folha de estilo inserida na página, alteração da classe de algum elemento e alteração de alguma regra de estilo inline.&lt;/p&gt;
+
+&lt;p&gt;Exemplos:&lt;/p&gt;
+
+&lt;p&gt;Inserção de novas regras via tag &lt;em&gt;style&lt;/em&gt; ou por alguma folha de estilo externa.&lt;/p&gt;
+
+&lt;p&gt;Alteração de algum estilo inline (lembra do $.hide() do jQuery?).&lt;/p&gt;
+
+&lt;h3 id=&#34;arvore-de-renderização&#34;&gt;Arvore de Renderização&lt;/h3&gt;
+
+&lt;p&gt;Após criar ou alterar o DOM e/ou o CSSOM ele precisa mapear os elementos que ficarão visíveis na tela, e quais regras de estilo se aplicam a cada elemento. Esse mapeamento fica na Árvore de Renderização.&lt;/p&gt;
+
+&lt;h3 id=&#34;layout&#34;&gt;Layout&lt;/h3&gt;
+
+&lt;p&gt;Ocorre sempre que a geometria de algum elemento é alterada e a posição de algum elemento é alterado na tela.&lt;/p&gt;
+
+&lt;p&gt;Exemplos:&lt;/p&gt;
+
+&lt;p&gt;Alteração de altura ou largura de algum elemento.&lt;/p&gt;
+
+&lt;p&gt;Alteração da margem de algum elemento.&lt;/p&gt;
+
+&lt;h3 id=&#34;pintura&#34;&gt;Pintura&lt;/h3&gt;
+
+&lt;p&gt;Ocorre quando são necessárias alterações visuais que não alteram o tamanho ou posicionamento de algum elemento.&lt;/p&gt;
+
+&lt;p&gt;Exemplos:&lt;/p&gt;
+
+&lt;p&gt;Alterar a cor de fundo de uma &lt;em&gt;div&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Alterar a cor da fonte.&lt;/p&gt;
+
+&lt;p&gt;Alterar o z-index de algum elemento.&lt;/p&gt;
+
+&lt;h2 id=&#34;inspecionando-no-browser&#34;&gt;Inspecionando no browser&lt;/h2&gt;
+
+&lt;p&gt;Vou dar um exemplo básico de como inspecionar esses eventos no browser. Será um overview simples e não entrarei nos detalhes de cada ferramenta.&lt;/p&gt;
+
+&lt;p&gt;Eles entregam as métricas de maneira bem distintas umas das outras, mas durante uma dor de barriga fazem um bom trabalho pra te ajudar á achar quais são os eventos problemáticos.&lt;/p&gt;
+
+&lt;p&gt;Não importa qual browser você está usando, aperte F13 para abrir as ferramentas de desenvolvedor. Se você não achar o F13 no seu teclado, quer dizer que você caiu na pegadinha. =)&lt;/p&gt;
+
+&lt;p&gt;Geralmente o F12 abre essas ferramentas pra você (pelo menos no Windows).&lt;/p&gt;
+
+&lt;h3 id=&#34;google-chrome&#34;&gt;Google Chrome&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_2style_render_-_gc.jpg&#34;&gt;&lt;img class=&#34;alignnone wp-image-49668 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_2style_render_-_gc.jpg&#34; alt=&#34;Google Chrome - Timeline&#34; width=&#34;800&#34; height=&#34;432&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Costumo usar o Chrome diariamente. Acredito que ele é atualmente o mais completo pois entrega bastante informações. Mas muitas informações. Seria assunto pra um post inteiro.&lt;/p&gt;
+
+&lt;h3 id=&#34;internet-explorer-11-microsoft-edge&#34;&gt;Internet Explorer 11 / Microsoft Edge&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_style_render_-_ie.jpg&#34;&gt;&lt;img class=&#34;alignnone wp-image-49669 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_style_render_-_ie.jpg&#34; alt=&#34;Microsoft Edge - Análise de Desempenho&#34; width=&#34;800&#34; height=&#34;432&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;No momento estou usando o Windows 10 Preview e tenho á disposição o IE11 e o Microsoft Edge. Posso afirmar que ele faz um trabalho decente mas ainda tem muito pra melhorar.&lt;/p&gt;
+
+&lt;h3 id=&#34;firefox-developer-edition&#34;&gt;Firefox Developer Edition&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_style_render_-_ff.jpg&#34;&gt;&lt;img class=&#34;alignnone wp-image-49670 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/rsz_style_render_-_ff.jpg&#34; alt=&#34;Firefox - Análise de Desempenho&#34; width=&#34;800&#34; height=&#34;215&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O Firefox faz um bom trabalho e tem uma ótima documentação, mas nesse quesito ainda tem muito para melhorar se o compararmos ao Chrome.&lt;/p&gt;
+
+&lt;h3 id=&#34;dicas-de-outras-ferramentas-e-recursos&#34;&gt;Dicas de outras ferramentas e recursos&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://csstriggers.com/&#34; target=&#34;_blank&#34;&gt;CSS Triggers&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Este site tenta listar as propriedades CSS e o efeito que a alteração delas causam na renderização de um frame. Ótimo recurso!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://developers.google.com/web/fundamentals/performance/index?hl=pt-br&#34; target=&#34;_blank&#34;&gt;Google Web Fundamentals&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;No Google Web Fundamentals existe uma sessão focada no assunto. Ótimo ponto de partida para aprender sobre o assunto.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.udacity.com/course/website-performance-optimization--ud884&#34; target=&#34;_blank&#34;&gt;Udacity &amp;#8211; Website Performance Optimization&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Curso gratuito desenvolvido pela Udacity com a Google. Além das explicações teóricas, tem bastante exercícios práticos.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Cache busting: entrega inteligente de assets</title>
+      <link>http://tableless.com.br/cache-busting-entrega-inteligente-de-assets/</link>
+      <pubDate>Thu, 18 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/cache-busting-entrega-inteligente-de-assets/</guid>
+      <description>
+
+&lt;h2 id=&#34;definição&#34;&gt;Definição&lt;/h2&gt;
+
+&lt;p&gt;Cache busting nada mais é do que uma técnica para contornar o problema do carregamento de versões antigas dos assets armazenados em cache no navegador do cliente.&lt;/p&gt;
+
+&lt;h2 id=&#34;problema&#34;&gt;Problema&lt;/h2&gt;
+
+&lt;p&gt;Na verdade, essa é uma questão de longa data. Muitos desenvolvedores utilizam-se do incremento de variáveis com códigos aleatórios no final das chamadas (querystrings) dos assets para contornar o problema, o que, de acordo com &lt;a href=&#34;http://stevesouders.com/&#34;&gt;Steve Souders&lt;/a&gt;, guru em performance de sites na web, não é uma boa prática.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;stylesheet&#34; href=&#34;assets/main.css?v=786523&#34;&amp;gt; &amp;lt;!-- NÃO RECOMENDADO! --&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Segundo Souders, &lt;a href=&#34;http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/&#34;&gt;o uso de querystrings não é bom&lt;/a&gt; porque faz com que normalmente o browser recarregue o asset da origem. Para o ambiente de desenvolvimento isso seria o ideal. Para o usuário final isso não seria bom, pois o comportamento de seu navegador seria alterado em termos do número de conexões que são abertas, ignorando o uso do cache e comprometendo a performance de carregamento da página.&lt;/p&gt;
+
+&lt;h2 id=&#34;solução&#34;&gt;Solução&lt;/h2&gt;
+
+&lt;p&gt;Para resolver o problema sem a utilização de querystrings, o ideal é que todos os arquivos de assets que estão sendo requisitados na página sejam renomeados. Logicamente que as chamadas para esses assets renomeados também precisam ser atualizadas na página. Sabemos que fazer esse processo manualmente seria algo árduo, quase insano. Então como fazê-lo de forma elegante, automatizada?&lt;/p&gt;
+
+&lt;p&gt;A fórmula mágica para que isso aconteça de maneira prática é o &lt;a href=&#34;https://github.com/hollandben/grunt-cache-bust&#34;&gt;grunt-cache-bust&lt;/a&gt;, um plugin para o &lt;a href=&#34;http://tableless.com.br/grunt-voce-deveria-estar-usando/&#34;&gt;Grunt&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;show-me-the-code&#34;&gt;Show me the code&lt;/h3&gt;
+
+&lt;p&gt;Vou supor que você já conhece o &lt;a href=&#34;http://gruntjs.com/&#34;&gt;Grunt&lt;/a&gt; e que há uma &lt;em&gt;index.html&lt;/em&gt; na raiz de seu projeto, ok? Sendo assim, irei focar apenas na utilização do plugin.&lt;/p&gt;
+
+&lt;p&gt;A princípio você só precisa seguir 4 passos básicos para usar o grunt-cache-bust:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Instale o plugin usando o seguinte comando:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre class=&#34;lang-sh&#34;&gt;npm install grunt-cache-bust --save-dev
+&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Em seu &lt;em&gt;Gruntfile.js&lt;/em&gt;, adicione a seguinte propriedade ao objeto passado como parâmetro em &lt;em&gt;grunt.initConfig&lt;/em&gt;:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;cacheBust: {
+  options: {
+    encoding: &#39;utf8&#39;,
+    length: 16
+  },
+  scripts: {
+    files: [{
+      src: [&#39;index.html&#39;]
+    }]
+  }
+}
+&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Ainda em seu &lt;em&gt;Gruntfile.js&lt;/em&gt;, adicione a seguinte linha para ativar o plugin:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;grunt.loadNpmTasks(&#39;grunt-cache-bust&#39;);
+&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Tudo certo, agora é só rodar a task e voilà!&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre class=&#34;lang-sh&#34;&gt;grunt cacheBust
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;resultado&#34;&gt;Resultado&lt;/h3&gt;
+
+&lt;p&gt;Lembra que na raíz de seu projeto há uma &lt;em&gt;index.html&lt;/em&gt;? Então, basicamente a task vai varrer esse documento buscando por chamadas de assets (CSS, JS, imagens e favicons), copiar esses arquivos com um novo nome e atualizar o source de cada chamada encontrada com o novo nome do arquivo. Esse novo nome terá o formato {nome}.{hash}.{extensão}, onde {hash} seria um código aleatório.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;index.html&lt;/em&gt; antes:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script src=&#34;assets/main.js&#34;&amp;gt;&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;index.html&lt;/em&gt; depois:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script src=&#34;assets/main.6419373d85d7afe3.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Lindo, né?&lt;/p&gt;
+
+&lt;p&gt;Vale lembrar que o plugin irá ignorar automaticamente chamadas que apontam para CDNs.&lt;/p&gt;
+
+&lt;p&gt;A propriedade &lt;a href=&#34;https://github.com/hollandben/grunt-cache-bust#options&#34;&gt;options&lt;/a&gt; do plugin oferece uma porção de possibilidades interessantes que flexibilizam a utilização do cache busting, como por exemplo manter ou não os arquivos originais dos assets requisitados, escolher o algoritmo e tamanho das hashes, ignorar chamadas de assets através de regex, etc. Enfim, considere dar uma boa olhada na &lt;a href=&#34;https://github.com/hollandben/grunt-cache-bust#getting-started&#34;&gt;documentação oficial do plugin&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Cache busting é algo realmente útil no ciclo de desenvolvimento web. Chega de &lt;em&gt;Cmd+Shift+R&lt;/em&gt; ou &lt;em&gt;Ctrl+F5&lt;/em&gt;, né?&lt;/p&gt;
+
+&lt;p&gt;Se você tem alguma outra solução para essa questão, utilizando Gulp ou outra ferramenta, conta pra gente aqui nos comentários. A comunidade agradece! ;D&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>HTTP2 para Desenvolvedores de Web</title>
+      <link>http://tableless.com.br/http2-para-desenvolvedores-de-web/</link>
+      <pubDate>Tue, 21 Apr 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/http2-para-desenvolvedores-de-web/</guid>
+      <description>
+
+&lt;p&gt;HTTP2 significa uma mudança na forma como construímos websites. As boas práticas de HTTP1 são prejudiciais no mundo do HTTP2.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;HTTP1 é lento e ineficiente para a maioria dos casos de uso de hoje na web.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;HTTP1.x é a versão do HTTP que nós já conhecemos quando entramos o endereço de um site. É um protocolo antigo que foi concebido antes mesmo de sabermos o que essa imensa rede mundial de computadores se tornaria. Apesar desse protocolo continuar funcionando como esperado, simplesmente não é tão eficiente como no início, porque ultimamente estamos exigindo algo muito mais complexo do que este protocolo foi projetado originalmente.&lt;/p&gt;
+
+&lt;h2 id=&#34;nós-estamos-hackeando-o-http1&#34;&gt;Nós estamos hackeando o HTTP1&lt;/h2&gt;
+
+&lt;p&gt;Para que os sites carreguem em tempo aceitável usando HTTP1, desenvolvemos uma série de técnicas; hacks na verdade; para conseguirmos extrair um bom desempenho deste protocolo antigo. São eles:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Usando CSS Sprites&lt;/strong&gt;: Combine várias imagens em uma só imagem e utilizando CSS para mostrar apenas uma parte dessa imagem num devido lugar da página.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Concatenando o Código&lt;/strong&gt;: Tornando vários arquivos de CSS ou JS e consolidá-los em um único arquivo maior.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Cookieless&lt;/strong&gt; &amp;#8211; Servindo arquivos de um domínio sem o uso de cookies, através de servidores estáticos.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Usando Partições de Shard&lt;/strong&gt;: Criando registros de Alias no DNS de diferentes domínios ou sub-domínios para hospedagem dos arquivos de imagens.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;As duas primeiras técnicas visam evitar várias solicitações HTTP. Em HTTP1 um pedido é uma coisa muito cara e leva muito tempo, cada pedido pode ser baixados com os cookies que devem ser enviados como parte do pedido, e nada disso é compactado. É mais rápido agrupar um monte de coisas e fazer tudo de uma só vez no lado do cliente do que continuar enviando pedidos para o servidor cada momento que o código precisa de um arquivo.&lt;/p&gt;
+
+&lt;p&gt;A terceira técnica é usada para minimizar o tempo necessário para obter os arquivos; cookies, se estiver definido, deve ser enviado para o domínio solicitado junto com cada pedido &amp;#8211; que acrescenta-se a um monte de espaço &amp;#8216;desperdiçado&amp;#8217; na linha. Se os seus arquivos estão em um domínio diferente (exemplo: imagens.meusite.com) que não usa cookies, então o pedido desses arquivos não precisará enviar cookies com eles, o que será um pouco mais rápido.&lt;/p&gt;
+
+&lt;p&gt;A última técnica, sharding, é porque os navegadores costumavam permitir apenas duas solicitações HTTP simultâneas fossem feitas por domínio. Se você criar um novo domínio para alguns de seus arquivos, então você dobra a quantidade de conexões simultâneas o navegador irá permitir a fim de obter seus arquivos. Assim, você pode baixar o conteúdo do site mais rapidamente. Na realidade, sharding não tem sido muito útil nos últimos anos, pois os fabricantes de navegadores decidiram eliminar essa restrição das duas conexões &amp;#8216;era tonto, e eles ignoraram.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;o-que-esperar-do-http2&#34;&gt;O que esperar do HTTP2?&lt;/h2&gt;
+
+&lt;blockquote style=&#34;font-size: 200%&#34;&gt;
+  &lt;p&gt;
+    &lt;em&gt;Não use as boas práticas do HTTP1 como base para um site que está sendo hospedado em HTTP2.&lt;/em&gt;
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;O protocolo HTTP2 está quase aqui, ele é baseado no SPDY®, e isso torna tudo muito mais eficiente. Significa também que todas as técnicas de desempenho HTTP1 são prejudiciais. Eles irão fazer um site HTTP2 mais lento, e não mais rápido. Portanto, não use as boas práticas do HTTP1 como base para um site que está sendo hospedado em HTTP2.&lt;/p&gt;
+
+&lt;p&gt;HTTP2 faz com que o custo de múltiplos pedidos diminua por causa de um número de técnicas já incluídas:&lt;/p&gt;
+
+&lt;ul class=&#34;task-list&#34;&gt;
+  &lt;li&gt;
+    HTTP2 pode deixar a conexão em aberta para reutilização por um longo de tempo, para que não haja a necessidade daquela negociação cara que HTTP1 faz com o servidor em cada solicitação.
+  &lt;/li&gt;
+  &lt;li&gt;
+    Ao contrário do HTTP1, o novo protocolo usa compactação de arquivos e assim o tamanho da solicitação é significativamente menor &amp;#8211; e, como resultado, mais rápida.
+  &lt;/li&gt;
+  &lt;li&gt;
+    HTTP2 é multiplex, ou seja, pode enviar e receber várias coisas ao mesmo tempo através de uma única conexão.
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;O que tudo isso significa, é que não só as técnicas que usamos no HTTP1 estão obsoletas, mas como também, farão as coisas ficarem mais lentas. Você poderá estar baixando arquivos desnecessários para a página a ser servida (concatenação de código e CSS sprites são suscetíveis à isso), e a técnica de sharding invoca pesquisas de DNS que irão retardar as coisas, na verdade, no HTTP2 voce não precisar de usar shard de forma alguma.&lt;/p&gt;
+
+&lt;p&gt;Resumindo, quando você desenvolver o front-end (html/css/js) para um site que será servido através do HTTP2, tenha a certeza de que você não está usando velhas técnicas de desempenho do HTTP1, o que irão prejudicar o seu HTTP2 site.&lt;/p&gt;
+
+&lt;h3 id=&#34;aprendendo-mais-sobre-o-http2&#34;&gt;Aprendendo mais sobre o HTTP2&lt;/h3&gt;
+
+&lt;p&gt;Aqui está &lt;a href=&#34;http://daniel.haxx.se/http2/&#34;&gt;um excelente artigo (em inglês)&lt;/a&gt;, escrito por Daniel Stenberg, no qual ele detalha mais profundamente esse assunto.&lt;/p&gt;
+
+&lt;h3 id=&#34;tradução&#34;&gt;Tradução&lt;/h3&gt;
+
+&lt;p&gt;A tradução deste artigo para o Português foi devidamente autorizada pelo autor, &lt;a href=&#34;https://mattwilcox.net/web-development/http2-for-front-end-web-developers&#34;&gt;Matt Wilcox&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Otimize a performance do seu site com o Kraken</title>
+      <link>http://tableless.com.br/otimize-performance-seu-site-com-o-kraken/</link>
+      <pubDate>Tue, 14 Apr 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/otimize-performance-seu-site-com-o-kraken/</guid>
+      <description>
+
+&lt;p&gt;Quando o assunto é performance, você ainda pode ter muita dor de cabeça. É comum muitos sites e aplicações web terem a sua experiência deformada por problemas na performance. Há tempos procuramos métodos para otimizar nossos sites, tais como concatenação de arquivos para diminuir as requisições HTTP, minificar CSS, JavaScript e até mesmo HTML. Entre várias outras técnicas. Porém, cada vez mais essas técnicas não conseguem acompanhar os novos recursos que sempre estão surgindo para deixar nossos sites cada vez mais impressionantes. E pesados.&lt;/p&gt;
+
+&lt;p&gt;Quando o assunto é front-end, um dos grandes vilões para uma boa performance ainda são as imagens, já que a maior parte do tráfego de seu site vem delas. Não é difícil ver uma única imagem com o tamanho superior à todo código que é carregado em uma determinada página. Tentamos contornar esse dilema usando SVG nas iconografias, fazer gradientes e elementos de interface complexos usando apenas CSS. Mas isso ainda não nos deixam isentos do uso de imagens em jpeg, gif e png, e do peso delas.&lt;/p&gt;
+
+&lt;h3 id=&#34;conheça-o-kraken&#34;&gt;Conheça o Kraken&lt;/h3&gt;
+
+&lt;p&gt;Como é impossível ter um site sem imagens, o que podemos fazer é amenizar o impacto delas na performance. Então aí que eu lhes apresento o Kraken.&lt;/p&gt;
+
+&lt;p&gt;O Kraken é uma ferramenta poderosa que conta com um motor de compressão de imagens super eficiente. Eu por exemplo já tive imagens com 99% do seu tamanho reduzido. E o melhor de tudo, sem nenhum impacto na qualidade visual.&lt;/p&gt;
+
+&lt;p&gt;E é exatamente isso que o Kraken promete, e onde ele se destaca. Não uma mera diminuição no tamanho do arquivo, mas sim que isso aconteça garantindo que não haverá perdas na qualidade visual da imagem. Como no exemplo abaixo:&lt;/p&gt;
+
+&lt;div style=&#34;width: 766px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;&#34; src=&#34;http://s29.postimg.org/kh32i0mg7/kraken_before_and_after.jpg&#34; alt=&#34;Kraken&#34; width=&#34;756&#34; height=&#34;205&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Kraken antes e depois
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&#34;minha-experiência-com-o-kraken&#34;&gt;Minha experiência com o Kraken&lt;/h3&gt;
+
+&lt;p&gt;Sempre usei o plugin imagemin do grunt. Mas nunca tive resultados expressivos. Até que, por recomendação de um amigo, eu conheci o Kraken e realmente fiquei impressionado com os seus resultados. Mas além de contar histórias, vou demonstrar o uso prático da aplicação.&lt;/p&gt;
+
+&lt;p&gt;No meu site pessoal, na página portfolio, há uma listagem dos meus projetos e suas respectivas capas. 90% dessa página é composta por imagens e notei que estava levando muito tempo para carregar por conta dessas imagens. Então eu testei otimizar cada uma delas para ver o resultado. Antes vale lembrar que eu fiz essas imagens pelo Photoshop, e elas foram salvas no formato png no modo smallest/slow, que garante uma compressão maior. Mas será que é o suficiente? Vamos ver logo abaixo:&lt;/p&gt;
+
+&lt;div style=&#34;width: 760px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;&#34; src=&#34;http://s12.postimg.org/j3s0bu43h/compress_o.png&#34; alt=&#34;compressão&#34; width=&#34;750&#34; height=&#34;305&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    compressão
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Nessa brincadeira, eu poupei 1.84MB de carregamento em minha página, isso remete a 85.39% a menos do tamanho total de todas as imagens juntas. É um ganho e tanto, não?&lt;/p&gt;
+
+&lt;p&gt;Agora vamos ver o impacto disso na página em questão:&lt;/p&gt;
+
+&lt;p&gt;Antes:&lt;/p&gt;
+
+&lt;div style=&#34;width: 557px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;&#34; src=&#34;http://s30.postimg.org/6l234x6cx/kraken_antes.jpg&#34; alt=&#34;Antes&#34; width=&#34;547&#34; height=&#34;52&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Antes
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Depois&lt;/p&gt;
+
+&lt;div style=&#34;width: 562px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;&#34; src=&#34;http://s30.postimg.org/wun5npsa9/kraken_depois.jpg&#34; alt=&#34;depois&#34; width=&#34;552&#34; height=&#34;51&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    depois
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Lembrando que em ambos os carregamentos o cache foi limpo.&lt;/p&gt;
+
+&lt;p&gt;E sobre a qualidade. Gostaria que você mesmo fizesse esse teste com a imagem de sua preferência.&lt;/p&gt;
+
+&lt;h3 id=&#34;ok-quero-usar&#34;&gt;Ok, quero usar!&lt;/h3&gt;
+
+&lt;p&gt;Infelizmente nada que funciona tão bem é de graça. O Kraken possui vários tipos de planos, com pagamento mensal ou anual.&lt;/p&gt;
+
+&lt;p&gt;Mas também há também o modo gratuito, com algumas limitações, é claro. No modo gratuito você não terá acesso a recursos como a API deles, Plugin para WordPress entre outros. Mas talvez o que vá mais lhe incomodar é o limite de 1MB por imagem.&lt;/p&gt;
+
+&lt;p&gt;Eu pessoalmente, uso apenas o modo gratuito e não tenho muitos problemas. Geralmente quando eu lido com imagens acima de 1MB, eu recorro a uma outra alternativa que citarei logo abaixo.&lt;/p&gt;
+
+&lt;h3 id=&#34;uma-alternativa-interessante&#34;&gt;Uma alternativa interessante&lt;/h3&gt;
+
+&lt;p&gt;Também há uma ferramenta chamada Compressor.io, ela tem a mesma finalidade do Kraken mas é 100% gratuito. Ela se demonstra tão eficiente quanto, e eu já até tive imagens que a compressão foi maior no Compressor.io do que no Kraken, como podem ver abaixo:&lt;/p&gt;
+
+&lt;p&gt;No Kraken:&lt;/p&gt;
+
+&lt;div style=&#34;width: 898px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;&#34; src=&#34;http://s10.postimg.org/okddqy9gp/compressao_no_kraken.png&#34; alt=&#34;Kraken&#34; width=&#34;888&#34; height=&#34;93&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Kraken
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;No Compressor:&lt;/p&gt;
+
+&lt;div style=&#34;width: 838px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;&#34; src=&#34;http://s10.postimg.org/h346bqjxl/compressao_no_compressor.png&#34; alt=&#34;Compressor&#34; width=&#34;828&#34; height=&#34;57&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Compressor
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Tudo bem que nesse exemplo não se tratou de uma imagem grande. Nesse caso eu usei a imagem que se tornou a capa desse artigo. Mas demonstra que mesmo tratando-se de uma aplicação gratuita, se mostra tão competente quanto. (Não me perguntem o por que em cada ferramenta a imagem foi identificada com o tamanho original diferente. Mas é a mesma imagem, eu juro! )&lt;/p&gt;
+
+&lt;p&gt;O único problema é que o Compressor.io só permite você otimizar uma imagem por vez, e isso pode tornar as coisas meio trabalhosas dependendo da quantidade de imagens que você precisa tratar. Também não há tantos recursos quanto o Kraken tem caso você esteja disposto a pagar pelo serviço.&lt;/p&gt;
+
+&lt;p&gt;Caso você tenha várias imagens com menos de 1MB e algumas imagens com mais, você poderá usar o melhor de cada ferramenta para conseguir atingir a otimização de performance que você deseja para seu site, gratuitamente!&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;Kraken&#34; href=&#34;http://kraken.io&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://kraken.io&#34;&gt;http://kraken.io&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;Compressor&#34; href=&#34;http://compressor.io&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://compressor.io&#34;&gt;http://compressor.io&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora é com vocês!&lt;/p&gt;
+
+&lt;p&gt;Não esqueça de deixar seu comentário abaixo! Já conhecia o Kraken? Começou a usar depois desse artigo? Conhece outras alternativas? Compartilhe conosco!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Entendendo o Event Delegation da função on() no jQuery</title>
+      <link>http://tableless.com.br/entendendo-o-event-delegation-jquery/</link>
+      <pubDate>Mon, 02 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/entendendo-o-event-delegation-jquery/</guid>
+      <description>&lt;p&gt;Geralmente uma &amp;#8220;delegação&amp;#8221;, que seria a uma tradução livre para &lt;strong&gt;delegation&lt;/strong&gt;, significa definir um evento para um elemento pai, que será disparado para todos os seus filhos. O evento vai funcionar para qualquer elemento filho que já existir e também para os que forem adicionados posteriormente na árvore do DOM.&lt;/p&gt;
+
+&lt;p&gt;Para exemplificar, entenda o código abaixo. Ele apenas muda o texto do parágrafo quando clicamos em alguma opção do menu. É um uso simples da função &lt;code&gt;on(&#39;click&#39;)&lt;/code&gt; do jQuery:&lt;/p&gt;
+
+&lt;p&gt;Para entender como isso funciona, você precisa saber o que é o &lt;code&gt;event propagation&lt;/code&gt; (ou &lt;code&gt;event bubbling&lt;/code&gt;): toda vez que você clica em um elemento, esse clique é propagado para toda a árvore do DOM, iniciando pelo elemento onde o evento aconteceu e chegando até o root do documento, que no nosso caso é a tag HTML.&lt;/p&gt;
+
+&lt;p&gt;Além disso, você faz seu browser ouvir o click em todos os elementos desse nosso menu, se considerarmos o exemplo acima. Nesse nosso caso, não chega a ser um problema, mas imagine em uma tabela que tem muitas células e que você precisa executar alguma coisa quando alguma das &lt;code&gt;td&lt;/code&gt; é clicada. A performance começa a ser prejudicada.&lt;/p&gt;
+
+&lt;p&gt;Quando usamos o &lt;strong&gt;event delegation&lt;/strong&gt; ao nosso favor, podemos definir o evento no elemento pai e então, quando esse evento acontecer, delegamos para o seu filho. No nosso exemplo acima, nós vamos atrelar o evento de click no &lt;code&gt;ul.menu&lt;/code&gt;, mas delegando esse evento para os links. A função em si nem muda tanto, ela fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.menu&#39;).on(&#39;click&#39;, &#39;a&#39;, function(evt){
+        // Seu código...
+    });
+&lt;/pre&gt;
+
+&lt;p&gt;Perceba que a função &lt;code&gt;on()&lt;/code&gt; recebe dois parâmetros: o primeiro é o evento e o segundo é o elemento filho que esse evento deve ser aplicado.&lt;/p&gt;
+
+&lt;p&gt;Suponha que você tenha alguma função que adiciona mais filhos ao seu elemento pai. A propagação continua funcionando, já que o evento está atrelado ao pai e não aos seus filhos.&lt;/p&gt;
+
+&lt;p&gt;Lembrando que a função &lt;code&gt;on()&lt;/code&gt; foi adicionada no jQuery 1.7, para juntar as vantagens das funções &lt;code&gt;delegate()&lt;/code&gt; e &lt;code&gt;live()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Há uma &lt;a href=&#34;http://jsperf.com/jquery-event-delegation/5&#34;&gt;análise de performance no JSPerf&lt;/a&gt; comparando o várias maneiras para você delegar os eventos aos filhos de um elemento. O &lt;code&gt;delegate()&lt;/code&gt; tem quase a mesma performance que o &lt;code&gt;on()&lt;/code&gt;, mesmo assim é melhor usar o &lt;code&gt;on()&lt;/code&gt;, já que ele tem mais vantagens.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Como perder peso (no browser)</title>
+      <link>http://tableless.com.br/como-perder-peso-no-browser/</link>
+      <pubDate>Fri, 23 Aug 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/como-perder-peso-no-browser/</guid>
+      <description>
+
+&lt;p&gt;Nós desenvolvedores falamos tanto das novidades do HTML5, CSS3, EcmaScript 6 que acabamos esquecendo de falar de outras coisas também muito importantes, mas que não são tão novidade assim, como performance.&lt;/p&gt;
+
+&lt;p&gt;Depois de muito esforço, finalmente lançamos um guia definitivo sobre o assunto chamado &lt;a href=&#34;http://browserdiet.com&#34;&gt;browserdiet.com&lt;/a&gt; e vim compartilhar um pouco da experiência de ter liderado esse projeto irado.&lt;/p&gt;
+
+&lt;h2 id=&#34;motivação&#34;&gt;Motivação&lt;/h2&gt;
+
+&lt;p&gt;O ano de 2012 foi um ano bem diferente pra mim, passei &lt;sup&gt;1&lt;/sup&gt;&amp;frasl;&lt;sub&gt;3&lt;/sub&gt; dele viajando e me deparei com muita conexão ruim em hotel e aeroporto. Isso me deixava muito irritado. E é claro que eu sempre xingava o hotel/aeroporto, até perceber que a culpa na verdade é nossa.&lt;/p&gt;
+
+&lt;p&gt;Nós desenvolvedores somos egoístas. Passamos o dia todo no escritório com uma alta velocidade de conexão e esquecemos que existem outras pessoas no mundo enfrentando velocidades bem diferentes daquela.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-início&#34;&gt;O Início&lt;/h2&gt;
+
+&lt;p&gt;Comecei a estudar mais sobre performance para escrever &lt;a href=&#34;http://zenorocha.com/monografia/&#34;&gt;minha monografia&lt;/a&gt; e me deparei com o seguinte cenário. Em inglês, excelentes referências como os livros &lt;a href=&#34;http://www.amazon.com/High-Performance-Web-Sites-Essential/dp/0596529309&#34;&gt;High Performance Websites&lt;/a&gt; e &lt;a href=&#34;http://www.amazon.com/Even-Faster-Web-Sites-Performance/dp/0596522304/ref=sr_1_1&#34;&gt;Even Faster Web Sites&lt;/a&gt;, ambos do &lt;a href=&#34;http://stevesouders.com/&#34;&gt;Steve Souders&lt;/a&gt;. Além, é claro, dos guias da &lt;a href=&#34;http://developer.yahoo.com/performance/rules.html&#34;&gt;Yahoo!&lt;/a&gt; e &lt;a href=&#34;https://developers.google.com/speed/docs/best-practices/rules_intro&#34;&gt;Google&lt;/a&gt;. Já em português, uma dezena de blogposts soltos por aí.&lt;/p&gt;
+
+&lt;p&gt;Pensei: &amp;#8220;E se eu fizesse um guia foda de performance voltado pra comunidade?&amp;#8221; Mas não fazia sentido fazer aquilo sozinho, então de pouquinho em pouquinho fui conversando com uns amigos.&lt;/p&gt;
+
+&lt;h2 id=&#34;concepção&#34;&gt;Concepção&lt;/h2&gt;
+
+&lt;p&gt;Uma coisa estava muito clara pra mim, queria fazer um projeto divertido.&lt;/p&gt;
+
+&lt;p&gt;Convenci primeiro a designer &lt;a href=&#34;http://www.brizabueno.com/&#34;&gt;Briza Bueno&lt;/a&gt; &lt;em&gt;(Americanas.com)&lt;/em&gt; a me ajudar. Ela elaborou uma identidade muito mais divertida do que aqueles guias chatos que existem hoje. Isso tudo com base nas ilustrações do &lt;a href=&#34;http://myextralife.com/56geeks/&#34;&gt;Scott Johnson&lt;/a&gt;, a quem eu pedi autorização para utilizar as imagens.&lt;/p&gt;
+
+&lt;p&gt;Depois chegou a hora de elaborar a estrutura desse site, nessa parte o &lt;a href=&#34;http://irae.pro.br&#34;&gt;Iraê Lambert&lt;/a&gt; &lt;em&gt;(Yahoo!)&lt;/em&gt; me deu uma mão escrevendo um static generator em Python. Só que eu não dominava aquele código e as barreiras que eu encontrava por não saber manipular aquilo foram me afastando do projeto, ao mesmo tempo em que outras ideias iam surgindo.&lt;/p&gt;
+
+&lt;p&gt;Resultado: o projeto ficou parado por 1 ano até que eu decidi retomar reescrevendo todo código usando um outro static generator em Node.JS chamado &lt;a href=&#34;http://docpad.org&#34;&gt;DocPad&lt;/a&gt;. Como todo projeto open source, se você quiser fazer algo que tenha a colaboração das pessoas precisa eliminar o maior número de barreiras possíveis. Por isso, inspirado no &lt;a href=&#34;http://html5please.com/&#34;&gt;HTML5 Please&lt;/a&gt;, decidi que todas as dicas seriam escritas no formato mais simples do planeta, em &lt;a href=&#34;http://pt.wikipedia.org/wiki/Markdown&#34;&gt;Markdown&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conteúdo&#34;&gt;Conteúdo&lt;/h2&gt;
+
+&lt;p&gt;Design e implementação estavam prontos, só faltava o que realmente importa, o conteúdo. Convidei então grandes amigos que enfrentam muitos desafios de performance no seu dia-a-dia, &lt;a href=&#34;https://github.com/davidsonfellipe&#34;&gt;Davidson Fellipe&lt;/a&gt; &lt;em&gt;(Globo.com)&lt;/em&gt;, &lt;a href=&#34;https://github.com/keppelen&#34;&gt;Giovanni Keppelen&lt;/a&gt; &lt;em&gt;(Peixe Urbano)&lt;/em&gt; e &lt;a href=&#34;https://github.com/jaydson&#34;&gt;Jaydson Gomes&lt;/a&gt; &lt;em&gt;(Terra)&lt;/em&gt;. As categorias iniciais divididas entre nós foram HTML, CSS, JavaScript e jQuery.&lt;/p&gt;
+
+&lt;p&gt;Meu eterno dilema entre português e inglês também persistia nesse projeto. Cheguei a comprar o pequenino domínio &lt;a href=&#34;http://comoperderpesonobrowser.com.br&#34;&gt;comoperderpesonobrowser.com.br&lt;/a&gt;, mas ele claramente não funcionaria para um conteúdo em inglês também. Por isso, optei por algo mais curto e universal.&lt;/p&gt;
+
+&lt;h2 id=&#34;revisão&#34;&gt;Revisão&lt;/h2&gt;
+
+&lt;p&gt;Depois de muito aprimoramento resolvi convidar outros caras sinistros para revisarem, como o &lt;a href=&#34;https://github.com/marcelduran&#34;&gt;Marcel Duran&lt;/a&gt; &lt;em&gt;(Twitter)&lt;/em&gt;, &lt;a href=&#34;https://github.com/miketaylr&#34;&gt;Mike Taylor&lt;/a&gt; &lt;em&gt;(Opera)&lt;/em&gt;, &lt;a href=&#34;https://github.com/mangini&#34;&gt;Renato Mangini&lt;/a&gt; &lt;em&gt;(Google)&lt;/em&gt; e &lt;a href=&#34;https://github.com/sergiolopes&#34;&gt;Sérgio Lopes&lt;/a&gt; &lt;em&gt;(Caelum)&lt;/em&gt;. Todos ficaram animados e contribuiram insanamente. O legal foi que a discussão não ficou apenas na parte do conteúdo, questões relativas ao código do site foram extremamente debatidas como usar &lt;a href=&#34;https://github.com/zenorocha/browser-diet/issues/40&#34;&gt;CSS Sprites vs Lazy Load&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;lançamento&#34;&gt;Lançamento&lt;/h2&gt;
+
+&lt;p&gt;Eu estava planejando lançar esse projeto no mínimo em Abril. Só que quando vi que os primeiros colaboradores (Briza, Davidson, Giovanni, e Jaydson) do projeto estariam presentes no &lt;a href=&#34;http://riojs.org&#34;&gt;Rio.JS&lt;/a&gt;, mudei o tema da minha palestra e comecei a correr contra o tempo.&lt;/p&gt;
+
+&lt;p&gt;Felizmente deu tudo certo e lançamos o projeto!&lt;/p&gt;
+
+&lt;p&gt;O resultado final você pode conferir em: &lt;a href=&#34;http://browserdiet.com&#34;&gt;browserdiet.com&lt;/a&gt;. E o código fonte, como sempre, está &lt;a href=&#34;https://github.com/zenorocha/browser-diet&#34;&gt;aberto no Github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;PS: Os &lt;a href=&#34;https://speakerdeck.com/zenorocha/como-perder-peso-no-browser/&#34;&gt;slides também estão online&lt;/a&gt; para quem quiser conferir.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão?&lt;/h2&gt;
+
+&lt;p&gt;Estou bem animado para ver como a comunidade vai receber e se beneficiar desse aglomerado de dicas iradas que preparamos.&lt;/p&gt;
+
+&lt;p&gt;E aí, vamos fazer uma web mais rápida?&lt;/p&gt;
+
+&lt;h2 id=&#34;reações&#34;&gt;Reações&lt;/h2&gt;
+
+&lt;p&gt;&lt;em&gt;iMasters &amp;#8211; &lt;a href=&#34;http://imasters.com.br/noticia/guia-que-conscientiza-desenvolvedores-sobre-a-importancia-da-performance-e-lancado/&#34;&gt;Guia que conscientiza desenvolvedores sobre a importância da performance é lançado&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;blockquote class=&#34;twitter-tweet&#34;&gt;
+  &lt;p&gt;
+    love this new project: &lt;a title=&#34;http://browserdiet.com&#34; href=&#34;http://t.co/u8FWpD5mW0&#34;&gt;browserdiet.com&lt;/a&gt;
+  &lt;/p&gt;
+  
+  &lt;p&gt;
+    — Stoyan Stefanov (@stoyanstefanov) &lt;a href=&#34;https://twitter.com/stoyanstefanov/status/311258820800303104&#34;&gt;March 11, 2013&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;em&gt;Stoyan Stefanov, Engineer &amp;#8211; Facebook&lt;/em&gt;&lt;/p&gt;
+
+&lt;blockquote class=&#34;twitter-tweet&#34;&gt;
+  &lt;p&gt;
+    How to lose weight in the browser — the definitive front-end performance guide: &lt;a title=&#34;http://browserdiet.com/&#34; href=&#34;http://t.co/YqRgmFvipm&#34;&gt;browserdiet.com&lt;/a&gt;
+  &lt;/p&gt;
+  
+  &lt;p&gt;
+    — Mathias Bynens (@mathias) &lt;a href=&#34;https://twitter.com/mathias/status/311193207327293440&#34;&gt;March 11, 2013&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;em&gt;Mathias Bynens, Web Developer &amp;#8211; Freelance&lt;/em&gt;&lt;/p&gt;
+
+&lt;blockquote class=&#34;twitter-tweet&#34;&gt;
+  &lt;p&gt;
+    Some of Brazil&amp;#8217;s brightest front-end devs created and just launched &lt;a title=&#34;http://browserdiet.com/&#34; href=&#34;http://t.co/8FNPhsjzQx&#34;&gt;browserdiet.com&lt;/a&gt;. Check it out!
+  &lt;/p&gt;
+  
+  &lt;p&gt;
+    — Mike Taylor (@miketaylr) &lt;a href=&#34;https://twitter.com/miketaylr/status/311253455647952897&#34;&gt;March 11, 2013&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;em&gt;Mike Taylor, Web Opener &amp;#8211; Opera&lt;/em&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Latência, largura de banda e a velocidade da luz</title>
+      <link>http://tableless.com.br/latencia-largura-de-banda-e-a-velocidade-da-luz/</link>
+      <pubDate>Wed, 01 May 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/latencia-largura-de-banda-e-a-velocidade-da-luz/</guid>
+      <description>&lt;p&gt;Será que se aumentarmos a banda da nossa internet de 5Mbps para 10Mbps teremos o dobro de velocidade na navegação de páginas na Web?&lt;/p&gt;
+
+&lt;p&gt;Comecei esse post com uma pergunta de propósito e espero que você possa responder essa questão ao final da leitura.&lt;/p&gt;
+
+&lt;p&gt;Hoje enfrentamos um grande problema em todos os sistemas de rede que basicamente é a velocidade de uma informação sair de um ponto e chegar a outro, esse tempo de viagem da tal informação entre dois pontos é o que chamamos de &lt;strong&gt;latência&lt;/strong&gt;. Já faltamos disso &lt;a href=&#34;http://tableless.com.br/navigation-timing-api/&#34; title=&#34;Medindo performance e latência com a Navigation Timing API&#34;&gt;aqui&lt;/a&gt; e &lt;a href=&#34;http://tableless.com.br/performance-frontend-parte2/&#34; title=&#34;Performance front-end – Parte 2&#34;&gt;aqui&lt;/a&gt;. Esse artigo complementa o assunto.&lt;/p&gt;
+
+&lt;p&gt;O tempo de latência normalmente é medido em &lt;em&gt;ms&lt;/em&gt; (milissegundos) para a maioria dos sistemas/situações, como não estamos habituados a pensar em milissegundos veja abaixo uma tabela de percepção dos usuários em relação a algumas “esperas”:&lt;/p&gt;
+
+&lt;table width=&#34;100%&#34; border=&#34;1&#34;&gt;
+  &lt;tr&gt;
+    &lt;td&gt;
+      Delay
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      User Reaction
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      0 – 100ms
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      Instant
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      100 – 300ms
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      Small perceptible delay
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      300 – 1000ms
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      Machine is working
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      1s+
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      Mental context switch
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      10s+
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      I’ll come back later…
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Claramente se quisermos ter a atenção total de nossos usuários teremos que manter a velocidade de resposta de nossas aplicações em até &lt;strong&gt;300ms&lt;/strong&gt; (complicadíssimo!).&lt;/p&gt;
+
+&lt;p&gt;Ok, já sabemos o que é latência, mas outro conceito importante de aprendermos é o &lt;strong&gt;RTT&lt;/strong&gt; (round trip time) que basicamente é o tempo de ida e volta de um sinal/informação entre dois pontos (latência de um meio de transmissão vezes 2).&lt;/p&gt;
+
+&lt;p&gt;O grande problema com a latência na realidade é que hoje já estamos transmitindo os dados/sinais/informações de maneira &lt;strong&gt;muito&lt;/strong&gt; rápida e estamos amarrados a um limite de velocidade também conhecido como &lt;strong&gt;velocidade da luz.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;A &lt;a title=&#34;velocidade da luz&#34; href=&#34;http://pt.wikipedia.org/wiki/Velocidade_da_luz&#34; target=&#34;_blank&#34;&gt;velocidade da luz&lt;/a&gt; por definição é igual a 299 792 458 metros por segundo ou mais ou menos 1079 milhões de quilomêtros por hora (bastante não?), só que (sempre tem um but) essa velocidade toda só é atingida no &lt;a title=&#34;vácuo&#34; href=&#34;http://pt.wikipedia.org/wiki/V%C3%A1cuo&#34; target=&#34;_blank&#34;&gt;vácuo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Bom como o vácuo perfeito não é possível na natureza e o não perfeito hoje não é utilizado em grande escala (somente alguns centros de pesquisa possuem câmaras de vácuo) teremos que utilizar outro meio para a transmissão da luz certo? Sim perfeito!&lt;/p&gt;
+
+&lt;p&gt;Que a &lt;a title=&#34;fibra óptica&#34; href=&#34;http://pt.wikipedia.org/wiki/Fibra_%C3%B3ptica&#34; target=&#34;_blank&#34;&gt;fibra óptica&lt;/a&gt; é realidade não temos duvida =D e é nela que basicamente transmitimos a luz/sinais/informações entre os continentes hoje em dia (normalmente debaixo dos oceanos).&lt;/p&gt;
+
+&lt;p&gt;A fibra é um meio muito competente para a transmissão da luz, mas é um meio de transmissão e não a ausência dele (vácuo). Todo &lt;strong&gt;meio&lt;/strong&gt; de transmissão possui um &lt;a title=&#34;índice de refração&#34; href=&#34;http://pt.wikipedia.org/wiki/%C3%8Dndice_de_refra%C3%A7%C3%A3o&#34; target=&#34;_blank&#34;&gt;índice de refração&lt;/a&gt; associado ao mesmo e no caso da fibra esse valor é de ~1.5.&lt;/p&gt;
+
+&lt;p&gt;Veja abaixo algumas distâncias e tempos de latência entre algumas cidades famosas do nosso querido planeta terra:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;col /&gt; &lt;col /&gt; &lt;col /&gt; &lt;col /&gt; &lt;col /&gt; &lt;tr&gt;
+    &lt;td&gt;
+      Rota
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      Distância
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      Tempo – Luz no vácuo
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      Tempo – Luz na fibra
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      Round Trip Time (RTT) na fibra
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;p id=&#34;new_york_to_san&#34;&gt;
+        New York to San Francisco
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;p id=&#34;km_id1&#34;&gt;
+        4,148 km
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;p id=&#34;ms_id1&#34;&gt;
+        14 ms
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;p id=&#34;ms_id2&#34;&gt;
+        &lt;strong&gt;21 ms&lt;/strong&gt;
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;p id=&#34;ms_id3&#34;&gt;
+        42 ms
+      &lt;/p&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;p id=&#34;new_york_to_lon&#34;&gt;
+        New York to London
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;p id=&#34;km_id2&#34;&gt;
+        5,585 km
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;p id=&#34;ms_id4&#34;&gt;
+        19 ms
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;p id=&#34;ms_id5&#34;&gt;
+        &lt;strong&gt;28 ms&lt;/strong&gt;
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;p id=&#34;ms_id6&#34;&gt;
+        56 ms
+      &lt;/p&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;p id=&#34;new_york_to_syd&#34;&gt;
+        New York to Sydney
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;p id=&#34;km_id3&#34;&gt;
+        15,993 km
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;p id=&#34;ms_id7&#34;&gt;
+        53 ms
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;p id=&#34;ms_id8&#34;&gt;
+        &lt;strong&gt;80 ms&lt;/strong&gt;
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;p id=&#34;ms_id9&#34;&gt;
+        160 ms
+      &lt;/p&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;O desafio hoje é tentar reduzir cada vez mais o índice de refração dos meios de transmissão e chegar cada vez mais perto do “limite” da velocidade da luz (complicadíssimo de novo!).&lt;/p&gt;
+
+&lt;p&gt;Perceba que uma resolução de DNS (que acontece em todas as páginas web do mundo) requer um RTT, estabelecer uma conexão TCP (que é por onde uma requisição HTTP é trafegada, leia: &lt;a title=&#34;Anatomia de uma requisição HTTP&#34; href=&#34;http://www.cleberdantas.com/2011/12/anatomia-de-uma-requisicao-http/&#34; target=&#34;_blank&#34;&gt;Anatomia de uma requisição HTTP&lt;/a&gt;) requer outro RTT, mas sabemos que acontece mais de uma resolução DNS por página e também que são estabelecidas mais de uma conexão TCP para trafegar as diversas requisições HTTP de uma página.&lt;/p&gt;
+
+&lt;p&gt;Mesmo sabendo disso ainda queremos ter aplicações rodando abaixo de 300ms (Are you fucking kidding me?).&lt;/p&gt;
+
+&lt;p&gt;Ok, sabemos que da para reaproveitar conexões TCP (keep-alive), usar &lt;a title=&#34;CND&#34; href=&#34;http://www.cleberdantas.com/2011/11/content-delivery-network-cdn-voce-ainda-vai-usar-uma/&#34; target=&#34;_blank&#34;&gt;CDN&lt;/a&gt; e trazer para mais perto dos usuários nossos assets, assim diminuindo o percurso o que diminui a latência.&lt;/p&gt;
+
+&lt;p&gt;Agora você pode estar pensando que foi justamente por isso que você contratou aquela internet super veloz de 10/20Mbps do seu fornecedor de internet, para poder navegar muito mais rápido na Web certo? Errado!&lt;/p&gt;
+
+&lt;p&gt;Veja bem a largura de banda (bandwidth) se compararmos com um cano de água quer dizer simplesmente que quanto mais largo o cano mais água eu posso colocar dentro dele, mas se o cano estiver vazio demorará um tempo para o conteúdo do cano ir de um lado ao outro, entende?&lt;/p&gt;
+
+&lt;p&gt;Ai você deve estar se perguntando, pois é eu comprei mais banda para ter um cano mais largo e portanto transferir mais dados de um lado a outro, se eu tivesse uma banda menor (um cano mais fino) certamente demoraria mais para todos os dados viajar de um canto a outro. Perfeito! Você tem razão.&lt;/p&gt;
+
+&lt;p&gt;Mas perceba que a minha pergunta no começo do post foi se aumentar a banda quer dizer aumentar a velocidade de &lt;strong&gt;navegação na web.&lt;/strong&gt; Eu não me referi por exemplo em assistir um vídeo, música, streaming e outras coisas porque para esse tipo de atividade uma banda maior faz TOTAL diferença, quanto mais melhor.&lt;/p&gt;
+
+&lt;p&gt;E por quê? Por quê para ver vídeo a banda faz diferença e para navegar na Web nem tanto?&lt;/p&gt;
+
+&lt;p&gt;Bom a resposta é na verdade simples, ouvir uma música ou ver um vídeo significa dizer que estamos utilizando o protocolo TCP (transporte) para fazer algo que ele foi desenhado para.&lt;/p&gt;
+
+&lt;p&gt;O protocolo TCP foi desenhado para transmitir dados em &lt;em&gt;long lived connections&lt;/em&gt; (conexões duradouras) e também para _bulk data transfer_ (grandes quantidades de dados).&lt;/p&gt;
+
+&lt;p&gt;Navegar na Web é justamente o oposto, utilizamos conexões curtas e que trafegam poucas quantidades de dados.&lt;/p&gt;
+
+&lt;p&gt;O Google fez dois experimentos visando ver a diferença de se aumentar a largura de banda e também de diminuir a latência e ver o que acontece com a navegação na Web (não vídeos, músicas e etc), veja o que acontece quando aumentamos a largura de banda ou então diminuimos a latência:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://www.cleberdantas.com/wp-content/uploads/2013/04/bandwidth-vs-latency.png&#34; alt=&#34;Page Load Time vs. Bandwidth and Latency&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Quando fixamos a latência e aumentamos Mbps, depois de 5Mbps a diferença até 10Mbps é de apenas 15% (ajuda, mas nem tanto), primeiro gráfico.&lt;/p&gt;
+
+&lt;p&gt;Por outro lado quando fixamos a banda (nesse caso em 5Mbps) e vamos diminuindo de 20ms em 20ms (segundo gráfico) o ganho se mostra linear! Quanto menos latência maior é a velocidade de carregamento de nossas páginas! (sweet!)&lt;/p&gt;
+
+&lt;p&gt;O estudo do Google pode ser visto aqui: &lt;a href=&#34;https://docs.google.com/a/chromium.org/viewer?a=v&amp;amp;pid=sites&amp;amp;srcid=Y2hyb21pdW0ub3JnfGRldnxneDoxMzcyOWI1N2I4YzI3NzE2&#34;&gt;https://docs.google.com/a/chromium.org/viewer?a=v&amp;amp;pid=sites&amp;amp;srcid=Y2hyb21pdW0ub3JnfGRldnxneDoxMzcyOWI1N2I4YzI3NzE2&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ou seja, se seu objetivo é apenas aumentar a velocidade de navegação nas páginas Web aumentar a banda (para mais de 5Mbps) não vai te ajudar muito, mas se você conseguir derrubar as leis da física e fazer algo que ultrapasse a velocidade da luz ou diminua o índice de refração dos meios de transmissão será algo muito melhor =D.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Oh wait!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Você esta em uma rede WIFI? 3G? Bom ai o negócio é ainda pior, mas isso é assunto para outro post &lt;img src=&#34;http://www.cleberdantas.com/wp-includes/images/smilies/icon_wink.gif&#34; alt=&#34;;)&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Good news &lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;HTTP 2.0 esta sendo desenvolvido e ele esta sendo baseado no protocolo &lt;a title=&#34;SPDY&#34; href=&#34;http://pt.wikipedia.org/wiki/SPDY&#34; target=&#34;_blank&#34;&gt;SPDY&lt;/a&gt; que entre outras coisas faz um uso MUITOO melhor das conexões TCP (teremos melhoria de performance só de migrar \o/), mas ainda estamos numa fase inicial do projeto, vamos aguardar.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Conclusão&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Navegar na Web é “latency bound”, aumentar a banda depois de um certo nível não faz sentido.&lt;/p&gt;
+
+&lt;p&gt;Diminuir a latência é muito difícil (leis da física caem sobre nossas cabeças)&lt;/p&gt;
+
+&lt;p&gt;HTTP 2.0 nos ajudará bastante&lt;/p&gt;
+
+&lt;p&gt;PS: Se gostou do post compartilhe com seus amigos, principalmente se forem Devs Web&lt;/p&gt;
+
+&lt;p&gt;Obrigado e vamos falar mais nos comentários?&lt;/p&gt;
+
+&lt;p&gt;Abs&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Medindo performance e latência com a Navigation Timing API</title>
+      <link>http://tableless.com.br/navigation-timing-api/</link>
+      <pubDate>Thu, 14 Mar 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/navigation-timing-api/</guid>
+      <description>
+
+&lt;p&gt;Performance e latência são alguns dos requisitos de qualidade e experiência do usuário mais desafiadores em desenvolvimento web, especialmente quanto à &lt;a href=&#34;http://tableless.com.br/performance-frontend-parte1/#.UTYrNTDFSSo&#34;&gt;performance &lt;em&gt;client-side&lt;/em&gt;&lt;/a&gt;.Sabemos como aplicar &lt;a href=&#34;http://tableless.com.br/como-perder-peso-no-browser/#.UT4quRzFSSo&#34;&gt;técnicas que melhoram muito a performance da página&lt;/a&gt;, mas medir o desempenho adequadamente já não é tão trivial à nossa rotina de desenvolvimento. Pensando nisso, o W3C tem uma nova recomendação chamada &lt;a href=&#34;http://www.w3.org/TR/navigation-timing/&#34;&gt;Navigation Timing API&lt;/a&gt;. Com isso, é possível obter métricas e estatísticas detalhadas de modo nativo sobre tempo de carregamento, navegação entre páginas e carregamento de eventos.&lt;/p&gt;
+
+&lt;p&gt;A vantagem desta API sobre ferramentas externas e outras técnicas de aferição de latência via JavaScript é a quantidade de informações que podem ser obtidas sobre o tempo de carregamento da página em diferentes fases, proporcionando a medição em um escopo maior (&lt;em&gt;end-to-end&lt;/em&gt;). Ferramentas como o &lt;a href=&#34;https://developers.google.com/speed/pagespeed/insights&#34;&gt;PageSpeed&lt;/a&gt; e o &lt;a href=&#34;http://www.webpagetest.org/&#34;&gt;WebPageTest&lt;/a&gt; já têm utilizado dados da Navigation Timing API na análise de carregamento de páginas.&lt;/p&gt;
+
+&lt;h2 id=&#34;suporte&#34;&gt;Suporte&lt;/h2&gt;
+
+&lt;p&gt;Até o momento da escrita deste artigo, a &lt;a href=&#34;http://caniuse.com/#feat=nav-timing&#34;&gt;Navigation Timing é suportada&lt;/a&gt; pelo Chrome 24.0+, Firefox 18.0+ e IE 9+. A especificação já é recomendação do W3C desde dezembro de 2012 e a versão 2 da API já está em desenvolvimento.&lt;/p&gt;
+
+&lt;h2 id=&#34;utilizando-o-objeto-window-performance&#34;&gt;Utilizando o objeto window.performance&lt;/h2&gt;
+
+&lt;p&gt;Os parâmetros de carregamento da página são acessados através das propriedades &lt;strong&gt;&lt;em&gt;navigation&lt;/em&gt;&lt;/strong&gt; e &lt;strong&gt;&lt;em&gt;timing&lt;/em&gt;&lt;/strong&gt; do objeto &lt;strong&gt;&lt;em&gt;[window.]performance&lt;/em&gt;&lt;/strong&gt;. A propriedade &lt;em&gt;&lt;strong&gt;navigation&lt;/strong&gt;&lt;/em&gt; contém informações sobre como o usuário chegou à página e a propriedade &lt;em&gt;&lt;strong&gt;timing&lt;/strong&gt;&lt;/em&gt; apresenta as informações sobre carregamento da página.&lt;/p&gt;
+
+&lt;p&gt;É possível testar o &lt;em&gt;&lt;strong&gt;window.performance&lt;/strong&gt;&lt;/em&gt; diretamente no console do navegador. Supondo que estamos utilizando o Chrome, basta abrir a Developer Tools &amp;gt; Console e digitar &lt;em&gt;&lt;strong&gt;performance&lt;/strong&gt;&lt;/em&gt; no prompt. Abaixo, um exemplo do que você poderá obter. Note que o Chrome adiciona mais uma propriedade chamada &lt;em&gt;&lt;strong&gt;memory&lt;/strong&gt;&lt;/em&gt;, que pode ser acessada pelo &lt;em&gt;&lt;strong&gt;performance.memory&lt;/strong&gt;&lt;/em&gt;, apresentando informações sobre a utilização de memória pelo JavaScript.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_15833&#34; style=&#34;width: 413px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2013/03/Capturar.png&#34;&gt;&lt;img class=&#34;size-full wp-image-15833&#34; alt=&#34;Detalhes das propriedades do Navigation Timing API&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/03/Capturar.png&#34; width=&#34;403&#34; height=&#34;512&#34; srcset=&#34;uploads/2013/03/Capturar.png 403w, uploads/2013/03/Capturar-132x168.png 132w, uploads/2013/03/Capturar-244x310.png 244w&#34; sizes=&#34;(max-width: 403px) 100vw, 403px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Detalhes das propriedades do Navigation Timing API
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Cada uma destas propriedades do timing expressa o tempo de um determinado evento em milisegundos a partir das 00:00 do dia 1º de Janeiro de 1970 (UTC). Quando o valor de algum dos atributos é zero, significa que este evento não ocorreu.&lt;/p&gt;
+
+&lt;h2 id=&#34;os-tipos-de-navegação-ou-como-cheguei-até-esta-página&#34;&gt;Os tipos de navegação ou “como cheguei até esta página?”&lt;/h2&gt;
+
+&lt;p&gt;A &lt;em&gt;&lt;strong&gt;window.performance.navigation&lt;/strong&gt;&lt;/em&gt; armazena dois atributos que pode ser utilizados para detectar como o usuário chegou à página atual, por exemplo, via um redirecionamento, botões de navegação do histórico do navegador ou entrada normal por URL na barra de endereço. Os atributos são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;em&gt;redirectCount&lt;/em&gt;&lt;/strong&gt;&lt;strong&gt;:&lt;/strong&gt; o número de redirecionamentos que ocorreram até que a página final fosse carregada;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;em&gt;type&lt;/em&gt;&lt;/strong&gt;&lt;strong&gt;:&lt;/strong&gt; a forma como o usuário chegou à página.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;O atributo type é uma constante do tipo enumerada e pode apresentar os seguintes valores:&lt;/p&gt;
+
+&lt;table border=&#34;1&#34; cellspacing=&#34;0&#34; cellpadding=&#34;0&#34;&gt;
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;157&#34;&gt;
+      &lt;b&gt;Constante&lt;/b&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;48&#34;&gt;
+      &lt;b&gt;Valor&lt;/b&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;376&#34;&gt;
+      &lt;b&gt;Descrição&lt;/b&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;157&#34;&gt;
+      &lt;code&gt;TYPE_NAVIGATENEXT&lt;/code&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;48&#34;&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;376&#34;&gt;
+      Navegação iniciada por click em um link, entrada de URL na barra de endereço do navegador, submissão de formulário ou por uma operação de script.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;157&#34;&gt;
+      &lt;code&gt;TYPE_RELOAD&lt;/code&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;48&#34;&gt;
+      1
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;376&#34;&gt;
+      Recarregamento de página (por botão de &lt;i&gt;refresh&lt;/i&gt; ou location.reload()).
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;157&#34;&gt;
+      &lt;code&gt;TYPE_BACK_FORWARD&lt;/code&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;48&#34;&gt;
+      2
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;376&#34;&gt;
+      Navegação através dos botões de avançar/voltar do navegador ou por operações de navegação no histórico através de script (ex.: history.back()).
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;157&#34;&gt;
+      &lt;code&gt;TYPE_UNDEFINED&lt;/code&gt;&lt;code&gt;&lt;/code&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;48&#34;&gt;
+      255
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;376&#34;&gt;
+      Qualquer tipo de navegação que não se enquadre nos valores acima.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&#34;os-atributos-de-tempo-de-carregamento&#34;&gt;Os atributos de tempo de carregamento&lt;/h2&gt;
+
+&lt;p&gt;A propriedade &lt;em&gt;&lt;strong&gt;window.performance.timing&lt;/strong&gt;&lt;/em&gt; armazena os dados relevantes sobre o tempo de carregamento desde o momento em que o navegador dispara a requisição para obter a página até o momento em que o carregamento de todo o documento é finalizado. A tabela abaixo mostra uma breve descrição destes eventos na ordem em que eles ocorrem:&lt;/p&gt;
+
+&lt;table border=&#34;1&#34; cellspacing=&#34;0&#34; cellpadding=&#34;0&#34;&gt;
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;90&#34;&gt;
+      &lt;b&gt;Estágio&lt;/b&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      &lt;b&gt;Atributo&lt;/b&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      &lt;b&gt;Descrição&lt;/b&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td rowspan=&#34;11&#34; width=&#34;90&#34;&gt;
+      &lt;p align=&#34;center&#34;&gt;
+        Rede
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      navigationStart
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo depois de o documento anterior ter iniciado o evento de &lt;i&gt;unload&lt;/i&gt;.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      unloadEventStart
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo imediatamente antes do evento de unload ser disparado.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      unloadEventEnd
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo após o documento anterior ter completado o unload, ou seja, ter sido descarregado para que o próximo documento seja carregado.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      redirectStart
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo da busca que iniciou o redirecionamento.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      redirectEnd
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo após a ocorrência do último redirecionamento.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      fetchStart
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo em que o recurso começa a ser buscado.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      domainLookupStart
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo imediatamente antes de iniciar a resolução de nome do domínio.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      domainLookupEnd
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo após finalizar a resolução de nome do domínio.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      connectStart
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo imediatamente antes de iniciar a conexão com o servidor para solicitar o recurso.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      connectEnd
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo em que a conexão com o servidor é finalizada.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      secureConnectionStart
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Para os browsers onde este atributo existe (o IE não o possui no momento), ele retorna o tempo em que foi iniciada uma conexão HTTPS.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td rowspan=&#34;3&#34; width=&#34;90&#34;&gt;
+      &lt;p align=&#34;center&#34;&gt;
+        Servidor
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      requestStart
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo imediatamente antes da requisição do documento ao servidor.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      responseStart
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo imediatamente após o recebimento do primeiro byte de resposta do servidor.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      responseEnd
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo após a finalização da resposta (recebimento do último byte) ou conexão com o servidor.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td rowspan=&#34;7&#34; width=&#34;90&#34;&gt;
+      &lt;p align=&#34;center&#34;&gt;
+        Browser
+      &lt;/p&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      domLoading
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo em que o status do documento passa a ser “loading”.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      domInteractive
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo em que o status do documento passa a ser “interactive” (DOM completamente interpretado pelo &lt;i&gt;parser&lt;/i&gt; do &lt;i&gt;user agent&lt;/i&gt;).
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      domContentLoadedEventStart
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo em que o evento DOMContentLoaded é disparado no documento.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      domContentLoadedEventEnd
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo após finalizar o evento DOMContentLoaded.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      domComplete
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo em que o status do documento passa a ser “complete”. O status “complete” difere do “interactive” pois engloba a execução de scripts.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      loadEventStart
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo em que inicia a execução do evento de &lt;i&gt;load&lt;/i&gt; da página.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;222&#34;&gt;
+      loadEventEnd
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;269&#34;&gt;
+      Tempo em que finaliza a execução do evento de &lt;i&gt;load&lt;/i&gt; da página.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Conforme a developer &lt;a href=&#34;http://66.7percentangel.com/2011/12/breaking-down-onload-event-performance-bookmarklet/&#34;&gt;Kasia explica em um artigo de seu blog&lt;/a&gt;, os eventos de Rede envolvem tudo que acontecem antes do browser enviar a requisição do documento e pode ajudar a medir latência de rede; os eventos de Servidor são referentes aos tempos de requisição e resposta do documento, ajudando a medir quanto tempo o servidor leva para processar a página; por fim, os eventos do Browser ocorrem a partir do momento que o documento é criado até o momento em que o evento de &lt;em&gt;&lt;strong&gt;onload&lt;/strong&gt;&lt;/em&gt; é disparado, auxiliando a medir de fato a performance &lt;strong&gt;&lt;em&gt;client-side&lt;/em&gt;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Na timeline abaixo, &lt;a href=&#34;http://www.w3.org/TR/navigation-timing/#processing-model&#34;&gt;retirada da documentação da API&lt;/a&gt;, é possível ver o fluxo de execução destes eventos.****&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;div style=&#34;width: 576px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://www.w3.org/TR/navigation-timing/timing-overview.png&#34;&gt;&lt;img class=&#34;   &#34; alt=&#34;Modelo de Processo da Navigation Timing API&#34; src=&#34;http://www.w3.org/TR/navigation-timing/timing-overview.png&#34; width=&#34;566&#34; height=&#34;338&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Modelo de Processo da Navigation Timing API
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&#34;como-utilizar-todos-estes-dados-para-extrair-as-informações-que-nos-interessam&#34;&gt;Como utilizar todos estes dados para extrair as informações que nos interessam?&lt;/h2&gt;
+
+&lt;p&gt;Depois de toda esta fundamentação teórica, chegamos de fato no ponto que nos interessa, o pulo do gato: como utilizar estes dados para obter as métricas de performance. Geralmente, a forma de obter estas informações se dá pelo cálculo da diferença entre alguns atributos.&lt;/p&gt;
+
+&lt;p&gt;Compilando alguns exemplos apresentados pelo &lt;a href=&#34;http://www.html5rocks.com/en/tutorials/webperformance/basics/&#34;&gt;Sam Dutton do HTML5Rocks&lt;/a&gt;, &lt;a href=&#34;http://www.sitepoint.com/profiling-page-loads-with-the-navigation-timing-api/&#34;&gt;Colin Ihrig do SitePoint&lt;/a&gt; e a &lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Navigation_timing&#34;&gt;documentação de JS da Mozilla&lt;/a&gt;, temos as seguintes combinações (mas é possível obter muito mais):&lt;/p&gt;
+
+&lt;table border=&#34;1&#34; cellspacing=&#34;0&#34; cellpadding=&#34;0&#34;&gt;
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;234&#34;&gt;
+      &lt;b&gt;Informação&lt;/b&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;342&#34;&gt;
+      &lt;b&gt;Cálculo&lt;/b&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;234&#34;&gt;
+      Tempo total de latência de rede
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;342&#34;&gt;
+      responseEnd &amp;#8211; fetchStart
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;234&#34;&gt;
+      Tempo de carregamento da página a partir do momento que a página é retornada do servidor
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;342&#34;&gt;
+      loadEventEnd &amp;#8211; responseEnd
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;234&#34;&gt;
+      Tempo total de carregamento da página
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;342&#34;&gt;
+      loadEventEnd &amp;#8211; navigationStart
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;234&#34;&gt;
+      Tempo de resposta a uma requisição feita ao servidor
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;342&#34;&gt;
+      responseEnd &amp;#8211; requestStart
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;234&#34;&gt;
+      Tempo de redirecionamento
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;342&#34;&gt;
+      redirectEnd &amp;#8211; redirectStart
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;234&#34;&gt;
+      Tempo de resolução do DNS
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;342&#34;&gt;
+      domainLookupEnd &amp;#8211; domainLookupStart
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;234&#34;&gt;
+      Tempo de conexão com o servidor
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;342&#34;&gt;
+      connectEnd &amp;#8211; connectStart
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Acrescento também alguns testes que fiz com outros cálculos:&lt;/p&gt;
+
+&lt;table border=&#34;1&#34; cellspacing=&#34;0&#34; cellpadding=&#34;0&#34;&gt;
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;234&#34;&gt;
+      &lt;b&gt;Informação&lt;/b&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;342&#34;&gt;
+      &lt;b&gt;Cálculo&lt;/b&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;234&#34;&gt;
+      Tempo para renderizar o DOM (realizar a interpretação – &lt;i&gt;parser&lt;/i&gt; – de todo o HTML)
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;342&#34;&gt;
+      domInteractive &amp;#8211; domLoading
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;234&#34;&gt;
+      Tempo total para carregar a página, incluindo a requisição de todos os arquivos externos, principalmente scripts
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;342&#34;&gt;
+      domComplete &amp;#8211; domLoading
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td valign=&#34;top&#34; width=&#34;234&#34;&gt;
+      Tempo de carregamento de scripts no evento &lt;i&gt;onload&lt;/i&gt;
+    &lt;/td&gt;
+    
+    &lt;td valign=&#34;top&#34; width=&#34;342&#34;&gt;
+      loadEventEnd &amp;#8211; loadEventStart
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&#34;exemplos&#34;&gt;Exemplos&lt;/h2&gt;
+
+&lt;p&gt;No site &lt;a href=&#34;http://webtimingdemo.appspot.com/&#34;&gt;Web Timing Demo&lt;/a&gt; é possível ter uma prévia de como estes dados podem ser visualizados graficamente. Além disso, a aplicação mostra o valor de todas as propriedades da &lt;em&gt;&lt;strong&gt;window.performance&lt;/strong&gt;&lt;/em&gt; para aquela página.&lt;/p&gt;
+
+&lt;p&gt;Outra aplicação mais completa é o &lt;a href=&#34;http://kaaes.github.com/timing/&#34;&gt;bookmarket desenvolvido pela Kasia&lt;/a&gt;, citada anteriormente neste artigo. Basta arrastá-lo para a barra de favoritos do browser e clicar nele em qualquer página que deseja analisar.&lt;/p&gt;
+
+&lt;h2 id=&#34;referências-e-mais-recursos&#34;&gt;Referências e mais recursos&lt;/h2&gt;
+
+&lt;p&gt;Can I Use… &lt;strong&gt;Navigation Timing API&lt;/strong&gt;. Disponível em: &lt;a href=&#34;http://caniuse.com/#feat=nav-timing&#34;&gt;http://caniuse.com/#feat=nav-timing&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Colin Ihrig. &lt;strong&gt;Profiling Page Loads with the Navigation Timing API&lt;/strong&gt;. Disponível em: &lt;a href=&#34;http://www.sitepoint.com/profiling-page-loads-with-the-navigation-timing-api/&#34;&gt;http://www.sitepoint.com/profiling-page-loads-with-the-navigation-timing-api/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Internet Explorer Developer Center. &lt;strong&gt;Navigation timing (Windows)&lt;/strong&gt;. Disponível em: &lt;a href=&#34;http://msdn.microsoft.com/en-us/library/ie/hh673552(v=vs.85).aspx&#34;&gt;http://msdn.microsoft.com/en-us/library/ie/hh673552(v=vs.85).aspx&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Kasia Drzyzga. Breaking Down OnLoad Event – Performance Bookmarklet. Disponível em: &lt;a href=&#34;http://66.7percentangel.com/2011/12/breaking-down-onload-event-performance-bookmarklet/&#34;&gt;http://66.7percentangel.com/2011/12/breaking-down-onload-event-performance-bookmarklet/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Leigh Shevchik. &lt;strong&gt;It’s All in the Timing: How to Use the Navigation Timing Specification to Improve Web Performance&lt;/strong&gt;. Disponível em: &lt;a href=&#34;http://blog.newrelic.com/2012/05/16/its-all-in-the-timing-how-to-use-the-navigation-timing-specification-to-improve-web-performance/&#34;&gt;http://blog.newrelic.com/2012/05/16/its-all-in-the-timing-how-to-use-the-navigation-timing-specification-to-improve-web-performance/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Microsoft MSDN. &lt;strong&gt;performanceTiming object&lt;/strong&gt;. Disponível em: &lt;a href=&#34;http://msdn.microsoft.com/en-us/library/ff975075&#34;&gt;http://msdn.microsoft.com/en-us/library/ff975075&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Mozilla Developer Network. &lt;strong&gt;Navigation Timing&lt;/strong&gt;. Disponível em: &lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Navigation_timing&#34;&gt;https://developer.mozilla.org/en-US/docs/Navigation_timing&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Sam Dutton. &lt;strong&gt;Measuring Page Load Speed with Navigation Timing&lt;/strong&gt;. Disponível em: &lt;a href=&#34;http://www.html5rocks.com/en/tutorials/webperformance/basics/&#34;&gt;http://www.html5rocks.com/en/tutorials/webperformance/basics/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;W3C. &lt;strong&gt;HTML5: A vocabulary and associated APIs for HTML and XHTML&lt;/strong&gt;. Disponível em: &lt;a href=&#34;http://www.w3.org/TR/html5/syntax.html&#34;&gt;http://www.w3.org/TR/html5/syntax.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;W3C. &lt;strong&gt;Navigation Timing&lt;/strong&gt;. Disponível em: &lt;a href=&#34;http://www.w3.org/TR/navigation-timing/&#34;&gt;http://www.w3.org/TR/navigation-timing/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Performance front-end – Parte 2</title>
+      <link>http://tableless.com.br/performance-frontend-parte2/</link>
+      <pubDate>Mon, 28 Jan 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/performance-frontend-parte2/</guid>
+      <description>
+
+&lt;p&gt;Se você ainda não leu a primeira parte desse assunto, veja aqui: &lt;a href=&#34;http://tableless.com.br/performance-frontend-parte1/&#34;&gt;Performance front-end &amp;#8211; Parte 1&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Os browsers ajudam em muitos sentidos otimizando o carregamento de assets e a renderização da página, mesmo assim é necessário fazer algumas tarefas para que sua aplicação/website carregue mais rápido.&lt;/p&gt;
+
+&lt;p&gt;Quando colocamos a performance como uma tarefa durante o desenvolvimento, determinamos o aumento ou a diminuição da conversão e da quantidade de pageviews. Dependendo do tamanho do seu cliente, isso significa ter grandes resultados apenas diminuindo milésimos de segundos do carregamento.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.strangeloopnetworks.com/assets/images/infographic2.jpg&#34;&gt;Nessa imagem&lt;/a&gt;, veja alguns dos resultados obtidos em grandes websites quando eles melhoraram a performance dos seus serviços. Os números podem estar meio ultrapassados, mas servem para ter uma ideia. Por exemplo: a cada 100 milisegundos que a Amazon diminui do carregamento do seu site, eles aumentam 1% do seu redimento. Faça a conta: a &lt;a href=&#34;http://computerworld.uol.com.br/negocios/2012/04/27/receita-da-amazon-cresce-34-no-trimestre-e-bate-expectativas/&#34;&gt;Amazon teve uma receita de 13.18 Bilhões no último trimetre&lt;/a&gt;. A cada 400 milisegundos otimizados o Yahoo! aumenta em 9% o seu tráfego. Fazendo as páginas carregarem 2.2 segundos mais rápidas, a Mozilla aumentou em 60 milhões de downloads do Firefox por ano.&lt;/p&gt;
+
+&lt;p&gt;Por isso, quando alguém disser que melhorar milisegundos de performance do seu site não é grande coisa, mostre estes números para a pessoa. Claro, que dependendo do tamanho do seu site, você não vai dobrar suas visitas apenas diminuindo 100 milisegundos do carregamento seu site. Mas com certeza ajuda.&lt;/p&gt;
+
+&lt;h2 id=&#34;medindo&#34;&gt;Medindo&lt;/h2&gt;
+
+&lt;p&gt;Para começarmos, indico o &lt;a href=&#34;https://developers.google.com/speed/pagespeed/?hl=pt-BR&#34;&gt;PageSpeed&lt;/a&gt; para a medição da performance dos seus websites. Há outras maneiras de medir, milhares de sites e plugins, mas esse é do pessoal do Google, que além de dar uma pontuação, ele oferece fontes de informação para você entender melhor o que é cada tópico medido.&lt;/p&gt;
+
+&lt;p&gt;Você pode ver online &lt;a href=&#34;https://developers.google.com/speed/pagespeed/insights&#34;&gt;como está a performance do seu site&lt;/a&gt;. Veja aqui o nosso em &lt;a href=&#34;https://developers.google.com/speed/pagespeed/insights#url=tableless.com.br&amp;amp;mobile=false&#34;&gt;desktops&lt;/a&gt; ou em &lt;a href=&#34;https://developers.google.com/speed/pagespeed/insights#url=tableless.com.br&amp;amp;mobile=true&#34;&gt;mobiles&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;No &lt;a href=&#34;https://developers.google.com/speed/docs/best-practices/rules_intro?hl=pt-BR&#34;&gt;site deles existem uma série de regrinhas e boas práticas&lt;/a&gt;. Se quiser deixar esse artigo de lado e ir direto para lá, eu não vou ficar chateado. 😉&lt;/p&gt;
+
+&lt;p&gt;Veja também uma série de &lt;a href=&#34;https://developers.google.com/speed/tools?hl=pt-BR&#34;&gt;ferramentas e downloads&lt;/a&gt; para você não se sentir sozinho ao fazer o trabalho sujo.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://yslow.org/&#34;&gt;YSlow&lt;/a&gt; do Yahoo! também é ótimo. Ele tem as mesmas características do PageSpeed, logo, é questão de gosto qual dos dois você usará.&lt;/p&gt;
+
+&lt;h2 id=&#34;diminuindo-o-tempo-de-viagem&#34;&gt;Diminuindo o tempo de viagem&lt;/h2&gt;
+
+&lt;p&gt;RTT (Road-trip Time) é o tempo que leva para o browser (ou qualquer outro cliente) conversar com o servidor buscando a informação solicitada pelo usuário.&lt;/p&gt;
+
+&lt;p&gt;Normalmente um browser inicia a comunicação com o servidor com pelo menos 3 RTTs: Uma requisição para a resolução do DNS. Outra para o setup de conexão TCP e outra para a requisição HTTP. Normalmente os websites tem muitas requisições HTTP. E isso é muito ruim.  &lt;/p&gt;
+
+&lt;p&gt;Ter muitas requisições significa que seu browser precisa ir e voltar várias vezes durante a abertura da página. Essa ida e volta são os RTT, ou a Road-trip Time. São as RTTs que contribuem para uma latência ruim nas redes. Se seu cliente demora para trazer a informação, o download da página é prejudicado.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://bit.ly/WhiWbW&#34;&gt;Nós falamos sobre isso neste artigo.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;onde-colocar-as-chamadas-de-css-e-javascript&#34;&gt;Onde colocar as chamadas de CSS e Javascript&lt;/h2&gt;
+
+&lt;p&gt;O browser tem uma ordem correta para carregar os arquivos do site. Por isso há uma ordem específica para linkar o arquivos de CSS e Javascript, otimizando o trabalho de carregamento do browser.&lt;/p&gt;
+
+&lt;p&gt;Para você entender melhor, note que:&lt;/p&gt;
+
+&lt;p&gt;O CSS bloqueia a renderização da página. Isso por que o browser não quer carregar primeiro um HTML feio só para depois fazer um render da página novamente aplicando seu estilo. Por isso ele bloqueia o máximo que puder a renderização da página até que tenha carregado seu código CSS. Esta é a razão pela qual você deve inserir o link do CSS no HEAD, afim de que o browser o encontre rapidamente.&lt;/p&gt;
+
+&lt;p&gt;O Javascript por sua vez bloqueia o download de outros arquivos. Lembre-se de que o browser procura baixar vários arquivos ao mesmo tempo enquanto ele carrega a página. Quando carregamos o Javascript, ele pára tudo e carrega um script de cada vez. Ele faz isso por que geralmente o Javascript modifica o HTML e também o CSS. Logo, ele não pode fazer isso se o código HTML, o CSS ou outros arquivos como as imagens não foram baixados.&lt;/p&gt;
+
+&lt;p&gt;Isso também é aplicado na ordem em que você linka os arquivos de Javascript. Um exemplo simples: você não consegue fazer funcionar um plugin de jQuery se não tiver linkado o jQuery antes do script de plugin.&lt;/p&gt;
+
+&lt;h2 id=&#34;melhorando-o-download-paralelo&#34;&gt;Melhorando o download paralelo&lt;/h2&gt;
+
+&lt;p&gt;Como já comentamos acima o browser sempre tenta fazer o máximo de downloads de arquivos em paralelo afim de aumentar a velocidade do carregamento. O problema é que há um limite para o download de arquivos simultâneos em um mesmo domínio. De acordo com o protocolo HTTP, os browsers podem pode ter duas conexões simultâneas por domínio. Eu não consegui encontrar um lugar que dê o número exato, mas dizem por aí que o Firefox e Chrome conseguem baixar até 6 arquivos por vez. Se um documento contem referencias para várias recursos como CSS, Javascripts, Imagens e etc, de forma que estoure o máximo permitido pelo host, o browser começa a baixar um parte e deixa os outros arquivos na fila esperando. Quando ele termina de baixar todos os recursos atuais, ele vai pra fila e pega o próximo grupo.&lt;/p&gt;
+
+&lt;p&gt;A estratégia é separar parte destes recursos em outro domínio. Fazendo isso o browser pode baixar o máximo de recursos por domínio paralelamente. Por isso é que normalmente separamos arquivos &amp;#8211; como imagens &amp;#8211; em outro servidor.&lt;/p&gt;
+
+&lt;p&gt;Qualquer grande site faz isso. Veja por exemplo o endereço do meu avatar no twitter: &lt;strong&gt;&lt;a href=&#34;https://si0.twimg.com/profile_images/2927099623/a39b6f1a9af28d8dada6bc8958392cf3_normal.jpeg&#34;&gt;https://si0.twimg.com/profile_images/2927099623/a39b6f1a9af28d8dada6bc8958392cf3_normal.jpeg&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O endereço começa com &lt;strong&gt;si0.twimg.com&lt;/strong&gt; que é um servidor do Twitter para servir assets estáticos. Se você abrir o código fonte de qualquer grande site vai ver que isso é bem comum para diminuir a carga de carregamento.&lt;/p&gt;
+
+&lt;p&gt;Uma solução interessante também é usar arquivos como o jQuery ou outros scripts via CDNs. O jQuery, por exemplo, &lt;a href=&#34;http://jquery.com/download/&#34;&gt;tem uma série de CDNs pela Microsoft, MediaTemple e Google&lt;/a&gt; que você pode usar para linkar o script ao seu projeto sem precisar fazer a requisição no seu próprio servidor.&lt;/p&gt;
+
+&lt;p&gt;Isso é bom por que você não sobrecarrega seu servidor. As vezes o donwload do arquivo pode demorar mais do que se estivesse no seu servidor. Mesmo assim, mantendo um arquivo em outro servidor, você abre caminho para que o browser faça o carregamento de outro arquivos paralelamente.&lt;/p&gt;
+
+&lt;h2 id=&#34;link-prefetching-e-prerender&#34;&gt;Link prefetching e Prerender&lt;/h2&gt;
+
+&lt;p&gt;Link prefetching é um mecanismo que utiliza o tempo ocioso do browser para fazer o download ou buscar doumentos que talvez serão usados no futuro pelo usuário. Por exemplo: se o usuário está visitando determinada página no site e você tem quase certeza de qual será a próxima página que ele visitará, você pode avisar o browser para que ele faça o download dos arquivos dessa página para o seu cache enquanto ele estiver ocioso, de forma que quando o usuário for visitar essa página a renderização é agilizada.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;prefetch&#34; href=&#34;http://tableless.com.br/imagens/destaque.jpg&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Ou:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;prefetch&#34; href=&#34;http://seuwebsite.com.br/parte2/&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Existe também o link prerender. Nesse caso o browser além de baixar os assets necessários, ele pré renderiza a página na memória de forma que ao visitar essa página, ela já estará totalmente renderizada. Diferentemente do link prefetch que apenas baixa os arquivos e só renderiza a página quando o usuário fizer a visita.&lt;/p&gt;
+
+&lt;p&gt;Nem preciso dizer que isso deve ser usado com muito cuidado, principalmente quando estamos produzindo algo para mobiles. Você não quer acabar com a bateria e o pacote de dados do usuário baixando páginas que talvez ele nem vá visitar. Por isso é recomendável fazer o prefetch/prerender de poucas páginas e arquivos por vez. Se você não tem certeza de qual será a página a próxima página visitada, é melhor nem utilizar essa tática.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;prerender&#34; href=&#34;http://seuwebsite.com.br/parte2/&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;concluindo&#34;&gt;Concluindo&lt;/h2&gt;
+
+&lt;p&gt;A busca por performance deve ser algo constante. Há alguns pontos que você não conseguirá cobrir, nesse caso, não se preocupe. Faça um estudo do seu caso e entenda até onde você pode ir para melhorar a performance de seus serviços. Use e abuse de ferramentas para melhorar seu trabalho e entenda melhor como funciona os browsers. Todas essas informações melhorarão seu processo de produção e definirão uma experiência mais amigável para o usuário.&lt;/p&gt;
+
+&lt;h3 id=&#34;para-ler-mais&#34;&gt;Para ler mais&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://developer.yahoo.com/performance/rules.html&#34;&gt;Best Practices for Speeding Up Your Web Site&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://csswizardry.com/2013/01/front-end-performance-for-web-designers-and-front-end-developers/&#34;&gt;Front-end performance for web designers and front-end developers&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.yuiblog.com/blog/2007/04/11/performance-research-part-4/&#34;&gt;Maximizing Parallel Downloads in the Carpool Lane&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://sixrevisions.com/web-development/five-ways-to-speed-up-page-response-times/&#34;&gt;Five Ways to Speed Up Page Response Times&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>jQuery: dicas de otimização e performance</title>
+      <link>http://tableless.com.br/jquery-dicas-de-otimizacao-e-performance/</link>
+      <pubDate>Tue, 10 Jan 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/jquery-dicas-de-otimizacao-e-performance/</guid>
+      <description>
+
+&lt;p&gt;A grande maioria dos desenvolvedores jQuery não se preocupa muito com performance e otimização. Afinal, o mantra do framework, &amp;#8220;write less, do more&amp;#8221;, envolve esconder a parte feia do Javascript e, muitas vezes, acrescentar camadas desnecessárias.&lt;/p&gt;
+
+&lt;p&gt;Neste artigo apresento algumas dicas de como melhorar a performance de sua aplicação jQuery. No entanto, vale lembrar que não é necessário otimizar nenhum código escrito previamente, já que a otimização dificilmente compensará o trabalho.&lt;/p&gt;
+
+&lt;h2 id=&#34;1-mantenha-se-atualizado&#34;&gt;#1: Mantenha-se atualizado&lt;/h2&gt;
+
+&lt;p&gt;Procure utilizar sempre a última versão estável do jQuery. A cada nova versão lançada são introduzidas inúmeras melhorias de performance nos métodos do framework.&lt;/p&gt;
+
+&lt;p&gt;Da versão 1.3 para a 1.4, por exemplo, houve um ganho de 50% na performance da execução dos testes padrão do jQuery.&lt;/p&gt;
+
+&lt;p&gt;Fique ligado nas mudanças. O lançamento de uma nova versão vem sempre acompanhando de notas sobre as novas funcionalidades, um changelog, como [este aqui][1].&lt;/p&gt;
+
+&lt;h2 id=&#34;2-não-utilize-jquery&#34;&gt;#2: Não utilize jQuery!&lt;/h2&gt;
+
+&lt;p&gt;Em alguns momentos não é necessário utilizar jQuery. Apesar de ser fácil de utilizar e muito mais bonito de ler, o framework é apenas mais uma camada no desenvolvimento, uma &amp;#8220;maquiagem&amp;#8221; para o Javascript.&lt;/p&gt;
+
+&lt;p&gt;Em projetos pequenos você pode, se quiser, abolir totalmente o jQuery: é realmente necessário incluir os ~30kb do framework? Não dá pra resolver com Javascript puro?&lt;/p&gt;
+
+&lt;p&gt;Já em projetos maiores, mesmo incluindo o jQuery, em alguns casos é melhor não utilizá-lo. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;size: function() {
+    return this.length;
+},
+&lt;/pre&gt;
+
+&lt;p&gt;Acima está o código-fonte do método size, do jQuery. O que ele faz? Nada além de retornar o tamanho do objeto utilizando o método nativo length. Logo, é mais rápido utilizar diretamente o length!&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;$(&#39;.menu&#39;).size()
+$(&#39;.menu&#39;).length
+&lt;/pre&gt;
+
+&lt;p&gt;O mesmo vale para retornar o ID de um elemento:&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;$(this).attr(&#39;id&#39;)
+this.id
+&lt;/pre&gt;
+
+&lt;p&gt;O seletor $(this), aliás, somente deve ser utilizado quando for necessário um método que só existe no jQuery. Nos outros casos, sempre dê preferência ao this nativo do Javascript.&lt;/p&gt;
+
+&lt;p&gt;Também é comum utilizar jQuery para alterar o CSS de um elemento, por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;$(&#39;#menu&#39;).css(&#39;display&#39;, &#39;block&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Olhando o &lt;a href=&#34;https://github.com/jquery/jquery/blob/master/src/css.js#L121&#34;&gt;código-fonte&lt;/a&gt; do jQuery, o método .css() possui aproximadamente 20 linhas (sem contar outros métodos chamados). A atribuição acima poderia ser executada da seguinte forma, com uma única linha:&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;document.getElementById(&#39;menu&#39;).style.display = &#39;block&#39;;
+&lt;/pre&gt;
+
+&lt;p&gt;Os próprios métodos jQuery possuem camadas dentro do framework. Ao invés de utilizar o método $.getJSON, por exemplo, você pode chamar diretamente o método $.ajax com os parâmetros type: &amp;#8216;GET&amp;#8217; e dataType: &amp;#8216;json&amp;#8217;.&lt;/p&gt;
+
+&lt;p&gt;Vale a pena dar uma olhada no [código-fonte][3] do jQuery para entender o que o framework faz por baixo dos panos e até que ponto é válido utilizá-lo.&lt;/p&gt;
+
+&lt;h2 id=&#34;3-seletores&#34;&gt;#3: Seletores&lt;/h2&gt;
+
+&lt;p&gt;Procure sempre ser o mais específico possível em um seletor. Quanto mais específico, mais rápido. Opte sempre por utilizar o ID do elemento. Mesmo quando for preciso utilizar uma classe no seletor, utilize o ID do elemento pai.&lt;/p&gt;
+
+&lt;p&gt;Os seletores que utilizam o ID ou a tag de um elemento são mais rápidos por um simples motivo: ambos utilizam métodos nativos do Javascript document.getElementbyId() e document.getElementsByTagname().&lt;/p&gt;
+
+&lt;p&gt;Evite utilizar seletores com atributos e/ou pseudo-seletores, a menos que seja extremamente necessário.&lt;/p&gt;
+
+&lt;p&gt;Outra dica importante: dê preferência ao método .find() quando precisar achar elementos filhos de um elemento com ID. Por exemplo, ao invés de $(&amp;#8216;#container p&amp;#8217;) utilize $(&amp;#8216;#container&amp;#8217;).find(&amp;#8216;p&amp;#8217;), dessa forma o escopo da busca fica limitado ao primeiro objeto. O mesmo vale para seletores de classes e pseudo-seletores.&lt;/p&gt;
+
+&lt;h2 id=&#34;4-cache-de-elementos&#34;&gt;#4: Cache de elementos&lt;/h2&gt;
+
+&lt;p&gt;Esta é uma dica simples, mas que pode adicionar ganhos de performance consideráveis. Procure sempre armazenar em uma variável o objeto jQuery retornado por um seletor, principalmente quando o seletor está dentro de um loop.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;var menu = $(&#39;#menu&#39;);
+var itens = [&#39;Home&#39;, &#39;Contato&#39;, &#39;Sobre&#39;];
+for(x in itens)
+    menu.append(&#39;
+
+&lt;li&gt;
+  &#39;+itens[x]+&#39;
+&lt;/li&gt;&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Ao invés de:&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;var itens = [&#39;Home&#39;, &#39;Contato&#39;, &#39;Sobre&#39;];
+for(x in itens)
+    $(&#39;#menu&#39;).append(&#39;
+
+&lt;li&gt;
+  &#39;+itens[x]+&#39;
+&lt;/li&gt;&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;No exemplo acima, o seletor $(&amp;#8216;#menu&amp;#8217;) seria executado 3 vezes, ou seja, o elemento seria buscado no DOM três vezes seguidas, sem nenhuma alteração.&lt;/p&gt;
+
+&lt;p&gt;Conforme citei na abertura do artigo, cachear seletores é uma prática que vai contra o &amp;#8220;write less, do more&amp;#8221; do jQuery. Seu código pode ficar um pouco mais &amp;#8220;sujo&amp;#8221;, mas, em contrapartida, fica também mais rápido.&lt;/p&gt;
+
+&lt;h2 id=&#34;5-encadeamento-de-métodos&#34;&gt;#5: Encadeamento de métodos&lt;/h2&gt;
+
+&lt;p&gt;Encadear métodos sempre foi uma das funcionalidades mais legais do jQuery e, se você ainda não faz uso dessa técnica, é por aqui que você deve começar.&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;$(&#39;#container&#39;).addClass(&#39;corpo&#39;);
+$(&#39;#container&#39;).width(940);
+$(&#39;#container&#39;).height(300);
+&lt;/pre&gt;
+
+&lt;p&gt;Vira:&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;$(&#39;#container&#39;).addClass(&#39;corpo&#39;)
+               .width(940)
+               .height(300);
+&lt;/pre&gt;
+
+&lt;p&gt;Quase todos os métodos e plugins retornam (ou deveriam retornar) um objeto jQuery. Além de melhorar a leitura, essa prática também afeta diretamente a performance do seu código já que o seletor só é executado uma única vez.&lt;/p&gt;
+
+&lt;h2 id=&#34;6-dom&#34;&gt;#6: DOM&lt;/h2&gt;
+
+&lt;p&gt;Qualquer tipo de manipulação no DOM envolve um processo bem lento. No geral, você deve fugir desse tipo de implementação, principalmente se ela não possuir nenhum tipo de cache.&lt;/p&gt;
+
+&lt;p&gt;O ideal é manipular já com os dados finais e completos. Não manipule o DOM em um loop, por exemplo.&lt;/p&gt;
+
+&lt;p&gt;Utilizando o exemplo da dica de caching, poderíamos alterar para ficar ainda mais otimizado:&lt;/p&gt;
+
+&lt;pre class=&#34;javascript&#34;&gt;var menu = $(&#39;#menu&#39;);
+var itens = [&#39;Home&#39;, &#39;Contato&#39;, &#39;Sobre&#39;];
+var html = &#39;&#39;;
+for(x in itens){
+    html += &#39;
+
+&lt;li&gt;
+  &#39;+itens[x]+&#39;
+&lt;/li&gt;&#39;;
+}
+menu.append(html);
+menu.show();
+&lt;/pre&gt;
+
+&lt;p&gt;Repare que o método .append() foi chamado apenas uma vez, já recebendo o HTML completo concatenado.&lt;/p&gt;
+
+&lt;h2 id=&#34;7-dry-don-8217-t-repeat-yourself&#34;&gt;#7: DRY (Don&amp;#8217;t Repeat Yourself)&lt;/h2&gt;
+
+&lt;p&gt;O jQuery disponibiliza um alto nível de personalização, permitindo que você [escreva seus seletores][4] e [seus plugins][5].&lt;/p&gt;
+
+&lt;p&gt;Evite repetir blocos de código. Evite repetir seletores. Evite repetir manipulações no DOM (faça tudo o que precisa fazer uma única vez!). Esta é uma dica muito importante para performance, já que qualquer código repetido significa alguns bytes ou kbytes a mais na sua aplicação.&lt;/p&gt;
+
+&lt;p&gt;Mathias Bynens disponibilizou um &lt;a href=&#34;http://speakerdeck.com/u/mathiasbynens/p/faster-javascript-execution-for-the-lazy-developer&#34;&gt;uma apresentação genial&lt;/a&gt; sobre DRY e Javascript, vale a pena conferir.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-medir-a-performance-da-sua-aplicação&#34;&gt;Como medir a performance da sua aplicação?&lt;/h2&gt;
+
+&lt;p&gt;O site &lt;a href=&#34;http://jsperf.com/&#34;&gt;jsPerf&lt;/a&gt; permite a criação de testes de performance para códigos javascript, utilizando jQuery ou não. É um bom lugar para você começar a comparar diferentes tipos de implementação. &lt;a href=&#34;http://www.slideshare.net/mathiasbynens/using-jsperf-correctly&#34;&gt;Esta apresentação&lt;/a&gt; dá dicas e ensina a utilizar a ferramenta.&lt;/p&gt;
+
+&lt;p&gt;Você também pode (e deve) utilizar a aba profile do Firebug e/ou do Chrome Developer Tools. &lt;a href=&#34;http://michaelsync.net/2007/09/10/firebug-tutorial-logging-profiling-and-commandline-part-ii&#34;&gt;Aqui&lt;/a&gt; tem um tutorial antigo, mas bacana, sobre o Firebug e &lt;a href=&#34;http://www.youtube.com/watch?v=OxW1dCjOstE&#34;&gt;aqui&lt;/a&gt; você encontra um tutorial sobre o Chrome Developer Tools.&lt;/p&gt;
+
+&lt;p&gt;[1]: &lt;a href=&#34;http://blog.jquery.com/2011/11/21/jquery-1-7-1-released/&#34;&gt;http://blog.jquery.com/2011/11/21/jquery-1-7-1-released/&lt;/a&gt; &amp;ldquo;&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;[3]: &lt;a href=&#34;https://github.com/jquery/jquery&#34;&gt;https://github.com/jquery/jquery&lt;/a&gt; &amp;ldquo;&amp;rdquo;
+ [4]: &lt;a href=&#34;http://tableless.com.br/jquery-seletores-personalizados/&#34;&gt;http://tableless.com.br/jquery-seletores-personalizados/&lt;/a&gt; &amp;ldquo;&amp;rdquo;
+ [5]: &lt;a href=&#34;http://tableless.com.br/anatomia-de-um-plugin-jquery/&#34;&gt;http://tableless.com.br/anatomia-de-um-plugin-jquery/&lt;/a&gt; &amp;ldquo;&amp;rdquo;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Entendendo os Reflows</title>
+      <link>http://tableless.com.br/entendendo-os-reflows-2/</link>
+      <pubDate>Mon, 18 Jul 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/entendendo-os-reflows-2/</guid>
+      <description>
+
+&lt;p&gt;Reflow é um assunto extenso e necessário. Ele sempre vai existir nos navegadores, então temos que entendê-lo para saber como utilizá-lo de maneira racional. O mais legal é entender todo o contexto sobre o que são e como funcionam, para a partir daí repensar o código que renderizamos no navegador para obtermos maior performance.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Reflow é o resultado de um evento que desencadeia mudanças no jeito que a pagina deve ser renderizada, tomando tempo para cálculo e reposicionamento de elementos.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Para explicar como isso acontece, o importante é entender como um navegador renderiza uma página web.&lt;/p&gt;
+
+&lt;h2 id=&#34;dom&#34;&gt;DOM&lt;/h2&gt;
+
+&lt;p&gt;Document Object Model (DOM) é uma interface independente de linguagem e plataforma para representar e interagir com objetos em HTML, XHTML e XML. Mas o DOM é mais que isso; toda linguagem estruturada tem uma arvore DOM.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_3941&#34; style=&#34;width: 490px&#34; class=&#34;wp-caption alignleft&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif&#34;&gt;&lt;img class=&#34;size-full wp-image-3941 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif&#34; alt=&#34;Exemplo de arvore DOM para documento HTML&#34; width=&#34;480&#34; height=&#34;212&#34; srcset=&#34;uploads/2011/07/DOMTree.gif 800w, uploads/2011/07/DOMTree-300x132.gif 300w&#34; sizes=&#34;(max-width: 480px) 100vw, 480px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Exemplo de arvore DOM para documento HTML
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Mas sobre o DOM podemos dizer que programas ou scripts podem dinamicamente acessar elementos na árvore DOM e alterar seu conteúdo, estrutura e estilo. Adicional ao estado inicial da pagina, estas alterações são agregadas a árvore DOM. O resultado é a renderização &amp;#8211; o que nós vemos em um navegador. Mas a nossa &lt;em&gt;Render Tree&lt;/em&gt; tem mais que isso:&lt;/p&gt;
+
+&lt;h2 id=&#34;render-tree-e-como-realmente-entender-display-x-visibility&#34;&gt;Render Tree e como realmente entender display X visibility&lt;/h2&gt;
+
+&lt;div id=&#34;attachment_3942&#34; style=&#34;width: 514px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/07/render.png&#34;&gt;&lt;img class=&#34;size-full wp-image-3942 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/render.png&#34; alt=&#34;Como a render tree e montada&#34; width=&#34;504&#34; height=&#34;234&#34; srcset=&#34;uploads/2011/07/render.png 630w, uploads/2011/07/render-300x139.png 300w&#34; sizes=&#34;(max-width: 504px) 100vw, 504px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Como a render tree é montada
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;O DOM é resultado do parse do markup HTML que você montou dentro de um navegador. Só que dentro de um HTML você não tem apenas a estrutura do documento, estilos em CSS e funcionalidades em javascript também estarão no seu markup. E a Render tree é a soma de DOM mais estilos, que depois podem ser manipulados (seus scripts).&lt;/p&gt;
+
+&lt;p&gt;Pode parecer estranho, mas para mim a melhor maneira de entender as diferencas entre DOM e Render Tree é encarar esta última como um &lt;span class=&#34;c17&#34;&gt;individuo narcisista&lt;/span&gt;. Isso mesmo: A Render Tree gosta de aparecer, é o que vemos no browser. O DOM acontece por trás das cortinas. &lt;em&gt;À Render tree, o palco&lt;/em&gt;. (&lt;a href=&#34;http://tableless.com.br/tenha-o-dom&#34; title=&#34;Tenha o DOM&#34;&gt;Para saber mais sobre o DOM, veja este outro artigo&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;Uma página que tem controles de show/hide mostra isso muito bem. Enquanto todo o conteúdo da página está presente na árvore DOM, apenas alguns itens estarão disponíveis na Render Tree &amp;#8211; os visíveis na página (display:block). Alterar os elementos display:none vão disparar mudanças na render tree, e não na árvore DOM.&lt;/p&gt;
+
+&lt;p&gt;Já tentou entender as diferenças entre display:none e visibility:hidden? A maioria das explicações que vemos é que um “deixa de mostrar o elemento totalmente, incluindo seu espaço em tela” e o outro “deixa de mostrar o elemento visual, mas sua área de exibição continua sendo utilizada”. Esta explicação não está incorreta, mas seria melhor dizer que a propriedade display altera a estrutura da render tree, adicionando algo que antes não estava ali, enquanto visibility não faz alterações, apenas o câmbio de mostrar ou não um elemento que já esta na render tree.&lt;/p&gt;
+
+&lt;h2 id=&#34;repaint&#34;&gt;Repaint&lt;/h2&gt;
+
+&lt;p&gt;Entendido as diferenças entre display e visibility, além do contexto de área do elemento, conseguimos explicar o Repaint. Uma ação que faça alteração de propriedades de background &lt;strong&gt;sem alterar dimensões ou outras propriedades do elemento&lt;/strong&gt; não causam o reflow, apenas o repaint, que seria a atualização da propriedade de cor ou da imagem &amp;#8211; literalmente pintar novamente o elemento. Repaints gastam menos CPU que reflows.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-um-navegador-monta-seu-documento-html&#34;&gt;Como um navegador monta seu documento HTML&lt;/h2&gt;
+
+&lt;p&gt;Esses vídeos são sensacionais. Eles explicam o que são os reflows e dai como minimizá-los durante a fase de desenvolvimento do documento (sempre usando &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://tableless.com.br/bem-vindo-a-xangrila-parte-1&#34;&gt;Progressive Enhancement&lt;/a&gt;&lt;/span&gt; quando possível) é mais fácil..&lt;/p&gt;
+
+&lt;p&gt;[youtube &lt;a href=&#34;http://www.youtube.com/watch?v=ZTnIxIA5KGw&#34;&gt;http://www.youtube.com/watch?v=ZTnIxIA5KGw&lt;/a&gt;]&lt;/p&gt;
+
+&lt;p class=&#34;c6 anotacao&#34;&gt;
+  Esta é uma representação de como a página da Mozilla é montada. Quer mais? Veja também como a &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://video.google.com/videoplay?docid=-5863446593724321515&#34;&gt;Wikipedia&lt;/a&gt;&lt;/span&gt; e a página do &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://video.google.com/videoplay?docid=-1471976166301235697&#34;&gt;Google&lt;/a&gt;&lt;/span&gt; no Japão são renderizadas.
+&lt;/p&gt;
+
+&lt;p&gt;Analisando o primeiro vídeo, perceba que ao finalizar a montagem do rodapé, “algo mais” acontece (a partir de 12seg). São os Reflows. A maioria dos elementos são recalculados e reposicionados. Se ponderarmos que o rodapé acaba de ser montado aos 14 segundos e a renderização termina aos 26 segundos da pagina, estamos falando quase de 50% do tempo de renderização sendo gasto com Reflows, o que é muito, dependendo do que a sua página deve fazer.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que-causam-exatamente-os-reflows&#34;&gt;O que causam exatamente os reflows?&lt;/h3&gt;
+
+&lt;h5 id=&#34;reflow-é-um-assunto-extenso-e-necessário-ele-sempre-vai-existir-nos-navegadores-então-temos-que-entendê-lo-para-saber-como-utilizá-lo-de-maneira-racional-o-mais-legal-é-entender-todo-o-contexto-sobre-o-que-são-e-como-funcionam-para-a-partir-daí-repensar-o-código-que-renderizamos-no-navegador-para-obtermos-maior-performance&#34;&gt;`Reflow é um assunto extenso e necessário. Ele sempre vai existir nos navegadores, então temos que entendê-lo para saber como utilizá-lo de maneira racional. O mais legal é entender todo o contexto sobre o que são e como funcionam, para a partir daí repensar o código que renderizamos no navegador para obtermos maior performance.&lt;/h5&gt;
+
+&lt;p&gt;&lt;strong&gt;Reflow é o resultado de um evento que desencadeia mudanças no jeito que a pagina deve ser renderizada, tomando tempo para cálculo e reposicionamento de elementos.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Para explicar como isso acontece, o importante é entender como um navegador renderiza uma página web.&lt;/p&gt;
+
+&lt;h2 id=&#34;dom-1&#34;&gt;DOM&lt;/h2&gt;
+
+&lt;p&gt;Document Object Model (DOM) é uma interface independente de linguagem e plataforma para representar e interagir com objetos em HTML, XHTML e XML. Mas o DOM é mais que isso; toda linguagem estruturada tem uma arvore DOM.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_3941&#34; style=&#34;width: 490px&#34; class=&#34;wp-caption alignleft&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif&#34;&gt;&lt;img class=&#34;size-full wp-image-3941 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif&#34; alt=&#34;Exemplo de arvore DOM para documento HTML&#34; width=&#34;480&#34; height=&#34;212&#34; srcset=&#34;uploads/2011/07/DOMTree.gif 800w, uploads/2011/07/DOMTree-300x132.gif 300w&#34; sizes=&#34;(max-width: 480px) 100vw, 480px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Exemplo de arvore DOM para documento HTML
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Mas sobre o DOM podemos dizer que programas ou scripts podem dinamicamente acessar elementos na árvore DOM e alterar seu conteúdo, estrutura e estilo. Adicional ao estado inicial da pagina, estas alterações são agregadas a árvore DOM. O resultado é a renderização &amp;#8211; o que nós vemos em um navegador. Mas a nossa &lt;em&gt;Render Tree&lt;/em&gt; tem mais que isso:&lt;/p&gt;
+
+&lt;h2 id=&#34;render-tree-e-como-realmente-entender-display-x-visibility-1&#34;&gt;Render Tree e como realmente entender display X visibility&lt;/h2&gt;
+
+&lt;div id=&#34;attachment_3942&#34; style=&#34;width: 514px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/07/render.png&#34;&gt;&lt;img class=&#34;size-full wp-image-3942 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/render.png&#34; alt=&#34;Como a render tree e montada&#34; width=&#34;504&#34; height=&#34;234&#34; srcset=&#34;uploads/2011/07/render.png 630w, uploads/2011/07/render-300x139.png 300w&#34; sizes=&#34;(max-width: 504px) 100vw, 504px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Como a render tree é montada
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;O DOM é resultado do parse do markup HTML que você montou dentro de um navegador. Só que dentro de um HTML você não tem apenas a estrutura do documento, estilos em CSS e funcionalidades em javascript também estarão no seu markup. E a Render tree é a soma de DOM mais estilos, que depois podem ser manipulados (seus scripts).&lt;/p&gt;
+
+&lt;p&gt;Pode parecer estranho, mas para mim a melhor maneira de entender as diferencas entre DOM e Render Tree é encarar esta última como um &lt;span class=&#34;c17&#34;&gt;individuo narcisista&lt;/span&gt;. Isso mesmo: A Render Tree gosta de aparecer, é o que vemos no browser. O DOM acontece por trás das cortinas. &lt;em&gt;À Render tree, o palco&lt;/em&gt;. (&lt;a href=&#34;http://tableless.com.br/tenha-o-dom&#34; title=&#34;Tenha o DOM&#34;&gt;Para saber mais sobre o DOM, veja este outro artigo&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;Uma página que tem controles de show/hide mostra isso muito bem. Enquanto todo o conteúdo da página está presente na árvore DOM, apenas alguns itens estarão disponíveis na Render Tree &amp;#8211; os visíveis na página (display:block). Alterar os elementos display:none vão disparar mudanças na render tree, e não na árvore DOM.&lt;/p&gt;
+
+&lt;p&gt;Já tentou entender as diferenças entre display:none e visibility:hidden? A maioria das explicações que vemos é que um “deixa de mostrar o elemento totalmente, incluindo seu espaço em tela” e o outro “deixa de mostrar o elemento visual, mas sua área de exibição continua sendo utilizada”. Esta explicação não está incorreta, mas seria melhor dizer que a propriedade display altera a estrutura da render tree, adicionando algo que antes não estava ali, enquanto visibility não faz alterações, apenas o câmbio de mostrar ou não um elemento que já esta na render tree.&lt;/p&gt;
+
+&lt;h2 id=&#34;repaint-1&#34;&gt;Repaint&lt;/h2&gt;
+
+&lt;p&gt;Entendido as diferenças entre display e visibility, além do contexto de área do elemento, conseguimos explicar o Repaint. Uma ação que faça alteração de propriedades de background &lt;strong&gt;sem alterar dimensões ou outras propriedades do elemento&lt;/strong&gt; não causam o reflow, apenas o repaint, que seria a atualização da propriedade de cor ou da imagem &amp;#8211; literalmente pintar novamente o elemento. Repaints gastam menos CPU que reflows.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-um-navegador-monta-seu-documento-html-1&#34;&gt;Como um navegador monta seu documento HTML&lt;/h2&gt;
+
+&lt;p&gt;Esses vídeos são sensacionais. Eles explicam o que são os reflows e dai como minimizá-los durante a fase de desenvolvimento do documento (sempre usando &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://tableless.com.br/bem-vindo-a-xangrila-parte-1&#34;&gt;Progressive Enhancement&lt;/a&gt;&lt;/span&gt; quando possível) é mais fácil..&lt;/p&gt;
+
+&lt;p&gt;[youtube &lt;a href=&#34;http://www.youtube.com/watch?v=ZTnIxIA5KGw&#34;&gt;http://www.youtube.com/watch?v=ZTnIxIA5KGw&lt;/a&gt;]&lt;/p&gt;
+
+&lt;p class=&#34;c6 anotacao&#34;&gt;
+  Esta é uma representação de como a página da Mozilla é montada. Quer mais? Veja também como a &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://video.google.com/videoplay?docid=-5863446593724321515&#34;&gt;Wikipedia&lt;/a&gt;&lt;/span&gt; e a página do &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://video.google.com/videoplay?docid=-1471976166301235697&#34;&gt;Google&lt;/a&gt;&lt;/span&gt; no Japão são renderizadas.
+&lt;/p&gt;
+
+&lt;p&gt;Analisando o primeiro vídeo, perceba que ao finalizar a montagem do rodapé, “algo mais” acontece (a partir de 12seg). São os Reflows. A maioria dos elementos são recalculados e reposicionados. Se ponderarmos que o rodapé acaba de ser montado aos 14 segundos e a renderização termina aos 26 segundos da pagina, estamos falando quase de 50% do tempo de renderização sendo gasto com Reflows, o que é muito, dependendo do que a sua página deve fazer.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que-causam-exatamente-os-reflows-1&#34;&gt;O que causam exatamente os reflows?&lt;/h3&gt;
+
+&lt;p&gt;#####`&lt;/p&gt;
+
+&lt;p&gt;Reflows são excessivamente pesados e para reduzir efeitos uma das táticas que navegadores usam é processar nossos scripts em lote. Uma fila é criada para todos os comandos que causam reflow sejam processados de uma única vez. Porém o foco é entender o que causa um reflow e tentar minimizar o seu uso para ganhar performance na aplicação.&lt;/p&gt;
+
+&lt;p&gt;Este assunto é novo, e com certeza, A lista que mostro abaixo deve crescer. É importante mantermos a atenção a este assunto porque pequenos cuidados podem significar muito. Em um site web visualizado em desktops a diferença é óbvia sobre o tempo de renderização. Mas isso implica em outras coisas, que podem fazer a diferença não apenas em montar uma página mais rápido, mas também para menor gasto de processamento, o que garante também mais tempo de bateria em mobiles e tablets por exemplo.&lt;/p&gt;
+
+&lt;ol start=&#34;1&#34;&gt;
+  &lt;li&gt;
+    Adicionar, remover ou atualizar o DOM;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Esconder nós do DOM usando display:none;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Mover e animar o DOM na página;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Adicionar folhas de estilo on-the-fly que mudem o comportamento dos elementos;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Redimensionar janelas;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Alterar tamanho de fontes;
+  &lt;/li&gt;
+  &lt;li class=&#34;c6 c15&#34;&gt;
+    Scroll de página;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Em um dos posts sobre o assunto, Tony G mapeou pesquisas prévias e montou a seguinte tabela, que também está sendo constantemente atualizada.&lt;/p&gt;
+
+&lt;table class=&#34;c16&#34; cellspacing=&#34;0&#34; cellpadding=&#34;0&#34;&gt;
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;Element&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;Frame, Image&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;Range&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;SVGLocatable&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;SVGTextContent&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;SVGUse&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;window&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;span class=&#34;c0&#34;&gt;clientHeight,&lt;br /&gt; &lt;/span&gt;&lt;span class=&#34;c0&#34;&gt;clientLeft,&lt;br /&gt; &lt;/span&gt;&lt;span class=&#34;c0&#34;&gt;clientTop,&lt;br /&gt; &lt;/span&gt;&lt;span class=&#34;c0&#34;&gt;clientWidth,&lt;br /&gt; focus(), getBoundingClientRect(), getClientRects(), innerText,&lt;br /&gt; offsetHeight,&lt;br /&gt; offsetLeft,&lt;br /&gt; offsetParent,&lt;br /&gt; offsetTop,&lt;br /&gt; offsetWidth,&lt;br /&gt; outerText,&lt;br /&gt; scrollByLines(), scrollByPages(), scrollHeight, scrollIntoView(), scrollIntoViewIfNeeded(), scrollLeft,&lt;br /&gt; scrollTop,&lt;br /&gt; &lt;/span&gt;scrollWidth
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;span class=&#34;c0&#34;&gt;height, width&lt;/span&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;span class=&#34;c0&#34;&gt;getBoundingClientRect(), getClientRects()&lt;/span&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;span class=&#34;c0&#34;&gt;computeCTM(), getBBox()&lt;/span&gt;&lt;/p&gt; 
+      
+      &lt;p class=&#34;c5&#34;&gt;
+        &lt;/td&gt; 
+        
+        &lt;td&gt;
+          &lt;span class=&#34;c0&#34;&gt;getCharNumAtPosition(), getComputedTextLength(), getEndPositionOfChar(), getExtentOfChar(), getNumberOfChars(), getRotationOfChar(), getStartPositionOfChar(), getSubStringLength(), selectSubString()&lt;/span&gt;
+        &lt;/td&gt;
+        
+        &lt;td&gt;
+          &lt;span class=&#34;c0&#34;&gt;instanceRoot&lt;/span&gt;
+        &lt;/td&gt;
+        
+        &lt;td&gt;
+          &lt;span class=&#34;c0&#34;&gt;getComputedStyle(),&lt;br /&gt; scrollBy(),&lt;br /&gt; scrollTo(),&lt;br /&gt; scrollX,&lt;br /&gt; scrollY, webkitConvertPointFromNodeToPage(), webkitConvertPointFromPageToNode()&lt;/span&gt;
+        &lt;/td&gt;&lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt; 
+        
+
+&lt;pre&gt;&lt;code&gt;    &amp;lt;h2&amp;gt;
+      Como melhorar o meu código para minimizar os reflows?
+    &amp;lt;/h2&amp;gt;
+
+    &amp;lt;p&amp;gt;
+      É simples. Basta minimizar o uso de requisições de estilo, que façam o navegador executar reflows ou repaints.
+    &amp;lt;/p&amp;gt;
+
+    &amp;lt;ol start=&amp;quot;1&amp;quot;&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Planejar a sua aplicação e entender como plugins e scripts criados vão se comportar em relação a reflow e repaints. Arquitetar o uso de plugins de acordo com a personalização que deve ser feita. Minimize o uso de alteração de estilos on-the-fly.&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Quando precisar alterar a propriedade de um estilo, troque o nome da classe, planeje a existência deste estado e adicione-o ao CSS previamente. Se o valor desta nova classe for dinâmica, use cssText. Evite alterar a propriedade diretamente para qualquer mudança.&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c0&amp;quot;&amp;gt;Pense como suas mudanças afetam a render tree e o quanto precisará ser revalidado depois desta mudanca. Se você usa position:absolute em um elemento, ele deixa de pertencer ao nó que está, e passa a ser filho do BODY. Alterá-lo então, não será tão custoso em termos de performance. Mesmo que alterações neste nó sobreponha outras areas, o reflow acontecerá apenas neste nó, e não em toda a render tree. &amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Limpe seu CSS. Classes não utilizadas devem ser removidas.&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Reduza o número de mudanças no DOM. Ele vai causar mudanças estruturais em todas as outras etapas. E mais tempo de reflow. &amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Animações na página, transições? Pondere sobre posicioná-la de maneira absoluta e trabalhar com ela a partir do BODY.&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Vá com calma nos seletores CSS &amp;amp;#8211; os descendentes em particular &amp;amp;#8211; pois usam maior poder de CPU para executar a tarefa (CPU = Bateria).&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+    &amp;lt;/ol&amp;gt;
+
+    &amp;lt;h2&amp;gt;
+      Referências
+    &amp;lt;/h2&amp;gt;
+
+    &amp;lt;ul&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://en.wikipedia.org/wiki/Document_Object_Model&amp;quot;&amp;gt;DOM&amp;lt;/a&amp;gt; pela wikipedia
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://video.google.com/videoplay?docid=-1471976166301235697#docid=1020647662203348823&amp;quot;&amp;gt;Gecko Reflow&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://paulirish.com/2011/dom-html5-css3-performance/&amp;quot;&amp;gt;DOM, HTML5, CSS3 e Performance&amp;lt;/a&amp;gt; &amp;amp;#8211; &amp;lt;a href=&amp;quot;http://dl.dropbox.com/u/39519/talks/gperf/index.html&amp;quot;&amp;gt;Slides&amp;lt;/a&amp;gt; por Paul Irish
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.mozilla.org/newlayout/doc/reflow.html&amp;quot;&amp;gt;Reflow&amp;lt;/a&amp;gt; pelo Mozilla Labs
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://ajaxian.com/archives/browser-reflows-how-do-they-affect-performance&amp;quot;&amp;gt;Reflow e Repaint&amp;lt;/a&amp;gt; na Ajaxian
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://code.google.com/speed/articles/reflow.html&amp;quot;&amp;gt;Reflow&amp;lt;/a&amp;gt; pelo Google Code
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.w3.org/DOM/&amp;quot;&amp;gt;W3C Overview do DOM&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.dayofjs.com/videos/22158462/web-browsers_alex-russel&amp;quot;&amp;gt;1 dia de javascript com Alex Russel: Como Navegadores Veem as suas Apps&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://gent.ilcore.com/2011/03/how-not-to-trigger-layout-in-webkit.html&amp;quot;&amp;gt;Como (não) criar um layout no webkit por Tony G&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.webkit.org/blog/1091/more-web-inspector-updates/#timeline_panel&amp;quot;&amp;gt;Usando a timeline panel em navegadores webkit&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.bookofspeed.com/&amp;quot;&amp;gt;The book of Speed&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.phpied.com/rendering-repaint-reflowrelayout-restyle/&amp;quot;&amp;gt;Reflow/Repaint&amp;lt;/a&amp;gt; por Stoyan Stefanov
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://calendar.perfplanet.com/2009/the-new-game-show-will-it-reflow/&amp;quot;&amp;gt;Inconsistências dos navegadores em Reflows&amp;lt;/a&amp;gt; por Stoyan Stefanov
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.browserscope.org/?category=reflow&amp;quot;&amp;gt;BrowserScope tests para reflows&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.youtube.com/watch?v=a2_6bGNZ7bA&amp;quot;&amp;gt;Browsers para Web Developers&amp;lt;/a&amp;gt; David Baron da Mozilla labs
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.webkit.org/blog/114/webcore-rendering-i-the-basics/&amp;quot;&amp;gt;Renderização no webkit, o básico&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+    &amp;lt;/ul&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Performance do seu CSS</title>
+      <link>http://tableless.com.br/melhorando-performance-css/</link>
+      <pubDate>Tue, 29 Mar 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/melhorando-performance-css/</guid>
+      <description>
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/modulando-o-css&#34;&gt;Modular seu código CSS&lt;/a&gt; é uma boa prática para que o website carregue apenas o código necessário para montar a pagina que o visitante está. Por isso não precisamos carregar o código CSS que monta a página de contato uma vez que o usuário está na home, possibilitando um ganho de performance.&lt;/p&gt;
+
+&lt;p&gt;Podemos ainda melhorar um pouco mais nossa performance tendo atenção com a forma que escrevemos os seletores do CSS. Há algumas dicas que podemos seguir para que isso seja possível.&lt;/p&gt;
+
+&lt;p&gt;O seletor é a alma do CSS. É com ele que o browser procura e captura o elemento que você deseja formatar. Existem diversos seletores que possibilitam a captura de elementos em diversos cenários e necessidades. Com a atualizações dos browsers em relação a padronização do CSS 2.1 e do CSS 3, os desenvolvedores ganharam novos ferramentas e formas de capturar elementos.&lt;/p&gt;
+
+&lt;p&gt;Quero que você entenda que essas dicas são sugestões. Não seja um purista cabeça dura. Seja flexível e tolerante com alguns cenários que podem surgir durante o projeto. É bom sempre procurar o meio termo entre performance e velocidade de produção.&lt;/p&gt;
+
+&lt;p&gt;Outro ponto para pensar é que a má performance do CSS pode significar muito pouco perto de outros fatores como servidor, performance server-side, peso de imagens e outros fatores. Por isso é importante que você tenha em mente que fazendo as sugestões abaixo não é garantia de que seu site ficará super ultra rápido. =^)&lt;/p&gt;
+
+&lt;h3 id=&#34;processo-de-leitura&#34;&gt;Processo de leitura&lt;/h3&gt;
+
+&lt;p&gt;O browser segue um processo de leitura muito fácil de ser entendido.&lt;/p&gt;
+
+&lt;p&gt;Todo o seletorer (se voce não sabe o que é um seletor de CSS, recomendo que leia &lt;a href=&#34;http://tableless.com.br/seletores-complexos-do-css?utm_source=Artigo%2BSeletores%2BPerformance&amp;amp;utm_medium=Artigo%2Btableless&amp;amp;utm_campaign=seletores%2Bperformance&#34;&gt;isto&lt;/a&gt; e &lt;a href=&#34;http://tableless.com.br/seletores-agrupados-e-encadeados?utm_source=Artigo%2BSeletores%2BPerformance&amp;amp;utm_medium=Artigo%2Btableless&amp;amp;utm_campaign=seletores%2Bperformance&#34;&gt;isto&lt;/a&gt; antes de continuar).&lt;/p&gt;
+
+&lt;p&gt;O sistema de leitura consiste em encontrar o elemento da extrema direita do seletor. Logo a leitura do seletor começa da direita para a esquerda. A medida que o browser lê o seletor, ele vai encontrando os elementos e só pára quando há um erro no seletor ou não encontra o elemento.&lt;/p&gt;
+
+&lt;p&gt;Tenha como exemplo este seletor:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;ul li a {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Nesse primeiro momento, ao ler o elemento da direita, o browser seleciona TODOS os elementos &lt;strong&gt;A&lt;/strong&gt; da página, independente se ele está ou não dentro de um &lt;strong&gt;LI&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;“The style system matches a rule by starting with the rightmost selector and moving to the left through the rule’s selectors. As long as your little subtree continues to check out, the style system will continue moving to the left until it either matches the rule or bails out because of a mismatch.” – David Hyatt&lt;/p&gt;
+
+&lt;h3 id=&#34;não-use-ids-ou-classes-ligados-a-tags&#34;&gt;Não use IDs ou Classes ligados a tags&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;EVITE&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;div.content {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;div#geral {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RECOMENDADO&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;.content {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;#geral {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;h3 id=&#34;tente-especificar-os-elementos&#34;&gt;Tente especificar os elementos&lt;/h3&gt;
+
+&lt;p&gt;Sempre que puder tente especificar os elementos com IDs ou Classes em vez de escrever seletores longos.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;EVITE&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;nav#menu ul li a {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RECOMENDADO&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;.menuitem {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Eu não gosto muito desta sugestão porque teríamos de colocar uma classe &amp;#8220;menuitem&amp;#8221; em cada um dos ítens do menu. O HTML ficaria horrível. Prefiro fazer como abaixo. Não é a melhor forma (como eu cito no próximo tópico), mas é um meio termo entre performance, flexibilidade e produção de código:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;#menu a {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;h3 id=&#34;não-misture-ids-com-nomes-de-tags-e-classes&#34;&gt;Não misture IDs com nomes de tags e classes&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;EVITE&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;button#botaoverde {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;.menu#menuPrincipal {…}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RECOMENDADO&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;#botaoverde {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;#menuPrincipal {…}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;h3 id=&#34;não-coloque-nomes-de-tags-nos-nomes-de-classes&#34;&gt;Não coloque nomes de tags nos nomes de classes&lt;/h3&gt;
+
+&lt;p&gt;Muita gente relaciona o nome da tag ao nome da class ou id do CSS. Essa prática pode confundir posteriormente tanto na manutenção quanto no processo de produção por pelo menos dois motivos: &lt;strong&gt;1.&lt;/strong&gt; Você pode atribuir essa classe a elementos diferentes e não somente aquele que você relacionou no nome. &lt;strong&gt;2.&lt;/strong&gt; A classe pode fazer muito mais do que estava descrito inicialmente.&lt;/p&gt;
+
+&lt;p&gt;Por isso é interessante que cada nome de Classe seja ÚNICA e não seja relacionada a nenhum elemento em específico.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;EVITE&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;li.selected {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Bom, mas não muito&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;.liselected {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RECOMENDADO&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;.selected {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;h3 id=&#34;evite-seletores-filhos&#34;&gt;Evite seletores filhos&lt;/h3&gt;
+
+&lt;p&gt;Sempre tente evitar declarar hierarquia nos seletores. Sempre que puder, coloque o nome do elemento diretamente por meio de class ou id. Mesmo assim tenha em mente a limpeza do seu HTML. Se você já aplicou boa parte dessas sugestões no resto do site, você pode abrir mão em alguns lugares que poderão ser úteis como na criação de um menu.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;EVITE&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;section form#cadastro fieldset label input.Text {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RECOMENDADO&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;input[type=&amp;#8221;text&amp;#8221;] {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;h3 id=&#34;evite-seletores-descendentes&#34;&gt;Evite seletores descendentes&lt;/h3&gt;
+
+&lt;p&gt;Os seletores descendentes são os seletores tem menos performance no CSS.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;EVITE&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;section article h1 {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;É bom, mas nem tanto&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;section &amp;gt; article &amp;gt; h1 {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RECOMENDADO&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;CSS&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;.tituloh1 {&amp;#8230;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;Claro que é muito complexo colocar uma classe nos títulos do site, ainda mais se os títulos são gerados por outras pessoas. Por isso prefiro, dependendo do site, dependendo do cliente, dependendo de como eu acordar de manhã, utilizar a primeira sugestão, que está marcada para EVITAR. Lembre-se ache o meio termo.&lt;/p&gt;
+
+&lt;h4 id=&#34;referências&#34;&gt;Referências:&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.archive.jpsykes.com/152/testing-css-performance-pt-2/&#34; rel=&#34;external&#34;&gt;Testing CSS Performance&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.stevesouders.com/blog/2009/06/18/simplifying-css-selectors/&#34; rel=&#34;external&#34;&gt;Simplifying CSS Selectors&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://css-tricks.com/more-on-css-selector-performance/&#34; rel=&#34;external&#34;&gt;More on CSS Selector Performance&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.mozilla.org/en/Writing_Efficient_CSS&#34; rel=&#34;external&#34;&gt;Wrinting Efficient CSS&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

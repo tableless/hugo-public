@@ -1,0 +1,499 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/entendendo-os-reflows-2/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/entendendo-os-reflows-2/">Entendendo os Reflows</a></h1>
+  <p class="tb-hero-p">
+    
+    O que são e como os Reflows podem ser otimizados para aplicações ficarem ainda mais rápidas.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/alysson-franklin">Alysson Franklin</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Reflow é um assunto extenso e necessário. Ele sempre vai existir nos navegadores, então temos que entendê-lo para saber como utilizá-lo de maneira racional. O mais legal é entender todo o contexto sobre o que são e como funcionam, para a partir daí repensar o código que renderizamos no navegador para obtermos maior performance.</p>
+
+<p><strong>Reflow é o resultado de um evento que desencadeia mudanças no jeito que a pagina deve ser renderizada, tomando tempo para cálculo e reposicionamento de elementos.</strong></p>
+
+<p>Para explicar como isso acontece, o importante é entender como um navegador renderiza uma página web.</p>
+
+<h2 id="dom">DOM</h2>
+
+<p>Document Object Model (DOM) é uma interface independente de linguagem e plataforma para representar e interagir com objetos em HTML, XHTML e XML. Mas o DOM é mais que isso; toda linguagem estruturada tem uma arvore DOM.</p>
+
+<div id="attachment_3941" style="width: 490px" class="wp-caption alignleft">
+  <a href="http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif"><img class="size-full wp-image-3941 " src="http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif" alt="Exemplo de arvore DOM para documento HTML" width="480" height="212" srcset="uploads/2011/07/DOMTree.gif 800w, uploads/2011/07/DOMTree-300x132.gif 300w" sizes="(max-width: 480px) 100vw, 480px" /></a>
+  
+  <p class="wp-caption-text">
+    Exemplo de arvore DOM para documento HTML
+  </p>
+</div>
+
+<p>Mas sobre o DOM podemos dizer que programas ou scripts podem dinamicamente acessar elementos na árvore DOM e alterar seu conteúdo, estrutura e estilo. Adicional ao estado inicial da pagina, estas alterações são agregadas a árvore DOM. O resultado é a renderização &#8211; o que nós vemos em um navegador. Mas a nossa <em>Render Tree</em> tem mais que isso:</p>
+
+<h2 id="render-tree-e-como-realmente-entender-display-x-visibility">Render Tree e como realmente entender display X visibility</h2>
+
+<div id="attachment_3942" style="width: 514px" class="wp-caption alignnone">
+  <a href="http://tableless.com.br/wp-content/uploads/2011/07/render.png"><img class="size-full wp-image-3942 " src="http://tableless.com.br/wp-content/uploads/2011/07/render.png" alt="Como a render tree e montada" width="504" height="234" srcset="uploads/2011/07/render.png 630w, uploads/2011/07/render-300x139.png 300w" sizes="(max-width: 504px) 100vw, 504px" /></a>
+  
+  <p class="wp-caption-text">
+    Como a render tree é montada
+  </p>
+</div>
+
+<p>O DOM é resultado do parse do markup HTML que você montou dentro de um navegador. Só que dentro de um HTML você não tem apenas a estrutura do documento, estilos em CSS e funcionalidades em javascript também estarão no seu markup. E a Render tree é a soma de DOM mais estilos, que depois podem ser manipulados (seus scripts).</p>
+
+<p>Pode parecer estranho, mas para mim a melhor maneira de entender as diferencas entre DOM e Render Tree é encarar esta última como um <span class="c17">individuo narcisista</span>. Isso mesmo: A Render Tree gosta de aparecer, é o que vemos no browser. O DOM acontece por trás das cortinas. <em>À Render tree, o palco</em>. (<a href="http://tableless.com.br/tenha-o-dom" title="Tenha o DOM">Para saber mais sobre o DOM, veja este outro artigo</a>)</p>
+
+<p>Uma página que tem controles de show/hide mostra isso muito bem. Enquanto todo o conteúdo da página está presente na árvore DOM, apenas alguns itens estarão disponíveis na Render Tree &#8211; os visíveis na página (display:block). Alterar os elementos display:none vão disparar mudanças na render tree, e não na árvore DOM.</p>
+
+<p>Já tentou entender as diferenças entre display:none e visibility:hidden? A maioria das explicações que vemos é que um “deixa de mostrar o elemento totalmente, incluindo seu espaço em tela” e o outro “deixa de mostrar o elemento visual, mas sua área de exibição continua sendo utilizada”. Esta explicação não está incorreta, mas seria melhor dizer que a propriedade display altera a estrutura da render tree, adicionando algo que antes não estava ali, enquanto visibility não faz alterações, apenas o câmbio de mostrar ou não um elemento que já esta na render tree.</p>
+
+<h2 id="repaint">Repaint</h2>
+
+<p>Entendido as diferenças entre display e visibility, além do contexto de área do elemento, conseguimos explicar o Repaint. Uma ação que faça alteração de propriedades de background <strong>sem alterar dimensões ou outras propriedades do elemento</strong> não causam o reflow, apenas o repaint, que seria a atualização da propriedade de cor ou da imagem &#8211; literalmente pintar novamente o elemento. Repaints gastam menos CPU que reflows.</p>
+
+<h2 id="como-um-navegador-monta-seu-documento-html">Como um navegador monta seu documento HTML</h2>
+
+<p>Esses vídeos são sensacionais. Eles explicam o que são os reflows e dai como minimizá-los durante a fase de desenvolvimento do documento (sempre usando <span class="c9"><a class="c7" href="http://tableless.com.br/bem-vindo-a-xangrila-parte-1">Progressive Enhancement</a></span> quando possível) é mais fácil..</p>
+
+<p>[youtube <a href="http://www.youtube.com/watch?v=ZTnIxIA5KGw">http://www.youtube.com/watch?v=ZTnIxIA5KGw</a>]</p>
+
+<p class="c6 anotacao">
+  Esta é uma representação de como a página da Mozilla é montada. Quer mais? Veja também como a <span class="c9"><a class="c7" href="http://video.google.com/videoplay?docid=-5863446593724321515">Wikipedia</a></span> e a página do <span class="c9"><a class="c7" href="http://video.google.com/videoplay?docid=-1471976166301235697">Google</a></span> no Japão são renderizadas.
+</p>
+
+<p>Analisando o primeiro vídeo, perceba que ao finalizar a montagem do rodapé, “algo mais” acontece (a partir de 12seg). São os Reflows. A maioria dos elementos são recalculados e reposicionados. Se ponderarmos que o rodapé acaba de ser montado aos 14 segundos e a renderização termina aos 26 segundos da pagina, estamos falando quase de 50% do tempo de renderização sendo gasto com Reflows, o que é muito, dependendo do que a sua página deve fazer.</p>
+
+<h3 id="o-que-causam-exatamente-os-reflows">O que causam exatamente os reflows?</h3>
+
+<h5 id="reflow-é-um-assunto-extenso-e-necessário-ele-sempre-vai-existir-nos-navegadores-então-temos-que-entendê-lo-para-saber-como-utilizá-lo-de-maneira-racional-o-mais-legal-é-entender-todo-o-contexto-sobre-o-que-são-e-como-funcionam-para-a-partir-daí-repensar-o-código-que-renderizamos-no-navegador-para-obtermos-maior-performance">`Reflow é um assunto extenso e necessário. Ele sempre vai existir nos navegadores, então temos que entendê-lo para saber como utilizá-lo de maneira racional. O mais legal é entender todo o contexto sobre o que são e como funcionam, para a partir daí repensar o código que renderizamos no navegador para obtermos maior performance.</h5>
+
+<p><strong>Reflow é o resultado de um evento que desencadeia mudanças no jeito que a pagina deve ser renderizada, tomando tempo para cálculo e reposicionamento de elementos.</strong></p>
+
+<p>Para explicar como isso acontece, o importante é entender como um navegador renderiza uma página web.</p>
+
+<h2 id="dom-1">DOM</h2>
+
+<p>Document Object Model (DOM) é uma interface independente de linguagem e plataforma para representar e interagir com objetos em HTML, XHTML e XML. Mas o DOM é mais que isso; toda linguagem estruturada tem uma arvore DOM.</p>
+
+<div id="attachment_3941" style="width: 490px" class="wp-caption alignleft">
+  <a href="http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif"><img class="size-full wp-image-3941 " src="http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif" alt="Exemplo de arvore DOM para documento HTML" width="480" height="212" srcset="uploads/2011/07/DOMTree.gif 800w, uploads/2011/07/DOMTree-300x132.gif 300w" sizes="(max-width: 480px) 100vw, 480px" /></a>
+  
+  <p class="wp-caption-text">
+    Exemplo de arvore DOM para documento HTML
+  </p>
+</div>
+
+<p>Mas sobre o DOM podemos dizer que programas ou scripts podem dinamicamente acessar elementos na árvore DOM e alterar seu conteúdo, estrutura e estilo. Adicional ao estado inicial da pagina, estas alterações são agregadas a árvore DOM. O resultado é a renderização &#8211; o que nós vemos em um navegador. Mas a nossa <em>Render Tree</em> tem mais que isso:</p>
+
+<h2 id="render-tree-e-como-realmente-entender-display-x-visibility-1">Render Tree e como realmente entender display X visibility</h2>
+
+<div id="attachment_3942" style="width: 514px" class="wp-caption alignnone">
+  <a href="http://tableless.com.br/wp-content/uploads/2011/07/render.png"><img class="size-full wp-image-3942 " src="http://tableless.com.br/wp-content/uploads/2011/07/render.png" alt="Como a render tree e montada" width="504" height="234" srcset="uploads/2011/07/render.png 630w, uploads/2011/07/render-300x139.png 300w" sizes="(max-width: 504px) 100vw, 504px" /></a>
+  
+  <p class="wp-caption-text">
+    Como a render tree é montada
+  </p>
+</div>
+
+<p>O DOM é resultado do parse do markup HTML que você montou dentro de um navegador. Só que dentro de um HTML você não tem apenas a estrutura do documento, estilos em CSS e funcionalidades em javascript também estarão no seu markup. E a Render tree é a soma de DOM mais estilos, que depois podem ser manipulados (seus scripts).</p>
+
+<p>Pode parecer estranho, mas para mim a melhor maneira de entender as diferencas entre DOM e Render Tree é encarar esta última como um <span class="c17">individuo narcisista</span>. Isso mesmo: A Render Tree gosta de aparecer, é o que vemos no browser. O DOM acontece por trás das cortinas. <em>À Render tree, o palco</em>. (<a href="http://tableless.com.br/tenha-o-dom" title="Tenha o DOM">Para saber mais sobre o DOM, veja este outro artigo</a>)</p>
+
+<p>Uma página que tem controles de show/hide mostra isso muito bem. Enquanto todo o conteúdo da página está presente na árvore DOM, apenas alguns itens estarão disponíveis na Render Tree &#8211; os visíveis na página (display:block). Alterar os elementos display:none vão disparar mudanças na render tree, e não na árvore DOM.</p>
+
+<p>Já tentou entender as diferenças entre display:none e visibility:hidden? A maioria das explicações que vemos é que um “deixa de mostrar o elemento totalmente, incluindo seu espaço em tela” e o outro “deixa de mostrar o elemento visual, mas sua área de exibição continua sendo utilizada”. Esta explicação não está incorreta, mas seria melhor dizer que a propriedade display altera a estrutura da render tree, adicionando algo que antes não estava ali, enquanto visibility não faz alterações, apenas o câmbio de mostrar ou não um elemento que já esta na render tree.</p>
+
+<h2 id="repaint-1">Repaint</h2>
+
+<p>Entendido as diferenças entre display e visibility, além do contexto de área do elemento, conseguimos explicar o Repaint. Uma ação que faça alteração de propriedades de background <strong>sem alterar dimensões ou outras propriedades do elemento</strong> não causam o reflow, apenas o repaint, que seria a atualização da propriedade de cor ou da imagem &#8211; literalmente pintar novamente o elemento. Repaints gastam menos CPU que reflows.</p>
+
+<h2 id="como-um-navegador-monta-seu-documento-html-1">Como um navegador monta seu documento HTML</h2>
+
+<p>Esses vídeos são sensacionais. Eles explicam o que são os reflows e dai como minimizá-los durante a fase de desenvolvimento do documento (sempre usando <span class="c9"><a class="c7" href="http://tableless.com.br/bem-vindo-a-xangrila-parte-1">Progressive Enhancement</a></span> quando possível) é mais fácil..</p>
+
+<p>[youtube <a href="http://www.youtube.com/watch?v=ZTnIxIA5KGw">http://www.youtube.com/watch?v=ZTnIxIA5KGw</a>]</p>
+
+<p class="c6 anotacao">
+  Esta é uma representação de como a página da Mozilla é montada. Quer mais? Veja também como a <span class="c9"><a class="c7" href="http://video.google.com/videoplay?docid=-5863446593724321515">Wikipedia</a></span> e a página do <span class="c9"><a class="c7" href="http://video.google.com/videoplay?docid=-1471976166301235697">Google</a></span> no Japão são renderizadas.
+</p>
+
+<p>Analisando o primeiro vídeo, perceba que ao finalizar a montagem do rodapé, “algo mais” acontece (a partir de 12seg). São os Reflows. A maioria dos elementos são recalculados e reposicionados. Se ponderarmos que o rodapé acaba de ser montado aos 14 segundos e a renderização termina aos 26 segundos da pagina, estamos falando quase de 50% do tempo de renderização sendo gasto com Reflows, o que é muito, dependendo do que a sua página deve fazer.</p>
+
+<h3 id="o-que-causam-exatamente-os-reflows-1">O que causam exatamente os reflows?</h3>
+
+<p>#####`</p>
+
+<p>Reflows são excessivamente pesados e para reduzir efeitos uma das táticas que navegadores usam é processar nossos scripts em lote. Uma fila é criada para todos os comandos que causam reflow sejam processados de uma única vez. Porém o foco é entender o que causa um reflow e tentar minimizar o seu uso para ganhar performance na aplicação.</p>
+
+<p>Este assunto é novo, e com certeza, A lista que mostro abaixo deve crescer. É importante mantermos a atenção a este assunto porque pequenos cuidados podem significar muito. Em um site web visualizado em desktops a diferença é óbvia sobre o tempo de renderização. Mas isso implica em outras coisas, que podem fazer a diferença não apenas em montar uma página mais rápido, mas também para menor gasto de processamento, o que garante também mais tempo de bateria em mobiles e tablets por exemplo.</p>
+
+<ol start="1">
+  <li>
+    Adicionar, remover ou atualizar o DOM;
+  </li>
+  <li>
+    Esconder nós do DOM usando display:none;
+  </li>
+  <li>
+    Mover e animar o DOM na página;
+  </li>
+  <li>
+    Adicionar folhas de estilo on-the-fly que mudem o comportamento dos elementos;
+  </li>
+  <li>
+    Redimensionar janelas;
+  </li>
+  <li>
+    Alterar tamanho de fontes;
+  </li>
+  <li class="c6 c15">
+    Scroll de página;
+  </li>
+</ol>
+
+<p>Em um dos posts sobre o assunto, Tony G mapeou pesquisas prévias e montou a seguinte tabela, que também está sendo constantemente atualizada.</p>
+
+<table class="c16" cellspacing="0" cellpadding="0">
+  <tr>
+    <td>
+      <h4>
+        <strong>Element</strong>
+      </h4>
+    </td>
+    
+    <td>
+      <h4>
+        <strong>Frame, Image</strong>
+      </h4>
+    </td>
+    
+    <td>
+      <h4>
+        <strong>Range</strong>
+      </h4>
+    </td>
+    
+    <td>
+      <h4>
+        <strong>SVGLocatable</strong>
+      </h4>
+    </td>
+    
+    <td>
+      <h4>
+        <strong>SVGTextContent</strong>
+      </h4>
+    </td>
+    
+    <td>
+      <h4>
+        <strong>SVGUse</strong>
+      </h4>
+    </td>
+    
+    <td>
+      <h4>
+        <strong>window</strong>
+      </h4>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <span class="c0">clientHeight,<br /> </span><span class="c0">clientLeft,<br /> </span><span class="c0">clientTop,<br /> </span><span class="c0">clientWidth,<br /> focus(), getBoundingClientRect(), getClientRects(), innerText,<br /> offsetHeight,<br /> offsetLeft,<br /> offsetParent,<br /> offsetTop,<br /> offsetWidth,<br /> outerText,<br /> scrollByLines(), scrollByPages(), scrollHeight, scrollIntoView(), scrollIntoViewIfNeeded(), scrollLeft,<br /> scrollTop,<br /> </span>scrollWidth
+    </td>
+    
+    <td>
+      <span class="c0">height, width</span>
+    </td>
+    
+    <td>
+      <span class="c0">getBoundingClientRect(), getClientRects()</span>
+    </td>
+    
+    <td>
+      <span class="c0">computeCTM(), getBBox()</span></p> 
+      
+      <p class="c5">
+        </td> 
+        
+        <td>
+          <span class="c0">getCharNumAtPosition(), getComputedTextLength(), getEndPositionOfChar(), getExtentOfChar(), getNumberOfChars(), getRotationOfChar(), getStartPositionOfChar(), getSubStringLength(), selectSubString()</span>
+        </td>
+        
+        <td>
+          <span class="c0">instanceRoot</span>
+        </td>
+        
+        <td>
+          <span class="c0">getComputedStyle(),<br /> scrollBy(),<br /> scrollTo(),<br /> scrollX,<br /> scrollY, webkitConvertPointFromNodeToPage(), webkitConvertPointFromPageToNode()</span>
+        </td></tr> </tbody> </table> 
+        
+
+<pre><code>    &lt;h2&gt;
+      Como melhorar o meu código para minimizar os reflows?
+    &lt;/h2&gt;
+
+    &lt;p&gt;
+      É simples. Basta minimizar o uso de requisições de estilo, que façam o navegador executar reflows ou repaints.
+    &lt;/p&gt;
+
+    &lt;ol start=&quot;1&quot;&gt;
+      &lt;li&gt;
+        &lt;span class=&quot;c11&quot;&gt;Planejar a sua aplicação e entender como plugins e scripts criados vão se comportar em relação a reflow e repaints. Arquitetar o uso de plugins de acordo com a personalização que deve ser feita. Minimize o uso de alteração de estilos on-the-fly.&lt;/span&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;span class=&quot;c11&quot;&gt;Quando precisar alterar a propriedade de um estilo, troque o nome da classe, planeje a existência deste estado e adicione-o ao CSS previamente. Se o valor desta nova classe for dinâmica, use cssText. Evite alterar a propriedade diretamente para qualquer mudança.&lt;/span&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;span class=&quot;c0&quot;&gt;Pense como suas mudanças afetam a render tree e o quanto precisará ser revalidado depois desta mudanca. Se você usa position:absolute em um elemento, ele deixa de pertencer ao nó que está, e passa a ser filho do BODY. Alterá-lo então, não será tão custoso em termos de performance. Mesmo que alterações neste nó sobreponha outras areas, o reflow acontecerá apenas neste nó, e não em toda a render tree. &lt;/span&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;span class=&quot;c11&quot;&gt;Limpe seu CSS. Classes não utilizadas devem ser removidas.&lt;/span&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;span class=&quot;c11&quot;&gt;Reduza o número de mudanças no DOM. Ele vai causar mudanças estruturais em todas as outras etapas. E mais tempo de reflow. &lt;/span&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;span class=&quot;c11&quot;&gt;Animações na página, transições? Pondere sobre posicioná-la de maneira absoluta e trabalhar com ela a partir do BODY.&lt;/span&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;span class=&quot;c11&quot;&gt;Vá com calma nos seletores CSS &amp;#8211; os descendentes em particular &amp;#8211; pois usam maior poder de CPU para executar a tarefa (CPU = Bateria).&lt;/span&gt;
+      &lt;/li&gt;
+    &lt;/ol&gt;
+
+    &lt;h2&gt;
+      Referências
+    &lt;/h2&gt;
+
+    &lt;ul&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://en.wikipedia.org/wiki/Document_Object_Model&quot;&gt;DOM&lt;/a&gt; pela wikipedia
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://video.google.com/videoplay?docid=-1471976166301235697#docid=1020647662203348823&quot;&gt;Gecko Reflow&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://paulirish.com/2011/dom-html5-css3-performance/&quot;&gt;DOM, HTML5, CSS3 e Performance&lt;/a&gt; &amp;#8211; &lt;a href=&quot;http://dl.dropbox.com/u/39519/talks/gperf/index.html&quot;&gt;Slides&lt;/a&gt; por Paul Irish
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://www.mozilla.org/newlayout/doc/reflow.html&quot;&gt;Reflow&lt;/a&gt; pelo Mozilla Labs
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://ajaxian.com/archives/browser-reflows-how-do-they-affect-performance&quot;&gt;Reflow e Repaint&lt;/a&gt; na Ajaxian
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://code.google.com/speed/articles/reflow.html&quot;&gt;Reflow&lt;/a&gt; pelo Google Code
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://www.w3.org/DOM/&quot;&gt;W3C Overview do DOM&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://www.dayofjs.com/videos/22158462/web-browsers_alex-russel&quot;&gt;1 dia de javascript com Alex Russel: Como Navegadores Veem as suas Apps&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://gent.ilcore.com/2011/03/how-not-to-trigger-layout-in-webkit.html&quot;&gt;Como (não) criar um layout no webkit por Tony G&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://www.webkit.org/blog/1091/more-web-inspector-updates/#timeline_panel&quot;&gt;Usando a timeline panel em navegadores webkit&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://www.bookofspeed.com/&quot;&gt;The book of Speed&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://www.phpied.com/rendering-repaint-reflowrelayout-restyle/&quot;&gt;Reflow/Repaint&lt;/a&gt; por Stoyan Stefanov
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://calendar.perfplanet.com/2009/the-new-game-show-will-it-reflow/&quot;&gt;Inconsistências dos navegadores em Reflows&lt;/a&gt; por Stoyan Stefanov
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://www.browserscope.org/?category=reflow&quot;&gt;BrowserScope tests para reflows&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://www.youtube.com/watch?v=a2_6bGNZ7bA&quot;&gt;Browsers para Web Developers&lt;/a&gt; David Baron da Mozilla labs
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;http://www.webkit.org/blog/114/webcore-rendering-i-the-basics/&quot;&gt;Renderização no webkit, o básico&lt;/a&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+</code></pre>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

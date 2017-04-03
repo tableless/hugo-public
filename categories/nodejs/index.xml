@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Nodejs on Tableless</title>
+    <link>http://tableless.com.br/categories/nodejs/index.xml</link>
+    <description>Recent content in Nodejs on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/categories/nodejs/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Teste de carga em APIs utilizando Artillery</title>
+      <link>http://tableless.com.br/teste-de-carga-em-apis-utilizando-artillery/</link>
+      <pubDate>Mon, 06 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/teste-de-carga-em-apis-utilizando-artillery/</guid>
+      <description>&lt;p&gt;Independente do produto que você esteja criando, é sempre importante assegurar a qualidade do mesmo fazendo uma bateria de testes antes de colocar no mercado. Se tratando de desenvolvimento de software, existem algumas métricas que são essenciais para deixar claro para todos os envolvidos no projeto, incluindo seus usuários, o quanto determinado sistema/aplicativo é confiável para suportar o uso do público.&lt;/p&gt;
+
+&lt;p&gt;Dentro da área de qualidade de software, existem diversos tipos de testes que visam atingir o objetivo citado acima, de mostrar a todos que o produto é estável e robusto, alguns deles: teste de integração, teste unitário, teste de penetração, teste de regressão e por aí vai.&lt;/p&gt;
+
+&lt;p&gt;Este post tem como objetivo falar um pouco sobre o teste de carga, que em sua essência foi criado para simular quantidades diferentes de tentativa de acesso a determinado sistema ou device, tendo como saída um relatório de como o software se comportou em determinado cenário.&lt;/p&gt;
+
+&lt;p&gt;Quando falamos de APIs e escalonamento de infra, é interessante saber o número exato de requisições que o servidor (ou servidores) consegue responder corretamente em um tempo aceitável para seus clientes.&lt;/p&gt;
+
+&lt;p&gt;Caso você já tenha tentado fazer algo do tipo, provavelmente se deparou com o JMeter, que é uma das ferramentas mais famosas e completas para esse tipo de trabalho. Porém, a curva de aprendizado com o JMeter é um pouco longa, pois existem muitas configurações/opções que o usuário acaba se perdendo no início, até encontrar o que realmente precisa para o seu caso.&lt;figure class=&#34;graf graf--figure&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;graf-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*1hZHPrQKHwCctBX7bFOPmw.png&#34; /&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;Na tentativa de tornar esse processo de teste de carga um pouco mais amigável ao usuário, foi criado o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://artillery.io/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Artillery&lt;/a&gt;, uma ferramenta que com poucos passos permite você simular diversos tipos de cenários para teste de serviços que estejam utilizando para comunicação http e/ou web sockets.&lt;/p&gt;
+
+&lt;p&gt;Basicamente você precisa ter o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;node&lt;/a&gt; e o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://www.npmjs.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;npm&lt;/a&gt; instalado para poder começar a brincadeira.&lt;/p&gt;
+
+&lt;p&gt;Para instalar o Artillery:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ npm install -g artillery&lt;/pre&gt;
+
+&lt;p&gt;Para testar sua instalação:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ artillery dino&lt;/pre&gt;
+
+&lt;p&gt;Caso tenha aparecido um dinossauro em seu terminal, está tudo certo e você pode seguir adiante.&lt;/p&gt;
+
+&lt;p&gt;Para começar a rodar seus testes de carga, é necessário criar um arquivo de configuração. Você pode dar qualquer nome a ele, mas para esse artigo, criarei um chamado &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;artillery.yml&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Neste cara que você colocará todas as informações referentes a sua API, como endpoint, rotas e cenários. Você pode tanto testar rotas/recursos isolados, quanto cenários mais complexos, como por exemplo um processo de compra em um ecommerce, que basicamente teria uma rota para buscar os produtos, outra pra fazer checkout e outra para pagamento.&lt;/p&gt;
+
+&lt;p&gt;Segue abaixo um exemplo desse arquivo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;config:
+  target: &#39;&lt;a class=&#34;markup--anchor markup--pre-anchor&#34; href=&#34;http://localhost:3000%27&#34; target=&#34;_blank&#34; rel=&#34;nofollow noopener noopener&#34;&gt;http://localhost:3000&#39;&lt;/a&gt;
+  phases:
+    - duration: 60
+      arrivalRate: 20
+scenarios:
+  -
+    name: &#39;Listagem de usuários&#39;
+    flow:
+    - get:
+        url: &#34;/users&#34;&lt;/pre&gt;
+
+&lt;p&gt;No arquivo acima colocamos o endpoint da nossa API, o atributo &lt;em&gt;duration&lt;/em&gt; representa a duração deste ciclo de teste em segundos e o &lt;em&gt;arrivalRate&lt;/em&gt; o número de novos usuários por segundo.&lt;/p&gt;
+
+&lt;p&gt;Para rodar o teste, rode o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ artillery run artillery.yml&lt;/pre&gt;
+
+&lt;p&gt;Após a execução, temos o seguinte resultado:&lt;figure class=&#34;graf graf--figure&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;graf-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*iuh0Z_BoqM4epjC2pOvt_A.png&#34; /&gt;&lt;figcaption class=&#34;imageCaption&#34;&gt;Output do Artillery&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;Todas as métricas de tempo são em milis, &lt;em class=&#34;markup--em markup--p-em&#34;&gt;RPS&lt;/em&gt; (request per second), &lt;em class=&#34;markup--em markup--p-em&#34;&gt;codes&lt;/em&gt; são os códigos HTTP e o número de respostas com o mesmo, no caso acima, tivemos 1200 (60&amp;#215;20, como configuramos) requisições em 60 segundos e todas retornaram 200. &lt;em class=&#34;markup--em markup--p-em&#34;&gt;Scenarios launched&lt;/em&gt; são os ‘usuários virtuais’ criados e &lt;em class=&#34;markup--em markup--p-em&#34;&gt;Scenarios completed&lt;/em&gt; são quantos deles conseguiram executar o cenário com sucesso.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;Importante: &lt;/strong&gt;Enquanto o teste estiver rodando, um preview do resultado vai sendo printado no terminal a cada 10 segundos, mas só no final você tem os números consolidados do teste completo.&lt;/p&gt;
+
+&lt;p&gt;Agora você pode ir alterando números de usuários concorrentes, quantidade de tempo do teste, novos cenários, simulando fluxos mais complexos e etc.&lt;/p&gt;
+
+&lt;p&gt;Vale a pena dar uma olhada na &lt;a href=&#34;https://artillery.io/docs/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;documentação&lt;/a&gt; que é super objetiva e simples de entender.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Como criar aplicações em tempo real usando Node.js e RethinkDB</title>
+      <link>http://tableless.com.br/como-criar-aplicacoes-em-tempo-real-usando-node-js-e-rethinkdb/</link>
+      <pubDate>Wed, 22 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/como-criar-aplicacoes-em-tempo-real-usando-node-js-e-rethinkdb/</guid>
+      <description>
+
+&lt;h2 id=&#34;sobre-o-rethinkdb&#34;&gt;Sobre o RethinkDB&lt;/h2&gt;
+
+&lt;p&gt;Se você precisa de um banco de dados NoSQL que funcione com dados JSON e tenha suporte completo para buscas em tempo real e uma mistura de modelos entre SQL e NoSQL, então uma boa opção é o RethinkDB.&lt;/p&gt;
+
+&lt;p&gt;Trata-se de uma base de dados em código aberto em que todos os dados JSON são persistidos em tabelas como um banco de dados SQL convencional, permitindo que você execute queries entre múltiplas tabelas utilizando o comando clássico &lt;strong&gt;join&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mas você também pode persistir arrays e sub-documentos como está acostumado a fazer com o MongoDB, CouchDB ou PostgreSQL.&lt;/p&gt;
+
+&lt;p&gt;Há alguns materiais bacanas no RethinkDB, como:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Suporte ao GeoSpartial;&lt;/li&gt;
+&lt;li&gt;API para lidar com strings, datas, booleanos e documentos;&lt;/li&gt;
+&lt;li&gt;API para Math;&lt;/li&gt;
+&lt;li&gt;Suporte ao Map-reduce;&lt;/li&gt;
+&lt;li&gt;Cliente HTTP para capturar alguns dados externos;&lt;/li&gt;
+&lt;li&gt;Changefeeds , que é uma busca em tempo real;&lt;/li&gt;
+&lt;li&gt;Suporte para index (simples, composto e multi);&lt;/li&gt;
+&lt;li&gt;Painel de administrador nativo da web;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;desenvolvendo-o-aplicativo&#34;&gt;Desenvolvendo o aplicativo&lt;/h2&gt;
+
+&lt;p&gt;E então, que tal desenvolver algo útil usando o RethinkDB? Para explorar a busca em tempo real, vamos construir uma timeline global simples utilizando o recurso &lt;a href=&#34;http://rethinkdb.com/docs/changefeeds/javascript&#34;&gt;changefeed&lt;/a&gt; para listar todos os dados na timeline em tempo real, com o uso do Node.js, Express, Socket.IO e o RethinkDB.&lt;/p&gt;
+
+&lt;p&gt;Primeiro, você precisa instalar o RethinkDB. Antes de começar escrevendo os códigos abaixo, para instalar esse banco de dados eu recomendo que você leia e siga as instruções deste link &lt;a href=&#34;http://rethinkdb.com/docs/install&#34;&gt;http://rethinkdb.com/docs/install&lt;/a&gt; de acordo com seu sistema operacional.&lt;/p&gt;
+
+&lt;p&gt;Depois de instalá-lo, execute os comandos abaixo para iniciar o projeto:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;bash&#34;&gt;mkdir timeline
+cd timeline
+npm init
+npm install--save express socket.io rethinkdb
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora, vamos trabalhar! Para simplificar as coisas nós vamos usar o código do ES6 da versão nativa &lt;strong&gt;Node v6.x.x&lt;/strong&gt;, e o backend será um único arquivo de código para fins de estudo, mas se você precisa desenvolver um servidor backend complexo e bem estruturado utilizando o RethinkDB, dê uma olhada neste projeto &lt;a href=&#34;https://github.com/caio-ribeiro-pereira/node-api-examples&#34;&gt;node-api-examples&lt;/a&gt;, o qual possui uma lista com alguns exemplos de APIs utilizando os mesmos roteadores web e bancos de dados. Existem alguns exemplos do uso do RethinkDB com Koa, Express e o Hapi.js.&lt;/p&gt;
+
+&lt;p&gt;Bem, vamos criar o servidor backend de nossa aplicação. Você pode criar o arquivo &lt;code&gt;index.js&lt;/code&gt; por meio do código abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;javascript&#34;&gt;const http = require(&#39;http&#39;);
+const fs = require(&#39;fs&#39;);
+const express = require(&#39;express&#39;);
+const socketIO = require(&#39;socket.io&#39;);
+const r = require(&#39;rethinkdb&#39;);
+const config = require(&#39;./config.json&#39;);
+
+// Loading Express, HTTP, Socket.IO and RethinkDB
+const db = Object.assign(config.rethinkdb, {
+    db: &#39;timeline&#39;
+});
+const app = express();
+const server = http.Server(app);
+const io = socketIO(server);
+
+// Connecting to RethinkDB server
+r.connect(db)
+    .then(conn =&amp;gt; {
+        // Index route which renders the index.html
+        app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+            fs.readFile(`${__dirname}/index.html`, (err, html) =&amp;gt; {
+                res.end(html || err);
+            });
+        });
+        // The changefeed is provided by change() function
+        // which emits broadcast of new messages for all clients
+        r.table(&#39;messages&#39;)
+            .changes()
+            .run(conn)
+            .then(cursor =&amp;gt; {
+                cursor.each((err, data) =&amp;gt; {
+                    const message = data.new_val;
+                    io.sockets.emit(&#39;/messages&#39;, message);
+                });
+            });
+        // Listing all messages when new user connects into socket.io
+        io.on(&#39;connection&#39;, (client) =&amp;gt; {
+            r.table(&#39;messages&#39;)
+                .run(conn)
+                .then(cursor =&amp;gt; {
+                    cursor.each((err, message) =&amp;gt; {
+                        io.sockets.emit(&#39;/messages&#39;, message);
+                    });
+                });
+            // Listening the event from client and insert new messages
+            client.on(&#39;/messages&#39;, (body) =&amp;gt; {
+                const {
+                    name,
+                    message
+                } = body;
+                const data = {
+                    name,
+                    message,
+                    date: new Date()
+                };
+                r.table(&#39;messages&#39;).insert(data).run(conn);
+            });
+        });
+        server.listen(3000, () =&amp;gt; console.log(&#39;Timeline Server!&#39;));
+    })
+    .error(err =&amp;gt; {
+        console.log(&#39;Can\&#39;t connect to RethinkDB&#39;);
+        throw err;
+    });
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Existem alguns detalhes importantes que você precisa saber quando for usar o RethinkDB. Primeiro, todas as funções desse módulo funcionam usando callbacks ou &lt;a href=&#34;https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise&#34;&gt;Promessas&lt;/a&gt;. Se você escolher as promessas, você pode criar funções assíncronas bem estruturadas com gerentes de erros melhores.&lt;/p&gt;
+
+&lt;p&gt;O recurso &lt;strong&gt;changefeed&lt;/strong&gt; (via &lt;code&gt;r.table(&#39;messages&#39;).changes()&lt;/code&gt;) é um subscriber do banco de dados, o qual é uma query observadora e retorna qualquer modificação de uma tabela. A combinação com o &lt;code&gt;io.sockets.emit()&lt;/code&gt; permite que o servidor envie dados em tempo real para o cliente.&lt;/p&gt;
+
+&lt;p&gt;Agora, vamos criar um script simples de migração para preparar o banco de dados antes de rodar o servidor. Essa migração é muito comum em bancos de dados relacionais. Crie o arquivo &lt;code&gt;database.js&lt;/code&gt; com o script abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;javascript&#34;&gt;const r = require(&#39;rethinkdb&#39;);
+const config = require(&#39;./config.json&#39;);
+let conn;
+
+r.connect(config.rethinkdb)
+    .then(connection =&amp;gt; {
+        console.log(&#39;Connecting RethinkDB...&#39;);
+        conn = connection;
+        return r.dbCreate(&#39;timeline&#39;).run(conn);
+    })
+    .then(() =&amp;gt; {
+        console.log(&#39;Database &#34;timeline&#34; created!&#39;);
+        return r.db(&#39;timeline&#39;).tableCreate(&#39;messages&#39;).run(conn);
+    })
+    .then(() =&amp;gt; console.log(&#39;Table &#34;messages&#34; created!&#39;))
+    .error(err =&amp;gt; console.log(err))
+    .finally(() =&amp;gt; process.exit(0));
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;E não se esqueça de criar o arquivo &lt;code&gt;config.json&lt;/code&gt;, o qual possui dados para conectar no servidor RethinkDB:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;javascript&#34;&gt;{
+    &#34;rethinkdb&#34;: {
+        &#34;host&#34;: &#34;localhost&#34;,
+        &#34;port&#34;: 28015
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Para finalizar nossa aplicação, precisamos criar o arquivo &lt;code&gt;index.html&lt;/code&gt;, que será a parte do lado do cliente para os usuários enviarem mensagens na timeline.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+
+&amp;lt;head&amp;gt;
+    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+    &amp;lt;title&amp;gt;Timeline&amp;lt;/title&amp;gt;
+    &amp;lt;meta name=&#34;viewport&#34; content=&#34;width=device-width,initial-scale=1&#34;&amp;gt;
+    &amp;lt;script src=&#34;http://tableless.com.br/socket.io/socket.io.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;/head&amp;gt;
+
+&amp;lt;body&amp;gt;
+    &amp;lt;form style=&#34;text-align:center;margin:50px 0&#34;&amp;gt;
+        &amp;lt;label for=&#34;name&#34;&amp;gt;Name:&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;text&#34; id=&#34;name&#34; /&amp;gt;
+        &amp;lt;label for=&#34;message&#34;&amp;gt;Message:&amp;lt;/label&amp;gt;
+        &amp;lt;input type=&#34;text&#34; id=&#34;message&#34; /&amp;gt;
+        &amp;lt;button type=&#34;submit&#34;&amp;gt;Send&amp;lt;/button&amp;gt;
+    &amp;lt;/form&amp;gt;
+    &amp;lt;fieldset style=&#34;padding: 20px;width:50%;margin:0 auto&#34;&amp;gt;
+        &amp;lt;legend style=&#34;text-align:center&#34;&amp;gt;Timeline&amp;lt;/legend&amp;gt;
+        &amp;lt;p id=&#34;messages&#34;&amp;gt;&amp;lt;/p&amp;gt;
+    &amp;lt;/fieldset&amp;gt;
+    &amp;lt;script&amp;gt;
+        (function() {
+            var socket = io();
+            var form = document.querySelector(&#39;form&#39;);
+            form.addEventListener(&#39;submit&#39;, function(e) {
+                e.preventDefault();
+                var name = e.target.querySelector(&#39;#name&#39;);
+                var message = e.target.querySelector(&#39;#message&#39;);
+                var data = {
+                    name: name.value,
+                    message: message.value
+                };
+                socket.emit(&#39;/messages&#39;, data);
+                e.target.reset();
+            });
+            socket.on(&#39;/messages&#39;, function(data) {
+                var messages = document.querySelector(&#39;#messages&#39;);
+                var message = &#39;&amp;lt;b&amp;gt;&#39; + data.name + &#39;:&amp;lt;/b&amp;gt; &#39; +
+                    data.message + &#39;&amp;lt;br /&amp;gt;&#39;;
+                messages.innerHTML += message;
+            });
+        })();
+    &amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+
+&amp;lt;/html&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora nós estamos prontos para rodar essa aplicação! Mas antes de iniciar o servidor, na primeira vez você deve executar a migração do banco de dados para criar o banco de dados e tabela para este projeto. Para isso, execute o seguinte comando:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;node database.js
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Se tudo der certo, você pode iniciar o servidor ao executar:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;node index.js
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;E você pode brincar enviando mensagens nesta aplicação acessando o endereço &lt;a href=&#34;http://localhost:3000&#34;&gt;http://localhost:3000&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;protegendo-o-aplicativo&#34;&gt;Protegendo o aplicativo&lt;/h2&gt;
+
+&lt;p&gt;Se quiser saber mais sobre como começar protegendo seu aplicativo, basta acessar este &lt;a href=&#34;https://blog.jscrambler.com/jscrambler-101-first-use&#34;&gt;tutorial&lt;/a&gt;, que irá ajudar nos primeiros passos de uso do &lt;a href=&#34;https://www.jscrambler.com&#34;&gt;Jscrambler&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;O RethinkDB é o incrível NoSQL! Esse banco de dados pode oferecer suporte total para aplicações de tempo real apenas utilizando o changefeed + socket.io. &lt;a href=&#34;http://rethinkdb.com/docs/changefeeds/javascript&#34;&gt;Neste link&lt;/a&gt;, você pode ler mais sobre o que é possível criar usando o changefeeds. Quase todas as funções podem executar usando as Promises, que fazem com que você escreva um código melhor e você pode facilmente usar o recurso &lt;strong&gt;ES7 async/await&lt;/strong&gt; para simplificar as funções de promessas também.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Como instalar Node.js no Linux corretamente (Ubuntu, Debian, Elementary OS)</title>
+      <link>http://tableless.com.br/como-instalar-node-js-no-linux-corretamente-ubuntu-debian-elementary-os/</link>
+      <pubDate>Mon, 09 Jan 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/como-instalar-node-js-no-linux-corretamente-ubuntu-debian-elementary-os/</guid>
+      <description>
+
+&lt;p&gt;Recentemente comecei a minha migração do JSF para o Angular então busquei por um bom curso, pela documentação do &lt;em&gt;Framework&lt;/em&gt; e um bom livro técnico.&lt;/p&gt;
+
+&lt;p&gt;No caso do curso escolhi inicialmente o do &lt;a href=&#34;https://twitter.com/flaviohalmeida&#34;&gt;Flávio Almeida&lt;/a&gt; na &lt;a href=&#34;https://www.alura.com.br/curso-online-angular2-parte1&#34;&gt;Alura&lt;/a&gt; e logo de cara fica claro que não é um &lt;em&gt;Framework&lt;/em&gt; para iniciantes no mundo do JavaScript e nem para iniciantes no mundo da programação, o próprio Flávio avisa sobre isso mais de uma vez além de informar sobre a necessidade de dominar o terminal (o terror dos novatos) do seu sistema operacional.&lt;/p&gt;
+
+&lt;p&gt;Neste curso o Flávio já começa explicando como instalar os requisitos básicos para se começar a estudar sendo basicamente necessário ter instalado o &lt;a href=&#34;https://nodejs.org&#34;&gt;Node&lt;/a&gt;, qualquer editor de texto (utilizo muito o &lt;a href=&#34;https://www.sublimetext.com/&#34;&gt;SublimeText&lt;/a&gt;, mas pra quem ta começando recomendo usar o &lt;a href=&#34;https://code.visualstudio.com/&#34;&gt;Visual Code&lt;/a&gt; porque ele nativamente consegue trabalhar muito bem com Angular e Node) e o NPM.&lt;/p&gt;
+
+&lt;p&gt;Em distribuições &lt;em&gt;Debian Based&lt;/em&gt; é muito comum utilizar o comando &lt;strong&gt;apt install -nome do pacote-&lt;/strong&gt; e com o &lt;a href=&#34;https://nodejs.org&#34;&gt;Node&lt;/a&gt; isso pode lhe trazer problemas, novamente o Flávio avisa sobre o possível problema. Entretanto tenho certeza que os mais novos no linux vão preferir utilizar o comando &lt;strong&gt;apt install -nome do pacote-&lt;/strong&gt; do que fazer a instalação do pacote binário e muito provavelmente isso vai quebrar tudo, porque até o momento que estou escrevendo esse texto os repositórios do Debian estão desatualizados (o Debian tem o costume de demorar para atualizar seus repositórios).&lt;/p&gt;
+
+&lt;p&gt;Minha recomendação é que você &lt;strong&gt;não instale o Node&lt;/strong&gt; pelo comando &lt;strong&gt;sudo apt-get install -y nodejs&lt;/strong&gt; vai acontecer um conflito de nomes entre &lt;em&gt;node&lt;/em&gt; e &lt;em&gt;nodejs&lt;/em&gt;, parece besteira que uma simples nomenclatura quebre tudo, mas não é! O NPM que é o gerenciador de dependências vai ficar perdido e algumas funções não funcionarão.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;uploads/2017/01/gritos.jpeg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Calma! É tentador entrar em desespero, mas segure sua onda…&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você não deseja compilar o arquivo binário de instalação do Node na mão grande, a solução de instalação contínua simples, instale o NVM primeiro e depois o Node. O legal do NVM é que você pode instalar várias versões do Node e ficar alternando entre elas, mas antes de instalar o NVM precisamos de alguns pacotes de dependências que já estão no repositório de sua distribuição Debian Based.&lt;/p&gt;
+
+&lt;h4 id=&#34;sudo-apt-get-update-sudo-apt-get-install-build-essential-libssl-dev&#34;&gt;&lt;em&gt;sudo apt-get update sudo apt-get install build-essential libssl-dev&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Agora que você já tem o necessário em seu sistema vamos instalar o NVM:&lt;/p&gt;
+
+&lt;h4 id=&#34;curl-sl-https-raw-githubusercontent-com-creationix-nvm-v0-31-0-install-sh-7-o-install-nvm-sh&#34;&gt;&lt;em&gt;curl -sL&lt;/em&gt; &lt;a href=&#34;https://raw.githubusercontent.com/creationix/nvm/v0.31.0/install.sh&#34;&gt;&lt;em&gt;https://raw.githubusercontent.com/creationix/nvm/&lt;/em&gt;&lt;strong&gt;&lt;em&gt;v0.31.0&lt;/em&gt;&lt;/strong&gt;&lt;em&gt;/install.sh&lt;/em&gt;&lt;/a&gt; _-o install&lt;em&gt;nvm.sh&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;O número da versão que está em negrito pode mudar com o tempo, então recomendo você acessar a &lt;a href=&#34;https://github.com/creationix/nvm&#34;&gt;página do projeto no GitHub&lt;/a&gt; e procurar pela nova versão.&lt;/p&gt;
+
+&lt;p&gt;Execute o scrpit com:&lt;/p&gt;
+
+&lt;h4 id=&#34;bash-install-nvm-sh&#34;&gt;_bash install&lt;em&gt;nvm.sh&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Não tenha medo, o que está sendo feito aqui é o download de um script e a execução do mesmo, tudo vai ser instalado em um diretório oculto na pasta do seu usuário &lt;strong&gt;não é necessário utilizar o comando com&lt;/strong&gt; &lt;em&gt;sudo&lt;/em&gt; &lt;strong&gt;nesse caso&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora execute:&lt;/p&gt;
+
+&lt;h4 id=&#34;nvm-ls-remote&#34;&gt;&lt;em&gt;nvm ls-remote&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Ele vai te exibir várias versões do Node e assim sabemos que o NVM está funcionando corretamente. Eu escolhi a versão mais recente do momento a v7.3.0, você pode instalá-la digitando:&lt;/p&gt;
+
+&lt;h4 id=&#34;nvm-install-7-3-0&#34;&gt;&lt;em&gt;nvm install 7.3.0&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Caso você instale mais de uma versão e no futuro tenha necessidade de alternar entre elas utilize o comando:&lt;/p&gt;
+
+&lt;h4 id=&#34;nvm-use-número-da-versão&#34;&gt;&lt;em&gt;nvm use -número da versão-&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Agora vamos verificar a versão do Node para ter certeza que tudo foi instalado corretamente utilizando o comando:&lt;/p&gt;
+
+&lt;h4 id=&#34;node-v&#34;&gt;&lt;em&gt;node -v&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;Pronto, agora você já pode dar continuidade aos seus estudos de Angular ou Node.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

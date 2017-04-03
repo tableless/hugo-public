@@ -1,0 +1,373 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/conteudo-sob-demanda-com-jquery/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/conteudo-sob-demanda-com-jquery/">Conteúdo sob demanda com jQuery</a></h1>
+  <p class="tb-hero-p">
+    
+    Veja como exibir o conteúdo do seu site acabando com a necessidade de paginação e atualização da página.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/davi-ferreira">Davi Ferreira</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Nem sempre uma paginação é a melhor maneira de limitar o conteúdo exibido em um site. Às vezes pode ser bem chato ficar indo de página em página procurando alguma coisa, você acaba se perdendo. O Twitter é um bom exemplo. Na interface do aplicativo, o botão &#8220;load more&#8221; faz as vezes de uma paginação e carrega a próxima sequência de tweets em sua timeline.</p>
+
+<p>Neste artigo, além do link para carregar os próximos conteúdos, veremos também uma abordagem mais dinâmica onde o conteúdo é carregado assim que o scroll atinge o final da página.</p>
+
+<p>E por falar em Twitter, nossos exemplos utilizarão sua API para carregar os dados de exemplo, mas é claro que eles funcionam com qualquer script que forneça os dados em JSON.</p>
+
+<h3 id="carregando-tweets">Carregando tweets</h3>
+
+<p>A API do Twitter oferece a possibilidade de baixar os últimos tweets de um usuário utilizando apenas JavaScript. A API oferece opção de saída em vários formatos, entre eles XML, Atom e JSON (formato utilizado em nosso exemplo).</p>
+
+<p>Na nossa chamada ajax passamos ainda o nome da conta no Twitter e o número da página dos tweets.</p>
+
+<pre class="lang-javascript">var usuario = 'tableless';
+var formato = 'json';
+var url = 'http://api.twitter.com/1/statuses/user_timeline.'+formato+"?callback=?";
+
+$.getJSON(url, {screen_name:usuario, page:pagina}, function(tweets){
+  // nosso código
+});
+</pre>
+
+<p>O retorno, o objeto com os tweets:</p>
+
+<pre class="lang-javascript">[
+   {
+      "favorited":false,
+      "text":"http:\/\/bit.ly\/esqJUw Trabalha com TI?\u00a0N\u00e3o importa seu campo de atua\u00e7\u00e3o, confira essa oportunidade da Intel\u00a0 #ad",
+      "retweet_count":0,
+      "in_reply_to_screen_name":null,
+      "in_reply_to_status_id_str":null,
+      "place":null,
+      "contributors":null,
+      "retweeted":false,
+      "in_reply_to_user_id":null
+     ...
+  }
+]
+</pre>
+
+<h3 id="load-more">Load more</h3>
+
+<p>Vamos então ao nosso primeiro exemplo, o botão para carregar mais tweets. Ao acessar a página são carregados automaticamente 12 tweets e os novos tweets só são carregados quando o usuário clica no link.</p>
+
+<p>O HTML, que também será utilizado em nosso segundo exemplo, é esse:</p>
+
+<pre class="lang-html">&lt;ul id="lista-tweets"&gt;&lt;/ul&gt;
+
+&lt;a href="#" id="carrega-tweets"&gt;Mais!&lt;/a&gt;
+</pre>
+
+<p>O primeiro passo é associar a função para exibir mais tweets ao elemento &#8220;#carrega-tweets&#8221;, impedindo também o funcionamento padrão do clique (que nesse caso seria ir para o link &#8220;#&#8221;) com o método preventDefault.</p>
+
+<pre class="lang-javascript">$('#carrega-tweets').click(function(e){
+  retorna_tweets($(this).data('pagina'));
+  e.preventDefault();
+});
+</pre>
+
+<p>Ao clicar no link, nosso site executa a funcão retorna_tweets, recebendo como parâmetro a página dos tweets a serem carregados. A página fica armazenada no próprio elemento e é incrementada toda vez que ocorre um clique (o método data merece um outro artigo, por isso não vou falar muito sobre ele aqui).</p>
+
+<pre class="lang-javascript">function retorna_tweets(pagina){
+  $('#carrega-tweets').hide();
+  $('#lista-tweets').append('
+
+<li class="carregando">
+  Aguarde, carregando...
+</li>');
+  var screen_name = 'tableless';
+  var formato = 'json';
+  var url = 'http://api.twitter.com/1/statuses/user_timeline.'+formato+"?callback=?";
+
+  $.getJSON(url, {screen_name:screen_name, page:pagina}, function(tweets){
+    $('.carregando').fadeOut(function(){
+      for(x in tweets)
+        $('#lista-tweets').append('
+
+<li>
+  '+tweets[x].text+'
+</li>');
+      $(this).remove();
+      $('#carrega-tweets').data('pagina', pagina + 1).fadeIn();
+    });
+  });
+}
+</pre>
+
+<p>A função retorna_tweets segue o seguinte fluxo:</p>
+
+<ol>
+<li><p>Oculta o link de carregamento para evitar que a ação seja executada mais de uma vez ao mesmo tempo; <pre class="lang-javascript">$(&lsquo;#carrega-tweets&rsquo;).hide();
+</pre></p></li>
+
+<li><p>Adiciona um ítem à lista de tweets para informar ao usuário que o conteúdo está sendo carregado; <pre class="lang-javascript">$(&lsquo;#lista-tweets&rsquo;).append(&rsquo;</p></li>
+</ol>
+
+<p><li class="carregando">
+  Aguarde, carregando&hellip;
+</li>&rsquo;);
+</pre></p>
+
+<ol>
+<li><p>Através do método getJSON, recebe a lista de tweets da conta informada (no nosso caso, a conta do Tableless); <pre class="lang-javascript">$.getJSON(url, {screen_name:screen_name, page:pagina}, function(tweets){
+</pre></p></li>
+
+<li><p>Quando a API termina de enviar os dados pra gente, escondemos e removemos o loader e ao mesmo tempo adicionamos ítems à lista com o texto de cada tweet; <pre class="lang-javascript">$(&lsquo;.carregando&rsquo;).fadeOut(function(){
+for(x in tweets)
+$(&lsquo;#lista-tweets&rsquo;).append(&rsquo;</p></li>
+</ol>
+
+<p><li>
+  &lsquo;+tweets[x].text+&rsquo;
+</li>&rsquo;);
+    $(this).remove();
+});
+</pre></p>
+
+<ol>
+<li>E, finalmente, incrementamos o número da página atual no link e voltamos a exibí-lo. <pre class="lang-javascript">$(&lsquo;#carrega-tweets&rsquo;).data(&lsquo;pagina&rsquo;, pagina + 1).fadeIn();
+</pre></li>
+</ol>
+
+<h3 id="infinite-scrolling">Infinite Scrolling</h3>
+
+<p>Outra maneira interessante é carregar o conteúdo quando o scroll atinge o final da página. Essa abordagem é um pouco mais agressiva já que o usuário não tem total controle sobre o conteúdo que deseja ver. Por outro lado, ele não precisa se preocupar em clicar em nada para exibir mais conteúdo.</p>
+
+<pre class="lang-javascript">var ajax = "";
+$(function(){
+  retorna_tweets(1);
+  $('body').data('pagina', 1);
+  inicializa_scroll();
+});
+
+function inicializa_scroll(){
+  $(window).scroll(function() {
+    if(($(window).scrollTop() + $(window).height() + 20) &gt;= $(document).height()) {
+      $(window).unbind('scroll');
+      ajax.abort();
+      retorna_tweets($('body').data('pagina'));
+    }
+  });
+}
+</pre>
+
+<p>Nesse caso, como não possuímos um link, armazenamos o número da página a ser carregada no elemento body e iniciamos, é claro, o carregamento com a página 1. A função inicializa_scroll é responsável por associar o evento scroll da janela com nosso carregamento de tweets.</p>
+
+<p>Dois detalhes importantes de usabilidade: quando o carregamento é executado nós removemos a associação do método scroll da janela para evitar duplicidades ($(window).unbind(&#8216;scroll&#8217;)) e, além disso, interrompemos alguma chamada anterior (ajax.abort();). A variável global ajax foi criada no início do nosso javascript e ela vai receber a chamada ajax na função retorna_tweets.</p>
+
+<p>Vamos analisar agora a comparação do scroll com a altura do documento:</p>
+
+<pre class="lang-javascript">$(window).scrollTop() + $(window).height() + 20) &gt;= $(document).height()
+</pre>
+
+<p>O método scrollTop retorna a altura da parte oculta da página, que está acima da parte atual, acima do scroll. Já a chamada $(window).height() retorna a altura do viewport, da parte visível da página. A soma dos dois, quando o scroll está no final da página, resulta em $(document).height(), que é a altura total do documento. Alguns navegadores apresentam diferenças mínimas nesses valores, entre 1 e 5px. Por isso o adicionamos 20 pixels para uma &#8220;margem de erro&#8221;.</p>
+
+<p>Pra finalizar, o método retorna_tweets sofreu algumas alterações com relação ao nosso primeiro exemplo. A primeira é a incrementação do número da página nos dados do elemento body e não em um link. Também armazenamos nossa chamada getJSON na variável ajax, conforme citado anteriormente. E, ao invés de exibir novamente o link, associamos novamente a função retorna_tweets ao scroll da janela através do método inicializa_scroll.</p>
+
+<pre class="lang-javascript">function retorna_tweets(pagina){
+  $('#lista-tweets').append('
+
+<li class="carregando">
+  Aguarde, carregando...
+</li>');
+
+  var screen_name = 'tableless';
+  var url = 'http://api.twitter.com/1/statuses/user_timeline.json?callback=?';
+
+  $('body').data('pagina', pagina + 1);
+
+  ajax = $.getJSON(url, {screen_name:screen_name, page:pagina}, function(tweets){
+    $('.carregando').fadeOut(function(){
+      for(x in tweets)
+        $('#lista-tweets').append('
+
+<li>
+  '+tweets[x].text+'
+</li>');
+      inicializa_scroll();
+      $(this).remove();
+    });
+  });
+}
+</pre>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

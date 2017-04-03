@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Moacyr Minéro on Tableless</title>
+    <link>http://tableless.com.br/author/moacyr-min%C3%A9ro/index.xml</link>
+    <description>Recent content in Moacyr Minéro on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/moacyr-min%C3%A9ro/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Lendo um arquivo de texto com AJAX</title>
+      <link>http://tableless.com.br/lendo-um-arquivo-de-texto-com-ajax/</link>
+      <pubDate>Wed, 14 Sep 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/lendo-um-arquivo-de-texto-com-ajax/</guid>
+      <description>&lt;p&gt;Inicio mostrando como realizar uma requisição de arquivos de texto com AJAX.&lt;/p&gt;
+
+&lt;p&gt;Em tempos de Web 2.0, não podemos pensar mais em sites que usem requisições síncronas para rotinas de interação com o usuário.&lt;/p&gt;
+
+&lt;p&gt;Uma das técnicas mais utilizadas para esse fim é o AJAX &amp;#8211; Assynchronous Javascript and XML.&lt;/p&gt;
+
+&lt;p&gt;De uma forma resumida e sem muito &amp;#8220;tecniquês&amp;#8221;, AJAX é a captura de informações sem a necessidade de recarregamento da estrutura do documento HTML a cada requisição ao servidor web.&lt;/p&gt;
+
+&lt;p&gt;E para poder fazer conexão assíncrona com o servidor web temos que criar um objeto com as propriedades e métodos AJAX .&lt;/p&gt;
+
+&lt;p&gt;Porém, como a web não é um ambiente perfeito, temos que criar um objeto AJAX para os browsers Firefox, Chrome, Opera, Safari, chamado de XMLHttpRequest. E para o IE um objeto ActiveX que faça referencia ao objeto XMLHTTP.&lt;/p&gt;
+
+&lt;p&gt;Como padrão de desenvolvimento, vamos criar um arquivo que faça essa identificação e criação chamado de xhr.js.&lt;/p&gt;
+
+&lt;p&gt;Para a criação desse arquivo, abra o editor de código de sua preferência e digite o seguinte código:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Arquivo xhr.js&lt;/strong&gt;&amp;#8230;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//Declarando variaveis globais
+var xhr;
+var txt ;
+
+function ajax(){
+//Verificando se os browsers aceitam o objeto XMLHttpRequest
+if(window.XMLHttpRequest){
+xhr  = new XMLHttpRequest();
+}
+//Verificando se o browser IE versão &amp;gt; 6
+else if(window.ActiveXObject){
+try{
+xhr = new ActiveXObject(Msxml2.XMLHTTP);
+}
+catch(e){
+try{
+xhr =  new ActiveXObject(Microsoft.XMLHTTP);
+}
+catch(er){
+txt = &#34;Seu browser não aceita AJAX!&#34;;
+alert(txt);
+}
+}
+}
+return xhr;
+}
+...
+&lt;/pre&gt;
+
+&lt;p&gt;Em seguida, vamos criar o arquivo HTML e fazer referência ao objeto AJAX criado pelo arquivo &lt;strong&gt;xhr.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para isso use a  tag script no head da página html. Exemplo: &lt;strong&gt;&lt;script type=&amp;#8221;text/javascript&amp;#8221; src=&amp;#8221;caminho/xhr.js&amp;#8221;&gt;&lt;/script&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Arquivo ajax_txt.html&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//Declarando variáveis globais
+var xhr;
+var valor;
+
+//Função para pegar os arquivos de texto
+function pegaTextos{
+//Instancia o objeto ajax e guarda na var xhr
+xhr = ajax();
+//Captura o elemento select  via DOM
+var txt = document.getElementById(&#34;textos&#34;);
+//Pega o valor da opção escolhida na lista do campo select
+valor = txt.options[txt.selectedIndex].value;
+//Monta a url da chamada AJAX
+var url = &#34;texto&#34;+valor+&#34;.txt&#34;;
+//Abre a conexão com o servidor web via AJAX
+xhr.open(&#34;GET&#34;,url,false);
+//Confirma o envio dos dados
+xhr.send(null);
+//Verifica a mudança de estado do servidor web e dispara a função para mostrar os textos
+xhr.onreadystatechange = mostraTextos;
+}
+
+//Função para mostras os textos
+function mostraTextos(){
+//Verifica o status do retorno do servidor web
+if(xhr.readyState == 4 &amp;&amp; xhr.status == 200){
+//Pega a resposta do servidor web
+var resposta = xhr.responseText;
+//Captura a div Box para mostrar os textos
+var box  = document.getElementById(&#34;box&#34;);
+//Escreve os textos na div Box
+box.innerHTML = resposta;
+//Aplica um estilo de borda na div Box
+box.style.border = &#34;1px dotted #333&#34;;
+}
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Aplicando um estilo CSS na div Box&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;#box{
+width: 450px;
+height: auto;
+padding: 10px;
+margin-top: 25px;
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Montamos agora o HTML com o combo dos textos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;body&amp;gt;
+&amp;lt;p&amp;gt;Selecionando textos com AJAX&amp;lt;/p&amp;gt;&amp;lt;br/&amp;gt;
+&amp;lt;select id=&#34;textos&#34; onchange=&#34;pegaTextos()&#34;&amp;gt;
+&amp;lt;option value=&#34;&#34; selected=&#34;selected&#34;&amp;gt;selecione&amp;lt;/option&amp;gt;
+&amp;lt;option value=&#34;1&#34;&amp;gt;Texto 1&amp;lt;/option&amp;gt;
+&amp;lt;option value=&#34;2&#34;&amp;gt;Texto 2&amp;lt;/option&amp;gt;
+&amp;lt;option value=&#34;3&#34;&amp;gt;Texto 3&amp;lt;/option&amp;gt;
+&amp;lt;/select&amp;gt;
+&amp;lt;div id=&#34;box&#34;&amp;gt;&amp;lt;/div&amp;gt;
+&amp;lt;/body&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Para que a chamada AJAX funcione, temos que criar os arquivos de textos com os respectivos nomes: texto1.txt,texto2.txt e texto3.txt.&lt;/p&gt;
+
+&lt;p&gt;Em seguida salve os arquivos na mesma pasta onde se encontram os &lt;strong&gt;arquivos xhr.js&lt;/strong&gt; e &lt;strong&gt;ajax_txt.html&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora é so testar!&lt;/p&gt;
+
+&lt;p&gt;Lembrando que para uma requisição AJAX funcionar, ela tem que passar por um servidor. No nosso caso o &lt;strong&gt;localhost&lt;/strong&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

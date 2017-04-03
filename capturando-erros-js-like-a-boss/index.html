@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/capturando-erros-js-like-a-boss/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/capturando-erros-js-like-a-boss/">Capturando erros JS LIKE-A-BOSS</a></h1>
+  <p class="tb-hero-p">
+    
+    Hoje iremos aprender para que serve o evento window.onerror e como tirar proveito desta ótima utilidade.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/almir-filho">Almir Filho</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>O evento <strong>onerror</strong> é disparado quando há erros no script. Estes erros geralmente pertencem a duas categorias:</p>
+
+<h4 id="erros-de-sintaxe">Erros de sintaxe</h4>
+
+<p>Antes de serem executados, <em>scripts</em> passam por uma análise sintática (operação mais conhecida como <em>parsing</em>) – afim de encontrar erros de sintaxe antes da execução do <em>script</em>. Qualquer um dos erros abaixo são erros de sintaxe:</p>
+
+<pre class="lang-javascript">&lt;!-- string não fechada --&gt;
+&lt;script&gt;"oops, fiz merd*&lt;/script&gt;
+&lt;!-- for errado --&gt;
+&lt;script&gt;for(;)&lt;/script&gt;
+&lt;!-- ??? (só pode ser coisa de estagiário) --&gt;
+&lt;script&gt;chamaFuncao() = 'estagiario maluco'&lt;/script&gt;</pre>
+
+<h4 id="erros-de-runtime-exceções-não-tratadas">Erros de <em>runtime</em> (Exceções não tratadas)</h4>
+
+<p>Um <em>script</em> pode até ser válido sintaticamente, ou seja, pode ter sido analisado com sucesso pelo <em>parser</em> JS, mas mesmo assim ainda pode haver erros em tempo de execução (<em>runtime</em>). Por exemplo:</p>
+
+<pre class="lang-javascript">// chamar métodos não definidos
+dartVader.comerTorta() // <a title="dartVader.comerTorta()" href="http://d.pr/VRVy" target="_blank">clique aqui</a> para mais informações.
+// ler índices inexistentes
+var lordSidious = jedi[ 'palpatine' ];
+// ler propriedades inexistentes
+var paciencia = hanSolo.paciencia;
+// mensagens de erro manuais
+throw 'Noooooooooooooooooooo!';</pre>
+
+<h2 id="erros-temos-que-pegar">Erros: temos que pegar</h2>
+
+<p>Apenas precisamos tratar o evento <strong>onerror</strong> de <strong>window</strong>, e para isso precisamos definir o seguinte <em>callback</em>:</p>
+
+<pre>// navegadores antigos
+window.onerror = function( message, filename, lineno ){
+    // trate o erro
+}
+
+// navegadores modernos
+window.addEventListener( 'error', function( event ){
+    // a mensagem de erro
+    console.log( event.message );
+    // a url de onde ocorreu o erro
+    console.log( event.filename );
+    // o número da linha onde ocorreu o erro
+    console.log( event.lineno );
+});
+
+// jQuery
+$(window).on( 'error', function( event ){
+    // event tem os mesmos dados do exemplo anterior
+});</pre>
+
+<p>A função que trata o evento <strong>onerror</strong>recebe 3 valores (como mostrado acima):</p>
+
+<ul>
+<li><strong>Mensagem</strong>: A mensagem de erro que o navegador joga (<strong>message</strong> ou <strong>event.message</strong> dos trechos código acima). Por exemplo: &#8220;<em>Uncaught ReferenceError: comerTorta is not defined</em>&#8220;.</li>
+<li><strong>URL</strong>: O endereço URL de onde ocorreu o erro (<strong>filename</strong> ou <strong>event.filename</strong> dos trechos código acima).</li>
+<li><strong>Linha</strong>: O número da linha do documento ou <em>script</em> de onde ocorreu o erro (<strong>lineno</strong> ou <strong>event.lineno</strong> dos trechos de código acima). Pode ser no contexto de um documento HTML (se o <em>script</em> for <em>inline</em>) ou de um arquivo <strong>.js</strong> (se o <em>script</em> for externo). Neste caso, o valor de <strong>filename</strong>/<strong>event.filename</strong> será o caminho de um arquivo <strong>.js</strong>.</li>
+</ul>
+
+<p>Por padrão, a função retorna <strong>false</strong>, o que significa que a mensagem de erro será jogada no <em>console</em> de erros. Se quisermos suprimir as mensagens de erro no <em>console</em> (não aconselhável), apenas precisamos retornar <strong>true</strong>:</p>
+
+<pre class="lang-javascript">window.addEventListener( 'error', function( event ){
+    return true;
+});</pre>
+
+<h2 id="customize-mensagens-de-erro">Customize mensagens de erro</h2>
+
+<p>Já que agora temos o poder de fazer o que quiser com nossas mensagens de erro, também podemos ter aparência customizada para elas. Podemos alcançar isso facilmente como no <em>script</em> abaixo:</p>
+
+<pre class="lang-javascript">window.addEventListener( 'error', function( event ){
+    var boxError = document.createElement( 'div' );
+    boxError.className  = 'box-error';
+
+    boxError.innerHTML  = '&lt;h4&gt;Erro de JS:&lt;/h4&gt;';
+    boxError.innerHTML += '&lt;p class="msg"&gt;'+ event.message +'&lt;/p&gt;';
+    boxError.innerHTML += '&lt;p&gt;Em: '+ event.filename +'&lt;/p&gt;';
+    boxError.innerHTML += '&lt;p&gt;Linha: '+ event.lineno +'&lt;/p&gt;';
+
+    document.body.appendChild( boxError );
+    return false;
+});</pre>
+
+<p>O <em>script</em> acima basicamente cria uma nova <strong><div></strong>, monta o conteúdo da mensagem e a mostra no final. Agora é só definir o CSS para a classe <strong>.box-error</strong> e <em>voilá,</em> mensagens de erro customizadas.</p>
+
+<h2 id="tenha-feedback-da-sua-aplicação">Tenha feedback da sua aplicação</h2>
+
+<p>A maior utilidade que encontrei para isso é a possibilidade de fazer <strong><em>logging</em> de erros</strong>. Numa aplicação, poderíamos por exemplo, fazer uma <em>requisição</em> <em>ajax</em> para nosso servidor salvar as informações do erro corrente e uma base de dados qualquer, e assim poderíamos gerar relatórios de erros da nossa aplicação com base nestes dados coletados, ou seja, graças a estas informações, estaríamos promovendo uma atitude focada na melhoria constante dos serviços.</p>
+
+<h4 id="mantendo-as-coisas-simples-com-o-google-analytics">Mantendo as coisas simples com o Google Analytics</h4>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2012/12/Final-result.jpg"><img class="alignnone size-full wp-image-7566" alt="" src="http://tableless.com.br/wp-content/uploads/2012/12/Final-result.jpg" width="600" height="143" srcset="uploads/2012/12/Final-result.jpg 600w, uploads/2012/12/Final-result-300x71.jpg 300w" sizes="(max-width: 600px) 100vw, 600px" /></a></p>
+
+<p>Pra quem já usa o <strong>Google Analytics</strong>, aqui vai uma idéia que iria simplificar bastante o ato de fazer <em>log</em> de erros: em vez de fazer uma requisição <em>ajax</em> para o servidor da nossa aplicação, poderíamos simplesmente disparar <a title="Eventos customizados do Google Analytics" href="https://developers.google.com/analytics/devguides/collection/gajs/eventTrackerGuide?hl=pt-PT" target="_blank">eventos customizados do Google Analytics</a> (com o método <strong>_trackEvent()</strong>), e assim teríamos essas informações prontas com os relatórios bonitinhos da ferramenta – o que nos economizaria o trabalho de desenvolver toda uma estrutura para isso: criar uma tabela de erros no nosso banco de dados, escrever o <em>backend</em> que receberia as requisições <em>ajax,</em> e finalmente, implementar relatórios de erros.</p>
+
+<h2 id="suporte">Suporte</h2>
+
+<p>O evento <strong>window.onerror</strong> é suportado por todos os navegadores atuais: Chrome 13+, Firefox 6.0+, Opera 11.60+, Safari 5.1+ e Internet Explorer 5.5+ (quem diria!).</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

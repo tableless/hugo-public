@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/vulnerabilidades-em-sistemas-web/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/vulnerabilidades-em-sistemas-web/">Vulnerabilidades em Sistemas Web</a></h1>
+  <p class="tb-hero-p">
+    
+    Uma das principais vulnerabilidades web se encontram na URL do site e nem todos os desenvolvedores têm conhecimento delas
+    
+  </p>
+      <span class="tb-author">por <a href="/author/marcus-aurelius">Marcus Aurelius</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<h2 id="o-que-são-vulnerabilidades-em-sistemas-web">O que são vulnerabilidades em sistemas web?</h2>
+
+<p>Vulnerabilidades em sistemas web são uma realidade cada vez mais crescente na internet. Primeiro deixem-me explicar rapidamente como funciona a comunicação entre o <em>browser</em> e o servidor web. Sistemas web funcionam com uma dupla muito conhecida neste ramo: requisição e resposta.</p>
+
+<p>A requisição se origina do lado do usuário (pelo Chrome, IE, Firefox, Safari, cURL, etc) composta de elementos como <em>header</em>, URL, método, parâmetros, <em>cookies</em>, etc. Ela é enviada para um servidor web que responde pelo domínio (o &#8216;www.algumacoisa.com.br&#8217;) da requisição. Por sua vez, o servidor processa a requisição e retorna para o usuário a resposta (42?), também composta de partes conhecidas como <em>header</em>, <em>body</em>, <em>code</em>, <em>cookies</em>, etc.</p>
+
+<p>As vulnerabilidades web nascem quando determinadas partes oriundas da requisição, são processadas sem o devido tratamento pelo servidor. Essas partes podem ser <em>cookies</em> mal configurados, o ID de uma sessão exposta no navegador e até mesmo os parâmetros passados pela URL ou num formulário de <em>login</em>, por exemplo. Essas informações, quando não são tratadas no servidor se caracteriza como uma falha de segurança, deixando assim o próprio servidor suscetível à ataques específicos através da exploração dessas falhas.</p>
+
+<h3 id="como-sei-se-minha-url-ou-melhor-se-meu-site-está-vulnerável-através-de-minha-url">Como sei se minha URL, ou melhor, se meu site está vulnerável através de minha URL?</h3>
+
+<p>Entre as várias formas existentes para explorar vulnerabilidades web, a Nº 01 do <a href="https://www.owasp.org/index.php/Top_10_2013-Top_10" target="_blank">Top 10</a> da OWASP (<em>Open Web Application Security Project</em>) é a <em>A1 &#8211; Injection</em>, injeção direta de código malicioso através de parâmetros enviados pela requisição, ou seja, pelo usuário. A OWASP é uma organização que visa orientar desenvolvedores, analistas, arquitetos e empresas quanto aos riscos das vulnerabilidades em sistemas web.</p>
+
+<p>Existe um teste bem simples para saber se  existem vulnerabilidades em sua URL: forçando um erro. Tomemos como exemplo um ambiente web, com um banco de dado MySQL, a aplicação em PHP e a URL no padrão:</p>
+
+<p style="text-align: center">
+  http://www.meudominio.com.br/produtos.php?id=15
+</p>
+
+<p>A extensão da URL não importa muito nesse momento, o problema está nos parâmetros, e estou supondo um banco de dados MySQL apenas para exemplificar o erro.</p>
+
+<p class="lang-php">
+  Digamos então que, no lado do servidor, naquele arquivo <em>produtos.php</em> que fica na raiz do site, existe uma linha de código que recebe via GET o parâmetro &#8216;id&#8217; e nosso amiguinho que o desenvolveu implementou a regra de busca de produto no banco de dados com a seguinte consulta SQL:
+</p>
+
+<p><code>$id = $_GET['id'];&lt;br /&gt;
+$sql = &quot;SELECT * FROM produtos WHERE produtos.id = {$id}&quot;;</code></p>
+
+<p>Até aí tudo bem, o código funciona, isso se o valor passado no parâmetro &#8216;id&#8217; da URL sempre for um número. Entendeu? E se eu substituir o valor do parâmetro &#8216;id&#8217; na URL por uma letra, ou até mesmo acrescentar um simples apóstrofo após o número 15 e o servidor retornar algo do tipo:</p>
+
+<blockquote>
+<p>You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &#8220;15&#8221; LIMIT 1&#8242; at line 1</p>
+</blockquote>
+
+<p>Não quero assustar ninguém, mas alguém com conhecimentos avançados em consultas SQL pode explorar essa falha de segurança e como resultado obter acesso a todo o banco de dados da aplicação, podendo assim baixar dados sigilosos, como número de cartões de crédito, ou obter acesso ao sistema como um usuário autenticado, quebrando a encriptação de senhas através de força bruta, isso se a senha estiver encriptada. Tudo isso através de sua URL.</p>
+
+<p>Essa técnica é chamada de Injeção de SQL (SQL Injection), quando o atacante tenta alterar o código SQL para conseguir acesso à essas informações, direto do banco de dados e segundo a OWASP é considerada uma das vulnerabilidades em sistemas web mais comuns.</p>
+
+<h3 id="como-faço-para-me-proteger">Como faço para me proteger?</h3>
+
+<p>Lembra daquela parte do código que recebeu o parâmetro &#8216;id&#8217; da URL? Pois então, uma solução bem prática seria fazer o parse (forçar o valor) para o tipo inteiro, que no PHP poderia ficar assim:</p>
+
+<p><code>$id = (int) $_GET['id'];</code></p>
+
+<p>Dessa forma, qualquer valor que não fosse um número inteiro seria forçado para um simples 0 (zero).</p>
+
+<p>Existem outras formas de se explorar falhas como essa, seja através da URL ou de formulários, mas para mitigá-las é necessário realizar uma varredura em todo o código em que a aquisição de dados através de parâmetros se faz presente, e realizando as devidas correções.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

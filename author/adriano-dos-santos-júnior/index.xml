@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Adriano Dos Santos Júnior on Tableless</title>
+    <link>http://tableless.com.br/author/adriano-dos-santos-j%C3%BAnior/index.xml</link>
+    <description>Recent content in Adriano Dos Santos Júnior on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/adriano-dos-santos-j%C3%BAnior/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Você sabe paginar dados no MySQL corretamente?</title>
+      <link>http://tableless.com.br/voce-sabe-paginar-dados-no-mysql-corretamente/</link>
+      <pubDate>Fri, 15 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/voce-sabe-paginar-dados-no-mysql-corretamente/</guid>
+      <description>
+
+&lt;p&gt;Esta postagem já começa com uma pergunta: &lt;strong&gt;Será que sabemos realmente fazer uma paginação de dados da forma correta?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p style=&#34;text-align: center;&#34;&gt;
+  &lt;strong&gt;ATENÇÃO!&lt;/strong&gt; Não irei falar do uso de nenhum framework PHP, bibliotecas de ORM ou plugins em JavaScript. Irei tratar sobre a consulta ao banco de dados, somente.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  Talvez você conheça esta funcionalidade do MySQL, e talvez até comentará que isto é algo &amp;#8220;muito básico&amp;#8221;, mas vale lembrar: &lt;em&gt;&amp;#8220;Nem todos sabem de tudo. A internet é uma grande comunidade.&amp;#8221;&lt;/em&gt;
+&lt;/p&gt;
+
+&lt;h2 id=&#34;como-a-maioria-faria&#34;&gt;Como a maioria faria&lt;/h2&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  A grande maioria de nós simplesmente iria executar 2 instruções de SELECT no MySQL. Uma para retornar o total dos registros e outra para paginar estes registros. Alguns, talvez, fariam a consulta de todos os registros no banco e depois limitariam os registros no PHP (Vish!).
+&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  As nossas consultas ao banco ficariam algo mais ou menos assim:
+&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/** Recuperamos o total de registros **/
+SELECT * FROM pessoa
+
+/** Recuperamos somente os 10 primeiros registros **/
+SELECT * FROM pessoa LIMIT 0,10
+&lt;/pre&gt;
+
+&lt;p&gt;Certo, talvez esta execução de comandos não tenha afetado o desempenho do seu site ou aplicação até o momento.&lt;/p&gt;
+
+&lt;p&gt;Agora, imagine ter que tratar milhares de registros, para diversos usuários ao mesmo tempo. Haja memória e servidor para isto!&lt;/p&gt;
+
+&lt;p&gt;Como desenvolvedores, sempre temos que prezar por um excelente desempenho e a utilização mínima de recursos em nossas aplicações, que podem tomar proporções que não imaginamos na sua criação.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-mysql-nos-dá-uma-força&#34;&gt;O MySQL nos dá uma força&lt;/h2&gt;
+
+&lt;p&gt;Existe um parâmetro no MySQL que é pouco conhecido da maioria desenvolvedores. Ele foi criado justamente para facilitar as paginações de registros em uma consulta.&lt;/p&gt;
+
+&lt;p&gt;Com somente um comando SELECT você terá a quantidade de registros e os seus dados paginados de forma simples, e sem uma grande curva de aprendizado. Veja como é simples:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/** Recupera somente os 10 primeiros registros **/
+SELECT SQL_CALC_FOUND_ROWS * FROM pessoa LIMIT 0,10
+
+/** Retorna o total de linhas do comando SELECT anterior sem considerar o LIMIT **/
+SELECT FOUND_ROWS();
+&lt;/pre&gt;
+
+&lt;p&gt;Que simples e útil é esta função do MySQL! Não existem grandes modificações para serem feitas. Como exemplo, eu adaptei facilmente alguns frameworks que desenvolvi para aumentar a performance.&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  Você pode saber mais destas funções do MySQL &lt;a href=&#34;http://dev.mysql.com/doc/refman/5.7/en/information-functions.html#function_found-rows&#34; target=&#34;_blank&#34;&gt;diretamente na documentação do próprio banco&lt;/a&gt;.
+&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  Além disto, o site &lt;a href=&#34;https://www.percona.com/blog/2007/08/28/to-sql_calc_found_rows-or-not-to-sql_calc_found_rows/&#34; target=&#34;_blank&#34;&gt;Percona trás uma análise da performance do comando&lt;/a&gt;, mas em resumo, o site diz:
+&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p style=&#34;text-align: center;&#34;&gt;
+  &lt;em&gt;&amp;#8220;Se você tem ÍNDICES nas suas cláusulas WHERE, é melhor não utilizar o SQL_CALC_FOUND_ROWS e utilizar 2 consultas.&lt;/em&gt;&lt;br /&gt; &lt;em&gt;Mas caso você não tenha ÍNDICES em suas cláusulas WHERE, se você usar o SQL_CALC_FOUND_ROWS será mais eficiente.&amp;#8221;&lt;/em&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p style=&#34;text-align: center;&#34;&gt;
+  &lt;strong&gt;Para cada realidade, uma aplicação é válida. Utilizar esta função não é REGRA, mas conhecimento sempre fará diferença em nossas carreiras.&lt;/strong&gt;
+&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  Espero que tenha servido para agregar ao conhecimento de alguém. Grande abraço, e até a próxima!
+&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>7 funções essenciais do PHP que você deve conhecer</title>
+      <link>http://tableless.com.br/7-funcoes-essenciais-php-que-voce-deve-conhecer/</link>
+      <pubDate>Fri, 03 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/7-funcoes-essenciais-php-que-voce-deve-conhecer/</guid>
+      <description>
+
+&lt;h2 id=&#34;range&#34;&gt;range()&lt;/h2&gt;
+
+&lt;p&gt;Geralmente ao se fazer um &amp;#8220;&lt;em&gt;loop&lt;/em&gt;&amp;#8220;, utiliza-se o _while _ou &lt;em&gt;for&lt;/em&gt;. Ambas estruturas são ligeiramente &amp;#8220;&lt;em&gt;feias&lt;/em&gt;&amp;#8221; ao visualizar o código. Uma boa alternativa é utilizar o &lt;em&gt;foreach&lt;/em&gt;. Mas como fazer uma repetição, se o &lt;em&gt;foreach&lt;/em&gt; trabalha com um &lt;em&gt;array&lt;/em&gt; existente?&lt;/p&gt;
+
+&lt;p&gt;No exemplo vamos fazer um &lt;em&gt;loop&lt;/em&gt; de 5 posições, começando do número 1.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+foreach (range(1,5) as $ordem)
+{
+     print(&#39;Ordem : &#39;.$ordem.&#39;&amp;lt;br&amp;gt;&#39;);
+}
+//Resultado
+//Ordem: 1
+//Ordem: 2
+//Ordem: 3
+//Ordem: 4
+//Ordem: 5
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;array-unique&#34;&gt;array_unique()&lt;/h2&gt;
+
+&lt;p&gt;Diversas vezes nos deparamos com um &lt;em&gt;array&lt;/em&gt; e valores duplicados. Em uma experiência pessoal, trabalhei na criação de um sistema composto por uma divisão hierárquica entre setores. Nos relatórios, os usuários informavam diversos setores ao realizar os filtros. Quando os resultados eram filtrados no banco de dados, diversos códigos de setores vinham duplicados. Com isso, as _queries _do banco ficavam maiores e mais lentas.&lt;/p&gt;
+
+&lt;p&gt;Com a função _array&lt;em&gt;unique()&lt;/em&gt; resolvi meu problema. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$array = array (&#39;a&#39;,&#39;b&#39;,&#39;c&#39;,&#39;d&#39;,&#39;a&#39;);
+$unique = array_unique ($array);
+
+foreach ($unique as $letra)
+{
+     print(&#39;Letra: &#39;.$letra.&#39;&amp;lt;br&amp;gt;&#39;);
+}
+
+//Resultado
+//Letra: a
+//Letra: b
+//Letra: c
+//Letra: d
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;in-array&#34;&gt;in_array()&lt;/h2&gt;
+
+&lt;p&gt;Esta função é realmente útil para verificar se existe um determinado valor em um &lt;em&gt;array&lt;/em&gt;. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$array = array (&#39;a&#39;,&#39;b&#39;,&#39;c&#39;,&#39;d&#39;);
+
+if (in_array(&#39;a&#39;,$array))
+{
+   print(&#39;O valor está no array&#39;);
+}
+else
+{
+   print(&#39;Não está no array&#39;);
+}
+
+//Resultado: O valor está no array
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;print-r&#34;&gt;print_r()&lt;/h2&gt;
+
+&lt;p&gt;Uma mão na roda em momentos que você deseja depurar a estrutura de um determinado &lt;em&gt;array&lt;/em&gt; ou objeto no PHP. Em meus códigos, utilizo esta função sempre acompanhada da tag &lt;em&gt;pre&lt;/em&gt; do HTML, para assim exibir de forma mais amigável a estrutura do &lt;em&gt;array&lt;/em&gt; ou objeto. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$array = array (&#39;a&#39;,&#39;b&#39;,&#39;c&#39;,&#39;d&#39;);
+
+print_r($array);
+
+//Resultado: Array ( [0] =&amp;gt; a [1] =&amp;gt; b [2] =&amp;gt; c [3] =&amp;gt; d )
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;implode&#34;&gt;implode()&lt;/h2&gt;
+
+&lt;p&gt;Juntar os valores de um determinado &lt;em&gt;array&lt;/em&gt; e separá-los em uma determinada &lt;em&gt;string&lt;/em&gt;. Utilizo muito esta função para exibir listas de nomes separados por vírgula, ou para criar cláusula &lt;em&gt;IN&lt;/em&gt; no MySQL. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$array = array (&#39;a&#39;,&#39;b&#39;,&#39;c&#39;,&#39;d&#39;);
+
+print(implode(&#39;,&#39;,$array));
+
+//Resultado: a,b,c,d
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;explode&#34;&gt;explode()&lt;/h2&gt;
+
+&lt;p&gt;Esta função é o oposto da função &lt;em&gt;implode&lt;/em&gt;. Nela você informa uma &lt;em&gt;string&lt;/em&gt; e define qual separador o PHP deverá usar para dividí-la e gerar um &lt;em&gt;array&lt;/em&gt; para cada espaço dividido. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$string = &#39;O PHP é bacana.&#39;;
+
+$array = explode (&#39; &#39;,$string);
+
+print_r($array);
+
+//Resultado: Array ( [0] =&amp;gt; O [1] =&amp;gt; PHP [2] =&amp;gt; é [3] =&amp;gt; bacana. )
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;checkdate&#34;&gt;checkdate()&lt;/h2&gt;
+
+&lt;p&gt;Função muito útil do PHP para validar se uma determinada data está correta. Evita de inserirmos datas incorretas no banco de dados, acarretando erros de sintaxe, datas zeradas ou datas incorretas. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$dia = 13;
+$mes = 13;
+$ano = 2015;
+if (checkdate($mes,$dia,$ano))
+{
+    print(&#39;Data correta&#39;);
+}
+else
+{
+    print(&#39;Data incorreta&#39;);
+}
+//Resultado: Data incorreta
+&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

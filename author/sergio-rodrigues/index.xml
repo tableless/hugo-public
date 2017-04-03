@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Sergio Rodrigues on Tableless</title>
+    <link>http://tableless.com.br/author/sergio-rodrigues/index.xml</link>
+    <description>Recent content in Sergio Rodrigues on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/sergio-rodrigues/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Adicionando SSL no NGINX com o Let’s Encrypt</title>
+      <link>http://tableless.com.br/adicionando-ssl-no-nginx-com-o-lets-encrypt/</link>
+      <pubDate>Fri, 02 Dec 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/adicionando-ssl-no-nginx-com-o-lets-encrypt/</guid>
+      <description>
+
+&lt;p&gt;O &lt;strong&gt;Let&amp;#8217;s Encrypt&lt;/strong&gt; é uma forma fácil, automatizada e gratuita de se inserir &lt;strong&gt;&lt;a href=&#34;https://www.1and1.com/certificado-ssl&#34;&gt;SSL&lt;/a&gt;&lt;/strong&gt; em uma aplicação &lt;em&gt;web&lt;/em&gt;. A utilização do &lt;strong&gt;SSL&lt;/strong&gt; é bem importante quando se há autenticação, tráfego de dados privados ou até mesmo para ser melhor colocado no &lt;em&gt;ranking&lt;/em&gt; do &lt;em&gt;Google&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Neste artigo vou demonstrar como gerar e adicionar o &lt;strong&gt;SSL&lt;/strong&gt; no &lt;strong&gt;NGINX&lt;/strong&gt; com a ferramenta &lt;strong&gt;Let&amp;#8217;s Encrypt&lt;/strong&gt;. Irei utilizar o sistema operacional &lt;em&gt;Debian&lt;/em&gt; para executar os comandos, mas estes podem ser facilmente modificados para serem executados em qualquer &lt;em&gt;distro&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;instalandooletsencrypt&#34;&gt;Instalando o Let&amp;#8217;s Encrypt:&lt;/h4&gt;
+
+&lt;p&gt;Clone o projeto no &lt;em&gt;github&lt;/em&gt; e redirecione para o caminho &lt;strong&gt;/opt/letsencrypt&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ sudo git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt
+&lt;/pre&gt;
+
+&lt;p&gt;É necessário ter o &lt;em&gt;git&lt;/em&gt; instalado, caso não tenha:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ sudo apt-get install git
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;preparandoonginxparaservalidado&#34;&gt;Preparando o NGINX para ser validado:&lt;/h4&gt;
+
+&lt;p&gt;O &lt;strong&gt;Let&amp;#8217;s Encrypt&lt;/strong&gt; valida se o domínio realmente é seu, então para isso é necessário adicionar uma regra no seu &lt;em&gt;site&lt;/em&gt; do &lt;strong&gt;NGINX&lt;/strong&gt;. Adicione o &lt;strong&gt;location&lt;/strong&gt; &lt;em&gt;^/.well-known&lt;/em&gt; no seu site &lt;strong&gt;(/etc/nginx/sites-enabled/yoursite)&lt;/strong&gt;, como por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;server {  
+    listen 80;
+    server_name your-domain.com.br;
+
+    location ~ ^/.well-known {
+        root /var/www/yoursite;
+    }
+
+    location / {
+        return 301 https://www.$server_name$request_uri;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Este &lt;strong&gt;location&lt;/strong&gt; será requisitado pelo &lt;strong&gt;Let&amp;#8217;s Encrypt&lt;/strong&gt; para confirmar sua identidade. Lembrando que você deve substituir o &lt;strong&gt;root&lt;/strong&gt; e o &lt;strong&gt;server_name&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Após adicionar o &lt;em&gt;well-known&lt;/em&gt;, reinicie o seu &lt;strong&gt;NGINX&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ sudo systemctl restart nginx
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;É bom lembrar que o seu domínio deve estar apontando para sua aplicação para obter sucesso com o &lt;strong&gt;SSL&lt;/strong&gt;.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;gerandoosslcomoletsencrypt&#34;&gt;Gerando o SSL com o Let&amp;#8217;s Encrypt:&lt;/h4&gt;
+
+&lt;p&gt;Substitua no comando abaixo, o caminho &lt;strong&gt;/var/www/yoursite&lt;/strong&gt; pelo diretório raiz do seu site no &lt;strong&gt;NGINX&lt;/strong&gt;, e também o &lt;strong&gt;yourdomain.com.br&lt;/strong&gt; e &lt;strong&gt;www.yourdomain.com.br&lt;/strong&gt; pelo seu domínio:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ sudo /opt/letsencrypt/letsencrypt-auto certonly -a webroot --webroot-path=/var/www/yoursite -d yourdomain.com.br -d www.yourdomain.com.br
+&lt;/pre&gt;
+
+&lt;p&gt;Neste processo irá ser solicitado seu &lt;em&gt;e-mail&lt;/em&gt;, para caso necessite da recuperação de seu certificado.&lt;/p&gt;
+
+&lt;h4 id=&#34;adicionandoocertificadoemsuaaplicao&#34;&gt;Adicionando o certificado em sua aplicação:&lt;/h4&gt;
+
+&lt;p&gt;Após o certificado ser gerado com sucesso, altere novamente o seu arquivo de regras do seu site &lt;strong&gt;(/etc/nginx/sites-enabled/yoursite)&lt;/strong&gt;, adicionando mais um &lt;strong&gt;server&lt;/strong&gt;, desta vez o de &lt;strong&gt;ssl&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;server {  
+    listen 443 ssl;
+    server_name yourdomain.com.br www.yourdomain.com.br;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+    }
+
+    location ~ ^/.well-known {
+        root /var/www/yoursite;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/yourdomain.com.br/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com.br/privkey.pem;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Lembrando que você deve alterar o &lt;strong&gt;location /&lt;/strong&gt; com as configurações específicas da sua aplicação web.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Reinicie novamente o seu &lt;strong&gt;NGINX&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ sudo systemctl restart nginx
+&lt;/pre&gt;
+
+&lt;p&gt;Entre em seu domínio utilizando o &lt;strong&gt;https&lt;/strong&gt; e veja se o processo ocorreu com sucesso.&lt;/p&gt;
+
+&lt;h4 id=&#34;conferindoaqualidadedoseussl&#34;&gt;Conferindo a qualidade do seu SSL:&lt;/h4&gt;
+
+&lt;p&gt;Altere &lt;em&gt;example.com&lt;/em&gt; pelo seu domínio:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.ssllabs.com/ssltest/analyze.html?d=example.com&#34;&gt;https://www.ssllabs.com/ssltest/analyze.html?d=example.com&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;melhorandoaqualidadedoseucertificado&#34;&gt;Melhorando a qualidade do seu certificado:&lt;/h4&gt;
+
+&lt;p&gt;É importante validar as cifras utilizadas, limitar a versão do protocolo &lt;strong&gt;SSL&lt;/strong&gt;, entre outras coisas. Para isso, recomendo a leitura do seguinte tópico na wiki da Mozilla, &lt;a href=&#34;https://wiki.mozilla.org/Security/Server_Side_TLS&#34;&gt;Server Side TLS&lt;/a&gt;. Existe também o &lt;a href=&#34;https://mozilla.github.io/server-side-tls/ssl-config-generator&#34;&gt;Mozilla SSL Configuration Generator&lt;/a&gt;, um gerador de configuração &lt;strong&gt;SSL&lt;/strong&gt; para diversos servidores de aplicação.&lt;/p&gt;
+
+&lt;h4 id=&#34;renovandoseucertificadocomcrontab&#34;&gt;Renovando seu certificado com crontab:&lt;/h4&gt;
+
+&lt;p&gt;O certificado gerado é válido por 3 meses, para facilitar a renovação, você pode criar um &lt;em&gt;cronjob&lt;/em&gt; para fazer este trabalho:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ crontab -e
+&lt;/pre&gt;
+
+&lt;p&gt;Adicione no final do arquivo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;0 0 1 */2 * /opt/letsencrypt/letsencrypt-auto renew --quiet --no-self-upgrade  
+0 0 1 */2 * systemctl reload nginx  
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;concluindo&#34;&gt;Concluindo:&lt;/h3&gt;
+
+&lt;p&gt;Neste artigo foi demonstrando a geração do &lt;strong&gt;SSL&lt;/strong&gt; para o &lt;strong&gt;NGINX&lt;/strong&gt;, mas este mesmos passos podem ser facilmente executados em qualquer servidor de aplicação, com algumas modificações. Lembrando que existem outros comandos específicos da ferramenta &lt;strong&gt;Let&amp;#8217;s Encrypt&lt;/strong&gt;, como &lt;strong&gt;letsencrypt-apache&lt;/strong&gt; que faz todo o trabalho pra você no caso do &lt;em&gt;Apache&lt;/em&gt;, mas tentei demonstrar a forma genérica, que pode servir para outros servidores.&lt;/p&gt;
+
+&lt;h3 id=&#34;referências-e-links&#34;&gt;Referências e Links:&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://letsencrypt.org&#34;&gt;https://letsencrypt.org&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/certbot/certbot&#34;&gt;https://github.com/certbot/certbot&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-16-04&#34;&gt;https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-16-04&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.nginx.com/blog/free-certificates-lets-encrypt-and-nginx&#34;&gt;https://www.nginx.com/blog/free-certificates-lets-encrypt-and-nginx&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;O certificado &lt;a href=&#34;https://www.1and1.com/certificado-ssl&#34;&gt;SSL&lt;/a&gt; também pode ser contratado na &lt;a href=&#34;https://www.1and1.com/&#34;&gt;1&amp;amp;1&lt;/a&gt; ou Certisign.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

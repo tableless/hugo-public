@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Guilherme Kalani on Tableless</title>
+    <link>http://tableless.com.br/author/guilherme-kalani/index.xml</link>
+    <description>Recent content in Guilherme Kalani on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/guilherme-kalani/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Gulp: O novo automatizador</title>
+      <link>http://tableless.com.br/gulp-o-novo-automatizador/</link>
+      <pubDate>Mon, 20 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/gulp-o-novo-automatizador/</guid>
+      <description>
+
+&lt;p&gt;Se você não esteve morando em baixo de uma rocha pelos últimos meses, provavelmente conhece o automatizador de tarefas &lt;a href=&#34;http://tableless.com.br/grunt-voce-deveria-estar-usando/&#34;&gt;Grunt&lt;/a&gt;, que já dominava a área há algum tempo. Mas agora, chegou um novo automatizador chamado &lt;a href=&#34;http://gulpjs.com&#34;&gt;Gulp&lt;/a&gt; que promete realizar suas tarefas de forma mais rápida e simples do que seu concorrente.&lt;/p&gt;
+
+&lt;p&gt;Caso você não saiba, automatizadores de tarefa são ferramentas que ajudam programadores &lt;del&gt;preguiçosos&lt;/del&gt; a realizarem tarefas repetitivas mas essenciais para o desenvolvimento como: concatenação de arquivos, minificação, testes e muitas outras coisas necessárias para a criação de um código rápido e eficiente.&lt;/p&gt;
+
+&lt;h3 id=&#34;por-que-gulp&#34;&gt;Por que Gulp?&lt;/h3&gt;
+
+&lt;p&gt;Se você já utiliza o Grunt em seus projetos, deve estar se perguntando por que mudar de automatizador. A resposta é simples: O Gulp é muito mais rápido que o Grunt, já que faz uso das streams do nodejs para escrever arquivos diretamente para o disco, dispensando intermediários. Sem falar na simplicidade do Gulpfile(equivalente ao Gruntfile), que utiliza uma sintaxe de código semelhante ao código comum do nodejs.&lt;/p&gt;
+
+&lt;p&gt;Espero que até o final do texto você fique impressionado com a simplicidade do Gulp, e pense duas vezes antes de escolher o automatizador de tarefas para o seu próximo projeto.&lt;/p&gt;
+
+&lt;h3 id=&#34;instalação&#34;&gt;Instalação&lt;/h3&gt;
+
+&lt;p&gt;Lembrando que o Gulp roda no &lt;a href=&#34;http://nodejs.org/&#34;&gt;nodejs&lt;/a&gt; então é preciso que você o tenha instalado no seu computador, caso esteja tudo ok, basta rodar o comando abaixo na sua linha de comando para instalar o CLI:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;npm install -g gulp
+&lt;/pre&gt;
+
+&lt;p&gt;Caso você esteja em um sistema baseado em Unix, talvez seja preciso rodar `sudo` antes do comando acima. Agora você vai poder rodar o Gulp na sua linha de comando. Para ver a versão instalada, execute:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;gulp -v
+&lt;/pre&gt;
+
+&lt;p&gt;Se o comando acima retornar a versão do Gulp instalada, a instalação foi um sucesso.&lt;/p&gt;
+
+&lt;h3 id=&#34;iniciando-com-o-gulp&#34;&gt;Iniciando com o Gulp&lt;/h3&gt;
+
+&lt;p&gt;Agora vamos ao que interessa, a automatização! O Gulp faz uso do Gulpfile para configuração das tarefas que ele vai rodar, que é o único arquivo necessário.&lt;/p&gt;
+
+&lt;p&gt;Para nossos testes, criei uma estrutura desta forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;|projeto/
+|--dist/
+|--src/
+|----source.js
+|--Gulpfile.js
+&lt;/pre&gt;
+
+&lt;p&gt;Vou rodar três testes diferentes: Concatenação, minificação e teste de código com o jshint. O Gulp faz uso de &lt;a href=&#34;http://gratimax.github.io/search-gulp-plugins/&#34;&gt;plugins&lt;/a&gt; para facilitar a criação de tarefas, então vou instalar alguns para nós rodarmos nossos testes.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;npm install gulp gulp-jshint gulp-uglify gulp-concat gulp-rename --save-dev
+&lt;/pre&gt;
+
+&lt;p&gt;Note que eu instalei o próprio Gulp DE NOVO e alguns plugins. Isto é porque o Gulp instalado anteriormente foi o CLI, responsável por rodar o comando `gulp` na linha de comando e o instalado desta vez é o local que é usado para rodar os testes no projeto. Agora podemos criar nosso Gulpfile:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Aqui nós carregamos o gulp e os plugins através da função `require` do nodejs
+var gulp = require(&#39;gulp&#39;);
+var jshint = require(&#39;gulp-jshint&#39;);
+var uglify = require(&#39;gulp-uglify&#39;);
+var concat = require(&#39;gulp-concat&#39;);
+var rename = require(&#39;gulp-rename&#39;);
+
+// Definimos o diretorio dos arquivos para evitar repetição futuramente
+var files = &#34;./src/*.js&#34;;
+
+//Aqui criamos uma nova tarefa através do ´gulp.task´ e damos a ela o nome &#39;lint&#39;
+gulp.task(&#39;lint&#39;, function() {
+
+// Aqui carregamos os arquivos que a gente quer rodar as tarefas com o `gulp.src`
+// E logo depois usamos o `pipe` para rodar a tarefa `jshint`
+gulp.src(files)
+.pipe(jshint())
+.pipe(jshint.reporter(&#39;default&#39;));
+});
+
+//Criamos outra tarefa com o nome &#39;dist&#39;
+gulp.task(&#39;dist&#39;, function() {
+
+// Carregamos os arquivos novamente
+// E rodamos uma tarefa para concatenação
+// Renomeamos o arquivo que sera minificado e logo depois o minificamos com o `uglify`
+// E pra terminar usamos o `gulp.dest` para colocar os arquivos concatenados e minificados na pasta build/
+gulp.src(files)
+.pipe(concat(&#39;./dist&#39;))
+.pipe(rename(&#39;dist.min.js&#39;))
+.pipe(uglify())
+.pipe(gulp.dest(&#39;./dist&#39;));
+});
+
+//Criamos uma tarefa &#39;default&#39; que vai rodar quando rodamos `gulp` no projeto
+gulp.task(&#39;default&#39;, function() {
+
+// Usamos o `gulp.run` para rodar as tarefas
+// E usamos o `gulp.watch` para o Gulp esperar mudanças nos arquivos para rodar novamente
+gulp.run(&#39;lint&#39;, &#39;dist&#39;);
+gulp.watch(files, function(evt) {
+gulp.run(&#39;lint&#39;, &#39;dist&#39;);
+});
+});
+&lt;/pre&gt;
+
+&lt;p&gt;O código acima está muito bem comentado e dispensa mais explicações. Caso você tenha usado o Grunt anteriormente, percebeu como a criação de tarefas com o Gulpfile é muito mais simples. Para rodar as tarefas, rode o comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;gulp
+&lt;/pre&gt;
+
+&lt;p&gt;Perceba que ele executa a rotina de tarefas que você definiu e fica esperando mudanças no seu código para rodar novamente(lembra do watch?), mas se você quiser rodar apenas um tarefa específica, basta adicionar o nome da tarefa após o comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;gulp lint
+&lt;/pre&gt;
+
+&lt;p&gt;No exemplo acima rodamos o teste de código usando o nome da task que definimos anteriormente.&lt;/p&gt;
+
+&lt;h3 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h3&gt;
+
+&lt;p&gt;Enfim, neste texto vimos como usar o Gulp para automatizar as tarefas do seu próximo projeto de forma simples e eficiente. O Gulp é um projeto novo e que ainda deve amadurecer muito nas próximas semanas. Caso você queira contribuir de alguma maneira, acesse o projeto no &lt;a href=&#34;https://github.com/gulpjs/gulp&#34;&gt;github&lt;/a&gt; e veja como ajudar.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

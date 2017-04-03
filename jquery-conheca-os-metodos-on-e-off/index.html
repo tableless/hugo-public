@@ -1,0 +1,302 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/jquery-conheca-os-metodos-on-e-off/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/jquery-conheca-os-metodos-on-e-off/">jQuery: conheça os métodos on() e off()</a></h1>
+  <p class="tb-hero-p">
+    
+    A versão 1.7 do framework jQuery implementa dois novos métodos que pretendem acabar de vez com a confusão gerada em torno da associação de eventos.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/davi-ferreira">Davi Ferreira</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Em outubro de 2010 escrevi um <a href="http://tableless.com.br/associando-eventos-dinamicamente/" title="jQuery: associando eventos dinamicamente">artigo</a> aqui mesmo no Tableless sobre a associação dinâmica de eventos. Na época, reinava uma confusão sobre quais métodos utilizar e quando utilizá-los. Eram três as opções: bind(), live() e delegate().</p>
+
+<p>Com o lançamento da versão 1.7 do jQuery, dois métodos definitivos (assim espero) devem acabar com a confusão em torno da associação de eventos: os métodos on() e off().</p>
+
+<h2 id="eventos-diretos">Eventos diretos</h2>
+
+<p>A associação direta de eventos ocorre quando o seletor (ou escopo) é omitido nos parâmetros do on(). Por exemplo:</p>
+
+<pre class="lang-javascript">function exibeMenu(e) {
+  e.preventDefault();
+  $('#menu').show();
+}
+$('#lnk-menu').on('click', exibeMenu);
+</pre>
+
+<p>No código acima, o elemento com id #lnk-menu recebe uma associação no evento click para executar a função exibeMenu(). A associação ocorre de forma direta, ou seja, quando o on() é executado o evento passa a estar associado ao elemento, antes mesmo do clique ocorrer.</p>
+
+<p>Essa opção equivale ao bind() e deve ser utilizada em casos de elementos únicos, ou com poucos elementos, para evitar problemas de performance.</p>
+
+<h2 id="múltiplos-eventos">Múltiplos eventos</h2>
+
+<p>Também é possível associar múltiplos eventos a um ou mais elementos. Para isso, basta passar um mapa onde cada chave representa um evento ao invés de um evento como string:</p>
+
+<pre class="lang-javascript">$('#lnk-menu').on({
+  click: function(){
+    $('#menu').show();
+  },
+  dblclick: function(){
+    $('#submenu').show();
+  },
+  mouseenter: function(){
+    $(this).addClass('ativo');
+  }
+});
+</pre>
+
+<h2 id="removendo-associações-de-eventos-diretos">Removendo associações de eventos diretos</h2>
+
+<p>Remover associações de eventos diretos é simples:</p>
+
+<pre class="lang-javascript">$('#lnk-menu').off();</pre>
+
+<p>Para remover eventos específicos, mantendo qualquer outra associação, basta informar o nome do evento:</p>
+
+<pre class="lang-javascript">$('#lnk-menu').off('click');</pre>
+
+<h2 id="eventos-delegados">Eventos delegados</h2>
+
+<p>A delegação de eventos (antigos live() e delegate()) ocorre quando passamos um ou mais seletores nos parâmetros do on. O evento não será</p>
+
+<p>associado diretamente quando o código for executado, tampouco será executado para o seletor que chama o on() e sim para os elementos descendentes que se encaixem no parâmetro passado.</p>
+
+<p>A associação ocorre quando o evento é acionado. Esse tipo de associação funciona tanto para elementos já presentes no DOM como para elementos criados posteriormente.</p>
+
+<pre class="lang-javascript">function exibeConteudo(e){
+  $(this).find('conteudo').fadeIn();
+}
+
+$('table').on('click', 'a', exibeConteudo);
+</pre>
+
+<h2 id="removendo-a-associação-de-eventos-específicos">Removendo a associação de eventos específicos</h2>
+
+<p>Em alguns momentos será preciso associar eventos diretos e, ao mesmo tempo, delegar eventos. Nesses casos, é possível remover apenas os eventos delegados utilizando o parâmetro especial &#8220;**&#8221;.</p>
+
+<pre class="lang-javascript">$('a').off('click', '**');</pre>
+
+<p>Outra opção é remover a associação com base na função utilizada:</p>
+
+<pre class="lang-javascript">$('#lnk-menu').off('click', 'a', exibeConteudo);</pre>
+
+<h2 id="namespaces">Namespaces</h2>
+
+<p>Uma importante implementação do on() é a possibilidade de utilizar namespaces nos eventos &#8211; uma grande novidade para desenvolvedores de plugins. Um evento pode, agora, ser associado a um namespace específico, facilitando o controle sobre associações específicas de um plugin ou uma funcionalidade.</p>
+
+<pre class="lang-javascript">$('#lnk-menu').on('click.menu', exibeMenu);
+$('.menu-item').on('mouseleave.menu', escondeMenu);
+
+$('#lnk-menu, .menu-item').off('.menu');
+</pre>
+
+<h2 id="enviando-dados-para-o-evento">Enviando dados para o evento</h2>
+
+<p>O método on() também permite enviar dados específicos para um evento. O objeto de dados fica associado ao objeto do evento.</p>
+
+<pre class="lang-javascript">function exibeMenu(e) { 
+  $('.ativo').text(e.data.descricao);
+}
+
+$('#lnk-home').on('click', { descricao: 'Página inicial' }, exibeMenu);
+$('#lnk-sobre').on('click', { descricao: 'Sobre a empresa' }, exibeMenu);
+</pre>
+
+<p>No exemplo acima, cada link passa uma descrição diferente durante o evento. Essa descrição passa a ser o conteúdo dos elementos com a classe &#8220;.ativo&#8221;.</p>
+
+<h2 id="este-evento-se-autodestruirá">Este evento se autodestruirá…</h2>
+
+<p>O método .one() poderia ter entrado na lista dos <a href="http://tableless.com.br/jquery-metodos-desconhecidos/" title="jQuery: métodos desconhecidos">métodos desconhecidos do meu último artigo</a>, já que existe desde a versão 1.1 do jQuery. No entanto, junto com a implementação do .on() ele ganhou uma nova cara.</p>
+
+<p>Sua implementação segue as mesmas regras do .on() com uma importante diferença: o evento associado é executado apenas uma vez. Após a execução a associação é automaticamente removida, seja ela uma associação direta ou delegada.</p>
+
+<pre class="lang-javascript">$('#lnk-menu').one('click', function() {
+  alert('Este evento não será mais executado.');
+});
+</pre>
+
+<p>Caso o seletor possua mais de um elemento, o evento será associado uma vez a cada um deles, ou seja, cada elemento possuirá uma execução do evento.</p>
+
+<hr />
+
+<p>Essas são as novidades com relação a eventos utilizando jQuery. Os métodos .on() e .off() devem &#8220;matar&#8221; seus antecessores (.live() e .delegate()) e padronizar de uma vez por todas a associação de eventos em aplicações.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

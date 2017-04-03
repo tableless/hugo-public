@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/javascript-objetos-literais-vs-funcoes-construtoras/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/javascript-objetos-literais-vs-funcoes-construtoras/">JavaScript: Objetos Literais vs. Funções Construtoras</a></h1>
+  <p class="tb-hero-p">
+    
+    Neste artigo apresento um pouco mais sobre as duas formas disponíveis para criação de objetos em JavaScript, Objetos Literais e Construtores, suas vantagens e desvantagens.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/davi-ferreira">Davi Ferreira</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Existem duas maneiras de criar objetos JavaScript e muita gente as confunde ou acha que são a mesma coisa. No entanto, Objetos Literais e Funções Construtoras são conceitos bem diferentes e entendê-los vai fazer com que você tire melhor proveito da linguagem.</p>
+
+<h2 id="objetos-literais">Objetos Literais</h2>
+
+<p>Este é o tipo básico de objetos JavaScript. É o formato popularizado através do JSON (JavaScript Object Notation). O objeto é criado utilizando um par de chaves ({}) e suas propriedades e métodos são todos públicos. Este tipo de objeto também é chamado de objeto estático.</p>
+
+<pre class="lang-javascript">var tableless = {
+    init: function (artigos) {
+        this.artigos = artigos;
+    }
+};
+var tableless2 = tableless;</pre>
+
+<p>Todo objeto literal é um objeto único e, mesmo que você armazene ele em diferentes variáveis todas apontarão para o mesmo objeto. No exemplo acima, caso você altere/adicione propriedades em qualquer uma das variáveis (tableless ou tableless2), as modificações valem para ambas.</p>
+
+<p>Seu uso é recomendado em situações onde não podem existir mais de uma instância do objeto, como por exemplo, objetos de configurações do projeto ou coleções de objetos. Além disso, este tipo de notação é muito utilizado para definir o <em>namespace</em> do seu código JavaScript.</p>
+
+<pre class="lang-javascript">// Objeto Literal definindo namespace
+var tableless = tableless || {};
+// Construtor para Artigo utilizando o namespace tableless
+tableless.Artigo = function (titulo) {
+    this.titulo = titulo;
+};
+var artigo = new tableless.Artigo('Mais um artigo sobre JavaScript');</pre>
+
+<h2 id="construtores">Construtores</h2>
+
+<p>Um construtor nada mais é do que uma função. Ela pode ser executada como uma função ou pode ser utilizada para instanciar um objeto utilizando a palavra reservada <em>new</em>.</p>
+
+<p>(Caso você execute a função como uma chamada normal, vale realçar que o <strong>this</strong> dentro da função, nesse contexto, será o objeto global <strong>window</strong>.)</p>
+
+<pre class="lang-javascript">function Categoria(nome) {
+    this.nome = nome;
+}
+
+var categoria = new Categoria('Livros');</pre>
+
+<p>Ao executar a função Categoria com <strong>new</strong> estamos fazendo quatro coisas:</p>
+
+<ol>
+<li>criamos um novo objeto JavaScript ({});</li>
+<li>definimos o construtor do objeto <strong>categoria</strong> como <strong>Categoria</strong> &#8211; definindo também o tipo dele (retornado no instanceof);</li>
+<li>definimos o protótipo do objeto <strong>categoria</strong> como <strong>Categoria.prototype</strong>;</li>
+<li>executamos a função <strong>Categoria</strong> dentro do escopo do novo objeto, criando assim uma nova instância.</li>
+</ol>
+
+<p>Uma outra particularidade das funções construtoras é a possibilidade de criar métodos e propriedades privadas.</p>
+
+<pre class="lang-javascript">function Categoria(nome) {
+    var totalProdutos = 0,
+        self = this,
+        atualizaTotalProdutos = function() {
+            self.totalProdutos += 1;
+        };
+    this.nome = nome;
+    atualizaTotalProdutos();
+}</pre>
+
+<p>A variável <strong>totalProdutos</strong> e o método <strong>atualizaTotalProdutos</strong> só existem no escopo do objeto Categoria criado e podem ser utilizados apenas por métodos do objeto.</p>
+
+<p>Aqui utilizamos um &#8220;truque&#8221; importante. Como cada função possui o seu próprio contexto e o <strong>this</strong> dentro do método <strong>atualizaTotalProdutos</strong> referencia a própria função e não o objeto Categoria precisamos armazenar o contexto do objeto dentro da variável <strong>self</strong>. (Outra forma seria utilizar os métodos <strong>call</strong> e <strong>aply</strong> para definir o <strong>this</strong> da função, mas isso é papo para outro artigo.)</p>
+
+<p>Utilizando a cadeia de protótipos, podemos atualizar propriedades ou inserir novos métodos em objetos criados a partir de funções construtoras.</p>
+
+<pre class="lang-javascript">Categoria.prototype.exibeProdutos = function () {
+    var html = '',
+        i;
+    for (i = 0; i &lt; this.produtos.length; i++) {
+        html += this.produtos[i].nome;
+    }
+    return html;
+};</pre>
+
+<p>O código acima adiciona o método <strong>exibeProdutos</strong> ao protótipo de Categoria e também a todos os objetos da cadeia, instanciados ou não.</p>
+
+<p>As funções construtoras, portanto, são ideais para objetos que podem existir como múltiplas instâncias no mesmo contexto.</p>
+
+<p>Uma observação: para melhor organizar seu código uma boa prática é utilizar a primeira letra maiúscula nos nomes de funções construtoras, diferenciando-as de funções comuns.</p>
+
+<p>&#8212;</p>
+
+<p>Entender conceitos de orientação a objetos em JavaScript pode levar um pouco de tempo e pode parecer bem estranho no início. Mas, uma vez entendido o funcionamento desses conceitos você descobrirá que é possível fazer diversas coisas legais e diferentes e que JavaScript é uma linguagem extremamente flexível.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

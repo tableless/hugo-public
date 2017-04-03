@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Zend Framework on Tableless</title>
+    <link>http://tableless.com.br/tags/zend-framework/index.xml</link>
+    <description>Recent content in Zend Framework on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/zend-framework/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>PHPUnit – persistência e configurações avançadas</title>
+      <link>http://tableless.com.br/phpunit-persistencia-e-configuracoes-avancadas/</link>
+      <pubDate>Thu, 08 May 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/phpunit-persistencia-e-configuracoes-avancadas/</guid>
+      <description>
+
+&lt;p&gt;Neste artigo você verá como utilizar o &lt;a title=&#34;PHPUnit - site oficial&#34; href=&#34;http://phpunit.de/&#34; target=&#34;_blank&#34;&gt;PHPUnit&lt;/a&gt; para realizar testes com persistência de dados utilizando o &lt;a title=&#34;Projeto Doctrine&#34; href=&#34;http://www.doctrine-project.org/&#34; target=&#34;_blank&#34;&gt;Doctrine&lt;/a&gt; um &lt;a title=&#34;O que é um ORM?&#34; href=&#34;http://pt.wikipedia.org/wiki/Mapeamento_objeto-relacional&#34; target=&#34;_blank&#34;&gt;ORM&lt;/a&gt; open-source e como definir configurações avançadas para personalizar sua suíte de testes e gerar relatórios de testes executados bem como cobertura do código de produção.&lt;/p&gt;
+
+&lt;h2 id=&#34;começando&#34;&gt; Começando&lt;/h2&gt;
+
+&lt;p&gt;Para começar o projeto crie um arquivo chamado &lt;em&gt;composer.json&lt;/em&gt;. Nele listaremos todos os pacotes/bibliotecas de terceiros que utilizaremos. Para este post utilizaremos o Doctrine e vários elementos do Zend Framework 2 além de é claro o próprio PHPUnit. Abaixo segue a lista de todas as bibliotecas que serão utilizadas.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt; &#34;require&#34; : {
+    &#34;doctrine/common&#34; : &#34;*&#34;,
+    &#34;doctrine/dbal&#34;: &#34;*&#34;,
+    &#34;doctrine/orm&#34; : &#34;*&#34;,
+    &#34;phpunit/phpunit&#34;: &#34;3.7.*&#34;,
+    &#34;zendframework/zend-stdlib&#34;: &#34;2.3.*@dev&#34;,
+    &#34;zendframework/zend-filter&#34;: &#34;2.3.*@dev&#34;,
+    &#34;zendframework/zend-servicemanager&#34;: &#34;2.3.*@dev&#34;,
+    &#34;zendframework/zend-crypt&#34;: &#34;2.3.*@dev&#34;,
+    &#34;zendframework/zend-math&#34;: &#34;2.3.*@dev&#34;
+ }&lt;/pre&gt;
+
+&lt;p&gt;Seguindo as recomendações da &lt;a title=&#34;FIG&#34; href=&#34;http://www.php-fig.org/&#34; target=&#34;_blank&#34;&gt;FIG&lt;/a&gt;, utilizaremos a &lt;a title=&#34;PSR-0&#34; href=&#34;http://www.php-fig.org/psr/psr-0/&#34; target=&#34;_blank&#34;&gt;PSR-0&lt;/a&gt; que trata sobre a forma de carregarmento de classes na aplicação que estamos desenvolvendo. Com isso trabalharemos com namespaces e não precisaremos utilizar require ou include nas classes que utilizaremos. Para que o projeto tenha suas classes carregadas conforme a PSR-0 podemos informar isso no arquivo &lt;em&gt;composer.json&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt; &#34;autoload&#34; : {
+    &#34;psr-0&#34;: {
+        &#34;Tableless\\&#34;: &#34;src/&#34;
+    }
+ }&lt;/pre&gt;
+
+&lt;p&gt;Isto nos diz que o namespace “Tableless” estará presente na pasta &lt;em&gt;src&lt;/em&gt; e para isto se faz necessária a criação da pasta &lt;em&gt;src&lt;/em&gt; e dentro da mesma a pasta &lt;em&gt;Tableless&lt;/em&gt;. Há outra maneira de registrar o namespace através do _boostrap._&lt;em&gt;php&lt;/em&gt; que seria algo como:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt; $load = require __DIR__ . &#39;/vendor/autoload.php&#39;;
+ $load-&amp;gt;add(&#39;Tableless&#39;, __DIR__ . &#39;/src&#39;);&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p class=&#34;lang-php&#34;&gt;
+  O arquivo &lt;em&gt;bootstrap.php &lt;/em&gt;é comumente utilizado para realizar as configurações iniciais em vários frameworks. Basicamente ele inclui o &lt;em&gt;autoload.php&lt;/em&gt; gerado pelo composer e podem ser definidas as mais diversas configurações globais de sua aplicação no mesmo.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Feito isso baixamos o composer utilizando o comando &lt;strong&gt;curl -sS &lt;a href=&#34;https://getcomposer.org/installer&#34;&gt;https://getcomposer.org/installer&lt;/a&gt; | php&lt;/strong&gt; e em seguida instalamos as dependências através do comando &lt;strong&gt;php composer.phar install&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41342&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/02-instalando-composer-e-dependencias-403x310.png&#34; alt=&#34;Instalando composer e dependências&#34; width=&#34;403&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/02-instalando-composer-e-dependencias-403x310.png 403w, uploads/2014/03/02-instalando-composer-e-dependencias-218x168.png 218w, uploads/2014/03/02-instalando-composer-e-dependencias.png 791w&#34; sizes=&#34;(max-width: 403px) 100vw, 403px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Com a instalação das dependências agora temos a nova estrutura contendo uma pasta &lt;em&gt;vendor&lt;/em&gt; contendo todas as bibliotecas de terceiros, um novo arquivo &lt;em&gt;composer.lock&lt;/em&gt; e &lt;em&gt;composer.phar&lt;/em&gt; os quais já foram descritos em outro artigo sobre PHPUnit com composer e que pode ser acessado &lt;a href=&#34;http://tableless.com.br/phpunit-como-iniciar-sem-dores/&#34; title=&#34;PHPUnit, como iniciar sem dores&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41343&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/03-nova-estrutura-490x310.png&#34; alt=&#34;Nova Estrutura&#34; width=&#34;490&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/03-nova-estrutura-490x310.png 490w, uploads/2014/03/03-nova-estrutura-265x168.png 265w, uploads/2014/03/03-nova-estrutura-400x252.png 400w, uploads/2014/03/03-nova-estrutura.png 1086w&#34; sizes=&#34;(max-width: 490px) 100vw, 490px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;próximo-passo&#34;&gt;Próximo passo&lt;/h2&gt;
+
+&lt;p&gt;Agora temos de criar um arquivo que será o pontapé inicial da aplicação, arquivo este comumente nomeado de bootstrap conforme já mencionado anteriormente. Nele são configurados onde se encontram as entidades – que serão explicadas mais a frente deste tutorial, configuração do banco de dados entre outras configurações. Como neste exemplo será utilizado o Doctrine, precisamos configurar o mesmo.&lt;/p&gt;
+
+&lt;p&gt;Crie um arquivo chamado &lt;em&gt;bootstrap.php&lt;/em&gt; na raiz de seu projeto, o fonte do &lt;em&gt;bootstrap.php&lt;/em&gt; está comentado para melhor entendimento.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+// Carregando o autoload que o composer gerou
+require __DIR__ . &#39;/vendor/autoload.php&#39;;
+// indicando tudo que usaremos no bootstrap
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Tools\Setup;
+use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\AnnotationRegistry;
+/**
+* Definindo se é modo desenvolvimento
+* 
+* Caso true: o cache do Doctrine é realizado em formato de array
+* Caso false: o cache é conforme configuração (memcache, APC..)
+* 
+* Somente trabalharemos aqui com o modo TRUE, cache em array
+*/
+$config = Setup::createConfiguration( true );
+// pasta onde encontram-se nossas entidades
+$entitypath = array( __DIR__ . &#39;/src/Tableless/Entity&#39; );
+// registrando as entidades
+$driver = new AnnotationDriver(new AnnotationReader(), $entitypath);
+$config-&gt;setMetadataDriverImpl($driver);
+/**
+* indicando que trabalharemos com o modo annotations para
+* as entidades. Pode ser também via arquivo yaml e xml
+* 
+*/
+AnnotationRegistry::registerFile(__DIR__ 
+. &#39;/vendor/doctrine/orm/lib/Doctrine/ORM/Mapping/Driver/DoctrineAnnotations.php&#39;);
+// configurando a conexão com o banco de dados
+$conn = array(
+    &#39;driver&#39; =&gt; &#39;pdo_mysql&#39;,    
+    &#39;user&#39; =&gt; &#39;root&#39;,
+    &#39;password&#39; =&gt; &#39;root&#39;,
+    &#39;dbname&#39; =&gt; &#39;tableless_tdd&#39;,
+);
+// E finalmente criando o manipulador de entidades
+$entityManager = EntityManager::create($conn, $config);&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Até agora você viu várias vezes a palavra “Entidade” mas o que ela significa? Entidade é um objeto que tem um significado conceitual dentro de um domínio. Em outras palavras, cada entidade no Doctrine é a representação de uma tabela no banco de dados e cada registro é uma instância desta entidade. A entidade não manipula o banco de dados, apenas representa-o.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Pronto, a nível de produção já temos a configuração, agora criaremos a estrutura e configurações para testes.&lt;/p&gt;
+
+&lt;p&gt;Na raiz de seu projeto crie uma pasta chamada &lt;em&gt;tests&lt;/em&gt;, dentro dela uma pasta chamada &lt;em&gt;src&lt;/em&gt; e dentro da src uma pasta chamada &lt;em&gt;Tableless&lt;/em&gt;. Perceba que o namespace ficará na mesma estrutura do código de produção, desta forma para utilizarmos uma entidade chamada &lt;em&gt;User&lt;/em&gt; por exemplo, usaremos a seguinte declaração: &lt;strong&gt;use Tableless\Entity\User;&lt;/strong&gt;. Para a classe de testes de User se for necessária declarar em algum lugar será desta forma: &lt;strong&gt;use Tableless\Entity\UserTest;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41345&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/04-estrutura-inicial-testes-398x310.png&#34; alt=&#34;Estrutura inicial testes&#34; width=&#34;398&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/04-estrutura-inicial-testes-398x310.png 398w, uploads/2014/03/04-estrutura-inicial-testes-215x168.png 215w, uploads/2014/03/04-estrutura-inicial-testes-400x311.png 400w, uploads/2014/03/04-estrutura-inicial-testes.png 542w&#34; sizes=&#34;(max-width: 398px) 100vw, 398px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Após a criação das pastas necessárias falta a criação do bootstrap de testes e de um arquivo de configurações de execução do PHPUnit.&lt;/p&gt;
+
+&lt;p&gt;Começando com o bootstrap, o código novamente está comentado explicando porque determinadas coisas estão sendo feitas. Crie o arquivo &lt;em&gt;bootstrap.php&lt;/em&gt; dentro da pasta de testes (&lt;em&gt;tests&lt;/em&gt;).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&lt;?php
+// utilizando o bootstrap de produção
+require __DIR__ . &#39;/../bootstrap.php&#39;;
+use Doctrine\ORM\EntityManager;
+/*
+* Sobrescrevendo a conexão com banco de dados.
+* 
+* Isto faz-se necessário para que ao rodar os testes 
+* o banco de produção não sofra alterações
+*/
+$conn = array(
+    &#39;driver&#39; =&gt; &#39;pdo_sqlite&#39;,
+    &#39;dbname&#39; =&gt; &#39;:memory:&#39;,
+);
+return $entityManager = EntityManager::create($conn, $config);
+&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;O bootstrap de testes se faz necessário para sobrescrever a conexão com o banco de dados, caso contrário, todos os testes realizariam alterações no banco de dados de produção e isto jamais deve acontecer.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Feito isto agora é o momento de criar o arquivo xml de configurações do PHPUnit. Crie um arquivo chamado &lt;i style=&#34;font-family: Arial, sans-serif;line-height: 1.5em&#34;&gt;phpunit.xm&lt;/i&gt;l dentro de sua pasta &lt;i style=&#34;font-family: Arial, sans-serif;line-height: 1.5em&#34;&gt;tests&lt;/i&gt; e adicione o conteúdo abaixo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-xml&#34;&gt;&amp;lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&amp;gt;
+&amp;lt;phpunit colors=&#34;true&#34; bootstrap=&#34;bootstrap.php&#34;&amp;gt;
+
+&amp;lt;!-- Indicando qual é o diretório onde as classes de teste se encontram --&amp;gt;
+    &amp;lt;testsuites&amp;gt;
+        &amp;lt;testsuite name=&#34;Tableless TDD Test Suite&#34;&amp;gt;
+            &amp;lt;directory suffix=&#34;.php&#34;&amp;gt;src/&amp;lt;/directory&amp;gt;
+        &amp;lt;/testsuite&amp;gt;
+    &amp;lt;/testsuites&amp;gt;
+
+&amp;lt;!-- Adicionando filtros, basicamente whitelist (diretórios que serão executados), 
+dentro temos o exclude (diretórios que não serão executados pelos testes) --&amp;gt;
+
+&amp;lt;filter&amp;gt;
+    &amp;lt;whitelist&amp;gt;
+        &amp;lt;directory suffix=&#34;.php&#34;&amp;gt;../src/&amp;lt;/directory&amp;gt;
+        &amp;lt;exclude&amp;gt;
+            &amp;lt;directory suffix=&#34;.php&#34;&amp;gt;./vendor/&amp;lt;/directory&amp;gt;
+        &amp;lt;/exclude&amp;gt;
+    &amp;lt;/whitelist&amp;gt;
+&amp;lt;/filter&amp;gt;
+&amp;lt;/phpunit&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Quase pronto, se rodarmos o comando &lt;strong&gt;./vendor/bin/phpunit -c tests/phpunit.xml&lt;/strong&gt; dentro da raiz do projeto teremos a mensagem de que nenhum teste foi executado como na imagem abaixo.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41346&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/05-nenhum-teste-490x310.png&#34; alt=&#34;Nenhum Teste&#34; width=&#34;490&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/05-nenhum-teste-490x310.png 490w, uploads/2014/03/05-nenhum-teste-265x168.png 265w, uploads/2014/03/05-nenhum-teste-400x253.png 400w, uploads/2014/03/05-nenhum-teste.png 803w&#34; sizes=&#34;(max-width: 490px) 100vw, 490px&#34; /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt; Como estamos trabalhando com um arquivo de configurações, para rodarmos o phpunit seguindo as definições do arquivo precisamos utilizar o parâmetro &lt;strong&gt;-c&lt;/strong&gt; seguido do nome do arquivo.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Obviamente que nenhum teste ainda foi executado porque não temos nenhuma classe de testes. Vamos começar então. Crie uma pasta &lt;em&gt;Entity&lt;/em&gt; dentro de &lt;em&gt;tests/src&lt;/em&gt;. Dentro desta pasta crie um arquivo chamado &lt;em&gt;UsertTest.php&lt;/em&gt;. A nova estrutura de testes deve estar como na imagem abaixo.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41347&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/06-nova-estrutura-de-testes-379x310.png&#34; alt=&#34;Nova estrutura de testes&#34; width=&#34;379&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/06-nova-estrutura-de-testes-379x310.png 379w, uploads/2014/03/06-nova-estrutura-de-testes-205x168.png 205w, uploads/2014/03/06-nova-estrutura-de-testes-400x326.png 400w, uploads/2014/03/06-nova-estrutura-de-testes.png 695w&#34; sizes=&#34;(max-width: 379px) 100vw, 379px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;No arquivo &lt;em&gt;UserTest.php&lt;/em&gt; adicione o namespace do mesmo que é Tableless\Entity.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;namespace Tableless\Entity;&lt;/pre&gt;
+
+&lt;p&gt;Agora definimos quais classes utilizaremos para este teste. Como estamos testando a entidade &lt;em&gt;User&lt;/em&gt; precisaremos utilizar o Tableless\Entity\User.&lt;/p&gt;
+
+&lt;pre&gt;use Tableless\Entity\User;&lt;/pre&gt;
+
+&lt;p&gt;No entanto aí tem um detalhe. A entidade User ainda não existe, mas a criaremos dentro de instantes pois ainda temos uma classe que devemos criar antes mesmo da &lt;em&gt;User&lt;/em&gt;. Ela se chama &lt;em&gt;TestCase&lt;/em&gt; e deve estar no namespace Tableless\Test. Crie em &lt;em&gt;src/Tableless&lt;/em&gt; (não em tests/src/Tableless) uma pasta chamada Test e dentro dela um arquivo chamado &lt;em&gt;TestCase.php&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41348&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/07-criando-test-case-426x310.png&#34; alt=&#34;Criando o TestCase&#34; width=&#34;426&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/07-criando-test-case-426x310.png 426w, uploads/2014/03/07-criando-test-case-230x168.png 230w, uploads/2014/03/07-criando-test-case-400x291.png 400w, uploads/2014/03/07-criando-test-case.png 602w&#34; sizes=&#34;(max-width: 426px) 100vw, 426px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Neste arquivo copie e cole o código abaixo que está comentado para melhor entendimento.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+namespace Tableless\Test;
+
+use Doctrine\ORM\Tools\SchemaTool;
+use PHPUnit_Framework_TestCase as PHPUnit;
+
+abstract class TestCase extends PHPUnit
+{
+    protected $entityManager = null;
+
+    /**
+    * Executado antes de cada teste unitário
+    */
+    public function setup() 
+    {
+        $entityManager = $this-&amp;gt;getEntityManager(); 
+        $tool = new SchemaTool($entityManager);
+
+        //Obtem informações das entidades que encontrar em Tableless\Entity
+        $classes = $entityManager-&amp;gt;getMetadataFactory()-&amp;gt;getAllMetadata();
+
+        // Cria a base de dados necessária com suas determinadas tabelas
+        $tool-&amp;gt;createSchema($classes);
+
+        parent::setup();
+    } 
+
+    /**
+    * Executado após a execução de cada um dos testes unitários
+    */
+    public function tearDown() 
+    {
+        $entityManager = $this-&amp;gt;getEntityManager(); 
+        $tool = new SchemaTool($entityManager);
+
+        //Obtem informações das entidades que encontrar em Tableless\Entity
+        $classes = $entityManager-&amp;gt;getMetadataFactory()-&amp;gt;getAllMetadata();
+
+        // Desfaz o banco criado no setUp
+        $tool-&amp;gt;dropSchema($classes);
+
+        parent::tearDown();
+    }
+
+    /**
+    * 
+    * @return \Doctrine\ORM\EntityManager
+    */
+    public function getEntityManager() 
+    {
+        if (! $this-&amp;gt;entityManager) {
+            $this-&amp;gt;entityManager = require __DIR__ . &#39;/../../../tests/bootstrap.php&#39;;
+        } 
+        return $this-&amp;gt;entityManager; 
+    } 
+}&lt;/pre&gt;
+
+&lt;p&gt;Pronto, já estamos com tudo o que precisamos para começar escrever os testes. Detalhe que esta configuração foi criada para que fosse possível utilizar e testar a persistência de dados utilizando o Doctrine. Para demais testes em controllers, services, views, forms ou o que mais você desejar esta configuração realizada até o momento permanece podendo ser acrescida de novos elementos, tudo depende da necessidade.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-o-primeiro-teste&#34;&gt;Criando o primeiro teste&lt;/h2&gt;
+
+&lt;p&gt;No arquivo &lt;em&gt;tests/src/Tableless/Entity/UserTest.php&lt;/em&gt; começaremos a definir nossos testes. Lembre-se que a ideia do TDD é que o teste seja criado antes do código de produção, e assim faremos.&lt;/p&gt;
+
+&lt;p&gt;Pra início de conversa utilizaremos a classe &lt;em&gt;TestCase&lt;/em&gt; previamente criada e a entidade User.&lt;/p&gt;
+
+&lt;pre&gt;use Tableless\Entity\User;
+use Tableless\Test\TestCase;&lt;/pre&gt;
+
+&lt;p&gt;A classe de testes atual (UserTest) extende de TestCase e adicionaremos o atributo protegido $entity.&lt;/p&gt;
+
+&lt;pre&gt;class UserTest extends TestCase
+{
+    protected $entity;
+}&lt;/pre&gt;
+
+&lt;p&gt;Assim como a classe TestCase, nossa classe UserTest também possuirá um métdo setUp e um tearDown que servirão para as configurações da mesma. De momento apenas setaremos o valor default do atributo entity no setUp.&lt;/p&gt;
+
+&lt;pre&gt;public function setUp()
+{
+    $this-&amp;gt;entity = &#39;Tableless\Entity\User&#39;;
+};&lt;/pre&gt;
+
+&lt;p&gt;Agora segue o nosso primeiro teste: Novamente há comentários explicando cada ação.&lt;/p&gt;
+
+&lt;pre&gt;public function testIfIsSavingAsExpected()
+{
+    // Criando os dados necessários para salvar o usuário
+    $userData = array(
+        &#39;id&#39; =&amp;gt; 1,
+        &#39;name&#39; =&amp;gt; &#39;Nome do usuário&#39;,
+        &#39;email&#39; =&amp;gt; &#39;usuario@dominio.com&#39;,
+        &#39;password&#39; =&amp;gt; &#39;xpto&#39;,
+        &#39;profilePic&#39; =&amp;gt; &#39;image.png&#39;
+    );
+    /* o Id é gerado automaticamente pelo Doctrine, neste caso estou forçando
+    * um Id desejado, mas somente para o teste, para o código de produção
+    * isto não se faz necessário
+    */
+
+    // Instanciando a entidade usuário definindo todos os atributos à ela
+    $user = new User( $userData );
+
+    // salvando o usuário no banco de dados
+    $this-&amp;gt;getEntityManager()-&amp;gt;persist( $user );
+    $this-&amp;gt;getEntityManager()-&amp;gt;flush();
+
+    // Obtendo o usuário salvo
+    $registeredUser = $this-&amp;gt;getEntityManager()
+            -&amp;gt;getRepository($this-&amp;gt;entity)
+            -&amp;gt;findOneBy(array(&#39;email&#39; =&amp;gt; &#39;usuario@dominio.com&#39;));
+
+    // Garantindo que tudo funcionou conforme o esperado
+    $this-&amp;gt;assertInstanceOf($this-&amp;gt;entity, $registeredUser);
+    $this-&amp;gt;assertEquals($userData[&#39;name&#39;], $registeredUser-&amp;gt;getName());
+}&lt;/pre&gt;
+
+&lt;p&gt;Se rodarmos o comando &lt;strong&gt;./vendor/bin/phpunit -c tests/phpunit.xml&lt;/strong&gt; da raiz de nosso projeto deveremos ver o seguinte erro: “PHP Fatal error: Class &amp;#8216;Tableless\Entity\User &amp;#8230;&amp;#8217;” isto porque ainda não existe a entidade &lt;em&gt;User&lt;/em&gt; pois realizamos o primeiro passo do TDD, o “Red”. Em seguida realizaremos o passo “Green” que consiste em criarmos o código que faça o teste passar e por último o passo “Refactor” que é onde faremos algumas melhorias no código. No código exemplo não existirá duplicidade e/ou partes inconsistentes com isso o Refactor realizará apenas algumas pequenas melhorias, nada mais.&lt;/p&gt;
+
+&lt;p&gt;Crie na pasta &lt;em&gt;src&lt;/em&gt; (não em tests/src) uma pasta chamada &lt;em&gt;Entity&lt;/em&gt; e dentro dela um arquivo chamado &lt;em&gt;User.php&lt;/em&gt;. Eis a estrutura da entidade &lt;em&gt;User&lt;/em&gt;. Por ser um arquivo muito extenso, colocarei apenas o link do mesmo que encontra-se no github. &lt;a title=&#34;Tableless\Entity\user&#34; href=&#34;https://gist.github.com/andrebian/11389706&#34; target=&#34;_blank&#34;&gt;Tableless\Entity\User&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Perceba que existem comentários acima de cada um dos atributos da classe. Isto se dá por estarmos utilizando o Annotations do Doctrine para que os mesmos sejam lidos e mapeados no banco de dados. Em outras palavras, o Doctrine lê a anotação e cria a estrutura da tabela conforme as definições nos comentários. Há a possibilidade de realizar tais definições via xml e também via yaml o que não veremos neste tutorial.&lt;/p&gt;
+
+&lt;p&gt;Agora se rodarmos nosso teste novamente o mesmo passará. Ou seja, já temos um código minimamente testado com um início de noção de persistência de dados, veremos uma pequena melhora no código agora e em seguida algumas configurações para a execução dos testes.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;./vendor/bin/phpunit -c tests/phpunit.xml&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41349&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/08-primeiro-teste-passando-575x310.png&#34; alt=&#34;Primeiro teste passando&#34; width=&#34;575&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/08-primeiro-teste-passando-575x310.png 575w, uploads/2014/03/08-primeiro-teste-passando-312x168.png 312w, uploads/2014/03/08-primeiro-teste-passando-400x215.png 400w, uploads/2014/03/08-primeiro-teste-passando.png 797w&#34; sizes=&#34;(max-width: 575px) 100vw, 575px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;definindo-hash-para-senha&#34;&gt;Definindo hash para senha&lt;/h2&gt;
+
+&lt;p&gt;Primeiramente no teste adicionaremos uma asserção de que a senha do usuário registrado não é igual a senha que definimos, em string pura. Adicione o trecho de código abaixo em seu teste logo após $this-&amp;gt;assertEquals($userData[&amp;#8216;name&amp;#8217;], $registeredUser-&amp;gt;getName());&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;// verificando se hash de senha funcionou
+$this-&amp;gt;assertNotEquals($userData[&#39;password&#39;], $registeredUser-&amp;gt;getPassword());&lt;/pre&gt;
+
+&lt;p&gt;Ao rodarmos o teste o mesmo deve quebrar pois ainda não criamos um hash para a senha, desta forma a senha fornecida está em string pura no banco de dados.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt; ./vendor/bin/phpunit -c tests/phpunit.xml&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41350&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/09-teste-falhando-hash-523x310.png&#34; alt=&#34;Teste falhando hash&#34; width=&#34;523&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/09-teste-falhando-hash-523x310.png 523w, uploads/2014/03/09-teste-falhando-hash-283x168.png 283w, uploads/2014/03/09-teste-falhando-hash-400x237.png 400w, uploads/2014/03/09-teste-falhando-hash.png 800w&#34; sizes=&#34;(max-width: 523px) 100vw, 523px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora, na classe Tableless\Entity\User usaremos as seguintes classes do Zend:&lt;/p&gt;
+
+&lt;pre&gt;use Zend\Math\Rand;
+use Zend\Crypt\Key\Derivation\Pbkdf2;&lt;/pre&gt;
+
+&lt;p&gt;em setPassword deixaremos adicionaremos a chamada ao método encryptPassword&lt;/p&gt;
+
+&lt;pre&gt;public function setPassword( $password )
+{
+    $this-&amp;gt;password = $this-&amp;gt;encryptPassword($password);
+    return $this;
+}&lt;/pre&gt;
+
+&lt;p&gt;E criaremos o método encryptPassword.&lt;/p&gt;
+
+&lt;pre&gt;public function encryptPassword( $password )
+{
+   return base64_encode(
+    Pbkdf2::calc(&#39;sha256&#39;, $password, $this-&amp;gt;salt, 
+            10000, strlen($password*2)));
+}&lt;/pre&gt;
+
+&lt;p&gt;Agora rodando &lt;strong&gt;./vendor/bin/phpunit -c tests/phpunit.xml&lt;/strong&gt; o teste passa novamente.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41351&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/10-teste-passando-hash-375x310.png&#34; alt=&#34;teste passando hash&#34; width=&#34;375&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/10-teste-passando-hash-375x310.png 375w, uploads/2014/03/10-teste-passando-hash-203x168.png 203w, uploads/2014/03/10-teste-passando-hash-400x330.png 400w, uploads/2014/03/10-teste-passando-hash.png 795w&#34; sizes=&#34;(max-width: 375px) 100vw, 375px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Assim finalizamos o básico da realização de testes utilizando persitência de dados. A partir de agora veremos algumas configurações avançadas que lhe ajudarão muito no feedback dos testes.&lt;/p&gt;
+
+&lt;h2 id=&#34;algumas-configurações-avançadas&#34;&gt;Algumas configurações avançadas&lt;/h2&gt;
+
+&lt;p&gt;Através do arquivo &lt;em&gt;phpunit.xml&lt;/em&gt; podemos definir algumas configurações avançadas para a execução dos testes. Começando pela declaração &lt;phpunit&gt;. Atualmente encontra-se desta forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-xml&#34;&gt;&amp;lt;phpunit colors=&#34;true&#34; bootstrap=&#34;bootstrap.php&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Isto quer dizer que utilizaremos um arquivo de bootstrap e dizemos qual arquivo é e também que queremos coloração no output. Caso colors=”true” não estivesse presente nossa visão ficaria desta forma.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41352&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/11-colors-482x310.png&#34; alt=&#34;Colors&#34; width=&#34;482&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/11-colors-482x310.png 482w, uploads/2014/03/11-colors-261x168.png 261w, uploads/2014/03/11-colors-400x257.png 400w, uploads/2014/03/11-colors.png 806w&#34; sizes=&#34;(max-width: 482px) 100vw, 482px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Podemos definir erros e avisos sendo tratados como exceções.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;phpunit 
+    convertErrorsToExceptions=&#34;true&#34; 
+    convertNoticesToExceptions=&#34;true&#34;
+    convertWarningsToExceptions=&#34;true&#34;
+    colors=&#34;true&#34;
+    bootstrap=&#34;bootstrap.php&#34;
+&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;E muitas outras opções. Para conhecer todas as opções de configurações acesse &lt;a title=&#34;Visualizar as configurações do PHPUnit&#34; href=&#34;http://phpunit.de/manual/3.7/pt_br/appendixes.configuration.html&#34; target=&#34;_blank&#34;&gt;este link&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Certamente que a configuração a seguir é uma que empolga muitos desenvolvedores, logs e coverage. Com logs e coverage você identifica quais testes passaram, quais tiveram exceções, quais não passaram e o mais legal de tudo, o percentual de cobertura de testes que há em seu código de produção. Basicamente ao rodar um teste unitário, ele cobre uma pequena parte de seu código de produção, habilitando coverage você pode verificar quais linhas estão realmente garantidas por testes e quais você ainda tem de trabalhar mais tempo para garantir um mínimo de cobertura necessário para perfeito funcionamento mas principalmente para garantia de evolução de seu software.&lt;/p&gt;
+
+&lt;p&gt;Para criar logs utilizamos a tag logging no arquivo &lt;em&gt;phpunit.xml&lt;/em&gt; logo após o fechamento da tag &lt;/filter&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;logging&amp;gt;
+    &amp;lt;log type=&#34;testdox-text&#34; target=&#34;data/testdox.txt&#34; /&amp;gt;
+&amp;lt;/logging&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;O log acima está gravando em formato de texto um checklist dos testes que existem em todas as classes de teste dentro da suite de testes marcando com x os que foram executados.&lt;/p&gt;
+
+&lt;p&gt;Rodando &lt;strong&gt;./vendor/bin/phpunit -c tests/phpunit.xml&lt;/strong&gt; será criada a pasta &lt;em&gt;tests/data&lt;/em&gt; contento o arquivo &lt;em&gt;testdox.txt&lt;/em&gt; O nome do arquivo é de sua escolha.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41353&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/12-testdox-569x310.png&#34; alt=&#34;Testdox&#34; width=&#34;569&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/12-testdox-569x310.png 569w, uploads/2014/03/12-testdox-308x168.png 308w, uploads/2014/03/12-testdox-400x217.png 400w, uploads/2014/03/12-testdox.png 891w&#34; sizes=&#34;(max-width: 569px) 100vw, 569px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Também é possível gerar o testdox em formato html, basta alterar testdox-text para testdox-html e testdox.txt para testdox.html mas o mais comum é ser utilizado em formato txt mesmo.&lt;/p&gt;
+
+&lt;p&gt;Existe também a possibilidade de habilitar o testdox em tempo de execução. Basta apenas adicionar o parâmetro &amp;#8211;testdox ao rodar os testes. O resultado será como abaixo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;$ ./vendor/bin/phpunit -c tests/phpunit.xml --testdox
+PHPUnit 3.7.35 by Sebastian Bergmann.
+Configuration read from /home/andre/Documents/Posts/tableless/phpunit-persistencia-de-dados-e-configuracoes-avancadas/sources/tests/phpunit.xml
+Tableless\Entity\User
+  [x] If is saving as expected
+Generating code coverage report in HTML format ... done&lt;/pre&gt;
+
+&lt;h2 id=&#34;agrupamento-de-testes&#34;&gt;Agrupamento de testes&lt;/h2&gt;
+
+&lt;p&gt;Por certas vezes necessitamos agrupar testes para que rodemos somente determinada sequência sem que os demais sejam executados. Isto é útil para quando temos de realizar uma pequena alteração e não se faça necessário a execução de todos os testes já criados tornando o feedback mais rápido. Comumente isto é utilizado quando se deseja realizar um ajuste pontual e ao ser finalizado todos os testes são executados novamente.&lt;/p&gt;
+
+&lt;p&gt;O PHPUnit nos permite trabalhar com grupos os quais veremos sua definição a seguir.&lt;/p&gt;
+
+&lt;p&gt;Crie uma pasta chamada &lt;em&gt;Filter&lt;/em&gt; em &lt;em&gt;tests/src/Tableless&lt;/em&gt; e dentro dela um arquivo chamado &lt;em&gt;CurrencyTest.php&lt;/em&gt;. O conteúdo deste arquivo está abaixo.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+namespace Tableless\Filter;
+use Tableless\Test\TestCase;
+/**
+* @group Filter
+*/
+class CurrencyTest extends TestCase 
+{
+    public function testIfClassExists()
+    {
+        $this-&amp;gt;assertTrue(class_exists(&#39;Tableless\Filter\Currency&#39;));
+    }
+}&lt;/pre&gt;
+
+&lt;p&gt;Perceba que antes de ser declarado o nome da classe existe uma anotação @group Filter. É isto que define o grupo ao qual este teste pertence. Faça o mesmo para o teste já existente (tests/src/Tableless/Entity/UserTest.php) anotando-o como @group Entity.&lt;/p&gt;
+
+&lt;pre&gt;...
+/**
+* @group Entity
+*/
+class UserTest extends TestCase
+...&lt;/pre&gt;
+
+&lt;p&gt;Agora que temos a definição dos grupos podemos rodar nossos testes somente de 1 grupo, de um conjunto de grupos ou de todos os grupos sem distinção. Existem duas formas de rodar os testes por grupos, através de parâmetro informado no momento da execução dos testes ou através do arquivo xml de configurações do PHPUnit, veremos ambas.&lt;/p&gt;
+
+&lt;h3 id=&#34;via-parâmetro&#34;&gt;Via parâmetro&lt;/h3&gt;
+
+&lt;h4 id=&#34;somente-um-grupo&#34;&gt;Somente um grupo&lt;/h4&gt;
+
+&lt;pre&gt;$ ./vendor/bin/phpunit -c tests/phpunit.xml --group Entity
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;mais-de-um-grupo&#34;&gt;Mais de um grupo&lt;/h4&gt;
+
+&lt;pre&gt;$ ./vendor/bin/phpunit -c tests/phpunit.xml --group Entity,Filter
+&lt;/pre&gt;
+
+&lt;p&gt;Para que todos os grupos de testes sejam executados basta que não seja informado o parâmetro &amp;#8211;group.&lt;/p&gt;
+
+&lt;h3 id=&#34;via-arquivo-de-configuração&#34;&gt;Via arquivo de configuração&lt;/h3&gt;
+
+&lt;p&gt;No arquivo tests/phpunit.xml adicione uma tag &lt;groups&gt; e dentro dela liste os grupos desejados.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;groups&amp;gt;
+    &amp;lt;include&amp;gt;
+        &amp;lt;group&amp;gt;Entity&amp;lt;/group&amp;gt;
+    &amp;lt;/include&amp;gt;
+&amp;lt;/groups&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Você deve estar imaginando, se existe uma tag &lt;strong&gt;include &lt;/strong&gt;deve existir uma tag &lt;strong&gt;exclude &lt;/strong&gt;também. Imaginou certo! Dentro de include você adiciona todos os grupos que deseja que sejam executados nos testes já em exclude, todos que NÃO devem ser executados. O excclude é ideal para testes que foram marcados como incompletos ou pulados (skipped).&lt;/p&gt;
+
+&lt;p&gt;Após adicionar as tags referentes aos grupos de testes no arquivo xml de configurações não se faz mais necessário informar o parâmetro  &amp;#8211;group, basta rodar normalmente.&lt;/p&gt;
+
+&lt;pre&gt;$ ./vendor/bin/phpunit -c tests/phpunit.xml&lt;/pre&gt;
+
+&lt;h2 id=&#34;agora-sim-o-mais-legal-de-todos-coverage-em-html&#34;&gt;Agora sim, o mais legal de todos, Coverage em Html!&lt;/h2&gt;
+
+&lt;p&gt;Dentro de &lt;logging&gt; adicione uma nova tag chamada &lt;log&gt; conforme o exemplo abaixo.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;log 
+    type=&#34;coverage-html&#34; 
+    target=&#34;data/coverage&#34; 
+    charset=&#34;UTF-8&#34; 
+    yui=&#34;true&#34; 
+    highlight=&#34;true&#34;
+    lowUpperBound=&#34;35&#34;
+    highUpperBound=&#34;70&#34; /&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Basicamente estamos definindo que o coverage será em formato html, que o considerado baixo coverage será de 35% e um bom coverage se dará a partir de 70%. O highlight serve para destacar as linhas que foram cobertas com verde, não cobertas com vermelho e ignoradas permanecem com a cor padrão. Rode o teste novamente.&lt;/p&gt;
+
+&lt;p&gt;Agora no browser entre em seu localhost na pasta do projeto em que está trabalhando. Em seguida entre na pasta &lt;em&gt;tests&lt;/em&gt;, após isto em &lt;em&gt;data&lt;/em&gt; e por último em coverage. Surpreenda-se!&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41354&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/13-coverage-588x223.png&#34; alt=&#34;Coverage&#34; width=&#34;588&#34; height=&#34;223&#34; srcset=&#34;uploads/2014/03/13-coverage-588x223.png 588w, uploads/2014/03/13-coverage-329x125.png 329w, uploads/2014/03/13-coverage-660x251.png 660w, uploads/2014/03/13-coverage-400x152.png 400w, uploads/2014/03/13-coverage.png 1324w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Navegando pelos arquivos você identificará o que já está bom e o que precisa ser mais testado. Neste nosso caso chegar a 100% é muito fácil, basta lermos todos os dados do usuário.&lt;/p&gt;
+
+&lt;p&gt;No arquivo &lt;em&gt;tests/src/Tableless/Entity/UserTest.php&lt;/em&gt;, dentro do único teste que temos adicione os seguintes asserts:&lt;/p&gt;
+
+&lt;pre&gt;$this-&amp;gt;assertEquals(1, $registeredUser-&amp;gt;getId());
+$this-&amp;gt;assertEquals(&#39;usuario@dominio.com&#39;, $registeredUser-&amp;gt;getEmail());
+$this-&amp;gt;assertNotNull($registeredUser-&amp;gt;getSalt());
+$this-&amp;gt;assertEquals(&#39;image.png&#39;, $registeredUser-&amp;gt;getProfilePic());&lt;/pre&gt;
+
+&lt;p&gt;Rode os testes novamente e corra pro abraço!&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41355&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/14-coverage-100-588x237.png&#34; alt=&#34;Coverage 100%&#34; width=&#34;588&#34; height=&#34;237&#34; srcset=&#34;uploads/2014/03/14-coverage-100-588x237.png 588w, uploads/2014/03/14-coverage-100-329x132.png 329w, uploads/2014/03/14-coverage-100-660x266.png 660w, uploads/2014/03/14-coverage-100-400x161.png 400w, uploads/2014/03/14-coverage-100.png 1303w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Lembrando novamente que para entendimento deste tutorial se faz necessário a leitura dos conteúdos anteriores sobre o tema, sendo eles &lt;a href=&#34;http://tableless.com.br/tdd-por-que-usar/&#34; title=&#34;TDD, por que usar?&#34;&gt;TDD, por que usar?&lt;/a&gt;  e &lt;a href=&#34;http://tableless.com.br/phpunit-como-iniciar-sem-dores/&#34; title=&#34;PHPUnit, como iniciar sem dores&#34;&gt;PHPUnit, como iniciar sem dores&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;bonus&#34;&gt;Bonus.&lt;/h2&gt;
+
+&lt;p&gt;O que fizemos até o momento foi preparar o ambiente de testes e executá-los mas este ambiente ainda não está totalmente pronto para o código de produção pois precisamos de conexão com um banco de dados além de mais uma configuração do Doctrine para que possamos criar o banco de dados a partir de nossas entidades. Ou seja, lembra daquele processo de criar o banco de dados, definir as tabelas e relacionamentos todos antes do código? Com o Doctrine isto não se faz mais necessário, pode ser feito da forma descrita (e tradicional) mas há outra forma bem legal que é uma mão na roda e que mostrarei agora.&lt;/p&gt;
+
+&lt;p&gt;Primeiramente precisamos criar um arquivo de configuração para o cli (Command Line Interface) do Doctrine. Na pasta raiz de sua aplicação crie um arquivo chamado &lt;em&gt;cli-config.php&lt;/em&gt; e cole o seguinte conteúdo:&lt;/p&gt;
+
+&lt;pre&gt;//cli-config.php
+require &#39;bootstrap.php&#39;;
+
+return \Doctrine\ORM\Tools\Console\ConsoleRunner::createHelperSet($entityManager);&lt;/pre&gt;
+
+&lt;div id=&#34;LC3&#34;&gt;
+  Após a criação deste arquivo podemos rodar o seguinte comando &lt;b&gt;./vendor/bin/doctrine&lt;/b&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Aparecerão várias opções de uso que vão desde checagem de status de conexão, validação das entidades, além de outras funcionalidades. Uma coisa que o doctrine não faz realmente é criar a base de dados pois isto depende de cada base pois Mysql é de um jeito, Postgres é de outro, SQL Server é de outro ainda, então esta tarefa ainda é manual.&lt;/p&gt;
+
+&lt;p&gt;Para fins didáticos criei uma base chamada tableless_tdd no mysql como definido no arquivo bootstrap.php da raiz do projeto. Você pode alterar o nome se quiser, bem como o próprio banco, experimente o Sqlite se quiser.&lt;/p&gt;
+
+&lt;p&gt;Com a base criada rode o comando &lt;strong&gt;./vendor/bin/doctrine orm:validate-schema&lt;/strong&gt;. Se estiver tudo ok aparecerá algo como a imagem abaixo. Nela informa que o mapeamento das entidades está correto mas o banco ainda não está sincronizado, para sincronizar rode o comando &lt;strong&gt;./vendor/bin/doctrine orm:schema-tool:create&lt;/strong&gt;. Isto lerá todas as entidades contidas em src/Tableless/Entity e criará a estrutura de tabelas a partir delas.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;./vendor/bin/doctrine orm:validate-schema&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41356&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/15-doctrine-validate-500x310.png&#34; alt=&#34;Doctrine Validate Schema&#34; width=&#34;500&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/15-doctrine-validate-500x310.png 500w, uploads/2014/03/15-doctrine-validate-271x168.png 271w, uploads/2014/03/15-doctrine-validate-400x247.png 400w, uploads/2014/03/15-doctrine-validate.png 797w&#34; sizes=&#34;(max-width: 500px) 100vw, 500px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;./vendor/bin/doctrine orm:schema-tool:create&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41357&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/16-doctrine-create-validate-459x310.png&#34; alt=&#34;Doctrine create validate&#34; width=&#34;459&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/16-doctrine-create-validate-459x310.png 459w, uploads/2014/03/16-doctrine-create-validate-249x168.png 249w, uploads/2014/03/16-doctrine-create-validate-400x269.png 400w, uploads/2014/03/16-doctrine-create-validate.png 820w&#34; sizes=&#34;(max-width: 459px) 100vw, 459px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Atualmente possuímos somente a entidade User que indica que uma tabela users será criada no banco de dados. Após a finalização da execução do comando anterior seu banco de dados já estará com a nova estrutura. Ao realizar qualquer alteração na entidade User ou mesmo criar novas entidades você precisará rodar o comando &lt;strong&gt;./vendor/bin/doctrine orm:schema-tool:update&lt;/strong&gt; com isso aparecerá uma mensagem informando que já há uma estrutura no banco de dados e lhe pede confirmação sobre o que fazer. Você pode ignorar, ver as alterações ou forçar se tiver certeza do que está fazendo ou mesmo se já visualizou as alterações que serão realizadas e está ciente de que está tudo certo. Basta ler as intruções que o próprio Doctrine fornece que você saberá o que fazer, é muito intuitivo.&lt;/p&gt;
+
+&lt;h2 id=&#34;finalizando&#34;&gt;Finalizando&lt;/h2&gt;
+
+&lt;p&gt;Agora que você já configurou o Doctrine, já conhece como criar testes unitários resta apenas aperfeiçoar a cada dia. Não existe uma receita, tudo requer empenho e dedicação mas que no final quando você ver aquelas barrinhas verdes mostrando 100% de cobertura se sentirá cada vez mais empolgado e com um código mais estável mas o principal, com um código que pode facilmente evoluir.&lt;/p&gt;
+
+&lt;p&gt;Para baixar o código-fonte gerado neste artigo acesse este link do &lt;a title=&#34;Baixar o código-fonte&#34; href=&#34;https://github.com/andrebian/tdd-persistencia-de-dados&#34; target=&#34;_blank&#34;&gt;Github&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

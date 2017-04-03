@@ -1,0 +1,586 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/iniciando-com-symfony-2-parte-05/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/iniciando-com-symfony-2-parte-05/">Iniciando com Symfony 2 – Parte 05</a></h1>
+  <p class="tb-hero-p">
+    
+    Nesse tutorial vamos configurar nosso projeto, e criar a página index, para que nossos posts,  sejam visualizados pelos usuários.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/candido-souza">Candido Souza</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>No <a href="http://tableless.com.br/iniciando-com-symfony-2-parte-04/" title="Iniciando com symfony2 - parte 4" target="_blank">tutorial anterior</a>, criamos a entidade Author, e fizemos o relacionamento com os posts, neste tutorial vamos fazer as configurações adequadas para que possamos deixar nossa aplicação estruturada corretamente, e vamos criar e configurar a página index, onde os usuários terão acesso para visualizar e ler os posts.</p>
+
+<h2 id="configurando">Configurando</h2>
+
+<p>Vamos começar com as configurações.</p>
+
+<p>Entrando no bundle CoreBundle, caminho: src/Tableless/CoreBundle, exclua a pasta Controller.</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/03/021.png"><img src="http://tableless.com.br/wp-content/uploads/2015/03/021.png" alt="Excluindo a pasta controller" width="750" height="403" class="alignnone size-full wp-image-47743" /></a></p>
+
+<p>Ainda neste mesmo bundle vamos excluir a pasta view, caminho: src/Tableless/CoreBundle/Resources/view.</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/03/031.png"><img src="http://tableless.com.br/wp-content/uploads/2015/03/031.png" alt="Excluindo a pasta view" width="750" height="403" class="alignnone size-full wp-image-47744" /></a></p>
+
+<p>Agora vamos entrar no bundle ModelBundle, caminho: src/Tableless/ModelBundle.</p>
+
+<p>E vamos mover a pasta Controller desse bundle para o bundle CoreBundle</p>
+
+<p>Vamos mover também a pasta view do ModelBundle para o bundle CoreBundle.</p>
+
+<p>Depois das mudanças, nossa estrutura de pastas ficará como na imagem abaixo:</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/03/041.png"><img src="http://tableless.com.br/wp-content/uploads/2015/03/041.png" alt="Estrutura de pastas pronta" width="750" height="403" class="alignnone size-full wp-image-47746" /></a></p>
+
+<h2 id="configurando-os-controllers">Configurando os Controllers</h2>
+
+<p>Vamos continuar nossas configurações, agora vamos alterar nossos controllers para que os mesmos fiquem de acordo com a estrutura de pasta atual.</p>
+
+<p>Primeiramente, vamos excluir a rota do ModelBundle, pois não vamos usá-la.</p>
+
+<p>Entre no arquivo app/config/routing.yml e exclua as linhas abaixo:</p>
+
+<pre class="lang-yml">tableless_model:
+    resource: "@TablelessModelBundle/Controller/"
+    type:     annotation
+    prefix:   /
+</pre>
+
+<p>Deixando somente a rota tableless_core como mostrado na imagem abaixo:</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/03/05.png"><img src="http://tableless.com.br/wp-content/uploads/2015/03/05.png" alt="Arquivo routing.yml" width="750" height="403" class="alignnone size-full wp-image-47747" /></a></p>
+
+<p>Agora vamos excluir o DefaultController.php, pois não vamos usar esse controller.</p>
+
+<p>Abra o arquivo AuthorController.php, caminho: src/Tableless/CoreBundle/Controller/AuthorController.php</p>
+
+<p>Na linha 3, mude o namespace.</p>
+
+<p>De: Tableless\ModelBundle\Controller;</p>
+
+<p>Para: Tableless\CoreBundle\Controller;</p>
+
+<p>Na linha 43, mude a annotation:</p>
+
+<p>De: @Template(&#8220;TablelessModelBundle:Author:new.html.twig&#8221;)</p>
+
+<p>Para: @Template(&#8220;TablelessCoreBundle:Author:new.html.twig&#8221;)</p>
+
+<p>Agora vamos configurar o controller PostController, caminho: src/Tableless/CoreBundle/Controller/PostController.php, vamos fazer a mesma alteração.</p>
+
+<p>Na linha 3, mude o namespace.</p>
+
+<p>De: Tableless\ModelBundle\Controller;</p>
+
+<p>Para: Tableless\CoreBundle\Controller;</p>
+
+<p>Na linha 43, mude a annotation:</p>
+
+<p>De: @Template(&#8220;TablelessModelBundle:Post:new.html.twig&#8221;)</p>
+
+<p>Para: @Template(&#8220;TablelessCoreBundle:Post:new.html.twig&#8221;)</p>
+
+<p>Para verificarmos se correu tudo bem, vamos fazer o teste.</p>
+
+<p>Rode o servidor</p>
+
+<pre class="lang-bash">$ app/console server:run
+</pre>
+
+<p>Entre nas urls:</p>
+
+<p><a href="http://127.0.0.1:8000/post/">http://127.0.0.1:8000/post/</a></p>
+
+<p><a href="http://127.0.0.1:8000/author/">http://127.0.0.1:8000/author/</a></p>
+
+<p>Se tudo foi configurado corretamente, nossa aplicação voltará a funcionar perfeitamente, veja:</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/03/06.png"><img src="http://tableless.com.br/wp-content/uploads/2015/03/06.png" alt="Página index, e show" width="750" height="403" class="alignnone size-full wp-image-47751" /></a></p>
+
+<h2 id="criando-um-controller">Criando um Controller</h2>
+
+<p>Nesse momento vamos criar um index, para nossa aplicação, para que seja nossa pagina principal, e possamos visualizar os posts de forma correta.</p>
+
+<p>Podemos criar o controller codificando, porém para efeito de didática vamos criar através do console.</p>
+
+<p>Entre no terminal e digite:</p>
+
+<pre class="lang-bash">$ php app/console generate:controller
+</pre>
+
+<p>Ao digitarmos o comando acima e darmos enter, entramos no assistente do console do Symfony e ele nos comunica: Primeiro, você precisa dar o nome do controlador que você deseja gerar. Você deve usar a notação de atalho como AcmeBlogBundle:Post</p>
+
+<p>Nesse momento digitamos:</p>
+
+<pre class="lang-bash">$ Controller name: TablelessCoreBundle:IndexControler
+</pre>
+
+<p>Ao darmos o nome do nosso controller e darmos enter, o assistente nos pergunta: Qual o formato que vamos configurar a nossa rota?</p>
+
+<p>E nos indica annotation, vamos deixar como está, e apenas damos enter:</p>
+
+<pre class="lang-php">$ Routing format (php, xml, yml, annotation) [annotation]:
+</pre>
+
+<p>A próxima pergunta é:</p>
+
+<p>Qual o formato que vamos usar para template?</p>
+
+<p>Ele mesmo nos indica o twig. Apenas damos enter.</p>
+
+<pre class="lang-php">$ Template format (twig, php) [twig]:
+</pre>
+
+<p>Após o enter ele nos pede o nome de nossas ações, que são os métodos que vamos criar para o nosso controller.</p>
+
+<p>A primeira ação (método) vamos chamar de indexAction, e damos enter.</p>
+
+<pre class="lang-bash">$ New action name (press  to stop adding actions): indexAction
+</pre>
+
+<p>O assistente nos pede a rota, vamos digitar “/” e damos enter.</p>
+
+<pre class="lang-bash">$ Action route [/index]: /
+</pre>
+
+<p>Nos pergunta o caminho da nossa template, e ele nos indica um caminho, vamos deixar como está e apenas damos enter.</p>
+
+<pre class="lang-bash">$ Templatename (optional) [TablelessCoreBundle:IndexControler:index.html.twig]:
+</pre>
+
+<p>Novamente o assistente nos pede para darmos um nome para uma nova ação (método), essa nova ação fará com que o post seja visualizado para a leitura, vamos dar o nome de showAction.</p>
+
+<pre class="lang-bash">$ New action name (press  to stop adding actions): showAction
+</pre>
+
+<p>O assistente nos pede a rota, e nos indica como “/show”, vamos deixar como está e damos enter.</p>
+
+<pre class="lang-bash">$ Action route [/show]:
+</pre>
+
+<p>Nos pergunta sobre caminho da template, e ele nos indica um caminho, vamos deixar como está e apenas damos enter.</p>
+
+<pre class="lang-bash">$ Templatename (optional) [TablelessCoreBundle:IndexControler:show.html.twig]:
+</pre>
+
+<p>Ao darmos enter, entramos no modo de criação de uma nova ação, porém não queremos nenhuma outra ação, então apenas damos um enter, para entrarmos no processo de finalização.</p>
+
+<pre class="lang-bash">$ New action name (press  to stop adding actions):
+</pre>
+
+<p>Ao entramos no processo de finalização o assistente nos pergunta se queremos confirmar a geração desse controller, ele nos indica sim, como queremos, apenas damos enter.</p>
+
+<pre class="lang-bash">$ Do you confirm generation [yes]?
+</pre>
+
+<p>Pronto! Nosso controller IndexController está criado, juntamente com suas templates, veja a imagem abaixo:</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/03/07.png"><img src="http://tableless.com.br/wp-content/uploads/2015/03/07.png" alt="Index controller" width="750" height="403" class="alignnone size-full wp-image-47775" /></a></p>
+
+<p>Ao entrarmos na url: <a href="http://127.0.0.1:8000/">http://127.0.0.1:8000/</a>, vamos entrar no nosso index, e receberemos a mensagem abaixo:</p>
+
+<p>Welcome to the IndexControler:index page</p>
+
+<h2 id="criando-um-repositório">Criando um repositório</h2>
+
+<p>Se entrarmos em nosso controller IndexController, caminho: src/Tableless/CoreBunde/ IndexController.php, vamos perceber que nossos métodos estão criados, porém não estão implementados, vamos implementá-los, mas queremos que nosso index apresente para o usuário os últimos posts escritos, para que sempre o post mais atual seja apresentado em primeiro lugar, para isso devemos criar um repositório para nossa entidade Post.</p>
+
+<p>Para isso, vamos entrar no bundle ModelBundle e crie uma pasta com o nome de Repository, dentro dessa pasta crie uma classe com o nome PostRepository.</p>
+
+<p>Com a classe PostRepository aberta, adicione o nemspace dessa classe, e de um extends na classe EntityRepository do Doctrine, não se esquecendo de dar um use nessa classe.</p>
+
+<p>use Doctrine\ORM\EntityRepository;</p>
+
+<p>Crie um método privado com o nome getQueryBuilder e acrescente a EntityManager para que possamos usar nossa entidade Post, veja abaixo:</p>
+
+<pre class="lang-php">private function getQueryBuilder()
+{
+    $em = $this-&gt;getEntityManager();
+
+    $queryBuilder = $em-&gt;getRepository('TablelessModelBundle:Post')
+    -&gt;createQueryBuilder('p');
+
+    return $queryBuilder;
+ }
+</pre>
+
+<p>Agora vamos criar um método publico chamado findAllInOrder, e vamos chamar o método getQueryBuilder(), para ordená-lo da forma que queremos, para que seja mostrado o último post postado primeiro. Veja abaixo:</p>
+
+<pre class="lang-php">public function findAllInOrder()
+{
+    $qb = $this-&gt;getQueryBuilder()
+    -&gt;orderBy('p.createdAt', 'desc');
+
+    return $qb-&gt;getQuery()-&gt;getResult();
+}
+</pre>
+
+<p>Veja a classe PostRepository pronta:</p>
+
+<pre class="lang-php">&lt;?php
+
+namespace Tableless\ModelBundle\Repository;
+
+use Doctrine\ORM\EntityRepository;
+
+class PostRepository extends EntityRepository
+{
+    private function getQueryBuilder()
+    {
+        $em = $this-&gt;getEntityManager();
+        $queryBuilder = $em-&gt;getRepository('TablelessModelBundle:Post')
+            -&gt;createQueryBuilder('p');
+        return $queryBuilder;
+    }
+
+     public function findAllInOrder()
+    {
+        $qb = $this-&gt;getQueryBuilder()
+            -&gt;orderBy('p.createdAt', 'desc');
+
+        return $qb-&gt;getQuery()-&gt;getResult();
+    }
+} 
+
+</pre>
+
+<p>Agora temos que indicar para a entidade Post via annotation, onde está a classe PostRepository, para isso vamos abrir a entidade Post, caminho:src/Tableless/ModelBundle/Entity/Post.php, e acrescentar a annotation (repositoryClass=&#8221;Tableless\ModelBundle\Repository\PostRepository&#8221;) na linha 12 de sua entidade, veja:</p>
+
+<pre class="lang-php">/**
+ * Post
+ *
+ * @ORM\Table(name="post")
+ * @ORM\Entity(repositoryClass="Tableless\ModelBundle\Repository\PostRepository")
+ */
+class Post extends Timestampable
+{
+    ...
+</pre>
+
+<h2 id="implementando-o-controller">Implementando o controller</h2>
+
+<p>Vamos voltar para nosso IndexController, para que possamos implementá- lo. Abra o IndexController , e no método indexAction() temos que chamar nossa entidade Post, para que através dela chamemos o método findAllInOrder() da classe PostRepository, e retornar o resultado em forma de array, veja abaixo:</p>
+
+<pre class="lang-php">public function indexAction()
+    {
+        $em = $this-&gt;getDoctrine()-&gt;getManager();
+
+        $posts = $em-&gt;getRepository('TablelessModelBundle:Post')-&gt;findAllInOrder();
+
+        return [
+            'posts' =&gt; $posts,
+        ];
+    } 
+</pre>
+
+<p>Também vamos implementar o método showAction(), para que seja buscado apena o post clickado pelo usuário, para isso devemos passar um parâmetro id, tanto no método, quanto na annotation para rota, para que seja buscado somente o post solicitado. Temos que chamar nossa entidade Post novamente, para que através dela chamemos o método find(), que já vem pré configurado pelo Doctrine, porém se o usuário requisitar um post que não existe, temos que passar uma mensagem de erro, para informá- lo, veja abaixo:</p>
+
+<pre class="lang-php">/**
+     * @Route("/show/{id}")
+     * @Template()
+     */
+    public function showAction($id)
+    {
+        $em = $this-&gt;getDoctrine()-&gt;getManager();
+
+        $post = $em-&gt;getRepository('TablelessModelBundle:Post')-&gt;find($id);
+
+        if (!$post) {
+            throw $this-&gt;createNotFoundException('O post não existe! Volte para home!');
+        }
+
+        return [
+            'post' =&gt; $post,
+        ];
+    }
+</pre>
+
+<p>Veja o IndexController pronto:</p>
+
+<pre class="lang-php">&lt;?php
+
+namespace Tableless\CoreBundle\Controller;
+
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
+
+class IndexControlerController extends Controller
+{
+     /**
+     * @Route("/")
+     * @Template()
+     */
+    public function indexAction()
+    {
+        $em = $this-&gt;getDoctrine()-&gt;getManager();
+
+        $posts = $em-&gt;getRepository('TablelessModelBundle:Post')-&gt;findAllInOrder();
+
+        return [
+            'posts' =&gt; $posts,
+        ];
+    }
+
+     /**
+     * @Route("/show/{id}")
+     * @Template()
+     */
+    public function showAction($id)
+    {
+        $em = $this-&gt;getDoctrine()-&gt;getManager();
+
+        $post = $em-&gt;getRepository('TablelessModelBundle:Post')-&gt;find($id);
+
+        if (!$post) {
+            throw $this-&gt;createNotFoundException('O post não existe! Volte para home!');
+        }
+
+        return [
+            'post' =&gt; $post,
+        ];
+    }
+}
+
+</pre>
+
+<p>Para vemos como está ficando nossa aplicação, abra a index.html.twig, do IndexController, caminho: src/Tableless/CoreBundle/Resouces/views/IndexController/index.html.twig e vamos dar um dump em posts, veja abaixo, vamos adicionar a linha 8:</p>
+
+<pre class="lang-twig">{% extends "::base.html.twig" %}
+
+{% block title %}TablelessCoreBundle:IndexControler:index{% endblock %}
+
+{% block body %}
+Welcome to the IndexControler:index page
+
+    {{ dump(posts) }}
+    
+{% endblock %}
+</pre>
+
+<p>Vamos fazer a mesma modificação para o arquivo show.html.twig no mesmo diretório, porém ao em vez de dar um dump em posts, vamos dar um dump em post, sem o “s” no final, veja:</p>
+
+<pre class="lang-html">{% extends "::base.html.twig" %}
+
+{% block title %}TablelessCoreBundle:IndexControler:show{% endblock %}
+
+{% block body %}
+Welcome to the IndexControler:show page
+
+    {{ dump(post) }}
+    
+{% endblock %}
+</pre>
+
+<p>Para vemos o resultado, entre nas urls:</p>
+
+<p><a href="http://127.0.0.1:8000/">http://127.0.0.1:8000/</a></p>
+
+<p><a href="http://127.0.0.1:8000/show/{o">http://127.0.0.1:8000/show/{o</a> id do seu post}</p>
+
+<p>Veja as imagens para comparação:</p>
+
+<p>index &#8211; url: <a href="http://127.0.0.1:8000/">http://127.0.0.1:8000/</a></p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/03/08.png"><img src="http://tableless.com.br/wp-content/uploads/2015/03/08.png" alt="index" width="750" height="403" class="alignnone size-full wp-image-47767" /></a></p>
+
+<p>Pagina show – url: <a href="http://127.0.0.1:8000/show/4">http://127.0.0.1:8000/show/4</a> -&gt; {o id do seu post} no meu caso 4.</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/03/09.png"><img src="http://tableless.com.br/wp-content/uploads/2015/03/09.png" alt="show" width="750" height="403" class="alignnone size-full wp-image-47768" /></a></p>
+
+<h2 id="conclusão">Conclusão</h2>
+
+<p>No tutorial anterior, eu comentei que iriamos configurar nosso projeto e começarmos a trabalhar com o Twig, porém nossa configuração e a criação do index, deixou este tutorial extenso, mas no próximo tutorial, vamos trabalhar com o bootstrap e com o twig para que possamos visualizar nossos post em nossa home da forma adequada e bonita.</p>
+
+<p>Links dos tutoriais anteriores:</p>
+
+<p><a href="http://tableless.com.br/iniciando-com-symfony-2/" title="instalação" target="_blank">Iniciando com Symfony 2 &#8211; Instalação</a></p>
+
+<p><a href="http://tableless.com.br/iniciando-com-symfony-2-parte-02/" title="parte 02" target="_blank">Iniciando com Symfony 2 &#8211; parte 02</a></p>
+
+<p><a href="http://tableless.com.br/iniciando-com-symfony-2-parte-03/" title="parte 03" target="_blank">Iniciando com Symfony 2 &#8211; parte 03</a></p>
+
+<p><a href="http://tableless.com.br/iniciando-com-symfony-2-parte-04/" title="parte 04" target="_blank">Iniciando com Symfony 2 &#8211; parte 04</a></p>
+
+<p>O projeto <a href="https://github.com/candidosouza/tableless" title="Git do projeto" target="_blank">encontra-se no GitHub</a>!</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

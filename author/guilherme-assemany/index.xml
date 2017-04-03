@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Guilherme Assemany on Tableless</title>
+    <link>http://tableless.com.br/author/guilherme-assemany/index.xml</link>
+    <description>Recent content in Guilherme Assemany on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/guilherme-assemany/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Angular JS – Service x Factory</title>
+      <link>http://tableless.com.br/angular-js-service-x-factory/</link>
+      <pubDate>Sun, 10 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/angular-js-service-x-factory/</guid>
+      <description>
+
+&lt;h1 id=&#34;angular-js-service-x-factory&#34;&gt;Angular JS – Service x Factory&lt;/h1&gt;
+
+&lt;p&gt;Qual a diferença entre service e factory no AngularJS? Esta é uma pergunta muito comum entre os desenvolvedores que estão usando o AngularJS.&lt;/p&gt;
+
+&lt;p&gt;Mas antes de entrar neste assunto, vamos revisar como definir e usar &lt;code&gt;.service&lt;/code&gt; e &lt;code&gt;.factory&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Um &lt;code&gt;.service&lt;/code&gt; é um método no nosso módulo principal (app), que recebe um nome e uma função que o definem.&lt;/p&gt;
+
+&lt;p&gt;Podemos definir um &lt;code&gt;.service&lt;/code&gt; assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;(function() {
+ &#39;use strict&#39;;
+ 
+angular
+       .module(&#39;meuApp&#39;) // Define a qual módulo seu .service pertence
+       .service(&#39;MeuService&#39;, MeuService); //Define o nome a função do seu .service
+ 
+       MeuService.$inject = [&#39;$http&#39;]; //Lista de dependências
+ 
+       function MeuService($http) {
+ 
+         var vm = this;
+ 
+         //
+         vm.fazerAlgumaCoisa = fazerAlgumaCoisa;
+ 
+         //Implementação das funções
+         function fazerAlgumaCoisa() {
+           console.log(&#39;Fiz alguma coisa&#39;);
+         }
+           
+       }
+})();
+
+&lt;/pre&gt;
+
+&lt;p&gt;Uma vez definido, nós podemos injetar e usar este .service em outros componentes, como por exemplo: Directives, Controllers e Filters. Basta colocá-lo como dependência. Veja o código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;(function() {
+    &#39;use strict&#39;;
+ 
+    angular
+        .module(&#39;meuApp&#39;)
+        .controller(&#39;MeuController&#39;, MeuController);
+ 
+    MeuController.$inject = [&#39;MeuService&#39;]; // Injetamos o service
+ 
+    /* @ngInject */
+    //Injetamos o service
+    function MeuController(MeuService) {
+        var vm = this;
+ 
+        MeuService.fazerAlgumaCoisa(); // Vai executar o console.log(&#39;Fiz Alguma coisa!&#39;)
+        
+    }
+})();
+&lt;/pre&gt;
+
+&lt;p&gt;Se até ai está tudo certo, então ótimo! Agora vamos definir uma &lt;code&gt;.factory&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;(function() {
+    &#39;use strict&#39;;
+
+    angular
+        .module(&#39;meuApp&#39;)
+        .factory(&#39;minhaFactory&#39;, minhaFactory);
+
+    minhaFactory.$inject = [&#39;$http&#39;];
+
+    /* @ngInject */
+    function minhaFactory($http) {
+        var service = {
+            fazerAlgumaCoisa: fazerAlgumaCoisa
+        };
+
+        return service;
+
+        function fazerAlgumaCoisa() {
+          console.log(&#39;Fiz alguma coisa&#39;);
+        }
+    }
+})();
+&lt;/pre&gt;
+
+&lt;p&gt;Novamente: &lt;code&gt;.factory()&lt;/code&gt; é um método em nosso módulo principal(app), e a factory também recebe um nome e uma função que a define. Da mesma forma que injetamos o .service, podemos injetar a &lt;code&gt;.factory&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;qual-é-a-diferença&#34;&gt;Qual é a diferença?&lt;/h3&gt;
+
+&lt;p&gt;Observando bem o código, você deve ter percebido que ao invés de trabalhar com o “this” (var &lt;strong&gt;vm&lt;/strong&gt;= &lt;strong&gt;this&lt;/strong&gt;) na factory, nós estamos retornando um objeto literal. Por quê?&lt;/p&gt;
+
+&lt;p&gt;O que acontece é que um &lt;strong&gt;.service é uma função construtora&lt;/strong&gt;, enquanto um .factory não é. Em algum lugar no código fonte do AngularJS, existe um código que chama o &lt;strong&gt;Object.create()&lt;/strong&gt; com a função construtora de um .service quando este é instanciado.&lt;/p&gt;
+
+&lt;p&gt;Entretanto, um &lt;strong&gt;.factory é somente uma função que é chamada&lt;/strong&gt;, por este motivo precisamos retornar um objeto.&lt;/p&gt;
+
+&lt;p&gt;Para ficar um pouco mais claro, vamos dar uma olhada no código do Angular JS. Veja uma .factory&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function factory(name, factoryFn, enforce) {
+  return provider(name, {
+    $get: enforce !== false ? enforceReturnValue(name, factoryFn) : factoryFn
+  });
+}
+&lt;/pre&gt;
+
+&lt;p&gt;A função factory recebe o nome, e uma outra função para definir a nossa .factory.&lt;/p&gt;
+
+&lt;p&gt;Basicamente essa função factory retorna um provider com o mesmo nome, e esse provider tem o método $get, que nesse caso é a nossa função passada para a factory.&lt;/p&gt;
+
+&lt;p&gt;Em outras palavras, se nós injetarmos ‘minhaFactory’ em algum lugar, o que acontece é:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;minhaFactoryProvider.$get();
+&lt;/pre&gt;
+
+&lt;p&gt;Certo! Funções Factory apenas são chamadas, mas e o .service?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function service(name, constructor) {
+  return factory(name, [&#39;$injector&#39;, function($injector) {
+    return $injector.instantiate(constructor);
+  }]);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Olhando o código acima, vemos que quando chamamos a função service(), o AngularJS chama na verdade a factory().&lt;/p&gt;
+
+&lt;p&gt;Mas ele não passa a função construtora do nosso .service para a .factory do mesmo jeito. Ele passa também uma função que pede ao injetor(&lt;strong&gt;$injector&lt;/strong&gt;) para &lt;strong&gt;instanciar o objeto dado pela função construtora&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Em outras palavras: Um .service chama uma .factory predefinida que por sua vez é acaba sendo um método $get() no provider correspondente.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$injector.instatiate()&lt;/strong&gt; é o método que executa o &lt;strong&gt;Object.create()&lt;/strong&gt; com a função construtora do .service. É por isso que usamos o “this” em um .service!&lt;/p&gt;
+
+&lt;p&gt;No final das contas, não importa oque vamos usar. Um .service ou .factory, no final é sempre uma função factory que é chamada e cria um provider para nosso serviço.&lt;/p&gt;
+
+&lt;h4 id=&#34;dica&#34;&gt;Dica:&lt;/h4&gt;
+
+&lt;p&gt;Se você já está de olho no ES6, opte por usar .service! Você pode usar facilmente classes do ES6 em um .service, oque não é possível em uma .factory() !&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

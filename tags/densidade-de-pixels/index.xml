@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Densidade De Pixels on Tableless</title>
+    <link>http://tableless.com.br/tags/densidade-de-pixels/index.xml</link>
+    <description>Recent content in Densidade De Pixels on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/densidade-de-pixels/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Imagens Responsivas de Alta Performance</title>
+      <link>http://tableless.com.br/imagens-responsivas-de-alta-performance/</link>
+      <pubDate>Mon, 31 Mar 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/imagens-responsivas-de-alta-performance/</guid>
+      <description>
+
+&lt;p&gt;Desenvolver sites responsivos muitas vezes é como fazer malabarismo. São muitas bolas para manter no ar: largura do viewport, medidas relativas, velocidade da conexão, densidade de pixel e experiência do usuário. Lidar com o peso de tudo isto sem quebrar o layout é um objetivo bem difícil de atingir e por isto, muitos desenvolvedores, clientes e consequentemente usuários se afastam da ideia. No artigo de hoje vamos conhecer algumas técnicas de design responsivo para otimização de imagens que ajudam a reduzir (e muito) o peso final dos sites responsivos e equilibrar as bolas no ar.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-raíz-do-problema&#34;&gt;A raíz do problema&lt;/h2&gt;
+
+&lt;p&gt;Esta técnica é simples e didática e, provavelmente, foi a primeira que você aprendeu quando começou seus estudos de Design Responsivo. Basta declarar no CSS que todas as imagens tenham largura máxima de 100% que todas as figuras do seu layout vão se redimensionar automaticamente e proporcionalmente &amp;#8211; de acordo com a largura do container pai.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;img {
+  max-width:100%;
+}&lt;/pre&gt;
+
+&lt;p&gt;Isto aparentemente funciona e bem. Mas, se fosse o caminho ideal, o nosso artigo terminaria por aqui, certo? Vamos ver os principais problemas:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;O pepino principal aqui é a performance. Você está essencialmente fazendo um usuário de um dispositivo móvel baixar arquivos muito mais pesados do que ele realmente precisa… Para que usar uma imagem gigante de 2560x1600px se ela será vista em um celular de 320x480px? Isto pode ser passável se existirem poucas imagens no seu layout. Mas multiplique isto por dezenas e uma breve visita ao seu site pode muito bem esgotar o plano de dados de alguém.&lt;/li&gt;
+&lt;li&gt;Você necessariamente precisa de um container. Pode ser uma div, um figure ou até mesmo um span mas a imagem precisa &lt;strong&gt;estar dentro de alguma coisa&lt;/strong&gt;. E isto pode acrescentar diversas linhas a mais de código que não seriam realmente necessárias.&lt;/li&gt;
+&lt;li&gt;As vezes o ideal não é encolher uma imagem e sim substituí-la. Pode ser que o seu banner &amp;#8220;hero&amp;#8221; tenha um texto aplicado ou que a imagem simplesmente perca os detalhes em um tamanho menor. Neste caso você poderia deixar duas imagens no código e usar um display:none no CSS para esconder e mostrar as imagens certas através de media queries. Mas o resultado em performance será ainda mais desastroso pois você está fazendo o usuário baixar DUAS imagens no lugar de uma. Imagine a bagunça se o designer inventar de ter uma imagem para tablets, para televisão, para console portátil….&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;o-dilema&#34;&gt;O dilema&lt;/h2&gt;
+
+&lt;p&gt;Esta é a hora que eu gostaria de escrever que existe uma solução perfeita para este problema. Mas vou ser direta e objetiva com vocês: não existe (ainda). O que nós temos são várias tentativas de contornar o problema, cada uma focada em um aspecto… Algumas das ferramentas que eu vou mostrar a seguir resolvem bem o lado da direção de arte, mas deixam a desejar em semântica e performance, por exemplo. Outras tem o código mais enxuto, mas a implementação depende de uma programação específica server-side. A minha sugestão é: conheça e explore todas elas. Assim vocês saberão os pontos fortes e fracos e qual combina melhor com cada projeto.&lt;/p&gt;
+
+&lt;p&gt;Bem, para escolher qual solução funciona melhor para o seu projeto você precisa se fazer algumas perguntas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Direção de arte é importante para o seu caso (por exemplo: imagens diferentes / cropadas para cada largura)?&lt;/li&gt;
+&lt;li&gt;Você está começando do zero ou possui um código legado para dar suporte?&lt;/li&gt;
+&lt;li&gt;Você se importa de utilizar JavaScript ou bibliotecas como jQuery?&lt;/li&gt;
+&lt;li&gt;Testar a velocidade da conexão do usuário é algo importante?&lt;/li&gt;
+&lt;li&gt;Você está utilizando conteúdo dinâmico?&lt;/li&gt;
+&lt;li&gt;Você se importa de lidar com aspectos server side?&lt;/li&gt;
+&lt;li&gt;Qual é a importância que você dá para semântica?&lt;/li&gt;
+&lt;li&gt;Qual é a importância que você dá para validação?&lt;/li&gt;
+&lt;li&gt;O seu cliente vai ter que por a mão ali?&lt;/li&gt;
+&lt;li&gt;Você se importa de escrever HTML extra?&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Se isto fosse um daqueles antigos livros de RPG cada uma destas perguntas estaria acompanhado de um &amp;#8220;vá para a página 42&amp;#8221; ou algo do tipo. Pois sim, basicamente você vai ter que escolher entre o caminho menos mal ou sofrer com a performance. Mas, para trazer um pouco de esperança e restaurar a fé na humanidade, vamos dar uma espiadinha no futuro.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-futuro-com-o-elemento-picture&#34;&gt;O Futuro (com o Elemento Picture)&lt;/h2&gt;
+
+&lt;p&gt;Através do picture é possível declarar diversas fontes para uma única imagem no seu HTML e controlar qual deve ser apresentada utilizando media queries. Isto é feito utilizando a tag picture em conjunto com o parâmetro source. Desta forma é possível especificar imagens diferentes de acordo com a largura e altura da janela do browser, orientação do dispositivo, densidade de pixels, layout para a impressão, etc. Obviamente devemos utilizar esta especificação apenas quando existir mais de uma imagem, optando pelo bom e velho img quando tiver apenas uma figura. O img também serve de fallback para browsers que não aceitam o picture.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;picture&amp;gt;
+    &amp;lt;source srcset=&#34;pic1x.jpg 1x, pic2x.jpg 2x, pic4x.jpg 4x&#34;&amp;gt;
+    &amp;lt;img alt=&#34;descrição da imagem&#34; src=&#34;pic1x.jpg&#34; width=&#34;500&#34; height=&#34;500&#34;&amp;gt;
+&amp;lt;/picture&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Reparem que 3 endereços foram especificados no source srcset: pix1x, pic2x e pix4x. Os atributos seguintes (1x, 2x e 4x) são &amp;#8220;dicas&amp;#8221; para o user agent trocar a imagem de acordo com a densidade de pixels da tela. Sendo que 1x é a padrão, 2x o dobro da densidade, etc. Mas, em muitos casos, isto não é específico o suficiente. Podemos então acrescentar um valor Xw e Xh referente a altura e largura do viewport.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;picture&amp;gt;
+    &amp;lt;source sizes=&#34;100%&#34; srcset=&#34;pic400.jpg 400w, pic800.jpg 800w, pic1600.jpg 1600w&#34;&amp;gt;
+    &amp;lt;img src=&#34;pic400.jpg&#34; alt=&#34;descrição da imagem&#34;&amp;gt;
+&amp;lt;/picture&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Ou trabalhar em conjunto com media queries.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;picture&amp;gt;
+    &amp;lt;source media=&#34;(min-width: 45em)&#34; srcset=&#34;grande.jpg&#34;&amp;gt;
+    &amp;lt;source media=&#34;(min-width: 18em)&#34; srcset=&#34;media.jpg&#34;&amp;gt;
+    &amp;lt;img src=&#34;pequena.jpg&#34; alt=&#34;descrição da imagem&#34;&amp;gt;
+&amp;lt;/picture&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Os pontos positivos são muitos. A solução já tem um &lt;a href=&#34;http://www.w3.org/TR/html-picture-element/&#34; title=&#34;W3C - HTML picture element&#34;&gt;rascunho &amp;#8220;oficial&amp;#8221; na W3C&lt;/a&gt;, é semântica, versátil e permite direção de arte. Se eu pudesse apostar em um padrão seria neste. O problema é que nenhum browser atual aceita esta solução. Nenhunzinho mesmo. Ela está prevista no roadmap do Firefox, e provavelmente, será implantada em breve nos outros browsers mais moderninhos. Por enquanto é possível testar a implementação apenas em versões de testes. Mas vale consultar o site do grupo &lt;a href=&#34;http://responsiveimages.org/&#34; title=&#34;ResponsiveImages.org&#34;&gt;ResponsiveImages.org&lt;/a&gt;  de tempos em tempos e ficar de olho no sinal verde para colocar em prática. Outro ponto contra é que esta solução exige acrescentar código extra o que pode ser inviável se você já possui um site implantado com milhares de imagens para editar manualmente. Para saber mais basta consultar a &lt;a href=&#34;http://picture.responsiveimages.org/&#34; title=&#34;ResonsiveImages&#34;&gt;documentação oficial&lt;/a&gt; ou o &lt;a href=&#34;https://github.com/ResponsiveImagesCG/picture-element&#34; title=&#34;GithHub - ResponsiveImages&#34;&gt;repositório no GitHub.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;a-imitação-do-picture-com-picturefill&#34;&gt;A imitação do picture (com Picturefill)&lt;/h2&gt;
+
+&lt;p&gt;Bem, vamos conversar sobre o que podemos fazer hoje! O picturefill.js através dos poderes mágicos do JavaScript imita a funcionalidade do elemento picture. A solução é bem leve: 498bytes &amp;#8211; o que francamente já compensa o peso de qualquer imagem. O mark-up fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;span data-picture data-alt=&#34;Descrição da imagem&#34;&amp;gt;
+   &amp;lt;span data-src=&#34;pequena.jpg&#34;&amp;gt;&amp;lt;/span&amp;gt;
+   &amp;lt;span data-src=&#34;media.jpg&#34;     data-media=&#34;(min-width: 400px)&#34;&amp;gt;&amp;lt;/span&amp;gt;
+   &amp;lt;span data-src=&#34;grande.jpg&#34;      data-media=&#34;(min-width: 800px)&#34;&amp;gt;&amp;lt;/span&amp;gt;
+   &amp;lt;span data-src=&#34;extragrande.jpg&#34; data-media=&#34;(min-width: 1000px)&#34;&amp;gt;&amp;lt;/span&amp;gt;
+
+   &amp;lt;!-- Fallback para quando o JavaScript estiver desativado. --&amp;gt;
+   &amp;lt;noscript&amp;gt;
+      &amp;lt;img src=&#34;small.jpg&#34; alt=&#34;Descrição da imagem&#34;&amp;gt;
+   &amp;lt;/noscript&amp;gt;
+&amp;lt;/span&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Bem, basicamente ele utiliza spans (que sozinhos não possuem valor semântico) no lugar do picture. E, através dos atributos data-src e data-media, especifica respectivamente o endereço e largura do viewport. Note também que existe um fallback para browsers mobile antigos / ambientes sem JavaScript dentro da tag .&lt;/p&gt;
+
+&lt;p&gt;É possível incluir no data-media qualquer media-querie, ou seja, facilmente podemos adaptar este código para densidade de pixel diferente, outros tipos de dispositivos, etc.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;span data-picture data-alt=&#34;Descrição da imagem&#34;&amp;gt;
+   &amp;lt;span data-src=&#34;imagem.jpg&#34;&amp;gt;&amp;lt;/span&amp;gt;
+   &amp;lt;span data-src=&#34;imagem_x2.jpg&#34; data-media=&#34;(min-device-pixel-ratio: 2.0)&#34;&amp;gt;&amp;lt;/span&amp;gt;
+&amp;lt;/span&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Como o IE8 e versões anteriores não trabalham com media queries, ele ficará com a primeira imagem com atributo data-src (ou com a última imagem se nenhuma especificar este atributo). Alternativamente você pode utilizar comentários condicionais para servir outra figura.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!--[if (lt IE 9) &amp; (!IEMobile)]&amp;gt;
+    &amp;lt;span data-src=&#34;imagem.jpg&#34;&amp;gt;&amp;lt;/span&amp;gt;
+&amp;lt;![endif]--&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Você pode checar a &lt;a href=&#34;http://scottjehl.github.io/picturefill/&#34; title=&#34;Picturefill&#34;&gt;demo online&lt;/a&gt; para ver a bruxaria acontecer. Ou dar uma olhadinha no &lt;a href=&#34;https://github.com/scottjehl/picturefill&#34; title=&#34;GitHub - Picturefill&#34;&gt;GitHub do projeto&lt;/a&gt; para ler a documentação completa.&lt;/p&gt;
+
+&lt;p&gt;A sintaxe obviamente não vai validar. Isto não é exatamente um sinal de um código bom ou rum, mas se você está em uma situação onde isto é vital (pressão e um cliente, por exemplo) é melhor optar por outro caminho. Como esta solução é baseada no funcionamento do picture os mesmos contras se aplicam: linhas de código a mais e consequente dificuldade de implantação se o seu legado for grande, com o agravante extra de depender de JavaScript. Mas se estes pontos não forem problemáticos para você, vá fundo e tenha imagens responsivas de alta performance hoje mesmo!&lt;/p&gt;
+
+&lt;h2 id=&#34;a-detecção-de-banda-com-foresight-js&#34;&gt;A detecção de banda (com Foresight.js)&lt;/h2&gt;
+
+&lt;p&gt;O Foresight.js funciona de maneira um pouco diferente das soluções apresentadas até aqui. Ele basicamente testa a velocidade da conexão do usuário antes de realizar a requisição da imagem no servidor. Isto é ótimo pois vai um pouco contra o mito de que se um usuário está em um dispositivo móvel automaticamente a internet é lenta. Eu utilizo tablets no wi-fi o dia todo em casa e por aqui a conexão é de 100mb, enquanto a internet na casa dos meus pais que serve os computadores desktops é provavelmente mais lenta que o meu 3G. Testar a velocidade da banda é a maneira mais efetiva de verificar quem de fato pode se dar ao luxo de baixar imagens pesadas ou não. O foresight também detecta automaticamente a densidade de pixels do dispositivo, permite as imagens serem controladas por CSS (inclusive com background images), impede requisições múltiplas e não depende de user agents.&lt;/p&gt;
+
+&lt;p&gt;Infelizmente isto tem um preço: uma imagem de 50k é baixada para testar a velocidade da conexão, bloqueando o download de outras imagens até o teste ser completo. Portanto, utilize esta solução apenas quando o carregamento de todas as imagens realmente for fazer a diferença na performance. Ou você estará tampando o sol com uma peneira.&lt;/p&gt;
+
+&lt;p&gt;Na prática funciona da seguinte maneira: depois de apontar para o arquivo js no seu HTML você determina uma classe para a sua imagem. Ah, e lembre-se de utilizar o noscript como fallback.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;img data-src=&#34;imagem.w320.jpg&#34; data-width=&#34;320&#34; data-height=&#34;212&#34; class=&#34;fs-img&#34;&amp;gt;
+&amp;lt;noscript&amp;gt;
+   &amp;lt;img src=imagem-fallback.jpg&#34;&amp;gt;
+&amp;lt;/noscript&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Depois é só especificar a classe no CSS, substituindo w320 por quaisquer resoluções que você desejar.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;font-family: &#39;image-set( url(w320|w{requestWidth}) 2x high-bandwidth )&#39;;
+display:none;&lt;/pre&gt;
+
+&lt;p&gt;Repare que isto é feito através do atributo font-family o que é basicamente dar uma voadora na cara da semântica. Eu sei. Isto me faz ranger os dentes. Mas talvez seja uma boa maneira de pressionar os browsers e orgãos responsáveis a aprovarem mais depressa um padrão oficial para imagens responsivas, como o elemento picture. A reação pode ser algo do tipo &amp;#8220;Oh meu deus! Eles estão utilizando font-family para isto. Devem mesmo estar desesperados!&amp;#8221;. Sem contar que tudo é resolvido apenas por CSS, não requerendo nenhum HTML extra o que é ótimo para conteúdos dinâmicos. E, por incrível, que pareça esta gambiarra valida. Mais uma prova que validação é diferente de semântica. Cabe a você decidir o que é mais importante: semântica ou performance? Apenas me prometa que, se você decidir por utilizar algo assim, vai voltar e deixar tudo bonitinho assim que um padrão bacana for aprovado.&lt;/p&gt;
+
+&lt;p&gt;Saiba mais na &lt;a href=&#34;http://www.cdnconnect.com/docs/foresightjs&#34; title=&#34;Foresight.js&#34;&gt;Documentação Oficial&lt;/a&gt;, no &lt;a href=&#34;https://github.com/adamdbradley/foresight.js&#34; title=&#34;GitHub - Foresight&#34;&gt;GitHub do Foresight&lt;/a&gt; ou de uma olhada nas &lt;a href=&#34;http://www.cdnconnect.com/docs/foresightjs/demos&#34; title=&#34;Foresight - Demos&#34;&gt;demos do projeto&lt;/a&gt;. Lembre-se de utilizar diversos dispositivos ou você não verá nada de diferente acontecendo.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-saga-mobile-first-com-hisrc&#34;&gt;A saga mobile first (com HISRC)&lt;/h2&gt;
+
+&lt;p&gt;Esta solução é um pouco parecida com o Foresight, com a diferença que ao invés de detectar a velocidade através de um placeholder, o HiSRC baixa sempre a imagem mobile primeiro. Se o usuário estiver em uma conexão lenta a imagem mobile fica lá bonitona. Já se a conexão for rápida a versão @1x é baixada. Se a internet for rápida E o dispositivo tiver alta densidade de pixels a versão @2x da imagem é entregue. Isto significa na prática que sim, mais de uma imagem pode ser baixada em uma banda larga. Mas se é para &amp;#8220;punir&amp;#8221; alguém, que seja quem tem menos a perder, certo?&lt;/p&gt;
+
+&lt;p&gt;Para implantar primeiro é necessário chamar o arquivo jQuery e depois configura-lo para as classes de imagens que serão responsivas.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(document).ready(function(){
+  $(&#34;.hisrc img&#34;).hisrc();
+  $(&#34;.hisrc img+img&#34;).hisrc({
+  useTransparentGif: true,
+  speedTestUri: &#39;50K.jpg&#39;
+});
+})&lt;/pre&gt;
+
+&lt;p&gt;Depois utilize as suas imagens em uma div com a mesma classe. A primeira imagem é a mobile (first, lembra?), a com o atributo data-1x é para conexões rápidas de definição normal e com data-2x é para imagens com o dobro da densidade de pixels (para telas como retina display da Apple, por exemplo).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;hisrc&#34;&amp;gt;
+  &amp;lt;img src=&#34;imagem.jpg&#34; data-1x=&#34;imagem@1x.jpg&#34; data-2x=&#34;imagem@2x.jpg&#34;&amp;gt;
+&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Simples e prático de implementar de maneira dinâmica. Como pontos contra além do download duplo, temos a dependência do jQuery e impossibilidade de direção de arte pois não existe controle nenhum do tamanho do viewport ou de media queries (afinal tudo é determinado a partir da velocidade da internet).&lt;/p&gt;
+
+&lt;p&gt;Se você se interessou confira a documentação completa no &lt;a href=&#34;https://github.com/teleject/hisrc&#34; title=&#34;GitHub - HiSRC&#34;&gt;GitHub do projeto&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-solução-server-side-com-adaptive-images&#34;&gt;A Solução server side (com Adaptive Images)&lt;/h2&gt;
+
+&lt;p&gt;Se você tem um zillhão de linhas de código para readaptar pode não ser nada prático revisar imagem por imagem para adicionar atributos extras. Ou talvez você tenha um cliente que vai administrar sozinho um website sem possuir um designer na equipe para cropar e otimizar todas as versões possíveis de imagens responsivas. Em ambos os casos uma solução server side pode ser mais interessante.&lt;/p&gt;
+
+&lt;p&gt;Para estes casos eu indicaria o Adaptive Images. Ele basicamente intercepta os pedidos por imagens no servidor e redimensiona automaticamente as imagens para os breakpoints que você especificou. Além do zero de trabalho extra uma vez que o setup for feito, a solução é bem semântica e não requer marcação extra.&lt;/p&gt;
+
+&lt;p&gt;O contra? Você vai precisar de PHP 5x (com Apache2 / nginx e GD lib), já que o processo é realizado a partir do arquivo .htacess. Este arquivo basicamente diz para o servidor dar uma olhadinha no adaptive-images.php antes de pegar qualquer imagem jpg, gif ou png. Ou seja, se você estiver utilizando alguma outra linguagem como Ruby on Rails ou ASP é melhor buscar outro caminho. Também não é possível fazer direção de arte pois o arquivo é simplesmente redimensionado. Se estes pontos não forem um problema esta é uma solução prática, rápida e efetiva. Outra questão que pode ser vista como um &amp;#8220;defeito&amp;#8221; é, como o adaptative images verifica o viewport através de cookies + cache, as imagens não vão ser servidas se um usuário ficar brincando de aumentar e diminuir a janelinha do browser. Mas acredito que isto pode ser contornado pelo bom e velho max-width 100% como um fallback.&lt;/p&gt;
+
+&lt;p&gt;Para documentação e dicas de implementação dê uma olhada no &lt;a href=&#34;http://adaptive-images.com/&#34; title=&#34;Adaptive Images&#34;&gt;site do projeto&lt;/a&gt; e no &lt;a href=&#34;https://github.com/MattWilcox/Adaptive-Images&#34; title=&#34;Adaptive Images - GitHub&#34;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-caminho-do-wordpress-com-múltiplos-plugins&#34;&gt;O caminho do WordPress (com múltiplos plugins)&lt;/h2&gt;
+
+&lt;p&gt;Se você utiliza o CMS WordPress em seus projetos pode estar com sorte. Como a ferramenta já lida com uma biblioteca de mídia e versões de tamanhos diferentes para imagens existem diversos plugins que facilitam o trabalho de desenvolvimento para a plataforma.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://wordpress.org/plugins/mobble/&#34; title=&#34;Mobble&#34;&gt;Mobble&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Funções condicionais para detectar smartphones e tablets.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://wordpress.org/plugins/picturefillwp/&#34; title=&#34;Picturefill WP&#34;&gt;Picturefill WP&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Baseado no picturefill.js&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://wordpress.org/plugins/simple-responsive-images/&#34; title=&#34;Simple responsive images&#34;&gt;Simple responsive images&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Redimensiona as imagens para os breakpoints que você escolher.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://wordpress.org/plugins/pb-responsive-images/&#34; title=&#34;PB Responsive Images&#34;&gt;PB Responsive Images&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Baseado na tag picture&lt;/p&gt;
+
+&lt;h2 id=&#34;a-lista-de-alternativas&#34;&gt;A lista de alternativas&lt;/h2&gt;
+
+&lt;p&gt;Encontrar uma solução definitiva para a performance de imagens tem sido uma verdadeira caça ao tesouro do design responsivo. Fora as ferramentas que eu já apresentei existem diversas outras iniciativas bacanas bacanas que valem a visita.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.sencha.com/products/space/&#34; title=&#34;Sencha.io&#34;&gt;Sencha.IO&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Solução third-party que funciona como um proxy para imagens responsivas. Possui planos pagos e gratuitos.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://zurb.com/playground/foundation-interchange&#34; title=&#34;Interchange&#34;&gt;Interchange&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Desenvolvido pela Zurb e integrado ao frameworkd Foundation.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.resrc.it/&#34; title=&#34;ReSRC&#34;&gt;ReSRC&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Solução de proxy com algumas outras funções interessantes extras como filtros, crop, integração com sliders e plugins. É cobrada uma mensalidade nos planos avançados.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/tubalmartin/riloadr&#34; title=&#34;Riloadr&#34;&gt;Riloadr&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Framework de imagens responsivas baseado apenas em HTML, CSS e JavaScript.&lt;/p&gt;
+
+&lt;p&gt;Se você ainda está um pouco perdido &lt;a href=&#34;https://docs.google.com/spreadsheet/ccc?key=0Al0lI17fOl9DdDgxTFVoRzFpV3VCdHk2NTBmdVI2OXc#gid=0&#34;&gt;esta tabela&lt;/a&gt; criada pelos desenvolvedores Chris Coyier e Christopher Schmitt compara algumas das soluções mencionadas neste artigo em critérios como dependência de JavaScript, validação, download de imagens adicionais, direção de arte, etc.&lt;/p&gt;
+
+&lt;p&gt;Conhece alguma outra ferramenta legal? Deixe a referência nos comentários que eu atualizarei esta lista sempre que possível.&lt;/p&gt;
+
+&lt;h3 id=&#34;saiba-mais&#34;&gt;Saiba mais&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://mobile.smashingmagazine.com/2013/07/08/choosing-a-responsive-image-solution/&#34; title=&#34;Choosing a responsive image solution&#34;&gt;Choosing a responsive image solution&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://css-tricks.com/which-responsive-images-solution-should-you-use/&#34; title=&#34;Which responsive images solution should you use&#34;&gt;Which responsive images solution should you use&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://csswizardry.com/2011/07/responsive-images-right-now/&#34; title=&#34;Responsive images right now&#34;&gt;Responsive images right now&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

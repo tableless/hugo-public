@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Sockets on Tableless</title>
+    <link>http://tableless.com.br/tags/sockets/index.xml</link>
+    <description>Recent content in Sockets on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/sockets/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando uma aplicação de Chat simples com NodeJS e Socket.io</title>
+      <link>http://tableless.com.br/criando-uma-aplicacao-de-chat-simples-com-nodejs-e-socket-io/</link>
+      <pubDate>Thu, 05 Jan 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-uma-aplicacao-de-chat-simples-com-nodejs-e-socket-io/</guid>
+      <description>
+
+&lt;p&gt;Neste tutorial iremos abordar alguns conceitos do Socket.io criando um simples sistema de chat para browser.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/dericeira/Simple-Chat-Socket.io/master/example.gif&#34; alt=&#34;https://raw.githubusercontent.com/dericeira/Simple-Chat-Socket.io/master/example.gif&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-socket-io&#34;&gt;O que é Socket.io?&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://socket.io&#34;&gt;Socket.io&lt;/a&gt; é um uma biblioteca Javascript feita para construir aplicações real-time, possibilitando uma comunicação bi-direcional entre cliente e servidor. O socket.io utiliza as especificações de Web Sockets (para quem quer saber mais, recomendo dar uma olhada &lt;a href=&#34;https://www.html5rocks.com/pt/tutorials/websockets/basics/&#34;&gt;neste ótimo artigo&lt;/a&gt; da HTML5 Rocks).&lt;/p&gt;
+
+&lt;p&gt;O Socket.io roda, no lado do servidor, em NodeJS, e, no lado do cliente, ele roda diretamente no browser, possibilitando uma enorme gama de possibilidades de aplicações, como jogos, sistemas de notificações, real-time analytics e sistemas de chats e conversas em tempo real.&lt;/p&gt;
+
+&lt;h2 id=&#34;setando-o-projeto&#34;&gt;Setando o projeto&lt;/h2&gt;
+
+&lt;p&gt;Primeiramente, temos que instalar algumas bibliotecas que iremos utilizar no projeto, para isso usarei o &lt;a href=&#34;https://github.com/yarnpkg/yarn&#34;&gt;yarn&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Em primeiro lugar, vou adicionar ao projeto a biblioteca do Socket.io que rodará do lado do servidor.&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn add socketio&lt;/pre&gt;
+
+&lt;p&gt;Também iremos utilizar o express:&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn add express&lt;/pre&gt;
+
+&lt;p&gt;Também precisamos adicionar o Socket.io para o cliente (você pode utilizar a CDN oficial disponibilizada no site deles também):&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;yarn add socket.io-client&lt;/pre&gt;
+
+&lt;p&gt;E, por último, usarei a biblioteca jQuery para manipular a DOM.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;yarn add jquery&lt;/pre&gt;
+
+&lt;h2 id=&#34;fazendo-o-html-css&#34;&gt;Fazendo o HTML+CSS&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar um arquivo index.html e já deixar preparado o nosso template do sistema de chat.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;en&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+ &amp;lt;meta charset=&#34;UTF-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Simple chat&amp;lt;/title&amp;gt;
+ &amp;lt;link rel=&#34;stylesheet&#34; href=&#34;assets/css.css&#34;&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;div class=&#34;nickname_container&#34; id=&#34;nick&#34;&amp;gt;
+
+ &amp;lt;span&amp;gt;Type your nickname:&amp;lt;/span&amp;gt;
+ &amp;lt;form id=&#34;submit&#34;&amp;gt;&amp;lt;input type=&#34;text&#34; id=&#34;nickname&#34; /&amp;gt;&amp;lt;/form&amp;gt;
+
+&amp;lt;/div&amp;gt;
+
+&amp;lt;div id=&#34;chat&#34; hidden&amp;gt;
+
+ &amp;lt;div class=&#34;menu&#34; =&amp;gt;
+ &amp;lt;div class=&#34;name&#34; id=&#34;name&#34;&amp;gt;Alex&amp;lt;/div&amp;gt;
+ &amp;lt;div class=&#34;last&#34; id=&#34;time&#34;&amp;gt;18:09&amp;lt;/div&amp;gt;
+ &amp;lt;/div&amp;gt;
+
+ &amp;lt;ol class=&#34;chat&#34;&amp;gt;
+ 
+ &amp;lt;/ol&amp;gt;
+ 
+ &amp;lt;input class=&#34;textarea&#34; type=&#34;text&#34; placeholder=&#34;Type here!&#34; id=&#34;textarea&#34; /&amp;gt;
+&amp;lt;/div&amp;gt;
+ &amp;lt;script src=&#34;node_modules/jquery/dist/jquery.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script src=&#34;node_modules/socket.io-client/socket.io.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script src=&#34;assets/js.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Repare que eu também criei o diretório assets, e criei os arquivos css.css e js.js.&lt;/p&gt;
+
+&lt;p&gt;Não entrarei na parte do CSS, pois o foco aqui é o javascript, mas você pode ver o resultado no &lt;a href=&#34;https://github.com/dericeira/Simple-Chat-Socket.io/blob/master/assets/css.css&#34;&gt;github&lt;/a&gt;. Eu utilizei como base &lt;a href=&#34;https://codepen.io/Varo/pen/gbZzgr&#34;&gt;este pen&lt;/a&gt; para construir o layout.&lt;/p&gt;
+
+&lt;h2 id=&#34;server-side&#34;&gt;Server-side&lt;/h2&gt;
+
+&lt;p&gt;Vamos iniciar com a criação da parte de servidor do Socket.io, ou seja, iremos lidar com os eventos server-side.&lt;/p&gt;
+
+&lt;p&gt;Iniciaremos criando um arquivo &lt;strong&gt;app.js&lt;/strong&gt; no diretório raíz e importaremos os módulos e faremos algumas operações iniciais:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var app = require(&#39;express&#39;)();
+var http = require(&#39;http&#39;).Server(app);
+var io = require(&#39;socket.io&#39;)(http);
+
+var clients = {};
+
+app.get(&#39;/&#39;, function(req, res){
+res.send(&#39;server is running&#39;);
+});
+
+//SocketIO vem aqui
+
+http.listen(3000, function(){
+console.log(&#39;listening on port 3000&#39;);
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Este script implementa um servidor Node utilizando os módulos http e express (para roteamento).&lt;/p&gt;
+
+&lt;p&gt;A variável clientes que está sendo criada servirá para armazenar nossa lista de clientes.&lt;/p&gt;
+
+&lt;p&gt;Agora iremos adicionar o nosso primeiro evento do Socket.io, que será o &lt;strong&gt;connection&lt;/strong&gt;, que dispara a cada vez que um cliente se conecta ao socket.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;io.on(&#34;connection&#34;, function (client) {
+    console.log(&#39;user connected&#39;);
+});&lt;/pre&gt;
+
+&lt;p&gt;Para nossa sala de chat, precisaremos implementar outros 3 eventos: &lt;strong&gt;join&lt;/strong&gt;, &lt;strong&gt;send&lt;/strong&gt; e &lt;strong&gt;disconnect&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;io.on(&#34;connection&#34;, function (client) {
+  client.on(&#34;join&#34;, function(name){
+    console.log(&#34;Joined: &#34; + name);
+    clients[client.id] = name;
+    client.emit(&#34;update&#34;, &#34;You have connected to the server.&#34;);
+    client.broadcast.emit(&#34;update&#34;, name + &#34; has joined the server.&#34;)
+  });
+
+  client.on(&#34;send&#34;, function(msg){
+    console.log(&#34;Message: &#34; + msg);
+    client.broadcast.emit(&#34;chat&#34;, clients[client.id], msg);
+  });
+
+  client.on(&#34;disconnect&#34;, function(){
+    console.log(&#34;Disconnect&#34;);
+    io.emit(&#34;update&#34;, clients[client.id] + &#34; has left the server.&#34;);
+    delete clients[client.id];
+  });
+});
+&lt;/pre&gt;
+
+&lt;p&gt;O evento join deverá ser disparado quando o cliente entrar no servidor, adicionando o id do cliente no array e emitindo dois novos eventos, nomeando-os de &lt;strong&gt;update&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Note que há uma diferença entre o método &lt;strong&gt;client.emit&lt;/strong&gt; e o &lt;strong&gt;client.broadcast.emit&lt;/strong&gt;. O client.emit enviará a notificação somente para o cliente atual, ou seja, o cliente que acabou de entrar na sala de chat. O &lt;strong&gt;client.broadcast.emit&lt;/strong&gt; irá emitir para todos os clientes conectados, com exceção do que está executando a ação. Se utilizássemos o método &lt;strong&gt;io.emit&lt;/strong&gt;, a mensagem seria enviada a todos os clientes conectados ao socket. Abaixo uma série de exemplos de métodos disponíveis:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// enviar apenas para o cliente atual
+client.emit(&#39;message&#39;, &#34;this is a test&#34;);
+
+// enviar para todos os clientes, inclusive o atual
+io.emit(&#39;message&#39;, &#34;this is a test&#34;);
+
+// enviar para todos os clientes, exceto o atual
+client.broadcast.emit(&#39;message&#39;, &#34;this is a test&#34;);
+
+// enviar para todos os clientes (com exceção do atual) para uma sala específica
+socket.broadcast.to(&#39;game&#39;).emit(&#39;message&#39;, &#39;nice game&#39;);
+
+// enviar para todos os clientes em uma sala específica
+io.in(&#39;game&#39;).emit(&#39;message&#39;, &#39;cool game&#39;);
+
+// enviar para o atual, caso ele esteja na sala
+client.to(&#39;game&#39;).emit(&#39;message&#39;, &#39;enjoy the game&#39;);
+
+// enviar para todos os clientes em um namespace &#39;namespace1&#39;
+io.of(&#39;namespace1&#39;).emit(&#39;message&#39;, &#39;gg&#39;);
+
+// enviando para um socketid individual
+client.broadcast.to(socketid).emit(&#39;message&#39;, &#39;for your eyes only&#39;);&lt;/pre&gt;
+
+&lt;p&gt;Com todos esses métodos, conseguiríamos implementar salas específicas, mensagens individuais, etc. Porém nosso foco é mostrar a parte mais básica e entender o funcionamento.&lt;/p&gt;
+
+&lt;h2 id=&#34;client-side&#34;&gt;Client-side&lt;/h2&gt;
+
+&lt;p&gt;Com nosso servidor concluido e rodando, vamos passar para a parte de client-side de nossa aplicação de chat. Vamos ao &lt;strong&gt;js.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Primeiramente, inicializaremos o socket.io e criaremos uma variável &lt;strong&gt;ready&lt;/strong&gt;, setada como false. Esta variável será responsável por indicar se o usuário já informou ou não o seu nickname.&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;$(document).ready(function(){
+    var socket = io.connect(&#34;http://localhost:3000&#34;);
+    var ready = false;
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Com esta implementação, já conseguimos disparar o evento &lt;strong&gt;connection&lt;/strong&gt; em nosso servidor. Porém, precisamos fazer com que o servidor receba a informação cada vez que um novo usuário entrar na sala informando o seu nickname.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#34;#submit&#34;).submit(function(e) {
+    e.preventDefault();
+    $(&#34;#nick&#34;).fadeOut();
+    $(&#34;#chat&#34;).fadeIn();
+    var name = $(&#34;#nickname&#34;).val();
+    var time = new Date();
+    $(&#34;#name&#34;).html(name);
+    $(&#34;#time&#34;).html(&#39;First login: &#39; + time.getHours() + &#39;:&#39; + time.getMinutes());
+
+    ready = true;
+    socket.emit(&#34;join&#34;, name);
+});
+&lt;/pre&gt;
+
+&lt;p&gt;A função jQuery acima captura a submissão do formulário de nickname, fecha a tela de seleção de nick, mostra a tela de chat, seta a variável ready para true e executa um comando de socket, o &lt;strong&gt;socket.emit&lt;/strong&gt;, que informa para o nosso servidor que um novo usuário acabou de entrar na sala.&lt;/p&gt;
+
+&lt;p&gt;Nada irá acontecer, pois ainda não temos o receptor do evento &lt;strong&gt;update&lt;/strong&gt;, que está sendo disparado no nosso servidor, então vamos criá-lo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;socket.on(&#34;update&#34;, function(msg) {
+    if (ready) {
+        $(&#39;.chat&#39;).append(&#39;&amp;lt;li class=&#34;info&#34;&amp;gt;&#39; + msg + &#39;&amp;lt;/li&amp;gt;&#39;)
+    }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Este código fará com que, a cada vez que o servidor emitir um update, o jQuery adicione uma nova linha no chat com a mensagem retornada.&lt;/p&gt;
+
+&lt;p&gt;Agora, iremos fazer com que nossa aplicação envie as mensagens ao servidor a cada vez que o cliente apertar o enter no input de texto:&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;$(&#34;#textarea&#34;).keypress(function(e){
+    if(e.which == 13) {
+         var text = $(&#34;#textarea&#34;).val();
+         $(&#34;#textarea&#34;).val(&#39;&#39;);
+         var time = new Date();
+         $(&#34;.chat&#34;).append(&#39;&amp;lt;li class=&#34;self&#34;&amp;gt;&amp;lt;div class=&#34;msg&#34;&amp;gt;&amp;lt;span&amp;gt;&#39;
+                      + $(&#34;#nickname&#34;).val() + &#39;:&amp;lt;/span&amp;gt;    &amp;lt;p&amp;gt;&#39; + text + &#39;&amp;lt;/p&amp;gt;&amp;lt;time&amp;gt;&#39; + 
+                      time.getHours() + &#39;:&#39; + time.getMinutes() + &#39;&amp;lt;/time&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;/li&amp;gt;&#39;);
+         socket.emit(&#34;send&#34;, text);
+    }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;E, para concluir, precisamos fazer com que o socket.io observe todas as mensagens referente ao chat em si, e adicione à DOM:&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint&#34;&gt;socket.on(&#34;chat&#34;, function(client,msg) {
+ if (ready) {
+    var time = new Date();
+    $(&#34;.chat&#34;).append(&#39;&amp;lt;li class=&#34;other&#34;&amp;gt;&amp;lt;div class=&#34;msg&#34;&amp;gt;&amp;lt;span&amp;gt;&#39; + 
+                 client + &#39;:&amp;lt;/span&amp;gt;&amp;lt;p&amp;gt;&#39; + msg + &#39;&amp;lt;/p&amp;gt;&amp;lt;time&amp;gt;&#39; + time.getHours() + &#39;:&#39; + 
+                 time.getMinutes() + &#39;&amp;lt;/time&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;/li&amp;gt;&#39;);
+ }
+});&lt;/pre&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Na minha opinião,  as sockets são uma das melhores funcionalidades do HTML5, e possuem uma infinidade de aplicação. O ganho de performance é espetacular se bem aplicado, uma vez que evita o uso de requisições HTTP em aplicações onde a necessidade de atualização é grande (baixa latência).&lt;/p&gt;
+
+&lt;p&gt;Disponibilizei o código do tutorial no &lt;a href=&#34;https://github.com/dericeira/Simple-Chat-Socket.io&#34;&gt;github&lt;/a&gt; para quem se interessar, e estou aberto a tirar dúvidas.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

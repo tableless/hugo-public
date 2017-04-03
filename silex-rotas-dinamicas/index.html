@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/silex-rotas-dinamicas/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/silex-rotas-dinamicas/">Rotas dinâmicas no Silex</a></h1>
+  <p class="tb-hero-p">
+    
+    |
+  Como trabalhar com rotas dinâmicas e métodos auxiliares no Silex PHP.
+
+    
+  </p>
+      <span class="tb-author">por <a href="/author/nando-kstro-net">Nando Kstro Net</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Continuando nossa jornada sobre o <strong>Silex Framework</strong>, neste post falarei sobre rotas dinâmicas. Se você não está familiarizado com o Silex, confira nosso primeiro post _<a href="http://tableless.com.br/conhecendo-e-instalando-o-silex/" target="_blank">Conhecendo e instalando o Silex</a>_.</p>
+
+<p>Rotas dinâmicas são a possibilidade de passar parâmetros nas rotas da sua aplicação. O Silex possui diversos métodos para facilitar o uso dessa dinâmica em suas rotas.</p>
+
+<h2 id="utilização">Utilização</h2>
+
+<p>Para tornar sua rota dinâmica, veja o código abaixo:</p>
+
+<pre>&lt;?php
+use Silex\Application;
+require 'vendor/autoload.php';
+$app = new Application();
+$app-&gt;get('users/{name}', function($name){
+    return 'Olá, ' . $name;
+});
+$app-&gt;run();
+</pre>
+
+<p>O que nos interessa nesse momento, são as linhas de 5 e 6. Na linha 5 definimos nossa rota <em>users</em>, que receberá requisições do tipo <code>GET</code>. Perceba que entre chaves <code>{}</code>, incluímos um elemento chamado <code>name</code>, ou seja, esse é o parâmetro da nossa rota <em>users</em>. Agora tudo que passarmos na URL após chamada a rota, poderemos manipular em nosso <em>callback</em>, mas para isso devemos passar o mesmo parâmetro da rota como parâmetro do nosso <em>callback</em>, como mostrado na mesma linha 5. Na linha 6 apenas retornamos como saída o valor passado na rota. Por exemplo, se acessarmos no navegador o seguinte link <code>http://url_de_minha_app.com.br/users/Nando</code>, teríamos como saída:</p>
+
+<p><code>Olá, Nando</code></p>
+
+<p>Se você deseja passar mais parâmetros, apenas separe os mesmos com <code>/</code>, como mostrado abaixo:</p>
+
+<pre>&lt;?php
+...
+$app-&gt;get('users/{name}/{email}', function($name, $email){
+    //Sua_logica_aqui
+});
+...
+</pre>
+
+<h2 id="valores-default">Valores Default</h2>
+
+<p>Se você deseja definir um valor <em>default</em> para seus parâmetros de rota, é muito simples. O Silex possui um método para isso. Através do método <code>value()</code> você definirá valores padrões para estes parâmetros, e quando acessar suas rotas sem informar nenhum valor esperado, entra em ação os valores definidos por padrão. Para usar o método <code>value()</code>:</p>
+
+<pre>&lt;?php
+...
+$app-&gt;get('users/{name}', function($name){
+    return 'Olá, ' . $name;
+})
+-&gt;value('name', NULL);
+...
+</pre>
+
+<p>Na linha 6 defino o método <code>value</code> que têm como primeiro parâmetro o nome definido para o parâmetro da rota, e o segundo parâmetro do método <code>value</code> recebe o valor <em>default</em> que você desejar. Sempre que acessarmos a rota <em>users</em> sem definir nenhum valor após a mesma, nosso parâmetro <code>name</code> receberá o valor NULL. A partir daí você fica livre para tratar como quiser a lógica da sua aplicação.</p>
+
+<h2 id="o-método-convert">O método convert()</h2>
+
+<p>Se você deseja garantir o tipo do valor passado ou apenas deseja conversões simples com estes valores, o método <code>convert</code> foi feito para tal operação. Para utilizá-lo:</p>
+
+<pre>...
+$app-&gt;get('users/{name}', function($name){
+    return 'Olá, ' . $name;
+})
+-&gt;value('name', NULL)
+-&gt;convert('name', function($name){ return (string) $name; });
+...
+</pre>
+
+<p>O método recebe 2 parâmetros: o primeiro é o nome do parâmetro informado na rota e o segundo um <em>callback</em>, onde realizamos nossas conversões. Neste exemplo, garanto apenas que os valores passados na rota <code>users</code> serão de fato do tipo <code>string</code>, como mostrado na linha 6 do código acima.</p>
+
+<h2 id="conclusão">Conclusão</h2>
+
+<p>Vimos como é simples trabalhar com rotas dinâmicas em nossas aplicações Silex, e com os métodos auxiliares nossa aplicação de rotas fica ainda mais robusta.</p>
+
+<p>Na sessão <a href="http://silex.sensiolabs.org/doc/usage.html" target="_blank">&#8216;Usage&#8217;</a> da documentação do Silex, você encontrará mais opções além das mostradas aqui.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

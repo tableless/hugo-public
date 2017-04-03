@@ -1,0 +1,1304 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Git on Tableless</title>
+    <link>http://tableless.com.br/tags/git/index.xml</link>
+    <description>Recent content in Git on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/git/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Usando GIT para atualizar arquivos no servidor de hospedagem II – Final</title>
+      <link>http://tableless.com.br/usando-git-para-atualizar-arquivos-no-servidor-de-hospedagem-ii-final/</link>
+      <pubDate>Thu, 19 Nov 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/usando-git-para-atualizar-arquivos-no-servidor-de-hospedagem-ii-final/</guid>
+      <description>
+
+&lt;p&gt;Esta é a segunda e última parte do artigo que explica como fazer um esquema simples para deploy automático usando GIT + Bitbucket&lt;/p&gt;
+
+&lt;p&gt;A mesma configuração pode ser usada em qualquer servidor GIT e qualquer serviço de hospedagem que tenha acesso via ssh e git instalado&lt;/p&gt;
+
+&lt;p&gt;Se você ainda não leu a primeira parte, segue o link: &lt;a href=&#34;http://tableless.com.br/usando-git-para-atualizar-arquivos-no-servidor-de-hospedagem&#34;&gt;http://tableless.com.br/usando-git-para-atualizar-arquivos-no-servidor-de-hospedagem&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;No artigo anterior, criamos as chaves SSH para autenticação no Bitbucket, criamos um repositório GIT e manualmente executamos o comando | git pull | para atualizar o nosso repositório.&lt;/p&gt;
+
+&lt;p&gt;Nessa segunda parte vamos executar o comando para atualização, de forma automatizada, sem precisar acessar o servidor. Vamos fazer um painel de controle para acompanhar os logs de deploy, mostrando se o comando foi executado com sucesso ou se aconteceu algum erro.&lt;/p&gt;
+
+&lt;p&gt;Gostaria de lembrar que essa é uma solução simples, existem várias maneiras de fazer deploy automatizado, eu escolhi fazer usando php e shell_exec, é mais rápido e para projetos simples isso funciona muito bem. O mesmo pode ser feito usando &lt;a href=&#34;https://pt.wikipedia.org/wiki/CGI&#34;&gt;CGI&lt;/a&gt; ou &lt;a href=&#34;https://pt.wikipedia.org/wiki/Shell_script&#34;&gt;Shell Script&lt;/a&gt;, ou ainda você pode usar um serviço online como o heroku.com, ou configurar o Capistrano, ou Jenkins, etc&amp;#8230;&lt;/p&gt;
+
+&lt;h4 id=&#34;o-comando-shell-exec-no-php&#34;&gt;O Comando shell_exec no PHP&lt;/h4&gt;
+
+&lt;p&gt;No manual do php:&lt;/p&gt;
+
+&lt;p&gt;(PHP 4, PHP 5, PHP 7)&lt;/p&gt;
+
+&lt;p&gt;shell_exec — Executa um comando via shell e retorna a saída inteira como uma string&lt;/p&gt;
+
+&lt;p&gt;Isso quer dizer que podemos executar um comando no servidor e ler o retorno desse comando, no nosso caso vamos executar o comando | git pull origin master | o mesmo comando que estávamos executando manualmente lá no servidor, lembra que tínhamos que acessar o servidor via putty, navegar até a pasta do nosso repositório e depois executar um git pull, já que isso é uma tarefa repetitiva, vamos automatizar, é isso que devemos fazer com todos os processos repetitivos.&lt;/p&gt;
+
+&lt;p&gt;Em muitos servidores de hospedagem esse comando é bloqueado por padrão, se estiver bloqueado você vai receber um aviso parecido com esse:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;Warning:  shell_exec() has been disabled for security reasons in /var/www/deploy.php on line 10&lt;/pre&gt;
+
+&lt;p&gt;No meu caso eu abri um chamado no painel da hospedagem, explicando que precisava da liberação para usar em um sistema de deploy automático usando GIT e prontamente fui atendido e o comando foi liberado.&lt;/p&gt;
+
+&lt;p&gt;Vou usar o mesmo repositório que usei para a primeira parte, &lt;a href=&#34;https://bitbucket.org/jzonta/artigo_atualizacao_arquivos&#34;&gt;https://bitbucket.org/jzonta/artigo_atualizacao_arquivos&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Vamos Começar, e vamos usar um dos termos da metodologia XP &amp;#8211; Extremme Programing, &amp;#8220;Baby Steps&amp;#8221;, vamos executar todo o processo em pequenos passos, eu vou atualizar o repositório no GIT com todos os passos, você pode acessar e ver todos os commits &amp;#8211; inclusive os errados 🙂 &amp;#8211; é bacana pra ver a evolução do código.&lt;/p&gt;
+
+&lt;p&gt;Vou criar uma pasta chamada deploy e dentro um arquivo chamado index.php, quando executado pelo navegador ele atualiza nosso servidor executando o comando git pull no servidor e imprimindo na tela o resultado do commnado.&lt;/p&gt;
+
+&lt;p&gt;A pasta deploy deve ficar dentro da pasta do seu projeto, você pode ver a estrutura que usei no repositório desse artigo no Bitbucket.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;* Note que no final do comando git pull eu adicionei &amp;#8220;2&amp;gt;&amp;amp;1&amp;#8221; isso quer dizer que alem das saídas normais eu quero exibir as saídas de erro do nosso comando no servidor.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;index.php&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&#34;utf-8&#34;/&amp;gt;
+&amp;lt;title&amp;gt;Usando GIT para atualizar arquivos no servidor de hospedagem&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+    &amp;lt;pre&amp;gt;
+    &amp;lt;?php
+        $exec = shell_exec(&#34;git pull origin master 2&amp;gt;&amp;1&#34;);
+        echo $exec;
+    ?&amp;gt;
+    &amp;lt;/pre&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;A saída na tela é a mesma que aparece quando executamos o comando lá no servidor, veja o exemplo da saída no servidor e no navegador:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/10/comando_shell_navegador.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51941&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/10/comando_shell_navegador.jpg&#34; alt=&#34;comando_shell_navegador&#34; width=&#34;657&#34; height=&#34;210&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;* Lembre-se que para enviar esse arquivo ao servidor você não deve usar o ftp, faça isso utilizando o comando |git pull|, já fizemos isso na primeira parte do artigo.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Já estamos atualizando nosso servidor apenas acessando uma url em nosso navegador \o/, mas não é só isso que queremos, eu quero que essa url seja chamada sempre que eu enviar um push para o repositório, então acesse sua conta no Bitbucket e vamos configurar isso.&lt;/p&gt;
+
+&lt;p&gt;Acesse seu repositório, no menu lateral esquerdo, clique em &amp;#8220;Configurações&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Na tela configurações clique em &amp;#8220;Webhooks&amp;#8221; e depois em &amp;#8220;Add Webhook&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;No campo &amp;#8220;Title&amp;#8221; adicione um nome de sua preferência e no campo &amp;#8220;URL&amp;#8221; adicione o endereço para a sua url que executa o comando de atualização, no meu caso a URL é &amp;#8220;&lt;a href=&#34;http://joaozonta.com.br/artigo_atualizacao_arquivos/deploy/index.php&amp;amp;#8221&#34;&gt;http://joaozonta.com.br/artigo_atualizacao_arquivos/deploy/index.php&amp;amp;#8221&lt;/a&gt;;&lt;/p&gt;
+
+&lt;p&gt;Mas não podemos deixar essa URL aberta, porque qualquer um poderia acessar e isso iria executar o comando git pull em nosso servidor, então vamos criar um token de autenticação, junto com a URL eu passo um token que mais tarde vamos validar lá no nosso código, então a URL ficaria assim: &lt;a href=&#34;http://joaozonta.com.br/artigo_atualizacao_arquivos/deploy/index.php?token=d41d8cd98f00b204e9800998ecf8427e&#34;&gt;http://joaozonta.com.br/artigo_atualizacao_arquivos/deploy/index.php?token=d41d8cd98f00b204e9800998ecf8427e&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;* Use este site para gerar seu token: &lt;a href=&#34;http://www.miraclesalad.com/webtools/md5.php&#34;&gt;http://www.miraclesalad.com/webtools/md5.php&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/10/adicionar_webhook.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51940&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/10/adicionar_webhook.jpg&#34; alt=&#34;adicionar_webhook&#34; width=&#34;850&#34; height=&#34;439&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Feito isso, toda vez que enviar um push para o Bitbucket ele vai acessar a URL, e nossa url vai disparar o comando |git pull| no servidor e os arquivos serão atualizados. Nosso deploy já esta funcionando, mas eu também quero visualizar os logs, para ter maior controle sobre oque esta acontecendo.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/10/local_git_servidor.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51943&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/10/local_git_servidor.jpg&#34; alt=&#34;local_git_servidor&#34; width=&#34;444&#34; height=&#34;352&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;*No seu repositório no Bitbucket, vc pode ver os requests que foram feitos entrando em &amp;#8220;Configurações&amp;#8221;, &amp;#8220;Web Hooks&amp;#8221;, ao lado do Title do seu webhook você clica em &amp;#8220;View Requests&amp;#8221; e pode ver todas as requisições que o Bitbucket fez para a sua URL.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;gravando-log&#34;&gt;Gravando Log&lt;/h4&gt;
+
+&lt;p&gt;Primeiro vamos gerar o texto que queremos gravar no nosso arquivo de log, poderíamos apenas colocar a saída do comando shell_exec, mas vamos adicionar a data, hora e algumas quebras de linha para deixar o nosso log mais legível, veja como ficou o código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&#34;utf-8&#34;/&amp;gt;
+&amp;lt;title&amp;gt;Usando GIT para atualizar arquivos no servidor de hospedagem&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+    &amp;lt;pre&amp;gt;
+    &amp;lt;?php
+        $exec = shell_exec(&#34;git pull origin master 2&amp;gt;&amp;1&#34;);
+        echo $exec;
+
+        $textoLog = PHP_EOL.&#34;Data: &#34;.date(d.&#34;/&#34;.m.&#34;/&#34;.Y.&#34; - &#34;.H.&#34;:&#34;.i.&#34;:&#34;.s);
+        $textoLog .= PHP_EOL.$exec;
+
+        $arquivoLog = fopen(&#39;log.txt&#39;, &#39;a+&#39;);
+        fwrite($arquivoLog, $textoLog);
+        fclose($arquivoLog);
+    ?&amp;gt;
+    &amp;lt;/pre&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Não precisa explicar muito o código php porque é bem simples, se alguém tem dúvida dobre alguma das funções usadas é só dar uma procurada no site do php (&lt;php.net&gt;) ou no google, tem bastante material.&lt;/p&gt;
+
+&lt;p&gt;Se tudo está ocorrendo como planejado, quando você executar novamente seu endereço URL ele vai criar um arquivo chamado log.txt na mesma pasta, e gravar os logs neste arquivo.&lt;/p&gt;
+
+&lt;h4 id=&#34;adicionando-token-de-validação&#34;&gt;Adicionando Token de Validação&lt;/h4&gt;
+
+&lt;p&gt;Vamos deixar nosso deploy um pouco mais seguro. Lembra que na URL que adicionamos lá no webhook do Bitbucket colocamos um token? Então, agora vamos validar esse token.&lt;/p&gt;
+
+&lt;p&gt;Criei uma variavel chamada $token e adicionei a nossa string MD5&lt;/p&gt;
+
+&lt;p&gt;Depois a variavel $tokenValido recebe true se o token enviado via post ou get for igual ao token que configuramos na variavel $token, caso contrário recebe false.&lt;/p&gt;
+
+&lt;p&gt;Depois verificamos se $tokenValido for igual a true executa o deploy se não exibe o log e um botão para atualizar manualmente.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+$token = &#34;d41d8cd98f00b204e9800998ecf8427e&#34;;
+if($_REQUEST[&#39;token&#39;] == $token)
+    $tokenValido = true;
+?&amp;gt;
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&#34;utf-8&#34;/&amp;gt;
+&amp;lt;title&amp;gt;Usando GIT para atualizar arquivos no servidor de hospedagem&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;pre&amp;gt;
+    &amp;lt;?php
+        if($tokenValido) {
+            $exec = shell_exec(&#34;git pull origin master 2&amp;gt;&amp;1&#34;);
+            echo $exec;
+
+            $textoLog = PHP_EOL.&#34;Data: &#34;.date(d.&#34;/&#34;.m.&#34;/&#34;.Y.&#34; - &#34;.H.&#34;:&#34;.i.&#34;:&#34;.s);
+            $textoLog .= PHP_EOL.$exec;
+
+            $arquivoLog = fopen(&#39;log.txt&#39;, &#39;a+&#39;);
+            fwrite($arquivoLog, $textoLog);
+            fclose($arquivoLog);
+        } else {
+            //Deve exibir o log e um botão para para executar a atualização
+        }
+    ?&amp;gt;
+&amp;lt;/pre&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;implementando-a-leitura-do-log-e-botão-para-atualizar&#34;&gt;Implementando a Leitura do Log e Botão Para Atualizar&lt;/h4&gt;
+
+&lt;p&gt;No código abaixo foi adiciona a implementação que lê o arquivo de log através do comando file() e depois exibe na tela, também foi adicionado um formulário com o botão &amp;#8220;Atualizar&amp;#8221;, caso ocorra alguma falha na atualização automática através do webhook esse botão pode ser utilizado para forçar essa atualização e executar o nosso deploy.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+$token = &#34;d41d8cd98f00b204e9800998ecf8427e&#34;;
+if($_REQUEST[&#39;token&#39;] == $token)
+    $tokenValido = true;
+?&amp;gt;
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&#34;utf-8&#34;/&amp;gt;
+&amp;lt;title&amp;gt;Usando GIT para atualizar arquivos no servidor de hospedagem&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+    &amp;lt;pre&amp;gt;
+        &amp;lt;?php
+        if($tokenValido) {
+            $exec = shell_exec(&#34;git pull origin master 2&amp;gt;&amp;1&#34;);
+            echo $exec;
+
+            $textoLog = PHP_EOL.&#34;Data: &#34;.date(d.&#34;/&#34;.m.&#34;/&#34;.Y.&#34; - &#34;.H.&#34;:&#34;.i.&#34;:&#34;.s);
+            $textoLog .= PHP_EOL.$exec;
+
+            $arquivoLog = fopen(&#39;log.txt&#39;, &#39;a+&#39;);
+            fwrite($arquivoLog, $textoLog);
+            fclose($arquivoLog);
+        } else {
+        ?&amp;gt;
+            &amp;lt;form action=&#34;index.php&#34; method=&#34;post&#34;&amp;gt;
+                &amp;lt;input type=&#34;hidden&#34; name=&#34;token&#34; value=&#34;d41d8cd98f00b204e9800998ecf8427e&#34;&amp;gt;
+                &amp;lt;input type=&#34;submit&#34; value=&#34;Atualizar&#34;&amp;gt;
+            &amp;lt;/form&amp;gt;
+        &amp;lt;?php
+        $texto = file(&#39;log.txt&#39;);
+        foreach ($texto as $linha) {
+            echo $linha;
+        }
+        }
+        ?&amp;gt;
+    &amp;lt;/pre&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;adicionando-autenticação&#34;&gt;Adicionando Autenticação&lt;/h4&gt;
+
+&lt;p&gt;Tudo funcionando, mas qualquer um pode entrar na nossa URL, visualizar os logs e clicar no botão para atualizar o servidor.&lt;/p&gt;
+
+&lt;p&gt;Então vou implementar uma autenticação simples, iniciando uma sessão e usando a variável $senhaAcesso, então nossas regras seriam as seguintes:&lt;/p&gt;
+
+&lt;p&gt;Se receber o token, faz a validação, se estiver correto, atualiza o nosso servidor&lt;/p&gt;
+
+&lt;p&gt;Se receber a senhaAcesso, faz a validação se estiver correto, mostra o log e o botão para atualizar&lt;/p&gt;
+
+&lt;p&gt;Se não receber o token e nem a senhaAcesso mostra um form solicitando a senha&lt;/p&gt;
+
+&lt;p&gt;Nosso código tem apenas 3 condições no if, eu preferi deixar assim pra ficar mais fácil de entender, as condições separadas para ficar mais fácil de entender:&lt;/p&gt;
+
+&lt;pre&gt;if($tokenValido) {
+            // Se o toquem for válido
+            // Executa o comando git pull para atualizar o servidor e grava o log
+        } else if($_SESSION[&#39;usuarioValido&#39;]) {
+            // Se o usuário estiver logado mostra o log e o botão para atualizar
+        } else {
+            //Se o usuário não estiver logado mostra o formulário para logar
+        }
+&lt;/pre&gt;
+
+&lt;p&gt;Abaixo o código completo desta etapa:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+session_start();
+$token = &#34;d41d8cd98f00b204e9800998ecf8427e&#34;;
+$senhaAcesso = &#39;joaozonta&#39;;
+
+if($_REQUEST[&#39;token&#39;] == $token)
+    $tokenValido = true;
+
+if($_REQUEST[&#39;senhaAcesso&#39;] == $senhaAcesso &amp;&amp; empty($_SESSION[&#39;usuarioValido&#39;]))
+    $_SESSION[&#39;usuarioValido&#39;] = true;
+
+if($_REQUEST[&#39;sair&#39;])
+    unset($_SESSION[&#39;usuarioValido&#39;]);
+?&amp;gt;
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&#34;utf-8&#34;/&amp;gt;
+&amp;lt;title&amp;gt;Usando GIT para atualizar arquivos no servidor de hospedagem&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;pre&amp;gt;
+    &amp;lt;?php
+        if($tokenValido) {
+            $exec = shell_exec(&#34;git pull origin master 2&amp;gt;&amp;1&#34;);
+            echo $exec;
+
+            $textoLog = PHP_EOL.&#34;Data: &#34;.date(d.&#34;/&#34;.m.&#34;/&#34;.Y.&#34; - &#34;.H.&#34;:&#34;.i.&#34;:&#34;.s);
+            $textoLog .= PHP_EOL.$exec;
+
+            $arquivoLog = fopen(&#39;log.txt&#39;, &#39;a+&#39;);
+            fwrite($arquivoLog, $textoLog);
+            fclose($arquivoLog);
+        } else if($_SESSION[&#39;usuarioValido&#39;]) {
+        ?&amp;gt;
+        &amp;lt;form action=&#34;index.php&#34; method=&#34;post&#34;&amp;gt;
+            &amp;lt;input type=&#34;hidden&#34; name=&#34;token&#34; value=&#34;d41d8cd98f00b204e9800998ecf8427e&#34;&amp;gt;
+            &amp;lt;input type=&#34;submit&#34; value=&#34;Atualizar&#34;&amp;gt;
+        &amp;lt;/form&amp;gt;
+        &amp;lt;?php
+        if($_SESSION[&#39;usuarioValido&#39;])
+            echo &#39;&amp;lt;p&amp;gt;&amp;lt;a href=&#34;index.php?sair=true&#34;&amp;gt;Sair&amp;lt;/a&amp;gt;&amp;lt;/p&amp;gt;&#39;;
+            $texto = file(&#39;log.txt&#39;);
+            foreach ($texto as $linha) {
+                echo $linha;
+            }
+        } else {
+        ?&amp;gt;
+        &amp;lt;form action=&#34;index.php&#34; method=&#34;post&#34;&amp;gt;
+            &amp;lt;div&amp;gt;
+                &amp;lt;input type=&#34;text&#34; placeholder=&#34;Senha&#34; name=&#34;senhaAcesso&#34;&amp;gt; 
+            &amp;lt;/div&amp;gt;
+            &amp;lt;input type=&#34;submit&#34; value=&#34;Acessar Sistema&#34;&amp;gt;
+        &amp;lt;/form&amp;gt;
+        &amp;lt;?php
+        }
+    ?&amp;gt;
+&amp;lt;/pre&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h4&gt;
+
+&lt;p&gt;De uma maneira muito simples você pode atualizar seu servidor sem depender de um sistema complexo de deploy e sem muitas configurações.&lt;/p&gt;
+
+&lt;p&gt;Você pode implementar muitas outras opções para deixar o seu sistema cada vez mais completo, pode adicionar um botão para limpar o log ou adicionar o log em um banco de dados. Já imaginou mostrar um combo com os últimos commits realizados e você escolher qual desses commits você quer atualizar no servidor, podendo assim voltar e avançar versões.&lt;/p&gt;
+
+&lt;p&gt;Não falei sobre banco de dados nesse artigo, acho que isso pode ser tratado em outro tópico.&lt;/p&gt;
+
+&lt;p&gt;Você pode ver o exemplo funcionando em &lt;a href=&#34;http://joaozonta.com.br/artigo_atualizacao_arquivos/deploy/&#34;&gt;http://joaozonta.com.br/artigo_atualizacao_arquivos/deploy/&lt;/a&gt;, use a senha &amp;#8220;joaozonta&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;*&lt;em&gt;No exemplo que esta no ar foram comentadas as linhas que fazem o deploy automático, está apenas simulando o funcionamento.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Fique á vontade para entrar em contato para qualquer dúvida, sugestão, crítica ou erro que encontrar nesse artigo.&lt;/p&gt;
+
+&lt;p&gt;João A. Zonta&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.joaozonta.com.br&#34;&gt;joaozonta.com.br&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://twitter.com/joaozontaweb&#34;&gt;@joaozontaweb&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;mailto:joao@joaozonta.com.br&#34;&gt;joao@joaozonta.com.br&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Usando GIT para atualizar arquivos no servidor de hospedagem</title>
+      <link>http://tableless.com.br/usando-git-para-atualizar-arquivos-no-servidor-de-hospedagem/</link>
+      <pubDate>Thu, 08 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/usando-git-para-atualizar-arquivos-no-servidor-de-hospedagem/</guid>
+      <description>
+
+&lt;h2 id=&#34;solução-usando-bitbucket-kinghost&#34;&gt;Solução usando Bitbucket + Kinghost&lt;/h2&gt;
+
+&lt;p&gt;A mesma configuração pode ser usada em qualquer servidor GIT e qualquer serviço de hospedagem que tenha acesso via ssh e git instalado&lt;/p&gt;
+
+&lt;p&gt;Vamos imaginar um cenário em que você está desenvolvendo um site, nesse site você tem vários arquivos, distribuídos em pastas separadas, css, javascript, html, etc&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Sempre que você altera algum arquivo, precisa enviar por FTP, para atualizar seu site. Um fluxo (&lt;a href=&#34;http://elcio.com.br/pare-de-usar-ftp/&#34;&gt;antigo&lt;/a&gt;), mas parece ser ainda muito normal (&lt;a href=&#34;http://tableless.com.br/tornar-dev-front-end/&#34;&gt;infelizmente&lt;/a&gt;) por aí. As vezes você faz várias alterações e pode esquecer de enviar alguma coisa, ou você não sabe se já atualizou ou não, ou então você mandou alguma coisa errada para o servidor e seu site parou de funcionar, como fazer para voltar a versão anterior?&lt;/p&gt;
+
+&lt;p&gt;Com o GIT esse problema é solucionado, você pode voltar para a versão desejada com apenas um comando git, atualizar apenas os arquivos que foram alterados e muito mais.&lt;/p&gt;
+
+&lt;h4 id=&#34;requisitos-para-executar-este-tutorial&#34;&gt;Requisitos para executar este tutorial:&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Conta no site &lt;a href=&#34;https://bitbucket.org/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://bitbucket.org/&#34;&gt;https://bitbucket.org/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Serviço de hospedagem linux com acesso SSH&lt;/li&gt;
+&lt;li&gt;Cliente GIT instalado na sua máquina &amp;#8211; &lt;a href=&#34;https://git-scm.com/downloads&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://git-scm.com/downloads&#34;&gt;https://git-scm.com/downloads&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Putty, baixe o pacote completo, é um arquivo .zip com os binários para windows &amp;#8211; &lt;a href=&#34;http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html&#34;&gt;http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Antes de tudo vamos criar nossa chave de ssh no windows, essa chave serve para autenticação no bitbucket, com a chave ativa no windows você não precisa ficar digitando seu login e senha para autenticar;&lt;/p&gt;
+
+&lt;p&gt;Descompacte o arquivo putty.zip e execute o arquivo PUTTYGEN.EXE;&lt;/p&gt;
+
+&lt;p&gt;Clique em |Generate|, para que a chave seja criada você deve movimentar o mouse na área em branco do programa e esperar a barra de progresso chegar até o final:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/puttygen_01.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51450&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/puttygen_01.jpg&#34; alt=&#34;puttygen_01&#34; width=&#34;492&#34; height=&#34;476&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Clique em |Save private key|, vai aparecer uma janela avisando que não definimos um passphrase, clique em sim e salve sua chave.ppk, o arquivo ppk é usado para identificar seu computador no bitbucket, vamos usa-lo mais tarde.&lt;/p&gt;
+
+&lt;p&gt;Ainda no PuttyGen, vamos copiar a nossa chave |Public Key| para inserir no bitbucket.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/puttygen_02.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51451&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/puttygen_02.jpg&#34; alt=&#34;puttygen_02&#34; width=&#34;492&#34; height=&#34;476&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Abra o bitbucket, clique em |Gerenciar conta| &amp;gt; |Chaves SSH| &amp;gt; |Adicionar Chave|;&lt;/p&gt;
+
+&lt;p&gt;Na janela que abrir escolha um nome para identificar a chave, pode ser qualquer nome, e no campo key cole a chave que copiamos lá do PuttyGen.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/chave_bitbucket.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51443&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/chave_bitbucket.jpg&#34; alt=&#34;chave_bitbucket&#34; width=&#34;786&#34; height=&#34;466&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Já pode fechar o PuttyGen, vamos agora inicializar a chave no computador, execute o PAGEANT.EXE, quando você executa aparece um ícone na barra de tarefas ao lado do relógio do windows, clique duas vezes para abrir o PAGEANT;&lt;/p&gt;
+
+&lt;p&gt;Com o PAGEANT aberto, clique em |Add Key| e selecione o arquivo .ppk que salvamos anteriormente, depois pode fechar o PAGEANT, ele vai ficar minimizado na barra de tarefas.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h4 id=&#34;criando-repositório-no-bitbucket&#34;&gt;Criando repositório no Bitbucket&lt;/h4&gt;
+
+&lt;p&gt;Depois de logado no site do bitbucket, clique em criar e selecione a opção criar repositório;&lt;/p&gt;
+
+&lt;p&gt;Na tela a seguir você deve escolher um nome, aqui vou usar o nome |artigo_atualizacao_arquivos|;&lt;/p&gt;
+
+&lt;p&gt;Nos níveis de acesso você escolhe se vai ser um repositório privado ou público, se for privado somente as pessoas que você conceder permissão terão acesso, no meu caso criei um repositório público;&lt;/p&gt;
+
+&lt;p&gt;Não precisa mexer no restante das configurações, veja abaixo como ficou:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_bitbucket_01.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51444&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_bitbucket_01.jpg&#34; alt=&#34;configuracao_bitbucket_01&#34; width=&#34;614&#34; height=&#34;580&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Após essa etapa vai aparecer uma tela de confirmação dizendo que o repositório está vazio e algumas dicas de como configurar, vamos criar um repositório do zero.&lt;/p&gt;
+
+&lt;p&gt;No seu computador abra o terminal e vamos verificar se o git está instalado, digite |git &amp;#8211;version| se o git estiver instalado você deve ver uma mensagem dizendo qual a versão você tem instalada;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;* Caso não tenha o GIT instalado ainda, faça o download e instale &lt;a href=&#34;https://git-scm.com/downloads&#34;&gt;https://git-scm.com/downloads&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Ainda no terminal navegue até a pasta que vai ter o conteúdo do seu repositório, caso necessário crie uma;&lt;/p&gt;
+
+&lt;p&gt;Digite |git init| para iniciar um novo repositório local;&lt;/p&gt;
+
+&lt;p&gt;No bitbucket, selecione o seu repositório, depois no menu a esquerda, clique em clonar, vai abrir uma janela, selecione ssh e copie o texto que tem no campo ao lado;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_bitbucket_02.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51445&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_bitbucket_02.jpg&#34; alt=&#34;configuracao_bitbucket_02&#34; width=&#34;667&#34; height=&#34;390&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Cole o texto copiado no seu terminal e espere a mensagem de confirmação, deve ser parecida com a mensagem abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_git_windows.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51448&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_git_windows.jpg&#34; alt=&#34;configuracao_git_windows&#34; width=&#34;657&#34; height=&#34;282&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Entre na pasta do seu repositório e crie um arquivo para fazer nosso primeiro commit, eu criei um arquivo chamado &amp;#8220;artigo.html&amp;#8221;;&lt;/p&gt;
+
+&lt;p&gt;Depois de criar o arquivo vamos adicionar ao commit com o comando |git add artigo.html-|&lt;/p&gt;
+
+&lt;p&gt;Agora vamos fazer o commit |git commit -m &amp;#8220;Primeiro Commit|&lt;/p&gt;
+
+&lt;p&gt;Depois enviar para o servidor com o comando |git push -u origin master|&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_git_windows_01.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51449&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_git_windows_01.jpg&#34; alt=&#34;configuracao_git_windows_01&#34; width=&#34;657&#34; height=&#34;301&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Nossa configuração no windows já está pronta, já pode enviar e receber arquivos do repositório, agora vamos configurar nosso servidor de hospedagem.&lt;/p&gt;
+
+&lt;p&gt;Abra o putty e faça uma conexão ssh com o servidor, vamos fazer o mesmo processo do windows para saber se o git está instalado;&lt;/p&gt;
+
+&lt;p&gt;|git &amp;#8211;version|&lt;/p&gt;
+
+&lt;p&gt;Vamos criar a chave de ssh para autenticar no bitbucket sem usar senha:&lt;/p&gt;
+
+&lt;p&gt;Digite |ssh-keygen|, vc vai ver uma mensagem pedindo em qual arquivo você quer salvar a chave, ao lado ele exibe uma sugestão, se apertar Enter sem escrever nada ele vai usar o arquivo padrão que foi sugerido, se o arquivo já existir vai pedir pra substituir, confirme |Y|, no meu caso usei o arquivo sugerido;&lt;/p&gt;
+
+&lt;p&gt;Logo após vai pedir o passphrase, novamente é só apertar Enter, pode deixar em branco;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_git_linux_01.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51446&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_git_linux_01.jpg&#34; alt=&#34;configuracao_git_linux_01&#34; width=&#34;652&#34; height=&#34;409&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você usou o arquivo padrão para gerar a chave digite |cat ~/.ssh/id_rsa.pub| para visualizar a sua chave, copie esse código, e adicione uma nova chave no bitbucket com essa chave, da mesma maneira que fizemos com a chave que foi criada no windows.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_git_linux_02.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51447&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_git_linux_02.jpg&#34; alt=&#34;configuracao_git_linux_02&#34; width=&#34;642&#34; height=&#34;131&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto, agora vamos clonar nosso repositório, da mesma maneira que fizemos no windows, abra o repositório no bitbucket, depois no menu a esquerda, clique em clonar, vai abrir uma janela, selecione ssh e copie o texto que tem no campo ao lado;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_bitbucket_02.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51445&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/configuracao_bitbucket_02.jpg&#34; alt=&#34;configuracao_bitbucket_02&#34; width=&#34;667&#34; height=&#34;390&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Execute o comando no seu terminal ssh;&lt;/p&gt;
+
+&lt;p&gt;Agora que seu repositório já esta configurado você pode usar o comando |git pull| para atualizar os arquivos sempre que quiser.&lt;/p&gt;
+
+&lt;p&gt;Ou pode voltar uma versão usando |git checkout| vale a penas estudar um pouco os comandos do git e entender todos os seus recursos.&lt;/p&gt;
+
+&lt;p&gt;Link para material de estudo sobre o GIT: &lt;a href=&#34;http://pt.slideshare.net/slide_user/magia-git&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://pt.slideshare.net/slide_user/magia-git&#34;&gt;http://pt.slideshare.net/slide_user/magia-git&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Link oficial do git: &lt;a href=&#34;https://git-scm.com/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://git-scm.com/&#34;&gt;https://git-scm.com/&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;ATENÇÃO: para evitar conflitos no git não use mais FTP nas pastas que você está usando versionamento através do GIT&lt;/p&gt;
+
+&lt;p&gt;No próximo artigo vou explicar como fazer o deploy automático usando php, sempre que o GIT for atualizado ele envia um aviso ao servidor que executa os comandos para atualizar os arquivos.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Tudo que você queria saber sobre Git e GitHub, mas tinha vergonha de perguntar</title>
+      <link>http://tableless.com.br/tudo-que-voce-queria-saber-sobre-git-e-github-mas-tinha-vergonha-de-perguntar/</link>
+      <pubDate>Wed, 07 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/tudo-que-voce-queria-saber-sobre-git-e-github-mas-tinha-vergonha-de-perguntar/</guid>
+      <description>
+
+&lt;p&gt;Este artigo traz a você tudo que precisa saber para se tornar um desenvolvedor que possa dominar tanto o git, quanto o Github. Nosso objetivo é trazer os conhecimentos necessários para que você possa, a partir do zero, dominar os conceitos gerais do git, e usar o github para &amp;#8220;hospedar&amp;#8221; seus projetos pessoais e acompanhar outros projetos de seu interesse.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-git&#34;&gt;O que é git?&lt;/h2&gt;
+
+&lt;p&gt;Git é um sistema de controle de versão de arquivos. Através deles podemos&amp;nbsp;desenvolver projetos&amp;nbsp;na qual diversas pessoas podem contribuir simultaneamente no mesmo, editando e criando novos arquivos e permitindo que os mesmos possam existir sem o risco de suas alterações serem sobrescritas.&lt;/p&gt;
+
+&lt;p&gt;Se não houver um sistema de versão, imagine o caos entre duas pessoas abrindo o mesmo arquivo ao mesmo tempo. Uma das aplicações do git é justamente essa, permitir que um arquivo possa ser editado ao mesmo tempo por pessoas diferentes. Por mais complexo que isso seja, ele tenta manter tudo em ordem para evitar problemas para nós desenvolvedores.&lt;/p&gt;
+
+&lt;p&gt;Outro fator importante do git (e essa é um dos seus diferenciais em relação ao svn &amp;#8211; caso vc o conheça) é a possibilidade de criar, a qualquer momento, vários &lt;code&gt;snapshots&lt;/code&gt; do seu projeto, ou como chamamos mais &amp;#8220;nerdmenete&amp;#8221;, branch. Suponha que o seu projeto seja um site html, e você deseja criar uma nova seção no seu código HTML, mas naquele momento você não deseja que estas alterações estejam disponíveis para mais ninguém, só para você. Isso é, você quer alterar o projeto (incluindo vários arquivos nele), mas ainda não quer que isso seja tratado como &amp;#8220;oficial&amp;#8221; para outras pessoas, então vc cria um branch (como se fosse uma cópia espelho) e então trabalha apenas nesse branch, até acertar todos os detalhes dele. Após isso, você pode fazer um merge de volta do seu branch até o projeto original. Veja bem, se tudo isso que você leu só ajudou a te confundir mais &amp;#8211; respire fundo &amp;#8211; e siga em frente. Com exemplos tudo fica melhor.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-github&#34;&gt;O que é github?&lt;/h2&gt;
+
+&lt;p&gt;O &lt;a href=&#34;https://github.com/&#34; target=&#34;_blank&#34;&gt;Github&lt;/a&gt; é um serviço web que oferece diversas funcionalidades extras aplicadas ao git. Resumindo, você poderá usar gratuitamente o github para hospedar seus projetos pessoais. Além disso, quase todos os projetos/frameworks/bibliotecas sobre desenvolvimento open source estão no github, e você pode acompanhá-los através de novas versões, contribuir informando bugs ou até mesmo enviando código e correções. Se você é desenvolvedor e ainda não tem github, você está atrasado e essa é a hora de correr atrás do prejuízo.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando-git&#34;&gt;Instalando git&lt;/h2&gt;
+
+&lt;p&gt;O git é um programa que pode ser instalado &lt;a href=&#34;http://git-scm.com/download/win&#34; target=&#34;_blank&#34;&gt;neste link&lt;/a&gt; para Windows, &lt;a href=&#34;http://git-scm.com/download/mac&#34; target=&#34;_blank&#34;&gt;neste&lt;/a&gt; para Mac, ou então através do comando &lt;code&gt;sudo apt-get install git&lt;/code&gt; para plataformas Linux/Debian, como o Ubuntu. Se você usa uma VM na nuvem, como o &lt;a href=&#34;http://c9.io&#34; target=&#34;_blank&#34;&gt;cloud9&lt;/a&gt; ou &lt;a href=&#34;https://koding.com/&#34; target=&#34;_blank&#34;&gt;koding&lt;/a&gt;, o git já estará disponível em sua linha de comando.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Nossa metodologia é fazer com que você aprenda git já utilizando o github, então vamos a sua configuração!&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;criando-a-conta-no-github&#34;&gt;Criando a conta no GitHub&lt;/h2&gt;
+
+&lt;p&gt;O github não possui instalação, ele é um serviço, e caso você não tenha uma conta, chegou a hora de criá-la, &lt;a href=&#34;https://github.com/&#34; target=&#34;_blank&#34;&gt;neste link&lt;/a&gt;. Após criar a conta, você verá um botão verde &lt;code&gt;+New Repository&lt;/code&gt; na qual poderá criar um repositório de acordo com a tela a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/github.png&#34; alt=&#34;github&#34; width=&#34;750&#34; height=&#34;477&#34; class=&#34;alignleft size-full wp-image-51160&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Nesta imagem estamos criando um repositório cujo nome é &lt;code&gt;site&lt;/code&gt;, de domínio público (podem ser criados reps privados pagando uma mensalidade), e com o arquivo &lt;code&gt;README.md&lt;/code&gt; embutido, que contém uma descrição do seu projeto. Para que possamos começar a entender como o git funciona, é fundamental criar um rep como este para os nossos testes.&lt;/p&gt;
+
+&lt;p&gt;Após a criação do repositório, ele estará disponível no endereço &lt;code&gt;https://github.com/&amp;lt;username&amp;gt;/site&lt;/code&gt;, onde &lt;code&gt;username&lt;/code&gt;é o login que você usou para se cadastrar. Acessando esta url temos a seguinte resposta:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/github_site.png&#34; alt=&#34;github_site&#34; width=&#34;1051&#34; height=&#34;780&#34; class=&#34;alignleft size-full wp-image-51163&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Temos muitas informações nesta tela, pois ela é a tela principal do seu projeto. Explicaremos algumas informações ao longo deste artigo, por enquanto repare apenas no botão &lt;code&gt;HTTPs Clone Url&lt;/code&gt; na parte inferior à direta. Esta URl será necessária para que possamos &amp;#8220;clonar&amp;#8221; este projeto em nosso ambiente de estudo (sua máquina windows, mac, linux ou a vm). Clique no botão de copiar URL e perceba que a seguinte URL está na área de transferência: &lt;code&gt;https://github.com/&amp;lt;username&amp;gt;/site.git&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;configurando-o-git&#34;&gt;Configurando o git&lt;/h2&gt;
+
+&lt;p&gt;Existem 2 pequenos passos para configurar o seu GIT para ter um acesso mais simplificado ao github. Aqui estaremos estabelecendo que, sempre que necessitar, você irá fornecer o seu login e senha ao GitHub. Existem meios para salvar a senha em local seguro, mas vamos pular esta etapa. Para abrir um terminal GIT no Windows, basta criar uma pasta no seu sistema e, nela, clicar com o botão direito do mouse e escolher &lt;code&gt;Git Bash Here&lt;/code&gt;. Em sistemas mac/linux você já está acostumado a usar o terminal/console, o git estará lá disponível. Neste artigo estaremos utilizando a máquina virtual cloud9, que você pode aprender a usá-la neste &lt;a href=&#34;http://tableless.com.br/programando-na-nuvem-com-o-cloud9/&#34; target=&#34;_blank&#34;&gt;artigo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Então, com o seu terminal git aberto, vamos digitar:&lt;/p&gt;
+
+&lt;pre&gt;$ git config --global user.name &#34;YOUR NAME&#34;
+$ git config --global user.email &#34;YOUR EMAIL ADDRESS&#34;
+&lt;/pre&gt;
+
+&lt;p&gt;Estas configurações ficam alocadas no arquivo &lt;code&gt;~/.gitconfig&lt;/code&gt;, onde o ~ é o seu diretório home. No Windows, ele fica em &lt;code&gt;c:\Usuarios\&amp;lt;username&amp;gt;\.gitconfig&lt;/code&gt;. Veja a figura a seguir com a minha configuração no cloud9.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/git_config.png&#34; alt=&#34;git_config&#34; width=&#34;300&#34; height=&#34;146&#34; class=&#34;alignleft size-medium wp-image-51167&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;vamos-clonar&#34;&gt;Vamos clonar!&lt;/h2&gt;
+
+&lt;p&gt;Então o que temos até agora é o git configurado para utilizar o github e o projeto no github criado. Precisamos trazer este projeto para o nosso git, e este processo se chama &lt;code&gt;clonar&lt;/code&gt;. Então, quando você quiser começar um projeto utilizando git, você cria ele no github e clona na sua máquina. O comando para clonar o projeto é &lt;code&gt;git clone &amp;quot;url&amp;quot;&lt;/code&gt;, veja:&lt;/p&gt;
+
+&lt;pre&gt;git clone https://github.com/&amp;lt;username&amp;gt;/site.git
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/git_clone.png&#34; alt=&#34;git_clone&#34; width=&#34;720&#34; height=&#34;223&#34; class=&#34;alignleft size-full wp-image-51172&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Perceba que, ao fazer o git clone, o projeto é baixado para a sua máquina, e uma pasta com o nome do projeto é criada.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Quer dizer que qualquer pessoa pode baixar o meu projeto? Sim, isso é natural, já que o seu repositório está público. Qualquer um pode clonar ele para si, mas eles não podem alterar os seus arquivos, isso não vai acontecer, exceto que você permita.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;comandos-iniciais-do-git&#34;&gt;Comandos iniciais do git&lt;/h2&gt;
+
+&lt;p&gt;Com o repositório na sua máquina, vamos aprender 4 comandos iniciais que farão parte da sua vida a partir de agora:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;git add &amp;lt;arquivos...&amp;gt;&lt;/code&gt; Este comando adiciona o(s) arquivo(s) em um lugar que chamamos de INDEX, que funciona como uma área do git no qual os arquivos possam ser enviados ao Github. É importante saber que ADD não está adicionando um arquivo novo ao repositório, mas sim dizendo que o arquivo (sendo novo ou não) está sendo preparado para entrar na próxima revisão do repositório.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;git commit -m &amp;quot;comentário qualquer&amp;quot;&lt;/code&gt; Este comando realiza o que chamamos de &amp;#8220;commit&amp;#8221;, que significa pegar todos os arquivos que estão naquele lugar INDEX que o comando &lt;code&gt;add&lt;/code&gt; adicionou e criar uma revisão com um número e um comentário, que será vista por todos.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;git push&lt;/code&gt; Push (empurrar) é usado para publicar todos os seus commits para o github. Neste momento, será pedido a sua senha.&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;git status&lt;/code&gt; Exibe o status do seu repositório atual &lt;/ul&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;vamos-praticar&#34;&gt;Vamos praticar!&lt;/h2&gt;
+
+&lt;p&gt;Chegou o momento de praticar um pouco o que vimos até agora, e com bastante calma para que você possa entender cada passo. Após clonar o seu projeto, crie o arquivo &lt;code&gt;index.html&lt;/code&gt; na pasta site que é o seu repositório git. Após criar o arquivo, execute o comando &lt;code&gt;git status&lt;/code&gt;. A resposta é semelhante a figura a seguir:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/git_touch_index.png&#34; alt=&#34;git_touch_index&#34; width=&#34;628&#34; height=&#34;284&#34; class=&#34;alignleft size-full wp-image-51179&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Ou seja, o comando &lt;code&gt;git status&lt;/code&gt; nos trouxe várias informações, que iremos ignorar a princípio, exceto pelo &lt;code&gt;Untracked files&lt;/code&gt;, dizendo que existe um arquivo que não está sendo &amp;#8220;mapeado&amp;#8221; pelo git. Para preparar este arquivo para o seu versionamento, usamos o comando &lt;code&gt;git add&lt;/code&gt;, veja:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/git_add.png&#34; alt=&#34;git_add&#34; width=&#34;600&#34; height=&#34;272&#34; class=&#34;alignleft size-full wp-image-51180&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora temos o nosso arquivo index.html no INDEX do repositório, ou se você quiser pensar: &amp;#8220;preparado para um commit&amp;#8221;. Para commitar este arquivo, usamos:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/git_commit.png&#34; alt=&#34;git_commit&#34; width=&#34;760&#34; height=&#34;248&#34; class=&#34;alignleft size-full wp-image-51182&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Após &amp;#8220;commitar&amp;#8221; o arquivo, ele já está presente no nosso repositório local, tanto que realizamos o comando &lt;code&gt;git status&lt;/code&gt; novamente e ele retornou que não havia nada de novo no projeto. Perceba agora que, mesmo recarregando o projeto no github, nada muda. Ou seja, estas mudanças até agora foram locais, você pode realizar várias operações antes de publicá-las no github. Para publicar, usamos o comando &lt;code&gt;git push&lt;/code&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/git_push.png&#34; alt=&#34;git_push&#34; width=&#34;600&#34; height=&#34;255&#34; class=&#34;alignleft size-full wp-image-51184&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Após realizar o git push podemos ver no site github as mudanças realizadas no projeto:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/github_site2.png&#34; alt=&#34;github_site2&#34; width=&#34;812&#34; height=&#34;552&#34; class=&#34;alignleft size-full wp-image-51185&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Desta forma, aprendemos os 4 comandos mais básicos do git, e com ele podemos começar a compreender como funciona o processo de versionamento de arquivos com git e github.&lt;/p&gt;
+
+&lt;h3 id=&#34;errei-a-mensagem-do-commit-como-arrumo&#34;&gt;Errei a mensagem do commit, como arrumo?&lt;/h3&gt;
+
+&lt;p&gt;Imagine que você tenha errado a mensagem que escreveu no commit ou simplesmente queira melhorar a descrição do seu trabalho. Você já comitou a mensagem mas ainda não fez o push das suas modificações para o servidor. Nesse caso você usa a flag &lt;code&gt;--amend&lt;/code&gt;. Fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;$ git commit --amend&lt;/pre&gt;
+    
+
+&lt;p&gt;O &lt;code&gt;git commit --amend&lt;/code&gt; modifica a mensagem do commit mais recente, ou seja, o último commit feito por você no projeto. Além de você mudar a mensagem do commit, você consegue adicionar arquivos que você se esqueceu ou retirar arquivos comitados por engano. O git cria um commit totalmente novo e corrigido.&lt;/p&gt;
+
+&lt;h2 id=&#34;cadê-o-git-pull&#34;&gt;Cadê o git pull?&lt;/h2&gt;
+
+&lt;p&gt;Ainda existe um comando importante neste processo, que é o &lt;code&gt;git pull&lt;/code&gt;. Ele é usado para trazer todas as modificações que estão no github para o seu projeto local. Isso é vital quando existem projetos mantidos por mais de uma pessoa, ou se você possui duas máquinas e precisa manter a sincronia entre elas. Supondo que você possui uma máquina no trabalho e outra em casa. Ambas tem o repositório local ligado ao github. Quando você executar um &lt;code&gt;git push&lt;/code&gt; em uma das máquinas, terá que realizar um &lt;code&gt;git pull&lt;/code&gt; na outra.&lt;/p&gt;
+
+&lt;p&gt;Para exemplificar, vamos alterar o arquivo README.md diretamente no github. Isso é possível clicando no arquivo e depois clicando no ícone para edição, conforme a imagem a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/github_edit.png&#34; alt=&#34;github_edit&#34; width=&#34;935&#34; height=&#34;356&#34; class=&#34;alignleft size-full wp-image-51241&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Após clicar em edit, adicione algum texto, forneça uma mensagem de commit e clique no botão &amp;#8220;Commit Changes&amp;#8221;. Com isso, uma nova revisão no seu projeto é criada, mas como ela foi gerada no github, o seu projeto local está desatualizado. Para atualizar o seu projeto, use &lt;code&gt;git pull&lt;/code&gt;, e perceba que o arquivo README.md é atualizado de acordo com a sua última revisão, semelhante a figura a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/git-pull.png&#34; alt=&#34;git-pull&#34; width=&#34;520&#34; height=&#34;285&#34; class=&#34;alignleft size-full wp-image-51242&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;melhorando-o-conceito-do-comando-git-add&#34;&gt;Melhorando o conceito do comando git add&lt;/h2&gt;
+
+&lt;p&gt;Possivelmente você imaginou que o comando &lt;code&gt;git add&lt;/code&gt; é usado para novos arquivos, mas isso não é verdade. O comando &lt;code&gt;add&lt;/code&gt; é usado para adicionar qualquer alteração de arquivo ao INDEX do git, que é uma área especial onde os arquivos estão sendo preparados para o commit. Quando usamos &lt;code&gt;add&lt;/code&gt;, estamos dizendo que o arquivo estará adicionando ao próximo commit, quando este for realizado. Isso é necessário porque nem sempre queremos que todos os arquivos que alteramos sejam comitados.&lt;/p&gt;
+
+&lt;p&gt;Vamos a um exemplo simples, adicionando o seguinte código no arquivo index.html:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&#34;UTF-8&#34;&amp;gt;
+&amp;lt;title&amp;gt; Meu Site &amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+    
+
+&lt;p&gt;Após salvar este modelo html, o comando git status irá apresentar:&lt;/p&gt;
+
+&lt;pre&gt;modified:   index.html
+&lt;/pre&gt;
+    
+
+&lt;p&gt;Para adicionar o arquivo e prepará-lo para o commit, usamos &lt;code&gt;git add index.html&lt;/code&gt;. Desta forma, ele está pronto para usarmos o comando &lt;code&gt;git commit&lt;/code&gt;, o que não faremos agora. Antes disso, altere novamente o arquivo e adicione algum texto entre as tags body, por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&#34;UTF-8&#34;&amp;gt;
+&amp;lt;title&amp;gt; Meu Site &amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+Esse é meu site
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+    
+
+&lt;p&gt;Após alterar o arquivo, temos a seguinte situação:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Adicionamos o conteúdo html no arquivo index.html&lt;/li&gt;
+&lt;li&gt;Realizamos &lt;code&gt;git add index.html&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Alteramos index.html e adicionamos o texto entre as tags body
+&lt;br /&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Neste momento, faça: &lt;code&gt;git commit -m &amp;quot;Alteração no arquivo index.html&amp;quot;&lt;/code&gt;, e após isso, faça: &lt;code&gt;git push&lt;/code&gt;. Analise agora no github se a sua alteração na tag body está visível. Ela não estará. Mas porque isso aconteceu? Quando usamos o comando &lt;code&gt;git add&lt;/code&gt;, aquela alteração no body ainda não tinha sido escrita, então ela não estará pronta até que você faça novamente o comando &lt;code&gt;git add&lt;/code&gt;. Em termos técnicos, a segunda alteração que fez ainda não está na INDEX do repositório. Como tarefa, faça novamente &lt;code&gt;git add index.html&lt;/code&gt;, &lt;code&gt;git commit&lt;/code&gt; e &lt;code&gt;git push&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;trabalhando-com-branches&#34;&gt;Trabalhando com branches&lt;/h2&gt;
+
+&lt;p&gt;Branches e mergers sempre foram os pesadelos de qualquer gerenciador de versão (ok, do svn&amp;#8230;). No git, o conceito de branch tornou-se algo muito simples e fácil de usar. Mas quando que temos que criar um branch? Imagine que o seu site está pronto, tudo funcionando perfeitamente, mas surge a necessidade de alterar algumas partes dele como forma de melhorá-lo. Além disso, você precisa manter estas alterações tanto no computador de casa quanto do trabalho. Com isso temos um problema, se você começa a alterar os arquivos em casa, para na metade da implementação, e precisa terminar no trabalho, como você iria comitar tudo pela metade e deixar o site incompleto?&lt;/p&gt;
+
+&lt;p&gt;Para isso existe o conceito de branch, que é justamente ramificar o seu projeto em 2, como se cada um deles fosse um repositório, e depois juntá-lo novamente. Voltando ao github, perceba o detalhe da imagem a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/master.png&#34; alt=&#34;master&#34; width=&#34;821&#34; height=&#34;344&#34; class=&#34;alignleft size-full wp-image-51249&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Sem saber, você já está em um branch, que chamamos de master. Perceba também que, sempre que usávamos &lt;code&gt;git status&lt;/code&gt;, o nome do branch é exibido, e sempre que comitávamos ou fazíamos o push, o mesmo aparecia. Ou seja, até este momento fizemos todas as alterações no master. Você pode criar um branch no github ou em linha de comando. Inicialmente, vamos pelo github, criando o branch &amp;#8220;new_menu&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/new_branch.png&#34; alt=&#34;new_branch&#34; width=&#34;468&#34; height=&#34;328&#34; class=&#34;alignleft size-full wp-image-51250&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Criamos o branch new_menu, e para que possamos trabalhar nele, usamos o comando &lt;code&gt;git checkout new_menu&lt;/code&gt;. No primeiro momento que você cria este branch no github, é necessário realizar o comando &lt;code&gt;git pull&lt;/code&gt; no seu projeto para que ele possa saber que este branch foi criado. Após realizar &lt;code&gt;git pull&lt;/code&gt;, pode-se alterar para o novo branch, conforme a imagem a seguir.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/new_menu.png&#34; alt=&#34;new_menu&#34; width=&#34;604&#34; height=&#34;299&#34; class=&#34;alignleft size-full wp-image-51252&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Neste momento, estamos no branch &lt;code&gt;new_menu&lt;/code&gt;, e tudo que fizermos agora será pertencente a ele. Caso haja necessidade de voltar ao branch master, basta realizar o comando &lt;code&gt;git checkout master&lt;/code&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Atenção, o comando &lt;code&gt;checkout&lt;/code&gt; do git não é o mesmo do checkout do svn, caso você o conheça. Ambos tem sentidos totalmente diferentes.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Então, entando no branch new_menu, vamos adicionar um simples menu na página:&lt;/p&gt;
+
+&lt;p&gt;&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&amp;ldquo;UTF-8&amp;rdquo;&amp;gt;
+&amp;lt;title&amp;gt; Meu Site &amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&amp;lt;body&amp;gt;
+    Meu Site&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;amp;lt;ul&amp;amp;gt;
+    &amp;amp;lt;li&amp;amp;gt;&amp;amp;lt;a href=&amp;quot;index.html&amp;quot;&amp;amp;gt;Home&amp;amp;lt;/a&amp;amp;gt;&amp;amp;lt;/li&amp;amp;gt;
+    &amp;amp;lt;li&amp;amp;gt;&amp;amp;lt;a href=&amp;quot;sobre.html&amp;quot;&amp;amp;gt;Sobre&amp;amp;lt;/a&amp;amp;gt;&amp;amp;lt;/li&amp;amp;gt;
+    &amp;amp;lt;li&amp;amp;gt;&amp;amp;lt;a href=&amp;quot;contato.html&amp;quot;&amp;amp;gt;Contato&amp;amp;lt;/a&amp;amp;gt;&amp;amp;lt;/li&amp;amp;gt;
+&amp;amp;lt;/ul&amp;amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Após criar o menu, certifique-se de estar no branch new_menu e faça o commit, conforme a figura a seguir.
+
+&amp;lt;img src=&amp;quot;http://tableless.com.br/wp-content/uploads/2015/09/new_menu_commit.png&amp;quot; alt=&amp;quot;new_menu_commit&amp;quot; width=&amp;quot;716&amp;quot; height=&amp;quot;536&amp;quot; class=&amp;quot;alignleft size-full wp-image-51254&amp;quot; /&amp;gt;
+
+Agora temos algumas modificações no branch new\_menu, e podemos trabalhar nesse branch por quanto tempo for necessário, já que o master está intacto. Aqui temos uma funcionalidade interessante, que se destaca em relação as outras ferramentas de versionamento. Suponha que, no meio do seu desenvolvimento do menu, surge a necessidade de resolver um bug crítico no master, algo como &amp;amp;#8220;está faltando o h1 no título do seu site&amp;amp;#8221;&amp;amp;#8230;. Ou seja, estamos no branch new\_menu e precisamos alterar o master. Para isso, use o comando `git checkout master`. Ao fazer isso, retornamos ao master e aquele menu que criamos não está mais presente, conforme a figura a seguir.
+
+&amp;lt;img src=&amp;quot;http://tableless.com.br/wp-content/uploads/2015/09/back_to_master.png&amp;quot; alt=&amp;quot;back_to_master&amp;quot; width=&amp;quot;624&amp;quot; height=&amp;quot;686&amp;quot; class=&amp;quot;alignleft size-full wp-image-51255&amp;quot; /&amp;gt;
+
+É claro que não perdemos o menu, ele está apenas no branch new_menu. Quando retornarmos a ele, voltará. Agora altere o título do site, incluindo o h1, veja:
+
+&amp;lt;pre class=&amp;quot;lang-html&amp;quot;&amp;gt;&amp;amp;lt;!DOCTYPE html&amp;amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta charset=&amp;ldquo;UTF-8&amp;rdquo;&amp;gt;
+    &amp;lt;title&amp;gt; Meu Site &amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;lt;body&amp;gt;
+    &amp;lt;h1&amp;gt;Meu Site&amp;lt;/h1&amp;gt;
+&amp;lt;/body&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;lt;/html&amp;gt;&lt;/pre&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Após alterar, faça commit e o push! Veja:
+
+&amp;lt;img src=&amp;quot;http://tableless.com.br/wp-content/uploads/2015/09/git_push2.png&amp;quot; alt=&amp;quot;git_push2&amp;quot; width=&amp;quot;687&amp;quot; height=&amp;quot;529&amp;quot; class=&amp;quot;alignleft size-full wp-image-51256&amp;quot; /&amp;gt;
+
+Agora que resolvemos o problema do título, podemos voltar ao new_menu: `git checkout new_menu`. Após realizar este comando, temos o menu de volta no arquivo index.html, mas veja que o título não possui a tag H1. Isso acontece que estamos em outro branch. Tudo que acontece no master, fica no master. Tudo que acontece no new\_menu, fica no new\_menu
+
+## Merge com conflitos
+
+Se desejar trazer o título do master para o new_menu, devemos fazer uma operação chamada `merge`, que irá juntar um código no outro. Então, estando no branch new_menu, e querendo trazer uma alteração do master para este branch, precisamos realizar o seguinte comando: `git merge master`. Caso existam alterações nas mesmas linhas entre mesmos arquivos, um conflito será gerado, como no exemplo a seguir:
+
+&amp;lt;img src=&amp;quot;http://tableless.com.br/wp-content/uploads/2015/09/conflict.png&amp;quot; alt=&amp;quot;conflict&amp;quot; width=&amp;quot;595&amp;quot; height=&amp;quot;616&amp;quot; class=&amp;quot;alignleft size-full wp-image-51259&amp;quot; /&amp;gt;
+
+Este é um exemplo de conflito que podo ocorrer quando realizamos um merge, indicado em `1`. Perceba que o código html possui uma definição entre dois blocos, o primeiro, em `2` mostra como é o código do branch new_menu, e o segundo bloco, em `3`, mostra como é o código no branch master. Edite o arquivo repassando para a seguinte forma:
+
+&amp;lt;img src=&amp;quot;http://tableless.com.br/wp-content/uploads/2015/09/merge2.png&amp;quot; alt=&amp;quot;merge2&amp;quot; width=&amp;quot;578&amp;quot; height=&amp;quot;613&amp;quot; class=&amp;quot;alignleft size-full wp-image-51260&amp;quot; /&amp;gt;
+
+Ou seja, ajustamos os dois blocos, como se fosse um merge manual. Após resolver o conflito, vamos prepará-lo para o commit no branch new_menu, com o comando `git add`. Veja:
+
+&amp;lt;img src=&amp;quot;http://tableless.com.br/wp-content/uploads/2015/09/merge3.png&amp;quot; alt=&amp;quot;merge3&amp;quot; width=&amp;quot;779&amp;quot; height=&amp;quot;105&amp;quot; class=&amp;quot;alignleft size-full wp-image-51261&amp;quot; /&amp;gt;
+
+Ou seja, resolvemos o conflito &amp;amp;#8220;na mão&amp;amp;#8221; e depois comitamos normalmente.
+
+## Merge sem conflitos
+
+Quando não alteremos a mesma linha de um arquivo em branches diferentes, conseguimos realizar um merge sem ocasionar conflitos. Isso pode ser notado ao trazermos o menu do branch new_menu para o master, da seguinte forma:
+
+&amp;lt;img src=&amp;quot;http://tableless.com.br/wp-content/uploads/2015/09/merge4.png&amp;quot; alt=&amp;quot;merge4&amp;quot; width=&amp;quot;585&amp;quot; height=&amp;quot;652&amp;quot; class=&amp;quot;alignleft size-full wp-image-51262&amp;quot; /&amp;gt;
+
+Se não houver conflitos, basta realizar um commit normal para confirmar o merge.
+
+## Vendo branches e merges
+
+O github possui uma ferramenta gráfica para exibir os branches e merges do seu projeto. Clique no ícone em forma de gráfico no menu à direita do site e clique na aba Network, para se ter um resultado semelhante a figura a seguir:
+
+&amp;lt;img src=&amp;quot;http://tableless.com.br/wp-content/uploads/2015/09/graph.png&amp;quot; alt=&amp;quot;graph&amp;quot; width=&amp;quot;1027&amp;quot; height=&amp;quot;446&amp;quot; class=&amp;quot;alignleft size-full wp-image-51265&amp;quot; /&amp;gt;
+
+## Lendo mais
+
+Você pode ler mais sobre git e entender mais sobre controles de versão, nesses artigos do Tableless:
+
+  * &amp;lt;a href=&amp;quot;http://tableless.com.br/alguns-comandos-git/&amp;quot; target=&amp;quot;_blank&amp;quot;&amp;gt;Comandos Iniciais do Git&amp;lt;/a&amp;gt; 
+  * &amp;lt;a href=&amp;quot;http://tableless.com.br/slides-devs-10-git/&amp;quot; target=&amp;quot;_blank&amp;quot;&amp;gt;Apresentações sobre GIT&amp;lt;/a&amp;gt; 
+  * &amp;lt;a href=&amp;quot;http://tableless.com.br/iniciando-no-git-parte-1/&amp;quot; target=&amp;quot;_blank&amp;quot;&amp;gt;Iniciando com GIT &amp;amp;#8211; Parte 1&amp;lt;/a&amp;gt; 
+  * &amp;lt;a href=&amp;quot;http://tableless.com.br/iniciando-no-git-parte-2/&amp;quot; target=&amp;quot;_blank&amp;quot;&amp;gt;Iniciando com GIT &amp;amp;#8211; Parte 2&amp;lt;/a&amp;gt; 
+  * &amp;lt;a href=&amp;quot;http://tableless.com.br/git-com-interface-grafica/&amp;quot; target=&amp;quot;_blank&amp;quot;&amp;gt;Git com Interface Gráfica&amp;lt;/a&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Plugins de GIT para Sublime e Brackets</title>
+      <link>http://tableless.com.br/plugins-de-git-para-sublime-e-brackets/</link>
+      <pubDate>Tue, 20 Jan 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/plugins-de-git-para-sublime-e-brackets/</guid>
+      <description>
+
+&lt;p&gt;Além do browser, outras duas ferramentas que os desenvolvedores usam todo o santo dia quase que todo o tempo é o seu editor de código e também o GIT. Aqui vão algumas indicações de plugins para Sublime e Brackets que ajudarão na integração do GIT com estes dois editores.&lt;/p&gt;
+
+&lt;h2 id=&#34;git-no-sublime&#34;&gt;Git no Sublime&lt;/h2&gt;
+
+&lt;p&gt;Se você tiver o Package Control instalado no Sublime, é uma boa ideia instalar estes plugins direto por lá.&lt;/p&gt;
+
+&lt;h3 id=&#34;git-gutter&#34;&gt;Git Gutter&lt;/h3&gt;
+
+&lt;p&gt;Um plugin simples que mostra o status das linhas modificadas no seu arquivo.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/01/git-gutter.png&#34; alt=&#34;git-gutter&#34; width=&#34;291&#34; height=&#34;177&#34; class=&#34;alignnone size-full wp-image-46663&#34; srcset=&#34;uploads/2015/01/git-gutter.png 291w, uploads/2015/01/git-gutter-229x139.png 229w&#34; sizes=&#34;(max-width: 291px) 100vw, 291px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/jisaacks/GitGutter&#34;&gt;https://github.com/jisaacks/GitGutter&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;sublime-git&#34;&gt;Sublime GIT&lt;/h3&gt;
+
+&lt;p&gt;Traz alguma integração do GIT para o Sublime. Você consegue executar alguns comandos direto pelo Sublime, facilitando bastante tarefas como commit, status, diff, log etc…&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/01/sublime-git.png&#34; alt=&#34;sublime-git&#34; width=&#34;624&#34; height=&#34;306&#34; class=&#34;alignnone size-full wp-image-46666&#34; srcset=&#34;uploads/2015/01/sublime-git.png 624w, uploads/2015/01/sublime-git-265x130.png 265w, uploads/2015/01/sublime-git-400x196.png 400w&#34; sizes=&#34;(max-width: 624px) 100vw, 624px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/kemayo/sublime-text-git&#34;&gt;https://github.com/kemayo/sublime-text-git&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;gitstatus&#34;&gt;GitStatus&lt;/h3&gt;
+
+&lt;p&gt;Monitora os arquivos modificados e seus status no repositório.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/01/gitstatus.png&#34; alt=&#34;gitstatus&#34; width=&#34;389&#34; height=&#34;100&#34; class=&#34;alignnone size-full wp-image-46665&#34; srcset=&#34;uploads/2015/01/gitstatus.png 389w, uploads/2015/01/gitstatus-265x68.png 265w&#34; sizes=&#34;(max-width: 389px) 100vw, 389px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/vlakarados/gitstatus&#34;&gt;https://github.com/vlakarados/gitstatus&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;git-no-brackets&#34;&gt;Git no Brackets&lt;/h2&gt;
+
+&lt;p&gt;Estou tentando usar o Brackets a maior parte do meu tempo. Está sendo bastante interessante. Os plugins funcionam bem e tem bastante gente ajudando o desenvolvimento do projeto.&lt;/p&gt;
+
+&lt;h3 id=&#34;brackets-git&#34;&gt;Brackets Git&lt;/h3&gt;
+
+&lt;p&gt;Este plugin é sensacional. Ele mostra os arquivos modificados e você consegue comitar todos estes arquivos direto pelo Brackets. Além de outras facilidades como ver um painel de histórico e o diff do arquivo. Acho que só esse plugin já seria o suficiente para trabalhar bem com Git no Brackets.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/01/brackets-git-1.jpg&#34; alt=&#34;brackets-git-1&#34; width=&#34;1114&#34; height=&#34;451&#34; class=&#34;alignnone size-full wp-image-46660&#34; srcset=&#34;uploads/2015/01/brackets-git-1.jpg 1114w, uploads/2015/01/brackets-git-1-265x107.jpg 265w, uploads/2015/01/brackets-git-1-400x162.jpg 400w&#34; sizes=&#34;(max-width: 1114px) 100vw, 1114px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/01/brackets-git-2.jpg&#34; alt=&#34;brackets-git-2&#34; width=&#34;1114&#34; height=&#34;451&#34; class=&#34;alignnone size-full wp-image-46661&#34; srcset=&#34;uploads/2015/01/brackets-git-2.jpg 1114w, uploads/2015/01/brackets-git-2-265x107.jpg 265w, uploads/2015/01/brackets-git-2-400x162.jpg 400w&#34; sizes=&#34;(max-width: 1114px) 100vw, 1114px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/zaggino/brackets-git&#34;&gt;https://github.com/zaggino/brackets-git&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;brackets-git-info&#34;&gt;Brackets Git Info&lt;/h3&gt;
+
+&lt;p&gt;Bem simples, só mostra o nome do branch atual ao lado do nome do projeto. Mas isso o Brackets Git já faz.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/01/brackets-git-info.png&#34; alt=&#34;brackets-git-info&#34; width=&#34;209&#34; height=&#34;160&#34; class=&#34;alignnone size-full wp-image-46662&#34; srcset=&#34;uploads/2015/01/brackets-git-info.png 209w, uploads/2015/01/brackets-git-info-182x139.png 182w&#34; sizes=&#34;(max-width: 209px) 100vw, 209px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/couzteau/brackets-git-info&#34;&gt;https://github.com/couzteau/brackets-git-info&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;git-integration-command-line&#34;&gt;Git Integration Command Line&lt;/h3&gt;
+
+&lt;p&gt;Um plugin que permite fazer os comandos do git via linha de comando, direto do Brackets.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/01/git-integration.png&#34; alt=&#34;git-integration&#34; width=&#34;1740&#34; height=&#34;1446&#34; class=&#34;alignnone size-full wp-image-46664&#34; srcset=&#34;uploads/2015/01/git-integration.png 1740w, uploads/2015/01/git-integration-167x139.png 167w, uploads/2015/01/git-integration-400x332.png 400w&#34; sizes=&#34;(max-width: 1740px) 100vw, 1740px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/jayproulx/git-integration&#34;&gt;https://github.com/jayproulx/git-integration&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Comandos iniciais do Git</title>
+      <link>http://tableless.com.br/alguns-comandos-git/</link>
+      <pubDate>Fri, 09 Jan 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/alguns-comandos-git/</guid>
+      <description>
+
+&lt;p&gt;O Git é um &lt;a href=&#34;http://tableless.com.br/introducao-das-premissas-dos-controles-de-versao/&#34; title=&#34;Introdução das premissas dos controles de versão&#34;&gt;sistema de controle de versão&lt;/a&gt;. Com o Git você não perderá seu trabalho, vai poder voltar para a versões anteriores, recuperando a versão do seu código de antes de ter cometido o erro e poderá criar e trabalhar diversas versões em paralelo.&lt;/p&gt;
+
+&lt;p&gt;Uma ótima leitura que indico é o livro &lt;a title=&#34;Livro Pro Git&#34; href=&#34;http://git-scm.com/book/en/v2&#34; target=&#34;_blank&#34;&gt;Pro Git&lt;/a&gt;, escrito por Scott Chacon. Ele descreve corretamente sobre o controle de versão. Olhe só:&lt;/p&gt;
+
+&lt;h4 id=&#34;o-que-é-controle-de-versão-e-por-que-você-deve-se-importar&#34;&gt;O que é controle de versão, e por que você deve se importar?&lt;/h4&gt;
+
+&lt;p&gt;&amp;#8220;O controle de versão é um sistema que registra as mudanças feitas em um arquivo ou um conjunto de arquivos ao longo do tempo, de forma que você possa recuperar versões específicas.&lt;/p&gt;
+
+&lt;p&gt;Se quer manter todas as versões de uma imagem ou layout, usar um Sistema de Controle de Versão (Version Control System ou VCS) é uma decisão sábia. Ele permite reverter arquivos e projetos inteiros para um estado anterior, compara mudanças feitas ao decorrer do tempo, vê quem foi o último a modificar algo que pode estar causando problemas, quem introduziu um bug e quando, e muito mais. Usar um VCS normalmente significa que caso tenha estragado ou perdido algum arquivo, poderá facilmente reavê-los. Além disso, você pode controlar tudo sem maiores esforços.&amp;#8221;&lt;/p&gt;
+
+&lt;h2 id=&#34;vamos-lá&#34;&gt;Vamos lá!&lt;/h2&gt;
+
+&lt;p&gt;Bom, depois dessa aula com Scott Chacon, vamos ver alguns códigos!&lt;/p&gt;
+
+&lt;p&gt;Lembrando que todos os comandos aqui devem ser feitos pelo Terminal, Console, GitBash, entre outros e o não recomendado Prompt de Comando do Windows, incluindo entradas e saídas de pastas, tudo por comandos!&lt;/p&gt;
+
+&lt;h3 id=&#34;iniciando-o-git&#34;&gt;Iniciando o Git&lt;/h3&gt;
+
+&lt;p&gt;Entre no diretório que deseja controlar a versão e inicie o Git assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git init&lt;/pre&gt;
+
+&lt;p&gt;Feito isso, seus arquivos ainda não estão sendo versionados, mas eles estão esperando para serem adicionados no estágio de controle. Para fazer isso digite o comando&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git add nome-do-arquivo-incluindo-extensão&lt;/pre&gt;
+
+&lt;p&gt;Se você precisa adicionar todos os arquivos do diretório, basta digitar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git add .&lt;/pre&gt;
+
+&lt;p&gt;Saber o status do projeto é importante. Com o comando abaixo você consegue ver quais arquivos estão fora do controle, quais foram modificados e estão esperando por uma descrição de modificação etc:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git status&lt;/pre&gt;
+
+&lt;p&gt;Voltando ao estágio anterior do adicionamento:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git reset HEAD nome-do-arquivo&lt;/pre&gt;
+
+&lt;p&gt;Commit &amp;#8211; Comitando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git commit -m &#34;Mensagem do commit&#34;&lt;/pre&gt;
+
+&lt;p&gt;Adicionando e comitando ao mesmo tempo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git commit -a -m &#34;Mensagem do commit&#34;&lt;/pre&gt;
+
+&lt;h3 id=&#34;voltando-commits-a-versões-anteriores&#34;&gt;Voltando commits a versões anteriores&lt;/h3&gt;
+
+&lt;p&gt;Voltar um commit:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git reset HEAD~1&lt;/pre&gt;
+
+&lt;p&gt;Voltar dois commits:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git reset HEAD~2&lt;/pre&gt;
+
+&lt;p&gt;Voltando um commit e deixando o arquivo no estagio anterior:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git reset HEAD~1 --soft&lt;/pre&gt;
+
+&lt;p&gt;Voltando um commit e excluindo o arquivo, deixando no estágio anterior:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git reset HEAD~1 --hard&lt;/pre&gt;
+
+&lt;p&gt;Verificando o histórico de commits:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git log&lt;/pre&gt;
+
+&lt;p&gt;Verificando o que foi mudado, diferença entre um arquivo e outro:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git log -p&lt;/pre&gt;
+
+&lt;p&gt;Verificando os 2 últimos commits:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git log -p -2&lt;/pre&gt;
+
+&lt;p&gt;Mostrando as estatísticas de todos os commits:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git log --stat&lt;/pre&gt;
+
+&lt;p&gt;Mostrando todos os commits, cada um em uma linha:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git log --pretty=oneline&lt;/pre&gt;
+
+&lt;p&gt;Mostrando todos os commits dos últimos 2 dias até o momento atual&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git log --since=2.days&lt;/pre&gt;
+
+&lt;p&gt;Criando um branch &amp;#8211; uma ramificação&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git checkout -b nome-do-branch&lt;/pre&gt;
+
+&lt;p&gt;Verificando em que branch você está&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git branch&lt;/pre&gt;
+
+&lt;p&gt;Voltando para o branch master&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git checkout master&lt;/pre&gt;
+
+&lt;h3 id=&#34;jogando-o-branch-criado-no-branch-master&#34;&gt;Jogando o branch criado no branch master&lt;/h3&gt;
+
+&lt;p&gt;Entre como branch master:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git merge nome-do-branch-que-foi-criado&lt;/pre&gt;
+
+&lt;h3 id=&#34;grudando-o-branch-criado-no-branch-master-sem-o-commit&#34;&gt;Grudando o branch criado no branch master sem o commit&lt;/h3&gt;
+
+&lt;p&gt;Somente localmente &amp;#8211; localhost, entre como branch master:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git rebase nome-do-branch-que-foi-criado&lt;/pre&gt;
+
+&lt;p&gt;Removendo um branch:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git branch -D nome-do-branch&lt;/pre&gt;
+
+&lt;p&gt;Vendo branchs remotos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git branch -a&lt;/pre&gt;
+
+&lt;p&gt;Mostrando o início do hash, quem comitou, quanto tempo atrás, mensagem: descrição do commit:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git log --pretty=format: &#34;%h - %an, %ar : %s&#34;&lt;/pre&gt;
+
+&lt;p&gt;Deletando arquivos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git rm nome-do-arquivo&lt;/pre&gt;
+
+&lt;p&gt;Deletando todos os aquivos removidos ao mesmo tempo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git ls-files --deleted | xargs git rm&lt;/pre&gt;
+
+&lt;h3 id=&#34;ignorando-arquivos&#34;&gt;Ignorando arquivos&lt;/h3&gt;
+
+&lt;p&gt;Existem alguns arquivos que muito provavelmente você não vai precisar versionar, como por exemplo os arquivos de cache do SASS, arquivos de configuração e etc. Nesse caso você precisa fazer com que o controle de versão ignore estes arquivos. Para tanto, crie um arquivo chamado &lt;strong&gt;.gitignore&lt;/strong&gt;. Feito isso, dentro deste arquivo, digite o nome ou o endereço das pastas que você quer ignorar. Um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;# See http://help.github.com/ignore-files/ for more about ignoring files.
+#
+# If you find yourself ignoring temporary files generated by your text editor
+# or operating system, you probably want to add a global ignore instead:
+# git config --global core.excludesfile ~/.gitignore_global
+
+# Ignore bundler config
+/.bundle
+
+# Ignore the build directory
+/build
+
+# Ignore Sass&#39; cache
+/.sass-cache
+
+# Ignore .DS_store file
+.DS_Store
+.cache
+.rvmrc
+
+vendor/*
+
+.DS_Store
+
+# Vim
+*.swp
+*.swo
+
+Gemfile.lock
+.vagrant
+Vagrantfile
+
+# rbenv
+.ruby-version
+
+# Ignore deploy related files
+deploy
+
+Gemfile.lock
+
+&lt;/pre&gt;
+
+&lt;p&gt;O arquivo &lt;strong&gt;.gitignore&lt;/strong&gt; fica na raiz do projeto.&lt;/p&gt;
+
+&lt;h3 id=&#34;clonando-e-puxando-alterações-de-projetos&#34;&gt;Clonando e puxando alterações de projetos&lt;/h3&gt;
+
+&lt;p&gt;Clonando um projeto remoto:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git clone url-do-projeto&lt;/pre&gt;
+
+&lt;p&gt;Fazendo um clone de outros branchs:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git checkout -b nome-do-branch origin/ nome-do-branch&lt;/pre&gt;
+
+&lt;p&gt;Trazendo, puxando as alterações feitas por outros usuários:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git pull origin master&lt;/pre&gt;
+
+&lt;p&gt;Sincronizando tudo que está no repositório remoto:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git pull&lt;/pre&gt;
+
+&lt;p&gt;Enviando o(s) projeto(s), arquivo(s) para o repositório:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git push origin master&lt;/pre&gt;
+
+&lt;p&gt;Enviando um branch para o repositório:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git push origin nome-do-branch&lt;/pre&gt;
+
+&lt;h3 id=&#34;tags&#34;&gt;Tags&lt;/h3&gt;
+
+&lt;p&gt;As tags servem para marcar uma etapa. Imagine que você vai lançar uma versão, que resolve uma série de problemas. Você pode marcar aquela etapa criando uma tag. Assim fica simples de fazer qualquer rollback do projeto para uma tag específica em vez de voltar para um commit. Você sabe que tudo o que foi feito até aquela tag está funcionando.&lt;/p&gt;
+
+&lt;p&gt;Criando tags:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git tag versão-da-tag&lt;/pre&gt;
+
+&lt;p&gt;Listando tags:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git tag -l&lt;/pre&gt;
+
+&lt;p&gt;Enviando a tag para o repositório&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git push origin master --tags&lt;/pre&gt;
+
+&lt;p&gt;Removendo as tags criadas localmente:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git tag -d versão-da-tag&lt;/pre&gt;
+
+&lt;p&gt;Removendo tag no repositório remoto:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;git push origin :refs/tags/versão-da-tag&lt;/pre&gt;
+
+&lt;h2 id=&#34;concluindo&#34;&gt;Concluindo&lt;/h2&gt;
+
+&lt;p&gt;Se você quer continuar ou iniciar seus estudos com Git, indico o link do livro citado acima, é um ótimo começo, se tiver problemas com o inglês, encontrará várias versões em português.&lt;/p&gt;
+
+&lt;p&gt;O Akita fez um &lt;a href=&#34;http://www.akitaonrails.com/2010/08/17/screencast-comecando-com-git&#34;&gt;screencast para quem está começando com Git&lt;/a&gt;. Vale a pena ver.&lt;/p&gt;
+
+&lt;p&gt;O pessoal da CodeSchool juntamente com o GitHub fizeram uma página exclusivamente para ensinar Git na prática. &lt;a href=&#34;https://try.github.io/levels/1/challenges/1&#34;&gt;Visite aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Há também a &lt;a href=&#34;http://www.git-scm.com/&#34;&gt;documentação do Git&lt;/a&gt; que é bastante completa.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Slides para devs #10 – GIT</title>
+      <link>http://tableless.com.br/slides-devs-10-git/</link>
+      <pubDate>Thu, 26 Sep 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/slides-devs-10-git/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Git com Interface Gráfica</title>
+      <link>http://tableless.com.br/git-com-interface-grafica/</link>
+      <pubDate>Mon, 26 Nov 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/git-com-interface-grafica/</guid>
+      <description>&lt;p&gt;Você deve não gostar de usar Git no terminal do windows, mac ou linux. As vezes você faz muitas alterações e é chato você parar a todo momento para commitar alterações separadas. Prejudica o fluxo do seu trabalho e você acabada perdendo o foco. Por isso as vezes é interessante você usar uma interface mais humana para facilitar as coisas. No site do Git tem &lt;a href=&#34;http://git-scm.com/downloads/guis&#34;&gt;indicações interessantes&lt;/a&gt; para você poder baixar e utilizar o Git de um jeito mais confortável.&lt;/p&gt;
+
+&lt;p&gt;O Git já instala um GUI básico chamado &lt;a href=&#34;http://gitk.sourceforge.net&#34;&gt;Gitk&lt;/a&gt;, que é uma versão generalizada. Basta digitar &lt;strong&gt;gitk&lt;/strong&gt; no diretório controlado pelo git para que ele seja aberto. É muito simples, mas para visualizações rápidas ou quando você não estiver no seu computador ele é bem bacana.&lt;/p&gt;
+
+&lt;p&gt;A minha sugestão é a aplicação do GitHub. Ele tem versões para &lt;a href=&#34;http://mac.github.com&#34;&gt;Mac&lt;/a&gt; e &lt;a href=&#34;http://windows.github.com&#34;&gt;Windows&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/promo-screenshot.png&#34; alt=&#34;&#34; title=&#34;promo-screenshot&#34; width=&#34;515&#34; height=&#34;243&#34; class=&#34;alignnone size-full wp-image-7313&#34; srcset=&#34;uploads/2012/11/promo-screenshot.png 515w, uploads/2012/11/promo-screenshot-300x141.png 300w&#34; sizes=&#34;(max-width: 515px) 100vw, 515px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Com ele você consegue ver, criar e excluir os branchs, clonar repositórios, escolher quais arquivos serão enviados em um determinado commit, visualizar o histórico de commits, visualizar as alterações dos arquivos etc.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/Screen-Shot-2012-11-19-at-2.22.35-PM1.png&#34; alt=&#34;&#34; title=&#34;Screen Shot 2012-11-19 at 2.22.35 PM&#34; width=&#34;808&#34; height=&#34;888&#34; class=&#34;alignnone size-full wp-image-7337&#34; srcset=&#34;uploads/2012/11/Screen-Shot-2012-11-19-at-2.22.35-PM1.png 808w, uploads/2012/11/Screen-Shot-2012-11-19-at-2.22.35-PM1-272x300.png 272w&#34; sizes=&#34;(max-width: 808px) 100vw, 808px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2012/11/Screen-Shot-2012-11-19-at-2.23.16-PM.png&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/Screen-Shot-2012-11-19-at-2.23.16-PM-1024x857.png&#34; alt=&#34;&#34; title=&#34;Screen Shot 2012-11-19 at 2.23.16 PM&#34; width=&#34;640&#34; height=&#34;535&#34; class=&#34;alignnone size-large wp-image-7319&#34; srcset=&#34;uploads/2012/11/Screen-Shot-2012-11-19-at-2.23.16-PM-1024x857.png 1024w, uploads/2012/11/Screen-Shot-2012-11-19-at-2.23.16-PM-300x251.png 300w, uploads/2012/11/Screen-Shot-2012-11-19-at-2.23.16-PM.png 1060w&#34; sizes=&#34;(max-width: 640px) 100vw, 640px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você não gostar da aplicação do GitHub, eu usava uma bem útil e ágil chamada &lt;a href=&#34;http://gitx.frim.nl&#34;&gt;GitX&lt;/a&gt;. Não tem versão windows, só Mac.&lt;/p&gt;
+
+&lt;p&gt;Para windows, mac e linux há o &lt;a href=&#34;http://www.syntevo.com/smartgit/index.html&#34;&gt;SmartGit&lt;/a&gt; e o &lt;a href=&#34;http://git-cola.github.com/&#34;&gt;Git-Cola&lt;/a&gt;. As duas interfaces não são lá essas coisas, mas quebram o galho. Há também para windows o &lt;a href=&#34;http://code.google.com/p/gitextensions/&#34;&gt;GitExtensions&lt;/a&gt;. Todos tem as ações básicas do Git e podem facilitar o processo de commits.&lt;/p&gt;
+
+&lt;p&gt;A aplicação mais bem acabada mesmo é a do GitHub, mesmo assim há algumas limitações, tipo: eu não consigo visualizar tags no histórico de commits. Mesmo assim quando preciso usar tags eu corro pro terminal. Nada tão ruim assim. 😉&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Iniciando no GIT – Parte 2</title>
+      <link>http://tableless.com.br/iniciando-no-git-parte-2/</link>
+      <pubDate>Thu, 22 Nov 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/iniciando-no-git-parte-2/</guid>
+      <description>
+
+&lt;p&gt;Já leu a &lt;a href=&#34;http://tableless.com.br/iniciando-no-git-parte-1/&#34;&gt;primeira parte desse artigo&lt;/a&gt;?&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/iniciando-no-git-parte-1/&#34;&gt;No primeiro artigo&lt;/a&gt; aprendemos sobre como funciona o Git, como iniciar um projeto e como inserimos os arquivos que serão controlados pelo sistema.&lt;/p&gt;
+
+&lt;h2 id=&#34;status&#34;&gt;Status&lt;/h2&gt;
+
+&lt;p&gt;Antes de tudo você precisa entender em qual status os arquivos se encontram. Você pode modificar um arquivo, mas não commita-lo. Veja abaixo uma imagem direto do site do Git que mostra os diversos status dos arquivos.&lt;/p&gt;
+
+&lt;p&gt;Você já clonou ou iniciou seu projeto no Git e agora vai fazer modificações nos arquivos e enviar essas modificações para o repositório. Lembre-se que os arquivos em seu Work Directory podem estar &lt;strong&gt;traked&lt;/strong&gt; ou &lt;strong&gt;untracked&lt;/strong&gt;. Vou manter os termos em inglês para você se familiarizar melhor. Arquivos com status &lt;strong&gt;tracked&lt;/strong&gt; são arquivos que já estão inseridos no repositório. Eles podem ser &lt;strong&gt;unmodified&lt;/strong&gt; (que não foram modificados por você), &lt;strong&gt;modified&lt;/strong&gt; (que foram modificados por você) ou &lt;strong&gt;staged&lt;/strong&gt; (que são os arquivos que acabaram de ser mudados).&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/18333fig0201-tn.png&#34; alt=&#34;&#34; title=&#34;18333fig0201-tn&#34; width=&#34;500&#34; height=&#34;317&#34; class=&#34;alignnone size-full wp-image-7272&#34; srcset=&#34;uploads/2012/11/18333fig0201-tn.png 500w, uploads/2012/11/18333fig0201-tn-300x190.png 300w&#34; sizes=&#34;(max-width: 500px) 100vw, 500px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Esse ciclo é repetido diversas e diversas vezes. Veja abaixo um exemplo:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2012/11/git2.jpg&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/git2-1024x549.jpg&#34; alt=&#34;&#34; title=&#34;git2&#34; width=&#34;640&#34; height=&#34;343&#34; class=&#34;alignnone size-large wp-image-7273&#34; srcset=&#34;uploads/2012/11/git2-1024x549.jpg 1024w, uploads/2012/11/git2-300x161.jpg 300w, uploads/2012/11/git2.jpg 1131w&#34; sizes=&#34;(max-width: 640px) 100vw, 640px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;commit&#34;&gt;Commit&lt;/h2&gt;
+
+&lt;p&gt;Suponha que você resolveu um bug no projeto. É hora de commitar suas modificações. Essas modificações serão inseridas no histórico do projeto e ficarão disponíveis para que os outros integrantes da equipe.&lt;/p&gt;
+
+&lt;p&gt;Ao commitar você escreve uma descrição sobre o que foi feito ali. Assim essa modificação não fica perdida e todo mundo sabe do que se trata aquela mudança. Você documenta essa mudança. É mais ou menos isso que é o commit.&lt;/p&gt;
+
+&lt;p&gt;Quando você commita uma modificação, os arquivos editados saem do status staged e voltam para o status unmodified. Claro, por que teoricamente aquela alteração já foi feita e agora os arquivos voltam com o status de sem modificações.&lt;/p&gt;
+
+&lt;p&gt;O comando é este:&lt;/p&gt;
+
+&lt;pre&gt;git commit -m &#34;Resolvendo bug da modal sobreposta na página de pagamentos.&#34;&lt;/pre&gt;
+
+&lt;p&gt;Se você fizer um &lt;strong&gt;git log&lt;/strong&gt; no projeto, você consegue visualizar uma lista de todos os commits enviados para o projeto, seus commits e commits de outros integrantes. Veja abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/Screen-Shot-2012-11-19-at-12.17.50-PM.png&#34; alt=&#34;&#34; title=&#34;Screen Shot 2012-11-19 at 12.17.50 PM&#34; width=&#34;756&#34; height=&#34;609&#34; class=&#34;alignnone size-full wp-image-7274&#34; srcset=&#34;uploads/2012/11/Screen-Shot-2012-11-19-at-12.17.50-PM.png 756w, uploads/2012/11/Screen-Shot-2012-11-19-at-12.17.50-PM-300x241.png 300w&#34; sizes=&#34;(max-width: 756px) 100vw, 756px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;pull&#34;&gt;Pull&lt;/h2&gt;
+
+&lt;p&gt;Não é só você que está fazendo modificações nos arquivos, mas também sua equipe. Por isso é importante que você deixe o projeto sempre atualizado. Para isso você precisa trazer as modificações que eles fizeram e commitaram para o seu repositório local. Você vai usar o comando &lt;strong&gt;pull&lt;/strong&gt; para trazer essas modificações:&lt;/p&gt;
+
+&lt;pre&gt;git pull&lt;/pre&gt;
+
+&lt;p&gt;Feito isso vai até o servidor buscar todas as modificações a partir da versão do seu repositório local, ele vai baixar essas modificações e fará um merge automático nos arquivos necessários que foram modificados. Coisa linda&amp;#8230; alguém deve ter modificado o mesmo arquivo que você, o Git vai entender isso e vai juntar seu código com o dele, automaticamente&amp;#8230; Claro que pode ser que de conflitos caso vocês tenham modificado a mesma linha, mas aí é outra história, vemos mais pra frente como resolver isso. Se quiser se adiantar, procure sobre o comando &lt;strong&gt;diff&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;push&#34;&gt;Push&lt;/h2&gt;
+
+&lt;p&gt;Você modificou os arquivos, commitou descrevendo o que fez exatamente naquela modificação e agora precisa enviar tudo isso para o servidor. O comando &lt;strong&gt;git push&lt;/strong&gt; empurra as suas modificações para o servidor, incluido-as no histórico do projeto. Quando os outros integrantes da equipe fizerem um &lt;strong&gt;git pull&lt;/strong&gt;, essas modificações serão baixadas e incluídas no repositório local da pessoa.&lt;/p&gt;
+
+&lt;pre&gt;git push&lt;/pre&gt;
+
+&lt;p&gt;O Git Push só pode ser feito se você executou o &lt;strong&gt;git pull&lt;/strong&gt; antes. Isso é uma forma de você ter o seu repositório atualizado e também para evitar possíveis conflitos no projeto. Quando você faz o pull, se der algum conflito de código, você deverá resolve-los para depois enviar o novo código novamente.&lt;/p&gt;
+
+&lt;p&gt;Há algumas outras opções tanto no Pull e no Push que podemos utilizar para especificar o branch para onde iremos empurrar ou buscar atualizações. Mas isso fica para outra hora.&lt;/p&gt;
+
+&lt;p&gt;A &lt;a href=&#34;http://git-scm.com/docs&#34;&gt;documentação do Git&lt;/a&gt; é muito fácil de ler e entender. É bem objetiva e não perde tempo blá blá blá&amp;#8230; Recomendo que você leia e entenda melhor como utilizar o git nos seus projetos. Nada de FTP, SFTP e outras coisas&amp;#8230; Isso é coisa do passado.&lt;/p&gt;
+
+&lt;p&gt;Veja um vídeo que mostra os comandos básicos do GIT:&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Iniciando no GIT – Parte 1</title>
+      <link>http://tableless.com.br/iniciando-no-git-parte-1/</link>
+      <pubDate>Mon, 19 Nov 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/iniciando-no-git-parte-1/</guid>
+      <description>
+
+&lt;p&gt;Não esqueça de ler a &lt;a href=&#34;http://tableless.com.br/iniciando-no-git-parte-2/&#34;&gt;segunda parte desse artigo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se você não trabalha com nenhum controle de versão ainda ou nem sabe o que isso significa, dá uma lida &lt;a href=&#34;http://tableless.com.br/introducao-das-premissas-dos-controles-de-versao/&#34; title=&#34;Introdução das premissas dos controles de versão&#34;&gt;nesse texto antes de começarmos aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Controles de versão são sistemas que controlam o código gerado em projetos. Se você e mais alguém precisam editar o mesmo arquivo em um mesmo projeto, como você faz? Espera o primeiro editar, salvar e depois subir no FTP só para aí então você abrir o arquivo e fazer suas alterações?&lt;/p&gt;
+
+&lt;p&gt;Esse cenário se repete em muitas empresas, de todos os tamanhos. Os controle de versão ajudam a resolver esse e outros problemas de gerenciamento de código e organização. Um dos controles de versão mais conhecidos é o GIT.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Git é um sistema de controle de versão distribuído com ênfase em velocidade. O Git foi inicialmente projetado e desenvolvido por Linus Torvalds para o desenvolvimento do kernel Linux. &amp;#8211; &lt;a href=&#34;http://pt.wikipedia.org/wiki/Git&#34;&gt;Wikipedia, GIT&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;como-funciona-o-git&#34;&gt;Como funciona o GIT?&lt;/h2&gt;
+
+&lt;p&gt;Normalmente a maioria dos controles de versão guardam as mudanças do código como alterações de um determinado arquivo. Ou seja, a cada mudança no arquivo, o sistema guarda essa mudança apenas e não o arquivo inteiro.&lt;/p&gt;
+
+&lt;p&gt;O Git pensa um pouco diferente: ele trata os dados como snapshots. Cada vez que commitamos (commitar é enviar alterações para o controle de versão) ou salva o estado do projeto no Git, ele basicamente guarda um snapshot de como todos os arquivos estão naquele momento e guarda a referência desse estado. Para os arquivos que não foram modificados, ele não guarda uma nova versão, ele apenas faz um link para a versão anterior idêntica que já foi guardada em outro momento.&lt;/p&gt;
+
+&lt;p&gt;Esta imagem vem direto do GitHub. Fica mais fácil entender como ele atrela um commit no outro usando snapshots.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/gh-mac-app.png&#34; alt=&#34;Github&#34; width=&#34;1960&#34; height=&#34;1062&#34; class=&#34;alignnone size-full wp-image-40447&#34; srcset=&#34;uploads/2012/11/gh-mac-app.png 1960w, uploads/2012/11/gh-mac-app-310x168.png 310w, uploads/2012/11/gh-mac-app-572x310.png 572w&#34; sizes=&#34;(max-width: 1960px) 100vw, 1960px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;áreas-de-operação&#34;&gt;Áreas de operação&lt;/h2&gt;
+
+&lt;p&gt;Os locais de operação são as áreas onde os arquivos irão transitar enquanto estão sendo editados e modificados. São 3: Working Directory, Stage Area, Git directory.&lt;/p&gt;
+
+&lt;p&gt;O Git Directory é onde o Git guarda os dados e objetos do seu projeto. Ele é o diretório mais importante do Git e é ele que será copiado quando alguém clonar (clonar é copiar o projeto para a sua máquina) o projeto.&lt;/p&gt;
+
+&lt;p&gt;O Work Directory é onde você vai trabalhar. Os arquivos ficam aí para poderem ser usados e alterados quantas vezes quiser para você. É basicamente sua pasta de arquivos dos projeto.&lt;/p&gt;
+
+&lt;p&gt;Quando você faz uma alteração em algum arquivo, ele vai para o Staging Area, que é uma área intermediária. Basicamente o Staging Area contém o Git Directory com os arquivos modificados, onde ele guarda as informações sobre o que vai no seu próximo commit. Veja a imagem abaixo direto do &lt;a href=&#34;http://git-scm.com/&#34;&gt;site do Git&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-7264&#34; title=&#34;18333fig0106-tn&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/18333fig0106-tn.png&#34; alt=&#34;&#34; width=&#34;500&#34; height=&#34;460&#34; srcset=&#34;uploads/2012/11/18333fig0106-tn.png 500w, uploads/2012/11/18333fig0106-tn-300x276.png 300w&#34; sizes=&#34;(max-width: 500px) 100vw, 500px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando-o-git&#34;&gt;Instalando o Git&lt;/h2&gt;
+
+&lt;p&gt;Se você tem Windows &lt;a href=&#34;http://code.google.com/p/msysgit&#34;&gt;baixe o EXE direto deste link&lt;/a&gt; e instale.&lt;/p&gt;
+
+&lt;p&gt;Ele vai instalar para você os comandos do Git para serem usados no terminal e uma uma interface padrão para quem não está acostumado a usar linhas de comando.&lt;/p&gt;
+
+&lt;p&gt;No Mac você tem vários caminhos, &lt;a href=&#34;http://code.google.com/p/git-osx-installer&#34;&gt;baixando o installer&lt;/a&gt;, usando Macports:&lt;/p&gt;
+
+&lt;pre&gt;$ sudo port install git-core +svn +doc +bash_completion +gitweb&lt;/pre&gt;
+
+&lt;p&gt;E até mesmo usando Brew.&lt;/p&gt;
+
+&lt;pre&gt;brew install git&lt;/pre&gt;
+
+&lt;p&gt;Com Linux eu preciso falar? 😉&lt;/p&gt;
+
+&lt;p&gt;Yum.&lt;/p&gt;
+
+&lt;pre&gt;$ yum install git-core&lt;/pre&gt;
+
+&lt;p&gt;Ou apt-get.&lt;/p&gt;
+
+&lt;pre&gt;$ apt-get install git-core&lt;/pre&gt;
+
+&lt;h2 id=&#34;configurando-suas-informações&#34;&gt;Configurando suas informações&lt;/h2&gt;
+
+&lt;p&gt;A primeira coisa que você deve fazer depois de instalar o Git é definir seu usarname e email. Isso é importante por que os seus commits usarão essas informações para identificar o autor das mudanças. Pois é&amp;#8230; Se alguém fizer alguma merda no projeto e quebrar todo o sistema, é possível saber quem, quando e qual linha foi o autor do apocalipse.&lt;/p&gt;
+
+&lt;p&gt;É simples, no terminal escreva:&lt;/p&gt;
+
+&lt;pre&gt;$ git config --global user.name &#34;John Doe&#34;
+$ git config --global user.email johndoe@example.com
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;controlando-um-projeto&#34;&gt;Controlando um projeto&lt;/h2&gt;
+
+&lt;p&gt;Pelo terminal mesmo, entre na pasta do projeto que você quer iniciar o controle e use o comando:&lt;/p&gt;
+
+&lt;pre&gt;git init&lt;/pre&gt;
+
+&lt;p&gt;Esse comando vai criar um diretório invisível dentro do projeto chamado &lt;strong&gt;.git&lt;/strong&gt;. Ele contém todos os arquivos necessários do seu repositório. Aqui, neste ponto, nada dos seus arquivos ainda estão sendo controlados. Você apenas criou um &amp;#8220;lugar&amp;#8221; (branch) para o Git colocar os arquivos.&lt;/p&gt;
+
+&lt;p&gt;O próximo comando vai inserir os arquivos que você quer controlar. Normalmente a gente controla TUDO o que está no projeto. Mas isso tem que ser combinado com a equipe antes. Em um projeto que envolve um CMS com o WordPress, por exemplo, é normal controlar tudo, até os arquivos do WordPress. Mas se em um projeto você guarda pastas de layouts, pastas de wireframes, protótipos e etc, é interessante não colocar isso no Git. Mas aí vai de equipe para equipe, de projeto pra projeto.&lt;/p&gt;
+
+&lt;p&gt;O comando para adicionar os arquivos é:&lt;/p&gt;
+
+&lt;pre&gt;git add .&lt;/pre&gt;
+
+&lt;p&gt;Para você ver o status, use o comando &lt;strong&gt;git status&lt;/strong&gt;, aí você verá tudo o que foi incluído no projeto. Veja o screenshot abaixo para ter uma ideia:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/Screen-Shot-2012-11-19-at-11.21.33-AM.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Feito isso você vai precisar inserir seu primeiro commit. Vamos dar mais detalhes sobre o comando commit no próximo artigo, por agora fique com essa linha:&lt;/p&gt;
+
+&lt;pre&gt;git commit -m &#34;Primeiro commit - Inserindo os arquivos iniciais do projeto&#34;&lt;/pre&gt;
+
+&lt;p&gt;Agora você mandou uma alteração para o Git.&lt;/p&gt;
+
+&lt;h3 id=&#34;clonando-um-projeto&#34;&gt;Clonando um projeto&lt;/h3&gt;
+
+&lt;p&gt;Pode ser que já exista um projeto no Git criado e você só precise clonar para seu computador. Para isso você vai usar o comando &lt;strong&gt;git clone&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Quando você clona um projeto, o Git recebe a cópia de todos os dados que tem no servidor. Cada versão de cada arquivo da história inteira do projeto é puxada quando você roda o comando &lt;strong&gt;git clone&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para clonar um projeto você precisa ter a URL do Git daquele projeto em específico. O comando completo fica mais ou menos assim:&lt;/p&gt;
+
+&lt;pre&gt;git clone https://github.com/tableless/exemplos.git&lt;/pre&gt;
+
+&lt;p&gt;Pode testar com o endereço acima. Ele é nosso diretório do Git de exemplos no GitHub.&lt;/p&gt;
+
+&lt;p&gt;No próximo artigo a gente mostra os comandos &lt;strong&gt;commit&lt;/strong&gt;, &lt;strong&gt;push&lt;/strong&gt; e &lt;strong&gt;pull&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Veja um vídeo que mostra os comandos básicos do GIT:&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

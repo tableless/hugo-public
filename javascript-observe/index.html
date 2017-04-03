@@ -1,0 +1,338 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/javascript-observe/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/javascript-observe/">Javascript Observe</a></h1>
+  <p class="tb-hero-p">
+    
+    A futura implementação do Javascript Harmony capaz de observar e notificar aplicações sobre as mudanças ocorridas em objetos Javascript.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/jo%C3%A3o-felix">João Felix</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>O <a href="http://wiki.ecmascript.org/doku.php">ECMAScript 6</a> (codinome Harmony ou ES.next) já não é novidade para quem acompanha de perto os avanços do desenvolvimento web, e suas especificações já bem avançadas causam um certo alvoroço a respeito de como vais ser o futuro do Javascript.</p>
+
+<p>Uma das esperadas especificações é o Object.observe, que documenta a capacidade de observar e notificar aplicações sobre as mudanças ocorridas em objetos Javascript, recurso bastante requisitado em aplicações funcionais.</p>
+
+<p>O uso de funcionalidades similares já é possível com algumas bibliotecas como o <a href="https://github.com/melanke/Watch.JS">Watch.js</a> e também por frameworks como o <a href="http://backbonejs.org/#Events-listenTo">Backbone</a> (além de outros), permitindo a criação de mecanismos declarativos e independentes das demais implementações da aplicação.</p>
+
+<p>Para começar, precisamos entender o que esta funcionalidade é capaz de observar um objeto:</p>
+
+<ul>
+<li>As mudanças no valor das propriedades;</li>
+<li>A adição, exclusão e reconfiguração de todas as propriedades visíveis através das APIs de reflexão;</li>
+<li>Mudanças no protótipo e extensibilidade do próprio objeto.</li>
+</ul>
+
+<p>A <a href="http://wiki.ecmascript.org/doku.php?id=harmony:observe_public_api">API pública</a> atual disponibiliza as seguintes métodos:</p>
+
+<h2 id="object-observe-object-callback-accepts"> Object.observe(Object, callback[, accepts])</h2>
+
+<p>Trata-se do método principal da API que é responsável pela funcionalidade de observar um objeto e sua assinatura é bastante simples, sendo necessário apenas informar o objeto a ser observado, a função a ser executada quando alguma notificação for disparada e opcionalmente um vetor de tipos de notificações a serem manipuladas (os tipos de notificações permitidas são: ”add”, “update”, “delete”, “reconfigure”, “setPrototype” e “preventExtensions”); Esta chamada pode ser executada quantas vezes for necessário (você pode querer executar callbacks distintos).</p>
+
+<p>Sua utilização segue o seguinte exemplo:</p>
+
+<pre class="lang-javascript">function observer(regs) { 
+   console.log(regs); 
+} 
+var obj = { id: 1 }; 
+Object.observe(obj, observer); 
+obj.a = 'b'; 
+obj.id++;</pre>
+
+<p>A saída desta rotina, desconsiderando as propriedades herdadas pelo argumento regs, <span style="line-height: 1.5em">seria uma lista de objetos de notificações:</span></p>
+
+<pre class="lang-console">&gt; [{
+     name: "a",
+     object: {id: 2, a: "b"},
+     oldValue: "b", 
+     type: "updated" 
+  },{ 
+     name: "id", 
+     object: {id: 2, a: "b"}, 
+     type: "new"
+  }]</pre>
+
+<h2 id="object-unobserve-object-callback">Object.unobserve(Object, callback)</h2>
+
+<p>Eventualmente, poderá ser necessário não acompanhar mais as notificações de um determinado objeto, ou apenas interromper a execução de um callback especifico; Para isso, basta executar conforme o exemplo, especificando o objeto observado e o callback a ser removido:</p>
+
+<pre class="lang-javascript">function updateObserver(regs) { 
+   regs.forEach(function(notification){
+      if(notification.type === "updated"){
+         console.log(notification);
+      }
+   });
+}
+function deleteObserver(regs) { 
+   regs.forEach(function(notification){
+      if(notification.type === "deleted"){
+         console.log(notification);
+      }
+   });
+} 
+var obj = { id: 1 }; 
+Object.observe(obj, updateObserver); 
+Object.observe(obj, deleteObserver); 
+obj.id++; 
+Object.unobserve(obj, deleteObserver); 
+delete obj.id;</pre>
+
+<p>A saída desta rotina, também seria uma lista de objetos de notificações:</p>
+
+<pre class="lang-console">&gt; [{
+     name: "id",
+     object: {},
+     oldValue: 1, 
+     type: "updated" 
+  }]</pre>
+
+<h2 id="array-observe-object-callback">Array.observe(Object, callback)</h2>
+
+<p>É apenas um atalho, equivalente a:</p>
+
+<pre class="lang-javascript">function(obj, callback) {
+    return Object.observe(obj, callback, ["add", "update", "delete", "splice"]);
+}</pre>
+
+<h2 id="array-unobserve-object-callback">Array.unobserve(Object, callback)</h2>
+
+<p>Outro atalho, equivalente a:</p>
+
+<pre class="lang-javascript">function(obj, callback) {
+    return Object.unobserve(obj, callback);
+}</pre>
+
+<h2 id="object-deliverchangerecords">Object.deliverChangeRecords</h2>
+
+<p>Se notarmos o primeiro exemplo utilizado no método Object.observe, é possível perceber que a lista de notificações foi entregue de forma acumulada em um vetor, ou seja, no final de todas as alterações. Caso seja necessário intervir de forma antecipada o método Object.deliverChangeRecords garante uma chamada imediata do callback especificado (necessita ser um callback já aplicado) com uma lista das notificações pendentes:</p>
+
+<pre class="lang-javascript">function observer(regs) { 
+   console.log(regs); 
+} 
+var obj = { id: 1 }; 
+Object.observe(obj, observer); 
+obj.a = 'b'; 
+obj.id++;
+console.log('Primeira chamada');
+Object.deliverChangeRecords(observer);
+obj.b = 'c'; 
+console.log('Segunda chamada');
+Object.deliverChangeRecords(observer);</pre>
+
+<p>Esta execução revelaria duas pilhas de notificações:</p>
+
+<pre class="lang-console">&gt; Primeira chamada
+&gt; [{
+     name: "a",
+     object: { a: "b", b: "c", id: 2 },
+     type: "new"
+  },{
+     name: "id"
+     object: { a: "b", b: "c", id: 2 }
+     oldValue: 1
+     type: "updated"
+  }]
+&gt; Segunda chamada
+&gt; [{
+     name: "b",
+     object: {a: "b", b: "c"},
+     id: 2,
+     type: "new"
+  }]</pre>
+
+<h2 id="object-getnotifier">Object.getNotifier</h2>
+
+<p>Permite recuperar o objeto notificador e forçar uma notificação através do método notify():</p>
+
+<pre class="lang-javascript">var obj = { id: 1 };
+function basicObserver(changeList){
+   changeList.forEach(function(change){
+      console.log(change);
+   });
+}
+Object.observe(obj,basicObserver); 
+Object.getNotifier(obj).notify({ type: "new", name: "id" });</pre>
+
+<p>É importante observarmos que implementações nativas tendem a ter um desempenho superior às implementações customizadas (ex. frameworks), e considerando este como apenas um dos aspectos das futuras implementações do ECMAScript 6 já podemos afirmar que elas representam um passo importante para a maturidade do desenvolvimento web.</p>
+
+<p>Caso você não queira aguardar sentado o Javascript Harmony existem algumas alternativas como o <a href="https://github.com/jdarling/Object.observe">Object.observe</a> (polyfill/shim) ou a utilização do <a href="https://www.google.com/intl/pt-BR/chrome/browser/canary.html" title="Chrome Canary">Chrome Canary</a> com a flag &#8220;Enable Experimental JS APIs&#8221; ativada.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

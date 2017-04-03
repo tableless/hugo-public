@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Grunt on Tableless</title>
+    <link>http://tableless.com.br/tags/grunt/index.xml</link>
+    <description>Recent content in Grunt on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/grunt/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>ES2015 – Babel 6 com Browserify e Babelify</title>
+      <link>http://tableless.com.br/es2015-babel-6-com-browserify-e-babelify/</link>
+      <pubDate>Mon, 23 Nov 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/es2015-babel-6-com-browserify-e-babelify/</guid>
+      <description>
+
+&lt;p&gt;Vivemos um momento de transição no mundo Javascript com a aprovação do ES2015 ou ES6, porém, este novo padrão ainda não é suportado totalmente por todos os navegadores, para administrar este problema foi criado o Babel, um compiler Javascript, que além de suas muitas funções, nesta versão 6, pode transformar ES2015 em ES5.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando&#34;&gt;Instalando&lt;/h2&gt;
+
+&lt;p&gt;Para este tutorial, iremos utilizar o &lt;a href=&#34;https://github.com/babel/babelify&#34; target=&#34;_blank&#34;&gt;Babelify&lt;/a&gt;, um módulo &lt;a href=&#34;https://www.npmjs.com/&#34; target=&#34;_blank&#34;&gt;npm&lt;/a&gt; feito para funcionar juntamente com o &lt;a href=&#34;http://browserify.org/&#34; target=&#34;_blank&#34;&gt;Browserify&lt;/a&gt;, outro módulo que empacota todos os seus requires para serem usados no browser.&lt;/p&gt;
+
+&lt;p&gt;Para instalar ambos, é necessário ter instalado em seu computador o &lt;a href=&#34;https://nodejs.org/&#34; target=&#34;_blank&#34;&gt;Node.js&lt;/a&gt;, que juntamente instala o npm (Node Package Manager) ou Gerenciador de Pacotes Node.&lt;/p&gt;
+
+&lt;p&gt;Navegue via terminal até a raiz do seu projeto e digite o comando abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bsh&#34;&gt;npm install --save-dev browserify babelify babel-preset-es2015
+&lt;/pre&gt;
+
+&lt;p&gt;O comando irá instalar o Browserify, Babelify e o plugin es2015 do Babel, responsável por cuidar da conversão de ES2015 para ES5, além de salvá-los na lista de devDependencies do seu &lt;a href=&#34;https://docs.npmjs.com/files/package.json&#34; target=&#34;_blank&#34;&gt;package.json&lt;/a&gt;. Nesta versão do Babel (6) nenhum plugin é instalado por padrão, por isso precisamos instalar ele à parte, você pode encontrar a lista completa de plugins &lt;a href=&#34;http://babeljs.io/docs/plugins/&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;configurando&#34;&gt;Configurando&lt;/h2&gt;
+
+&lt;h3 id=&#34;script&#34;&gt;Script&lt;/h3&gt;
+
+&lt;p&gt;Para configurarmos via script, abra o seu arquivo &lt;a href=&#34;https://docs.npmjs.com/files/package.json&#34; target=&#34;_blank&#34;&gt;package.json&lt;/a&gt;, crie a sessão &lt;a href=&#34;https://docs.npmjs.com/misc/scripts&#34; target=&#34;_blank&#34;&gt;scripts&lt;/a&gt; e nela vamos adicionar o código que irá transformar seu código ES2015 para ES5:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;&#34;build-browserify&#34;: &#34;browserify ./src/meuarquivo.js -t [ babelify --presets [ es2015 ] ] -o ./dist/meunovoarquivo.js&#34;
+&lt;/pre&gt;
+
+&lt;p&gt;Explicando um pouco mais sobre o código acima:&lt;/p&gt;
+
+&lt;p&gt;./src/meuarquivo.js &amp;#8211; Este é o local do seu arquivo JS escrito nos padrões ES2015.&lt;/p&gt;
+
+&lt;p&gt;-t [ babelify &amp;#8211;presets [ es2015 ] ] &amp;#8211; A option -t se refere à transform, que utiliza de módulos de transformação terceiros, neste caso o &lt;a href=&#34;https://github.com/babel/babelify&#34; target=&#34;_blank&#34;&gt;Babelify&lt;/a&gt;. Passamos o módulo que iremos utilizar e passamos uma option para o módulo (&amp;#8211;presets), nesta option listamos os &lt;a href=&#34;http://babeljs.io/docs/plugins/&#34; target=&#34;_blank&#34;&gt;plugins&lt;/a&gt; que iremos utilizar do Babel, que será o es2015.&lt;/p&gt;
+
+&lt;p&gt;-o ./dist/meunovoarquivo.js &amp;#8211; A option -o se refere à output, aqui passamos o destino do nosso arquivo, que será gerado após a transformação.&lt;/p&gt;
+
+&lt;h3 id=&#34;grunt&#34;&gt;Grunt&lt;/h3&gt;
+
+&lt;p&gt;Podemos utilizar também o &lt;a href=&#34;http://gruntjs.com/&#34; target=&#34;_blank&#34;&gt;Grunt&lt;/a&gt;, um Task Runner de Javascript, para realizarmos a transformação do arquivo. Para isso é necessário instalarmos mais um módulo npm, o &lt;a href=&#34;https://www.npmjs.com/package/grunt-browserify&#34; target=&#34;_blank&#34;&gt;grunt-browserify&lt;/a&gt; (contando que você já tenha instalado em seu projeto os módulos &lt;a href=&#34;https://www.npmjs.com/package/grunt&#34; target=&#34;_blank&#34;&gt;grunt&lt;/a&gt; e &lt;a href=&#34;https://www.npmjs.com/package/grunt-cli&#34; target=&#34;_blank&#34;&gt;grunt-cli&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Novamente na raiz do seu projeto via terminal, digite o comando abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bsh&#34;&gt;npm install --save-dev grunt-browserify
+&lt;/pre&gt;
+
+&lt;p&gt;Após a instalação, vá em seu arquivo &lt;a href=&#34;http://gruntjs.com/sample-gruntfile&#34; target=&#34;_blank&#34;&gt;Gruntfile.js&lt;/a&gt; e adicione no config:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;browserify: {
+    dist: {
+        options: {
+            &#34;transform&#34;: [ [&#34;babelify&#34;, { &#34;presets&#34;: [&#34;es2015&#34;] }] ]
+        },
+        files: {
+            &#39;./dist/meunovoarquivo.js&#39;: [&#39;./src/meuarquivo.js&#39;]
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Depois, carregue o módulo e registre uma task:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;grunt.loadNpmTasks(&#39;grunt-browserify&#39;);
+grunt.registerTask(&#39;default&#39;, [&#39;browserify&#39;]);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Ainda estamos iniciando essa nova fase de ES2015, porém já podemos perceber que o futuro espera muitas novidades e um crescimento maravilhoso do Javascript.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Harvest: Boilerplate de Gulp para seus projetos</title>
+      <link>http://tableless.com.br/harvest-boilerplate-de-gulp-para-seus-projetos/</link>
+      <pubDate>Wed, 07 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/harvest-boilerplate-de-gulp-para-seus-projetos/</guid>
+      <description>&lt;p&gt;Não importa qual o Task Runner você usa. Muitos gostam de Grunt, outros de Gulp, outros usam Rake e todos tem o seu encanto e seus truques. Já usei muito Grunt, mas ultimamente tenho experimentado o Gulp. Cara&amp;#8230; como é rápido. Por isso, tive a grande ideia de criar um boilerplate para os meus projetos, onde eu consigo rapidamente concatenar os assets, otimizar imagens, criar source maps dos arquivos SASS, subir um servidor e várias outras coisas.&lt;/p&gt;
+
+&lt;p&gt;Mas antes de iniciar a criação desse boilerplate, obviamente, procurei se alguém não já teve essa ideia e feito esse trabalho para mim. Foi aí que eu achei o &lt;a href=&#34;http://www.ryanbensonmedia.com/harvest&#34;&gt;Harvest&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O Harvest é um boilerplate Gulp que te ajuda a fazer uma série tarefas rotineiras como:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Levantar um servidor na porta 3000&lt;/li&gt;
+&lt;li&gt;Live Reload usando o BrowserSync&lt;/li&gt;
+&lt;li&gt;Build do projeto&lt;/li&gt;
+&lt;li&gt;Conversão do SCSS com Source Maps&lt;/li&gt;
+&lt;li&gt;Concatenação e minificação do CSS e JS&lt;/li&gt;
+&lt;li&gt;Compressão e Otimização de imagem&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A instalação é fácil:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Faça o download ou o clone do projeto&lt;/li&gt;
+&lt;li&gt;Rode &lt;code&gt;npm install&lt;/code&gt; para instalar as dependencias.&lt;/li&gt;
+&lt;li&gt;Rode &lt;code&gt;gulp&lt;/code&gt; para iniciar o servidor, o live reload e o watch dos assets.&lt;/li&gt;
+&lt;li&gt;Abra o browser em &lt;a href=&#34;http://localhost:8080&#34;&gt;http://localhost:8080&lt;/a&gt; para ver seu servidor local e o live reload do projeto&lt;/li&gt;
+&lt;li&gt;Rode &lt;code&gt;gulp deploy&lt;/code&gt; para fazer o build seu projeto&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Alguns dos módulos usados para fazer esse boilerplate são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-autoprefixer&#34; target=&#34;_blank&#34;&gt;Gulp Auto Prefixer&lt;/a&gt; insere os prefixos dos browsers no seu CSS automaticamente&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-concat&#34; target=&#34;_blank&#34;&gt;Gulp Concat&lt;/a&gt; Concatena o JS e o CSS em um arquivo.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-connect&#34; target=&#34;_blank&#34;&gt;Gulp Connect&lt;/a&gt; Cria um servidor local para o desenvolvimento faz o reload quando você muda e salva um arquivo.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-imagemin&#34; target=&#34;_blank&#34;&gt;Gulp ImageMin&lt;/a&gt; Minifica as imagens.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-sass&#34; target=&#34;_blank&#34;&gt;Gulp SASS&lt;/a&gt; Biblioteca do SASS sem a dependência do Ruby.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-sourcemaps&#34; target=&#34;_blank&#34;&gt;Gulp SourceMaps&lt;/a&gt; Adiciona os arquivos de source maps para facilitar o debug do SASS&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-uglify&#34; target=&#34;_blank&#34;&gt;Gulp Uglify&lt;/a&gt; Uglify de JS.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-shell&#34; target=&#34;_blank&#34;&gt;Gulp Shell&lt;/a&gt; Ajuda na criação e limpeza de diretório de build&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-sequence&#34; target=&#34;_blank&#34;&gt;Gulp Sequence&lt;/a&gt; Organiza e roda as tarefas de build em uma sequência definida.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/browser-sync&#34; target=&#34;_blank&#34;&gt;BrowserSync&lt;/a&gt; Sincroniza vários browsers e executa o live reload da página.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/package/gulp-minify-css&#34; target=&#34;_blank&#34;&gt;Gulp Minify CSS&lt;/a&gt; Minifica o CSS.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A &lt;a href=&#34;http://www.ryanbensonmedia.com/harvest/documentation&#34;&gt;documentação&lt;/a&gt; ainda está sendo escrita, mas acho que você vai conseguir se virar bem.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Cache busting: entrega inteligente de assets</title>
+      <link>http://tableless.com.br/cache-busting-entrega-inteligente-de-assets/</link>
+      <pubDate>Thu, 18 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/cache-busting-entrega-inteligente-de-assets/</guid>
+      <description>
+
+&lt;h2 id=&#34;definição&#34;&gt;Definição&lt;/h2&gt;
+
+&lt;p&gt;Cache busting nada mais é do que uma técnica para contornar o problema do carregamento de versões antigas dos assets armazenados em cache no navegador do cliente.&lt;/p&gt;
+
+&lt;h2 id=&#34;problema&#34;&gt;Problema&lt;/h2&gt;
+
+&lt;p&gt;Na verdade, essa é uma questão de longa data. Muitos desenvolvedores utilizam-se do incremento de variáveis com códigos aleatórios no final das chamadas (querystrings) dos assets para contornar o problema, o que, de acordo com &lt;a href=&#34;http://stevesouders.com/&#34;&gt;Steve Souders&lt;/a&gt;, guru em performance de sites na web, não é uma boa prática.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;link rel=&#34;stylesheet&#34; href=&#34;assets/main.css?v=786523&#34;&amp;gt; &amp;lt;!-- NÃO RECOMENDADO! --&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Segundo Souders, &lt;a href=&#34;http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/&#34;&gt;o uso de querystrings não é bom&lt;/a&gt; porque faz com que normalmente o browser recarregue o asset da origem. Para o ambiente de desenvolvimento isso seria o ideal. Para o usuário final isso não seria bom, pois o comportamento de seu navegador seria alterado em termos do número de conexões que são abertas, ignorando o uso do cache e comprometendo a performance de carregamento da página.&lt;/p&gt;
+
+&lt;h2 id=&#34;solução&#34;&gt;Solução&lt;/h2&gt;
+
+&lt;p&gt;Para resolver o problema sem a utilização de querystrings, o ideal é que todos os arquivos de assets que estão sendo requisitados na página sejam renomeados. Logicamente que as chamadas para esses assets renomeados também precisam ser atualizadas na página. Sabemos que fazer esse processo manualmente seria algo árduo, quase insano. Então como fazê-lo de forma elegante, automatizada?&lt;/p&gt;
+
+&lt;p&gt;A fórmula mágica para que isso aconteça de maneira prática é o &lt;a href=&#34;https://github.com/hollandben/grunt-cache-bust&#34;&gt;grunt-cache-bust&lt;/a&gt;, um plugin para o &lt;a href=&#34;http://tableless.com.br/grunt-voce-deveria-estar-usando/&#34;&gt;Grunt&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;show-me-the-code&#34;&gt;Show me the code&lt;/h3&gt;
+
+&lt;p&gt;Vou supor que você já conhece o &lt;a href=&#34;http://gruntjs.com/&#34;&gt;Grunt&lt;/a&gt; e que há uma &lt;em&gt;index.html&lt;/em&gt; na raiz de seu projeto, ok? Sendo assim, irei focar apenas na utilização do plugin.&lt;/p&gt;
+
+&lt;p&gt;A princípio você só precisa seguir 4 passos básicos para usar o grunt-cache-bust:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Instale o plugin usando o seguinte comando:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre class=&#34;lang-sh&#34;&gt;npm install grunt-cache-bust --save-dev
+&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Em seu &lt;em&gt;Gruntfile.js&lt;/em&gt;, adicione a seguinte propriedade ao objeto passado como parâmetro em &lt;em&gt;grunt.initConfig&lt;/em&gt;:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;cacheBust: {
+  options: {
+    encoding: &#39;utf8&#39;,
+    length: 16
+  },
+  scripts: {
+    files: [{
+      src: [&#39;index.html&#39;]
+    }]
+  }
+}
+&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Ainda em seu &lt;em&gt;Gruntfile.js&lt;/em&gt;, adicione a seguinte linha para ativar o plugin:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;grunt.loadNpmTasks(&#39;grunt-cache-bust&#39;);
+&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Tudo certo, agora é só rodar a task e voilà!&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre class=&#34;lang-sh&#34;&gt;grunt cacheBust
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;resultado&#34;&gt;Resultado&lt;/h3&gt;
+
+&lt;p&gt;Lembra que na raíz de seu projeto há uma &lt;em&gt;index.html&lt;/em&gt;? Então, basicamente a task vai varrer esse documento buscando por chamadas de assets (CSS, JS, imagens e favicons), copiar esses arquivos com um novo nome e atualizar o source de cada chamada encontrada com o novo nome do arquivo. Esse novo nome terá o formato {nome}.{hash}.{extensão}, onde {hash} seria um código aleatório.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;index.html&lt;/em&gt; antes:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script src=&#34;assets/main.js&#34;&amp;gt;&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;index.html&lt;/em&gt; depois:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script src=&#34;assets/main.6419373d85d7afe3.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Lindo, né?&lt;/p&gt;
+
+&lt;p&gt;Vale lembrar que o plugin irá ignorar automaticamente chamadas que apontam para CDNs.&lt;/p&gt;
+
+&lt;p&gt;A propriedade &lt;a href=&#34;https://github.com/hollandben/grunt-cache-bust#options&#34;&gt;options&lt;/a&gt; do plugin oferece uma porção de possibilidades interessantes que flexibilizam a utilização do cache busting, como por exemplo manter ou não os arquivos originais dos assets requisitados, escolher o algoritmo e tamanho das hashes, ignorar chamadas de assets através de regex, etc. Enfim, considere dar uma boa olhada na &lt;a href=&#34;https://github.com/hollandben/grunt-cache-bust#getting-started&#34;&gt;documentação oficial do plugin&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Cache busting é algo realmente útil no ciclo de desenvolvimento web. Chega de &lt;em&gt;Cmd+Shift+R&lt;/em&gt; ou &lt;em&gt;Ctrl+F5&lt;/em&gt;, né?&lt;/p&gt;
+
+&lt;p&gt;Se você tem alguma outra solução para essa questão, utilizando Gulp ou outra ferramenta, conta pra gente aqui nos comentários. A comunidade agradece! ;D&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Grunt: você deveria estar usando!</title>
+      <link>http://tableless.com.br/grunt-voce-deveria-estar-usando/</link>
+      <pubDate>Sun, 14 Apr 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/grunt-voce-deveria-estar-usando/</guid>
+      <description>
+
+&lt;p&gt;Todo programador é preguiçoso, e isso é fato, pois sempre estamos procurando ferramentas que automatizem o trabalho para nós. Mas isso necessariamente não é algo ruim, pelo contrário, automatizar tarefas (objetivo do Grunt) implica em ganho de produção e isso é ótimo. O que não podemos deixar acontecer é a não realização de tarefas primordiais para que uma aplicação tenha qualidade.&lt;/p&gt;
+
+&lt;p&gt;Minificação e concatenação de arquivos por exemplo são tarefas básicas e você não deve deixar isso de lado, mas fazer isso usando um plugin no editor (que seja o Sublime Text) ou um site, copiar o código minificado, colar em um novo arquivo renomeado com .min no final e por fim salvar, e toda vez que alterar o código ter que repetir essa operação é um saco.&lt;/p&gt;
+
+&lt;p&gt;E o deploy ? Se você utiliza FTP sabe o quão lento é fazer upload de arquivos, principalmente se forem muitos, e o pior de tudo, ele abre e fecha uma conexão para cada arquivo, é um sofrimento. E se você esquece de enviar um arquivo que alterou ? Melhor nem pensar&amp;#8230;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-o-grunt&#34;&gt;O que é o Grunt?&lt;/h2&gt;
+
+&lt;p&gt;Foi pensando nessas e várias outras atividades que o Ben Alman, conhecido como &lt;a href=&#34;https://twitter.com//cowboy&#34; target=&#34;_blank&#34;&gt;Cowboy&lt;/a&gt; criou essa ferramenta incrível.&lt;/p&gt;
+
+&lt;p&gt;O Grunt é uma aplicação de linha de comando que tem como objetivo automatizar tarefas, principalmente tarefas em aplicações JavaScript. Essas tarefas são como as descritas acima. E como isso é feito? Escrevendo as tarefas em JavaScript e rodando no Node.JS.&lt;/p&gt;
+
+&lt;p&gt;Link oficial: &lt;a href=&#34;http://gruntjs.com&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://gruntjs.com&#34;&gt;http://gruntjs.com&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;ok-quero-usar&#34;&gt;Ok, quero usar!&lt;/h2&gt;
+
+&lt;p&gt;Bom, agora que você já entendeu para o que ele serve, vou mostrar como é simples utilizá-lo.&lt;/p&gt;
+
+&lt;p&gt;Como eu disse, ele roda no Node.JS, então antes de tudo você precisa ter o node e o npm instalados em sua máquina. Se isso estiver ok, você pode continuar.&lt;/p&gt;
+
+&lt;p&gt;Se você já instalou o Grunt alguma vez, certifique-se de remove-lo para não ocorrer problemas futuros.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;sudo npm uninstall -g grunt&lt;/pre&gt;
+
+&lt;p&gt;Agora para instalar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;sudo npm install -g grunt-cli&lt;/pre&gt;
+
+&lt;p&gt;Isso deixará disponível o comando &lt;em&gt;grunt&lt;/em&gt; no terminal. Perceba que instalamos o &lt;em&gt;grunt-cli&lt;/em&gt; e não o &lt;em&gt;grunt&lt;/em&gt; em si, a tarefa do grunt-cli é rodar qualquer versão do grunt, isso permite que você tenha diversas versões do grunt disponíveis em diferentes projetos e você poderá rodar (inclusive simultâneamente) em sua máquina sem ter problemas.&lt;/p&gt;
+
+&lt;h2 id=&#34;mas-como-ele-funciona&#34;&gt;Mas como ele funciona ?&lt;/h2&gt;
+
+&lt;p&gt;Para utilizar o Grunt em um projeto, é necessário que exista dois arquivos: o &lt;em&gt;Gruntfile.js&lt;/em&gt; e o &lt;em&gt;package.json&lt;/em&gt;. Eles devem estar na raiz (diretório principal, root) do projeto. Vou falar sobre esses arquivos logo mais.&lt;/p&gt;
+
+&lt;p&gt;Se você estiver trabalhando em um projeto que já utiliza o Grunt (isto é, exista os arquivos Gruntfile.js e package.json), para rodar é simples.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;// Acesse a pasta do projeto
+cd project-folder
+
+// Instale as dependências
+sudo npm install
+
+// Rode o Grunt
+grunt&lt;/pre&gt;
+
+&lt;p&gt;Simples não?&lt;/p&gt;
+
+&lt;p&gt;Mas ok, vamos fazer isso do zero agora.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-um-projeto-com-grunt&#34;&gt;Criando um projeto com Grunt&lt;/h2&gt;
+
+&lt;p&gt;Para iniciar um projeto com o Grunt existem algumas opções: você pode optar pelo &lt;em&gt;grunt-init&lt;/em&gt; que gera o scaffolding para alguns modelos de aplicações, como:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;jquery: cria um projeto para um plugin jQuery&lt;/li&gt;
+&lt;li&gt;commonjs: cria um projeto para um módulo commonjs&lt;/li&gt;
+&lt;li&gt;Gruntfile: cria um arquivo Gruntfile.js básico&lt;/li&gt;
+&lt;li&gt;gruntplugin: cria um plugin grunt&lt;/li&gt;
+&lt;li&gt;node: cria um módulo Node.JS&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Você também pode baixar outros templates, além dos oficiais. Para criar um projeto a partir de um dos template como os descritos acima basta usar o comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;grunt-init&lt;/pre&gt;
+
+&lt;p&gt;Ou então iniciar o Grunt sem um template, criando os arquivos &amp;#8220;na unha&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Antes, é nescessário que você saiba para que serve aqueles dois arquivos.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Gruntfile.js&lt;/strong&gt;: Esse é um arquivo JavaScript que são definidas e configuradas as tarefas a serem executadas pelo Grunt.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;package.json&lt;/strong&gt;: Esse arquivo é usado pelo npm para armazenar as informações da aplicação, dados como nome, autor, repositório e dependências, e é por isso que o grunt precisa dele, para instalar as dependências e os plugins do grunt que seu projeto irá utilizar. Ao rodar o comando npm install, ele procura as dependências descritas nessa arquivo, e instala na pasta do projeto as mesmas com suas respectivas versões.&lt;/p&gt;
+
+&lt;p&gt;Para criar um arquivo &lt;em&gt;package.json&lt;/em&gt; você pode utilizar o comando &lt;em&gt;npm init&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-json&#34;&gt;{
+    &#34;name&#34;: &#34;meu-projeto&#34;,
+    &#34;version&#34;: &#34;0.0.1&#34;,
+    &#34;description&#34;: &#34;Meu íncrivel projeto&#34;,
+    &#34;homepage&#34;: &#34;http://vagnersantana.com/meuprojeto&#34;,
+    &#34;repository&#34;: {
+        &#34;type&#34;: &#34;git&#34;,
+        &#34;url&#34;: &#34;http://github.com/vagnervjs/meu-projeto&#34;
+    },
+    &#34;engines&#34;: {
+        &#34;node&#34;: &#34;0.8.x&#34;,
+        &#34;npm&#34;: &#34;1.1.x&#34;
+    },
+    &#34;devDependencies&#34;: {
+        &#34;grunt-cli&#34;: &#34;0.1.6&#34;,
+        &#34;grunt&#34;: &#34;~0.4.1&#34;,
+        &#34;grunt-contrib-jshint&#34;: &#34;~0.1.1&#34;
+    }
+}&lt;/pre&gt;
+
+&lt;p&gt;Para instalar o Grunt e os plugins dele, você pode usar o comando &lt;em&gt;npm install &amp;#8211;save-dev&lt;/em&gt; que além de instalar localmente, adiciona a dependência e sua versão na sessão &lt;em&gt;devDependences&lt;/em&gt; do arquivo &lt;em&gt;package.json&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;O arquivo &lt;em&gt;Gruntfile.js&lt;/em&gt; é composto da função principal que engloba tudo, das configurações e tarefas da aplicação, do carregamento de grunt plugins e de tarefas personalizadas.&lt;/p&gt;
+
+&lt;p&gt;Exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;module.exports = function(grunt) {
+    &#39;use strict&#39;;
+
+    // configuração do projeto
+    var gruntConfig = {
+        pkg: grunt.file.readJSON(&#39;package.json&#39;),
+        min: {
+            dist: {
+                src: [&#39;src/assets/js/main.js&#39;],
+                dest: &#39;src/assets/js/all.min.js&#39;
+            }
+        },
+        cssmin: {
+            dist: {
+                src: [&#39;src/assets/css/main.css&#39;],
+                dest: &#39;src/assets/css/all.min.css&#39;
+            }
+        },
+        jshint: {
+            all: [&#39;src/assets/**/*.js&#39;]
+        }
+    };
+
+    grunt.initConfig(gruntConfig);
+
+    // carregando plugins
+    grunt.loadNpmTasks(&#39;grunt-contrib-jshint&#39;);
+
+    // tarefas
+    grunt.registerTask(&#39;default&#39;, [&#39;jshint&#39;]);
+};&lt;/pre&gt;
+
+&lt;p&gt;Bom, pra quem não entendeu direito as linhas acima, eu explico: dentro da função foram declaradas várias tarefas e suas configurações, por exemplo: &lt;em&gt;min&lt;/em&gt; é responsável por minificar os arquvios da pasta descrita na propriedade &lt;em&gt;src&lt;/em&gt; e enviar para o arquivo de destino em &lt;em&gt;desc&lt;/em&gt;. Depois de definir as tarefas e configurações em &lt;em&gt;initConfig()&lt;/em&gt;, é nescessário carregar os plugins grunt de terceitos, caso esteja utilizando algum.&lt;/p&gt;
+
+&lt;p&gt;Feito isso, basta registrar as tarefas a serem executadas, usando &lt;em&gt;registerTask()&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;plugins-do-grunt&#34;&gt;Plugins do Grunt&lt;/h2&gt;
+
+&lt;p&gt;Talvez a melhor parte do Grunt seja essa: os plugins que estão disponíveis.&lt;/p&gt;
+
+&lt;p&gt;O Grunt vem com algumas tarefas já definidas como &lt;em&gt;min&lt;/em&gt; e &lt;em&gt;concat&lt;/em&gt;, e você as chama definindo suas configurações e adicionando o parâmetro &lt;em&gt;&amp;#8216;default&amp;#8217;&lt;/em&gt; em &lt;em&gt;registerTask()&lt;/em&gt;. Porém, a comunidade já criou e vem criando novas tarefas para o Grunt. Provavelmente tudo o que você precisa já deve existir. Confira essas tarefas em &lt;a href=&#34;http://gruntjs.com/plugins&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://gruntjs.com/plugins&#34;&gt;http://gruntjs.com/plugins&lt;/a&gt;&lt;/a&gt;, lá tem o link para o npm, onde você tem as instruções de como instalar e qual configuração utilizar.&lt;/p&gt;
+
+&lt;h2 id=&#34;e-o-deploy&#34;&gt;E o deploy?&lt;/h2&gt;
+
+&lt;p&gt;É, eu disse lá no início que é possível até fazer deploy com o Grunt, e sim, isso é perfeitamente possível. Agora que você já viu como ele funciona vou falar sobre esse plugin em específico.&lt;/p&gt;
+
+&lt;p&gt;Para deploy estou utilizando o &lt;em&gt;grunt-rsync&lt;/em&gt;. Esse plugin cria uma tarefa de sincronização, tanto local como para um servidor remoto, usando o &lt;em&gt;rsync&lt;/em&gt; que já vem presente em sistemas operacionais &amp;#8220;unix like&amp;#8221;. O rsync é excelente pois mantém o diretório remoto sempre em sincronia com o diretório base, e só envia os arquivos que foram alterados, além de não enviar os arquivos um-a-um como faz o FTP. Outro ponto positivo é que ele utiliza SSH, portanto se você tiver uma chave publica adicionada as chaves autorizadas no servidor, você executa o deploy direto do Grunt e sem digitar senha.&lt;/p&gt;
+
+&lt;p&gt;Veja a configuração da tarefa:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;rsync: {
+    dist: {
+        src: &#39;./src/&#39;,
+        dest: &#39;./dist&#39;,
+        recursive: true,
+        syncDest: true,
+        exclude: [&#39;main.*&#39;]
+    },
+    deploy: {
+        src: &#39;./dist/&#39;,
+        dest: &#39;/var/www&#39;,
+        host: &#39;root@vagnersantana.com&#39;,
+        recursive: true,
+        syncDest: true
+    }
+}&lt;/pre&gt;
+
+&lt;p&gt;Explicando: em dist eu estou fazendo uma sincronização local, preparando a aplicação para deploy, nela eu removo os arquivos que tem nome &amp;#8220;main&amp;#8221; pois estes foram minificados e concatenados em tarefas anteriores. Depois disso, defino a tarefa de deploy, que pega a pasta &amp;#8216;./dist&amp;#8217; que acabou de ser criada ou atualizada, e envio ela para meu servidor. A propriedade &amp;#8220;dest&amp;#8221; agora é é o diretório remoto e a propriedade &amp;#8220;host&amp;#8221; é o usuário e endereço do meu servidor remoto.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-rodar&#34;&gt;Como rodar?&lt;/h2&gt;
+
+&lt;p&gt;Mais simples impossível, depois de tudo configurado, você pode executar todas as tarefas descritas no &lt;em&gt;Gruntfile.js&lt;/em&gt; com o comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;grunt&lt;/pre&gt;
+
+&lt;p&gt;Talvez você precise utilizar &lt;em&gt;sudo&lt;/em&gt; caso alguma tarefa necessite de privilégios.&lt;/p&gt;
+
+&lt;h2 id=&#34;grunt-boilerplate&#34;&gt;Grunt Boilerplate&lt;/h2&gt;
+
+&lt;p&gt;Depois que comecei a utilizar o Grunt, percebi que sempre iria executar tarefas em comum para vários projetos, e isso me fez criar um padrão do Grunt com tudo que preciso em comum, e caso algum projeto necessitar de outras tarefas, é só ir lá e adicionar.&lt;/p&gt;
+
+&lt;p&gt;Nesse boilerplate defini (por enquanto): min, cssmin e rsync. Não adicionei o JSHint pois utilizo direto no Sublime. Dessa forma com esse boilerplate pronto, para iniciar um projeto eu apenas clono o projeto grunt-boilerplate, mudo o nome da pasta, configuro o package.json, altero os caminhos e nomes de arquivos de acordo com o projeto, e pronto, é lindo =D&lt;/p&gt;
+
+&lt;p&gt;Ficou com vontade de utilizar também? É só ir &lt;a title=&#34;Github&#34; href=&#34;https://github.com/vagnervjs/grunt-boilerplate&#34; target=&#34;_blank&#34;&gt;neste repositório&lt;/a&gt; no github, clonar o projeto e alterar para suas necessidades. Basta ter o grunt-cli e o node instalados para tudo funcionar.&lt;/p&gt;
+
+&lt;p&gt;Se quiser realizar um fork, ou reportar um problema fique totalmente à vontade.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Ferramentas como Grunt, Yeoman, Bower estão ai disponíveis e abertas para todos nós, basta sair da sua zona de conformo, perder o medo de sair do tradicional. Essas ferramentas só existem para melhorar e ajudar nosso trabalho, e se usadas de forma correta, você só irá evoluir, tanto em produção como em profissionalismo. Esperto ter ajudado um pouquinho com o Grunt nesse post. Divirtam-se!&lt;/p&gt;
+
+&lt;h2 id=&#34;referências&#34;&gt;Referências&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a title=&#34;Grunt&#34; href=&#34;http://gruntjs.com/getting-started&#34; target=&#34;_blank&#34;&gt;Grunt &amp;#8211; Getting Started&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a title=&#34;Meeting Grunt&#34; href=&#34;http://net.tutsplus.com/tutorials/javascript-ajax/meeting-grunt-the-build-tool-for-javascript/&#34; target=&#34;_blank&#34;&gt;Meet Grunt: The Build Tool for JavaScript&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a title=&#34;Introducing Grunt&#34; href=&#34;http://weblog.bocoup.com/introducing-grunt/&#34; target=&#34;_blank&#34;&gt;Bocoup &amp;#8211; Introducing Grunt&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Objetos on Tableless</title>
+    <link>http://tableless.com.br/tags/objetos/index.xml</link>
+    <description>Recent content in Objetos on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/objetos/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>JavaScript: Objetos Literais vs. Funções Construtoras</title>
+      <link>http://tableless.com.br/javascript-objetos-literais-vs-funcoes-construtoras/</link>
+      <pubDate>Tue, 04 Jun 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/javascript-objetos-literais-vs-funcoes-construtoras/</guid>
+      <description>
+
+&lt;p&gt;Existem duas maneiras de criar objetos JavaScript e muita gente as confunde ou acha que são a mesma coisa. No entanto, Objetos Literais e Funções Construtoras são conceitos bem diferentes e entendê-los vai fazer com que você tire melhor proveito da linguagem.&lt;/p&gt;
+
+&lt;h2 id=&#34;objetos-literais&#34;&gt;Objetos Literais&lt;/h2&gt;
+
+&lt;p&gt;Este é o tipo básico de objetos JavaScript. É o formato popularizado através do JSON (JavaScript Object Notation). O objeto é criado utilizando um par de chaves ({}) e suas propriedades e métodos são todos públicos. Este tipo de objeto também é chamado de objeto estático.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var tableless = {
+    init: function (artigos) {
+        this.artigos = artigos;
+    }
+};
+var tableless2 = tableless;&lt;/pre&gt;
+
+&lt;p&gt;Todo objeto literal é um objeto único e, mesmo que você armazene ele em diferentes variáveis todas apontarão para o mesmo objeto. No exemplo acima, caso você altere/adicione propriedades em qualquer uma das variáveis (tableless ou tableless2), as modificações valem para ambas.&lt;/p&gt;
+
+&lt;p&gt;Seu uso é recomendado em situações onde não podem existir mais de uma instância do objeto, como por exemplo, objetos de configurações do projeto ou coleções de objetos. Além disso, este tipo de notação é muito utilizado para definir o &lt;em&gt;namespace&lt;/em&gt; do seu código JavaScript.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Objeto Literal definindo namespace
+var tableless = tableless || {};
+// Construtor para Artigo utilizando o namespace tableless
+tableless.Artigo = function (titulo) {
+    this.titulo = titulo;
+};
+var artigo = new tableless.Artigo(&#39;Mais um artigo sobre JavaScript&#39;);&lt;/pre&gt;
+
+&lt;h2 id=&#34;construtores&#34;&gt;Construtores&lt;/h2&gt;
+
+&lt;p&gt;Um construtor nada mais é do que uma função. Ela pode ser executada como uma função ou pode ser utilizada para instanciar um objeto utilizando a palavra reservada &lt;em&gt;new&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;(Caso você execute a função como uma chamada normal, vale realçar que o &lt;strong&gt;this&lt;/strong&gt; dentro da função, nesse contexto, será o objeto global &lt;strong&gt;window&lt;/strong&gt;.)&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function Categoria(nome) {
+    this.nome = nome;
+}
+
+var categoria = new Categoria(&#39;Livros&#39;);&lt;/pre&gt;
+
+&lt;p&gt;Ao executar a função Categoria com &lt;strong&gt;new&lt;/strong&gt; estamos fazendo quatro coisas:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;criamos um novo objeto JavaScript ({});&lt;/li&gt;
+&lt;li&gt;definimos o construtor do objeto &lt;strong&gt;categoria&lt;/strong&gt; como &lt;strong&gt;Categoria&lt;/strong&gt; &amp;#8211; definindo também o tipo dele (retornado no instanceof);&lt;/li&gt;
+&lt;li&gt;definimos o protótipo do objeto &lt;strong&gt;categoria&lt;/strong&gt; como &lt;strong&gt;Categoria.prototype&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;executamos a função &lt;strong&gt;Categoria&lt;/strong&gt; dentro do escopo do novo objeto, criando assim uma nova instância.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Uma outra particularidade das funções construtoras é a possibilidade de criar métodos e propriedades privadas.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function Categoria(nome) {
+    var totalProdutos = 0,
+        self = this,
+        atualizaTotalProdutos = function() {
+            self.totalProdutos += 1;
+        };
+    this.nome = nome;
+    atualizaTotalProdutos();
+}&lt;/pre&gt;
+
+&lt;p&gt;A variável &lt;strong&gt;totalProdutos&lt;/strong&gt; e o método &lt;strong&gt;atualizaTotalProdutos&lt;/strong&gt; só existem no escopo do objeto Categoria criado e podem ser utilizados apenas por métodos do objeto.&lt;/p&gt;
+
+&lt;p&gt;Aqui utilizamos um &amp;#8220;truque&amp;#8221; importante. Como cada função possui o seu próprio contexto e o &lt;strong&gt;this&lt;/strong&gt; dentro do método &lt;strong&gt;atualizaTotalProdutos&lt;/strong&gt; referencia a própria função e não o objeto Categoria precisamos armazenar o contexto do objeto dentro da variável &lt;strong&gt;self&lt;/strong&gt;. (Outra forma seria utilizar os métodos &lt;strong&gt;call&lt;/strong&gt; e &lt;strong&gt;aply&lt;/strong&gt; para definir o &lt;strong&gt;this&lt;/strong&gt; da função, mas isso é papo para outro artigo.)&lt;/p&gt;
+
+&lt;p&gt;Utilizando a cadeia de protótipos, podemos atualizar propriedades ou inserir novos métodos em objetos criados a partir de funções construtoras.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;Categoria.prototype.exibeProdutos = function () {
+    var html = &#39;&#39;,
+        i;
+    for (i = 0; i &amp;lt; this.produtos.length; i++) {
+        html += this.produtos[i].nome;
+    }
+    return html;
+};&lt;/pre&gt;
+
+&lt;p&gt;O código acima adiciona o método &lt;strong&gt;exibeProdutos&lt;/strong&gt; ao protótipo de Categoria e também a todos os objetos da cadeia, instanciados ou não.&lt;/p&gt;
+
+&lt;p&gt;As funções construtoras, portanto, são ideais para objetos que podem existir como múltiplas instâncias no mesmo contexto.&lt;/p&gt;
+
+&lt;p&gt;Uma observação: para melhor organizar seu código uma boa prática é utilizar a primeira letra maiúscula nos nomes de funções construtoras, diferenciando-as de funções comuns.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8212;&lt;/p&gt;
+
+&lt;p&gt;Entender conceitos de orientação a objetos em JavaScript pode levar um pouco de tempo e pode parecer bem estranho no início. Mas, uma vez entendido o funcionamento desses conceitos você descobrirá que é possível fazer diversas coisas legais e diferentes e que JavaScript é uma linguagem extremamente flexível.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

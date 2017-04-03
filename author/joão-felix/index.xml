@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>João Felix on Tableless</title>
+    <link>http://tableless.com.br/author/jo%C3%A3o-felix/index.xml</link>
+    <description>Recent content in João Felix on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/jo%C3%A3o-felix/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Javascript Observe</title>
+      <link>http://tableless.com.br/javascript-observe/</link>
+      <pubDate>Thu, 20 Feb 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/javascript-observe/</guid>
+      <description>
+
+&lt;p&gt;O &lt;a href=&#34;http://wiki.ecmascript.org/doku.php&#34;&gt;ECMAScript 6&lt;/a&gt; (codinome Harmony ou ES.next) já não é novidade para quem acompanha de perto os avanços do desenvolvimento web, e suas especificações já bem avançadas causam um certo alvoroço a respeito de como vais ser o futuro do Javascript.&lt;/p&gt;
+
+&lt;p&gt;Uma das esperadas especificações é o Object.observe, que documenta a capacidade de observar e notificar aplicações sobre as mudanças ocorridas em objetos Javascript, recurso bastante requisitado em aplicações funcionais.&lt;/p&gt;
+
+&lt;p&gt;O uso de funcionalidades similares já é possível com algumas bibliotecas como o &lt;a href=&#34;https://github.com/melanke/Watch.JS&#34;&gt;Watch.js&lt;/a&gt; e também por frameworks como o &lt;a href=&#34;http://backbonejs.org/#Events-listenTo&#34;&gt;Backbone&lt;/a&gt; (além de outros), permitindo a criação de mecanismos declarativos e independentes das demais implementações da aplicação.&lt;/p&gt;
+
+&lt;p&gt;Para começar, precisamos entender o que esta funcionalidade é capaz de observar um objeto:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;As mudanças no valor das propriedades;&lt;/li&gt;
+&lt;li&gt;A adição, exclusão e reconfiguração de todas as propriedades visíveis através das APIs de reflexão;&lt;/li&gt;
+&lt;li&gt;Mudanças no protótipo e extensibilidade do próprio objeto.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A &lt;a href=&#34;http://wiki.ecmascript.org/doku.php?id=harmony:observe_public_api&#34;&gt;API pública&lt;/a&gt; atual disponibiliza as seguintes métodos:&lt;/p&gt;
+
+&lt;h2 id=&#34;object-observe-object-callback-accepts&#34;&gt; Object.observe(Object, callback[, accepts])&lt;/h2&gt;
+
+&lt;p&gt;Trata-se do método principal da API que é responsável pela funcionalidade de observar um objeto e sua assinatura é bastante simples, sendo necessário apenas informar o objeto a ser observado, a função a ser executada quando alguma notificação for disparada e opcionalmente um vetor de tipos de notificações a serem manipuladas (os tipos de notificações permitidas são: ”add”, “update”, “delete”, “reconfigure”, “setPrototype” e “preventExtensions”); Esta chamada pode ser executada quantas vezes for necessário (você pode querer executar callbacks distintos).&lt;/p&gt;
+
+&lt;p&gt;Sua utilização segue o seguinte exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function observer(regs) { 
+   console.log(regs); 
+} 
+var obj = { id: 1 }; 
+Object.observe(obj, observer); 
+obj.a = &#39;b&#39;; 
+obj.id++;&lt;/pre&gt;
+
+&lt;p&gt;A saída desta rotina, desconsiderando as propriedades herdadas pelo argumento regs, &lt;span style=&#34;line-height: 1.5em&#34;&gt;seria uma lista de objetos de notificações:&lt;/span&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-console&#34;&gt;&amp;gt; [{
+     name: &#34;a&#34;,
+     object: {id: 2, a: &#34;b&#34;},
+     oldValue: &#34;b&#34;, 
+     type: &#34;updated&#34; 
+  },{ 
+     name: &#34;id&#34;, 
+     object: {id: 2, a: &#34;b&#34;}, 
+     type: &#34;new&#34;
+  }]&lt;/pre&gt;
+
+&lt;h2 id=&#34;object-unobserve-object-callback&#34;&gt;Object.unobserve(Object, callback)&lt;/h2&gt;
+
+&lt;p&gt;Eventualmente, poderá ser necessário não acompanhar mais as notificações de um determinado objeto, ou apenas interromper a execução de um callback especifico; Para isso, basta executar conforme o exemplo, especificando o objeto observado e o callback a ser removido:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function updateObserver(regs) { 
+   regs.forEach(function(notification){
+      if(notification.type === &#34;updated&#34;){
+         console.log(notification);
+      }
+   });
+}
+function deleteObserver(regs) { 
+   regs.forEach(function(notification){
+      if(notification.type === &#34;deleted&#34;){
+         console.log(notification);
+      }
+   });
+} 
+var obj = { id: 1 }; 
+Object.observe(obj, updateObserver); 
+Object.observe(obj, deleteObserver); 
+obj.id++; 
+Object.unobserve(obj, deleteObserver); 
+delete obj.id;&lt;/pre&gt;
+
+&lt;p&gt;A saída desta rotina, também seria uma lista de objetos de notificações:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-console&#34;&gt;&amp;gt; [{
+     name: &#34;id&#34;,
+     object: {},
+     oldValue: 1, 
+     type: &#34;updated&#34; 
+  }]&lt;/pre&gt;
+
+&lt;h2 id=&#34;array-observe-object-callback&#34;&gt;Array.observe(Object, callback)&lt;/h2&gt;
+
+&lt;p&gt;É apenas um atalho, equivalente a:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function(obj, callback) {
+    return Object.observe(obj, callback, [&#34;add&#34;, &#34;update&#34;, &#34;delete&#34;, &#34;splice&#34;]);
+}&lt;/pre&gt;
+
+&lt;h2 id=&#34;array-unobserve-object-callback&#34;&gt;Array.unobserve(Object, callback)&lt;/h2&gt;
+
+&lt;p&gt;Outro atalho, equivalente a:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function(obj, callback) {
+    return Object.unobserve(obj, callback);
+}&lt;/pre&gt;
+
+&lt;h2 id=&#34;object-deliverchangerecords&#34;&gt;Object.deliverChangeRecords&lt;/h2&gt;
+
+&lt;p&gt;Se notarmos o primeiro exemplo utilizado no método Object.observe, é possível perceber que a lista de notificações foi entregue de forma acumulada em um vetor, ou seja, no final de todas as alterações. Caso seja necessário intervir de forma antecipada o método Object.deliverChangeRecords garante uma chamada imediata do callback especificado (necessita ser um callback já aplicado) com uma lista das notificações pendentes:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function observer(regs) { 
+   console.log(regs); 
+} 
+var obj = { id: 1 }; 
+Object.observe(obj, observer); 
+obj.a = &#39;b&#39;; 
+obj.id++;
+console.log(&#39;Primeira chamada&#39;);
+Object.deliverChangeRecords(observer);
+obj.b = &#39;c&#39;; 
+console.log(&#39;Segunda chamada&#39;);
+Object.deliverChangeRecords(observer);&lt;/pre&gt;
+
+&lt;p&gt;Esta execução revelaria duas pilhas de notificações:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-console&#34;&gt;&amp;gt; Primeira chamada
+&amp;gt; [{
+     name: &#34;a&#34;,
+     object: { a: &#34;b&#34;, b: &#34;c&#34;, id: 2 },
+     type: &#34;new&#34;
+  },{
+     name: &#34;id&#34;
+     object: { a: &#34;b&#34;, b: &#34;c&#34;, id: 2 }
+     oldValue: 1
+     type: &#34;updated&#34;
+  }]
+&amp;gt; Segunda chamada
+&amp;gt; [{
+     name: &#34;b&#34;,
+     object: {a: &#34;b&#34;, b: &#34;c&#34;},
+     id: 2,
+     type: &#34;new&#34;
+  }]&lt;/pre&gt;
+
+&lt;h2 id=&#34;object-getnotifier&#34;&gt;Object.getNotifier&lt;/h2&gt;
+
+&lt;p&gt;Permite recuperar o objeto notificador e forçar uma notificação através do método notify():&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var obj = { id: 1 };
+function basicObserver(changeList){
+   changeList.forEach(function(change){
+      console.log(change);
+   });
+}
+Object.observe(obj,basicObserver); 
+Object.getNotifier(obj).notify({ type: &#34;new&#34;, name: &#34;id&#34; });&lt;/pre&gt;
+
+&lt;p&gt;É importante observarmos que implementações nativas tendem a ter um desempenho superior às implementações customizadas (ex. frameworks), e considerando este como apenas um dos aspectos das futuras implementações do ECMAScript 6 já podemos afirmar que elas representam um passo importante para a maturidade do desenvolvimento web.&lt;/p&gt;
+
+&lt;p&gt;Caso você não queira aguardar sentado o Javascript Harmony existem algumas alternativas como o &lt;a href=&#34;https://github.com/jdarling/Object.observe&#34;&gt;Object.observe&lt;/a&gt; (polyfill/shim) ou a utilização do &lt;a href=&#34;https://www.google.com/intl/pt-BR/chrome/browser/canary.html&#34; title=&#34;Chrome Canary&#34;&gt;Chrome Canary&lt;/a&gt; com a flag &amp;#8220;Enable Experimental JS APIs&amp;#8221; ativada.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Wintersmith: Outro gerador de conteúdo estático</title>
+      <link>http://tableless.com.br/wintersmith-aprendendo-outro-gerador-de-conteudo-estatico/</link>
+      <pubDate>Wed, 15 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/wintersmith-aprendendo-outro-gerador-de-conteudo-estatico/</guid>
+      <description>
+
+&lt;h2 id=&#34;primeiro-o-que-são-os-geradores-de-conteúdos-estáticos&#34;&gt;Primeiro, o que são os Geradores de Conteúdos Estáticos?&lt;/h2&gt;
+
+&lt;p&gt;Diferente de plataformas como WordPress, Joomla e etc., os geradores de conteúdo estáticos servem para criar páginas de conteúdo sem a utilização de qualquer persistência ou dependência server-side, onde ao final, você possui um pacote de arquivos html e seus companheiros (css,javascript,imagens&amp;#8230;).&lt;/p&gt;
+
+&lt;p&gt;O Tableless tem um artigo sobre &lt;a href=&#34;http://tableless.com.br/jekyll-servindo-sites-estaticos/&#34;&gt;Jekyll&lt;/a&gt;, outro gerador de conteúdo estático. O Jekyll é usado pelo pessoal do Bootstrap.&lt;/p&gt;
+
+&lt;h2 id=&#34;segundo-o-que-é-o-wintersmith-2&#34;&gt;Segundo, o que é o &lt;a href=&#34;http://wintersmith.io/&#34; title=&#34;Wintersmith&#34;&gt;Wintersmith&lt;/a&gt;?&lt;/h2&gt;
+
+&lt;p&gt;O ponto de partida foi a escolha de qual gerador utilizar. Eu já possuía uma queda pelo &lt;a href=&#34;http://jekyllrb.com&#34;&gt;Jekyll&lt;/a&gt; (devido à diversos blogs que eu acompanho o utilizarem) e uma &lt;a href=&#34;https://iwantmyname.com/blog/2011/02/list-static-website-generators.html&#34;&gt;lista de 32 Geradores de Conteúdo Estáticos&lt;/a&gt;, porem, eu não queria utilizar Ruby (só não queria) e decidi procurar algo em Node.js (aproveitando a vibe), eis que surge o Wintersmith! O projeto é open-source e utiliza outros projetos open-source para criar um ambiente bem simples! Foi criado utilizando o &lt;a href=&#34;http://daringfireball.net/projects/markdown/&#34;&gt;Markdown&lt;/a&gt; (igual ao github) como conversor de texto para HTML, &lt;a href=&#34;http://jade-lang.com&#34;&gt;Jade&lt;/a&gt; para criação de templates e &lt;a href=&#34;http://coffeescript.org/&#34;&gt;Coffescript&lt;/a&gt; para os plugins (muita coisa legal para aprender)!&lt;/p&gt;
+
+&lt;p&gt;Agora, chega de conversa e mão na massa (lembrando que ao final tem um link para você baixar todo o código do resultado).&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando-o-wintersmith&#34;&gt;Instalando o Wintersmith&lt;/h2&gt;
+
+&lt;p&gt;Neste artigo eu vou adotar como precedência que você já tenha o Node.js instalado e saiba do que se trata o &lt;a href=&#34;https://npmjs.org/&#34;&gt;npm&lt;/a&gt;, mas nada impede de aprendermos mais sobre eles em um outro momento; Segue o comando de instalação:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ npm install wintersmith -g
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;criando-o-projeto&#34;&gt;Criando o projeto&lt;/h2&gt;
+
+&lt;p&gt;Estando com o pacote instalado, basta criar o seu projeto na pasta que desejar.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ wintersmith new
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;O template padrão do projeto é o de blog (existem também basic e webapp), o que atende bem à minha necessidade, mas você pode criar outros. Junto com a estrutura de arquivos, o Wintersmith já criará um conjunto de artigos bem explicativos que mostram o potencial da ferramenta, para visualizar como está o seu projeto, basta coloca-lo em peview:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ wintersmith preview
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Ai pronto! Você já pode acessar &lt;a href=&#34;http://localhost:8080&#34;&gt;http://localhost:8080&lt;/a&gt; e ver o que está criado (Vale lembrar que enquanto estiver visualizando, qualquer alteração é refletida na pré-visualização sem a necessidade de executar o comando novamente).&lt;/p&gt;
+
+&lt;h2 id=&#34;personalizando-o-blog&#34;&gt;Personalizando o blog&lt;/h2&gt;
+
+&lt;p&gt;Como a estrutura criada pelo projeto já é bem próxima à de um blog bem enxuto, precisei apenas fazer algumas mudanças de parametros, alterar os autores (dos artigos, claro!) e criar um template jade para os comentários (utilizando [Disqus][12]).&lt;/p&gt;
+
+&lt;p&gt;Na raiz do projeto existe um arquivo chamado config.json e o padrão dele é:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+  &amp;quot;locals&amp;quot;: {
+    &amp;quot;url&amp;quot;: &amp;quot;http://localhost:8080&amp;quot;,
+    &amp;quot;name&amp;quot;: &amp;quot;The Wintersmith&#39;s blog&amp;quot;,
+    &amp;quot;owner&amp;quot;: &amp;quot;Someone&amp;quot;,
+    &amp;quot;description&amp;quot;: &amp;quot;Ramblings of an immor(t)al demigod&amp;quot;
+  },
+  &amp;quot;plugins&amp;quot;: [&amp;quot;./plugins/paginator.coffee&amp;quot;],
+  &amp;quot;require&amp;quot;: {
+    &amp;quot;moment&amp;quot;: &amp;quot;moment&amp;quot;,
+    &amp;quot;_&amp;quot;: &amp;quot;underscore&amp;quot;,
+    &amp;quot;typogr&amp;quot;: &amp;quot;typogr&amp;quot;
+  },
+  &amp;quot;jade&amp;quot;: {
+    &amp;quot;pretty&amp;quot;: true
+  },
+  &amp;quot;markdown&amp;quot;: {
+    &amp;quot;smartLists&amp;quot;: true,
+    &amp;quot;smartypants&amp;quot;: true
+  },
+  &amp;quot;paginator&amp;quot;: {
+    &amp;quot;perPage&amp;quot;: 3
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;E após as minhas alterações, eu o deixei assim:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+  &amp;quot;locals&amp;quot;: {
+    &amp;quot;url&amp;quot;: &amp;quot;http://oqueaprendihoje.com.br&amp;quot;,
+    &amp;quot;name&amp;quot;: &amp;quot;O Que Aprendi Hoje&amp;quot;,
+    &amp;quot;owner&amp;quot;: &amp;quot;João Felix&amp;quot;,
+    &amp;quot;description&amp;quot;: &amp;quot;A saga de um aprendiz encantado com o universo do Front-end&amp;quot;,
+    &amp;quot;keywords&amp;quot; : [&amp;quot;javascript&amp;quot;,&amp;quot;css&amp;quot;,&amp;quot;front-end&amp;quot;,&amp;quot;web&amp;quot;,&amp;quot;development&amp;quot;],
+    &amp;quot;disqus&amp;quot;: {
+      &amp;quot;id&amp;quot; : &amp;quot;oqueaprendihoje&amp;quot;
+    }
+  },
+  &amp;quot;plugins&amp;quot;: [&amp;quot;./plugins/paginator.coffee&amp;quot;],
+  &amp;quot;require&amp;quot;: {
+    &amp;quot;moment&amp;quot;: &amp;quot;moment&amp;quot;,
+    &amp;quot;_&amp;quot;: &amp;quot;underscore&amp;quot;,
+    &amp;quot;typogr&amp;quot;: &amp;quot;typogr&amp;quot;
+  },
+  &amp;quot;jade&amp;quot;: {
+    &amp;quot;pretty&amp;quot;: true
+  },
+  &amp;quot;markdown&amp;quot;: {
+    &amp;quot;smartLists&amp;quot;: true,
+    &amp;quot;smartypants&amp;quot;: true
+  },
+  &amp;quot;paginator&amp;quot;: {
+    &amp;quot;perPage&amp;quot;: 10
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Basicamente alterei as propriedades do blog, como nome, proprietário, descrição e palavras-chaves, alem de alterar o número de paginas e inserir o objeto &amp;#8220;disqus&amp;#8221; para utilizarmos no controle de comentários; Vale ressaltar que o objeto &amp;#8220;locals&amp;#8221; fica acessivel aos templates também.&lt;/p&gt;
+
+&lt;p&gt;Outra alteração necessária foi a criação de um autor, para isso, removi os autores padrões e adicionei o meu na pasta &amp;#8220;contents/authors&amp;#8221;; O identificador de autor no artigo é o nome do arquivo e o conteúdo é um objeto JSON:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+  &amp;quot;name&amp;quot;: &amp;quot;João Felix&amp;quot;,
+  &amp;quot;email&amp;quot;: &amp;quot;jr8116[at]gmail[dot]com&amp;quot;,
+  &amp;quot;bio&amp;quot;: &amp;quot;Aprendiz, desenvolvedor e empreendedor!&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;comentários-nos-artigos&#34;&gt;Comentários nos artigos&lt;/h2&gt;
+
+&lt;p&gt;Todo blog que se preze, precisa aceitar comentários. Para isso, utilizei a solução Disqus, que me permite apenas pela referência do utilizador e da página atual, disponibilizar para os usuários uma forma de comentar os artigos.&lt;/p&gt;
+
+&lt;p&gt;Para manter o padrão de organização do projeto, eu criei um template jade chamado &amp;#8216;disqus.jade&amp;#8221; e o coloquei na pasta &amp;#8220;templates&amp;#8221; (Também o dinamizei para utilizar o id do objeto disqus que determinamos); Este arquivo nada mais é do que a transposição do código fornecido pelo Disqus:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;div id=&amp;quot;disqus_thread&amp;quot;&amp;gt;&amp;lt;/div&amp;gt;
+&amp;lt;script type=&amp;quot;text/javascript&amp;quot;&amp;gt; 
+  var disqus_shortname = &#39;oqueaprendihoje&#39;; (function() { var dsq = document.createElement(&#39;script&#39;); dsq.type = &#39;text/javascript&#39;; dsq.async = true; dsq.src = &#39;//&#39; + disqus_shortname + &#39;.disqus.com/embed.js&#39;; (document.getElementsByTagName(&#39;head&#39;)[0] || document.getElementsByTagName(&#39;body&#39;)[0]).appendChild(dsq); })(); 
+&amp;lt;/script&amp;gt;
+&amp;lt;noscript&amp;gt;Please enable JavaScript to view the &amp;lt;a href=&amp;quot;http://disqus.com/?ref_noscript&amp;quot;&amp;gt;comments powered by Disqus.&amp;lt;/a&amp;gt;&amp;lt;/noscript&amp;gt; 
+&amp;lt;a href=&amp;quot;http://disqus.com&amp;quot; class=&amp;quot;dsq-brlink&amp;quot;&amp;gt;comments powered by &amp;lt;span class=&amp;quot;logo-disqus&amp;quot;&amp;gt;Disqus&amp;lt;/span&amp;gt;&amp;lt;/a&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Para o padrão de escrita Jade:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;div(id=&amp;quot;disqus_thread&amp;quot;)
+script.
+  var disqus_shortname = &amp;quot;#{disqus.id}&amp;quot;;
+  (function() {
+    var dsq = document.createElement(&#39;script&#39;); dsq.type = &#39;text/javascript&#39;; dsq.async = true;
+    dsq.src = &#39;//&#39; + disqus_shortname + &#39;.disqus.com/embed.js&#39;;
+    (document.getElementsByTagName(&#39;head&#39;)[0] || document.getElementsByTagName(&#39;body&#39;)[0]).appendChild(dsq);
+  })();
+noscript
+  Habilite o Javascript do seu browser para ver os
+  a(href=&amp;quot;http://disqus.com/?ref_noscript&amp;quot;) comentários mantidos pelo Disqus.
+a.dsq-brlink(href=&amp;quot;http://disqus.com&amp;quot;)
+  comments powered by
+  span.logo-disqus
+    Disqus
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Com o template pronto, basta inclui-lo no template &amp;#8220;article.jade&amp;#8221; que também está no diretório &amp;#8220;templates&amp;#8221;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;include disqus
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Resultado final do template:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;extends layout
+
+block append vars
+  - bodyclass = &#39;article-detail&#39;
+
+block prepend title
+  | #{ page.title + &amp;quot; - &amp;quot;}
+
+block header
+  include author
+  h1= page.title
+  p.author
+    | #{ &amp;quot;Escrito por &amp;quot; }
+    mixin author(page.metadata.author)
+
+block content
+  article.article
+    section.content!= typogr(page.html).typogrify()
+
+block prepend footer
+  include disqus
+  div.nav
+    a(href=contents.index.url) « Lista
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Também fiz algumas alterações por menores, como: Exibir o Twitter e não o E-mail do autor, links para compartilhamento utilizando o Addthis, inserção do Google Analytics e tradução dos links de avançar, ver mais e etc. que estão disponíveis no código fonte do blog.&lt;/p&gt;
+
+&lt;h2 id=&#34;publicando&#34;&gt;Publicando&lt;/h2&gt;
+
+&lt;p&gt;Pronto! Nossa estrutura de blog está criada! Agora falta apenas gerar os arquivos finais para a publicação, que estarão disponíveis na pasta &amp;#8220;build&amp;#8221;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ wintersmith build
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;acabamos&#34;&gt;Acabamos!&lt;/h2&gt;
+
+&lt;p&gt;Neste momento, temos um blog pronto, porem, sem customização e apenas com o layout padrão do Wintersmith.  Espero que tenham gostado.&lt;/p&gt;
+
+&lt;p&gt;Todo o código está disponível no Github e no site: &lt;a href=&#34;https://github.com/jr8116/oqueaprendihoje&#34;&gt;https://github.com/jr8116/oqueaprendihoje&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Utilizando Mixins em pré-processadores CSS</title>
+      <link>http://tableless.com.br/utilizando-mixins-em-css-preprocessors/</link>
+      <pubDate>Mon, 13 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/utilizando-mixins-em-css-preprocessors/</guid>
+      <description>&lt;p&gt;Recentemente respondi à uma enquete (não me perguntem aonde, eu esqueci! :-() onde era perguntado sobre como lidávamos com prefixos proprietários em nossos códigos CSS. Até aquele momento apenas cerca de 9% dos participantes usavam Pré-processadores e cerca de 26% escreviam os &lt;a href=&#34;http://tableless.com.br/prefixos-dos-browsers-a-web-precisa-de-voce/&#34; title=&#34;Prefixos dos browsers: A web precisa de você&#34;&gt;prefixos do browsers&lt;/a&gt; “na unha”.&lt;/p&gt;
+
+&lt;p&gt;Pré-processadores de CSS ainda não são um comum para algumas pessoas, mas eu, particularmente, defendo o uso devido à organização e redução de trabalho na escrita de folhas de estilo, proporcionado entre outros, pelo encadeamento e os “mixins”, algo como “associação interna”, que funcionam melhores que muitos analgésicos para dores de cabeça causadas pelo retrabalho.&lt;/p&gt;
+
+&lt;p&gt;Considero o dilema dos prefixos proprietários como o maior motivo para utilizarmos mixins, já que eles estão em processo de adaptação, sofrem recorrentes mudanças e em um curto prazo (&lt;span style=&#34;text-decoration: line-through&#34;&gt;com um pouco de fé&lt;/span&gt;) serão removidos para dar lugar à normalização (se quiser entender mais, recomendo o artigo &lt;a title=&#34;Prefixos dos browsers: A web precisa de você&#34; href=&#34;http://tableless.com.br/prefixos-dos-browsers-a-web-precisa-de-voce/&#34; target=&#34;_blank&#34;&gt;&amp;#8220;Prefixos dos browsers: A web precisa de você&amp;#8221;&lt;/a&gt;). Para você que só acredita vendo, prefixos proprietários são mais ou menos assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.elemento1 {
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  border-radius: 10px;
+}
+.elemento2 {
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  -ms-border-radius: 12px;
+  -o-border-radius: 12px;
+  border-radius: 12px;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;A grande dificuldade surge na manutenção de extensos arquivos CSS, com inúmeras referências à estes prefixos e que precisam ser alterados. No caso de um CSS puro, a melhor alternativa é abrir um editor de texto e procurar todas as ocorrências para altera-las uma a uma, agora, considerando a utilização de pré-processadores, como o &lt;a title=&#34;LESS CSS&#34; href=&#34;http://lesscss.org/&#34; target=&#34;_blank&#34;&gt;LESS&lt;/a&gt; e o &lt;a title=&#34;SASS LANG&#34; href=&#34;http://sass-lang.com/&#34; target=&#34;_blank&#34;&gt;SASS&lt;/a&gt; (de certa forma maduros), o uso de mixins pode ser adotado para concentrar a necessidade de mudança em apenas um trecho do código.&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;line-height: 1.5em&#34;&gt;Exemplo LESS:&lt;/span&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.border-radius (@radius) {
+  -webkit-border-radius: @radius;
+  -moz-border-radius: @radius;
+  -ms-border-radius: @radius;
+  -o-border-radius: @radius;
+  border-radius: @radius;
+}
+.elemento1 {
+ .border-radius(10px);
+}
+.elemento2 {
+ .border-radius(12px);
+}&lt;/pre&gt;
+
+&lt;p&gt;Exemplo SASS:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mixin border-radius ($radius) {
+  -webkit-border-radius: $radius;
+  -moz-border-radius: $radius;
+  -ms-border-radius: $radius;
+  -o-border-radius: $radius;
+  border-radius: $radius;
+}
+.elemento1 {
+ @include border-radius(10px);
+}
+.elemento2 {
+ @include border-radius(12px);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Este é um exemplo simples de mixins, em uma utilização mais aprofundada é possível trabalhar mais variáveis, valores padrões e até mesmo sobrecarga.&lt;/p&gt;
+
+&lt;p&gt;Deixando de lado o padrão de escrita de cada pré-processador, ambos resultam no seguinte código CSS:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.elemento1 {
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  border-radius: 10px;
+}
+.elemento2 {
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  -ms-border-radius: 12px;
+  -o-border-radius: 12px;
+  border-radius: 12px;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Os mixins podem ser reutilizados e reescritos, deixando um código organizado e de fácil manutenção, no entanto, eu não seria imprudente a ponto de recomendar a utilização de pré-processadores aos sete ventos. É extremamente necessário uma avaliação do projeto e suas reais necessidades da utilização de uma ferramenta dessas, que, dependendo das proporções e finalidades do CSS, acabam apenas por aumentar a complexidade do desenvolvimento.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,546 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/api-google-maps-v3/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/api-google-maps-v3/">API Google Maps V3</a></h1>
+  <p class="tb-hero-p">
+    
+    Agregue mais valor aos seus projetos a partir de agora, saiba como incorporar um mapa ao site sem iframe e deixá-lo com a sua cara.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/thulio-philipe">Thulio Philipe</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Neste post irei falar um pouco sobre a <a title="API Google Maps V3" href="https://developers.google.com/maps/documentation/javascript/?hl=pt-BR" target="_blank">API Google Maps V3</a>, que sofreu atualizações e veio com algumas melhorias e recursos adicionais para dispositivos móveis e desktops.</p>
+
+<p>No último projeto que participei, o designer incluiu no layout um mapa com width: 100%. Até ai nada demais, não é? Fui no Google Maps, digitei o endereço do local e incorporei o mapa ao meu projeto com aquele iframe lindo cheio de tags inúteis. Não é errado usar o embed do Google. É simples de incorporar no seu projeto, é relativamente fácil de manipular e deixar as dimensões do jeito que quiser, mas o código não é aquela coisa linda.</p>
+
+<p>Vamos ao que interessa. Irei descrever abaixo o passo a passo de como eu cheguei <a title="Resultado do mapa personalizado / Github" href="http://thulioph.github.io/mapa/" target="_blank">neste resultado</a>. Depois de ler este post você conseguirá brincar bastante, personalizando o quanto quiser o seu mapa.</p>
+
+<h2 id="html">HTML</h2>
+
+<p>No HTML eu criei uma div que receberá o mapa.</p>
+
+<pre class="lang-html">&lt;div id="mapa"&gt;&lt;/div&gt;</pre>
+
+<h2 id="css">CSS</h2>
+
+<p>Estilizei minha div determinando uma largura, altura e uma borda para melhor visualizá-la.</p>
+
+<pre class="lang-css">#mapa{
+  width: 100%; 
+  height: 500px; 
+  border: 1px solid #ccc;
+}
+</pre>
+
+<p>Criei um arquivo com o nome de <strong>mapa.js</strong> onde terá todas as configurações e parâmetros do mapa e executei a chamada no html, que agora está com essa cara:</p>
+
+<pre class="lang-html">&lt;!doctype html&gt;
+ &lt;html lang=”pt,BR”&gt;
+  &lt;head&gt;
+   &lt;meta charset=”UTF-8”&gt;
+   &lt;title&gt;API Google Maps V3&lt;/title&gt;
+   &lt;link rel="stylesheet" href="css/mapa.css" &gt;
+   &lt;script src=”js/mapa.js”&gt;&lt;/script&gt;
+  &lt;/head&gt;
+
+&lt;body&gt;
+  &lt;div id=”mapa”&gt;&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+<h2 id="js-criando-minha-chave-api">JS/Criando minha chave API</h2>
+
+<p>Para começar a brincar será preciso criar uma chave de API, de acordo com as normas do Google, esta chave é necessária para suas aplicações serem monitoradas e terem um “cadastro”, assim o google poderá entrar em contato com você com relação a sua aplicação caso seja necessário. Como crio uma chave?</p>
+
+<ul>
+<li>Entre no site de <a href="https://code.google.com/apis/console/" title="Console de APIs / Google" target="_blank">Console de APIs</a></li>
+<li>Clique no lado esquerdo em <strong>Serviços</strong>;</li>
+<li>Ative o serviço <strong>API do Google Maps v3</strong>;</li>
+<li>No menu esquerdo clique no link <strong>acesso á api</strong>, a chave de acesso estará disponível nesta página na sessão <strong>Acesso Simples a API</strong>;</li>
+</ul>
+
+<h2 id="js-exibindo-um-mapa-simples">JS/Exibindo um mapa simples</h2>
+
+<p>Agora que você já tem uma chave pode iniciar a brincadeira, e a primeira coisa a se fazer é mostrar o mapa do local no html. Como funciona?</p>
+
+<pre class="lang-javascript">function initialize() {
+
+// Exibir mapa;
+  var myLatlng = new google.maps.LatLng(-8.0631495, -34.87131120000004);
+  var mapOptions = {
+  zoom: 17,
+  center: myLatlng,
+  mapTypeId: google.maps.MapTypeId.ROADMAP
+}
+
+// Exibir o mapa na div #mapa;
+  var map = new google.maps.Map(document.getElementById(“mapa”), mapOptions);
+
+}
+</pre>
+
+<p>O que foi feito?</p>
+
+<h3 id="initialize">initialize()</h3>
+
+<p>Função que engloba todos os parâmetros e configurações do mapa.</p>
+
+<h3 id="mylatlng">myLatlng</h3>
+
+<p>Variável onde passo a latitude, longitude (nesta ordem) do local do mapa.</p>
+
+<h3 id="var-mapoptions">var mapOptions = {}</h3>
+
+<p>Objeto onde contém as variáveis de inicialização do mapa.</p>
+
+<h3 id="zoom">zoom</h3>
+
+<p>Define a resolução inicial do mapa, o quanto perto ou longe ele será, os valores podem ir de 0 até qualquer número.</p>
+
+<h3 id="center">center</h3>
+
+<p>Define que o mapa será em um ponto específico, ponto este passado na variável <strong>myLatlng</strong>.</p>
+
+<h3 id="maptypeid">mapTypeId</h3>
+
+<p>define o tipo de mapa que será exibido: <strong>ROADMAP</strong> <em>mapa padrão</em>, <strong>SATELLITE</strong> <em>blocos fotográficos</em>, <strong>HYBRID</strong> <em>rodovias, cidades, etc..</em>, <strong>TERRAIN</strong> <em>exibe montanhas, rios, etc.</em>.</p>
+
+<h3 id="var-map">var map</h3>
+
+<p>Variável, atribui a ela um novo objeto <strong>Map</strong> passando as opções definidas no <strong>mapOptions</strong>;</p>
+
+<p>Para o mapa aparecer de fato no seu projeto, é preciso inserir o script da api do google maps, mas não vou declarar no html o script vou inseri-lo no meu <strong>mapa.js</strong> onde ele será carregado de forma assíncrona, melhorando o desempenho. Como faz?</p>
+
+<pre class="lang-javascript">// Função para carregamento assíncrono
+  function loadScript() {
+  var script = document.createElement(“script”);
+  script.type = “text/javascript”;
+  script.src =”http://maps.googleapis.com/maps/api/js?key=SUA_API_KEY&sensor=true_or_false&callback=initialize”;
+
+  document.body.appendChild(script);
+}
+
+  window.onload = loadScript;
+
+</pre>
+
+<p>O que foi feito?</p>
+
+<h3 id="loadscript">loadScript</h3>
+
+<p>Função que faz este procedimento, ela cria através do js a tag script no seu documento html com todos os parâmetros passados abaixo.</p>
+
+<p>Criei um elemento script definindo o <strong>type</strong> e o <strong>src</strong> do mesmo.</p>
+
+<h3 id="atenção">Atenção!</h3>
+
+<p>para os parâmetros do <strong>script.src</strong> onde em <strong>key</strong> você terá que inserir a sua chave de API, em <strong>sensor=true/false</strong> você informa se sua aplicação usa algum sensor para determinar a localização do usuário <em>gps</em> e em <strong>callback=initialize</strong> você instrui a api para só executar a função <strong>initialize()</strong> após a api ser totalmente carregada.</p>
+
+<p>Até agora você conseguiu mostrar o mapa na div que foi declarada no html e carregou de forma assíncrona a API do Google Maps, está duvidando? Veja como ficou o <a href="https://gist.github.com/thulioph/8150735" title="Trecho do código até este momento / Gist" target="_blank">código até aqui</a> e teste na sua aplicação. \o/</p>
+
+<h2 id="js-modificando-os-controles-do-usuário">JS/Modificando os controles do usuário</h2>
+
+<p>Quando acessamos algum mapa no <a href="https://www.google.com.br/maps/preview" title="Link para o Google Maps / Google" target="_blank">Google Maps</a> ele nos mostra alguns controles como: <strong>controle de zoom</strong>, <strong>panorâmico</strong>, <strong>controle de escala</strong>, <strong>controle de giro</strong> e <strong>mapa da visão geral</strong>, mas você pode personalizar e escolher o que quer disponibilizar para seu usuário. Caso não queira personalizar nada e deixar seu usuário com todas as configurações padrão, possibilitando que o Google futuramente adicione mais controles, não especifique nada, se você se parece comigo e gosta de &#8220;ser do contra&#8221; <em>no bom sentido rsrs</em> e quer personalizar, vamos lá!</p>
+
+<p>Para desabilitar todas as configurações automáticas do Google Maps defina a propriedade <strong>disableDefaultUI: true</strong> no objeto <strong>Map options</strong>. Você também pode escolher quais controles seu usuário terá acesso, os controles só aceitam valores <em>boolean</em> e todos definidos dentro de <strong>Map options</strong>, esses controles são:</p>
+
+<p><strong>panControl</strong></p>
+
+<p>Controle Panorâmico, seus valores são <em>true or false</em></p>
+
+<p><strong>zoomControl</strong></p>
+
+<p>Controle de zoom, seus valores são <em>true or false</em></p>
+
+<p><strong>mapTypeControl</strong></p>
+
+<p>Controle do tipo de mapa, seus valores são <em>true or false</em></p>
+
+<p><strong>scaleControl</strong></p>
+
+<p>Controle de Escala, seus valores são <em>true or false</em></p>
+
+<p><strong>streetViewControl</strong></p>
+
+<p>Controle do street view, seus valores são <em>true or false</em></p>
+
+<p><strong>overviewMapControl</strong></p>
+
+<p>Controle de visão geral do mapa, seus valores são <em>true or false</em></p>
+
+<p>No meu exemplo eu desativei o controle panorâmico e agora meu <strong>mapOptions</strong> ficou desta forma:</p>
+
+<pre class="lang-javascript">var mapOptions = {
+  zoom: 17,
+  center: myLatlng,
+  panControl: false,
+  mapTypeId: google.maps.MapTypeId.ROADMAP
+}
+</pre>
+
+<p>Até este momento, você já consegue visualizar o mapa e escolher quais controles seu usuário terá acesso. Não duvide, apenas <a href="https://gist.github.com/thulioph/8151176" title="Trecho do código até este momento / Gist." target="_blank">veja como está ficando</a> e teste! \o</p>
+
+<h2 id="js-inserindo-pin-personalizado">JS/Inserindo Pin Personalizado</h2>
+
+<p>O marcador do Google Maps é padrão, e você pode alterá-lo e inserir um pin personalizado e dar um efeito a ele. Imagine que você quer colocar no seu site pessoal um mapa do bairro onde você mora e marcar a sua casa com um pin que será uma imagem sua <em>pra que isso? rsrs</em> vamos lá!</p>
+
+<pre class="lang-javascript">// Marcador personalizado;
+  var image = ‘https://cdn1.iconfinder.com/data/icons/gpsmapicons/blue/gpsmapicons01.png’;
+  var marcadorPersonalizado = new google.maps.Marker({
+  position: myLatlng,
+  map: map,
+  icon: image,
+  title: ‘Marco Zero - Recife/PE’,
+  animation: google.maps.Animation.DROP
+});
+</pre>
+
+<p>O que foi feito?</p>
+
+<h3 id="new-google-maps-marker">new google.maps.Marker</h3>
+
+<p>O construtor capaz de fazer isto.</p>
+
+<h3 id="marcadorpersonalizado">marcadorPersonalizado</h3>
+
+<p>Variável que recebe algumas propriedades:</p>
+
+<h4 id="position">position</h4>
+
+<p>especifica a localização do marcador e como eu quero que ele fique na minha localização, informo a variável que contém estas informações <strong>myLatlng</strong>.</p>
+
+<h4 id="map">map</h4>
+
+<p>Especifica onde o marcador vai ser posicionado <em>não precisa ser declarado, valor opcional</em>. Caso eu utilize o pin em mais algum local, criei uma variável <strong>image</strong> informando o caminho do meu pin.</p>
+
+<h4 id="icon">icon</h4>
+
+<p>Especifica a imagem que será o marcador, aqui você inclui o caminho da imagem podendo ser absoluto ou relativo. A própria api irá redimensionar a imagem para o tamanho padrão.</p>
+
+<h4 id="title">title</h4>
+
+<p>Especifica o texto que irá aparecer ao encostar o mouse em cima do pin.</p>
+
+<h4 id="animation">animation</h4>
+
+<p>Define alguma animação já definida pela api do google maps, os possíveis valores são <strong>DROP</strong> <em>o marcador “cai do céu” para o local indicado</em> e <strong>BOUNCE</strong> <em>o marcador fica pulando no local indicado</em>.</p>
+
+<p>Até aqui você está mostrando o mapa, personalizando os controles e modificando o pin para um de seu gosto e de quebra ainda consegue animá-los. <a href="https://gist.github.com/thulioph/8151788" title="Trecho do código até este momento / Gist" target="_blank">Veja como está ficando</a> até agora. /o/</p>
+
+<h2 id="js-janela-de-informações-no-mapa">JS/Janela de informações no mapa</h2>
+
+<p>Em alguns mapas quando o usuário clica no pin do local é aberto uma espécie de balão de texto sobre aquele pin, com algumas informações tipo telefone, e-mail, ou qualquer coisa do gênero. Esta “janela” que se abre é chamada de janela de informações ou <strong>InfoWindow</strong> <em>nome bastante óbvio rsrs</em>, agora vamos inseri-la no nosso mapa. Dando continuidade ao exemplo anterior, agora você quer que quando o usuário clique na sua foto do mapa, apareça seus dados para contato, e-mail, telefone, etc. Mãos a obra!</p>
+
+<pre class="lang-javascript">// Parâmetros do texto que será exibido no clique;
+  var contentString = ‘&lt;h2&gt;Marco Zero&lt;/h2&gt;’ + ‘&lt;p&gt;Praça Rio Branco, Recife/PE.&lt;/p&gt;’ + ‘&lt;a href=”http://pt.wikipedia.org/wiki/Pra%C3%A7a_Rio_Branco_(Recife)” target=”_blank”&gt;clique aqui para mais informações&lt;/a&gt;’;
+
+  var infowindow = new google.maps.InfoWindow({
+  content: contentString,
+  maxWidth: 700
+});
+
+// Exibir texto ao clicar no pin;
+google.maps.event.addListener(marcadorPersonalizado, ‘click’, function() {
+  infowindow.open(map,marcadorPersonalizado);
+});
+
+</pre>
+
+<p>O que foi feito?</p>
+
+<h3 id="new-google-maps-infowindow">new google.maps.InfoWindow</h3>
+
+<p>Realiza toda a mágica.</p>
+
+<h3 id="content">content</h3>
+
+<p>Deverá ter uma string de texto ou nó no DOM para exibir na janela. Aqui dentro será inserido o conteúdo que você deseja que apareça no balão de informações. Caso queira utilizar esta string em outro local, criei uma variável com o nome <strong>contentString</strong> onde inseri as informações do balão.</p>
+
+<h3 id="maxwidth">maxWidth</h3>
+
+<p>Especifica em pixels a largura máxima do balão de informações. Por padrão a janela se expande para incluir o conteúdo e o texto é quebrado automaticamente, quando se aplica um valor no <strong>maxWidth</strong> você força um determinado tamanho para ela.</p>
+
+<h3 id="atenção-1">Atenção!</h3>
+
+<p>É preciso atribuir um evento ao método <strong>infowindow.open</strong> caso contrário ele não será aberto no clique. O <strong>google.maps.event.addListener</strong> adiciona um evento de ‘click’ ao <strong>marcadorPersonalizado</strong>, isso irá disparar o método <strong>infowindow.open</strong> no <strong>map</strong> e no <strong>marcadorPersonalizado</strong>. Agora quando você clicar no pin irá abrir o balão de informações com o conteúdo da variável <strong>contentString</strong></p>
+
+<p>Mais um nível e esse foi tranquilo hein? Agora você já está mostrando o mapa, personalizando os controles e o pin, animando o pin e inseriu um balão de informações no clique do usuário. Confere <a href="https://gist.github.com/thulioph/8152405" title="Trecho do código até este momento / Gist" target="_blank">como está ficando</a> o código e vamos para o último passo! \o\ /o/</p>
+
+<h2 id="js-modificando-a-cor-do-mapa">JS/Modificando a cor do mapa</h2>
+
+<p>Pra completar o design do seu site, você queria pintar o mapa do seu bairro com sua cor favorita que é azul, para isso você precisará criar seu estilo e para inserir um estilo personalizado no seu mapa você precisa saber como é a matriz de estilos padrão para quando combinar os estilos obter o resultado que deseja. Vamos lá?</p>
+
+<h3 id="featuretype">featureType</h3>
+
+<p>Especifica o tipo de mapa;</p>
+
+<h3 id="elementtype">elementType</h3>
+
+<p>Especifica o tipo de elemento que será exibido no mapa, os valores suportados são: <strong>geometry</strong> <em>todos os elementos geométricos</em>, <strong>geometry.fill</strong> <em>seleciona apenas o preenchimento da geometria</em>, <strong>geometry.stroke</strong> <em>seleciona apenas a textura da geometria</em>, <strong>labels</strong> <em>seleciona apenas rótulos textuais</em>, <strong>labels.icon</strong> <em>seleciona apenas o ícone do rótulo</em>, <strong>labels.text</strong> <em>seleciona apenas o texto do rótulo</em>, <strong>labels.text.fill</strong> <em>seleciona apenas o preenchimento do rótulo</em>, <strong>labels.text.stroke</strong> <em>seleciona apenas a textura do texto</em>.</p>
+
+<h3 id="stylers">stylers</h3>
+
+<p>É desta combinação de estilos que a cor irá se originar, os valores que você pode trabalhar são:</p>
+
+<h4 id="hue">hue</h4>
+
+<p>String hexadecimal RGB que indicará a cor básica.</p>
+
+<h4 id="lightness">lightness</h4>
+
+<p>Indica o brilho do elemento, valores negativos aumentam a escuridão, este valor varia de -100 e 100.</p>
+
+<h4 id="saturation">saturation</h4>
+
+<p>Intensidade da cor básica a ser aplicada, este valor varia de -100 e 100.</p>
+
+<h4 id="gamma">gamma</h4>
+
+<p>Modificam a luminosidade das matizes, utilizados para modificar o contraste dos elementos, este valor varia entre 0.01 e 10.0.</p>
+
+<h4 id="inverse-lightness">inverse_lightness</h4>
+
+<p>Se true, inverte a luminosidade existente.</p>
+
+<h4 id="visibility">visibility</h4>
+
+<p>on, off ou simplified, indica como um elemento aparece no mapa.</p>
+
+<pre class="lang-javascript">// Criando um array com os estilos
+var styles = [
+{
+  stylers: [
+   { hue: “#41a7d5” },
+   { saturation: 60 },
+   { lightness: -20 },
+   { gamma: 1.51 }
+  ]
+},
+ {
+  featureType: “road”,
+  elementType: “geometry”,
+  stylers: [
+   { lightness: 100 },
+   { visibility: “simplified” }
+  ]
+ },
+ {
+  featureType: “road”,
+  elementType: “labels”
+ }
+];
+</pre>
+
+<p>O que foi feito?</p>
+
+<p>Criei uma matriz de estilos <em>descrita acima</em>, que nada mais é do que um array com os estilos do mapa, onde neste array é passado as cores e os estilos para exibição;</p>
+
+<p>Agora crio um novo objeto <strong>google.maps.StyledMapType</strong> passando a matriz que foi criada e um nome para o novo tipo de mapa;</p>
+
+<pre class="lang-javascript">var styledMap = new google.maps.StyledMapType(styles, {
+  name: “Mapa Style”
+});
+</pre>
+
+<p>Crie o objeto do mapa e nas opções do mapa <strong>mapOptions</strong> inclua um identificador para o novo tipo de mapa <strong>map_style</strong>. Isto irá possibilitar o usuário a visualizar o mapa tradicional do Google <strong>google.maps.MapTypeId.ROADMAP</strong> e o seu mapa <strong>map_style</strong>. Para visualizar isto, observe no canto superior direito do mapa, se você desejar só disponibilizar o seu tipo de mapa, é só em <strong>mapTypeIds</strong> deixar o identificador do seu mapa;</p>
+
+<pre class="lang-javascript">mapTypeControlOptions: {
+
+  mapTypeIds: [google.maps.MapTypeId.ROADMAP, ‘map_style’]
+}
+</pre>
+
+<p>Associe o estilo do mapa com o <strong>MapTypeId</strong>;</p>
+
+<pre class="lang-javascript">map.mapTypes.set(‘map_style’, styledMap);
+map.setMapTypeId(‘map_style’);
+</pre>
+
+<p>E é isso, agora você já está apto para inserir um mapa, personalizar controles e pin, animar o pin e customizar as cores do seu mapa. Veja o <a href="https://gist.github.com/thulioph/8153570" title="Código completo do material / Gist" target="_blank">código completo aqui</a>.</p>
+
+<p>O post ficou enorme, mas espero que eu tenha sido bastante claro e tenha conseguido transmitir da melhor forma este conteúdo pois a API não é difícil, consegui fazer isso tudo em um único dia e vocês também podem. Qualquer dúvida ou se acha que fiz algo de errado, entre em contato comigo ou deixa nos comentários.</p>
+
+<p>Link de Referência:</p>
+
+<p><a href="https://developers.google.com/maps/documentation/javascript/tutorial?hl=pt-br" title="Link para visualziar a API do Google Maps / Google" target="_blank"><a href="https://developers.google.com/maps/documentation/javascript/tutorial?hl=pt-br">https://developers.google.com/maps/documentation/javascript/tutorial?hl=pt-br</a></a></p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

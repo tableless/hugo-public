@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Guilherme Brero on Tableless</title>
+    <link>http://tableless.com.br/author/guilherme-brero/index.xml</link>
+    <description>Recent content in Guilherme Brero on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/guilherme-brero/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Requisições AJAX no WordPress</title>
+      <link>http://tableless.com.br/requisicoes-ajax-no-wordpress/</link>
+      <pubDate>Fri, 20 May 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/requisicoes-ajax-no-wordpress/</guid>
+      <description>&lt;p&gt;O objetivo deste artigo é tentar mostrar uma forma simples e bem completa (e melhor. Segura!) de trabalhar com requisições AJAX e WordPress.&lt;/p&gt;
+
+&lt;blockquote id=&#34;2e7e&#34;&gt;
+  &lt;p&gt;
+    Obs. Mostrarei de forma genérica e com exemplos banais, o importante é entender o processo. 🙂
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p id=&#34;e69f&#34;&gt;
+  Como já trabalhei em muitos lugares e peguei muito freela pra fazer nessa vida, acabo esbarrando com códigos no mínimo questionáveis, outros muito bons também. Porém a questão de fazer requisições AJAX no WordPress sempre é um assunto delicado pois várias e várias vezes vi códigos em que a complexidade que o desenvolvedor fez o código não só é desnecessária como também é ineficaz e insegura.
+&lt;/p&gt;
+
+&lt;p&gt;Vamos ao que interessa!&lt;/p&gt;
+
+&lt;p&gt;Quando precisamos realizar uma consulta ao banco do WordPress para trazermos um conteúdo específico sem dar um refresh na página, logo corremos para fazer a tão maravilhosa requisição AJAX.&lt;/p&gt;
+
+&lt;p&gt;Já vi isso sendo feito de muitas formas diferentes, desde um arquivo na raiz do projeto com uma “query na mão” e sendo chamada diretamente dentro do código da página específica, já vi uns arquivos nos mais variados diretórios com um require_once da vida no wp_load e então fazendo os loops lá dentro e cuspindo o html e etc.&lt;/p&gt;
+
+&lt;p&gt;Não digo que a forma que vou mostrar agora seja a única forma correta de fazer, muito menos a melhor, porém é uma forma que está na documentação do WordPress e que fica bem simples de ser entendida e também menos complexa que as invenções que vemos por aí.&lt;/p&gt;
+
+&lt;p&gt;Todas as requisições AJAX em WordPress, devem ser feitas num arquivo único, diferenciando-as através de parâmetros. O arquivo correto para enviarmos nossas requisições, é o arquivo “&lt;em class=&#34;markup--em markup--p-em&#34;&gt;admin-ajax.php&lt;/em&gt;” que fica localizado dentro da pasta wp-admin e que no código veremos de que forma chamamos este arquivo dinamicamente sem problemas através de uma função do WordPress.&lt;/p&gt;
+
+&lt;p&gt;Primeiro vamos criar um nonce para nossas requisições , jogar este nonce para uma variável global de Javascript para que possamos usá-la no nosso frontend e, após termos nosso nonce criado, vamos criar nossa função para buscar mais notícias. Ela é chamada através de uma action também. Veja como fica o código:&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;//Adiciona um script para o WordPress
+add_action( &#39;wp_enqueue_scripts&#39;, &#39;secure_enqueue_script&#39; );
+function secure_enqueue_script() {
+  wp_register_script( &#39;secure-ajax-access&#39;, esc_url( add_query_arg( array( &#39;js_global&#39; =&amp;gt; 1 ), site_url() ) ) );
+  wp_enqueue_script( &#39;secure-ajax-access&#39; );
+}
+
+//Joga o nonce e a url para as requisições para dentro do Javascript criado acima
+add_action( &#39;template_redirect&#39;, &#39;javascript_variaveis&#39; );
+function javascript_variaveis() {
+  if ( !isset( $_GET[ &#39;js_global&#39; ] ) ) return;
+
+  $nonce = wp_create_nonce(&#39;mais_noticias_nonce&#39;);
+
+  $variaveis_javascript = array(
+    &#39;mais_noticias_nonce&#39; =&amp;gt; $nonce, //Esta função cria um nonce para nossa requisição para buscar mais notícias, por exemplo.
+    &#39;xhr_url&#39;             =&amp;gt; admin_url(&#39;admin-ajax.php&#39;) // Forma para pegar a url para as consultas dinamicamente.
+  );
+
+  $new_array = array();
+  foreach( $variaveis_javascript as $var =&amp;gt; $value ) $new_array[] = esc_js( $var ) . &#34; : &#39;&#34; . esc_js( $value ) . &#34;&#39;&#34;;
+
+  header(&#34;Content-type: application/x-javascript&#34;);
+  printf(&#39;var %s = {%s};&#39;, &#39;js_global&#39;, implode( &#39;,&#39;, $new_array ) );
+  exit;
+}
+
+
+
+add_action(&#39;wp_ajax_nopriv_mais_noticias&#39;, &#39;mais_noticias&#39;);
+add_action(&#39;wp_ajax_mais_noticias&#39;, &#39;mais_noticias&#39;);
+
+function mais_noticias() {
+  if( ! wp_verify_nonce( $_POST[&#39;mais_noticias_nonce&#39;], &#39;mais_noticias_nonce&#39; ) ) {
+    echo &#39;401&#39;; // Caso não seja verificado o nonce enviado, a requisição vai retornar 401
+    die();
+  }
+  //Busca os dados que queremos
+  $args = array(
+    &#39;post_type&#39; =&amp;gt; &#39;noticias&#39;,
+    &#39;paged&#39; =&amp;gt; $_POST[&#39;paged&#39;]
+  );
+  $wp_query = new WP_Query( $args  );
+
+  //Caso tenha os dados, retorna-os / Caso não tenha retorna 402 para tratarmos no frontend
+  if( $wp_query-&amp;gt;have_posts() ) {
+    echo json_encode( $wp_query-&amp;gt;posts );
+  } else {
+    echo 402;
+  }
+  exit;
+}
+
+&lt;/pre&gt;
+
+&lt;p id=&#34;6b31&#34; class=&#34;graf--p graf-after--figure&#34;&gt;
+  Com isso, se formos no nosso console do navegador e jogarmos js_global.mais_noticias_nonce, ele nos retornará um nonce como este: “&lt;em class=&#34;markup--em markup--p-em&#34;&gt;85c93a8183&lt;/em&gt;”.
+&lt;/p&gt;
+
+&lt;blockquote id=&#34;f227&#34;&gt;
+  &lt;p&gt;
+    Obs. Se ainda não sabe o que é nonce, e como ele funciona no WordPress veja neste link : &lt;a class=&#34;markup--anchor markup--blockquote-anchor&#34; href=&#34;https://blog.apiki.com/2015/09/21/wordpress-nonces-e-o-que-voce-precisa-saber-sobre-isso/&#34; rel=&#34;nofollow&#34;&gt;https://blog.apiki.com/2015/09/21/wordpress-nonces-e-o-que-voce-precisa-saber-sobre-isso/&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p id=&#34;48b7&#34;&gt;
+  Note que usamos as actions wp_ajax e wp_ajax_nopriv, que respectivamente autorizam nossa aplicação para acessar a determinada função privadamente e publicamente.
+&lt;/p&gt;
+
+&lt;p&gt;Agora vamos ao frontend&lt;/p&gt;
+
+&lt;p&gt;Temos um botão para buscar mais notícias num archive nosso da vida:&lt;/p&gt;
+
+&lt;p&gt;vamos, por exemplo, capturar o click neste botão e a partir disso vamos buscar mais conteúdo via ajax:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;jQuery(document).ready(function() {
+
+  jQuery(&#39;.mais-noticias&#39;).on(&#39;click&#39;, function(e) {
+      e.preventDefault();
+
+      var dados_envio = {
+        &#39;mais_noticias_nonce&#39;: js_global.mais_noticias_nonce,
+          &#39;paged&#39;: 2,
+          &#39;action&#39;: &#39;mais_noticias&#39;
+      }
+
+      jQuery.ajax({
+          url: js_global.xhr_url,
+          type: &#39;POST&#39;,
+          data: dados_envio,
+          dataType: &#39;JSON&#39;,
+          success: function(response) {
+              if (response == &#39;401&#39;  ){
+                  console.log(&#39;Requisição inválida&#39;)
+              }
+              else if (response == 402) {
+                  console.log(&#39;Todos os posts já foram mostrados&#39;)
+              } else {
+                  console.log(response)
+              }
+          }
+      });
+
+
+  });
+
+})
+
+
+&lt;/pre&gt;
+
+&lt;p class=&#34;graf--p graf-after--figure&#34;&gt;
+  Javascript com jQuery (para efeito de exemplo com menos código. Fique a vontade para fazer ~do seu jeito~)
+&lt;/p&gt;
+
+&lt;p id=&#34;46a6&#34; class=&#34;graf--p graf-after--figure&#34;&gt;
+  Desta forma, estamos enviando corretamente uma requisição ao WordPress e ele nos retornando um resultado que precisamos.
+&lt;/p&gt;
+
+&lt;p&gt;Como disse lá no começo, os exemplos são ‘toscos’ mas o que vale ), é entender como funciona esse fluxo e o que realmente é necessário enviar para podermos fazer de forma segura uma requisição.&lt;/p&gt;
+
+&lt;p&gt;Procurei focar realmente no processo.&lt;/p&gt;
+
+&lt;p&gt;&amp;lt;&lt;/p&gt;
+
+&lt;p&gt;p id=&amp;#8221;f224&amp;#8243; class=&amp;#8221;graf&amp;#8211;p graf-after&amp;#8211;p graf&amp;#8211;last&amp;#8221;&amp;gt;Espero que tenha esclarecido alguma coisa pra você e qualquer dúvida ou sugestão pode postar nos comentários.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

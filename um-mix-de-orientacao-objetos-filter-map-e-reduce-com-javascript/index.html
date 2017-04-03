@@ -1,0 +1,342 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/um-mix-de-orientacao-objetos-filter-map-e-reduce-com-javascript/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/um-mix-de-orientacao-objetos-filter-map-e-reduce-com-javascript/">Um mix de orientação a objetos &#43; filter, map e reduce com Javascript.</a></h1>
+  <p class="tb-hero-p">
+    
+    Criei alguns objetos simples mas com propriedades usadas no nosso dia-a-dia. Estes objetos estão armazenados num vetor de projetos. Cada objeto representa um projeto e tem as propriedades id, objeto, valorTotal e investido.
+var projetos = [ {id: 12, objeto: "revitalização da ponte abc", valorTotal: 220000.25, investido: 10000.00}, {id: 14, objeto: "duplicação da rodovia br-101", valorTotal: 747800.50, investido: 35000.00}, {id: 34, objeto: "aterramento localidade xyz", valorTotal: 635405.70, investido: 16500.00} ]; Aqui temos uma função que age como um construtor.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/itanor">itanor</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Criei alguns objetos simples mas com propriedades usadas no nosso dia-a-dia. Estes objetos estão armazenados num vetor de projetos. Cada objeto representa um projeto e tem as propriedades id, objeto, valorTotal e investido.</p>
+
+<pre class="lang-js">var projetos = [
+    {id: 12, objeto: "revitalização da ponte abc", valorTotal: 220000.25, investido: 10000.00},
+    {id: 14, objeto: "duplicação da rodovia br-101", valorTotal: 747800.50, investido: 35000.00},
+    {id: 34, objeto: "aterramento localidade xyz", valorTotal: 635405.70, investido: 16500.00}
+];</pre>
+
+<p>Aqui temos uma função que age como um construtor. O objeto tem a responsabilidade de realizar o somatório de um determinado valor do objeto projeto. Ela recebe como parâmetros um array de projetos (linhas) e uma propriedade escolhida para ser somada (coluna). Além desses atributos, uma função de filtro (funcaoFiltro) é utilizada. Mais adiante ela será explicada.</p>
+
+<p>O método &#8216;total&#8217; realiza o somatório de determinada coluna do objeto projeto. Nele, temos o uso de algumas funções de Array, do Javascript: map, filter e reduce. Na primeira linha do método total é utilizada a função map, que a partir do array de projetos recebe um projeto e mapeia apenas determinada propriedade do projeto. Digo determinada por que ela é parametrizada com com &#8216;linha[coluna]&#8217;. Esta é uma forma dinâmica do Javascript acessar uma propriedade de um objeto. Desta forma, conseguimos parametrizar qual propriedade do objeto projeto queremos usar no somatório. Como resultado da aplicação de map no array de projetos temos um array de valores especificados pelo parâmetro &#8216;coluna&#8217;.</p>
+
+<p>Na segunda instrução do método total é verificada a existência da função de filtro, que é determinada pela variável &#8216;funcaoFiltro&#8217;. Para tal é disponibilizado um método aplicaFuncaoFiltro que recebe a função. Esta função será utilizada como parâmetro para a função filter, de Array. A instrução verifica se a função de filtro está definida, e se está é aplicada usando filter.</p>
+
+<p>E, por último é utilizada a função reduce, também de Array. A partir dos valores mapeados e filtrados, a função passada para reduce realiza apenas a soma dos valores.</p>
+
+<pre class="lang-js">function SomadorDeColuna(linhas, coluna) {
+    this.linhas = linhas;
+    this.coluna = coluna;
+    this.funcaoFiltro = undefined;
+    this.total = function() {
+      var valores = this.linhas.map(function(linha) {
+    return linha[coluna];
+    });
+this.funcaoFiltro && (valores = valores.filter(this.funcaoFiltro));
+
+return valores.reduce(function(anterior, atual) {
+    return anterior + atual;
+});
+};
+
+this.aplicaFuncaoFiltro = function(funcao) {
+    this.funcaoFiltro = funcao;
+};
+}</pre>
+
+<p>Os dois objetos &#8216;valorTotalAcimaDe500Mil&#8217; e &#8216;valorInvestidoAcimaDe15Mil&#8217; definidos acima</p>
+
+<p>são usados para informar em qual propriedade será feito o somatório e qual função utilizar</p>
+
+<p>como filtro.</p>
+
+<p>Para o objeto valorTotalAcimaDe500Mil a propriedade a ser somada será</p>
+
+<p>&#8216;valorTotal&#8217; e a função para filtrar os valores a serem somados é somente os acima de 500000.00.</p>
+
+<p>Para o objeto valorInvestidoAcimaDe15Mil a propriedade a ser somada será &#8216;investido&#8217;</p>
+
+<p>e a função para filtrar os valores a serem somados é somente os acima de 15000.00.</p>
+
+<pre class="lang-js">var valorTotalAcimaDe500Mil = {
+    coluna: "valorTotal",
+    funcao: function(valor) {return valor &gt; 500000.00;}
+};</pre>
+
+<pre class="lang-js">var valorInvestidoAcimaDe15Mil = {
+    coluna: "investido",
+    funcao: function(valor) {return valor &gt; 15000.00;}
+};</pre>
+
+<p>Aqui temos uma instência de SomadorDeColuna usando o array projetos e a</p>
+
+<p>coluna valorTotal para realizar o somatório. Na sequência, para o objeto</p>
+
+<p>é informada a função de filtro. Ambos propriedade e função passados como</p>
+
+<p>parâemtros são definidos nos objetos declarados acima. Por fim é impresso</p>
+
+<p>o total invocando o método total, do objeto.</p>
+
+<pre class="lang-js">var somador = new SomadorDeColuna(projetos, valorTotalAcimaDe500Mil.coluna);
+somador.aplicaFuncaoFiltro(valorTotalAcimaDe500Mil.funcao);
+console.log(somador.total());</pre>
+
+<h2 id="evoluindo-o-design-para-uso-de-duck-typing">Evoluindo o design para uso de Duck Typing.</h2>
+
+<p>Depois de implementar esta primeira versão, resolvi criar a ideia de regra de</p>
+
+<p>filtro. Ao invés do construtor receber a coluna e a função de filtro ser</p>
+
+<p>configurada em um método a parte, percebi que poderia usar a técnica de Duck Typing</p>
+
+<p>para configurar a propriedade e a função de filtro ao mesmo tempo no objeto.</p>
+
+<p>Abaixo está uma versão adaptada para usar a regra de filtro. A regra de filtro mantém</p>
+
+<p>a propriedade e a função de filtro. Independente da propriedade e da função de filtro</p>
+
+<p>que forem, o objeto SomadorDeColuna sabe aplicar a regra de filtro no somatório devido</p>
+
+<p>ao &#8220;contrato&#8221; estabelecido para usar Duck Typing. Este contrato define que o objeto</p>
+
+<p>para a regra de filtro deev definir um atributo &#8216;coluna&#8217; e um atributo &#8216;funcao&#8217;, que</p>
+
+<p>representam a propriedade e a função, respectivamente.</p>
+
+<pre class="lang-js">var projetos = [
+    {id: 12, objeto: "revitalização da ponte abc", valorTotal: 220000.25, investido: 10000.00},
+    {id: 14, objeto: "duplicação da rodovia br-101", valorTotal: 747800.50, investido: 35000.00},
+    {id: 34, objeto: "aterramento localidade xyz", valorTotal: 635405.70, investido: 16500.00}
+];</pre>
+
+<pre class="lang-js">function SomadorDeColuna(linhas, regraDeFiltro) {
+this.linhas = linhas;</pre>
+
+<pre class="lang-js">this.total = function() {
+    var valores = this.linhas.map(function(linha) {
+    return linha[regraDeFiltro.coluna];
+});</pre>
+
+<pre class="lang-js">var valoresFiltrados = valores.filter(regraDeFiltro.funcao);
+return valoresFiltrados.reduce(function(anterior, atual) {
+    return anterior + atual;
+});
+}</pre>
+
+<p>Caso não houver necessidade de possuir uma função de filtro, basta fornecer uma implementação que não filtra nenhum valor, ou seja, que retorne o próprio valor, na função de filtro. Os objetos &#8216;valorTotal&#8217; e &#8216;valorInvestido&#8217; explicitam esta ideia.</p>
+
+<pre class="lang-js">var valorTotalAcimaDe500Mil = {
+    coluna: "valorTotal",
+    funcao: function(valor) {return valor &gt; 500000.00;}
+};
+var valorTotal = {
+    coluna: "valorTotal",
+    funcao: function(valor) {return valor;}
+};</pre>
+
+<pre class="lang-js">var valorInvestidoAcimaDe15Mil = {
+    coluna: "investido",
+    funcao: function(valor) {return valor &gt; 15000.00;}
+};
+var valorInvestido = {
+    coluna: "investido",
+    funcao: function(valor) {return valor;}
+};</pre>
+
+<pre class="lang-js">var somador = new SomadorDeColuna(projetos, valorInvestido);
+console.log(somador.total());</pre>
+
+<h2 id="conclusão">Conclusão</h2>
+
+<p>Apensar da necessidade de somatório de diversos valores, não foi usado em nenhum momento o loop &#8216;for&#8217;. Reutilização de código sem introduzir possibilidade de novos bugs.</p>
+
+<p>Uma modificação interessante para o objeto SomadorDeColuna seria incluir a desformatação de valores que estão representados como moeda (56.955,00) na tela. Uma boa biblioteca para isso é a <a href="http://numeraljs.com">numeraljs</a>.</p>
+
+<p>Apesar de ser um objeto simples, tem muita utilidade em caso de somatórios no dia-a-dia.</p>
+
+<p>É quase sempre inerente!</p>
+
+<p>Valeu!</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

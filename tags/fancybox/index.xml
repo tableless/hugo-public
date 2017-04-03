@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Fancybox on Tableless</title>
+    <link>http://tableless.com.br/tags/fancybox/index.xml</link>
+    <description>Recent content in Fancybox on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/fancybox/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Múltiplas galerias de fotos dinâmicas com Fancybox, Ajax e JSON</title>
+      <link>http://tableless.com.br/multiplas-galerias-de-fotos-dinamicas-com-fancybox-ajax-e-json/</link>
+      <pubDate>Fri, 27 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/multiplas-galerias-de-fotos-dinamicas-com-fancybox-ajax-e-json/</guid>
+      <description>
+
+&lt;h3 id=&#34;introdução&#34;&gt;Introdução&lt;/h3&gt;
+
+&lt;p&gt;Ano passado trabalhei em um projeto que era um concurso de fotografia online, o &lt;a href=&#34;http://www.prixphotoaliancafrancesa.com.br&#34; target=&#34;_blank&#34;&gt;Prix Photo Web&lt;/a&gt;, onde cada fotógrafo podia se cadastrar, fazer upload de suas fotos e concorrer a um prêmio.&lt;/p&gt;
+
+&lt;p&gt;O site tinha uma página de galeria, onde se podia ver os diversos trabalhos publicados a partir de &lt;em&gt;thumbnails&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Eu havia pego o código já quase todo pronto, mas resolvi atualizar algumas coisas e uma delas foi a tal galeria.&lt;/p&gt;
+
+&lt;p&gt;No decorrer do processo acabei tendo que usar o &lt;strong&gt;JSON&lt;/strong&gt; para trocar informações entre scripts PHP e JavaScript, e achei muito interessante a maneira como isso aconteceu.&lt;/p&gt;
+
+&lt;p&gt;O resultado final pode ser conferido &lt;a href=&#34;http://www.prixphotoaliancafrancesa.com.br/galeria&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;, e a seguir vou descrever o passo a passo do processo que percorri.&lt;/p&gt;
+
+&lt;h3 id=&#34;escopo&#34;&gt;Escopo&lt;/h3&gt;
+
+&lt;p&gt;O conteúdo do site era totalmente dinâmico, ou seja, vinha de consultas ao banco de dados feitas no carregamento da página. Veja abaixo como ficou a página da galeria, com os &lt;em&gt;thumbnails&lt;/em&gt; clicáveis:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-1.png&#34;&gt;&lt;img class=&#34; wp-image-43 size-large aligncenter&#34; src=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-1-1024x550.png&#34; alt=&#34;galeria-prix-1&#34; width=&#34;660&#34; height=&#34;354&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ao dar o clique em um dos &lt;em&gt;thumbs&lt;/em&gt; se abria uma galeria de fotos em &lt;em&gt;lightbox&lt;/em&gt;, usando o &lt;em&gt;plugin&lt;/em&gt; jQuery &lt;a href=&#34;http://fancyapps.com/fancybox/&#34; target=&#34;_blank&#34;&gt;&lt;em&gt;fancybox&lt;/em&gt; &lt;/a&gt;(um velho favorito meu):&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-2.png&#34;&gt;&lt;img class=&#34; size-large wp-image-42 aligncenter&#34; src=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-2-1024x550.png&#34; alt=&#34;galeria-prix-2&#34; width=&#34;660&#34; height=&#34;354&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;o-problema&#34;&gt;O problema&lt;/h4&gt;
+
+&lt;p&gt;Eu já tinha toda a lógica para exibir os &lt;em&gt;thumbnails&lt;/em&gt; na página e também as galerias em &lt;em&gt;lightbox&lt;/em&gt;, mas achei o código meio &amp;#8216;macarrônico&amp;#8217; e me questionei se não podia ser mais simples e limpo.&lt;/p&gt;
+
+&lt;p&gt;Para demonstrar o funcionamento do sistema existente de carregamento das galerias, segue um diagrama:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/diagrama-prix.png&#34;&gt;&lt;img class=&#34; size-full wp-image-68 aligncenter&#34; src=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/diagrama-prix.png&#34; alt=&#34;diagrama-prix&#34; width=&#34;361&#34; height=&#34;536&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Trata-se de um exemplo básico de uso de Ajax, aonde temos:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Página HTML&lt;/strong&gt;: Renderiza a galeria de &lt;em&gt;thumbnails&lt;/em&gt; e as galerias de fotos em &lt;em&gt;lightbox&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Script JS&lt;/strong&gt;: Ativado a cada clique em um &lt;em&gt;thumbnail&lt;/em&gt;, faz a requisição de um arquivo PHP através de &lt;em&gt;Ajax&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Arquivo PHP&lt;/strong&gt;: Faz as consultas no banco de dados para pegar todas os dados necessários para exibição da galeria, e devolve estes dados ao script, que finalmente vai exibir a galeria, usando o plugin &lt;em&gt;fancybox&lt;/em&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;O sistema como um todo funcionava, mas faltava um toque de agilidade, que foi dado ao acrescentar o JSON no sistema.&lt;/p&gt;
+
+&lt;p&gt;Vamos então ver agora como isso foi feito.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-código&#34;&gt;O código&lt;/h3&gt;
+
+&lt;p&gt;O HTML da galeria era mais ou menos assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;projetos&#34;&amp;gt;
+    &amp;lt;a id=&#34;10&#34;&amp;gt;
+        &amp;lt;img src=&#34;dir/nome-img.jpg&#34;&amp;gt;
+    &amp;lt;/a&amp;gt;
+    &amp;lt;a id=&#34;11&#34;&amp;gt;
+        &amp;lt;img src=&#34;dir/nome-img.jpg&#34;&amp;gt;
+    &amp;lt;/a&amp;gt;
+&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;E abaixo o código JS (usando jQuery) que fazia acontecer a mágica a cada clique nos &lt;em&gt;thumbnails&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(document).ready(function(){
+    $(&#39;.projetos &amp;gt; a&#39;).click(function(){
+        var id = $(this).attr(&#39;id&#39;);
+        $.post(&#39;ajax-projetos.php&#39;,{&#39;idp&#39;:id}, function(data){
+            fancyPrix(data);
+        },&#39;text&#39;);
+    });
+});&lt;/pre&gt;
+
+&lt;p&gt;Observando o script, vemos que ele aplica algumas ações ao evento &lt;em&gt;click&lt;/em&gt; nos links, conforme indicado neste trecho: &lt;code&gt;$(&#39;.projetos &amp;gt; a&#39;).click(function(){&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;As ações basicamente são: a requisição do arquivo &lt;code&gt;ajax-projetos.php&lt;/code&gt; usando o método do jQuery $.&lt;code&gt;post&lt;/code&gt; (método do jQuery para chamadas Ajax), passando como parâmetro a variável &lt;code&gt;id&lt;/code&gt;, cujo valor vem de um atributo em cada link. O retorno dado pelo arquivo php, representado na variável &lt;code&gt;data&lt;/code&gt;, era em seguida passado pela função &lt;code&gt;fancyPrix&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se ficou com dúvidas examine novamente o script até entender todo o processo.&lt;/p&gt;
+
+&lt;h3 id=&#34;usando-o-json&#34;&gt;Usando o JSON&lt;/h3&gt;
+
+&lt;p&gt;Agora que ficou claro (espero) o importante papel do script JS, vamos ao arquivo &lt;code&gt;ajax-projetos.php&lt;/code&gt;. Como explicado no diagrama apresentado anteriormente, este arquivo fazia a consulta no banco de dados entregando ao final um &lt;em&gt;array&lt;/em&gt; contendo os dados necessários para a renderização da galeria de imagens em &lt;em&gt;lightbox&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Ao final do processo, o array produzido tinha a seguinte estrutura:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$proj = array (
+    &#34;candidato&#34; =&amp;gt; &#34;Felisbério dos Santos&#34;,
+    &#34;imgs&#34;  =&amp;gt; array ( 
+        0 =&amp;gt; &#34;http://localhost/projeto/diretorio/nome-arquivo.jpg&#34;,
+        1 =&amp;gt; &#34;http://localhost/projeto/diretorio/nome-arquivo.jpg&#34;,
+        2 =&amp;gt; &#34;http://localhost/projeto/diretorio/nome-arquivo.jpg&#34;,
+    ),
+    &#34;projeto&#34; =&amp;gt; &#34;Sombras Negras&#34;
+);&lt;/pre&gt;
+
+&lt;p&gt;Como se pode ver, o &lt;em&gt;array&lt;/em&gt; tinha todos os dados necessários para criação da galeria: nome do candidato, nome do projeto e as imagens, como um &lt;em&gt;sub-array&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;No código original, a grande falha no entanto era a forma como esses dados eram devolvidos ao script JS. Havia uma mistura de código JS como variáveis do php dentro do mesmo script que tornava tudo confuso e difícil de manter.&lt;/p&gt;
+
+&lt;p&gt;Porque não passar o &lt;em&gt;array&lt;/em&gt; de volta como um objeto &lt;strong&gt;JSON&lt;/strong&gt;, que pode ser interpretado dentro do script JS original, abolindo assim o uso de código php macarrônico?&lt;/p&gt;
+
+&lt;p&gt;Isto foi feito simplesmente adicionando-se ao código esta linha:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;echo json_encode($proj);&lt;/pre&gt;
+
+&lt;p&gt;A função nativa do PHP &amp;#8216;&lt;a href=&#34;http://php.net/manual/pt_BR/function.json-encode.php&#34; target=&#34;_blank&#34;&gt;json_encode&lt;/a&gt;&amp;#8216;, como diz o nome, converte o &lt;em&gt;array&lt;/em&gt; &lt;code&gt;$proj&lt;/code&gt; para um objeto JSON, que ficará assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+    &#34;candidato&#34;:&#34;Felisbério dos Santos&#34;,
+    &#34;imgs&#34;:[
+        &#34;http://path/da/imagem/136/000-1.jpg&#34;,
+        &#34;http://path/da/imagem/136/000-2.jpg&#34;,
+        &#34;http://path/da/imagem/136/000-3.jpg&#34;
+        ],
+    &#34;nome&#34;:&#34;Sombras Negras&#34;
+ }&lt;/pre&gt;
+
+&lt;p&gt;Este objeto pode ser passado tranquilamente pela script JS, aonde será usado na já citada função &lt;code&gt;fancyPrix()&lt;/code&gt;, que é quem vai pegar cada informação do objeto JSON e aplicar no _plugin &lt;a href=&#34;http://fancyapps.com/fancybox/&#34; target=&#34;_blank&#34;&gt;fancybox&lt;/a&gt;_, da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function fancyPrix(projeto) {
+    $.fancybox.open(projeto.imgs, {
+        padding: 0,
+        maxWidth : &#39;680px&#39;,
+        maxHeight : &#39;660px&#39;,
+        title: projeto.nome + &#34; - &#34;+ projeto.candidato,
+        loop : &#39;false&#39;,
+        prevEffect : &#39;none&#39;,
+        nextEffect : &#39;none&#39;
+    });
+}&lt;/pre&gt;
+
+&lt;p&gt;Vemos que o plugin &lt;em&gt;fancybox&lt;/em&gt; possui um método que permite trabalhar com objetos JSON, o &lt;code&gt;fancybox.open&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Repare como foram passadas as imagens logo no início do código: &lt;code&gt;$.fancybox.open(projeto.imgs, {&lt;/code&gt;. Com a simples propriedade &lt;code&gt;projeto.imgs&lt;/code&gt; conseguimos passar &lt;strong&gt;todas&lt;/strong&gt; as imagens que fazem parte da galeria. O restante das propriedades são usadas como opções dentro do plugin, como mostrado acima.&lt;/p&gt;
+
+&lt;p&gt;Relembrando o script jQuery original podemos ver como a galeria toda é criada em apenas uma linha de código.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(document).ready(function(){
+    $(&#39;.projetos a&#39;).click(function(){
+        var id = $(this).attr(&#39;id&#39;);
+        $.post(&#39;ajax-projetos.php&#39;,{&#39;idp&#39;:id}, function(data){
+            &lt;strong&gt;fancyPrix(data);&lt;/strong&gt;
+        },&#39;text&#39;);
+    });
+});&lt;/pre&gt;
+
+&lt;h3 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h3&gt;
+
+&lt;p&gt;Quando apliquei esta solução e vi tudo funcionando o orgulho (e o alívio) foram grandes, mas maior ainda foi a sensação de &amp;#8216;uau&amp;#8217; ao ver as diferentes linguagens da web conversando juntas e de maneira tão integrada.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

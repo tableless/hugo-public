@@ -1,0 +1,1939 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Jquery on Tableless</title>
+    <link>http://tableless.com.br/tags/jquery/index.xml</link>
+    <description>Recent content in Jquery on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/jquery/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Paginação com JavaScript e jQuery</title>
+      <link>http://tableless.com.br/paginacao-com-javascript-e-jquery/</link>
+      <pubDate>Wed, 29 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/paginacao-com-javascript-e-jquery/</guid>
+      <description>&lt;p&gt;Algumas vezes, vamos deparar com uma situação onde é preciso fazer uma paginação sem a ajuda de uma linguagem de backend. É exatamente isso que vou ensinar aqui: fazer um sistema de paginação utilizando JavaScript , jQuery e Bootstrap.&lt;/p&gt;
+
+&lt;p&gt;Vamos primeiramente criar a nossa estrutura HTML e chamar as bibliotecas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums prettyprinted&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;script src=&#34;http://tableless.com.br/jquery/1.11.3/jquery.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;link rel=&#34;stylesheet&#34;href=&#34;/css/bootstrap.min.css&#34;&amp;gt;
+// somente para ficar mais &#34;bonito o layout&#34; vamos dar um padding-bottom no select
+&amp;lt;style type=&#34;text/css&#34;&amp;gt;
+.col-lg-12{
+   padding-bottom: 20px;
+  } 
+&amp;lt;/style&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;div class=&#34;col-lg-12&#34;&amp;gt;
+    &amp;lt;p&amp;gt;itens por pagina&amp;lt;/p&amp;gt;
+      &amp;lt;select id=&#34;qtd&#34;  class=&#34;form-control input-sm input-order&#34;&amp;gt;
+        &amp;lt;option value=&#34;1&#34;&amp;gt;1&amp;lt;/option&amp;gt;
+        &amp;lt;option value=&#34;2&#34;&amp;gt;2&amp;lt;/option&amp;gt;
+         &amp;lt;option value=&#34;3&#34;&amp;gt;3&amp;lt;/option&amp;gt;
+       &amp;lt;/select&amp;gt;
+     &amp;lt;/div&amp;gt;
+&amp;lt;div class=&#34;all&#34; id=&#34;conteudo&#34;&amp;gt;
+  &amp;lt;div class=&#34;col-lg-3 col-md-6&#34;&amp;gt;
+    &amp;lt;div class=&#34;panel panel-primary &#34;&amp;gt;
+        &amp;lt;p&amp;gt;Tabless 1&amp;lt;/p&amp;gt;
+      &amp;lt;/div&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;div class=&#34;col-lg-3 col-md-6&#34;&amp;gt;
+    &amp;lt;div class=&#34;panel panel-primary &#34;&amp;gt;
+        &amp;lt;p&amp;gt;Tabless 2&amp;lt;/p&amp;gt;
+      &amp;lt;/div&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;div class=&#34;col-lg-3 col-md-6&#34;&amp;gt;
+    &amp;lt;div class=&#34;panel panel-primary &#34;&amp;gt;
+        &amp;lt;p&amp;gt;Tabless 3&amp;lt;/p&amp;gt;
+      &amp;lt;/div&amp;gt;
+    &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+&amp;lt;div id=&#34;pagi&#34;&amp;gt;&amp;lt;/div&amp;gt; //div responsável por mostrar a paginação
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Reparem que eu escrevi 3 vezes a mesma div. Vocês podem repetir quantas vezes quiserem ou até coloca-lá em &lt;em&gt;loop&lt;/em&gt; (&lt;em&gt;foreach&lt;/em&gt; do PHP, por exemplo). É exatamente essa repetição que vamos paginar. Vamos agora criar as funções em JavaScript:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript &#34;&gt;&amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+//acionamos o jquery para iniciar a paginação quando o documento estiver &#34;pronto&#34;
+$(document).ready(function() {
+    //Pegamos o valor selecionado default no select id=&#34;qtd&#34;
+     var mostrar_por_pagina = $(&#39;#qtd&#39;).val(); 
+    //quantidade de divs
+      var numero_de_itens = $(&#39;#conteudo&#39;).children(&#39;.col-lg-3&#39;).size();
+     //fazemos uma calculo simples para saber quantas paginas existiram
+      var numero_de_paginas = Math.ceil(numero_de_itens / mostrar_por_pagina)
+    //Colocamos a div class controls dentro da div id pagi
+    $(&#39;#pagi&#39;).append(&#39;&amp;lt;div class=controls&amp;gt;&amp;lt;/div&amp;gt;
+      &amp;lt;input id=current_page type=hidden&amp;gt;&amp;lt;input id=mostrar_por_pagina type=hidden&amp;gt;&#39;);
+      $(&#39;#current_page&#39;).val(0);
+      $(&#39;#mostrar_por_pagina&#39;).val(mostrar_por_pagina);
+      //Criamos os links de navegação
+      var nevagacao = &#39;&amp;lt;li&amp;gt;&amp;lt;a class=&#34;prev&#34; onclick=&#34;anterior()&#34;&amp;gt;Prev&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&#39;;
+      var link_atual = 0;
+      while (numero_de_paginas &amp;gt; link_atual) {
+          nevagacao += &#39;&amp;lt;li&amp;gt;&amp;lt;a class=&#34;page&#34; onclick=&#34;ir_para_pagina(&#39; + link_atual + &#39;)&#34; longdesc=&#34;&#39; 
+          + link_atual + &#39;&#34;&amp;gt;&#39; + (link_atual + 1) + &#39;&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&#39;;
+          link_atual++;
+      }
+      nevagacao += &#39;&amp;lt;li&amp;gt;&amp;lt;a class=&#34;proxima&#34; onclick=&#34;proxima()&#34;&amp;gt;proxima&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&#39;;
+      //colocamos a nevegação dentro da div class controls
+      $(&#39;.controls&#39;).html(&#34;&amp;lt;div class=&#39;paginacao&#39;&amp;gt;\
+        &amp;lt;ul class=&#39;pagination pagination-sm&#39;&amp;gt;&#34;+nevagacao+&#34;&amp;lt;/ul&amp;gt;&amp;lt;/div&amp;gt;&#34;);
+      //atribuimos ao primeiro link a class active
+      $(&#39;.controls .page:first&#39;).addClass(&#39;active&#39;);
+      $(&#39;#conteudo&#39;).children().css(&#39;display&#39;, &#39;none&#39;);
+      $(&#39;#conteudo&#39;).children().slice(0, mostrar_por_pagina).css(&#39;display&#39;, &#39;block&#39;);
+  });
+&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Até aqui, a paginação já é mostrada, porém, ao clicar nos links, nada acontece. Vamos criar as seguintes funções em JavaScript para que funcione:  &lt;em&gt;ir_para_pagina()&lt;/em&gt;, _anterior()_ e &lt;em&gt;proxima()&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Então mãos à obra:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+function ir_para_pagina(numero_da_pagina) {
+      //Pegamos o número de itens definidos que seria exibido por página
+      var mostrar_por_pagina = parseInt($(&#39;#mostrar_por_pagina&#39;).val(), 0);
+      //pegamos  o número de elementos por onde começar a fatia
+      inicia = numero_da_pagina * mostrar_por_pagina;
+     //o número do elemento onde terminar a fatia
+      end_on = inicia + mostrar_por_pagina;
+     $(&#39;#conteudo&#39;).children().css(&#39;display&#39;, &#39;none&#39;).slice(inicia, end_on).css(&#39;display&#39;, &#39;block&#39;);
+     $(&#39;.page[longdesc=&#39; + numero_da_pagina+ &#39;]&#39;).addClass(&#39;active&#39;)
+       .siblings(&#39;.active&#39;).removeClass(&#39;active&#39;);
+    $(&#39;#current_page&#39;).val(numero_da_pagina);
+  }
+
+ function anterior() {
+     nova_pagina = parseInt($(&#39;#current_page&#39;).val(), 0) - 1;
+      //se houver um item antes do link ativo atual executar a função
+      if ($(&#39;.active&#39;).prev(&#39;.page&#39;).length == true) {
+          ir_para_pagina(nova_pagina);
+      }
+  }
+
+function proxima() {
+      nova_pagina = parseInt($(&#39;#current_page&#39;).val(), 0) + 1;
+      //se houver um item após o link ativo atual executar a função
+      if ($(&#39;.active&#39;).next(&#39;.page&#39;).length == true) {
+          ir_para_pagina(nova_pagina);
+      }
+  }
+&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Pronto, agora temos um sistema de paginação baseado em div&amp;#8217;s com JavaScript + jQuery, porém, precisamos pegar a quantidade de itens por página que o usuário escolher e remontar toda a paginação. Para isso, vamos usar a função &lt;em&gt;change&lt;/em&gt; do jQuery:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+// Pegamos o evento change do select id=&#34;qtd&#34; e remontamos toda a paginação default
+  $( &#34;#qtd&#34; ).change(function() {
+    //Removemos os &#34;controles&#34; de paginação
+      $(&#34;.controls&#34;).remove();
+    //Pegamos o valor selecionado
+      var mostrar_por_pagina = this.value;
+     //remontamos a paginação
+      var numero_de_itens = $(&#39;#conteudo&#39;).children(&#39;.col-lg-3&#39;).size();
+      var numero_de_paginas = Math.ceil(numero_de_itens / mostrar_por_pagina);
+      //Colocamos a div class controls dentro da div id pagi
+    $(&#39;#pagi&#39;).append(&#39;&amp;lt;div class=controls&amp;gt;&amp;lt;/div&amp;gt;
+      &amp;lt;input id=current_page type=hidden&amp;gt;&amp;lt;input id=mostrar_por_pagina type=hidden&amp;gt;&#39;);
+      $(&#39;#current_page&#39;).val(0);
+      $(&#39;#mostrar_por_pagina&#39;).val(mostrar_por_pagina);
+  //Criamos os links de navegação
+      var nevagacao = &#39;&amp;lt;li&amp;gt;&amp;lt;a class=&#34;prev&#34; onclick=&#34;previous()&#34;&amp;gt;Prev&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&#39;;
+      var link_atual = 0;
+      while (numero_de_paginas &amp;gt; link_atual) {
+          nevagacao += &#39;&amp;lt;li&amp;gt;&amp;lt;a class=&#34;page&#34; onclick=&#34;ir_para_pagina(&#39; + link_atual + &#39;)&#34; longdesc=&#34;&#39; 
+          + link_atual + &#39;&#34;&amp;gt;&#39; + (link_atual + 1) + &#39;&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&#39;;
+          link_atual++;
+      }
+      nevagacao += &#39;&amp;lt;li&amp;gt;&amp;lt;a class=&#34;next&#34; onclick=&#34;next()&#34;&amp;gt;Next&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&#39;;
+   //colocamos a navegação dentro da div class controls
+      $(&#39;.controls&#39;).html(&#34;&amp;lt;div class=&#39;paginacao&#39;&amp;gt;
+        &amp;lt;ul class=&#39;pagination pagination-sm&#39;&amp;gt;&#34;+nevagacao+&#34;&amp;lt;/ul&amp;gt;&amp;lt;/div&amp;gt;&#34;);
+      $(&#39;.controls .page:first&#39;).addClass(&#39;active&#39;);
+      $(&#39;#conteudo&#39;).children().css(&#39;display&#39;, &#39;none&#39;);
+      $(&#39;#conteudo&#39;).children().slice(0, mostrar_por_pagina).css(&#39;display&#39;, &#39;block&#39;);
+    
+  });
+&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Nosso sistema de paginação completo, totalmente no HTML, é uma das vantagens dessa paginação. O ganho de performance, claro, depende da quantidade de dados.&lt;/p&gt;
+
+&lt;p&gt;Adaptado de &lt;a href=&#34;http://web.enavu.com/tutorials/making-a-jquery-pagination-system/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://web.enavu.com/tutorials/making-a-jquery-pagination-system/&#34;&gt;http://web.enavu.com/tutorials/making-a-jquery-pagination-system/&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando efeitos de páginas de livro no seu front-end</title>
+      <link>http://tableless.com.br/criando-efeitos-de-paginas-de-livro-no-seu-front-end/</link>
+      <pubDate>Thu, 14 Jan 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-efeitos-de-paginas-de-livro-no-seu-front-end/</guid>
+      <description>
+
+&lt;p&gt;O &lt;a href=&#34;http://www.turnjs.com/&#34; target=&#34;_blank&#34;&gt;Turn.js&lt;/a&gt; é uma biblioteca JavaScript que faz o conteúdo parecer um livro ou revista de verdade, usando as vantagens do HTML5.&lt;/p&gt;
+
+&lt;p&gt;É uma biblioteca baseada no jQuery, versão 1.7 ou superior, então é um requerimento básico.&lt;/p&gt;
+
+&lt;p&gt;Temos o suporte para os navegadores:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Chrome 12+&lt;/li&gt;
+&lt;li&gt;Safari 5+&lt;/li&gt;
+&lt;li&gt;Firefox 10+&lt;/li&gt;
+&lt;li&gt;Internet Explorer 9+&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;na-prática&#34;&gt;Na prática&lt;/h2&gt;
+
+&lt;p&gt;Como exemplo, vamos usar como base a história criada por  &lt;a href=&#34;http://adagadegelo.deviantart.com/art/A-Historia-Nao-Contada-Da-Estrela-Azul-572943339&#34; target=&#34;_blank&#34;&gt;Rodrigo Martins&lt;/a&gt;, que tranformou em quadrinhos o meme da internet &amp;#8220;Já acabou, Jéssica&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Vamos utilizar &lt;em&gt;divs&lt;/em&gt; para criar as páginas do livro:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div id=&#34;quadrinho&#34;&amp;gt; &amp;lt;!-- Criando um novo quadrinho --&amp;gt;
+    &amp;lt;div class=&#34;hard&#34; id=&#34;capa&#34;&amp;gt;&amp;lt;/div&amp;gt; &amp;lt;!-- Criando a capa --&amp;gt;
+    &amp;lt;div class=&#34;hard&#34;&amp;gt;&amp;lt;/div&amp;gt; &amp;lt;!-- Criando a parte de trás da capa --&amp;gt;
+    &amp;lt;div class=&#34;page&#34; id=&#34;pagina-2&#34;&amp;gt;&amp;lt;/div&amp;gt; &amp;lt;!-- Criando as páginas --&amp;gt;
+    &amp;lt;div class=&#34;page&#34; id=&#34;pagina-3&#34;&amp;gt;&amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;page&#34; id=&#34;pagina-4&#34;&amp;gt;&amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;page&#34; id=&#34;pagina-5&#34;&amp;gt;&amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;page&#34; id=&#34;pagina-6&#34;&amp;gt;&amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;page&#34; id=&#34;pagina-7&#34;&amp;gt;&amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;page&#34; id=&#34;pagina-8&#34;&amp;gt;&amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;page&#34; id=&#34;pagina-9&#34;&amp;gt;&amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;hard&#34;&amp;gt;&amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;hard&#34;&amp;gt;&amp;lt;/div&amp;gt; &amp;lt;!-- Criando a contracapa --&amp;gt;
+&amp;lt;/div&amp;gt;
+&amp;lt;script src=&#34;https://code.jquery.com/jquery-2.1.1.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;script src=&#34;https://raw.githubusercontent.com/blasten/turn.js/master/turn.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Foi utilizado as classes padrões .&lt;em&gt;page&lt;/em&gt; em casos de páginas comuns, e a classe .&lt;em&gt;hard&lt;/em&gt; para a capa e contracapa.&lt;/p&gt;
+
+&lt;p&gt;Agora vamos adicionar alguns estilos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;#quadrinho{ //Definindo o tamanho
+    width: 800px; 
+    height: 600px;
+}
+#quadrinho .page{ //Definindo os valores padrão para todas as páginas
+    background-color: #FFF; //Fundo branco porque, caso não carregue as imagens, ela não fique transparente.
+    background-size: cover; //O Fundo precisa cobrir toda a página
+}
+#quadrinho .hard{
+    background-color: #CCC; //Fundo cinza para diferenciar das páginas comuns
+    background-size: cover;
+}
+
+// Definindo as páginas que servirão de exeplo
+#capa{
+    background: url(&#34;http://tableless.com.br/wp-content/uploads/2015/11/Paginas-01.png&#34;);
+}
+#pagina-2{
+    background: url(&#34;http://tableless.com.br/wp-content/uploads/2015/11/Paginas-02.png&#34;);
+}
+#pagina-3{
+    background: url(&#34;http://tableless.com.br/wp-content/uploads/2015/11/Paginas-03.png&#34;);
+}
+#pagina-4{
+    background: url(&#34;http://tableless.com.br/wp-content/uploads/2015/11/Paginas-04.png&#34;);
+}
+#pagina-5{
+    background: url(&#34;http://tableless.com.br/wp-content/uploads/2015/11/Paginas-05.png&#34;);
+}
+#pagina-6{
+    background: url(&#34;http://tableless.com.br/wp-content/uploads/2015/11/Paginas-06.png&#34;);
+}
+#pagina-7{
+    background: url(&#34;http://tableless.com.br/wp-content/uploads/2015/11/Paginas-07.png&#34;);
+}
+#pagina-8{
+    background: url(&#34;http://tableless.com.br/wp-content/uploads/2015/11/Paginas-08.png&#34;);
+}
+#pagina-9{
+    background: url(&#34;http://tableless.com.br/wp-content/uploads/2015/11/Paginas-09.png&#34;);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Cada página do quadrinho recebe seu próprio &lt;em&gt;background&lt;/em&gt;, contendo o conteúdo desejado.&lt;/p&gt;
+
+&lt;p&gt;E por fim, só é preciso colocar 5 linhas de JavaScript:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#34;#quadrinho&#34;).turn({
+    width: 800, // Para definir a largura da página
+    height: 600, // Para definir a altura da página
+});
+&lt;/pre&gt;
+
+&lt;p&gt;E pronto: basta abrir o navegador e ser feliz. 🙂&lt;/p&gt;
+
+&lt;p&gt;Quem quiser ver o resultado basta &lt;a href=&#34;http://codepen.io/anon/pen/Vezozz&#34; target=&#34;_blank&#34;&gt;clicar aqui&lt;/a&gt;. [Link atualizado]&lt;/p&gt;
+
+&lt;p&gt;Acesse:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://turnjs.com/&#34; target=&#34;_blank&#34;&gt;Website do Turn.js&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/blasten/turn.js&#34; target=&#34;_blank&#34;&gt;Github do Turn.js&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Formulário responsivo com MailChimp</title>
+      <link>http://tableless.com.br/formulario-responsivo-com-mailchimp/</link>
+      <pubDate>Fri, 06 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/formulario-responsivo-com-mailchimp/</guid>
+      <description>
+
+&lt;p&gt;Há cada dia mais utilizamos serviços disponíveis na web que tem um plano básico e gratuito que permite integrações. Nos últimos meses tenho feito formulários com frequência usando uma abordagem bem simples. Vou mostrar agora como criar um formulário responsivo, integrando com MailChimp e usando jQuery Validate.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-html&#34;&gt;O HTML&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar o formulário da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;section&amp;gt;
+  &amp;lt;h1&amp;gt;CREATE RESPONSIVE FORM WITH INTEGRATE MAILCHIMP&amp;lt;/h1&amp;gt;
+  &amp;lt;form id=&#34;form-contact&#34; method=&#34;POST&#34; action=&#34;mailchimp-contact.php&#34;&amp;gt;
+    &amp;lt;div class=&#34;input&#34;&amp;gt;
+      &amp;lt;label for=&#34;name&#34;&amp;gt;Name&amp;lt;/label&amp;gt;
+      &amp;lt;input type=&#34;text&#34; id=&#34;name&#34; name=&#34;name&#34; placeholder=&#34;Your name&#34; required&amp;gt;
+    &amp;lt;/div&amp;gt;
+
+    ...
+    
+    &amp;lt;div class=&#34;input txt&#34;&amp;gt;
+      &amp;lt;label for=&#34;message&#34;&amp;gt;Message&amp;lt;/label&amp;gt;
+      &amp;lt;textarea id=&#34;message&#34; name=&#34;message&#34; cols=&#34;10&#34; rows=&#34;5&#34; placeholder=&#34;Its message leaves&#34; required&amp;gt;&amp;lt;/textarea&amp;gt;
+    &amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;buttons&#34;&amp;gt;
+      &amp;lt;span class=&#34;form-message&#34;&amp;gt;&amp;lt;/span&amp;gt;
+      &amp;lt;input type=&#34;submit&#34; value=&#34;SEND&#34; /&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;/form&amp;gt;
+&amp;lt;/section&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-form-mailchimp/demo-only-elements.html&#34; target=&#34;_blank&#34; title=&#34;Ver demo sem style.&#34;&gt;Ver demo sem style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-css&#34;&gt;O CSS&lt;/h2&gt;
+
+&lt;p&gt;Para cada label e input foi adicionado uma &lt;code&gt;div.input&lt;/code&gt; para inserir uma formatação por grupo.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-form-está-centralizado-com-max-width&#34;&gt;O form está centralizado com max-width:&lt;/h3&gt;
+
+&lt;p&gt;Por ser um elemento &amp;#8216;block&amp;#8217;, vamos definir o tamanho máximo que ele pode ter.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;form {
+&amp;nbsp; margin: 0 auto;
+&amp;nbsp; max-width: 850px;
+&amp;nbsp; padding: 20px 10px;
+&amp;nbsp; background-color: rgba(255,255,255,0.4)
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;o-grupo-div-input-com-50-em-8216-width-8217-do-form&#34;&gt;O grupo div.input com 50% em &amp;#8216;width&amp;#8217; do form:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input {
+  float: left;
+  width: 48%;
+  padding: 0 1% 20px;
+  position: relative;
+}
+
+.input.txt { width: 98%; } /*textarea 100%*/
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;os-labels&#34;&gt;Os labels:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input label {
+  display: block;
+  padding-bottom: 5px;
+  color: #666;
+}
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input label.error {
+  position: absolute;
+  right: 18px;
+  top: 35px;
+  color: #f00;
+}&lt;/pre&gt;
+
+&lt;p&gt;O label.error é gerado pelo jQuery validate e adicionado seguido dos campos.&lt;/p&gt;
+
+&lt;h3 id=&#34;os-campos&#34;&gt;Os campos:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input input,
+.input textarea {
+  padding-top: 10px;
+  padding-bottom: 9px;
+  border: none;
+  font-size: 16px;
+  font-weight: 100;
+  font-family: &#34;Helvetica Neue&#34;, Helvetica, Arial, sans-serif;
+}
+
+.input input {
+  width: 94%;
+  padding-left: 3%;
+  padding-right: 3%;
+}
+
+.input textarea {
+  width: 97%;
+  padding-left: 1.5%;
+  padding-right: 1.5%;
+}&lt;/pre&gt;
+
+&lt;p&gt;Formatamos os campos para ter 100% de tamanho do elemento pai &amp;#8216;div.input&amp;#8217;.&lt;/p&gt;
+
+&lt;p&gt;Sempre que redimensionar não haverá quebras, portanto, responsivo meu amigo.&lt;/p&gt;
+
+&lt;h3 id=&#34;agora-um-capricho-para-resoluções-pequenas&#34;&gt;Agora um capricho para resoluções pequenas.&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@media screen and (max-width: 520px) {
+  .input {
+    width: 98%;
+  }
+}&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-form-mailchimp/demo-style-elements.html&#34; target=&#34;_blank&#34; title=&#34;Ver demo com style.&#34;&gt;Ver demo com style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-jquery-mailchimp&#34;&gt;O jQuery + MailChimp&lt;/h2&gt;
+
+&lt;p&gt;Com o HTML e CSS prontos, vamos adicionar o JavaScript que é fácil. Como dependemos do jQuery e não podemos iniciar de qualquer forma, segue uma estrutura bem legal:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function(){
+  var contact = function(){
+    var init = function() {
+      //initialize code
+    };
+    
+&amp;nbsp;   //more functions
+
+    return {init: init};
+  }();
+
+  //jQuery loaded
+  $(document).ready(contact.init);
+})();&lt;/pre&gt;
+
+&lt;p&gt;Como sabemos exatamente qual função vai executar quando a jQuery carregar, adicionaremos o jQuery Validate no init:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var init = function() {
+  $(&amp;#039;#form-contact&amp;#039;).validate({
+    rules : {
+      name: &#34;required&#34;,
+      email: { required: true, email: true },
+      phone: { required: true, minlength: 14 },
+      company: &#34;required&#34;,
+      message: &#34;required&#34;
+    },
+    messages: {
+      name: &#34;*&#34;,
+      email: { required: &#34;*&#34;, email: &#34;*&#34; },
+      phone: { required: &#34;*&#34;, minlength: &#34;*&#34; },
+      company: &#34;*&#34;,
+      message: &#34;*&#34;
+    }
+  });
+};&lt;/pre&gt;
+
+&lt;p&gt;Agora que estamos validando todos os campos, que tal adicionar um ajax para deixar nosso formulário bem suave e uma função para exibir mensagens de sucesso ou erro, veja:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var init = function() {
+  $(&amp;#039;#form-contact&amp;#039;).validate({
+    rules : {
+      ...
+    },
+    messages: {
+      ...
+    },
+    submitHandler: function(form) {
+      var $form = $(form);
+
+      var params = {
+        name: $form.find(&amp;#039;#name&amp;#039;).val(),
+        email: $form.find(&amp;#039;#email&amp;#039;).val(),
+        phone: $form.find(&amp;#039;#phone&amp;#039;).val(),
+        company: $form.find(&amp;#039;#company&amp;#039;).val(),
+        message: $form.find(&amp;#039;#message&amp;#039;).val()
+      };
+
+      $.ajax({
+        type: $form.attr(&amp;#039;method&amp;#039;),
+        url: $form.attr(&amp;#039;action&amp;#039;),
+        data: params,
+        success: function( data ) {
+          if(data == &#34;true&#34;) {
+            $form.find(&amp;#039;.input input&amp;#039;).val(&#34;&#34;);
+            $form.find(&amp;#039;.input textarea&amp;#039;).val(&#34;&#34;);
+            setMessage(&#34;Mission accomplished. &amp;lt;strong&amp;gt;&#34;+ params.email +&#34;&amp;lt;/strong&amp;gt; was successfully added to list.&#34;, &#34;success&#34;);
+          } else {
+            setMessage(&#34;Mission failed. &amp;lt;strong&amp;gt;&#34;+ params.email +&#34;&amp;lt;/strong&amp;gt; not was added to list.&#34;, &#34;error&#34;);
+          }
+        },
+        error: function( data ) {
+          setMessage(&#34;Mission failed in connection. Try again.&#34;, &#34;error&#34;);
+        }
+      });
+
+      return false;
+    }
+  });
+};
+
+var setMessage = function($message, $type) {
+  $(&amp;#039;.form-message&amp;#039;).html($message).addClass($type);
+
+  setTimeout(function(){
+    $(&amp;#039;.form-message&amp;#039;).removeClass($type);
+  }, 6000);
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Via &amp;#8216;submitHandler&amp;#8217; do &lt;a href=&#34;http://jQueryvalidation.org/&#34; target=&#34;_blank&#34;&gt;jQuery Validate&lt;/a&gt;, vamos disparar por ajax todos os dados preenchidos e travar o post do form com &amp;#8216;return false&amp;#8217; no final da função. Assim evitamos aquele redirecionamento de post.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-php&#34;&gt;O PHP&lt;/h3&gt;
+
+&lt;p&gt;Como definimos com &amp;#8216;method&amp;#8217; e &amp;#8216;action&amp;#8217; para o nosso formulário, segue o código para resgatar os dados:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+    require_once &amp;#039;MCAPI.class.php&amp;#039;;
+    $api = new MCAPI(&amp;#039;casiuach1293kajsc912319203cja23s-us9&amp;#039;);
+    $merge_vars = array(&amp;#039;NAME&amp;#039;=&amp;gt;$_POST[&#34;name&#34;], &#39;PHONE&#39;=&amp;gt;$_POST[&#34;phone&#34;], &#39;COMPANY&#39;=&amp;gt;$_POST[&#34;company&#34;], &#39;MESSAGE&#39;=&amp;gt;$_POST[&#34;message&#34;]);
+    
+    // Submit subscriber data to MailChimp
+    // For parameters doc, refer to: http://apidocs.mailchimp.com/api/1.3/listsubscribe.func.php
+    $retval = $api-&amp;gt;listSubscribe( &amp;#039;12938asd98&amp;#039;, $_POST[&#34;email&#34;], $merge_vars, &amp;#039;html&amp;#039;, false, true );
+    
+    if ($api-&amp;gt;errorCode){
+        echo &#34;false&#34;;
+    } else {
+        echo &#34;true&#34;;
+    }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Dependemos da MCAPI.class que você pode verificar na &lt;a href=&#34;https://apidocs.mailchimp.com/api/example-code/&#34; target=&#34;_blank&#34;&gt;documentação&lt;/a&gt; ou baixar &lt;a href=&#34;https://codeload.github.com/sunarlim/mailchimp-subscribe/zip/master&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;, só lembrando que precisa adicionar sua API Key e List ID.&lt;/p&gt;
+
+&lt;h2 id=&#34;pronto&#34;&gt;PRONTO&lt;/h2&gt;
+
+&lt;p&gt;Nosso formulário é responsivo e integrado ao mailchimp.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://css4html.com.br/demos/responsive-form-mailchimp/&#34; target=&#34;_blank&#34; title=&#34;Veja como ficou o resultado final&#34;&gt;Veja como ficou o resultado final&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/palloi/responsive-form-mailchimp/&#34; target=&#34;_blank&#34; title=&#34;Veja o código completo no github&#34;&gt;Veja o c&amp;oacute;digo completo no github&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;É isso ae pessoal, obrigado.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Entendendo o Event Delegation da função on() no jQuery</title>
+      <link>http://tableless.com.br/entendendo-o-event-delegation-jquery/</link>
+      <pubDate>Mon, 02 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/entendendo-o-event-delegation-jquery/</guid>
+      <description>&lt;p&gt;Geralmente uma &amp;#8220;delegação&amp;#8221;, que seria a uma tradução livre para &lt;strong&gt;delegation&lt;/strong&gt;, significa definir um evento para um elemento pai, que será disparado para todos os seus filhos. O evento vai funcionar para qualquer elemento filho que já existir e também para os que forem adicionados posteriormente na árvore do DOM.&lt;/p&gt;
+
+&lt;p&gt;Para exemplificar, entenda o código abaixo. Ele apenas muda o texto do parágrafo quando clicamos em alguma opção do menu. É um uso simples da função &lt;code&gt;on(&#39;click&#39;)&lt;/code&gt; do jQuery:&lt;/p&gt;
+
+&lt;p&gt;Para entender como isso funciona, você precisa saber o que é o &lt;code&gt;event propagation&lt;/code&gt; (ou &lt;code&gt;event bubbling&lt;/code&gt;): toda vez que você clica em um elemento, esse clique é propagado para toda a árvore do DOM, iniciando pelo elemento onde o evento aconteceu e chegando até o root do documento, que no nosso caso é a tag HTML.&lt;/p&gt;
+
+&lt;p&gt;Além disso, você faz seu browser ouvir o click em todos os elementos desse nosso menu, se considerarmos o exemplo acima. Nesse nosso caso, não chega a ser um problema, mas imagine em uma tabela que tem muitas células e que você precisa executar alguma coisa quando alguma das &lt;code&gt;td&lt;/code&gt; é clicada. A performance começa a ser prejudicada.&lt;/p&gt;
+
+&lt;p&gt;Quando usamos o &lt;strong&gt;event delegation&lt;/strong&gt; ao nosso favor, podemos definir o evento no elemento pai e então, quando esse evento acontecer, delegamos para o seu filho. No nosso exemplo acima, nós vamos atrelar o evento de click no &lt;code&gt;ul.menu&lt;/code&gt;, mas delegando esse evento para os links. A função em si nem muda tanto, ela fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.menu&#39;).on(&#39;click&#39;, &#39;a&#39;, function(evt){
+        // Seu código...
+    });
+&lt;/pre&gt;
+
+&lt;p&gt;Perceba que a função &lt;code&gt;on()&lt;/code&gt; recebe dois parâmetros: o primeiro é o evento e o segundo é o elemento filho que esse evento deve ser aplicado.&lt;/p&gt;
+
+&lt;p&gt;Suponha que você tenha alguma função que adiciona mais filhos ao seu elemento pai. A propagação continua funcionando, já que o evento está atrelado ao pai e não aos seus filhos.&lt;/p&gt;
+
+&lt;p&gt;Lembrando que a função &lt;code&gt;on()&lt;/code&gt; foi adicionada no jQuery 1.7, para juntar as vantagens das funções &lt;code&gt;delegate()&lt;/code&gt; e &lt;code&gt;live()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Há uma &lt;a href=&#34;http://jsperf.com/jquery-event-delegation/5&#34;&gt;análise de performance no JSPerf&lt;/a&gt; comparando o várias maneiras para você delegar os eventos aos filhos de um elemento. O &lt;code&gt;delegate()&lt;/code&gt; tem quase a mesma performance que o &lt;code&gt;on()&lt;/code&gt;, mesmo assim é melhor usar o &lt;code&gt;on()&lt;/code&gt;, já que ele tem mais vantagens.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Construindo sua própria biblioteca javascript</title>
+      <link>http://tableless.com.br/construindo-sua-propria-biblioteca-javascript/</link>
+      <pubDate>Mon, 07 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/construindo-sua-propria-biblioteca-javascript/</guid>
+      <description>
+
+&lt;p&gt;Pois bem, meu amigo ninja, está na hora de melhorar um pouco mais seus conhecimentos e quem sabe embarcar em uma nova ideia: a criação da sua própria biblioteca javascript!&lt;/p&gt;
+
+&lt;h1 id=&#34;introdução&#34;&gt;Introdução&lt;/h1&gt;
+
+&lt;p&gt;Antes de você pensar: “Ah, mas eu já sei como é. Basta estender o objeto HTMLElement por meio da prototype…”. Digo-lhes que felizmente não é assim. Imagine o peso que seria colocar um novo método em todos os elementos HTML. Impraticável.&lt;/p&gt;
+
+&lt;p&gt;Bem, meu amigo, se você não compreende minhas palavras, segue um exemplo de como podemos anexar um novo método aos elementos HTML por meio do prototype:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;HTMLElement.prototype.esconde = function(){
+ this.setAttribute(“style”,”display:none”)
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Logo poderíamos esconder qualquer elemento HTML através da chamada:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;document.querySelector(“div”).esconde();&lt;/pre&gt;
+
+&lt;p&gt;Então vamos fazer isto da maneira correta, usando um alias ($) para selecionar nossos elementos mais ou menos igual ao jQuery, o resultado final será este:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(“div”).esconde();&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Note que a sintaxe ficará igual a biblioteca jQuery. Veremos como obter este resultado passo-a-passo.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&#34;passo-1-8211-a-função-imediata&#34;&gt;Passo 1 &amp;#8211; A função imediata&lt;/h1&gt;
+
+&lt;p&gt;Criaremos uma função imediata, incrivelmente versátil e que tornará a linguagem javascript mais poderosa. Esta função imediata, que veremos aqui, criará um escopo temporário e algumas váriaveis “particulares”&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 1 — Começando com uma função imediata&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;(function(){ var blJs= function(arg){ }
+})();
+&lt;/pre&gt;
+
+&lt;p&gt;Note que criei uma função anônima, cujo o nome é: &lt;strong&gt;blJs&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Este será o nome da nossa biblioteca&lt;/p&gt;
+
+&lt;h1 id=&#34;passo-2-8211-entendendo-a-bljs&#34;&gt;Passo 2 &amp;#8211; Entendendo a blJs&lt;/h1&gt;
+
+&lt;p&gt;Agora que a brincadeira começa a ficar boa. Primeiro iremos programar nossa função anônima (blJs), para que, sempre que ela for chamada, retorne ela mesmo como um construtor, para podermos ter acesso ao tão poderoso “&lt;strong&gt;this&lt;/strong&gt;”:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Listagem 2 — A função blJs&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var blJs= function(arg){ 
+ if(!(this instanceof blJs)){ 
+  return new blJs(arg); 
+ }
+ this.myArg = arg;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Note que verifiquei se o nosso objeto foi declarado como um construtor. Claro que na chamada inicial ele não será. Por isso invocamos novamente nossa função &lt;strong&gt;blJs&lt;/strong&gt;, mas desta vez como um construtor, para podermos utilizar o &amp;#8216;&lt;strong&gt;this&lt;/strong&gt;&amp;#8216;. Observe que salvei o argumento da função blJs no objeto &lt;strong&gt;myArg&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Lembra desta linha de código: $(“div”)…? Isto é o mesmo que: blJs(“div”). Podemos perceber que estamos passando o “&lt;strong&gt;div&lt;/strong&gt;” como parâmetro da nossa função. Logo: &lt;strong&gt;this.myArg = “div”&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;passo-3-8211-estendendo-nossa-biblioteca-inserindo-métodos&#34;&gt;Passo 3 &amp;#8211; Estendendo nossa biblioteca: inserindo métodos☺&lt;/h1&gt;
+
+&lt;p&gt;Se prepare, amigo ninja, pois a mágica funciona justamente nas próximas linhas de códigos a seguir.&lt;/p&gt;
+
+&lt;p&gt;Iremos estender nossa função ( blJs ), por meio da propriedade prototype e fn. Veja a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;blJs.fn = blJs.prototype = { 
+ esconde: function(){ 
+  document.querySelector(this.myArg).setAttribute(“style”,”display:none”); 
+ }
+}
+window.blJs= blJs, window.$ = blJs;
+&lt;/pre&gt;
+
+&lt;p&gt;Logo definimos que &lt;strong&gt;blJs.fn&lt;/strong&gt; é igual a &lt;strong&gt;blJs.prototype&lt;/strong&gt;, onde declaramos nosso novo método. O método esconde, que seleciona a div por meio de querySelector(this.myArg) e esconde o elemento alvo por meio de um display:none.&lt;/p&gt;
+
+&lt;p&gt;Ao final da nossa função imediata, definimos que window.blJs será igual a nossa função “blJs”, para podermos chamar nossa biblioteca fora do escopo da função imediata. Veja como é simples definir um alias para nossa biblioteca: é só referenciar o window.$ à nossa função blJs.&lt;/p&gt;
+
+&lt;h1 id=&#34;finalizando&#34;&gt;Finalizando&lt;/h1&gt;
+
+&lt;p&gt;Agora é só sorrir e correr para o abraço ☺. Sua biblioteca javascript já está pronta para ser usada. É só utilizar a chamada do inicio:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(“div”).esconde() ou blJs(“div”).esconde()&lt;/pre&gt;
+
+&lt;p&gt;Visualize o código completo no &lt;a title=&#34;clique para visualizar o código completo&#34; href=&#34;https://github.com/clovisdasilvaneto/blJs&#34; target=&#34;_blank&#34;&gt;github&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Bem, amigos ninjas, por hoje é só. Caso tenha alguma dúvida, deixem seu comentário.&lt;/p&gt;
+
+&lt;p&gt;Espero que tenham curtido o artigo. Compartilhem e até a próxima!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>O futuro do jQuery</title>
+      <link>http://tableless.com.br/o-futuro-jquery/</link>
+      <pubDate>Fri, 28 Feb 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/o-futuro-jquery/</guid>
+      <description>
+
+&lt;p&gt;Desde quando o jQuery foi lançado em 2006, ele se tornou extremamente indispensável no dia-a-dia do desenvolvimento web. Ele é usado em pelo menos 60% dos websites mais visitados e sem dúvida é uma das bibliotecas client-side mais usadas hoje em dia.&lt;/p&gt;
+
+&lt;p&gt;O jQuery se tornou tão popular por uma razão: ele é limpo e sua API é fácil de usar porque abstrai a complexidade de scripts cross-browser, principalmente nos browsers antigos. Logo, conforme nos aproximamos de uma era na Web, onde os browsers estão se tornando rapidamente algo do passado, é compreensível o aumento da necessidade em utilizar tais APIs, mas pensando também na questão do futuro do jQuery.&lt;/p&gt;
+
+&lt;p&gt;Mas antes que você pense qualquer coisa, vamos considerar uma alternativa.&lt;/p&gt;
+
+&lt;h2 id=&#34;api-nativa&#34;&gt;API nativa&lt;/h2&gt;
+
+&lt;p&gt;Embora o jQuery tenha adicionando um tremendo valor na web com o passar dos anos, ele criou uma densa camada entre desenvolvedores e o DOM. Muitos dos desenvolvedores não entendem exatamente o que está acontecendo por trás daquele sinal de dólar ($). Enquanto isso, todos os comandos nativos equivalentes são fáceis de usar.&lt;/p&gt;
+
+&lt;p&gt;Isto não significa que precisamos evitar o jQuery. Nós precisamos considerar o jQuery como uma ferramenta ao invés de uma exigência. Avaliando o &lt;a href=&#34;http://github.com/jquery/jquery&#34; title=&#34;/a&amp;gt; quando comparamos a sintaxe do jQuery com as alternativas nativas. Estas comparações são uma boa base par&#34;&gt;código fonte do jQuery&lt;/a&gt;, podemos encontrar &lt;a href=&#34;http://www.paulirish.com/2010/10-things-i-learned-from-the-jquery-source/&#34; title=&#34;á acontecendo pro trás da cortina e é um grande passo para entender o DOM. Entretanto, é importante entender &#34;&gt;muito valor e algumas ideias&lt;/a&gt; sobre o que estamos usando. Há também &lt;a href=&#34;http://youmightnotneedjquery.com/&#34; title=&#34;inados a terem bugs. Na verdade, &amp;lt;a href=&amp;quot;http://blog.jquery.com/2013/01/14/the-state-of-jquery-2013/&amp;quot; title=&#34;&gt;muito&lt;/a&gt; o que &lt;a href=&#34;http://toddmotto.com/is-it-time-to-drop-jquery-essentials-to-learning-javascript-from-a-jquery-background/&#34; title=&#34;hes e correções para o Chrome, Safari e Firefox do que para o Internet Explorer&amp;quot;&amp;gt;o estado do jQuery em 2013&amp;lt;/&#34;&gt;conversar&lt;/a&gt; quando comparamos a sintaxe do jQuery com as alternativas nativas. Estas comparações são uma boa base para entender o que está acontecendo pro trás da cortina e é um grande passo para entender o DOM. Entretanto, é importante entender também que os browsers estão inclinados a terem bugs. Na verdade, &lt;a href=&#34;http://blog.jquery.com/2013/01/14/the-state-of-jquery-2013/&#34; title=&#34;jQuery 2.0 agora tem mais patches e correções para o Chrome, Safari e Firefox do que para o Internet Explorer&#34;&gt;o estado do jQuery em 2013&lt;/a&gt; afirma-se que o &amp;#8220;jQuery 2.0 agora tem mais patches e correções para o Chrome, Safari e Firefox do que para o Internet Explorer&amp;#8221;. Todo cuidado é pouco, seja cuidadoso quando abandonar o uso de uma biblioteca altamente testada e largamente utilizada como o jQuery.&lt;/p&gt;
+
+&lt;blockquote class=&#34;twitter-tweet&#34; lang=&#34;en&#34; xml:lang=&#34;en&#34;&gt;
+  &lt;p&gt;
+    You Might Not Need jQuery! … assuming you&amp;#39;ll address these bugs in your hand-written code: &lt;a href=&#34;https://t.co/j2hrG2nCpX&#34;&gt;https://t.co/j2hrG2nCpX&lt;/a&gt;
+  &lt;/p&gt;
+  
+  &lt;p&gt;
+    &amp;mdash; Paul Irish (@paul_irish) &lt;a href=&#34;https://twitter.com/paul_irish/statuses/431584056883429376&#34;&gt;February 7, 2014&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;a-sintaxe-a-abstração&#34;&gt;A sintaxe, a abstração&lt;/h2&gt;
+
+&lt;p&gt;Frameworks server-side como Ruby on Rails ou frameworks client-sides como Ember e Angular são largamente usadas por conveniência. Conveniência é economia de tempo, e tempo é dinheiro.&lt;/p&gt;
+
+&lt;p&gt;jQuery === $ #amiright?&lt;/p&gt;
+
+&lt;p&gt;Cada linha de código que é escrita nestes frameworks são vistos por milhões de olhos. Erros são capturados e bugs são encontrados.&lt;/p&gt;
+
+&lt;p&gt;Nós também valorizamos um código limpo, curto, proficiente e rápido. Tamanho de arquivo desnecessário, features dispensáveis e condicionais são algo que precisamos considerar. Especialmente dado ao aumento de visitantes mobile. Isto pode ser resolvido com gerenciamento de dependências modulares.&lt;/p&gt;
+
+&lt;blockquote class=&#34;twitter-tweet&#34; lang=&#34;en&#34; xml:lang=&#34;en&#34;&gt;
+  &lt;p&gt;
+    “YOU MIGHT NOT NEED &lt;a href=&#34;https://twitter.com/jquery&#34;&gt;@jquery&lt;/a&gt;” Bullshit, we need granular dependency management for modular libraries.
+  &lt;/p&gt;
+  
+  &lt;p&gt;
+    &amp;mdash; Stephan Bönnemann (@boennemann) &lt;a href=&#34;https://twitter.com/boennemann/statuses/429214761122021376&#34;&gt;January 31, 2014&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Enquanto o futuro do jQuery seja incerto, uma coisa é clara, ele não vai a lugar nenhum. E mesmo que o código do jQuery continue pequeno e seu código legado continue sendo removido, ainda assim iremos continuar usando apenas uma fração de toda a biblioteca disponível. Nós não precisamos incluir toda a biblioteca apenas para usar uma parte dela.&lt;/p&gt;
+
+&lt;p&gt;O futuro do jQuery é o gerenciamento modular de dependencias (eu espero).&lt;/p&gt;
+
+&lt;h2 id=&#34;javascript-modular&#34;&gt;Javascript modular&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://browserify.org/&#34;&gt;Browserify&lt;/a&gt; e &lt;a href=&#34;http://requirejs.org/&#34;&gt;RequireJS&lt;/a&gt; são dois métodos para &lt;a href=&#34;http://addyosmani.com/writing-modular-js/]&#34;&gt;escrever Javascript de forma modular&lt;/a&gt;. Ambas as ferramentas tem construído scripts no qual incluem apenas os módulos que são necessários pela aplicação. Se o jQuery for modularizado dessa forma, partes do jQuery que você não usa não serão compiladas em produção. Você não precisa recompilar manualmente seu jQuery toda vez que quiser incluir uma nova feature. Você também nunca precisa se preocupar sobre remover features do jQuery caso não as utilize mais. Em desenvolvimento, estes módulos devem estar disponíveis para você, mas não devem ser publicados em produção a menos que eles sejam necessários em sua aplicação.&lt;/p&gt;
+
+&lt;p&gt;No jQuery 1.9, o &lt;a href=&#34;https://github.com/jquery/jquery&#34;&gt;código fonte&lt;/a&gt; já foi modularizado. A curto prazo, isso permitiu a criação de um &lt;a href=&#34;https://github.com/jquery/jquery#how-to-build-your-own-jquery&#34;&gt;script que constrói um jQuery customizado&lt;/a&gt;. &lt;a href=&#34;http://zeptojs.com/#modules&#34;&gt;Muitas&lt;/a&gt; &lt;a href=&#34;http://lodash.com/custom-builds&#34;&gt;bibliotecas&lt;/a&gt; já tem implementado este tipo de coisa. A longo prazo, entretanto, isso pode permitir que o uso em um carregador AMD-compliant.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;jQuery é uma biblioteca poderosa, bem testada e muito utilizada. Mesmo que ainda faça sentido incluir o jQuery na maioria das suas aplicações web, é importante entender que o DOM não é um lugar assustador. O jQuery pode te ajudar a desviar de bugs e complicações, mas não deve substituir nosso conhecimento ou habilidade para manipular o DOM de forma efetiva e significante.&lt;/p&gt;
+
+&lt;p&gt;O que você acha sobre o futuro do jQuery? &lt;a href=&#34;http://twitter.com/davearel&#34;&gt;Me envie uma mensagem via twitter @davearel&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Atualização (27 de Fevereiro de 2014):&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você nunca considerou uma implementação modular de dependências usando uma biblioteca como o jQuery, você irá entender que isto não é simples.&lt;/p&gt;
+
+&lt;p&gt;Especialmente dado ao tamanho do código fonte do jQuery. Se você está interessado em contribuir para a discussão sobre como arquitetar algo assim, fale agora: &lt;a href=&#34;https://gist.github.com/davearel/9254418&#34;&gt;https://gist.github.com/davearel/9254418&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;#8212;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Artigo traduzido por &lt;strong&gt;&lt;a href=&#34;http://medium.com/@diegoeis&#34;&gt;Diego Eis&lt;/a&gt;&lt;/strong&gt; e &lt;a href=&#34;https://tech.bellycard.com/blog/the-future-of-jquery/&#34;&gt;escrito originalmente em inglês&lt;/a&gt; pelo &lt;a href=&#34;https://tech.bellycard.com/team/dave-arel/&#34;&gt;Dave Arel&lt;/a&gt; para o blog &lt;a href=&#34;https://tech.bellycard.com/&#34;&gt;Belly&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Se encontrar algum erro ou tem uma sugestão para melhorar a tradução, por favor, &lt;a href=&#34;http://tableless.com.br/contato/&#34;&gt;nos avise&lt;/a&gt;!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Considere não usar JQuery</title>
+      <link>http://tableless.com.br/considere-nao-usar-jquery/</link>
+      <pubDate>Wed, 19 Feb 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/considere-nao-usar-jquery/</guid>
+      <description>
+
+&lt;p&gt;Como todo novo começo, você aproveita para tentar fazer melhor e diferente. Com o novo design do Tableless, decidi tentar melhorar duas coisas: 1) a montagem do WordPress. 2) Fazer as funções JS sem o JQuery.&lt;/p&gt;
+
+&lt;p&gt;Na primeira opção (que também merece um post separado) comecei a usar melhor algumas features do WordPress. Isso me ajudou a melhorar a performance e a organizar mais o código:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Loops feitos com WP_Query() e get_posts().&lt;/li&gt;
+&lt;li&gt;get_template_part para separar a incluir partes de código.&lt;/li&gt;
+&lt;li&gt;wp_enqueue_script e wp_enqueue_style para distribuir os CSS e Javascripts necessários para cada tela. Isso ajuda a não carregar arquivos desnecessários em cada ela do site.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Depois faço um post explicando melhor cada ponto desse.&lt;/p&gt;
+
+&lt;p&gt;Outra decisão foi retirar o JQuery. O Tableless não tem comportamentos densos e difíceis de fazer. Ele não é um site com milhões de linhas de javascript. É um site relativamente pequeno. Não há tantos assets para gerenciar. Por todos esses motivos, não havia sentido eu carregar o JQuery simplesmente para fazer um toggleClass, addClass, click ou qualquer outro comportamento simples&amp;#8230; Decidi então &lt;a href=&#34;http://tableless.com.br/wp-content/themes/tableless-2014/js/scripts.js&#34;&gt;retirar o JQuery e usar Javascript puro&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Confesso que o código aumentou bastante, mas por que usar o JQuery só para fazer um ToggleClass? Eu sei que o javascript do site não vai ficar gigante. O site do Tableless é tão pequeno que também nem vale a pena ter o trabalho de usar grunt/gulp para minificar e concatenar o código. Faço várias pequenas alterações o tempo todo nele. Isso iria dificultar o processo de atualização.&lt;/p&gt;
+
+&lt;p&gt;Com este novo design, o código JS ficou minúsculo. Basicamente só precisei usar os comandos &lt;strong&gt;classList&lt;/strong&gt; e o &lt;strong&gt;querySelector&lt;/strong&gt; do JS.&lt;/p&gt;
+
+&lt;p&gt;Para você ter uma ideia de como funciona o classList. Se eu quiser adicionar uma classe em todos os divs de uma página, faço assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var $div = document.querySelectorAll(&#39;div&#39;);
+
+  for (var i = 0; i &amp;lt; $div.length; i++) {
+    $div[i].classList.add(&#39;classe1&#39;, &#39;classe2&#39;);
+  }
+&lt;/pre&gt;
+
+&lt;p&gt;A única coisa que o JQuery facilitaria aqui, seria o tratamento da NodeList que o &lt;strong&gt;querySelectorAll&lt;/strong&gt;. No caso aí de cima, tive que fazer manualmente com um &lt;strong&gt;for&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://www.pinceladasdaweb.com.br&#34;&gt;Pedro Rogério&lt;/a&gt; &lt;a href=&#34;http://bit.ly/1m8zH8e&#34;&gt;escreveu sobre sua decisão de tirar JQuery de coisas pequenas&lt;/a&gt; também.&lt;/p&gt;
+
+&lt;p&gt;Muitos desenvolvedores tem se amarrado ao JQuery ficando 100% dependentes do framework. Eu confesso que o código um pouco menor com JQuery. Mesmo assim, por causa de algumas linhas a mais, você deixa de explorar as novas APIs do Javascript, que encurtam o código tanto quanto o JQuery.&lt;/p&gt;
+
+&lt;p&gt;Se você &lt;strong&gt;não&lt;/strong&gt; for fazer um grande framework, ou sistema complexo, ou um site gigante, considere usar Javascript puro.&lt;/p&gt;
+
+&lt;h2 id=&#34;disclaimer&#34;&gt;Disclaimer&lt;/h2&gt;
+
+&lt;p&gt;Não sou contra JQuery, de forma nenhuma. Você deve usá-lo sempre que julgar necessário. Em projetos grandes ou em lugares onde o Javascript vai se tornar complexos, ele é totalmente indicado.&lt;/p&gt;
+
+&lt;p&gt;Também não estou brigando por causa dos 100kb do framework. O Gzip nesse caso resolve o tamanho. Estou apenas fazendo você pensar duas vezes antes de usar um framework, qualquer um que seja, para fazer algo simples.&lt;/p&gt;
+
+&lt;p&gt;O Leo Balter &lt;a href=&#34;http://leobalter.github.io/pt-br/jquery/2014/02/19/o-hype-sobre-não-utilizar-jquery.html&#34;&gt;fez um post sensacional&lt;/a&gt; sobre isso dando vários exemplos usando o próprio Tableless.&lt;/p&gt;
+
+&lt;p&gt;Lá ele pondera sobre vários pontos, alguns até que nem se aplicam ao Tableless, mas em projetos que talvez você possa estar envolvido, - como testes unitários, compatibilidade cross-browser e alguns outros - e que são muito relevantes quando tratados em websites com densos códigos de JS.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Update:&lt;/strong&gt; Depois do artigo do Leo, aproveitei os pontos que ele citou lá e fiz umas modificações rápidas no Tableless. Ainda tenho várias coisas pra mudar, sabe comequié site novo. Ele fez um outro artigo mostrando uma melhora nos resultados depois dessas modificações. &lt;a href=&#34;http://leobalter.github.io/pt-br/jquery/2014/02/19/o-entendimento-técnico-de-uma-cr%C3%ADtica.html&#34;&gt;Dá uma olhada&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>jQuery 2.0</title>
+      <link>http://tableless.com.br/jquery-2-0/</link>
+      <pubDate>Thu, 23 May 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/jquery-2-0/</guid>
+      <description>
+
+&lt;p&gt;Há cerca de um mês o jQuery 2.0 foi oficialmente lançado. Neste meio tempo pudemos analisar a nova versão da biblioteca e conhecer de perto as novidades. Mas será que vale a pena fazer o upgrade? Ou já é hora de abandonar o barco? Conheça os novos recursos da biblioteca, diga adeus para alguns antigos e decida por si mesmo.&lt;/p&gt;
+
+&lt;h2 id=&#34;builds-customizáveis&#34;&gt;Builds Customizáveis&lt;/h2&gt;
+
+&lt;p&gt;O jQuery funciona como uma biblioteca real. Você pode escolher quais livros entram e quais vão embora da sua prateleira pessoal. Desde a compilação 1.8 já existia a opção de personalizar a biblioteca. Agora na versão 2.0 este recurso foi ampliado. É possível selecionar entre 12 módulos diferentes.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;ajax&lt;/strong&gt;: Todas as funcionalidades do AJAX: $.ajax(), $.get(), $.post(), $.ajaxSetup(), .load(), transports, e todos os atalhos de ajax, como.ajaxStart().&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;ajax/xhr&lt;/strong&gt;: Apenas o evento de transporte do AJAX XMLHTTPRequest.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;ajax/script&lt;/strong&gt;: Método de transporte AJAX// &amp;lt;![CDATA[; usado para recuperar scripts.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;ajax/jsonp&lt;/strong&gt;: Método de transporte JSONP AJAX; depende do transporte ajax/script.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;css&lt;/strong&gt;: O método .css() mais .show(), .hide() e .toggle() não animados.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;deprecated&lt;/strong&gt;: Métodos documentados como obsoletos mas que não foram removidos. Atualmente apenas .andSelf().&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;dimensions&lt;/strong&gt;: Os metodos .width() e .height() , incluindo as variações inner- e outer-.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;effects&lt;/strong&gt;: O método .animate() e seus atalhos como .slideUp() e .hide(&amp;#8220;slow&amp;#8221;).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;event-alias&lt;/strong&gt;: Eventos com gatilhos, como .click() ou .mouseover().&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;offset&lt;/strong&gt;: Os métodos .offset(), .position(), .offsetParent(), .scrollLeft(), e .scrollTop()&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;wrap&lt;/strong&gt;: Métodos .wrap(), .wrapAll(), .wrapInner(), e .unwrap().&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;sizzle&lt;/strong&gt;: O motor de seletor Sizzle. Quando este módulo é excluido, ele é substituido por um motor de seletor rudimentar baseado no método querySelectorAll do browser, que não é suportado pelas extensões de seletores ou pela semântica aumentada do jQuery.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Eliminar os módulos inúteis para o seu projeto é uma boa prática que pode pode diminuir e muito o tamanho da biblioteca (a versão mais simples pode chegar a cerca de 10Kb quando minificada). Mas Infelizmente ainda não é uma solução prática já que para construir sua versão customizada do jQuery você precisa conhecer um pouco sobre Git, Node.js e Grunt. Você pode ler as &lt;a href=&#34;https://github.com/jquery/jquery/#readme&#34; title=&#34;jQuery ReadMe&#34;&gt;instruções completas&lt;/a&gt; no repositório da equipe. Ou você pode usar o gerador automático &lt;a href=&#34;http://projects.jga.me/jquery-builder/&#34; title=&#34;jQuery Builder&#34;&gt;jQuery builder&lt;/a&gt;. Ele ainda não é compatível com todos os módulos novos, mas já quebra um galho. Ah, e ele funciona também para personalizar as versões mais antigas do jQuery.&lt;/p&gt;
+
+&lt;p&gt;Parece óbvio, mas vale lembrar que os plugins que você pretende utilizar precisam estar trabalhando com os mesmos módulos que você escolheu ou simplesmente não vão funcionar.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-jquery-2-0-não-é-compatível-com-ie-6-7-8&#34;&gt;O jQuery 2.0 não é compatível com IE 6/7/8&lt;/h2&gt;
+
+&lt;p&gt;É isto mesmo. Segundo a equipe de desenvolvimento o jQuery é &amp;#8220;feito para a Web moderna&amp;#8221; e ao abandonar o suporte aos browsers mais antigos eles podem agora se concentrar em deixar a biblioteca mais rápida, leve, etc. Esta atitude foi no mínimo controversa já que muitos profissionais optavam por desenvolver em jQuery em detrimento de soluções mais práticas como HTML5/CSS3 justamente pela retro-compatibilidade.&lt;/p&gt;
+
+&lt;p&gt;Se desenvolver algo acessível para as versões mais antigas do Internet Explorer é algo realmente importante pra você não se desespere. A versão 1.9 continuará sendo suportada pela equipe&amp;#8230; Ou seja, a partir de agora existirão dois caminhos de desenvolvimento diferentes. Algo como duas timelines: uma para a versão 1x e outra para a 2x. Mas é provável que as próximas mudanças da família 1x sejam apenas correções de bugs. Para ser sincera não acredito que implantarão recursos novos. Espero estar errada.&lt;/p&gt;
+
+&lt;h2 id=&#34;mais-leve&#34;&gt;Mais Leve&lt;/h2&gt;
+
+&lt;p&gt;O jQuery 2.0 é 12% mais leve do que a versão anterior (1.9.1). Mas isto, infelizmente, não foi graças a uma otimização mágica. Ser mais leve frequentemente implica em perda de funcionalidades e esta foi a decisão estratégica da equipe do jQuery. Estes 12% a mais eram justamente os patches de compatibilidade do IE que foram retirados. E podemos esperar mais cortes deste tipo no futuro. Provavelmente as próximas atualizações do jQuery não serão compatíveis com versões antigas do Android/Webkit 2.x.&lt;/p&gt;
+
+&lt;h2 id=&#34;onde-eu-consigo&#34;&gt;Onde eu consigo&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://code.jquery.com/jquery-2.0.0.min.js&#34; title=&#34;jQuery 2.0 Min&#34;&gt;http://code.jquery.com/jquery-2.0.0.min.js&lt;/a&gt; (minificada, para produção)&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://code.jquery.com/jquery-2.0.0.js&#34; title=&#34;jQuery 2.0&#34;&gt;http://code.jquery.com/jquery-2.0.0.js&lt;/a&gt; (não minificada, para teste)&lt;/p&gt;
+
+&lt;h2 id=&#34;fallback&#34;&gt;Fallback&lt;/h2&gt;
+
+&lt;p&gt;Como dito anteriormente o jQuery 2.0 não é compatível com IE 6/7/8. A solução proposta pela equipe é utilizar comentários condicionais como Fallback.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-HTML&#34;&gt;&amp;lt;!--[if lt IE 9]&amp;gt;
+&amp;lt;script src=&#34;jquery-1.9.1.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;![endif]--&amp;gt;
+&amp;lt;!--[if gte IE 9]&amp;gt;&amp;lt;!--&amp;gt;
+&amp;lt;script src=&#34;jquery-2.0.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;!--&amp;lt;![endif]--&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;vale-a-pena-mudar&#34;&gt;Vale a pena mudar?&lt;/h2&gt;
+
+&lt;p&gt;A resposta para esta, como muitas outras perguntas sobre desenvolvimento web é depende. Eu também gostaria de viver em um mundo mágico onde ninguém utiliza IE8, mas infelizmente ele ainda é um browser relativamente popular. Os números flutuam de acordo com as pesquisas que você utiliza, mas considerando a &lt;a href=&#34;http://www.w3schools.com/browsers/browsers_explorer.asp&#34; title=&#34;Browser Explorer - W3C Schools&#34;&gt;W3C Schools&lt;/a&gt; o IE 8 representa cerca de 5.3% dos usuários. Se você esta pensando em implementar o jQuery 2.0 no seu site minha recomendação é ignorar estatísticas genéricas e analisar o seus próprios dados para conhecer seus visitantes e tomar uma decisão informada. No geral a nova versão tem mais prós do que contra e até que a participação de mercado do Internet Explorer 6. 7 e 8 realmente diminua ela pode ser inviável se este for seu público alvo. Manter duas versões em comentários condicionais, como sugerido pela própria equipe do jQuery, pode ir contra a proposta de facilitar o desenvolvimento e acabar mais atrapalhando que auxiliando, já que precisaríamos trabalhar com duas bibliotecas diferentes. Se compatibilidade com o IE não é um problema vá em frente e seja feliz!&lt;/p&gt;
+
+&lt;h2 id=&#34;pouco-demais-tarde-demais&#34;&gt;Pouco demais, tarde demais?&lt;/h2&gt;
+
+&lt;p&gt;Quando o jQuery foi lançado ele representou uma mudança grande no modo como pensávamos a internet. Naqueles idos tempos de 2006 a web era um lugar bem diferente. O iPhone ainda não havia sido lançado e nem se sonhava em algo como design responsivo. Muitos sites naquela época ainda utilizavam o formato Flash para interações, mas isto já estava com os dias contados. A nova ordem agora era cortar o peso desnecessário e desenvolver sites mais semânticos e compatíveis com multiplos browsers. Mas alguns desenvolvedores se sentiram orfãos da capacidade de animações dinâmicas oferecidas pelo Flash. O jQuery chegou na hora certa para suprir esta necessidade ao mesmo tempo que oferecer uma solução crossbrowser. Muita gente se jogou de cabeça e centenas de plugins surgiram para todo tipo de situação. Slider, carrosel, shadowbox, pequenas animações&amp;#8230; O mecanismo dos plugins era tão simples que até quem não era familiarizado com JavaScript conseguia implementar com facilidade. E isto foi utilizado com um certo exagero. O que era novo acabou tornando-se repetitivo e até desnecessário algumas vezes. Por uma ironia do destino, o jQuery aos poucos vai sofrendo o mesmo destino do Flash: ser pesado demais para a nova geração. Com o crescimento de dispositivos móveis a preocupação com a perda de peso no browser ficou ainda maior. E as tendências de design minimalista acabam jogando para escanteio todas aquelas firulas e animações desnecessárias. O que entusiasmava muitos no inicio acaba sendo ouvido com uma certa torcida de nariz da comunidade de desenvolvedores.&lt;/p&gt;
+
+&lt;p&gt;O HTML5 e o CSS3 ganharam mais espaço (afinal você pode &lt;a href=&#34;http://tableless.com.br/elementos-de-interface-utilizando-apenas-css3&#34; title=&#34;Elementos de interface utilizando apenas css3&#34;&gt;criar diversos elementos da user interface&lt;/a&gt; utilizando apenas estas tecnologias) e houve uma revitalização do JS baunilha. É, de repente, o jQuery não parece mais tão leve e legal assim quanto no inicio. É claro, ainda existe muita coisa bacana para ser feita com jQuery, mas infelizmente não existe a mesma empolgação de quando era algo novo. Agora é esperar para ver se as próximas versões irão revolucionar novamente a vida dos desenvolvedores.&lt;/p&gt;
+
+&lt;h2 id=&#34;saiba-mais&#34;&gt;Saiba mais&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://blog.jquery.com/2013/04/18/jquery-2-0-release&#34; title=&#34;jQuery 2.0 Release&#34;&gt;jQuery 2.0 Release&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Zepto.js: JavaScript peso-leve</title>
+      <link>http://tableless.com.br/zepto-js-biblioteca-javascript-peso-leve/</link>
+      <pubDate>Wed, 20 Mar 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/zepto-js-biblioteca-javascript-peso-leve/</guid>
+      <description>
+
+&lt;p&gt;Em tempos em que performance é muito valorizada, a escolha de bibliotecas e plugins extras influencia diretamente no peso do seu site ou aplicativo.&lt;/p&gt;
+
+&lt;p&gt;Com aproximadamente 10kb em sua versão minificada (jQuery, por exemplo, tem 94kb), o framework &lt;strong&gt;Zepto.js&lt;/strong&gt; pode ser o mais indicado para quem deseja melhorar a performance e manter a compatibilidade com a API do jQuery.&lt;/p&gt;
+
+&lt;h2 id=&#34;se-você-sabe-jquery-você-já-sabe-zepto&#34;&gt;Se você sabe jQuery, você já sabe Zepto&lt;/h2&gt;
+
+&lt;p&gt;Além de ser leve, o Zepto.js é também compatível com a maioria dos métodos jQuery. Todos os seletores e métodos para manipulação de CSS/HTML são praticamente idênticos.&lt;/p&gt;
+
+&lt;p&gt;No entanto, é importante frisar que o framework Zepto.js não é 100% compatível (e nem pretende ser) com a API do jQuery. Alguns métodos, inclusive, possuem assinaturas diferentes.&lt;/p&gt;
+
+&lt;h2 id=&#34;funciona-apenas-em-browsers-modernos&#34;&gt;Funciona apenas em browsers modernos&lt;/h2&gt;
+
+&lt;p&gt;Para ser leve, o código do Zepto.js precisou abdicar de &lt;em&gt;hacks&lt;/em&gt; e &lt;em&gt;workarounds&lt;/em&gt; para navegadores mais antigos. Seu foco é funcionar em browsers modernos, tanto em suas versões desktop como mobile.&lt;/p&gt;
+
+&lt;p&gt;O &lt;em&gt;fallback&lt;/em&gt; para fazer uso do framework nos navegadores mais antigos é aplicar o seguinte trecho de código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;script&amp;gt;
+document.write(&#39;&amp;lt;script src=&#39; +
+(&#39;__proto__&#39; in {} ? &#39;zepto&#39; : &#39;jquery&#39;) +
+&#39;.js&amp;gt;&amp;lt;\/script&amp;gt;&#39;)
+&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Caso o navegador não dê suporte à propriedade &lt;strong&gt;proto&lt;/strong&gt; em objetos JavaScript, o framework carregado será o jQuery.&lt;/p&gt;
+
+&lt;h2 id=&#34;base&#34;&gt;Base&lt;/h2&gt;
+
+&lt;p&gt;Os métodos do core do Zepto são muito parecidos com os métodos do core do jQuery. Por exemplo, para alterar o html de um elemento, utilizamos o seguinte código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;#home&#39;).html(&#39;&amp;lt;a href=&#34;index.html&#34;&amp;gt;home&amp;lt;/a&amp;gt;&#39;);&lt;/pre&gt;
+
+&lt;p&gt;Para alterar o CSS de um ou mais elementos com a classe &lt;em&gt;item-menu&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.item-menu&#39;).css(&#39;background-color&#39;, &#39;red&#39;);&lt;/pre&gt;
+
+&lt;p&gt;Ou ainda:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;.item-menu&#39;).css({backgroundColor: &#39;red&#39;, color: &#39;#fff&#39;});&lt;/pre&gt;
+
+&lt;p&gt;Para adicionar um novo elemento a um elemento existente:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;&amp;lt;a href=&#34;index.html&#34;&amp;gt;home&amp;lt;/a&amp;gt;&#39;).appendTo(&#39;nav&#39;);&lt;/pre&gt;
+
+&lt;p&gt;Notaram a semelhança com jQuery? Esse é um dos pontos fortes do Zepto.js, uma curva de aprendizado quase nula para quem já desenvolve com jQuery.&lt;/p&gt;
+
+&lt;h2 id=&#34;eventos-efeitos&#34;&gt;Eventos &amp;amp; Efeitos&lt;/h2&gt;
+
+&lt;p&gt;A associação de eventos também segue a API do jQuery:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;a&#39;).on(&#39;click&#39;, function(e){ console.log(&#39;clique&#39;); });
+$(&#39;#home&#39;).click(function(e){ e.preventDefault(); });&lt;/pre&gt;
+
+&lt;p&gt;A parte de efeitos é composta do objeto &lt;strong&gt;$.fx&lt;/strong&gt;, responsável pelas configurações globais de animação e do método &lt;em&gt;animate&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#34;#top-nav&#34;).animate({
+  marginTop: &#39;30px&#39;,
+  backgroundColor: &#39;#000&#39;,
+  rotateX: &#39;10deg&#39;
+}, 300, &#39;linear&#39;)&lt;/pre&gt;
+
+&lt;p&gt;A diferença principal é que as animações do framework Zepto.js são todas feitas utilizando transições e transformações CSS3.&lt;/p&gt;
+
+&lt;h2 id=&#34;ajax&#34;&gt;Ajax&lt;/h2&gt;
+
+&lt;p&gt;Assim como o módulo de efeitos, as configurações globais para Ajax também ficam armazenadas em um objeto, o &lt;strong&gt;$.ajaxSettings&lt;/strong&gt;. É possível alterar o tipo padrão de requisição (o default é GET), o timeout, o tipo de dados entre outros.&lt;/p&gt;
+
+&lt;p&gt;Também é possível configurar os callbacks para as seguintes operações: &lt;em&gt;beforeSend&lt;/em&gt;, &lt;em&gt;success&lt;/em&gt;, &lt;em&gt;error&lt;/em&gt; e &lt;em&gt;complete&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Chamadas Ajax são realizadas utilizando o método &lt;strong&gt;$.ajax&lt;/strong&gt; ou seus atalhos &lt;strong&gt;$.get&lt;/strong&gt;, &lt;strong&gt;$.post&lt;/strong&gt; e &lt;strong&gt;$.getJSON&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$.post(&#39;/projeto/novo&#39;, {titulo: &#39;Novo projeto&#39;}, function(response){
+  console.log(&#39;Projeto criado com sucesso&#39;);
+});&lt;/pre&gt;
+
+&lt;p&gt;As operações Ajax também disparam eventos que podem ser utilizados por elementos da sua aplicação, entre eles &lt;em&gt;ajaxStart&lt;/em&gt;, &lt;em&gt;ajaxError&lt;/em&gt; e &lt;em&gt;ajaxComplete&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(document).on(&#39;ajaxError&#39;, function(e, xhr, options, error){
+  console.log(&#39;;Erro: &#39;; + error);
+});&lt;/pre&gt;
+
+&lt;p&gt;O trecho de código acima captura qualquer evento de erro disparado por uma chamada Ajax e exibe o motivo do erro no console.&lt;/p&gt;
+
+&lt;h2 id=&#34;touch-mobile&#34;&gt;Touch &amp;amp; Mobile&lt;/h2&gt;
+
+&lt;p&gt;Originalmente criado para atender especificamente dispositivos mobile, o framework Zepto.js oferece suporte aos seguintes eventos de dispositivos de toque:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;tap, singleTap, doubleTap e longTap&lt;/li&gt;
+&lt;li&gt;swipe, swipeLeft, swipeRight, swipeUp, swipeDown&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Os eventos são associados como qualquer outro tipo de evento:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;#home&#39;).tap(function() {
+  $(&#39;;.home-nav&#39;;).toggle();
+});
+
+$(&#39;#galeria&#39;).swipe(function() {
+  $(this).animate({marginLeft: &#34;-100px&#34;}, 300, &#34;ease-out&#34;);
+});&lt;/pre&gt;
+
+&lt;p&gt;O módulo touch é opcional e não acompanha o build default do Zepto.js.&lt;/p&gt;
+
+&lt;h2 id=&#34;plugins&#34;&gt;Plugins&lt;/h2&gt;
+
+&lt;p&gt;Como era de se esperar, o desenvolvimento de plugins para Zepto.js segue o padrão jQuery de estender o objeto $.fn:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$.extend($.fn, {
+  meuPlugin: function(){&amp;lt;/p&gt;
+  // this é a coleção obtida no seletor
+  return this;
+});&lt;/pre&gt;
+
+&lt;p&gt;A base de plugins ainda é infinitamente menor do que a base de plugins jQuery. O desenvolvedor brasileiro Jean Carlo Emer possui dois plugins interessantes que podem servir de base para você criar os seus próprios plugins:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://jcemer.com/zepto-carousel/&#34;&gt;Zepto Carousel&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://jcemer.com/zepto-range/&#34;&gt;Zepto Range&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;referências&#34;&gt;Referências&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;Site oficial:&lt;/em&gt; &lt;a href=&#34;http://zeptojs.com/&#34;&gt;zeptojs.com&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Código-fonte:&lt;/em&gt; &lt;a href=&#34;https://github.com/madrobby/zepto&#34;&gt;github.com/madrobby/zepto&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Plugins jQuery e bibliotecas JavaScript para e-commerces</title>
+      <link>http://tableless.com.br/plugins-jquery-e-bibliotecas-javascript-para-e-commerces/</link>
+      <pubDate>Tue, 26 Feb 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/plugins-jquery-e-bibliotecas-javascript-para-e-commerces/</guid>
+      <description>
+
+&lt;h2 id=&#34;jquery-payment&#34;&gt;jQuery.payment&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://stripe.com/blog/jquery-payment&#34; title=&#34;https://stripe.com/blog/jquery-payment&#34;&gt;https://stripe.com/blog/jquery-payment&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O plugin jQuery.payment valida o número dos principais cartões do mercado. Desenvolvido pelo pessoal da &lt;a href=&#34;https://stripe.com/&#34; title=&#34;https://stripe.com/&#34;&gt;Stripe&lt;/a&gt;, empresa especializada em uma solução de pagamento para desenvolvedores de e-commerces, o plugin conta com validadores para números de cartão de crédito, data de validade e código de segurança.&lt;/p&gt;
+
+&lt;p&gt;Exemplos de uso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$(&#39;.numero-cartao&#39;).payment(&#39;formatCardNumber&#39;);
+$(&#39;.expiracao-cartao&#39;).payment(&#39;formatCardExpiry&#39;);
+$(&#39;.codigo-cartao&#39;).payment(&#39;formatCardCVC&#39;);
+$(&#39;.numerico&#39;).payment(&#39;restrictNumeric&#39;);&lt;/pre&gt;
+
+&lt;p&gt;É possível também tirar proveito de alguns utilitários que acompanham o plugin e executar tarefas de validação, além de retornar informações do cartão baseado no número e a data de validade como um objeto:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$.payment.validateCardNumber(&#39;4242 4242 4242 4242&#39;); //=&amp;gt; true
+$.payment.validateCardExpiry(&#39;05&#39;, &#39;05&#39;); //=&amp;gt; false
+$.payment.validateCardCVC(&#39;12344&#39;); //=&amp;gt; false
+$.payment.cardType(&#39;4242 4242 4242 4242&#39;); //=&amp;gt; &#39;visa&#39;
+$.payment.cardExpiryVal(&#39;05 / 04&#39;); //=&amp;gt; {month: 5, year: 2004}&lt;/pre&gt;
+
+&lt;p&gt;O código-fonte, em CoffeeScript, está disponível no GitHub: &lt;a href=&#34;https://github.com/stripe/jquery.payment&#34; title=&#34;https://github.com/stripe/jquery.payment&#34;&gt;https://github.com/stripe/jquery.payment&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;accounting-js&#34;&gt;accounting.js&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://josscrowcroft.github.com/accounting.js/&#34; title=&#34;http://josscrowcroft.github.com/accounting.js/&#34;&gt;http://josscrowcroft.github.com/accounting.js/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Accounting.js é uma biblioteca JavaScript com funções utilitárias para formatar números e valores monetários.&lt;/p&gt;
+
+&lt;p&gt;Além de formatar números, extrair valores e converter números decimais, a biblioteca implementa uma função bem interessante para padronizar a exibição de números em colunas de uma tabela.&lt;/p&gt;
+
+&lt;p&gt;Exemplos de uso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;accounting.formatMoney(1337.99, &#34;R$&#34;, 2, &#34;.&#34;, &#34;,&#34;); // R$1.337,99
+accounting.formatColumn([99.9, 12.39, 44.33, 84950, -22], &#34;R$&#34;);
+// [&#34;R$    99.90&#34;, &#34;R$    12.39&#34;, &#34;R$    44.33&#34;, &#34;R$84,950.00&#34;, &#34;R$   -22.00&#34;]
+accounting.formatNumber(86960, 2, &#34;.&#34;, &#34;,&#34;); // &#34;86.960,00&#34;
+(0.932).toFixed(2); // &#34;0.93&#34;
+accounting.unformat(&#34;R$ 29.443,32&#34;, &#34;,&#34;); // 29443.32&lt;/pre&gt;
+
+&lt;p&gt;Para padronizar o formato em todas as funções, sem a necessidade de utilizar parâmetros extras em suas chamadas, basta atualizar o objeto &lt;em&gt;accounting.settings&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;accounting.settings = {
+  currency: {
+      symbol : &#34;R$&#34;,
+      decimal : &#34;,&#34;,
+      thousand: &#34;.&#34;,
+      precision : 2 
+  }
+}&lt;/pre&gt;
+
+&lt;h2 id=&#34;masked-input&#34;&gt;Masked Input&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://digitalbush.com/projects/masked-input-plugin/&#34; title=&#34;http://digitalbush.com/projects/masked-input-plugin/&#34;&gt;http://digitalbush.com/projects/masked-input-plugin/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ainda falando de formatação, temos o plugin MaskedInput, responsável por formatar qualquer &lt;em&gt;input&lt;/em&gt; em formulários, garantindo assim uma maior integridade dos dados digitados.&lt;/p&gt;
+
+&lt;p&gt;Exemplos de uso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$(&#34;.cnpj&#34;).mask(&#34;99.999.999/9999-99&#34;);
+$(&#34;.cpf&#34;).mask(&#34;999.999.999-99&#34;);
+$(&#34;.telefone&#34;).mask(&#34;(99) 9999-9999&#34;);
+$(&#34;.cep&#34;).mask(&#34;99.999-999&#34;);&lt;/pre&gt;
+
+&lt;p&gt;É importante lembrar que esses tipos de formatação e validação não devem ser realizados apenas no cliente &amp;#8211; devem ser processados também no servidor.&lt;/p&gt;
+
+&lt;h2 id=&#34;ideal-forms&#34;&gt;Ideal Forms&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://elclanrs.github.com/jq-idealforms/&#34; title=&#34;http://elclanrs.github.com/jq-idealforms/&#34;&gt;http://elclanrs.github.com/jq-idealforms/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Formulários são uma parte importante de qualquer e-commerce e, geralmente, são a parte mais chata para o usuário: os cadastros tendem a ser tediosos, com campos desnecessários, validações mal-feitas e falta de informações.&lt;/p&gt;
+
+&lt;p&gt;O plugin Ideal Forms é uma ferramenta completa para a criação de formulários intuitivos e visualmente atraentes. Seus recursos incluem &lt;em&gt;inputs&lt;/em&gt; customizáveis (&lt;em&gt;select&lt;/em&gt;, &lt;em&gt;radio&lt;/em&gt;, &lt;em&gt;checkbox&lt;/em&gt; e arquivo), validação &lt;em&gt;on-the-fly&lt;/em&gt; e um layout totalmente responsivo.&lt;/p&gt;
+
+&lt;p&gt;A validação pode ser feita utilizando o atributo &lt;em&gt;data-ideal&lt;/em&gt;, como no exemplo abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div&amp;gt;&amp;lt;label&amp;gt;Usuário:&amp;lt;/label&amp;gt;&amp;lt;input type=&#34;text&#34; name=&#34;username&#34; data-ideal=&#34;required username&#34;/&amp;gt;&amp;lt;/div&amp;gt;
+&amp;lt;div&amp;gt;&amp;lt;label&amp;gt;Senha:&amp;lt;/label&amp;gt;&amp;lt;input type=&#34;text&#34; name=&#34;password&#34; data-ideal=&#34;required pass&#34;/&amp;gt;&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Outra opção é utilizar parâmetros na inicialização do plugin. O Ideal Forms utiliza o atributo &lt;em&gt;name&lt;/em&gt; dos campos para configurações específicas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$(&#39;#form-cadastro&#39;).idealforms({
+    inputs: {
+      &#39;idade&#39;: {
+        filters: &#39;required min&#39;,
+        data: { min: 18 },
+        errors: { min: &#39;Você precisa ter 18 anos para comprar nesse site&#39; }
+      }
+    }
+});&lt;/pre&gt;
+
+&lt;p&gt;Ainda é possível dividir um formulário em passos, recurso indicado para o cadastro e o registro de um pedido em um e-commerce. Para isso, basta adicionar mais de um elemento &lt;em&gt;section&lt;/em&gt; dentro do seu formulário.&lt;/p&gt;
+
+&lt;p&gt;A documentação do projeto é bem completa e está disponível no &lt;a href=&#34;https://github.com/elclanrs/jq-idealforms&#34; title=&#34;https://github.com/elclanrs/jq-idealforms&#34;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;filtrify&#34;&gt;Filtrify&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://luis-almeida.github.com/filtrify/&#34; title=&#34;http://luis-almeida.github.com/filtrify/&#34;&gt;http://luis-almeida.github.com/filtrify/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Filtrify é um plugin jQuery que habilita filtros em tempo real, ideal para páginas de produtos em uma loja online. Basedo no atributo &lt;em&gt;data&lt;/em&gt; de elementos HTML, o Filtrify gera uma lista, possibilitando selecionar apenas elementos de um determinado filtro.&lt;/p&gt;
+
+&lt;p&gt;O plugin recebe dois elementos: um &lt;em&gt;container&lt;/em&gt; para os filtros e outro para os elementos a serem filtrados. No exemplo abaixo temos uma lista de produtos (notem as categorias no atributo &lt;em&gt;data&lt;/em&gt;):&lt;/p&gt;
+
+&lt;div id=&#34;filtros&#34;&gt;
+&lt;/div&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div id=&#34;filtros&#34;&amp;gt;&amp;lt;/div&amp;gt;
+
+&amp;lt;ul id=&#34;produtos&#34;&amp;gt;
+    &amp;lt;li data-categoria=&#34;informática, eletrônicos, computadores&#34;&amp;gt;Desktop Core i7&amp;lt;/li&amp;gt;
+    &amp;lt;li data-genre=&#34;informática, acessórios, impressoras&#34;&amp;gt;Impressora HP Deskjet&amp;lt;/li&amp;gt;
+    &amp;lt;li data-genre=&#34;informática, acessórios, tablets&#34;&amp;gt;iPad&amp;lt;/li&amp;gt;
+    &amp;lt;li data-genre=&#34;telefonia, celular, apple&#34;&amp;gt;iPhone&amp;lt;/li&amp;gt;
+    &amp;lt;li data-genre=&#34;informática, laptops&#34;&amp;gt;Notebook Positivo&amp;lt;/li&amp;gt;
+&amp;lt;/ul&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;A inicialização fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$.filtrify(&#34;produtos&#34;, &#34;filtros&#34;);&lt;/pre&gt;
+
+&lt;p&gt;E o resultado:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2013/02/filtrify.jpg&#34; alt=&#34;filtrify&#34; width=&#34;378&#34; height=&#34;333&#34; class=&#34;alignnone size-full wp-image-10921&#34; srcset=&#34;uploads/2013/02/filtrify.jpg 378w, uploads/2013/02/filtrify-190x168.jpg 190w, uploads/2013/02/filtrify-351x310.jpg 351w&#34; sizes=&#34;(max-width: 378px) 100vw, 378px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;jquery-zoom&#34;&gt;jQuery Zoom&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.jacklmoore.com/zoom&#34; title=&#34;http://www.jacklmoore.com/zoom&#34;&gt;http://www.jacklmoore.com/zoom&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O plugin jQuery Zoom habilita o recurso de zoom em imagens com interações do mouse. A inicialização do plugin cria elementos novos para o efeito de zoom, portanto, deve ser aplicada em um elemento capaz de receber outros elementos (não pode ser aplicada em um elemento img).&lt;/p&gt;
+
+&lt;p&gt;Exemplos de uso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$(&#39;a.foto-produto&#39;).zoom(); 
+$(&#39;a.foto-produto-grab&#39;).zoom({ on:&#39;grab&#39; });&lt;/pre&gt;
+
+&lt;p&gt;As opções do plugin incluem os seguintes parâmetros: &lt;em&gt;url&lt;/em&gt; da imagem maior, &lt;em&gt;on&lt;/em&gt; (&lt;em&gt;mouseover&lt;/em&gt;, &lt;em&gt;grab&lt;/em&gt;, &lt;em&gt;click&lt;/em&gt; ou &lt;em&gt;toggle&lt;/em&gt;), &lt;em&gt;duration&lt;/em&gt; (velocidade do zoom) e &lt;em&gt;callback&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;bônus-carrinho-de-compras-com-drag-and-drop&#34;&gt;Bônus: Carrinho de compras com drag and drop&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/carrinho-de-compras-com-drag-and-drop/&#34; title=&#34;http://tableless.com.br/carrinho-de-compras-com-drag-and-drop/&#34;&gt;http://tableless.com.br/carrinho-de-compras-com-drag-and-drop/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Há mais ou menos dois anos escrevi um tutorial aqui no Tableless mostrando como implementar um carrinho com funções de &lt;em&gt;drag and drop&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Utilizando os métodos &lt;em&gt;draggable&lt;/em&gt; e &lt;em&gt;droppable&lt;/em&gt; da biblioteca jQueryUI, ao final do tutorial você tem um carrinho drag and drop completamente funcional, pronto para ser implementado no seu e-commerce.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.github.com/exemplos/carrinho-compras/&#34; title=&#34;http://tableless.github.com/exemplos/carrinho-compras/&#34;&gt;Clique aqui&lt;/a&gt; para visualizar o exemplo do tutorial no navegador.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Parallax simples com JQuery e CSS</title>
+      <link>http://tableless.com.br/parallax-simples-com-jquery-e-css/</link>
+      <pubDate>Mon, 14 Jan 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/parallax-simples-com-jquery-e-css/</guid>
+      <description>
+
+&lt;blockquote&gt;
+&lt;p&gt;Parallax é a diferença na posição de objetos vistos em diferentes faixas de visão, medido pelo ângulo de inclinação entre as faixas. Com isso, objetos próximos têm uma maior Parallax que objetos mais distantes, quando observado de posições diferentes. Dessa forma, podemos dizer que o Parallax é o que nos dá a noção de profundidade em nosso campo de visão &amp;#8211; &lt;em&gt;&lt;a href=&#34;http://www.uxdesign.blog.br/imersao/a-imersao-do-efeito-parallax/&#34;&gt;UX Design&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Parallax é algo que virou moda. É um efeito muito interessante quando bem utilizado e pode ser bastante explorado se você for criativo. Não é difícil de fazer este efeito utilizando CSS e Javascript. A coisa toda é muito simples. Vamos mostrar abaixo uma técnica que é bastante divulgada por aí. Tentei evitar firulas. O importante é que você entenda o cálculo, que é a essencia dessa técnica.&lt;/p&gt;
+
+&lt;h2 id=&#34;passo-1-html&#34;&gt;Passo 1: HTML&lt;/h2&gt;
+
+&lt;p&gt;Inicialmente vamos criar dois elementos. Estes elementos terão backgrounds diferentes para e vamos atribuir uma classe bgParallax para identificar que eles terão o movimento do background alterado. Muitos artigos por aí colocam um data-type=&amp;#8221;background&amp;#8221; ou algo do gênero.&lt;/p&gt;
+
+&lt;p&gt;Também vamos inserir um atributo data-speed, que é o que vai definir a velocidade com que o background vai se mover em relação aos outros elementos. O HTML fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div id=&#34;quemsomos&#34; class=&#34;bgParallax&#34; data-speed=&#34;15&#34;&amp;gt;
+     &amp;lt;article&amp;gt;
+        &amp;lt;h1&amp;gt;That show&#39;s called a pilot.&amp;lt;/h1&amp;gt;
+        &amp;lt;p&amp;gt;Well, the way they make shows is, they make one show. That show&#39;s called a pilot. Then they show that show to the people who make shows, and on the strength of that one show they decide if they&#39;re going to make more shows. Some pilots get picked and become television programs. Some don&#39;t, become nothing. She starred in one of the ones that became nothing. &amp;lt;/p&amp;gt;
+     &amp;lt;/article&amp;gt;
+&amp;lt;/div&amp;gt;
+&amp;lt;div id=&#34;missao&#34; class=&#34;bgParallax&#34; data-speed=&#34;10&#34;&amp;gt;
+     &amp;lt;article&amp;gt;
+        &amp;lt;h1&amp;gt;Water&amp;lt;/h1&amp;gt;
+     &amp;lt;p&amp;gt;You think water moves fast? You should see ice. It moves like it has a mind. Like it knows it killed the world once and got a taste for murder. After the avalanche, it took us a week to climb out. Now, I don&#39;t know exactly when we turned on each other, but I know that seven of us survived the slide... and only five made it out. Now we took an oath, that I&#39;m breaking now. We said we&#39;d say it was the snow that killed the other two, but it wasn&#39;t. Nature is lethal but it doesn&#39;t hold a candle to man. &amp;lt;/p&amp;gt;
+     &amp;lt;/article&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;passo-2-css&#34;&gt;Passo 2: CSS&lt;/h2&gt;
+
+&lt;p&gt;Eu coloquei algum CSS e defini um background para cada um dos divs. Defini uma altura, defini background, font, cor e etc. Veja abaixo o código CSS:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;* {margin:0; padding: 0;}
+html, body {height:100%;}
+
+/** formata elementos que tem backgrounds parallax **/
+.bgParallax {
+    font-family: &#39;Elsie&#39;, cursive;
+    color:#FFF;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1920px;
+    position: relative;
+    min-height: 100%;
+    text-shadow:0 0 10px rgba(0,0,0,0.7);
+
+    background-position: 50% 0;
+    background-repeat: repeat;
+    background-attachment: fixed;
+}
+
+/* Define backgrounds dos divs */
+#quemsomos {background-image: url(bg2.jpg);}
+#missao {
+    background-image: url(bg1.jpg);
+    -webkit-box-shadow:-20px 0 20px 5px rgba(0,0,0,0.7);
+    -moz-box-shadow:-20px 0 20px 5px rgba(0,0,0,0.7);
+    -ms-box-shadow:-20px 0 20px 5px rgba(0,0,0,0.7);
+    -o-box-shadow:-20px 0 20px 5px rgba(0,0,0,0.7);
+    box-shadow:-20px 0 20px 5px rgba(0,0,0,0.7);
+}
+
+/** Formata o article que vai o texto **/
+.bgParallax article {
+  width: 70%;
+  text-align: center;
+  margin:0 auto;
+  padding:20% 0 0;
+}
+
+/** formata texto **/
+article h1 {font-size:40px;}
+article p {line-height: 30px; font-size:20px; margin-top:15px;}
+article p a {color:#FFF; text-decoration:none; font-size:30px;}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse ponto eu apenas coloquei o CSS para formatar o visual dos DIVs. Como o background está &lt;strong&gt;fixed&lt;/strong&gt; PARECE mas ainda não está com efeito parallax. Esse truque de colocar FIXED é velho, dá até um efeito bacana. Costumamos chamar de PARALLAX FAKE.&lt;/p&gt;
+
+&lt;p&gt;Agora vamos ao JQuery.&lt;/p&gt;
+
+&lt;h2 id=&#34;passo-3-jquery&#34;&gt;Passo 3: JQuery&lt;/h2&gt;
+
+&lt;p&gt;Primeiro identificamos os elementos que o efeito será aplicado. Nesse caso são todos os elementos com a classe &lt;strong&gt;bgParallax&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(document).ready(function(){
+
+   $(&#39;div.bgParallax&#39;).each(function(){
+        var $obj = $(this);
+   });  
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Já que identificamos cada um dos elementos que terão o efeito, temos que identificar quando o usuário rola a página. Para isso iremos usar a função &lt;strong&gt;scroll()&lt;/strong&gt; do JQuery. E aqui você precisa de muita atenção: a velocidade do scroll dos backgrounds é diferente da velocidade do scroll da página. É isso que causa o &lt;a href=&#34;http://en.wikipedia.org/wiki/Parallax&#34;&gt;efeito de Parallax&lt;/a&gt;. É por isso que colocamos o atributo data-speed. Iremos utilizar aquele valor para definir quão rápido será a rolagem do background. Primeiro, precisamos definir a relação da rolagem: digamos que seja de 50px. Ou seja, a cada 50px o background vai rolar uma quantidade determinada de pixels. Esse valor é o 50px dividido pelo data-speed do objeto. Suponha que o data-speed seja de 10px. Logo, a cada 50px de rolagem da página o background rola 5px apenas. Sacou? Olha só o código:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var yPos = -($(window).scrollTop() / $obj.data(&#39;speed&#39;)); 
+&lt;/pre&gt;
+
+&lt;p&gt;Colocamos esse valor dentro de uma variável &lt;strong&gt;yPos&lt;/strong&gt;. O valor é negativo por que o background tem que se mover para cima.&lt;/p&gt;
+
+&lt;p&gt;O &lt;strong&gt;$(window).scrollTop()&lt;/strong&gt; pega o valor de quanto a página já rolou do topo, esse valor é dividido pelo &lt;strong&gt;$obj.data(&amp;#8216;speed&amp;#8217;)&lt;/strong&gt;, que é o valor que colocamos no atributo &lt;strong&gt;data-speed&lt;/strong&gt; de cada &lt;strong&gt;div.bgParallax&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora precisamos definir que esse valor seja o valor do TOP no background-position dos divs. Fazemos isso assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var bgpos = &#39;50% &#39;+ yPos + &#39;px&#39;;
+&lt;/pre&gt;
+
+&lt;p&gt;Aplicamos isso ao objeto assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$obj.css(&#39;background-position&#39;, bgpos );
+&lt;/pre&gt;
+
+&lt;p&gt;O código final fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;div.bgParallax&#39;).each(function(){
+    var $obj = $(this);
+
+    $(window).scroll(function() {
+        var yPos = -($(window).scrollTop() / $obj.data(&#39;speed&#39;)); 
+
+        var bgpos = &#39;50% &#39;+ yPos + &#39;px&#39;;
+
+        $obj.css(&#39;background-position&#39;, bgpos );
+
+    }); 
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Veja o &lt;a href=&#34;http://tableless.github.com/exemplos/parallax/parallax.html&#34;&gt;exemplo completo aqui&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Identificando os IEs</title>
+      <link>http://tableless.com.br/identificando-os-ies/</link>
+      <pubDate>Tue, 10 Jul 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/identificando-os-ies/</guid>
+      <description>
+
+&lt;p&gt;Os browsers caminham para um status interessantes. Os usuários estão cada vez mais utilizando browsers mais atuais e espertos. Considere um vencedor se você não precisa mais desenvolver para IE8 e só foca seu esforço para desenvolver acima do IE9. Acontece que uma hora ou outra você vai precisar fixar alguns erros em browsers antigos. Seu cliente vai pedir, seu chefe vai chorar ou qualquer outro motivo vai te fazer resolver um bugzinho no IE7.&lt;/p&gt;
+
+&lt;p&gt;Aqui vai uma dica simples que pode salvar seu dia: adicione uma classe na tag HTML identificando o browser, assim você poderá direcionar um código para este browser específico. Fazemos isso com um código simples em Javascript ou JQuery. Veja abaixo:&lt;/p&gt;
+
+&lt;p&gt;Versão em Javascript:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+if (/MSIE (\d+\.\d+);/.test(navigator.userAgent)) {
+ var ieversion=new Number(RegExp.$1)
+ if (ieversion&amp;gt;=8)
+     // Para IE8
+     document.getElementsByTagName(&#39;html&#39;)[0].className+=&#39;ie8&#39;;
+ else if (ieversion&amp;gt;=7)
+     // Para IE7
+     document.getElementsByTagName(&#39;html&#39;)[0].className+=&#39;ie7&#39;;
+ else if (ieversion&amp;gt;=6)
+     // Para IE6
+     document.getElementsByTagName(&#39;html&#39;)[0].className+=&#39;ie6&#39;;
+}
+&amp;lt;/script&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Versão em JQuery:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;if ($.browser.msie) {
+    if(parseInt($.browser.version) == 8){
+         // Para IE8
+         $(&#34;html&#34;).addClass(&#34;ie8&#34;);
+    } else if(parseInt($.browser.version) == 7){
+         // Para IE7
+         $(&#34;html&#34;).addClass(&#34;ie7&#34;);
+    } else if(parseInt($.browser.version) == 6){
+         // Para IE6
+         $(&#34;html&#34;).addClass(&#34;ie6&#34;);
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Eu prefiro usar isso a ter que usar CSS Hacks ou ter que usar comentários condicionais para adicionar uma classe na tag HTML. Assim nós precisamos sujar a sintaxe do CSS e quando quisermos retirar esse código adicional e nem sujamos muito no código HTML. Com comentários condicionais ficaria assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!--[if IE 6]&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34; class=&#34;ie6&#34;&amp;gt;
+&amp;lt;![endif]--&amp;gt;
+
+&amp;lt;!--[if IE 7]&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34; class=&#34;ie7&#34;&amp;gt;
+&amp;lt;![endif]--&amp;gt;
+
+&amp;lt;!--[if IE 8]&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34; class=&#34;ie8&#34;&amp;gt;
+&amp;lt;![endif]--&amp;gt;
+
+&amp;lt;!--[if gte IE 8]&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34; class=&#34;ie9&#34;&amp;gt;
+&amp;lt;![endif]--&amp;gt;
+
+&amp;lt;!--[if !IE]&amp;gt;&amp;lt;!--&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;!--&amp;lt;![endif]--&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Eu acho melhor utilizar os comentários condicionais para separar os arquivos de CSS. Assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!--[if IE 6]&amp;gt;
+&amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;ie6.css&#34; /&amp;gt;
+&amp;lt;![endif]--&amp;gt;
+
+&amp;lt;!--[if IE 7]&amp;gt;
+&amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;ie7.css&#34; /&amp;gt;
+&amp;lt;![endif]--&amp;gt;
+
+&amp;lt;!--[if IE 8]&amp;gt;
+&amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;ie8.css&#34; /&amp;gt;
+&amp;lt;![endif]--&amp;gt;
+
+&amp;lt;!--[if gte IE 8]&amp;gt;
+&amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;ie9.css&#34; /&amp;gt;
+&amp;lt;![endif]--&amp;gt;
+
+&amp;lt;!--[if !IE]&amp;gt;&amp;lt;!--&amp;gt;
+&amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;application.css&#34; /&amp;gt;
+&amp;lt;!--&amp;lt;![endif]--&amp;gt;
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;guerra-contra-o-terror&#34;&gt;Guerra contra o Terror&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/browsers-antigos-guerra-contra-o-terror/&#34;&gt;Preparamos um PDF&lt;/a&gt; que te ajuda a convencer clientes e chefes &lt;del&gt;tontos&lt;/del&gt; mostrando as deficiencias de suportarmos browsers antigos. &lt;a href=&#34;http://tableless.com.br/browsers-antigos-guerra-contra-o-terror/&#34;&gt;Dá uma olhada aqui&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Novos plugins jQuery e bibliotecas JavaScript</title>
+      <link>http://tableless.com.br/novos-plugins-jquery-e-bibliotecas-javascript/</link>
+      <pubDate>Tue, 12 Jun 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/novos-plugins-jquery-e-bibliotecas-javascript/</guid>
+      <description>
+
+&lt;p&gt;Confira uma lista de plugins e bibliotecas JavaScript que foram destaque nesta primeira metade do ano.&lt;/p&gt;
+
+&lt;h2 id=&#34;jquery-transit&#34;&gt;jQuery Transit&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://ricostacruz.com/jquery.transit&#34; title=&#34;jQuery Transit&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://ricostacruz.com/jquery.transit&#34;&gt;http://ricostacruz.com/jquery.transit&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/jquery-transit.jpg&#34; alt=&#34;&#34; width=&#34;676&#34; height=&#34;133&#34; class=&#34;alignnone size-full wp-image-6261&#34; srcset=&#34;uploads/2012/06/jquery-transit.jpg 676w, uploads/2012/06/jquery-transit-300x59.jpg 300w&#34; sizes=&#34;(max-width: 676px) 100vw, 676px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Este plugin jQuery é uma espécie de wrapper para animações e transições CSS3. Possui a mesma sintaxe do método animate e permite transformar diferentes propriedades de um elemento: eixos X e Y, perspectiva, girar simulando 3D etc.&lt;/p&gt;
+
+&lt;h2 id=&#34;curtain-js&#34;&gt;Curtain.js&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://curtain.victorcoulon.fr&#34; title=&#34;Curtain.js&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://curtain.victorcoulon.fr&#34;&gt;http://curtain.victorcoulon.fr&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/Curtain.js.jpg&#34; alt=&#34;&#34; width=&#34;677&#34; height=&#34;119&#34; class=&#34;alignnone size-full wp-image-6258&#34; srcset=&#34;uploads/2012/06/Curtain.js.jpg 677w, uploads/2012/06/Curtain.js-300x52.jpg 300w&#34; sizes=&#34;(max-width: 677px) 100vw, 677px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;O plugin Curtain.js permite a criação de sites e aplicativos com múltiplas camadas. O efeito de transição simula uma cortina (daí o nome!). Possui opções que permitem personalizar a velocidade e o tipo da animação e habilitar a navegação via teclado.&lt;/p&gt;
+
+&lt;h2 id=&#34;balloons-io&#34;&gt;Balloons.IO&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://gravityonmars.github.com/Balloons.IO&#34; title=&#34;Balloons.IO&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://gravityonmars.github.com/Balloons.IO&#34;&gt;http://gravityonmars.github.com/Balloons.IO&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/Balloons.IO_.jpg&#34; alt=&#34;&#34; width=&#34;678&#34; height=&#34;254&#34; class=&#34;alignnone size-full wp-image-6256&#34; srcset=&#34;uploads/2012/06/Balloons.IO_.jpg 678w, uploads/2012/06/Balloons.IO_-300x112.jpg 300w&#34; sizes=&#34;(max-width: 678px) 100vw, 678px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;E que tal um chat desenvolvido em node.JS e Redis? O aplicativo Ballons.IO ataca tanto de servidor como de cliente. A autenticação dos usuários é feita através do Twitter, já a instalação, por se tratar também de um servidor, requer um conhecimento um pouco mais avançado.&lt;/p&gt;
+
+&lt;h2 id=&#34;mailcheck&#34;&gt;Mailcheck&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/Kicksend/mailcheck&#34; title=&#34;Mailcheck&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/Kicksend/mailcheck&#34;&gt;https://github.com/Kicksend/mailcheck&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/mailcheck.jpg&#34; alt=&#34;&#34; width=&#34;447&#34; height=&#34;108&#34; class=&#34;alignnone size-full wp-image-6263&#34; srcset=&#34;uploads/2012/06/mailcheck.jpg 447w, uploads/2012/06/mailcheck-300x72.jpg 300w&#34; sizes=&#34;(max-width: 447px) 100vw, 447px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Segundo o pessoal da Kicksend, o plugin Mailcheck reduziu em 50% a taxa de retorno de inscrições na sua mailing list. O que ele faz é sugerir domínios corretos quando o usuário digita um domínio inválido. Por exemplo, digitando &amp;#8220;hotnail&amp;#8221; o plugin automaticamente sugere a correção para &amp;#8220;hotmail&amp;#8221;.&lt;/p&gt;
+
+&lt;h2 id=&#34;timelinejs&#34;&gt;TimelineJS&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://timeline.verite.co&#34; title=&#34;TimelineJS&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://timeline.verite.co&#34;&gt;http://timeline.verite.co&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/timelinejs.jpg&#34; alt=&#34;&#34; width=&#34;676&#34; height=&#34;153&#34; class=&#34;alignnone size-full wp-image-6267&#34; srcset=&#34;uploads/2012/06/timelinejs.jpg 676w, uploads/2012/06/timelinejs-300x67.jpg 300w&#34; sizes=&#34;(max-width: 676px) 100vw, 676px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Depois da implementação do Facebook, o conceito de linha do tempo virou uma nova tendência. Essa biblioteca JavaScript permite a fácil criação de uma timeline que consome diretamente de um documento publicado no Google Docs ou de uma objeto JSON. Também disponível como plugin para WordPress.&lt;/p&gt;
+
+&lt;h2 id=&#34;buildr&#34;&gt;buildr&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://mlanza.github.com/buildr&#34; title=&#34;buildr&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://mlanza.github.com/buildr&#34;&gt;http://mlanza.github.com/buildr&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/buildr.jpg&#34; alt=&#34;&#34; width=&#34;502&#34; height=&#34;360&#34; class=&#34;alignnone size-full wp-image-6257&#34; srcset=&#34;uploads/2012/06/buildr.jpg 502w, uploads/2012/06/buildr-300x215.jpg 300w&#34; sizes=&#34;(max-width: 502px) 100vw, 502px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;O plugin buildr é voltado para aqueles que preferem código a templates na hora de retornar HTML. O que ele faz é transformar tags HTML em métodos que retornam um objeto jQuery com a tag especificada.&lt;/p&gt;
+
+&lt;h2 id=&#34;turn-js&#34;&gt;turn.js&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.turnjs.com&#34; title=&#34;turn.js&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.turnjs.com&#34;&gt;http://www.turnjs.com&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/turnjs.jpg&#34; alt=&#34;&#34; width=&#34;677&#34; height=&#34;312&#34; class=&#34;alignnone size-full wp-image-6268&#34; srcset=&#34;uploads/2012/06/turnjs.jpg 677w, uploads/2012/06/turnjs-300x138.jpg 300w&#34; sizes=&#34;(max-width: 677px) 100vw, 677px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Muitos devem conhecer aquele efeito de revista desenvolvido em flash. O turn.js é um plugin que possibilita o mesmo efeito utilizando jQuery e permite a criação de revistas e livros online.&lt;/p&gt;
+
+&lt;h2 id=&#34;sequence&#34;&gt;Sequence&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.sequencejs.com&#34; title=&#34;Sequence&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.sequencejs.com&#34;&gt;http://www.sequencejs.com&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/sequence.jpg&#34; alt=&#34;&#34; width=&#34;676&#34; height=&#34;261&#34; class=&#34;alignnone size-full wp-image-6265&#34; srcset=&#34;uploads/2012/06/sequence.jpg 676w, uploads/2012/06/sequence-300x115.jpg 300w&#34; sizes=&#34;(max-width: 676px) 100vw, 676px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;O diferencial do Sequence em relação a outros sliders é o fato deste plugin não forçar nenhum tema, ou seja, seu nível de personalização é muito alto e bastante flexível. Além disso, o Sequence já vem com suporte nativo a dispositivos de toque e layouts responsive.&lt;/p&gt;
+
+&lt;h2 id=&#34;gmaps-js&#34;&gt;gmaps.js&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://hpneo.github.com/gmaps&#34; title=&#34;gmaps.js&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://hpneo.github.com/gmaps&#34;&gt;http://hpneo.github.com/gmaps&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/gmaps.js.jpg&#34; alt=&#34;&#34; width=&#34;678&#34; height=&#34;226&#34; class=&#34;alignnone size-full wp-image-6260&#34; srcset=&#34;uploads/2012/06/gmaps.js.jpg 678w, uploads/2012/06/gmaps.js-300x100.jpg 300w&#34; sizes=&#34;(max-width: 678px) 100vw, 678px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;O gmaps.js é um plugin jQuery para interagir com a interface do Google Maps de forma mais simples. Possui todos os recursos da API do serviço aliados à simplicidade do jQuery. Inclui ainda suporte a &lt;em&gt;Geolocation&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;glisse-js&#34;&gt;Glisse.js&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://glisse.victorcoulon.fr&#34; title=&#34;Glisse.js&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://glisse.victorcoulon.fr&#34;&gt;http://glisse.victorcoulon.fr&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/glisse.jpg&#34; alt=&#34;&#34; width=&#34;656&#34; height=&#34;233&#34; class=&#34;alignnone size-full wp-image-6259&#34; srcset=&#34;uploads/2012/06/glisse.jpg 656w, uploads/2012/06/glisse-300x106.jpg 300w&#34; sizes=&#34;(max-width: 656px) 100vw, 656px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Glisse é (mais) um plugin jQuery para visualização de fotos. Ele utiliza recursos avançados de CSS3, incluindo &lt;em&gt;keyframes&lt;/em&gt;. Possui suporte a layouts responsive, navegação no teclado e visualização em &lt;em&gt;full screen&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;jurlp&#34;&gt;jurlp&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/tombonner/jurlp&#34; title=&#34;jurlp&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/tombonner/jurlp&#34;&gt;https://github.com/tombonner/jurlp&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/jurlp.jpg&#34; alt=&#34;&#34; width=&#34;292&#34; height=&#34;197&#34; class=&#34;alignnone size-full wp-image-6262&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Jurlp, ou jQuery URL Parser, é um plugin para extrair informações, filtrar e manipular URLs. É ideal para obter dados de atributos &lt;em&gt;href&lt;/em&gt; e &lt;em&gt;src&lt;/em&gt;. Permite também a criação de links automáticos a partir de URLs encontradas no texto.&lt;/p&gt;
+
+&lt;h2 id=&#34;jquery-scroll-path&#34;&gt;jQuery Scroll Path&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://joelb.me/scrollpath&#34; title=&#34;jQuery Scroll Path&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://joelb.me/scrollpath&#34;&gt;http://joelb.me/scrollpath&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/scrollpath.jpg&#34; alt=&#34;&#34; width=&#34;678&#34; height=&#34;381&#34; class=&#34;alignnone size-full wp-image-6264&#34; srcset=&#34;uploads/2012/06/scrollpath.jpg 678w, uploads/2012/06/scrollpath-300x168.jpg 300w&#34; sizes=&#34;(max-width: 678px) 100vw, 678px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;O plugin Scroll Path possibilita a criação de caminhos personalizados para o scroll da sua página/aplicação utilizando o elemento canvas. Vem acompanhado de uma scrollbar customizada.&lt;/p&gt;
+
+&lt;h2 id=&#34;socialite-js&#34;&gt;Socialite.js&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.socialitejs.com&#34; title=&#34;Socialite.js&#34;&gt;http://www.socialitejs.com&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2012/06/Socialite.js.jpg&#34; alt=&#34;&#34; width=&#34;395&#34; height=&#34;105&#34; class=&#34;alignnone size-full wp-image-6266&#34; srcset=&#34;uploads/2012/06/Socialite.js.jpg 395w, uploads/2012/06/Socialite.js-300x79.jpg 300w&#34; sizes=&#34;(max-width: 395px) 100vw, 395px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para finalizar, uma biblioteca JavaScript para implementar diversos botões de compartilhamento social. O destaque fica para as diferentes possibilidades de carregamento melhorando assim a performance do seu site.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JavaScript com café</title>
+      <link>http://tableless.com.br/javascript-com-cafe/</link>
+      <pubDate>Mon, 09 Apr 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/javascript-com-cafe/</guid>
+      <description>
+
+&lt;p&gt;CoffeeScript é uma tentativa de tornar JavaScript mais agradável para nós, programadores.&lt;/p&gt;
+
+&lt;p&gt;Diferente dos frameworks e bibliotecas, que foram desenvolvidos como uma camada extra, o código escrito em CoffeeScript é compilado e resulta em JavaScript puro.&lt;/p&gt;
+
+&lt;p&gt;A sintaxe é inspirada em linguagens como Ruby e Python (principalmente Ruby), portanto você pode esperar códigos intuitivos e limpos, sem pontos-e-vírgulas, chaves e parênteses (quase).&lt;/p&gt;
+
+&lt;h2 id=&#34;instalação-comandos&#34;&gt;Instalação &amp;amp; Comandos&lt;/h2&gt;
+
+&lt;p&gt;Não vou entrar muito em detalhes sobre a instalação da linguagem. A maneira mais fácil de instalar as ferramentas para desenvolvimento em CoffeeScript é através do sistema de pacotes do NodeJS, o npm.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;bash&amp;#8221;]npm install -g coffee-script[/cce]&lt;/p&gt;
+
+&lt;p&gt;O criador do npm disponibilizou um &lt;a href=&#34;https://gist.github.com/579814&#34; title=&#34;Instruções para instalação do NodeJS e NPM&#34; target=&#34;_blank&#34;&gt;gist&lt;/a&gt; com instruções variadas para a instalação do NodeJS e seu gerenciador de pacotes.&lt;/p&gt;
+
+&lt;p&gt;Depois de seguir todos os passos necessários, para conferir se a instalação foi concluída com sucesso, digite o seguinte comando em um terminal:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;bash&amp;#8221;]coffee -v[/cce]&lt;/p&gt;
+
+&lt;p&gt;O comando &lt;em&gt;coffee&lt;/em&gt;, executado via terminal, pode ser utilizado como um console interativo, como um compilador ou como um &lt;em&gt;watcher&lt;/em&gt;. Como um &lt;em&gt;watcher&lt;/em&gt;, o comando vigia qualquer alteração em códigos-fonte CoffeeScript e, automaticamente, gera os arquivos JavaScript.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;bash&amp;#8221;]# executa o console&lt;/p&gt;
+
+&lt;p&gt;coffee&lt;/p&gt;
+
+&lt;p&gt;# compila o arquivo codigo.coffee para codigo.js&lt;/p&gt;
+
+&lt;p&gt;coffee -c codigo.coffee&lt;/p&gt;
+
+&lt;p&gt;# compila o arquivo codigo.coffee para script.js&lt;/p&gt;
+
+&lt;p&gt;coffee -co script.js codigo.coffee&lt;/p&gt;
+
+&lt;p&gt;# observa os arquivos no diretório coffeescripts e compila para o diretório javascripts&lt;/p&gt;
+
+&lt;p&gt;coffee -cwo javascripts coffeescripts[/cce]&lt;/p&gt;
+
+&lt;p&gt;Além disso, ele pode também executar diretamente um script:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;bash&amp;#8221;]coffee codigo.coffee[/cce]&lt;/p&gt;
+
+&lt;p&gt;Uma maneira mais fácil de testar e experimentar CoffeeScript é visitando o link &amp;#8220;Try CoffeeScript&amp;#8221; no &lt;a href=&#34;http://coffeescript.org&#34; title=&#34;CoffeeScript: Site oficial&#34; target=&#34;_blank&#34;&gt;site oficial da linguagem&lt;/a&gt;. Lá você pode observar, em tempo real, o resultado da transformação de CoffeeScript em JavaScript.&lt;/p&gt;
+
+&lt;h2 id=&#34;variáveis-funções&#34;&gt;Variáveis &amp;amp; Funções&lt;/h2&gt;
+
+&lt;p&gt;A simplificação começa com a declaração de variáveis, eliminando a necessidade de instanciá-las:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]mensagem = &amp;ldquo;Olá, Tableless!&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;alert mensagem[/cce]&lt;/p&gt;
+
+&lt;p&gt;O código acima resulta no seguinte JavaScript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var mensagem;&lt;/p&gt;
+
+&lt;p&gt;mensagem = &amp;ldquo;Olá, Tableless!&amp;rdquo;;&lt;/p&gt;
+
+&lt;p&gt;alert(mensagem);[/cce]&lt;/p&gt;
+
+&lt;p&gt;Já uma função em CoffeeScript é representada pela junção dos caracteres &amp;#8220;-&amp;#8221; e &amp;#8220;&amp;gt;&amp;#8221;:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]cafe = -&amp;gt; &amp;ldquo;Café!&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;JavaScript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var cafe;&lt;/p&gt;
+
+&lt;p&gt;cafe = function() {&lt;/p&gt;
+
+&lt;p&gt;return &amp;ldquo;Café!&amp;rdquo;;&lt;/p&gt;
+
+&lt;p&gt;};[/cce]&lt;/p&gt;
+
+&lt;p&gt;O compilador CoffeeScript vai sempre transformar suas funções em expressões, ou seja, funções armazenadas em variáveis.&lt;/p&gt;
+
+&lt;p&gt;Vale lembrar que assim como em Python, a indentação em CoffeeScript precisa ser seguida à risca. Seu código deve respeitar um padrão de indentação &amp;mdash; tab ou espaços, nunca os dois ao mesmo tempo.&lt;/p&gt;
+
+&lt;p&gt;O valor retornado por uma função é sempre a última linha de sua implementação. Não é necessário utilizar &lt;em&gt;return&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Os argumentos devem ser declarados antes do símbolo da função. A concatenação segue o estilo Ruby de ser:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]cafe = (sabor) -&amp;gt; &amp;ldquo;Quero café #{sabor}!&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;JavaScript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var cafe;&lt;/p&gt;
+
+&lt;p&gt;cafe = function(sabor) {&lt;/p&gt;
+
+&lt;p&gt;return &amp;ldquo;Quero café &amp;rdquo; + sabor + &amp;ldquo;!&amp;rdquo;;&lt;/p&gt;
+
+&lt;p&gt;};[/cce]&lt;/p&gt;
+
+&lt;p&gt;Eles podem ainda possuir valores padrões, caso não seja passado nenhum parâmetro:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]cafe = (sabor = &amp;ldquo;forte&amp;rdquo;) -&amp;gt; &amp;ldquo;Quero café #{sabor}!&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;E, como já deu pra perceber, quando uma função é chamada, os parênteses são opcionais:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]cafe(&amp;ldquo;suave&amp;rdquo;)&lt;/p&gt;
+
+&lt;p&gt;cafe &amp;ldquo;suave&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;[1, 2, 3, 4].slice(0, 1)&lt;/p&gt;
+
+&lt;p&gt;[1, 2, 3, 4].slice 0, 1[/cce]&lt;/p&gt;
+
+&lt;h2 id=&#34;objetos&#34;&gt;Objetos&lt;/h2&gt;
+
+&lt;p&gt;Existem duas maneiras de representar objetos em JavaScript. A primeira é utilizando &lt;em&gt;new&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]pessoa = new Pessoa();[/cce]&lt;/p&gt;
+
+&lt;p&gt;A maneira mais comum, no entanto, é utilizando a notação JSON:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]pessoa = {};[/cce]&lt;/p&gt;
+
+&lt;p&gt;Este tipo de criação é simplificado no CoffeeScript, com a remoção das chaves e vírgulas, utilizando apenas indentação para formatar o objeto:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]autor =&lt;/p&gt;
+
+&lt;p&gt;nome: &amp;ldquo;Davi Ferreira&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;especialidades: [&amp;ldquo;javascript&amp;rdquo;, &amp;ldquo;jquery&amp;rdquo;]&lt;/p&gt;
+
+&lt;p&gt;sites:&lt;/p&gt;
+
+&lt;p&gt;blog: &amp;ldquo;&lt;a href=&#34;http://www.daviferreira.com/blog&amp;quot;&#34;&gt;http://www.daviferreira.com/blog&amp;quot;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;portfolio: &amp;ldquo;&lt;a href=&#34;http://www.daviferreira.com&amp;quot;&#34;&gt;http://www.daviferreira.com&amp;quot;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;social:&lt;/p&gt;
+
+&lt;p&gt;twitter: &amp;ldquo;davitferreira&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Agora o mesmo objeto, em JavaScript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var autor;&lt;/p&gt;
+
+&lt;p&gt;autor = {&lt;/p&gt;
+
+&lt;p&gt;nome: &amp;ldquo;Davi Ferreira&amp;rdquo;,&lt;/p&gt;
+
+&lt;p&gt;especialidades: [&amp;ldquo;javascript&amp;rdquo;, &amp;ldquo;jquery&amp;rdquo;],&lt;/p&gt;
+
+&lt;p&gt;sites: {&lt;/p&gt;
+
+&lt;p&gt;blog: &amp;ldquo;&lt;a href=&#34;http://www.daviferreira.com/blog&amp;quot;&#34;&gt;http://www.daviferreira.com/blog&amp;quot;&lt;/a&gt;,&lt;/p&gt;
+
+&lt;p&gt;portfolio: &amp;ldquo;&lt;a href=&#34;http://www.daviferreira.com&amp;quot;&#34;&gt;http://www.daviferreira.com&amp;quot;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;},&lt;/p&gt;
+
+&lt;p&gt;social: {&lt;/p&gt;
+
+&lt;p&gt;twitter: &amp;ldquo;davitferreira&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;};[/cce]&lt;/p&gt;
+
+&lt;h2 id=&#34;operações-condicionais-e-comparativas&#34;&gt;Operações condicionais e comparativas&lt;/h2&gt;
+
+&lt;p&gt;As operações condicionais em CoffeeScript são bastante flexíveis e mais poderosas do que as operações nativas em JavaScript. O CoffeeScript introduz novos tipos de implementações de operações condicionais:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]alert &amp;ldquo;Frio&amp;rdquo; if temperatura &amp;lt; 20[/cce]&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]if temperatura &amp;lt; 20 then alert &amp;ldquo;Frio&amp;rdquo; else alert &amp;ldquo;Calor&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;O segundo exemplo, compilado, fica assim:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]if (temperatura &amp;lt; 20) {&lt;/p&gt;
+
+&lt;p&gt;alert(&amp;ldquo;Frio&amp;rdquo;);&lt;/p&gt;
+
+&lt;p&gt;} else {&lt;/p&gt;
+
+&lt;p&gt;alert(&amp;ldquo;Calor&amp;rdquo;);&lt;/p&gt;
+
+&lt;p&gt;}[/cce]&lt;/p&gt;
+
+&lt;p&gt;Os operadores também receberam uma repaginada, ganhando versões &amp;#8220;escritas&amp;#8221;:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]if temperatura &amp;lt; 20 and cidade is &amp;ldquo;Rio de Janeiro&amp;rdquo; then alert &amp;ldquo;Frio&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]if alarme is on and not snooze and hora is &amp;ldquo;09:00&amp;rdquo; then alert &amp;ldquo;Beep!&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Javascript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]if (alarme === true &amp;amp;&amp;amp; !snooze &amp;amp;&amp;amp; hora === &amp;ldquo;09:00&amp;rdquo;) alert(&amp;ldquo;Beep!&amp;rdquo;);[/cce]&lt;/p&gt;
+
+&lt;p&gt;Outra implementação legal é a comparação em cadeia:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;] if 12 &amp;lt; idade &amp;lt; 18 then alert &amp;ldquo;Adolescente&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;Javascript:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;] if (12 &amp;lt; idade &amp;amp;&amp;amp; idade &amp;lt; 18) alert(&amp;ldquo;Adolescente&amp;rdquo;);[/cce]&lt;/p&gt;
+
+&lt;h2 id=&#34;loops&#34;&gt;Loops&lt;/h2&gt;
+
+&lt;p&gt;Antes de falar sobre operações de &lt;em&gt;loop&lt;/em&gt;, vamos conhecer &lt;em&gt;ranges&lt;/em&gt; ou intervalos. Em CoffeeScript é possível declarar &lt;em&gt;ranges&lt;/em&gt; dinâmicos:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]horas = [0..24][/cce]&lt;/p&gt;
+
+&lt;p&gt;O código acima gera a lista completa, de 0 a 24. O resultado ainda pode ser trabalhado retornando apenas os quatro primeiros valores (0, 1, 2, 3):&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]horas[0..3] [/cce]&lt;/p&gt;
+
+&lt;p&gt;A manipulação de dados via loops é bem completa, com diferentes possibilidades:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]times = [&amp;ldquo;Flamengo&amp;rdquo;, &amp;ldquo;Vasco&amp;rdquo;, &amp;ldquo;Botafogo&amp;rdquo;, &amp;ldquo;Fluminense&amp;rdquo;]&lt;/p&gt;
+
+&lt;p&gt;for time in times&lt;/p&gt;
+
+&lt;p&gt;alert &amp;ldquo;Time: #{time}&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;O código acima resulta no seguinte JavaScript (!):&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]var time, times, _i, _len;&lt;/p&gt;
+
+&lt;p&gt;times = [&amp;ldquo;Flamengo&amp;rdquo;, &amp;ldquo;Vasco&amp;rdquo;, &amp;ldquo;Botafogo&amp;rdquo;, &amp;ldquo;Fluminense&amp;rdquo;];&lt;/p&gt;
+
+&lt;p&gt;for (_i = 0, _len = times.length; _i &amp;lt; _len; _i++) {&lt;/p&gt;
+
+&lt;p&gt;time = times[_i];&lt;/p&gt;
+
+&lt;p&gt;alert(&amp;ldquo;Time: &amp;ldquo; + time);&lt;/p&gt;
+
+&lt;p&gt;}[/cce]&lt;/p&gt;
+
+&lt;p&gt;Outra maneira de executar um &lt;em&gt;loop&lt;/em&gt; é declarando tudo em uma única linha:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]alert &amp;ldquo;Time: #{time}&amp;rdquo; for time in times[/cce]&lt;/p&gt;
+
+&lt;p&gt;Podemos ainda manipular os dados diretamente no &lt;em&gt;loop&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]alert &amp;ldquo;#{time} &amp;#8211; RJ&amp;rdquo; for time in times[/cce]&lt;/p&gt;
+
+&lt;p&gt;E para finalizar essa parte sobre &lt;em&gt;loops&lt;/em&gt;, uma ferramenta muito útil é a &lt;em&gt;keyword&lt;/em&gt; &lt;em&gt;when&lt;/em&gt;, utilizada para filtrar os dados do &lt;em&gt;loop&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]alert &amp;ldquo;Segunda divisão!&amp;rdquo; for time in times when time isnt &amp;ldquo;Flamengo&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;h2 id=&#34;integração-com-jquery&#34;&gt;Integração com jQuery&lt;/h2&gt;
+
+&lt;p&gt;Escrever código em CoffeeScript não significa abandonar bibliotecas e frameworks JavaScript. A integração com CoffeeScript é direta:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]$ -&amp;gt; [/cce]&lt;/p&gt;
+
+&lt;p&gt;Equivale a:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]$(function() {});[/cce]&lt;/p&gt;
+
+&lt;p&gt;A premissa básica continua sendo a simplificação do código, principalmente devido a remoção de chaves, parênteses, vírgulas e pontos-e-vírgulas.&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;coffeescript&amp;#8221;]$(window).konami -&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;$(&amp;ldquo;html&amp;rdquo;).addClass &amp;ldquo;tremetudo&amp;rdquo;[/cce]&lt;/p&gt;
+
+&lt;p&gt;O código acima é a implementação do Konami Code aqui no Tableless.&lt;/p&gt;
+
+&lt;p&gt;Veja o JavaScript original:&lt;/p&gt;
+
+&lt;p&gt;[cce lang=&amp;#8221;javascript&amp;#8221;]$(window).konami(function(){&lt;/p&gt;
+
+&lt;p&gt;$(&amp;ldquo;html&amp;rdquo;).addClass(&amp;ldquo;tremetudo&amp;rdquo;)&lt;/p&gt;
+
+&lt;p&gt;});[/cce]&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Essa foi uma visão geral da linguagem. A desvantagem de implementar CoffeeScript em produtos e aplicativos grandes é o fato de ainda ser difícil debugar o código diretamente, já que as ferramentas disponíveis nos navegadores só indicam os erros no arquivo JavaScript gerado. O compilador aponta os erros de sintaxe, mas erros de lógica dão um pouco mais de trabalho.&lt;/p&gt;
+
+&lt;p&gt;Muitos aspectos ficaram de fora deste artigo, como os splats, escopo, propriedades, switches, soaks e, principalmente, classes. No próximo artigo falo mais sobre eles.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>jQuery: conheça os métodos on() e off()</title>
+      <link>http://tableless.com.br/jquery-conheca-os-metodos-on-e-off/</link>
+      <pubDate>Tue, 13 Mar 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/jquery-conheca-os-metodos-on-e-off/</guid>
+      <description>
+
+&lt;p&gt;Em outubro de 2010 escrevi um &lt;a href=&#34;http://tableless.com.br/associando-eventos-dinamicamente/&#34; title=&#34;jQuery: associando eventos dinamicamente&#34;&gt;artigo&lt;/a&gt; aqui mesmo no Tableless sobre a associação dinâmica de eventos. Na época, reinava uma confusão sobre quais métodos utilizar e quando utilizá-los. Eram três as opções: bind(), live() e delegate().&lt;/p&gt;
+
+&lt;p&gt;Com o lançamento da versão 1.7 do jQuery, dois métodos definitivos (assim espero) devem acabar com a confusão em torno da associação de eventos: os métodos on() e off().&lt;/p&gt;
+
+&lt;h2 id=&#34;eventos-diretos&#34;&gt;Eventos diretos&lt;/h2&gt;
+
+&lt;p&gt;A associação direta de eventos ocorre quando o seletor (ou escopo) é omitido nos parâmetros do on(). Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function exibeMenu(e) {
+  e.preventDefault();
+  $(&#39;#menu&#39;).show();
+}
+$(&#39;#lnk-menu&#39;).on(&#39;click&#39;, exibeMenu);
+&lt;/pre&gt;
+
+&lt;p&gt;No código acima, o elemento com id #lnk-menu recebe uma associação no evento click para executar a função exibeMenu(). A associação ocorre de forma direta, ou seja, quando o on() é executado o evento passa a estar associado ao elemento, antes mesmo do clique ocorrer.&lt;/p&gt;
+
+&lt;p&gt;Essa opção equivale ao bind() e deve ser utilizada em casos de elementos únicos, ou com poucos elementos, para evitar problemas de performance.&lt;/p&gt;
+
+&lt;h2 id=&#34;múltiplos-eventos&#34;&gt;Múltiplos eventos&lt;/h2&gt;
+
+&lt;p&gt;Também é possível associar múltiplos eventos a um ou mais elementos. Para isso, basta passar um mapa onde cada chave representa um evento ao invés de um evento como string:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;#lnk-menu&#39;).on({
+  click: function(){
+    $(&#39;#menu&#39;).show();
+  },
+  dblclick: function(){
+    $(&#39;#submenu&#39;).show();
+  },
+  mouseenter: function(){
+    $(this).addClass(&#39;ativo&#39;);
+  }
+});
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;removendo-associações-de-eventos-diretos&#34;&gt;Removendo associações de eventos diretos&lt;/h2&gt;
+
+&lt;p&gt;Remover associações de eventos diretos é simples:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;#lnk-menu&#39;).off();&lt;/pre&gt;
+
+&lt;p&gt;Para remover eventos específicos, mantendo qualquer outra associação, basta informar o nome do evento:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;#lnk-menu&#39;).off(&#39;click&#39;);&lt;/pre&gt;
+
+&lt;h2 id=&#34;eventos-delegados&#34;&gt;Eventos delegados&lt;/h2&gt;
+
+&lt;p&gt;A delegação de eventos (antigos live() e delegate()) ocorre quando passamos um ou mais seletores nos parâmetros do on. O evento não será&lt;/p&gt;
+
+&lt;p&gt;associado diretamente quando o código for executado, tampouco será executado para o seletor que chama o on() e sim para os elementos descendentes que se encaixem no parâmetro passado.&lt;/p&gt;
+
+&lt;p&gt;A associação ocorre quando o evento é acionado. Esse tipo de associação funciona tanto para elementos já presentes no DOM como para elementos criados posteriormente.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function exibeConteudo(e){
+  $(this).find(&#39;conteudo&#39;).fadeIn();
+}
+
+$(&#39;table&#39;).on(&#39;click&#39;, &#39;a&#39;, exibeConteudo);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;removendo-a-associação-de-eventos-específicos&#34;&gt;Removendo a associação de eventos específicos&lt;/h2&gt;
+
+&lt;p&gt;Em alguns momentos será preciso associar eventos diretos e, ao mesmo tempo, delegar eventos. Nesses casos, é possível remover apenas os eventos delegados utilizando o parâmetro especial &amp;#8220;**&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;a&#39;).off(&#39;click&#39;, &#39;**&#39;);&lt;/pre&gt;
+
+&lt;p&gt;Outra opção é remover a associação com base na função utilizada:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;#lnk-menu&#39;).off(&#39;click&#39;, &#39;a&#39;, exibeConteudo);&lt;/pre&gt;
+
+&lt;h2 id=&#34;namespaces&#34;&gt;Namespaces&lt;/h2&gt;
+
+&lt;p&gt;Uma importante implementação do on() é a possibilidade de utilizar namespaces nos eventos &amp;#8211; uma grande novidade para desenvolvedores de plugins. Um evento pode, agora, ser associado a um namespace específico, facilitando o controle sobre associações específicas de um plugin ou uma funcionalidade.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;#lnk-menu&#39;).on(&#39;click.menu&#39;, exibeMenu);
+$(&#39;.menu-item&#39;).on(&#39;mouseleave.menu&#39;, escondeMenu);
+
+$(&#39;#lnk-menu, .menu-item&#39;).off(&#39;.menu&#39;);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;enviando-dados-para-o-evento&#34;&gt;Enviando dados para o evento&lt;/h2&gt;
+
+&lt;p&gt;O método on() também permite enviar dados específicos para um evento. O objeto de dados fica associado ao objeto do evento.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function exibeMenu(e) { 
+  $(&#39;.ativo&#39;).text(e.data.descricao);
+}
+
+$(&#39;#lnk-home&#39;).on(&#39;click&#39;, { descricao: &#39;Página inicial&#39; }, exibeMenu);
+$(&#39;#lnk-sobre&#39;).on(&#39;click&#39;, { descricao: &#39;Sobre a empresa&#39; }, exibeMenu);
+&lt;/pre&gt;
+
+&lt;p&gt;No exemplo acima, cada link passa uma descrição diferente durante o evento. Essa descrição passa a ser o conteúdo dos elementos com a classe &amp;#8220;.ativo&amp;#8221;.&lt;/p&gt;
+
+&lt;h2 id=&#34;este-evento-se-autodestruirá&#34;&gt;Este evento se autodestruirá…&lt;/h2&gt;
+
+&lt;p&gt;O método .one() poderia ter entrado na lista dos &lt;a href=&#34;http://tableless.com.br/jquery-metodos-desconhecidos/&#34; title=&#34;jQuery: métodos desconhecidos&#34;&gt;métodos desconhecidos do meu último artigo&lt;/a&gt;, já que existe desde a versão 1.1 do jQuery. No entanto, junto com a implementação do .on() ele ganhou uma nova cara.&lt;/p&gt;
+
+&lt;p&gt;Sua implementação segue as mesmas regras do .on() com uma importante diferença: o evento associado é executado apenas uma vez. Após a execução a associação é automaticamente removida, seja ela uma associação direta ou delegada.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(&#39;#lnk-menu&#39;).one(&#39;click&#39;, function() {
+  alert(&#39;Este evento não será mais executado.&#39;);
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Caso o seletor possua mais de um elemento, o evento será associado uma vez a cada um deles, ou seja, cada elemento possuirá uma execução do evento.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Essas são as novidades com relação a eventos utilizando jQuery. Os métodos .on() e .off() devem &amp;#8220;matar&amp;#8221; seus antecessores (.live() e .delegate()) e padronizar de uma vez por todas a associação de eventos em aplicações.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

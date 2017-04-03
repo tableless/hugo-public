@@ -1,0 +1,860 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Frameworks on Tableless</title>
+    <link>http://tableless.com.br/tags/frameworks/index.xml</link>
+    <description>Recent content in Frameworks on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/frameworks/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Menos é mais com Android Annotations</title>
+      <link>http://tableless.com.br/menos-e-mais-com-android-annotations/</link>
+      <pubDate>Mon, 19 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/menos-e-mais-com-android-annotations/</guid>
+      <description>&lt;p&gt;De todo o trabalho que você tem ao programar uma aplicação android, uma grande parte dele é por conta de todo o código &lt;em&gt;boilerplate&lt;/em&gt; que &lt;strong&gt;sempre&lt;/strong&gt; temos que fazer. Uma das coisas que mais me incomoda é que todos os recursos (&lt;em&gt;views e afins&lt;/em&gt;) precisam ser referenciados para poderem ser acessados e isso, dependendo da quantidade de recursos que você precisa ter na aplicação, pode resultar em muitas e muitas linhas de código. Se você precisar criar eventos, serviços, &lt;em&gt;broadcasts&lt;/em&gt;, _adapters_ ou rodar o código em uma nova _thread_  nem vou colocar em questão aqui!&lt;/p&gt;
+
+&lt;p&gt;Nós que programamos para android acabamos nos &lt;del&gt;conformando&lt;/del&gt; acostumando com todo esse código e tempo perdido que ele gera para ser produzido porque, num fluxo normal de desenvolvimento, ele é inevitável. Sem falar em classes gigantes as quais precisaremos manter depois. E foi exatamente por estes motivos que as &lt;strong&gt;&lt;a href=&#34;http://androidannotations.org/&#34; target=&#34;_blank&#34;&gt;Android Annotations&lt;/a&gt; &lt;/strong&gt; foram criadas.&lt;/p&gt;
+
+&lt;p&gt;Essas anotações fazem parte de um framework de código livre, que utiliza &lt;a href=&#34;https://pt.wikipedia.org/wiki/Inje%C3%A7%C3%A3o_de_depend%C3%AAncia&#34; target=&#34;_blank&#34;&gt;injeção de dependência&lt;/a&gt;, para nos ajudar a eliminar todo aquele &lt;em&gt;boilerplate&lt;/em&gt;, trocando-os por anotações. Uma vez que diminuímos a quantidade de código que temos que escrever, fica mais fácil de manter a aumentamos a velocidade com que desenvolvemos nossas aplicações.&lt;/p&gt;
+
+&lt;p&gt;Vou demonstrar aqui como utilizar as _annotation__s _em alguns dos elementos que eu mencionei para que vocês vejam como é fácil e simples e como melhora o nosso código. Vamos supor que você tem uma &lt;em&gt;main activity&lt;/em&gt; com 5 views e precisará pegar o valor do usuário de todas elas, como acontece em um cadastro por exemplo.&lt;/p&gt;
+
+&lt;p&gt;Primeiro vamos declarar nosso layout num arquivo XML (não estou me preocupando com a estética do layout)&lt;/p&gt;
+
+&lt;pre class=&#34;xml&#34;&gt;&amp;lt;!-- activity_register.xml --&amp;gt;
+&amp;lt;LinearLayout xmlns:android=&#34;http://schemas.android.com/apk/res/android&#34;
+    xmlns:tools=&#34;http://schemas.android.com/tools&#34;
+    android:layout_width=&#34;fill_parent&#34;
+    android:layout_height=&#34;fill_parent&#34;
+    android:orientation=&#34;vertical&#34;
+    android:layout_gravity=&#34;left&#34;
+    android:gravity=&#34;left&#34; &amp;gt;
+
+    &amp;lt;EditText
+        android:id=&#34;@+id/name&#34;
+        android:layout_width=&#34;wrap_content&#34;
+        android:layout_height=&#34;wrap_content&#34;
+        android:layout_marginTop=&#34;16dp&#34; /&amp;gt;
+
+    &amp;lt;EditText
+        android:id=&#34;@+id/address&#34;
+        android:layout_width=&#34;wrap_content&#34;
+        android:layout_height=&#34;wrap_content&#34; /&amp;gt;
+
+    &amp;lt;EditText
+        android:id=&#34;@+id/numberAddress&#34;
+        android:layout_width=&#34;wrap_content&#34;
+        android:layout_height=&#34;wrap_content&#34; /&amp;gt;
+
+    &amp;lt;EditText
+        android:id=&#34;@+id/telephone&#34;
+        android:layout_width=&#34;wrap_content&#34;
+        android:layout_height=&#34;wrap_content&#34; /&amp;gt;
+
+    &amp;lt;EditText
+        android:id=&#34;@+id/birthday&#34;
+        android:layout_width=&#34;wrap_content&#34;
+        android:layout_height=&#34;wrap_content&#34; /&amp;gt;
+    
+    &amp;lt;Button
+        android:id=&#34;@+id/saveButton&#34;
+        android:layout_width=&#34;140dp&#34;
+        android:layout_height=&#34;wrap_content&#34;
+        android:text=&#34;Save&#34; /&amp;gt;
+
+&amp;lt;/LinearLayout&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;e agora precisaremos criar a nossa &lt;em&gt;main activity&lt;/em&gt; para injetarmos nossas &lt;em&gt;views&lt;/em&gt; e obter as entradas do usuário. Da maneira normal fica assim&lt;/p&gt;
+
+&lt;pre class=&#34;java&#34;&gt;public class Calculator extends Activity {
+  private EditText name;
+  private EditText address;
+  private EditText numberAddress;
+  private EditText telephone;
+  private TextView birthday;
+  private Button saveButton;
+
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_register);
+
+    name = (EditText) findViewById(R.id.name);
+    address = (EditText) findViewById(R.id.address);
+    numberAddress = (EditText) findViewById(R.id.numberAddress);
+    telephone = (EditText) findViewById(R.id.telephone);
+    birthday = (EditText) findViewById(R.id.birthday);
+    saveButton = (Button) findViewById(R.id.addButton);
+
+    saveButton.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View v) {
+       # save the information
+       ...
+      }
+    });
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como era de se esperar, inflamos nosso &lt;em&gt;layout&lt;/em&gt; xml no método &lt;code&gt;onCreate&lt;/code&gt; e obtemos a referência de cada uma das &lt;em&gt;views&lt;/em&gt; das quais precisamos obter o valor (para o nosso caso todas). Além disso criamos um evento no botão de salvar, que obviamente tem a função de salvar nossos dados (não fiz a implementação disso aqui para manter simples o exemplo). Ao utilizarmos &lt;em&gt;Android Annotations&lt;/em&gt;, o nosso código fica assim&lt;/p&gt;
+
+&lt;pre class=&#34;java&#34;&gt;@EActivity(R.layout.activity_register)
+public class Calculator extends Activity {
+  @ViewById EditText name;
+  @ViewById EditText address;
+  @ViewById EditText numberAddress;
+  @ViewById EditText telephone;
+  @ViewById TextView birthday;
+  @ViewById Button saveButton;
+
+  @Click
+  public void saveButton() {
+     # as views já estão referenciadas
+     # name.getText(); já está disponível por exemplo
+
+     # salvar as informações
+     ...
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Como vocês podem perceber de cara o código é bem menor. Não precisamos mais do método &lt;code&gt;onCreate&lt;/code&gt; porque para este exemplo espcificamente, a única coisa que estamos fazendo lá era inflando nossas views através do nosso layout e isso é feito automaticamente para nós utilizando a anotação &lt;code&gt;@EActivity&lt;/code&gt;. Em relação a referenciar as nossas &lt;em&gt;views&lt;/em&gt;, isso é feito somente adicionando a anotação &lt;code&gt;@ViewById&lt;/code&gt; antes de cada uma delas que queremos referenciar. Ao fazer isso nossas &lt;em&gt;views&lt;/em&gt; já estão prontas para serem acessadas. Algo que é importante de se saber é que para que as anotações tenham efeito, os atributos precisa ter o mesmo nome das ids que estão no xml, do contrário você precisará indicar a id da seguinte maneira&lt;/p&gt;
+
+&lt;pre class=&#34;java&#34;&gt;@ViewById(R.id.name)
+EditText name;
+&lt;/pre&gt;
+
+&lt;p&gt;o que eu não recomendo que você faça pois o interessante é utilizar todo o poder do &lt;em&gt;framework&lt;/em&gt; ao nosso favor. Outro elemente que não precisamos implementar foi o evento no botão de salvar, que foi substituído pela anotação &lt;code&gt;@Click&lt;/code&gt; que colocamos acima do método em que vamos tratar o nosso evento. Como vocês já devem ter percebido, o nome do método precisa ter como nome o nome do nosso botão referenciado logo acima.&lt;/p&gt;
+
+&lt;p&gt;E isso é tudo que precisamos fazer para inflar nossas views e adicionar um evento no nosso botão. É claro que esse é um exemplo bem básico. Agora pense em um projeto grande com múltiplas &lt;em&gt;activities&lt;/em&gt; e &lt;em&gt;fragments&lt;/em&gt;, o quanto isso nos ajudaria a economizar tempo. E além do mais, o que eu mostrei aqui é só um pouquinho (pouquinho mesmo) do que se pode fazer com as anotações.&lt;/p&gt;
+
+&lt;p&gt;Você pode conferir todo o poder que o AA tem visitando a seu &lt;a href=&#34;https://github.com/excilys/androidannotations/wiki/Cookbook&#34; target=&#34;_blank&#34;&gt;cookbook&lt;/a&gt;. Lá existem diversos exemplos que servem como _guideline _para você começar a utilizar o &lt;em&gt;framework&lt;/em&gt; hoje mesmo e parar de perder tempo escrevendo aquele mesmo código de novo e de novo em todos os seus projetos. Eu duvido que você vai se arrepender. Até a próxima!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Formulário sem Model no CakePHP 3.x</title>
+      <link>http://tableless.com.br/formulario-sem-model-no-cakephp-3-x/</link>
+      <pubDate>Tue, 16 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/formulario-sem-model-no-cakephp-3-x/</guid>
+      <description>
+
+&lt;p&gt;Requisitos do artigos:&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Ter o CakePHP 3 instalado ( &lt;a href=&#34;https://medium.com/@eabreusantos/instalando-o-cakephp-3-0-2f2a155cb8b1&#34; target=&#34;_blank&#34;&gt;Artigo de como instalar o Cakephp 3.x&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;O que aprenderemos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Como trabalhar com formulários que não necessitam de um Model.&lt;/li&gt;
+&lt;li&gt;Criar uma página de contato.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;formulários&#34;&gt;Formulários&lt;/h3&gt;
+
+&lt;p&gt;Na maioria das vezes, trabalhamos com formulários relacionados a um Model para persistir dados. Outras vezes precisamos validar os dados de um formulário onde não há persistência, como é no caso de um Formulário de Contato. Para tal tarefa, o CakePHP 3.x nos disponibiliza o que chamamos de &lt;strong&gt;Modelless Forms&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para começar, precisamos criar uma pasta chamada &amp;#8216;Forms&amp;#8217; dentro do diretório &amp;#8216;app\src&amp;#8217;. Para exemplificar vamos assumir que iremos criar um formulário de contato básico com nome, email e mensagem.&lt;/p&gt;
+
+&lt;p&gt;Na pasta Forms, crie um arquivo chamado &amp;#8216;ContactForm.php&amp;#8217; com o seguinte conteúdo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;namespace App\Form;
+use Cake\Form\Form;
+use Cake\Form\Schema;
+use Cake\Validation\Validator;
+class ContactForm extends Form
+{
+ /*
+ * Cria schema do formulário
+ * @param Schema object
+ * @return Schema object
+ */
+ protected function _buildSchema(Schema $schema)
+{
+ return $schema-&amp;gt;addField(&#39;name&#39;, &#39;string&#39;)
+ -&amp;gt;addField(&#39;email&#39;, [&#39;type&#39; =&amp;gt; &#39;string&#39;])
+ -&amp;gt;addField(&#39;body&#39;, [&#39;type&#39; =&amp;gt; &#39;text&#39;]);
+}
+/*
+*Add regras de validação aos campos do formulário
+* @param Validator object
+* @return Validator object
+*/
+protected function _buildValidator(Validator $validator)
+{
+ return $validator-&amp;gt;add(&#39;name&#39;, &#39;length&#39;, [
+ &#39;rule&#39; =&amp;gt; [&#39;minLength&#39;, 10],
+ &#39;message&#39; =&amp;gt; &#39;Campo nome é obrigatório&#39;
+ ])-&amp;gt;add(&#39;email&#39;, &#39;format&#39;, [
+ &#39;rule&#39; =&amp;gt; &#39;email&#39;,
+ &#39;message&#39; =&amp;gt; &#39;Endereço de e-mail inválido&#39;,
+ ]);
+}
+/*
+* Envia e-mail com os dados do contato
+* @param array $data dados da requisição
+* @return bool true caso tenha enviado o e-mail com sucesso
+*/
+protected function _execute(array $data)e
+{
+// Send an email.
+return true;
+}
+}&lt;/pre&gt;
+
+&lt;p&gt;Linha 1:4 — Declaramos o namespace e importamos classes que iremos utilizar.&lt;/p&gt;
+
+&lt;p&gt;Linha 5 — Declaração da classe, obrigatório o sufixo Form tanto na declaração da classe como no nome do arquivo, Modelless Forms devem obrigatoriamente estender da classe Form.&lt;/p&gt;
+
+&lt;p&gt;Linha 12:17 — Método &amp;#8216;&lt;strong&gt;_buildSchema&lt;/strong&gt;&amp;#8216;, recebe como parâmetro um objeto do tipo Schema. É usado para definir o esquema de dados que será utilizado pelo FormHelper para criar o formulário html. É possível definir o tipo do campo, tamanho do campo e precisão. Este método deve retornar o próprio objeto Schema.&lt;/p&gt;
+
+&lt;p&gt;Linha 23:32 — Método &lt;strong&gt;&amp;#8216;_buildValidator&lt;/strong&gt;&amp;#8216;, recebe como parâmetro um objeto do tipo Validator. É usado para definir o esquema de validação do formulário quando processado. É possível definir várias regras de validação para mesmo campo. Este método deve retornar o próprio objeto Validator. Veja mais regras e opções em: &lt;a href=&#34;http://book.cakephp.org/3.0/en/core-libraries/validation.html&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://book.cakephp.org/3.0/en/core-libraries/validation.html&#34;&gt;http://book.cakephp.org/3.0/en/core-libraries/validation.html&lt;/a&gt;&lt;/a&gt;. Em breve irei publicar um artigo sobre Validação de dados.&lt;/p&gt;
+
+&lt;p&gt;Linha 38:~ — Método &amp;#8216;&lt;strong&gt;_execute&lt;/strong&gt;&amp;#8216;, recebe como parâmetro um array contendo os dados da requisição ou no caso os dados do formulário que o usuário preencheu. O retorno deste método é de acordo com a implementação.&lt;/p&gt;
+
+&lt;h3 id=&#34;processando-o-formulário&#34;&gt;Processando o Formulário&lt;/h3&gt;
+
+&lt;p&gt;Uma vez definida a classe do formulário, temos agora de processa-lo, para isto podemos utilizar um Controller. Na pasta &amp;#8216;app\src\Controller&amp;#8217; crie um arquivo chamado &amp;#8216;ContactController.php&amp;#8217; com o seguinte conteúdo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;namespace App\Controller;
+use App\Controller\AppController;
+use App\Form\ContactForm;
+class ContactController extends AppController
+{
+  /*
+  * Exibe e processa o formulário de contato caso seja uma requisição post
+  * @return void\Response
+  */
+public function index()
+{
+ $contact = new ContactForm();
+ if ($this-&amp;gt;request-&amp;gt;is(&#39;post&#39;)) {
+ if ($contact-&amp;gt;execute($this-&amp;gt;request-&amp;gt;data)) {
+ $this-&amp;gt;Flash-&amp;gt;success(&#39;Mensagem enviado, aguarde nosso retorno.&#39;);
+} else {
+ $this-&amp;gt;Flash-&amp;gt;error(&#39;Ocorreu um problema ao enviar sua mensagem.&#39;);
+}
+}
+ $this-&amp;gt;set(&#39;contact&#39;, $contact);
+}
+}&lt;/pre&gt;
+
+&lt;p&gt;Linha 13 — Verificamos se a requisição é do tipo &amp;#8216;POST&amp;#8217;.&lt;/p&gt;
+
+&lt;p&gt;Linha 14 — Caso seja, tentamos processar o formulário executando o método &amp;#8216;execute()&amp;#8217; que recebe como parâmetro os dados da requisição que estará disponível no método &amp;#8216;_execute&amp;#8217; do Form. Ao executar o método &amp;#8216;execute&amp;#8217;, automaticamente o formulário irá tentar validar os dados de acordo com sua implementação do método &amp;#8216;_buildValidator&amp;#8217;, se a validação passar, só então o método &amp;#8216;_execute&amp;#8217; é chamado.&lt;/p&gt;
+
+&lt;p&gt;Linha 20 — Envia o objeto do formulário à view para ser utilizado no FormHelper.&lt;/p&gt;
+
+&lt;h3 id=&#34;capturando-erros-de-validação&#34;&gt;Capturando erros de validação&lt;/h3&gt;
+
+&lt;p&gt;Para capturar os erros de validação, utilize o método &amp;#8216;errors()&amp;#8217; do objeto do formulário, veja abaixo um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php &#34;&gt;// Na action do controller
+public function index()
+{
+ $contact = new ContactForm();
+ $erros = [];
+ if ($this-&amp;gt;request-&amp;gt;is(&#39;post&#39;)) {
+ if ($contact-&amp;gt;execute($this-&amp;gt;request-&amp;gt;data)) {
+ $this-&amp;gt;Flash-&amp;gt;success(&#39;Mensagem enviado, aguarde nosso retorno.&#39;);
+} else {
+//Captura &lt;span class=&#34;hiddenGrammarError&#34;&gt;erros
+ $erros&lt;/span&gt; = $contact-&amp;gt;errors();
+ $this-&amp;gt;Flash-&amp;gt;error(&#39;Ocorreu um problema ao enviar sua mensagem.&#39;);
+}
+}
+ $this-&amp;gt;set(&#39;contact&#39;, $contact);
+ $this-&amp;gt;set(&#39;erros&#39;,$erros);
+}&lt;/pre&gt;
+
+&lt;p&gt;O método &amp;#8216;errors&amp;#8217; retorna um array com a listagem de campos que não estão válidos, sendo os índices os nomes dos campos e os valores as mensagens de erro.&lt;/p&gt;
+
+&lt;h3 id=&#34;exibição-do-formulário&#34;&gt;Exibição do Formulário&lt;/h3&gt;
+
+&lt;p&gt;Para que o formulário seja exibido para usuário, crie uma view no diretório &amp;#8216;app\src\View\Template\Contact&amp;#8217; com o nome &amp;#8216;index.ctp&amp;#8217; e o seguinte conteúdo:&lt;/p&gt;
+
+&lt;p&gt;Por enquanto é só galera, em breve irei publicar como enviar os dados do formulário para um e-mail.&lt;/p&gt;
+
+&lt;p&gt;Qualquer dúvida, estou a disposição para ajudar.&lt;/p&gt;
+
+&lt;p&gt;Abraços!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>O que é Sass? Entenda esse outro método de escrever CSS</title>
+      <link>http://tableless.com.br/sass-um-outro-metodo-de-escrever-css/</link>
+      <pubDate>Tue, 11 Jun 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/sass-um-outro-metodo-de-escrever-css/</guid>
+      <description>&lt;p&gt;Se você é um desenvolvedor front-end que está atualmente no mercado, já ouviu/leu palavrinhas como &lt;a href=&#34;http://lesscss.org/&#34; target=&#34;_blank&#34;&gt;LESS&lt;/a&gt;, &lt;a href=&#34;http://foundation.zurb.com/&#34; target=&#34;_blank&#34;&gt;Foundation&lt;/a&gt; e &lt;a href=&#34;http://sass-lang.com&#34; target=&#34;_blank&#34;&gt;Sass&lt;/a&gt;. Alguns sabem do que estou falando, outros não, mas o fato que é que esses nomes foram dados à pré-processadores e frameworks de folhas de estilo para auxiliar na produtividade de códigos, principalmente no que diz respeito a repetição de uma mesma ação, diversas vezes.&lt;/p&gt;
+
+&lt;p&gt;Quantas vezes você se pegou copiando e colando aquele monte de classes &lt;em&gt;identadas&lt;/em&gt; com mais de 15 linhas repetidamente e pensou: podia existir uma maneira mais rápida de fazer isso.&lt;/p&gt;
+
+&lt;p&gt;Agora eu te digo: tem!&lt;/p&gt;
+
+&lt;p&gt;Eu conversei com alguns amigos desenvolvedores e fui saber quais dessas novidades têm sido mais usada, e a disputa ficou bastante acirrada entre os pré-processadores preferidos e os frameworks mais utilizados. Ainda assim, na mesma semana acabei lendo um artigo técnico sobre o uso do Sass e por isso resolvi também testá-lo para entender como ele funciona.&lt;/p&gt;
+
+&lt;p&gt;Basicamente você começa “instalando” ele em sua máquina. Para os usuários de MAC é bem mais tranquilo que para os usuários de PC, porque para o Sass “rodar“ precisamos que o  &lt;a href=&#34;http://pt.wikipedia.org/wiki/Ruby_%28linguagem_de_programa%C3%A7%C3%A3o%29&#34; target=&#34;_blank&#34;&gt;Ruby&lt;/a&gt; também esteja instalado e isso já é nativo no MAC. De qualquer forma, não é nenhuma experiência traumática. &lt;a href=&#34;http://sass-lang.com/download.html&#34; target=&#34;_blank&#34;&gt;No próprio site do Sass você encontra os dois métodos de instalação.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Eu uso MAC e escolhi instalar o Sass através do Git.&lt;/p&gt;
+
+&lt;p&gt;Após clonar o repositório, criei no diretório escolhido um novo arquivo com o nome de “&lt;strong&gt;style.scss&lt;/strong&gt;”. Neste arquivo de folha de estilo, escrevi as seguintes linhas de código:&lt;/p&gt;
+
+&lt;pre&gt;.content {
+backgoround: #000;
+font-family: Arial;
+font-size: 15px;
+p{ line-height: 20px;}
+}&lt;/pre&gt;
+
+&lt;p&gt;Depois abri o terminal, no diretório onde o arquivo .scss foi salvo e digitei:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;sass --watch style.scss:style.css&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto! A mágica está feita.&lt;/p&gt;
+
+&lt;p&gt;Este comando cria um novo arquivo &lt;strong&gt;style.css&lt;/strong&gt; no mesmo diretório traduzindo as linhas digitadas acima em:&lt;/p&gt;
+
+&lt;pre&gt;.content {
+  backgoround: #000;
+  font-family: Arial;
+  font-size: 15px; }
+    .content p {
+   line-height: 20px;
+}&lt;/pre&gt;
+
+&lt;p&gt;Neste momento você pode estar pensando: Ah, é legal, mas não vi tanta mágica assim.&lt;/p&gt;
+
+&lt;p&gt;Então vamos incrementar um pouco as coisas.&lt;/p&gt;
+
+&lt;p&gt;Digite em seu arquivo &lt;strong&gt;.scss&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;.varios-elementos{
+       background:#ccc;
+       p{ color:red}
+       a{ color:pink}
+       input{
+         -moz-border-radius: 20px;
+         border-radius: 20px;
+         -webkit-border-radius: 20px;
+         border-left:solid 1px #eaeaeb;
+         border-right:solid 1px #eaeaeb;
+         border-bottom:solid 1px #eaeaeb; 
+         border-top:solid 3px #ccc;
+       }
+    }&lt;/pre&gt;
+
+&lt;p&gt;Salve e em seguida seu arquivo &lt;strong&gt;style.css&lt;/strong&gt; estará com:&lt;/p&gt;
+
+&lt;pre&gt;.varios-elementos {
+  background: #ccc; }
+  .varios-elementos p {
+    color: red; }
+  .varios-elementos a {
+    color: pink; }
+  .varios-elementos input {
+    -moz-border-radius: 20px;
+    border-radius: 20px;
+    -webkit-border-radius: 20px;
+    border-left: solid 1px #eaeaeb;
+    border-right: solid 1px #eaeaeb;
+    border-bottom: solid 1px #eaeaeb;
+    border-top: solid 3px #ccc; }&lt;/pre&gt;
+
+&lt;p&gt;Percebeu? “.vários-elementos“ foi a classe que criamos, em seguida começamos a escrever as características desta classe e dos elementos que nela continham, de forma bastante intuitiva e direta.&lt;/p&gt;
+
+&lt;p&gt;Não tem muito segredo né?&lt;/p&gt;
+
+&lt;p&gt;O Sass também permite o &lt;strong&gt;uso de variáveis&lt;/strong&gt;. Por exemplo:&lt;/p&gt;
+
+&lt;pre&gt;$main-color: #d5d5d5
+
+.botao{
+   background: $main-color;
+}&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;O uso de pseudo-elementos&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;a {
+   color: #ce4dd6;
+   &amp;:hover { color: #ffb3ff;}
+   &amp;:visited { color: #c458cb; }
+  }&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;O uso de Operações e Funções&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;#navbar {
+        $navbar-width: 800px;
+        $items: 5;
+        width: $navbar-width;
+        li {
+            float: left;
+            width: $navbar-width/$items - 10px;
+            }
+        }&lt;/pre&gt;
+
+&lt;p&gt;E o &lt;strong&gt;uso de interpolação&lt;/strong&gt;: você pode utilizar variáveis não apenas para valores, mas também propriedades ou seletores:&lt;/p&gt;
+
+&lt;pre&gt;$vert: top;
+$horz: left;
+$radius: 10px;
+.rounded-#{$vert}-#{$horz} {
+       border-#{$vert}-#{$horz}-radius: $radius;
+       -moz-border-radius-#{$vert}#{$horz}: $radius;
+       -webkit-border-#{$vert}-#{$horz}-radius: $radius;
+    }&lt;/pre&gt;
+
+&lt;p&gt;Também é permitido importar outros arquivos, como já é possível nos arquivos CSS tradicionais e também o uso da diretiva &lt;strong&gt;“@mixin”&lt;/strong&gt; que é umas das &lt;em&gt;features&lt;/em&gt; mais valorizadas do Sass, onde você pode aproveitar pedaços de códigos com elementos, seletores ou propriedades, simplesmente importando através diretiva “@include“ no arquivo .scss:&lt;/p&gt;
+
+&lt;pre&gt;@mixin rounded-top-left {
+        $vert: top;
+        $horz: left;
+        $radius: 10px;
+        border-#{$vert}-#{$horz}-radius: $radius;
+        -moz-border-radius-#{$vert}#{$horz}: $radius;
+        -webkit-border-#{$vert}-#{$horz}-radius: $radius;
+}
+#navbar li { @include rounded-top-left; }
+#footer { @include rounded-top-left; }&lt;/pre&gt;
+
+&lt;p&gt;Legal né?&lt;/p&gt;
+
+&lt;p&gt;Pois então, enquanto eu testava o Sass me perguntava: vale a pena aprender um novo jeito de escrever CSS? E a resposta foi: vale, dependendo do seu objetivo.&lt;/p&gt;
+
+&lt;p&gt;Se o tempo para o desenvolvimento for curto, o ideal é manter-se no que você já conhece e sabe fazer. Experimentar, pode dar muito certo e te fazer adquirir ainda mais conhecimento, mas também pode dar errado e você não ter tempo de arrumar, além de atrasar seu cronograma.&lt;/p&gt;
+
+&lt;p&gt;Pondere isso, mas não deixe de estudar. Quem sabe numa tarde sem muito job você pode usar o Sass, aprender a aplicá-lo em sua plenitude e dar tudo muito certo quando você for desenvolver projetos a valer.&lt;/p&gt;
+
+&lt;p&gt;😉&lt;/p&gt;
+
+&lt;p&gt;Até a próxima.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;OBS: Pessoal, conforme o comentário abaixo do Duke, existe uma correção a ser feita no que diz respeito à &amp;#8220;dependência&amp;#8221; do Ruby para a instalação do Sass:&lt;header&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/sass-um-outro-metodo-de-escrever-css/#&#34;&gt;Duke:&lt;/a&gt;&lt;/header&gt;&lt;/p&gt;
+
+&lt;div&gt;
+  &lt;div&gt;
+    &lt;div&gt;
+      &lt;p&gt;
+        O SASS de forma alguma depende do Ruby On Rails, o SASS assim como o Ruby On Rails são gem(plugins) do Ruby, o Mac OS não vem com o Ruby on Rails instalado e sim com o Ruby. Veja no proprio link que você colocou da Wikipedia está lá &amp;#8220;Escrito em: Ruby&amp;#8221; ou seja Ruby On Rails está para Ruby assim como CakePHP está para PHP, Django está para Python.
+      &lt;/p&gt;
+      
+      &lt;p&gt;
+        &amp;nbsp;
+      &lt;/p&gt;
+      
+      &lt;p&gt;
+        É isso aí ;).
+      &lt;/p&gt;
+      
+      &lt;p&gt;
+        &amp;nbsp;
+      &lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Plugins jQuery e bibliotecas JavaScript para e-commerces</title>
+      <link>http://tableless.com.br/plugins-jquery-e-bibliotecas-javascript-para-e-commerces/</link>
+      <pubDate>Tue, 26 Feb 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/plugins-jquery-e-bibliotecas-javascript-para-e-commerces/</guid>
+      <description>
+
+&lt;h2 id=&#34;jquery-payment&#34;&gt;jQuery.payment&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://stripe.com/blog/jquery-payment&#34; title=&#34;https://stripe.com/blog/jquery-payment&#34;&gt;https://stripe.com/blog/jquery-payment&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O plugin jQuery.payment valida o número dos principais cartões do mercado. Desenvolvido pelo pessoal da &lt;a href=&#34;https://stripe.com/&#34; title=&#34;https://stripe.com/&#34;&gt;Stripe&lt;/a&gt;, empresa especializada em uma solução de pagamento para desenvolvedores de e-commerces, o plugin conta com validadores para números de cartão de crédito, data de validade e código de segurança.&lt;/p&gt;
+
+&lt;p&gt;Exemplos de uso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$(&#39;.numero-cartao&#39;).payment(&#39;formatCardNumber&#39;);
+$(&#39;.expiracao-cartao&#39;).payment(&#39;formatCardExpiry&#39;);
+$(&#39;.codigo-cartao&#39;).payment(&#39;formatCardCVC&#39;);
+$(&#39;.numerico&#39;).payment(&#39;restrictNumeric&#39;);&lt;/pre&gt;
+
+&lt;p&gt;É possível também tirar proveito de alguns utilitários que acompanham o plugin e executar tarefas de validação, além de retornar informações do cartão baseado no número e a data de validade como um objeto:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$.payment.validateCardNumber(&#39;4242 4242 4242 4242&#39;); //=&amp;gt; true
+$.payment.validateCardExpiry(&#39;05&#39;, &#39;05&#39;); //=&amp;gt; false
+$.payment.validateCardCVC(&#39;12344&#39;); //=&amp;gt; false
+$.payment.cardType(&#39;4242 4242 4242 4242&#39;); //=&amp;gt; &#39;visa&#39;
+$.payment.cardExpiryVal(&#39;05 / 04&#39;); //=&amp;gt; {month: 5, year: 2004}&lt;/pre&gt;
+
+&lt;p&gt;O código-fonte, em CoffeeScript, está disponível no GitHub: &lt;a href=&#34;https://github.com/stripe/jquery.payment&#34; title=&#34;https://github.com/stripe/jquery.payment&#34;&gt;https://github.com/stripe/jquery.payment&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;accounting-js&#34;&gt;accounting.js&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://josscrowcroft.github.com/accounting.js/&#34; title=&#34;http://josscrowcroft.github.com/accounting.js/&#34;&gt;http://josscrowcroft.github.com/accounting.js/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Accounting.js é uma biblioteca JavaScript com funções utilitárias para formatar números e valores monetários.&lt;/p&gt;
+
+&lt;p&gt;Além de formatar números, extrair valores e converter números decimais, a biblioteca implementa uma função bem interessante para padronizar a exibição de números em colunas de uma tabela.&lt;/p&gt;
+
+&lt;p&gt;Exemplos de uso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;accounting.formatMoney(1337.99, &#34;R$&#34;, 2, &#34;.&#34;, &#34;,&#34;); // R$1.337,99
+accounting.formatColumn([99.9, 12.39, 44.33, 84950, -22], &#34;R$&#34;);
+// [&#34;R$    99.90&#34;, &#34;R$    12.39&#34;, &#34;R$    44.33&#34;, &#34;R$84,950.00&#34;, &#34;R$   -22.00&#34;]
+accounting.formatNumber(86960, 2, &#34;.&#34;, &#34;,&#34;); // &#34;86.960,00&#34;
+(0.932).toFixed(2); // &#34;0.93&#34;
+accounting.unformat(&#34;R$ 29.443,32&#34;, &#34;,&#34;); // 29443.32&lt;/pre&gt;
+
+&lt;p&gt;Para padronizar o formato em todas as funções, sem a necessidade de utilizar parâmetros extras em suas chamadas, basta atualizar o objeto &lt;em&gt;accounting.settings&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;accounting.settings = {
+  currency: {
+      symbol : &#34;R$&#34;,
+      decimal : &#34;,&#34;,
+      thousand: &#34;.&#34;,
+      precision : 2 
+  }
+}&lt;/pre&gt;
+
+&lt;h2 id=&#34;masked-input&#34;&gt;Masked Input&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://digitalbush.com/projects/masked-input-plugin/&#34; title=&#34;http://digitalbush.com/projects/masked-input-plugin/&#34;&gt;http://digitalbush.com/projects/masked-input-plugin/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ainda falando de formatação, temos o plugin MaskedInput, responsável por formatar qualquer &lt;em&gt;input&lt;/em&gt; em formulários, garantindo assim uma maior integridade dos dados digitados.&lt;/p&gt;
+
+&lt;p&gt;Exemplos de uso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$(&#34;.cnpj&#34;).mask(&#34;99.999.999/9999-99&#34;);
+$(&#34;.cpf&#34;).mask(&#34;999.999.999-99&#34;);
+$(&#34;.telefone&#34;).mask(&#34;(99) 9999-9999&#34;);
+$(&#34;.cep&#34;).mask(&#34;99.999-999&#34;);&lt;/pre&gt;
+
+&lt;p&gt;É importante lembrar que esses tipos de formatação e validação não devem ser realizados apenas no cliente &amp;#8211; devem ser processados também no servidor.&lt;/p&gt;
+
+&lt;h2 id=&#34;ideal-forms&#34;&gt;Ideal Forms&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://elclanrs.github.com/jq-idealforms/&#34; title=&#34;http://elclanrs.github.com/jq-idealforms/&#34;&gt;http://elclanrs.github.com/jq-idealforms/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Formulários são uma parte importante de qualquer e-commerce e, geralmente, são a parte mais chata para o usuário: os cadastros tendem a ser tediosos, com campos desnecessários, validações mal-feitas e falta de informações.&lt;/p&gt;
+
+&lt;p&gt;O plugin Ideal Forms é uma ferramenta completa para a criação de formulários intuitivos e visualmente atraentes. Seus recursos incluem &lt;em&gt;inputs&lt;/em&gt; customizáveis (&lt;em&gt;select&lt;/em&gt;, &lt;em&gt;radio&lt;/em&gt;, &lt;em&gt;checkbox&lt;/em&gt; e arquivo), validação &lt;em&gt;on-the-fly&lt;/em&gt; e um layout totalmente responsivo.&lt;/p&gt;
+
+&lt;p&gt;A validação pode ser feita utilizando o atributo &lt;em&gt;data-ideal&lt;/em&gt;, como no exemplo abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div&amp;gt;&amp;lt;label&amp;gt;Usuário:&amp;lt;/label&amp;gt;&amp;lt;input type=&#34;text&#34; name=&#34;username&#34; data-ideal=&#34;required username&#34;/&amp;gt;&amp;lt;/div&amp;gt;
+&amp;lt;div&amp;gt;&amp;lt;label&amp;gt;Senha:&amp;lt;/label&amp;gt;&amp;lt;input type=&#34;text&#34; name=&#34;password&#34; data-ideal=&#34;required pass&#34;/&amp;gt;&amp;lt;/div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Outra opção é utilizar parâmetros na inicialização do plugin. O Ideal Forms utiliza o atributo &lt;em&gt;name&lt;/em&gt; dos campos para configurações específicas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$(&#39;#form-cadastro&#39;).idealforms({
+    inputs: {
+      &#39;idade&#39;: {
+        filters: &#39;required min&#39;,
+        data: { min: 18 },
+        errors: { min: &#39;Você precisa ter 18 anos para comprar nesse site&#39; }
+      }
+    }
+});&lt;/pre&gt;
+
+&lt;p&gt;Ainda é possível dividir um formulário em passos, recurso indicado para o cadastro e o registro de um pedido em um e-commerce. Para isso, basta adicionar mais de um elemento &lt;em&gt;section&lt;/em&gt; dentro do seu formulário.&lt;/p&gt;
+
+&lt;p&gt;A documentação do projeto é bem completa e está disponível no &lt;a href=&#34;https://github.com/elclanrs/jq-idealforms&#34; title=&#34;https://github.com/elclanrs/jq-idealforms&#34;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;filtrify&#34;&gt;Filtrify&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://luis-almeida.github.com/filtrify/&#34; title=&#34;http://luis-almeida.github.com/filtrify/&#34;&gt;http://luis-almeida.github.com/filtrify/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Filtrify é um plugin jQuery que habilita filtros em tempo real, ideal para páginas de produtos em uma loja online. Basedo no atributo &lt;em&gt;data&lt;/em&gt; de elementos HTML, o Filtrify gera uma lista, possibilitando selecionar apenas elementos de um determinado filtro.&lt;/p&gt;
+
+&lt;p&gt;O plugin recebe dois elementos: um &lt;em&gt;container&lt;/em&gt; para os filtros e outro para os elementos a serem filtrados. No exemplo abaixo temos uma lista de produtos (notem as categorias no atributo &lt;em&gt;data&lt;/em&gt;):&lt;/p&gt;
+
+&lt;div id=&#34;filtros&#34;&gt;
+&lt;/div&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div id=&#34;filtros&#34;&amp;gt;&amp;lt;/div&amp;gt;
+
+&amp;lt;ul id=&#34;produtos&#34;&amp;gt;
+    &amp;lt;li data-categoria=&#34;informática, eletrônicos, computadores&#34;&amp;gt;Desktop Core i7&amp;lt;/li&amp;gt;
+    &amp;lt;li data-genre=&#34;informática, acessórios, impressoras&#34;&amp;gt;Impressora HP Deskjet&amp;lt;/li&amp;gt;
+    &amp;lt;li data-genre=&#34;informática, acessórios, tablets&#34;&amp;gt;iPad&amp;lt;/li&amp;gt;
+    &amp;lt;li data-genre=&#34;telefonia, celular, apple&#34;&amp;gt;iPhone&amp;lt;/li&amp;gt;
+    &amp;lt;li data-genre=&#34;informática, laptops&#34;&amp;gt;Notebook Positivo&amp;lt;/li&amp;gt;
+&amp;lt;/ul&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;A inicialização fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$.filtrify(&#34;produtos&#34;, &#34;filtros&#34;);&lt;/pre&gt;
+
+&lt;p&gt;E o resultado:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2013/02/filtrify.jpg&#34; alt=&#34;filtrify&#34; width=&#34;378&#34; height=&#34;333&#34; class=&#34;alignnone size-full wp-image-10921&#34; srcset=&#34;uploads/2013/02/filtrify.jpg 378w, uploads/2013/02/filtrify-190x168.jpg 190w, uploads/2013/02/filtrify-351x310.jpg 351w&#34; sizes=&#34;(max-width: 378px) 100vw, 378px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;jquery-zoom&#34;&gt;jQuery Zoom&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.jacklmoore.com/zoom&#34; title=&#34;http://www.jacklmoore.com/zoom&#34;&gt;http://www.jacklmoore.com/zoom&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O plugin jQuery Zoom habilita o recurso de zoom em imagens com interações do mouse. A inicialização do plugin cria elementos novos para o efeito de zoom, portanto, deve ser aplicada em um elemento capaz de receber outros elementos (não pode ser aplicada em um elemento img).&lt;/p&gt;
+
+&lt;p&gt;Exemplos de uso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-jquery&#34;&gt;$(&#39;a.foto-produto&#39;).zoom(); 
+$(&#39;a.foto-produto-grab&#39;).zoom({ on:&#39;grab&#39; });&lt;/pre&gt;
+
+&lt;p&gt;As opções do plugin incluem os seguintes parâmetros: &lt;em&gt;url&lt;/em&gt; da imagem maior, &lt;em&gt;on&lt;/em&gt; (&lt;em&gt;mouseover&lt;/em&gt;, &lt;em&gt;grab&lt;/em&gt;, &lt;em&gt;click&lt;/em&gt; ou &lt;em&gt;toggle&lt;/em&gt;), &lt;em&gt;duration&lt;/em&gt; (velocidade do zoom) e &lt;em&gt;callback&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;bônus-carrinho-de-compras-com-drag-and-drop&#34;&gt;Bônus: Carrinho de compras com drag and drop&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/carrinho-de-compras-com-drag-and-drop/&#34; title=&#34;http://tableless.com.br/carrinho-de-compras-com-drag-and-drop/&#34;&gt;http://tableless.com.br/carrinho-de-compras-com-drag-and-drop/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Há mais ou menos dois anos escrevi um tutorial aqui no Tableless mostrando como implementar um carrinho com funções de &lt;em&gt;drag and drop&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Utilizando os métodos &lt;em&gt;draggable&lt;/em&gt; e &lt;em&gt;droppable&lt;/em&gt; da biblioteca jQueryUI, ao final do tutorial você tem um carrinho drag and drop completamente funcional, pronto para ser implementado no seu e-commerce.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.github.com/exemplos/carrinho-compras/&#34; title=&#34;http://tableless.github.com/exemplos/carrinho-compras/&#34;&gt;Clique aqui&lt;/a&gt; para visualizar o exemplo do tutorial no navegador.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Biblioteca CSS ou Framework?</title>
+      <link>http://tableless.com.br/biblioteca-css-ou-framework/</link>
+      <pubDate>Mon, 10 Oct 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/biblioteca-css-ou-framework/</guid>
+      <description>
+
+&lt;p&gt;Primeiro você precisa entender a diferença entre os dois. A &lt;a href=&#34;http://tableless.com.br/?author=8&#34;&gt;Talita Pagani&lt;/a&gt; &lt;a href=&#34;http://bit.ly/qbkeRb&#34;&gt;em um dos seus artigos&lt;/a&gt; descreve o que é um framework assim:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Framework é um conjunto de componentes que provêm uma estrutura básica de elementos reutilizáveis, tendo uma arquitetura consistente de funcionalidade genérica sob a qual a aplicação será construída.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;O uso de uma Biblioteca (CSS, Javascript, etc) é bastante parecido com a utilização de um framework. Eu prefiro a utilização de uma biblioteca por ser menos instrusiva e muito mais personalizável. Existem algumas diferenças que você deve prestar sua atenção para entender qual das duas formas é melhor para o projeto.&lt;/p&gt;
+
+&lt;h3 id=&#34;modificação-visual&#34;&gt;Modificação visual&lt;/h3&gt;
+
+&lt;p&gt;Enquanto o framework modifica as características visuais, a biblioteca se restringe manipulando a diagramação ou a posição dos elementos.&lt;/p&gt;
+
+&lt;p&gt;Na grande maioria, os frameworks modificam automaticamente o visual de alguns elementos, gerando um certo retrabalho, porque geralmente o design aplicado não é o design aprovado pelo cliente ou pelo designer do projeto. Veja por exemplo o &lt;a href=&#34;http://twitter.github.com/bootstrap/&#34;&gt;Bootstrap&lt;/a&gt; feito pelo pessoal do Twitter. Assim que linkado em seu código, os elementos como os campos de formulários e parágrafos tem suas características visuais modificadas para seguir um design pré definido pelos donos do framework &amp;#8211; diga-se de passagem, o trabalho de design feito pelo pessoal do Bootstrap é muito bacana. Já as bibliotecas, na maioria das vezes, não faz nenhuma modificação no design ou na posição dos elementos sem a inserção de Classe ou ID. Geralmente as bibliotecas são restritas para manipular a posição e as dimensões dos elementos, facilitando a diagramação de layouts, sem modificar as características visuais, já que os layouts de cada site tem o design diferente. É por isso que eu gosto de definir que frameworks são ótimos para construir sistemas, já as bibliotecas ajudam muito mais ao construir websites. Sistemas tem muitos formulários, botões de ação, pouco texto e etc. A utilização de um framework é muito interessante nesse caso porque não perdemos tempo manipulando e definindo um padrão visual para estes elementos &amp;#8211; como os tamanhos dos campos de formulário de texto.&lt;/p&gt;
+
+&lt;p&gt;Já a biblioteca é muito útil para definir quando os elementos terão float, position, largura variável e etc. São características de posição e diagramação, que não afetam a questão do design.&lt;/p&gt;
+
+&lt;h3 id=&#34;quantidade-de-código-não-utilizado&#34;&gt;Quantidade de código não utilizado&lt;/h3&gt;
+
+&lt;p&gt;Geralmente ao utilizar uma biblioteca, talvez você estará linkando mais código do que o necessário para o seu projeto. Você pode não utilizar todas essas classes/ids pré definidos pelo autor da biblioteca, o que é normal dependendo do projeto e do design criado. Este risco diminui quando utilizamos frameworks, já que eles modificam as características de todos os elementos principais do projeto. Praticamente todo o código estará do framework estará sendo usado porque eles são aplicados nos elementos assim que o framework é linkado no código. Porém, com a biblioteca, é fácil mapearmos quais as classes utilizadas e excluir o código que não está sendo usado para diminuir o tamanho dos arquivos e do código.&lt;/p&gt;
+
+&lt;h3 id=&#34;personalização-e-criação&#34;&gt;Personalização e criação&lt;/h3&gt;
+
+&lt;p&gt;A personalização ou criação de uma biblioteca CSS é muito mais fácil do que se resolvermos criar do zero um framework. Você consegue facilmente criar uma biblioteca de CSS contendo algumas classes úteis para qualquer projeto, por exemplo:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;css&amp;#8221;]&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;{
+&lt;br /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;margin:0;&lt;/p&gt;
+
+&lt;p&gt;padding:0;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;p&gt;.fLeft {float: left}&lt;/p&gt;
+
+&lt;p&gt;.fRight {float: right;}&lt;/p&gt;
+
+&lt;p&gt;.fNone {float: none;}&lt;/p&gt;
+
+&lt;p&gt;.dBlock {display: block;}&lt;/p&gt;
+
+&lt;p&gt;.dInline {display: inline;}&lt;/p&gt;
+
+&lt;p&gt;.dInlineBlock {display: inline-block;}&lt;/p&gt;
+
+&lt;p&gt;.dNone {display: none;}&lt;/p&gt;
+
+&lt;p&gt;.pAbsolute {position: absolute;}&lt;/p&gt;
+
+&lt;p&gt;.pRelative {position: relative;}&lt;/p&gt;
+
+&lt;p&gt;.cBoth {clear: both;}&lt;/p&gt;
+
+&lt;p&gt;.cLeft {clear: left;}&lt;/p&gt;
+
+&lt;p&gt;.cRight {clear: right;}&lt;/p&gt;
+
+&lt;p&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;O código acima é um bom começo para uma biblioteca CSS personalizada. Contém ali classes básicas que se combinadas dão diferentes características para um determinado elemento. Essas classes também se mostram muito úteis se reutilizarmos no código javascript do projeto.&lt;/p&gt;
+
+&lt;h3 id=&#34;sistema-e-site&#34;&gt;Sistema e Site&lt;/h3&gt;
+
+&lt;p&gt;Design de sistemas são sempre parecidos. Todos eles tem muitos campus de formulário, checkboxes, combos, radio buttons e etc. É basicamente manipulação de formulários, alertas de erro e mensagens para o usuário, manipulação de botões de ação e etc. Não foge muito disso.&lt;/p&gt;
+
+&lt;p&gt;Já o design de sites são todos bem diferentes. Por isso que a manipulação visual dos frameworks se torna inútil e gera muito retrabalho.&lt;/p&gt;
+
+&lt;p&gt;Eu prefiro utilizar bibliotecas para a criação de sites. Para o desenvolvimento de sistemas, prefiro utilizar framworks.&lt;/p&gt;
+
+&lt;p&gt;Mas tenha em mente: se for decidir utilizar qualquer um dos dois, é bom que essa decisão seja feita logo no começo do projeto. Aplicar um framework no meio de um projeto pode dar muitos problemas e tomar muito tempo. Por isso é importante que essa decisão seja feita no início do projeto.&lt;/p&gt;
+
+&lt;h3 id=&#34;concluindo&#34;&gt;Concluindo&lt;/h3&gt;
+
+&lt;p&gt;Entenda que um framework pode ter uma biblioteca de CSS embutida em seu core. Tendo também a possibilidade de manipular o visual dos elementos, o framework se mostra muito mais completo que uma biblioteca CSS, embora a bilioteca ganhe por ser mais fácil de personalizar e por não manipular o visual dos elementos, te deixando livre para formatar da forma que você bem entender.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Quando utilizar (ou não) frameworks CSS</title>
+      <link>http://tableless.com.br/quando-utilizar-ou-nao-frameworks-css/</link>
+      <pubDate>Thu, 01 Sep 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/quando-utilizar-ou-nao-frameworks-css/</guid>
+      <description>
+
+&lt;p&gt;Framework é um conjunto de componentes que provêm uma estrutura básica de elementos reutilizáveis, tendo uma arquitetura consistente de funcionalidade genérica sob a qual a aplicação será construída.&lt;/p&gt;
+
+&lt;p&gt;No caso de CSS, os frameworks constituem bibliotecas que visam permitir a codificação do CSS de modo mais fácil e compatível com padrões de estilos, agregando uma série de opções já prontas para projetar uma página web, como se fosse um esqueleto, reduzindo o tempo gasto com o desenvolvimento.&lt;/p&gt;
+
+&lt;p&gt;Os frameworks CSS geralmente apresentam definições de formatação os elementos mais comuns de uma página: formulários, cabeçalhos, estilos de textos e imagens. Alguns apresentar opções para a estruturação do conteúdo baseado em &lt;em&gt;grids&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;A utilização de frameworks HTML e/ou CSS ainda é um assunto que divide a opinião dos desenvolvedores, pois muitos consideram o framework como uma &lt;strong&gt;solução pronta&lt;/strong&gt; e acreditam que ele tira o trabalho das mãos do designer/desenvolvedor e faz com que ele não aprimore os seus conhecimentos.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Será que você, sem perceber, nunca criou o seu próprio framework?&lt;/strong&gt; Pense em um arquivo CSS padrão (além do &lt;em&gt;reset&lt;/em&gt;) que você criou para melhorar a produtividade de seus projetos.&lt;/p&gt;
+
+&lt;p&gt;É importante esclarecer que o uso de frameworks &lt;strong&gt;não substitui&lt;/strong&gt; a necessidade do designer/ desenvolvedor de desenvolver o CSS do site. Ele apenas fornece uma base para a formatação de elementos comuns e otimiza o trabalho repetitivo.&lt;/p&gt;
+
+&lt;h2 id=&#34;para-quem-os-frameworks-são-recomendados&#34;&gt;Para quem os frameworks são recomendados&lt;/h2&gt;
+
+&lt;p&gt;Utilizar um framework CSS não é uma prática recomendada para quem está começando, principalmente por privar a pessoa da prática e do conhecimento sobre o funcionamento do CSS. Além disso, se ela não compreender bem CSS, poderá ter problemas para resolver problemas de layout causados por incompatibilidade entre o framework e um código CSS específico que ela inseriu.&lt;/p&gt;
+
+&lt;p&gt;Portanto, é recomendável que frameworks sejam utilizados por quem possui um nível razoável de conhecimento e compreensão do código, mas tem a intenção de otimizar parte do trabalho com o uso de um framework. E isto serve não apenas para quem pretende utilizar um framework CSS, mas também qualquer tipo de framework.&lt;/p&gt;
+
+&lt;h2 id=&#34;quando-é-interessante-utilizar&#34;&gt;Quando é interessante utilizar?&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Prototipação rápida em HTML&lt;/li&gt;
+&lt;li&gt;Sites de larga escala e com estruturas similares (como portais, blog/sites no estilo magazine)&lt;/li&gt;
+&lt;li&gt;Sites construídos através de plataformas de CMS&lt;/li&gt;
+&lt;li&gt;Projetos que tenham prazos curtos&lt;/li&gt;
+&lt;li&gt;Projetos realizados em equipe onde há diversas pessoas trabalhando no mesmo CSS, podendo ter um conjunto consistente de padrões de codificação&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;vantagens&#34;&gt;Vantagens&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Padronização de código entre a equipe de desenvolvimento;&lt;/li&gt;
+&lt;li&gt;Arquivos modularizados;&lt;/li&gt;
+&lt;li&gt;Flexibilidade de estilos, classes genéricas que podem ser combinadas de diversas formas nos elementos da página;&lt;/li&gt;
+&lt;li&gt;Geralmente já possuem uma documentação, que pode ser consultada pela equipe em caso de dúvida ou necessidade de solucionar algum problema;&lt;/li&gt;
+&lt;li&gt;Compatibilidade cross-browser (na maioria dos casos);&lt;/li&gt;
+&lt;li&gt;Você pode melhorar suas habilidades estudando o framework;&lt;/li&gt;
+&lt;li&gt;Redução de tempo: o desenvolvedor/designer pode se concentrar mais nos aspectos particulares do site desenvolvido, pois a base está assegurada e não precisa desenvolvê-la do zero;&lt;/li&gt;
+&lt;li&gt;Reduz futuros esforços de manutenção caso seja necessário resposicionar elementos ou alterar características de renderização (fonte, margens, etc) em diversos elementos.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;desvantagens&#34;&gt;Desvantagens&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Quantidade excessiva de modificações que devem ser feitas para adaptar o framework;&lt;/li&gt;
+&lt;li&gt;O framework pode conter códigos irrelevantes que nunca serão utilizados no projeto e serão carregados sem necessidade, podendo diminuir o desempenho da página;&lt;/li&gt;
+&lt;li&gt;Nem sempre o código é bem organizado;&lt;/li&gt;
+&lt;li&gt;Muitos frameworks apresentam classes pouco semânticas (ex.: span-5).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;algumas-dicas-para-melhorar-o-uso-do-framework&#34;&gt;Algumas dicas para melhorar o uso do framework&lt;/h2&gt;
+
+&lt;p&gt;Como as classes geralmente não apresentam muita semântica, procure colocar IDs significativos nos elementos da página, quando possível.&lt;/p&gt;
+
+&lt;p&gt;Você também pode optar por utilizar somente uma parte do framework. Em projetos em que utilizei o &lt;a title=&#34;Blueprint CSS&#34; href=&#34;http://www.blueprintcss.org/&#34; target=&#34;_blank&#34;&gt;Blueprint CSS&lt;/a&gt;, muitas vezes utilizava apenas algumas folhas de estilos do framework que se adequavam ao que eu necessitava.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Dica:&lt;/strong&gt; evite usar vários frameworks CSS em um mesmo projeto. Isto quebra a ideia de consistência, uma vez que cada framework tem o seu padrão de estruturação.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-escolher-o-framework&#34;&gt;Como escolher o framework?&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Verificar se é realmente necessário o uso de um framework CSS no projeto;&lt;/li&gt;
+&lt;li&gt;Avaliar se o código do framework escolhido tem uma estrutura e organização;&lt;/li&gt;
+&lt;li&gt;Avaliar se há código excessivo que nunca será utilizado;&lt;/li&gt;
+&lt;li&gt;Conferir se há uma boa documentação;&lt;/li&gt;
+&lt;li&gt;Verificar se os recursos do framework são adequados ao que você necessita para o projeto. Não adianta utilizar um framework CSS focado em renderização quando seria mais útil um framework de grid.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Frameworks CSS, se bem utilizados, podem trazer muitos benefícios para seus projetos, basta saber como explorar o potencial que eles possuem 😉&lt;/p&gt;
+
+&lt;h3 id=&#34;referências&#34;&gt;Referências&lt;/h3&gt;
+
+&lt;p&gt;Why you should NOT use a web framework &amp;#8211; &lt;a href=&#34;http://checkedexception.blogspot.com/2010/04/why-you-should-not-use-web-framework.html&#34;&gt;http://checkedexception.blogspot.com/2010/04/why-you-should-not-use-web-framework.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;To use a framework, or not to: that is the question &amp;#8211; &lt;a href=&#34;http://www.phparch.com/2010/04/to-use-a-framework-or-not-to-that-is-the-question/&#34;&gt;http://www.phparch.com/2010/04/to-use-a-framework-or-not-to-that-is-the-question/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Please do not Use CSS Frameworks &amp;#8211; &lt;a href=&#34;http://mondaybynoon.com/2007/08/27/please-do-not-use-css-frameworks/&#34;&gt;http://mondaybynoon.com/2007/08/27/please-do-not-use-css-frameworks/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Which CSS Grid Framework Should You Use for Web Design? &amp;#8211; &lt;a href=&#34;http://net.tutsplus.com/tutorials/html-css-techniques/which-css-grid-framework-should-you-use-for-web-design/&#34;&gt;http://net.tutsplus.com/tutorials/html-css-techniques/which-css-grid-framework-should-you-use-for-web-design/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;When to use CSS framework? &amp;#8211; &lt;a href=&#34;http://www.vcarrer.com/2008/08/when-to-use-css-framework.html&#34;&gt;http://www.vcarrer.com/2008/08/when-to-use-css-framework.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;WHAT’S NOT TO LOVE ABOUT CSS FRAMEWORKS? &amp;#8211; &lt;a href=&#34;http://jeffcroft.com/blog/2007/nov/17/whats-not-love-about-css-frameworks/&#34;&gt;http://jeffcroft.com/blog/2007/nov/17/whats-not-love-about-css-frameworks/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Frameworks for Designers &amp;#8211; &lt;a href=&#34;http://www.alistapart.com/articles/frameworksfordesigners&#34;&gt;http://www.alistapart.com/articles/frameworksfordesigners&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>CSS Frameworks ou como desaprender CSS</title>
+      <link>http://tableless.com.br/css-frameworks-ou-como-desaprender-css/</link>
+      <pubDate>Tue, 09 Oct 2007 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/css-frameworks-ou-como-desaprender-css/</guid>
+      <description>&lt;p&gt;O papo que agora está começando a rolar entre os desenvolvedores é sobre Frameworks para CSS.&lt;/p&gt;
+
+&lt;p&gt;Sou totalmente contra a qualquer coisa que impeça o contato do desenvolvedor com o código. Sou avesso a qualquer tipo de interface que prometa facilitar o desenvolvimento, pelo menos de XHTML e CSS. Lembra daquele papo sobre o &lt;a href=&#34;http://tableless.com.br/desenvolvedor-analfabetico-sim-e-sobre-wysiwyg&#34;&gt;desenvolvedor &amp;#8220;analbético&amp;#8221; de código&lt;/a&gt;?&lt;/p&gt;
+
+&lt;p&gt;Ainda acho que utilizar editores que suportam Snippets &amp;#8211; ou Macros, dependendo do editor &amp;#8211; são as melhores formas de se trabalhar se você quer agilidade. Você mantém o contato com o código e agiliza seu trabalho ao mesmo tempo.&lt;/p&gt;
+
+&lt;p&gt;Lembre-se de que estamos falando sobre frameworks de CSS e XHTML. Nada de Django ou qualquer outro tipo de framework para linguagens server side.&lt;/p&gt;
+
+&lt;p&gt;Esses tipos de frameworks ajudam um bocado o programador. Boa parte do trabalho duro pode ser agilizado por causa destes frameworks. E até concordo que os desenvolvedores utilizem frameworks deste tipo para ajudar em seu trabalho.&lt;/p&gt;
+
+&lt;p&gt;O problema é um que eu já comentei com você e já falei bastante em palestras: o programador, muitas vezes é um bicho mais antenado que o designer ou o camarada que cuida de interface. Ele precisa estudar, precisa procurar soluções mais complexas para problemas mais específicos. Por isso, é bom que existam esse tipo de framework para que o trabalho dele seja mais ágil. Ele não vai desaprender a programar.&lt;/p&gt;
+
+&lt;p&gt;É importante que o desenvolvedor web saiba que o código é o mestre. Ler, compreender e escrever código é essencial para que tenhamos o controle sobre o projeto. É importante também para que a pessoa se torne um profissional decente e que tenha algum valor (desculpe aos mais fracos de estômago).&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://warpspire.com/features/css-frameworks/&#34;&gt;Why don&amp;#8217;t use CSS Frameworks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.smashingmagazine.com/2007/09/21/css-frameworks-css-reset-design-from-scratch/&#34;&gt;CSS Frameworks CSS Reset Design from Scratch&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.contentwithstyle.co.uk/Articles/17/&#34;&gt;A CSS Framework&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;[O papo que agora está começando a rolar entre os desenvolvedores é sobre Frameworks para CSS.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Sou totalmente contra a qualquer coisa que impeça o contato do desenvolvedor com o código. Sou avesso a qualquer tipo de interface que prometa facilitar o desenvolvimento, pelo menos de XHTML e CSS. Lembra daquele papo sobre o &lt;a href=&#34;http://tableless.com.br/desenvolvedor-analfabetico-sim-e-sobre-wysiwyg&#34;&gt;desenvolvedor &amp;#8220;analbético&amp;#8221; de código&lt;/a&gt;?&lt;/p&gt;
+
+&lt;p&gt;Ainda acho que utilizar editores que suportam Snippets &amp;#8211; ou Macros, dependendo do editor &amp;#8211; são as melhores formas de se trabalhar se você quer agilidade. Você mantém o contato com o código e agiliza seu trabalho ao mesmo tempo.&lt;/p&gt;
+
+&lt;p&gt;Lembre-se de que estamos falando sobre frameworks de CSS e XHTML. Nada de Django ou qualquer outro tipo de framework para linguagens server side.&lt;/p&gt;
+
+&lt;p&gt;Esses tipos de frameworks ajudam um bocado o programador. Boa parte do trabalho duro pode ser agilizado por causa destes frameworks. E até concordo que os desenvolvedores utilizem frameworks deste tipo para ajudar em seu trabalho.&lt;/p&gt;
+
+&lt;p&gt;O problema é um que eu já comentei com você e já falei bastante em palestras: o programador, muitas vezes é um bicho mais antenado que o designer ou o camarada que cuida de interface. Ele precisa estudar, precisa procurar soluções mais complexas para problemas mais específicos. Por isso, é bom que existam esse tipo de framework para que o trabalho dele seja mais ágil. Ele não vai desaprender a programar.&lt;/p&gt;
+
+&lt;p&gt;É importante que o desenvolvedor web saiba que o código é o mestre. Ler, compreender e escrever código é essencial para que tenhamos o controle sobre o projeto. É importante também para que a pessoa se torne um profissional decente e que tenha algum valor (desculpe aos mais fracos de estômago).&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://warpspire.com/features/css-frameworks/&#34;&gt;Why don&amp;#8217;t use CSS Frameworks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.smashingmagazine.com/2007/09/21/css-frameworks-css-reset-design-from-scratch/&#34;&gt;CSS Frameworks CSS Reset Design from Scratch&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.contentwithstyle.co.uk/Articles/17/&#34;&gt;A CSS Framework&lt;/a&gt;
+*]&lt;a href=&#34;http://tableless.com.br/desenvolvedor-analfabetico-sim-e-sobre-wysiwyg&#34;&gt;1&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

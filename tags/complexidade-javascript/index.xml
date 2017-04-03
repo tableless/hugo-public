@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Complexidade Javascript on Tableless</title>
+    <link>http://tableless.com.br/tags/complexidade-javascript/index.xml</link>
+    <description>Recent content in Complexidade Javascript on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/complexidade-javascript/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Medindo a complexidade do seu código JavaScript</title>
+      <link>http://tableless.com.br/medindo-a-complexidade-ciclomatica-do-seu-codigo-javascript/</link>
+      <pubDate>Tue, 18 Jun 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/medindo-a-complexidade-ciclomatica-do-seu-codigo-javascript/</guid>
+      <description>
+
+&lt;p&gt;Já mostramos aqui no Tableless &lt;a href=&#34;http://tableless.com.br/testando-seu-codigo-jquery-com-jasmine-parte-1/&#34;&gt;ferramentas para testes&lt;/a&gt; e &lt;a href=&#34;http://tableless.com.br/qualidade-codigo-javascript/&#34;&gt;ferramentas para garantir o padrão do seu código JavaScript&lt;/a&gt;, mas, enquanto esses utilitários asseguram uma consistência maior, eles nem sempre acabam com complexidades desnecessárias.&lt;/p&gt;
+
+&lt;p&gt;Neste artigo vamos falar sobre complexidade ciclomática e mostrar uma ferramenta para análise de códigos JavaScript, a biblioteca Plato.&lt;/p&gt;
+
+&lt;h2 id=&#34;complexidade-ciclomática&#34;&gt;Complexidade Ciclomática&lt;/h2&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;A primeira regra de funções é que elas devem ser pequenas. A segunda regra de funções é que elas devem ser ainda menores.&lt;br /&gt;
+&amp;mdash; Uncle Bob&lt;/p&gt;
+
+&lt;p&gt;Funções devem fazer uma coisa apenas. Fazê-la bem. Fazer somente ela.&lt;br /&gt;
+&amp;mdash; Uncle Bob&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Explicando de forma bem direta, complexidade ciclomática é uma métrica do número de caminhos possíveis no seu código. Por exemplo, vejamos o código abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function authenticate() {
+  if (user.isValid() === true) { 
+    user.login(); 
+  } else { 
+    showMessage(&#39;Invalid credentials&#39;, &#39;error&#39;); 
+  } 
+}&lt;/pre&gt;
+
+&lt;p&gt;A função &lt;strong&gt;authenticate&lt;/strong&gt; possui valor &lt;strong&gt;2&lt;/strong&gt; de complexidade ciclomática. Na prática, isso quer dizer que precisaríamos escrever dois testes unitários para cobrir todos os possíveis caminhos. Ou seja, quanto mais caminhos, maior a complexidade ciclomática e, quanto maior a complexidade ciclomática, mais difícil será de manter/testar seu código.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.mccabe.com/pdf/MeasuringSoftwareComplexityUAV.pdf&#34; target=&#34;_blank&#34;&gt;Estudos&lt;/a&gt; recomendam &lt;strong&gt;10&lt;/strong&gt; como o valor máximo que você deve permitir de complexidade ciclomática no seu método ou sua função. Este é um bom valor, mas tenha em mente que &lt;strong&gt;10&lt;/strong&gt; já é uma complexidade alta e não deve, de forma alguma, ser a média de complexidade do seu projeto.&lt;/p&gt;
+
+&lt;h2 id=&#34;bad-fix&#34;&gt;Bad Fix&lt;/h2&gt;
+
+&lt;p&gt;Outra métrica tirada a partir da complexidade ciclomática é a probabilidade de uma correção injetar novos bugs no seu código. O pessoal da Aivosto, uma empresa especializada em ferramentas para desenvolvedores, chegou a &lt;a href=&#34;http://www.aivosto.com/project/help/pm-complexity.html&#34; target=&#34;_blank&#34;&gt;seguinte tabela&lt;/a&gt;:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th&gt;
+      Complexidade Ciclomática
+    &lt;/th&gt;
+    
+    &lt;th&gt;
+      Probabilidade de &amp;#8220;bad fix&amp;#8221;
+    &lt;/th&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      1-10
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      5%
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      20-30
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      20%
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      &gt;50
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      40%
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      próximo de 100
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      60%
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Segundo a pesquisa da Aivosto, uma correção aplicada em um método com complexidade ciclomática 25 tem 20% de chances de introduzir um novo bug na sua aplicação. Tente lembrar quantas vezes isso já aconteceu com você? E tente lembrar também do tamanho do método ou função que você estava &amp;#8220;corrigindo&amp;#8221;. Por isso é muito importante tentar medir tudo a respeito do seu código.&lt;/p&gt;
+
+&lt;h2 id=&#34;plato&#34;&gt;Plato&lt;/h2&gt;
+
+&lt;p style=&#34;text-align: center&#34;&gt;
+  &lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2013/06/complexityplato.jpg&#34; alt=&#34;complexityplato&#34; width=&#34;372&#34; height=&#34;396&#34; class=&#34;alignnone size-full wp-image-37790&#34; style=&#34;border: 1px solid #ccc&#34; srcset=&#34;uploads/2013/06/complexityplato.jpg 372w, uploads/2013/06/complexityplato-157x168.jpg 157w, uploads/2013/06/complexityplato-291x310.jpg 291w&#34; sizes=&#34;(max-width: 372px) 100vw, 372px&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Desenvolvida por Jarrod Overson, a ferramenta &lt;a href=&#34;https://github.com/jsoverson/plato&#34; target=&#34;_blank&#34;&gt;Plato&lt;/a&gt; aplica na prática todas as teorias de medição de complexidade ciclomática, exibindo na forma de gráficos dados como taxa de mantenabilidade, bugs estimados e erros de lint.&lt;/p&gt;
+
+&lt;p&gt;A instalação é feita através do npm, gerenciador de pacotes do nodejs:&lt;/p&gt;
+
+&lt;pre&gt;npm install -g plato&lt;/pre&gt;
+
+&lt;p&gt;A forma mais básica de uso é a seguinte:&lt;/p&gt;
+
+&lt;pre&gt;plato -d report src&lt;/pre&gt;
+
+&lt;p&gt;Onde &lt;strong&gt;-d report&lt;/strong&gt; é a flag para indicar o diretório &lt;strong&gt;report&lt;/strong&gt; como saída do seu relatório e &lt;strong&gt;src&lt;/strong&gt; é o diretório dos arquivos JavaScript a serem analisados.&lt;/p&gt;
+
+&lt;p&gt;Outras opções importantes são as flag &lt;strong&gt;-r&lt;/strong&gt; para ler o diretório recursivamente e &lt;strong&gt;-x &lt;regex&gt;&lt;/strong&gt; para excluir arquivos baseados em uma regex.&lt;/p&gt;
+
+&lt;p&gt;Os relatórios do Plato armazenam históricos e é bem interessante ver os números subindo e descendo durante o desenvolvimento do seu projeto. Uma prática legal é guardar e exibir o relatório em algum lugar disponível para todo o seu time.&lt;/p&gt;
+
+&lt;h2 id=&#34;exemplos-de-relatórios&#34;&gt;Exemplos de relatórios&lt;/h2&gt;
+
+&lt;p&gt;Abaixo temos alguns exemplos de relatórios disponibilizados no repositório do projeto, gerados a partir de bibliotecas e utilitários populares:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://jsoverson.github.com/plato/examples/jquery/&#34; target=&#34;_blank&#34;&gt;jquery&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://jsoverson.github.com/plato/examples/grunt/&#34; target=&#34;_blank&#34;&gt;grunt&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://jsoverson.github.com/plato/examples/marionette/&#34; target=&#34;_blank&#34;&gt;marionettejs&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;bugs-estimados&#34;&gt;Bugs estimados&lt;/h2&gt;
+
+&lt;p style=&#34;text-align: center&#34;&gt;
+  &lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2013/06/bugs.jpg&#34; alt=&#34;bugs&#34; width=&#34;404&#34; height=&#34;246&#34; class=&#34;alignnone size-full wp-image-37786&#34; style=&#34;border: 1px solid #ccc&#34; srcset=&#34;uploads/2013/06/bugs.jpg 404w, uploads/2013/06/bugs-275x168.jpg 275w&#34; sizes=&#34;(max-width: 404px) 100vw, 404px&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Um gráfico que chama a atenção nos relatórios do Plato é o de bugs estimados. Afinal de contas, entregar um produto sem bugs é (ou deveria ser) o objetivo final de qualquer desenvolvedor.&lt;/p&gt;
+
+&lt;p&gt;Maurice Howard Halstead criou um &lt;a href=&#34;http://www.amazon.com/Elements-Software-Science-Operating-programming/dp/0444002057&#34; target=&#34;_blank&#34;&gt;conjunto de fórmulas&lt;/a&gt; para medir coisas como volume, esforço, dificuldade e bugs estimados em um código. As fórmulas são baseadas nos números únicos e totais de operadores e operandos.&lt;/p&gt;
+
+&lt;p&gt;Não vou entrar muito em detalhes sobre os valores e as fórmulas, mas é bem interessante ler sobre esse assunto (não precisa ser o livro, a Wikipedia mesmo fornece uma &lt;a href=&#34;http://en.wikipedia.org/wiki/Halstead_complexity_measures&#34; target=&#34;_blank&#34;&gt;página&lt;/a&gt; bem completa sobre as fórmulas).&lt;/p&gt;
+
+&lt;h2 id=&#34;integração-com-grunt&#34;&gt;Integração com Grunt&lt;/h2&gt;
+
+&lt;p&gt;Overson também desenvolveu um &lt;a href=&#34;https://github.com/jsoverson/grunt-plato&#34; target=&#34;_blank&#34;&gt;módulo&lt;/a&gt; que disponibiliza uma task Grunt para relatórios Plato.&lt;/p&gt;
+
+&lt;p&gt;A instalação segue o padrão de pacotes Grunt:&lt;/p&gt;
+
+&lt;pre&gt;npm install grunt-plato --save-dev&lt;/pre&gt;
+
+&lt;p&gt;Uma vez instalado o pacote, basta carregar a task no seu &lt;strong&gt;Gruntfile.js&lt;/strong&gt; e rodar a task com o comando &lt;strong&gt;grunt plato&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;grunt.initConfig({
+  plato: {
+    your_task: {
+      files: {
+        &#39;report/output/directory&#39;: [&#39;src/**/*.js&#39;, &#39;test/**/*.js&#39;],
+      }
+    },
+  },
+});
+grunt.loadNpmTasks(&#39;grunt-plato&#39;);&lt;/pre&gt;
+
+&lt;h2 id=&#34;métricas-métricas-e-mais-métricas&#34;&gt;Métricas, métricas e mais métricas&lt;/h2&gt;
+
+&lt;p&gt;Medir o código do seu projeto ajuda você e seu time a entender e prevenir problemas. Com a ajuda de métricas você vai conseguir manter um código fácil de ler e entender. Além de métricas dos níveis de complexidade também é importante possuir um relatório visível de cobertura de testes e uma documentação simples e direta do seu projeto.&lt;/p&gt;
+
+&lt;p&gt;Apesar do nome pomposo e de muita teoria, não é pra ninguém ficar assustado. Pode parecer um conceito avançado, mas na verdade é uma coisa muito básica: o que você estará fazendo é medir se é fácil (ou difícil) manter o seu código.&lt;/p&gt;
+
+&lt;p&gt;E lembrem-se: nunca refatore um código sem que ele possua uma cobertura de testes satisfatória!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

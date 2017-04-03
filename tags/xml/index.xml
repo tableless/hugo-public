@@ -1,0 +1,2634 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Xml on Tableless</title>
+    <link>http://tableless.com.br/tags/xml/index.xml</link>
+    <description>Recent content in Xml on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/xml/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>PHPUnit – persistência e configurações avançadas</title>
+      <link>http://tableless.com.br/phpunit-persistencia-e-configuracoes-avancadas/</link>
+      <pubDate>Thu, 08 May 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/phpunit-persistencia-e-configuracoes-avancadas/</guid>
+      <description>
+
+&lt;p&gt;Neste artigo você verá como utilizar o &lt;a title=&#34;PHPUnit - site oficial&#34; href=&#34;http://phpunit.de/&#34; target=&#34;_blank&#34;&gt;PHPUnit&lt;/a&gt; para realizar testes com persistência de dados utilizando o &lt;a title=&#34;Projeto Doctrine&#34; href=&#34;http://www.doctrine-project.org/&#34; target=&#34;_blank&#34;&gt;Doctrine&lt;/a&gt; um &lt;a title=&#34;O que é um ORM?&#34; href=&#34;http://pt.wikipedia.org/wiki/Mapeamento_objeto-relacional&#34; target=&#34;_blank&#34;&gt;ORM&lt;/a&gt; open-source e como definir configurações avançadas para personalizar sua suíte de testes e gerar relatórios de testes executados bem como cobertura do código de produção.&lt;/p&gt;
+
+&lt;h2 id=&#34;começando&#34;&gt; Começando&lt;/h2&gt;
+
+&lt;p&gt;Para começar o projeto crie um arquivo chamado &lt;em&gt;composer.json&lt;/em&gt;. Nele listaremos todos os pacotes/bibliotecas de terceiros que utilizaremos. Para este post utilizaremos o Doctrine e vários elementos do Zend Framework 2 além de é claro o próprio PHPUnit. Abaixo segue a lista de todas as bibliotecas que serão utilizadas.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt; &#34;require&#34; : {
+    &#34;doctrine/common&#34; : &#34;*&#34;,
+    &#34;doctrine/dbal&#34;: &#34;*&#34;,
+    &#34;doctrine/orm&#34; : &#34;*&#34;,
+    &#34;phpunit/phpunit&#34;: &#34;3.7.*&#34;,
+    &#34;zendframework/zend-stdlib&#34;: &#34;2.3.*@dev&#34;,
+    &#34;zendframework/zend-filter&#34;: &#34;2.3.*@dev&#34;,
+    &#34;zendframework/zend-servicemanager&#34;: &#34;2.3.*@dev&#34;,
+    &#34;zendframework/zend-crypt&#34;: &#34;2.3.*@dev&#34;,
+    &#34;zendframework/zend-math&#34;: &#34;2.3.*@dev&#34;
+ }&lt;/pre&gt;
+
+&lt;p&gt;Seguindo as recomendações da &lt;a title=&#34;FIG&#34; href=&#34;http://www.php-fig.org/&#34; target=&#34;_blank&#34;&gt;FIG&lt;/a&gt;, utilizaremos a &lt;a title=&#34;PSR-0&#34; href=&#34;http://www.php-fig.org/psr/psr-0/&#34; target=&#34;_blank&#34;&gt;PSR-0&lt;/a&gt; que trata sobre a forma de carregarmento de classes na aplicação que estamos desenvolvendo. Com isso trabalharemos com namespaces e não precisaremos utilizar require ou include nas classes que utilizaremos. Para que o projeto tenha suas classes carregadas conforme a PSR-0 podemos informar isso no arquivo &lt;em&gt;composer.json&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt; &#34;autoload&#34; : {
+    &#34;psr-0&#34;: {
+        &#34;Tableless\\&#34;: &#34;src/&#34;
+    }
+ }&lt;/pre&gt;
+
+&lt;p&gt;Isto nos diz que o namespace “Tableless” estará presente na pasta &lt;em&gt;src&lt;/em&gt; e para isto se faz necessária a criação da pasta &lt;em&gt;src&lt;/em&gt; e dentro da mesma a pasta &lt;em&gt;Tableless&lt;/em&gt;. Há outra maneira de registrar o namespace através do _boostrap._&lt;em&gt;php&lt;/em&gt; que seria algo como:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt; $load = require __DIR__ . &#39;/vendor/autoload.php&#39;;
+ $load-&amp;gt;add(&#39;Tableless&#39;, __DIR__ . &#39;/src&#39;);&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p class=&#34;lang-php&#34;&gt;
+  O arquivo &lt;em&gt;bootstrap.php &lt;/em&gt;é comumente utilizado para realizar as configurações iniciais em vários frameworks. Basicamente ele inclui o &lt;em&gt;autoload.php&lt;/em&gt; gerado pelo composer e podem ser definidas as mais diversas configurações globais de sua aplicação no mesmo.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Feito isso baixamos o composer utilizando o comando &lt;strong&gt;curl -sS &lt;a href=&#34;https://getcomposer.org/installer&#34;&gt;https://getcomposer.org/installer&lt;/a&gt; | php&lt;/strong&gt; e em seguida instalamos as dependências através do comando &lt;strong&gt;php composer.phar install&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41342&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/02-instalando-composer-e-dependencias-403x310.png&#34; alt=&#34;Instalando composer e dependências&#34; width=&#34;403&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/02-instalando-composer-e-dependencias-403x310.png 403w, uploads/2014/03/02-instalando-composer-e-dependencias-218x168.png 218w, uploads/2014/03/02-instalando-composer-e-dependencias.png 791w&#34; sizes=&#34;(max-width: 403px) 100vw, 403px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Com a instalação das dependências agora temos a nova estrutura contendo uma pasta &lt;em&gt;vendor&lt;/em&gt; contendo todas as bibliotecas de terceiros, um novo arquivo &lt;em&gt;composer.lock&lt;/em&gt; e &lt;em&gt;composer.phar&lt;/em&gt; os quais já foram descritos em outro artigo sobre PHPUnit com composer e que pode ser acessado &lt;a href=&#34;http://tableless.com.br/phpunit-como-iniciar-sem-dores/&#34; title=&#34;PHPUnit, como iniciar sem dores&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41343&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/03-nova-estrutura-490x310.png&#34; alt=&#34;Nova Estrutura&#34; width=&#34;490&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/03-nova-estrutura-490x310.png 490w, uploads/2014/03/03-nova-estrutura-265x168.png 265w, uploads/2014/03/03-nova-estrutura-400x252.png 400w, uploads/2014/03/03-nova-estrutura.png 1086w&#34; sizes=&#34;(max-width: 490px) 100vw, 490px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;próximo-passo&#34;&gt;Próximo passo&lt;/h2&gt;
+
+&lt;p&gt;Agora temos de criar um arquivo que será o pontapé inicial da aplicação, arquivo este comumente nomeado de bootstrap conforme já mencionado anteriormente. Nele são configurados onde se encontram as entidades – que serão explicadas mais a frente deste tutorial, configuração do banco de dados entre outras configurações. Como neste exemplo será utilizado o Doctrine, precisamos configurar o mesmo.&lt;/p&gt;
+
+&lt;p&gt;Crie um arquivo chamado &lt;em&gt;bootstrap.php&lt;/em&gt; na raiz de seu projeto, o fonte do &lt;em&gt;bootstrap.php&lt;/em&gt; está comentado para melhor entendimento.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+// Carregando o autoload que o composer gerou
+require __DIR__ . &#39;/vendor/autoload.php&#39;;
+// indicando tudo que usaremos no bootstrap
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Tools\Setup;
+use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\AnnotationRegistry;
+/**
+* Definindo se é modo desenvolvimento
+* 
+* Caso true: o cache do Doctrine é realizado em formato de array
+* Caso false: o cache é conforme configuração (memcache, APC..)
+* 
+* Somente trabalharemos aqui com o modo TRUE, cache em array
+*/
+$config = Setup::createConfiguration( true );
+// pasta onde encontram-se nossas entidades
+$entitypath = array( __DIR__ . &#39;/src/Tableless/Entity&#39; );
+// registrando as entidades
+$driver = new AnnotationDriver(new AnnotationReader(), $entitypath);
+$config-&gt;setMetadataDriverImpl($driver);
+/**
+* indicando que trabalharemos com o modo annotations para
+* as entidades. Pode ser também via arquivo yaml e xml
+* 
+*/
+AnnotationRegistry::registerFile(__DIR__ 
+. &#39;/vendor/doctrine/orm/lib/Doctrine/ORM/Mapping/Driver/DoctrineAnnotations.php&#39;);
+// configurando a conexão com o banco de dados
+$conn = array(
+    &#39;driver&#39; =&gt; &#39;pdo_mysql&#39;,    
+    &#39;user&#39; =&gt; &#39;root&#39;,
+    &#39;password&#39; =&gt; &#39;root&#39;,
+    &#39;dbname&#39; =&gt; &#39;tableless_tdd&#39;,
+);
+// E finalmente criando o manipulador de entidades
+$entityManager = EntityManager::create($conn, $config);&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Até agora você viu várias vezes a palavra “Entidade” mas o que ela significa? Entidade é um objeto que tem um significado conceitual dentro de um domínio. Em outras palavras, cada entidade no Doctrine é a representação de uma tabela no banco de dados e cada registro é uma instância desta entidade. A entidade não manipula o banco de dados, apenas representa-o.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Pronto, a nível de produção já temos a configuração, agora criaremos a estrutura e configurações para testes.&lt;/p&gt;
+
+&lt;p&gt;Na raiz de seu projeto crie uma pasta chamada &lt;em&gt;tests&lt;/em&gt;, dentro dela uma pasta chamada &lt;em&gt;src&lt;/em&gt; e dentro da src uma pasta chamada &lt;em&gt;Tableless&lt;/em&gt;. Perceba que o namespace ficará na mesma estrutura do código de produção, desta forma para utilizarmos uma entidade chamada &lt;em&gt;User&lt;/em&gt; por exemplo, usaremos a seguinte declaração: &lt;strong&gt;use Tableless\Entity\User;&lt;/strong&gt;. Para a classe de testes de User se for necessária declarar em algum lugar será desta forma: &lt;strong&gt;use Tableless\Entity\UserTest;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41345&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/04-estrutura-inicial-testes-398x310.png&#34; alt=&#34;Estrutura inicial testes&#34; width=&#34;398&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/04-estrutura-inicial-testes-398x310.png 398w, uploads/2014/03/04-estrutura-inicial-testes-215x168.png 215w, uploads/2014/03/04-estrutura-inicial-testes-400x311.png 400w, uploads/2014/03/04-estrutura-inicial-testes.png 542w&#34; sizes=&#34;(max-width: 398px) 100vw, 398px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Após a criação das pastas necessárias falta a criação do bootstrap de testes e de um arquivo de configurações de execução do PHPUnit.&lt;/p&gt;
+
+&lt;p&gt;Começando com o bootstrap, o código novamente está comentado explicando porque determinadas coisas estão sendo feitas. Crie o arquivo &lt;em&gt;bootstrap.php&lt;/em&gt; dentro da pasta de testes (&lt;em&gt;tests&lt;/em&gt;).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&lt;?php
+// utilizando o bootstrap de produção
+require __DIR__ . &#39;/../bootstrap.php&#39;;
+use Doctrine\ORM\EntityManager;
+/*
+* Sobrescrevendo a conexão com banco de dados.
+* 
+* Isto faz-se necessário para que ao rodar os testes 
+* o banco de produção não sofra alterações
+*/
+$conn = array(
+    &#39;driver&#39; =&gt; &#39;pdo_sqlite&#39;,
+    &#39;dbname&#39; =&gt; &#39;:memory:&#39;,
+);
+return $entityManager = EntityManager::create($conn, $config);
+&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;O bootstrap de testes se faz necessário para sobrescrever a conexão com o banco de dados, caso contrário, todos os testes realizariam alterações no banco de dados de produção e isto jamais deve acontecer.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Feito isto agora é o momento de criar o arquivo xml de configurações do PHPUnit. Crie um arquivo chamado &lt;i style=&#34;font-family: Arial, sans-serif;line-height: 1.5em&#34;&gt;phpunit.xm&lt;/i&gt;l dentro de sua pasta &lt;i style=&#34;font-family: Arial, sans-serif;line-height: 1.5em&#34;&gt;tests&lt;/i&gt; e adicione o conteúdo abaixo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-xml&#34;&gt;&amp;lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&amp;gt;
+&amp;lt;phpunit colors=&#34;true&#34; bootstrap=&#34;bootstrap.php&#34;&amp;gt;
+
+&amp;lt;!-- Indicando qual é o diretório onde as classes de teste se encontram --&amp;gt;
+    &amp;lt;testsuites&amp;gt;
+        &amp;lt;testsuite name=&#34;Tableless TDD Test Suite&#34;&amp;gt;
+            &amp;lt;directory suffix=&#34;.php&#34;&amp;gt;src/&amp;lt;/directory&amp;gt;
+        &amp;lt;/testsuite&amp;gt;
+    &amp;lt;/testsuites&amp;gt;
+
+&amp;lt;!-- Adicionando filtros, basicamente whitelist (diretórios que serão executados), 
+dentro temos o exclude (diretórios que não serão executados pelos testes) --&amp;gt;
+
+&amp;lt;filter&amp;gt;
+    &amp;lt;whitelist&amp;gt;
+        &amp;lt;directory suffix=&#34;.php&#34;&amp;gt;../src/&amp;lt;/directory&amp;gt;
+        &amp;lt;exclude&amp;gt;
+            &amp;lt;directory suffix=&#34;.php&#34;&amp;gt;./vendor/&amp;lt;/directory&amp;gt;
+        &amp;lt;/exclude&amp;gt;
+    &amp;lt;/whitelist&amp;gt;
+&amp;lt;/filter&amp;gt;
+&amp;lt;/phpunit&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Quase pronto, se rodarmos o comando &lt;strong&gt;./vendor/bin/phpunit -c tests/phpunit.xml&lt;/strong&gt; dentro da raiz do projeto teremos a mensagem de que nenhum teste foi executado como na imagem abaixo.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41346&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/05-nenhum-teste-490x310.png&#34; alt=&#34;Nenhum Teste&#34; width=&#34;490&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/05-nenhum-teste-490x310.png 490w, uploads/2014/03/05-nenhum-teste-265x168.png 265w, uploads/2014/03/05-nenhum-teste-400x253.png 400w, uploads/2014/03/05-nenhum-teste.png 803w&#34; sizes=&#34;(max-width: 490px) 100vw, 490px&#34; /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt; Como estamos trabalhando com um arquivo de configurações, para rodarmos o phpunit seguindo as definições do arquivo precisamos utilizar o parâmetro &lt;strong&gt;-c&lt;/strong&gt; seguido do nome do arquivo.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Obviamente que nenhum teste ainda foi executado porque não temos nenhuma classe de testes. Vamos começar então. Crie uma pasta &lt;em&gt;Entity&lt;/em&gt; dentro de &lt;em&gt;tests/src&lt;/em&gt;. Dentro desta pasta crie um arquivo chamado &lt;em&gt;UsertTest.php&lt;/em&gt;. A nova estrutura de testes deve estar como na imagem abaixo.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41347&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/06-nova-estrutura-de-testes-379x310.png&#34; alt=&#34;Nova estrutura de testes&#34; width=&#34;379&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/06-nova-estrutura-de-testes-379x310.png 379w, uploads/2014/03/06-nova-estrutura-de-testes-205x168.png 205w, uploads/2014/03/06-nova-estrutura-de-testes-400x326.png 400w, uploads/2014/03/06-nova-estrutura-de-testes.png 695w&#34; sizes=&#34;(max-width: 379px) 100vw, 379px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;No arquivo &lt;em&gt;UserTest.php&lt;/em&gt; adicione o namespace do mesmo que é Tableless\Entity.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;namespace Tableless\Entity;&lt;/pre&gt;
+
+&lt;p&gt;Agora definimos quais classes utilizaremos para este teste. Como estamos testando a entidade &lt;em&gt;User&lt;/em&gt; precisaremos utilizar o Tableless\Entity\User.&lt;/p&gt;
+
+&lt;pre&gt;use Tableless\Entity\User;&lt;/pre&gt;
+
+&lt;p&gt;No entanto aí tem um detalhe. A entidade User ainda não existe, mas a criaremos dentro de instantes pois ainda temos uma classe que devemos criar antes mesmo da &lt;em&gt;User&lt;/em&gt;. Ela se chama &lt;em&gt;TestCase&lt;/em&gt; e deve estar no namespace Tableless\Test. Crie em &lt;em&gt;src/Tableless&lt;/em&gt; (não em tests/src/Tableless) uma pasta chamada Test e dentro dela um arquivo chamado &lt;em&gt;TestCase.php&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41348&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/07-criando-test-case-426x310.png&#34; alt=&#34;Criando o TestCase&#34; width=&#34;426&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/07-criando-test-case-426x310.png 426w, uploads/2014/03/07-criando-test-case-230x168.png 230w, uploads/2014/03/07-criando-test-case-400x291.png 400w, uploads/2014/03/07-criando-test-case.png 602w&#34; sizes=&#34;(max-width: 426px) 100vw, 426px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Neste arquivo copie e cole o código abaixo que está comentado para melhor entendimento.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+namespace Tableless\Test;
+
+use Doctrine\ORM\Tools\SchemaTool;
+use PHPUnit_Framework_TestCase as PHPUnit;
+
+abstract class TestCase extends PHPUnit
+{
+    protected $entityManager = null;
+
+    /**
+    * Executado antes de cada teste unitário
+    */
+    public function setup() 
+    {
+        $entityManager = $this-&amp;gt;getEntityManager(); 
+        $tool = new SchemaTool($entityManager);
+
+        //Obtem informações das entidades que encontrar em Tableless\Entity
+        $classes = $entityManager-&amp;gt;getMetadataFactory()-&amp;gt;getAllMetadata();
+
+        // Cria a base de dados necessária com suas determinadas tabelas
+        $tool-&amp;gt;createSchema($classes);
+
+        parent::setup();
+    } 
+
+    /**
+    * Executado após a execução de cada um dos testes unitários
+    */
+    public function tearDown() 
+    {
+        $entityManager = $this-&amp;gt;getEntityManager(); 
+        $tool = new SchemaTool($entityManager);
+
+        //Obtem informações das entidades que encontrar em Tableless\Entity
+        $classes = $entityManager-&amp;gt;getMetadataFactory()-&amp;gt;getAllMetadata();
+
+        // Desfaz o banco criado no setUp
+        $tool-&amp;gt;dropSchema($classes);
+
+        parent::tearDown();
+    }
+
+    /**
+    * 
+    * @return \Doctrine\ORM\EntityManager
+    */
+    public function getEntityManager() 
+    {
+        if (! $this-&amp;gt;entityManager) {
+            $this-&amp;gt;entityManager = require __DIR__ . &#39;/../../../tests/bootstrap.php&#39;;
+        } 
+        return $this-&amp;gt;entityManager; 
+    } 
+}&lt;/pre&gt;
+
+&lt;p&gt;Pronto, já estamos com tudo o que precisamos para começar escrever os testes. Detalhe que esta configuração foi criada para que fosse possível utilizar e testar a persistência de dados utilizando o Doctrine. Para demais testes em controllers, services, views, forms ou o que mais você desejar esta configuração realizada até o momento permanece podendo ser acrescida de novos elementos, tudo depende da necessidade.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-o-primeiro-teste&#34;&gt;Criando o primeiro teste&lt;/h2&gt;
+
+&lt;p&gt;No arquivo &lt;em&gt;tests/src/Tableless/Entity/UserTest.php&lt;/em&gt; começaremos a definir nossos testes. Lembre-se que a ideia do TDD é que o teste seja criado antes do código de produção, e assim faremos.&lt;/p&gt;
+
+&lt;p&gt;Pra início de conversa utilizaremos a classe &lt;em&gt;TestCase&lt;/em&gt; previamente criada e a entidade User.&lt;/p&gt;
+
+&lt;pre&gt;use Tableless\Entity\User;
+use Tableless\Test\TestCase;&lt;/pre&gt;
+
+&lt;p&gt;A classe de testes atual (UserTest) extende de TestCase e adicionaremos o atributo protegido $entity.&lt;/p&gt;
+
+&lt;pre&gt;class UserTest extends TestCase
+{
+    protected $entity;
+}&lt;/pre&gt;
+
+&lt;p&gt;Assim como a classe TestCase, nossa classe UserTest também possuirá um métdo setUp e um tearDown que servirão para as configurações da mesma. De momento apenas setaremos o valor default do atributo entity no setUp.&lt;/p&gt;
+
+&lt;pre&gt;public function setUp()
+{
+    $this-&amp;gt;entity = &#39;Tableless\Entity\User&#39;;
+};&lt;/pre&gt;
+
+&lt;p&gt;Agora segue o nosso primeiro teste: Novamente há comentários explicando cada ação.&lt;/p&gt;
+
+&lt;pre&gt;public function testIfIsSavingAsExpected()
+{
+    // Criando os dados necessários para salvar o usuário
+    $userData = array(
+        &#39;id&#39; =&amp;gt; 1,
+        &#39;name&#39; =&amp;gt; &#39;Nome do usuário&#39;,
+        &#39;email&#39; =&amp;gt; &#39;usuario@dominio.com&#39;,
+        &#39;password&#39; =&amp;gt; &#39;xpto&#39;,
+        &#39;profilePic&#39; =&amp;gt; &#39;image.png&#39;
+    );
+    /* o Id é gerado automaticamente pelo Doctrine, neste caso estou forçando
+    * um Id desejado, mas somente para o teste, para o código de produção
+    * isto não se faz necessário
+    */
+
+    // Instanciando a entidade usuário definindo todos os atributos à ela
+    $user = new User( $userData );
+
+    // salvando o usuário no banco de dados
+    $this-&amp;gt;getEntityManager()-&amp;gt;persist( $user );
+    $this-&amp;gt;getEntityManager()-&amp;gt;flush();
+
+    // Obtendo o usuário salvo
+    $registeredUser = $this-&amp;gt;getEntityManager()
+            -&amp;gt;getRepository($this-&amp;gt;entity)
+            -&amp;gt;findOneBy(array(&#39;email&#39; =&amp;gt; &#39;usuario@dominio.com&#39;));
+
+    // Garantindo que tudo funcionou conforme o esperado
+    $this-&amp;gt;assertInstanceOf($this-&amp;gt;entity, $registeredUser);
+    $this-&amp;gt;assertEquals($userData[&#39;name&#39;], $registeredUser-&amp;gt;getName());
+}&lt;/pre&gt;
+
+&lt;p&gt;Se rodarmos o comando &lt;strong&gt;./vendor/bin/phpunit -c tests/phpunit.xml&lt;/strong&gt; da raiz de nosso projeto deveremos ver o seguinte erro: “PHP Fatal error: Class &amp;#8216;Tableless\Entity\User &amp;#8230;&amp;#8217;” isto porque ainda não existe a entidade &lt;em&gt;User&lt;/em&gt; pois realizamos o primeiro passo do TDD, o “Red”. Em seguida realizaremos o passo “Green” que consiste em criarmos o código que faça o teste passar e por último o passo “Refactor” que é onde faremos algumas melhorias no código. No código exemplo não existirá duplicidade e/ou partes inconsistentes com isso o Refactor realizará apenas algumas pequenas melhorias, nada mais.&lt;/p&gt;
+
+&lt;p&gt;Crie na pasta &lt;em&gt;src&lt;/em&gt; (não em tests/src) uma pasta chamada &lt;em&gt;Entity&lt;/em&gt; e dentro dela um arquivo chamado &lt;em&gt;User.php&lt;/em&gt;. Eis a estrutura da entidade &lt;em&gt;User&lt;/em&gt;. Por ser um arquivo muito extenso, colocarei apenas o link do mesmo que encontra-se no github. &lt;a title=&#34;Tableless\Entity\user&#34; href=&#34;https://gist.github.com/andrebian/11389706&#34; target=&#34;_blank&#34;&gt;Tableless\Entity\User&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Perceba que existem comentários acima de cada um dos atributos da classe. Isto se dá por estarmos utilizando o Annotations do Doctrine para que os mesmos sejam lidos e mapeados no banco de dados. Em outras palavras, o Doctrine lê a anotação e cria a estrutura da tabela conforme as definições nos comentários. Há a possibilidade de realizar tais definições via xml e também via yaml o que não veremos neste tutorial.&lt;/p&gt;
+
+&lt;p&gt;Agora se rodarmos nosso teste novamente o mesmo passará. Ou seja, já temos um código minimamente testado com um início de noção de persistência de dados, veremos uma pequena melhora no código agora e em seguida algumas configurações para a execução dos testes.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;./vendor/bin/phpunit -c tests/phpunit.xml&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41349&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/08-primeiro-teste-passando-575x310.png&#34; alt=&#34;Primeiro teste passando&#34; width=&#34;575&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/08-primeiro-teste-passando-575x310.png 575w, uploads/2014/03/08-primeiro-teste-passando-312x168.png 312w, uploads/2014/03/08-primeiro-teste-passando-400x215.png 400w, uploads/2014/03/08-primeiro-teste-passando.png 797w&#34; sizes=&#34;(max-width: 575px) 100vw, 575px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;definindo-hash-para-senha&#34;&gt;Definindo hash para senha&lt;/h2&gt;
+
+&lt;p&gt;Primeiramente no teste adicionaremos uma asserção de que a senha do usuário registrado não é igual a senha que definimos, em string pura. Adicione o trecho de código abaixo em seu teste logo após $this-&amp;gt;assertEquals($userData[&amp;#8216;name&amp;#8217;], $registeredUser-&amp;gt;getName());&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;// verificando se hash de senha funcionou
+$this-&amp;gt;assertNotEquals($userData[&#39;password&#39;], $registeredUser-&amp;gt;getPassword());&lt;/pre&gt;
+
+&lt;p&gt;Ao rodarmos o teste o mesmo deve quebrar pois ainda não criamos um hash para a senha, desta forma a senha fornecida está em string pura no banco de dados.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt; ./vendor/bin/phpunit -c tests/phpunit.xml&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41350&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/09-teste-falhando-hash-523x310.png&#34; alt=&#34;Teste falhando hash&#34; width=&#34;523&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/09-teste-falhando-hash-523x310.png 523w, uploads/2014/03/09-teste-falhando-hash-283x168.png 283w, uploads/2014/03/09-teste-falhando-hash-400x237.png 400w, uploads/2014/03/09-teste-falhando-hash.png 800w&#34; sizes=&#34;(max-width: 523px) 100vw, 523px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora, na classe Tableless\Entity\User usaremos as seguintes classes do Zend:&lt;/p&gt;
+
+&lt;pre&gt;use Zend\Math\Rand;
+use Zend\Crypt\Key\Derivation\Pbkdf2;&lt;/pre&gt;
+
+&lt;p&gt;em setPassword deixaremos adicionaremos a chamada ao método encryptPassword&lt;/p&gt;
+
+&lt;pre&gt;public function setPassword( $password )
+{
+    $this-&amp;gt;password = $this-&amp;gt;encryptPassword($password);
+    return $this;
+}&lt;/pre&gt;
+
+&lt;p&gt;E criaremos o método encryptPassword.&lt;/p&gt;
+
+&lt;pre&gt;public function encryptPassword( $password )
+{
+   return base64_encode(
+    Pbkdf2::calc(&#39;sha256&#39;, $password, $this-&amp;gt;salt, 
+            10000, strlen($password*2)));
+}&lt;/pre&gt;
+
+&lt;p&gt;Agora rodando &lt;strong&gt;./vendor/bin/phpunit -c tests/phpunit.xml&lt;/strong&gt; o teste passa novamente.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41351&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/10-teste-passando-hash-375x310.png&#34; alt=&#34;teste passando hash&#34; width=&#34;375&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/10-teste-passando-hash-375x310.png 375w, uploads/2014/03/10-teste-passando-hash-203x168.png 203w, uploads/2014/03/10-teste-passando-hash-400x330.png 400w, uploads/2014/03/10-teste-passando-hash.png 795w&#34; sizes=&#34;(max-width: 375px) 100vw, 375px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Assim finalizamos o básico da realização de testes utilizando persitência de dados. A partir de agora veremos algumas configurações avançadas que lhe ajudarão muito no feedback dos testes.&lt;/p&gt;
+
+&lt;h2 id=&#34;algumas-configurações-avançadas&#34;&gt;Algumas configurações avançadas&lt;/h2&gt;
+
+&lt;p&gt;Através do arquivo &lt;em&gt;phpunit.xml&lt;/em&gt; podemos definir algumas configurações avançadas para a execução dos testes. Começando pela declaração &lt;phpunit&gt;. Atualmente encontra-se desta forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-xml&#34;&gt;&amp;lt;phpunit colors=&#34;true&#34; bootstrap=&#34;bootstrap.php&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Isto quer dizer que utilizaremos um arquivo de bootstrap e dizemos qual arquivo é e também que queremos coloração no output. Caso colors=”true” não estivesse presente nossa visão ficaria desta forma.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41352&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/11-colors-482x310.png&#34; alt=&#34;Colors&#34; width=&#34;482&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/11-colors-482x310.png 482w, uploads/2014/03/11-colors-261x168.png 261w, uploads/2014/03/11-colors-400x257.png 400w, uploads/2014/03/11-colors.png 806w&#34; sizes=&#34;(max-width: 482px) 100vw, 482px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Podemos definir erros e avisos sendo tratados como exceções.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;phpunit 
+    convertErrorsToExceptions=&#34;true&#34; 
+    convertNoticesToExceptions=&#34;true&#34;
+    convertWarningsToExceptions=&#34;true&#34;
+    colors=&#34;true&#34;
+    bootstrap=&#34;bootstrap.php&#34;
+&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;E muitas outras opções. Para conhecer todas as opções de configurações acesse &lt;a title=&#34;Visualizar as configurações do PHPUnit&#34; href=&#34;http://phpunit.de/manual/3.7/pt_br/appendixes.configuration.html&#34; target=&#34;_blank&#34;&gt;este link&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Certamente que a configuração a seguir é uma que empolga muitos desenvolvedores, logs e coverage. Com logs e coverage você identifica quais testes passaram, quais tiveram exceções, quais não passaram e o mais legal de tudo, o percentual de cobertura de testes que há em seu código de produção. Basicamente ao rodar um teste unitário, ele cobre uma pequena parte de seu código de produção, habilitando coverage você pode verificar quais linhas estão realmente garantidas por testes e quais você ainda tem de trabalhar mais tempo para garantir um mínimo de cobertura necessário para perfeito funcionamento mas principalmente para garantia de evolução de seu software.&lt;/p&gt;
+
+&lt;p&gt;Para criar logs utilizamos a tag logging no arquivo &lt;em&gt;phpunit.xml&lt;/em&gt; logo após o fechamento da tag &lt;/filter&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;logging&amp;gt;
+    &amp;lt;log type=&#34;testdox-text&#34; target=&#34;data/testdox.txt&#34; /&amp;gt;
+&amp;lt;/logging&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;O log acima está gravando em formato de texto um checklist dos testes que existem em todas as classes de teste dentro da suite de testes marcando com x os que foram executados.&lt;/p&gt;
+
+&lt;p&gt;Rodando &lt;strong&gt;./vendor/bin/phpunit -c tests/phpunit.xml&lt;/strong&gt; será criada a pasta &lt;em&gt;tests/data&lt;/em&gt; contento o arquivo &lt;em&gt;testdox.txt&lt;/em&gt; O nome do arquivo é de sua escolha.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41353&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/12-testdox-569x310.png&#34; alt=&#34;Testdox&#34; width=&#34;569&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/12-testdox-569x310.png 569w, uploads/2014/03/12-testdox-308x168.png 308w, uploads/2014/03/12-testdox-400x217.png 400w, uploads/2014/03/12-testdox.png 891w&#34; sizes=&#34;(max-width: 569px) 100vw, 569px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Também é possível gerar o testdox em formato html, basta alterar testdox-text para testdox-html e testdox.txt para testdox.html mas o mais comum é ser utilizado em formato txt mesmo.&lt;/p&gt;
+
+&lt;p&gt;Existe também a possibilidade de habilitar o testdox em tempo de execução. Basta apenas adicionar o parâmetro &amp;#8211;testdox ao rodar os testes. O resultado será como abaixo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell&#34;&gt;$ ./vendor/bin/phpunit -c tests/phpunit.xml --testdox
+PHPUnit 3.7.35 by Sebastian Bergmann.
+Configuration read from /home/andre/Documents/Posts/tableless/phpunit-persistencia-de-dados-e-configuracoes-avancadas/sources/tests/phpunit.xml
+Tableless\Entity\User
+  [x] If is saving as expected
+Generating code coverage report in HTML format ... done&lt;/pre&gt;
+
+&lt;h2 id=&#34;agrupamento-de-testes&#34;&gt;Agrupamento de testes&lt;/h2&gt;
+
+&lt;p&gt;Por certas vezes necessitamos agrupar testes para que rodemos somente determinada sequência sem que os demais sejam executados. Isto é útil para quando temos de realizar uma pequena alteração e não se faça necessário a execução de todos os testes já criados tornando o feedback mais rápido. Comumente isto é utilizado quando se deseja realizar um ajuste pontual e ao ser finalizado todos os testes são executados novamente.&lt;/p&gt;
+
+&lt;p&gt;O PHPUnit nos permite trabalhar com grupos os quais veremos sua definição a seguir.&lt;/p&gt;
+
+&lt;p&gt;Crie uma pasta chamada &lt;em&gt;Filter&lt;/em&gt; em &lt;em&gt;tests/src/Tableless&lt;/em&gt; e dentro dela um arquivo chamado &lt;em&gt;CurrencyTest.php&lt;/em&gt;. O conteúdo deste arquivo está abaixo.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+namespace Tableless\Filter;
+use Tableless\Test\TestCase;
+/**
+* @group Filter
+*/
+class CurrencyTest extends TestCase 
+{
+    public function testIfClassExists()
+    {
+        $this-&amp;gt;assertTrue(class_exists(&#39;Tableless\Filter\Currency&#39;));
+    }
+}&lt;/pre&gt;
+
+&lt;p&gt;Perceba que antes de ser declarado o nome da classe existe uma anotação @group Filter. É isto que define o grupo ao qual este teste pertence. Faça o mesmo para o teste já existente (tests/src/Tableless/Entity/UserTest.php) anotando-o como @group Entity.&lt;/p&gt;
+
+&lt;pre&gt;...
+/**
+* @group Entity
+*/
+class UserTest extends TestCase
+...&lt;/pre&gt;
+
+&lt;p&gt;Agora que temos a definição dos grupos podemos rodar nossos testes somente de 1 grupo, de um conjunto de grupos ou de todos os grupos sem distinção. Existem duas formas de rodar os testes por grupos, através de parâmetro informado no momento da execução dos testes ou através do arquivo xml de configurações do PHPUnit, veremos ambas.&lt;/p&gt;
+
+&lt;h3 id=&#34;via-parâmetro&#34;&gt;Via parâmetro&lt;/h3&gt;
+
+&lt;h4 id=&#34;somente-um-grupo&#34;&gt;Somente um grupo&lt;/h4&gt;
+
+&lt;pre&gt;$ ./vendor/bin/phpunit -c tests/phpunit.xml --group Entity
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;mais-de-um-grupo&#34;&gt;Mais de um grupo&lt;/h4&gt;
+
+&lt;pre&gt;$ ./vendor/bin/phpunit -c tests/phpunit.xml --group Entity,Filter
+&lt;/pre&gt;
+
+&lt;p&gt;Para que todos os grupos de testes sejam executados basta que não seja informado o parâmetro &amp;#8211;group.&lt;/p&gt;
+
+&lt;h3 id=&#34;via-arquivo-de-configuração&#34;&gt;Via arquivo de configuração&lt;/h3&gt;
+
+&lt;p&gt;No arquivo tests/phpunit.xml adicione uma tag &lt;groups&gt; e dentro dela liste os grupos desejados.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;groups&amp;gt;
+    &amp;lt;include&amp;gt;
+        &amp;lt;group&amp;gt;Entity&amp;lt;/group&amp;gt;
+    &amp;lt;/include&amp;gt;
+&amp;lt;/groups&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Você deve estar imaginando, se existe uma tag &lt;strong&gt;include &lt;/strong&gt;deve existir uma tag &lt;strong&gt;exclude &lt;/strong&gt;também. Imaginou certo! Dentro de include você adiciona todos os grupos que deseja que sejam executados nos testes já em exclude, todos que NÃO devem ser executados. O excclude é ideal para testes que foram marcados como incompletos ou pulados (skipped).&lt;/p&gt;
+
+&lt;p&gt;Após adicionar as tags referentes aos grupos de testes no arquivo xml de configurações não se faz mais necessário informar o parâmetro  &amp;#8211;group, basta rodar normalmente.&lt;/p&gt;
+
+&lt;pre&gt;$ ./vendor/bin/phpunit -c tests/phpunit.xml&lt;/pre&gt;
+
+&lt;h2 id=&#34;agora-sim-o-mais-legal-de-todos-coverage-em-html&#34;&gt;Agora sim, o mais legal de todos, Coverage em Html!&lt;/h2&gt;
+
+&lt;p&gt;Dentro de &lt;logging&gt; adicione uma nova tag chamada &lt;log&gt; conforme o exemplo abaixo.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;log 
+    type=&#34;coverage-html&#34; 
+    target=&#34;data/coverage&#34; 
+    charset=&#34;UTF-8&#34; 
+    yui=&#34;true&#34; 
+    highlight=&#34;true&#34;
+    lowUpperBound=&#34;35&#34;
+    highUpperBound=&#34;70&#34; /&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Basicamente estamos definindo que o coverage será em formato html, que o considerado baixo coverage será de 35% e um bom coverage se dará a partir de 70%. O highlight serve para destacar as linhas que foram cobertas com verde, não cobertas com vermelho e ignoradas permanecem com a cor padrão. Rode o teste novamente.&lt;/p&gt;
+
+&lt;p&gt;Agora no browser entre em seu localhost na pasta do projeto em que está trabalhando. Em seguida entre na pasta &lt;em&gt;tests&lt;/em&gt;, após isto em &lt;em&gt;data&lt;/em&gt; e por último em coverage. Surpreenda-se!&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41354&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/13-coverage-588x223.png&#34; alt=&#34;Coverage&#34; width=&#34;588&#34; height=&#34;223&#34; srcset=&#34;uploads/2014/03/13-coverage-588x223.png 588w, uploads/2014/03/13-coverage-329x125.png 329w, uploads/2014/03/13-coverage-660x251.png 660w, uploads/2014/03/13-coverage-400x152.png 400w, uploads/2014/03/13-coverage.png 1324w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Navegando pelos arquivos você identificará o que já está bom e o que precisa ser mais testado. Neste nosso caso chegar a 100% é muito fácil, basta lermos todos os dados do usuário.&lt;/p&gt;
+
+&lt;p&gt;No arquivo &lt;em&gt;tests/src/Tableless/Entity/UserTest.php&lt;/em&gt;, dentro do único teste que temos adicione os seguintes asserts:&lt;/p&gt;
+
+&lt;pre&gt;$this-&amp;gt;assertEquals(1, $registeredUser-&amp;gt;getId());
+$this-&amp;gt;assertEquals(&#39;usuario@dominio.com&#39;, $registeredUser-&amp;gt;getEmail());
+$this-&amp;gt;assertNotNull($registeredUser-&amp;gt;getSalt());
+$this-&amp;gt;assertEquals(&#39;image.png&#39;, $registeredUser-&amp;gt;getProfilePic());&lt;/pre&gt;
+
+&lt;p&gt;Rode os testes novamente e corra pro abraço!&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41355&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/14-coverage-100-588x237.png&#34; alt=&#34;Coverage 100%&#34; width=&#34;588&#34; height=&#34;237&#34; srcset=&#34;uploads/2014/03/14-coverage-100-588x237.png 588w, uploads/2014/03/14-coverage-100-329x132.png 329w, uploads/2014/03/14-coverage-100-660x266.png 660w, uploads/2014/03/14-coverage-100-400x161.png 400w, uploads/2014/03/14-coverage-100.png 1303w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Lembrando novamente que para entendimento deste tutorial se faz necessário a leitura dos conteúdos anteriores sobre o tema, sendo eles &lt;a href=&#34;http://tableless.com.br/tdd-por-que-usar/&#34; title=&#34;TDD, por que usar?&#34;&gt;TDD, por que usar?&lt;/a&gt;  e &lt;a href=&#34;http://tableless.com.br/phpunit-como-iniciar-sem-dores/&#34; title=&#34;PHPUnit, como iniciar sem dores&#34;&gt;PHPUnit, como iniciar sem dores&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;bonus&#34;&gt;Bonus.&lt;/h2&gt;
+
+&lt;p&gt;O que fizemos até o momento foi preparar o ambiente de testes e executá-los mas este ambiente ainda não está totalmente pronto para o código de produção pois precisamos de conexão com um banco de dados além de mais uma configuração do Doctrine para que possamos criar o banco de dados a partir de nossas entidades. Ou seja, lembra daquele processo de criar o banco de dados, definir as tabelas e relacionamentos todos antes do código? Com o Doctrine isto não se faz mais necessário, pode ser feito da forma descrita (e tradicional) mas há outra forma bem legal que é uma mão na roda e que mostrarei agora.&lt;/p&gt;
+
+&lt;p&gt;Primeiramente precisamos criar um arquivo de configuração para o cli (Command Line Interface) do Doctrine. Na pasta raiz de sua aplicação crie um arquivo chamado &lt;em&gt;cli-config.php&lt;/em&gt; e cole o seguinte conteúdo:&lt;/p&gt;
+
+&lt;pre&gt;//cli-config.php
+require &#39;bootstrap.php&#39;;
+
+return \Doctrine\ORM\Tools\Console\ConsoleRunner::createHelperSet($entityManager);&lt;/pre&gt;
+
+&lt;div id=&#34;LC3&#34;&gt;
+  Após a criação deste arquivo podemos rodar o seguinte comando &lt;b&gt;./vendor/bin/doctrine&lt;/b&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Aparecerão várias opções de uso que vão desde checagem de status de conexão, validação das entidades, além de outras funcionalidades. Uma coisa que o doctrine não faz realmente é criar a base de dados pois isto depende de cada base pois Mysql é de um jeito, Postgres é de outro, SQL Server é de outro ainda, então esta tarefa ainda é manual.&lt;/p&gt;
+
+&lt;p&gt;Para fins didáticos criei uma base chamada tableless_tdd no mysql como definido no arquivo bootstrap.php da raiz do projeto. Você pode alterar o nome se quiser, bem como o próprio banco, experimente o Sqlite se quiser.&lt;/p&gt;
+
+&lt;p&gt;Com a base criada rode o comando &lt;strong&gt;./vendor/bin/doctrine orm:validate-schema&lt;/strong&gt;. Se estiver tudo ok aparecerá algo como a imagem abaixo. Nela informa que o mapeamento das entidades está correto mas o banco ainda não está sincronizado, para sincronizar rode o comando &lt;strong&gt;./vendor/bin/doctrine orm:schema-tool:create&lt;/strong&gt;. Isto lerá todas as entidades contidas em src/Tableless/Entity e criará a estrutura de tabelas a partir delas.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;./vendor/bin/doctrine orm:validate-schema&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41356&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/15-doctrine-validate-500x310.png&#34; alt=&#34;Doctrine Validate Schema&#34; width=&#34;500&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/15-doctrine-validate-500x310.png 500w, uploads/2014/03/15-doctrine-validate-271x168.png 271w, uploads/2014/03/15-doctrine-validate-400x247.png 400w, uploads/2014/03/15-doctrine-validate.png 797w&#34; sizes=&#34;(max-width: 500px) 100vw, 500px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;./vendor/bin/doctrine orm:schema-tool:create&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter size-medium wp-image-41357&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/03/16-doctrine-create-validate-459x310.png&#34; alt=&#34;Doctrine create validate&#34; width=&#34;459&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/03/16-doctrine-create-validate-459x310.png 459w, uploads/2014/03/16-doctrine-create-validate-249x168.png 249w, uploads/2014/03/16-doctrine-create-validate-400x269.png 400w, uploads/2014/03/16-doctrine-create-validate.png 820w&#34; sizes=&#34;(max-width: 459px) 100vw, 459px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Atualmente possuímos somente a entidade User que indica que uma tabela users será criada no banco de dados. Após a finalização da execução do comando anterior seu banco de dados já estará com a nova estrutura. Ao realizar qualquer alteração na entidade User ou mesmo criar novas entidades você precisará rodar o comando &lt;strong&gt;./vendor/bin/doctrine orm:schema-tool:update&lt;/strong&gt; com isso aparecerá uma mensagem informando que já há uma estrutura no banco de dados e lhe pede confirmação sobre o que fazer. Você pode ignorar, ver as alterações ou forçar se tiver certeza do que está fazendo ou mesmo se já visualizou as alterações que serão realizadas e está ciente de que está tudo certo. Basta ler as intruções que o próprio Doctrine fornece que você saberá o que fazer, é muito intuitivo.&lt;/p&gt;
+
+&lt;h2 id=&#34;finalizando&#34;&gt;Finalizando&lt;/h2&gt;
+
+&lt;p&gt;Agora que você já configurou o Doctrine, já conhece como criar testes unitários resta apenas aperfeiçoar a cada dia. Não existe uma receita, tudo requer empenho e dedicação mas que no final quando você ver aquelas barrinhas verdes mostrando 100% de cobertura se sentirá cada vez mais empolgado e com um código mais estável mas o principal, com um código que pode facilmente evoluir.&lt;/p&gt;
+
+&lt;p&gt;Para baixar o código-fonte gerado neste artigo acesse este link do &lt;a title=&#34;Baixar o código-fonte&#34; href=&#34;https://github.com/andrebian/tdd-persistencia-de-dados&#34; target=&#34;_blank&#34;&gt;Github&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Imagens em alta resolução utilizando SVG</title>
+      <link>http://tableless.com.br/imagens-em-alta-resolucao-utilizando-svg/</link>
+      <pubDate>Tue, 27 Nov 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/imagens-em-alta-resolucao-utilizando-svg/</guid>
+      <description>
+
+&lt;h2 id=&#34;scalable-vector-graphics-svg&#34;&gt;Scalable Vector Graphics (SVG)&lt;/h2&gt;
+
+&lt;p&gt;Uma das grandes tendências do momento quando se fala sobre desenvolvimento web é o formato SVG, principalmente com o advento do design responsivo e a consequente preocupação com dispositivos com densidade de pixel superior (HiDPI) como a tela retina da Apple, utilizada nos modelos mais recentes do iPhone, iPad e do Macbook Pro. Mas o que exatamente é um arquivo SVG? Qual é a diferença entre um vetor e um bitmap? E como e por que utilizar esta tecnologia a nosso favor?&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-svg&#34;&gt;O que é SVG?&lt;/h2&gt;
+
+&lt;p&gt;SVG é uma sigla para Scalable Vector Graphics ou, em português, Vetor Gráfico Redimensionável. O padrão foi proposto pelo W3C em 1999, inspirado em formatos proprietários como VML da Microsoft e PGML da Adobe. Em 2001 o SVG ganhou sua primeira versão oficial. A vantagem deste formato em relação aos anteriores é ele ser um padrão aberto (open source). Ou seja, todos podem utilizar sem ter que pagar dinheiro para nenhuma empresa&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Um arquivo SVG é basicamente um mapa em XML que descreve matematicamente uma figura gráfica bidimensional. Funciona como um conjunto de instruções numéricas para realizar um desenho, que são convertidas em imagens em um software capaz de interpreta-lo (como um browser, por exemplo). SVG é para uma imagem o que o HTML é para um texto.&lt;/p&gt;
+
+&lt;h2 id=&#34;vetor-vs-bitmap&#34;&gt;Vetor vs Bitmap&lt;/h2&gt;
+
+&lt;p&gt;Existem dois tipos principais de arquivos de imagens. Vetores e Bitmaps. Os arquivos do tipo vetor (como AI, EPS, CDR e o nosso novo melhor amigo SVG) são linhas, curvas e formas geometricas descritas matematicamente. Já os arquivos bitmaps (como JPG, PNG, GIF etc) são compostos por um grid de pixels.&lt;/p&gt;
+
+&lt;p&gt;As vantagens de se utilizar gráficos em vetor são incríveis. Primeiramente por que é possível redimensiona-los infinitamente sem perder qualidade ou nitidez. Na prática isto significa que um ícone, por exemplo, terá a mesma aparência sem distorções em um smartphone ou uma televisão de 42&amp;#8221;. Não importa qual é a quantidade de espaço que a imagem ocupa, o arquivo terá o mesmo peso. O que potencialmente economiza a quantidade de banda necessária para realizar o download, minimiza a quantidade de requisições para o servidor já que não são necessárias diversas imagens diferentes para servir todas as necessidades, etc&amp;#8230; A possibilidade de uso de medidas relativas também faz dos gráficos em SVG o formato ideal para se trabalhar com design responsivo.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-7315&#34; alt=&#34;SVG vs PNG&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2012/11/svg-versus-png.jpg&#34; width=&#34;720&#34; height=&#34;495&#34; srcset=&#34;uploads/2012/11/svg-versus-png.jpg 720w, uploads/2012/11/svg-versus-png-300x206.jpg 300w&#34; sizes=&#34;(max-width: 720px) 100vw, 720px&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;onde-e-quando-aplicar&#34;&gt;Onde e quando aplicar&lt;/h2&gt;
+
+&lt;p&gt;Ultimamente o formato vem sendo utilizado para ícones, mas ele é útil para qualquer elemento gráfico que precisa ser redimensionado como botões, padrões de background, etc&amp;#8230; Uma boa dica é utilizar gráficos SVG para logotipos. Desta maneira o logo sempre ficará nítido e com uma boa qualidade em qualquer resolução ou tamanho de tela, deixando seu cliente muito mais feliz&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Existem ainda uma infinidade de outras possibilidades para este tipo de arquivo como filtros, animações, scripts e outros elementos interativos. Até alguns jogos simples, como este clone de &lt;a href=&#34;http://croczilla.com/bits_and_pieces/svg/samples/svgtetris/svgtetris.svg&#34; title=&#34;Mozila SVG Tetris&#34;&gt;Tetris&lt;/a&gt; pela Mozilla.&lt;/p&gt;
+
+&lt;p&gt;Mas é bom não abusar. Quanto mais complexa a imagem mais tempo levará para o browser renderiza-la. É inviável utilizar o formato para uma fotografia, por exemplo.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-fazer-um-arquivo-svg&#34;&gt;Como fazer um arquivo SVG&lt;/h2&gt;
+
+&lt;p&gt;Bem, se você gosta muito de matemática e hard coding você pode abrir um editor de texto e escrever manualmente. Se você deseja se aventurar existem alguns tutoriais bacanas nesta &lt;a href=&#34;http://docs.webplatform.org/wiki/svg/tutorials&#34;&gt;wiki&lt;/a&gt;. Existem ainda algumas bibliotecas de javascript, como a &lt;a href=&#34;http://raphaeljs.com/&#34;&gt;Raphael.js&lt;/a&gt;, que facilitam bastante o trabalho.&lt;/p&gt;
+
+&lt;p&gt;Mas para quem não é o super-herói da matemática e deseja uma solução mais prática é possível utilizar algumas ferramentas gráficas como o Adobe Illustrator, Corel Draw, Inkscape&amp;#8230; e simplesmente exportar outros arquivos vetoriais para o formato. Existe até um editor online chamado &lt;a href=&#34;http://svg-edit.googlecode.com/svn/branches/2.5.1/editor/svg-editor.html&#34;&gt;SVG Edit&lt;/a&gt;. Ele é bem simples, mas quebra um bom galho na falta de um outro software por perto.&lt;/p&gt;
+
+&lt;p&gt;É possível encontrar por aí até alguns programas que prometem converter automaticamente bitmap em SVG&amp;#8230; Mas isto não é nada recomendável e cria resultados com qualidade desastrosa.&lt;/p&gt;
+
+&lt;p&gt;Se você não é um grande designer, sem problemas. Você pode ainda encontrar diversos pacotes de ícones no formato sob licença creative commons. Uma boa fonte para quem gosta do estilo minimalista é o site &lt;a href=&#34;http://thenounproject.com/&#34;&gt;Noum Project&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;implementação&#34;&gt;Implementação&lt;/h2&gt;
+
+&lt;h4 id=&#34;uma-pequena-nota-sobre-medidas-relativas&#34;&gt;Uma pequena nota sobre medidas relativas&lt;/h4&gt;
+
+&lt;p&gt;Lembrando que para esta técnica funcionar corretamente no caso específico de design responsivo é necessário a utilização de medidas relativas como EM e porcentagem. Vamos utilizar para os exemplos práticos um pequeno icone de roldana. O tamanho &amp;#8220;padrão&amp;#8221; do nosso ícone de exemplo seria equivalente a 32px de altura e largura. Se considerarmos que a medida padrão de texto (1em) de um browser é equivalente a 16px, o tamanho padrão do nosso icone seria portanto 2em (16&amp;#215;2 = 32). Tomar este tipo de preocupação é fundamental para garantir a flexibilidade das imagens e dar ao desenvolvedor um controle muito maior sobre o conteúdo. Não se esqueça que esta medida será afetada de acordo com a porcentagem do font-size, ok? Para fins práticos vamos trabalhar neste artigo com a medida em 100%.&lt;/p&gt;
+
+&lt;p&gt;Hora de colocar a mão na massa e conhecer alguns métodos de desenvolvimento. Não existe uma solução perfeita, cada uma é boa para um tipo de situação. Vamos analisar algumas opções, juntamente com seus lados positivos e negativos.&lt;/p&gt;
+
+&lt;h4 id=&#34;1-object&#34;&gt;1. &amp;lt; object &amp;gt;&lt;/h4&gt;
+
+&lt;p&gt;[cc escaped=&amp;#8221;true&amp;#8221; lang=&amp;#8221;html&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;&lt;object data=&amp;#8217;icone.svg&amp;#8217; type=&amp;#8217;image/svg+xml&amp;#8217;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&amp;#8217;img/icone.png&amp;#8217;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;/object&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;pró:&lt;/strong&gt; É o metodo de aplicação mais utilizado, devido a facilidade para criar-se um fallback para as versões mais antigas do Internet Explorer.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;contra:&lt;/strong&gt; Não é a solução mais semântica, já que o W3C não recomenda a utilização desta tag para imagens. Pode gerar ainda alguns problemas de compatibilidade. A engine Safari/Webkit não renderiza corretamente elementos object com transparência, por exemplo.&lt;/p&gt;
+
+&lt;h4 id=&#34;2-svg&#34;&gt;2. &lt;strong&gt;&lt;svg&gt;&lt;/strong&gt;&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;svg xmlns=&#34;http://www.w3.org/2000/svg&#34; xmlns:xlink=&#34;http://www.w3.org/1999/xlink&#34;&amp;gt;
+&amp;lt;path fill=&#34;#231F20&#34; d=&#34;M32,17.969v-4l-4.781-1.992c-0.133-0.375-0.273-0.737-0.445-1.094l1.93-4.805L25.875,3.25l-4.763,1.961
+c-0.362-0.175-0.734-0.323-1.117-0.461L17.969,0h-4l-1.977,4.734c-0.398,0.141-0.781,0.289-1.161,0.469L6.078,3.294L3.25,6.122
+l1.938,4.711C5,11.219,4.847,11.614,4.703,12.021L0,14.031v4l4.706,1.961c0.146,0.406,0.302,0.802,0.489,1.188l-1.903,4.742
+L6.12,28.75l4.724-1.945c0.378,0.18,0.766,0.325,1.164,0.461L14.031,32h4l1.979-4.758c0.38-0.141,0.755-0.289,1.114-0.461
+l4.797,1.922l2.828-2.828l-1.969-4.773c0.167-0.359,0.305-0.722,0.438-1.094L32,17.969z M15.969,22c-3.312,0-6-2.688-6-6
+s2.688-6,6-6s6,2.688,6,6S19.281,22,15.969,22z&#34;/&amp;gt;
+&amp;lt;/svg&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;pró:&lt;/strong&gt; Esta tag de HTML5 foi criada especificamente para este fim, portanto esta é a solução mais moderna e semântica. É relativamente simples: basta colar o código SVG inline.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;contra:&lt;/strong&gt; Código muito extenso dificulta a manutenção (já que é preciso editar manualmente e não apenas substituir um arquivo), baixo grau de compatibilidade com browsers antigos.&lt;/p&gt;
+
+&lt;h4 id=&#34;3-img-img-alt&#34;&gt;3. &lt;img&gt;&lt;img alt=&#34;&#34; /&gt;&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;img src=&#39;img/icone.svg&#39;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;pró:&lt;/strong&gt; Aplicação simples. Melhor opção para imagem sem interação.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;contra:&lt;/strong&gt; Por motivos de segurança, alguns browsers podem desativar scripts em SVG e algumas opções interativas na tag &lt;img&gt;, como links.&lt;/p&gt;
+
+&lt;h4 id=&#34;4-background-images&#34;&gt;4. Background Images&lt;/h4&gt;
+
+&lt;p&gt;&lt;strong&gt;pró:&lt;/strong&gt; Esta opção utiliza apenas CSS. Muito útil para algumas combinações mais complexas como sprites responsivos.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;contra:&lt;/strong&gt; Fallback depende de javascript para funcionar corretamente (veja explicação mais detalhada abaixo).&lt;/p&gt;
+
+&lt;p&gt;.icone {&lt;/p&gt;
+
+&lt;p&gt;background: url(&amp;#8220;../img/icone.svg&amp;#8221;) no-repeat;&lt;/p&gt;
+
+&lt;p&gt;width: 2em;&lt;/p&gt;
+
+&lt;p&gt;height: 2em;&lt;/p&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;h4 id=&#34;suporte&#34;&gt;Suporte&lt;/h4&gt;
+
+&lt;p&gt;Google Chrome 4+, Firefox 3+, Safari 3.2+, Opera 8+ e IE 9+.&lt;/p&gt;
+
+&lt;h2 id=&#34;métodos-de-fallback&#34;&gt;Métodos de Fallback&lt;/h2&gt;
+
+&lt;h4 id=&#34;background-images-em-css&#34;&gt;Background images em CSS&lt;/h4&gt;
+
+&lt;p&gt;As versões mais antigas do Internet Explorer (8 e anteriores) possuem diversas deficiências, dentre elas a falta de suporte para background em RGBA. Mas alguns males vem para o bem. É possível se aproveitar desta falha em nosso beneficio. Basta preparar duas imagens: uma versão em SVG para os navegadores mais atuais e outra em PNG para os navegadores antigos e, na classe do CSS, declaramos dois backgrouds. Em um chamamos a imagem em SVG e declaramos uma cor para o background dela usando RGBA. Os navegadores mais antigos irão ignorar esta linha pois, para eles, o RGBA é um erro e eles não irão ler este background. Para estes navegadores, colocamos outro background com a imagem em png. O contra é não é a solução mais semântica já que o usuário será obrigado a baixar duas vezes as imagens&amp;#8230; Mas existem algumas maneiras de contornar com a utilização de plugins que controlam a requisição de imagens HD do servidor como o &lt;a href=&#34;https://github.com/adamdbradley/foresight.js&#34;&gt;Foresight&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+font-size:100%;
+}
+
+.icone {
+background: url(&#34;../img/icone.png&#34;) no-repeat;
+background: rgba(0,0,0,0) url(&#34;../img/icone.svg&#34;) no-repeat;
+width: 2em;
+height: 2em;
+text-indent: -6000px;
+}&lt;/pre&gt;
+
+&lt;h4 id=&#34;comentário-condicional-para-ie&#34;&gt;Comentário condicional para IE&lt;/h4&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!--[if lte IE 8]&amp;gt;&amp;lt;img src=&#39;img/icone.png&#39;&amp;gt;&amp;lt;![endif]--&amp;gt;
+&amp;lt;!--[if gt IE 8]&amp;gt;&amp;lt;img src=&#39;img/icone.svg&#39;&amp;gt;&amp;lt;![endif]--&amp;gt;
+&amp;lt;!--[if !IE]&amp;gt; --&amp;gt;&amp;lt;img src=&#39;img/icone.svg&#39;&amp;gt;&amp;lt;!-- &amp;lt;![endif]--&amp;gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;fallback-utilizando-modernizr&#34;&gt;Fallback utilizando Modernizr&lt;/h4&gt;
+
+&lt;p&gt;Pode-se utilizar a biblioteca &lt;a href=&#34;http://modernizr.com/&#34;&gt;Modernizr&lt;/a&gt; para detectar se existe um suporte ao elemento. O script funciona da seguinte maneira: se o navegador suporta o formato a classe .svg é adicionada ao html, em caso negativo a classe anexada é .no-svg. Isto possibilita a inclusão de um css alternativo. Veja o exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.icone {
+width: 2em;
+height: 2em;
+text-indent: -6000px;
+}
+
+.icone.svg {
+background: url(icone.svg) no-repeat;
+
+}
+
+.icone.no-svg {
+background: url(icone.png) no-repeat;
+}&lt;/pre&gt;
+
+&lt;h2 id=&#34;considerações-finais&#34;&gt;Considerações Finais&lt;/h2&gt;
+
+&lt;p&gt;Fácil, rápido e indolor. Até o momento não existe nenhuma contra-indicação para o formato e os problemas de retro compatibilidade podem ser facilmente contornados com um pouco de criatividade e conhecimento&amp;#8230; Quem acha que gráficos em alta resolução são uma preocupação apenas para um futuro distante esta na hora de abrir a janela (do browser) e dizer olá para o presente.&lt;/p&gt;
+
+&lt;h2 id=&#34;saiba-mais&#34;&gt;Saiba mais:&lt;/h2&gt;
+
+&lt;h4 id=&#34;resolution-independence-with-sgv-8&#34;&gt;&lt;a href=&#34;http://coding.smashingmagazine.com/2012/01/16/resolution-independence-with-svg/&#34;&gt;Resolution Independence with SGV&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;Artigo bem completo da Smashing Magazine sobre o assunto.&lt;/p&gt;
+
+&lt;h4 id=&#34;w3c-svg-9&#34;&gt;&lt;a href=&#34;http://www.w3.org/Graphics/SVG/&#34;&gt;W3C SVG&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;O canal oficial do formato na W3C.&lt;/p&gt;
+
+&lt;h4 id=&#34;ways-to-embed-a-clickable-svg-logo-into-your-website-10&#34;&gt;&lt;a href=&#34;http://www.noupe.com/tutorial/svg-clickable-71346.html&#34;&gt;Ways to embed a Clickable SVG-Logo into Your Website&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;Uma lista extensiva com vantagens e desvantagens de cada método e exemplos de uso.&lt;/p&gt;
+
+&lt;h4 id=&#34;using-svg-for-flexible-scalable-and-fun-backgrounds-8211-part-i-11&#34;&gt;&lt;a href=&#34;http://www.alistapart.com/articles/using-svg-for-flexible-scalable-and-fun-backgrounds-part-i/&#34;&gt;Using SVG for flexible scalable and fun backgrounds &amp;#8211; Part I&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;Artigo do blog A List Apart &amp;#8211; Parte 1&lt;/p&gt;
+
+&lt;h4 id=&#34;using-svg-for-flexible-scalable-and-fun-backgrounds-8211-part-ii-12&#34;&gt;&lt;a href=&#34;http://www.alistapart.com/articles/using-svg-for-flexible-scalable-and-fun-backgrounds-part-ii/&#34;&gt;Using SVG for flexible scalable and fun backgrounds &amp;#8211; Part II&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;Artigo do blog A List Apart &amp;#8211; Parte 2&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Documentos poliglotas com XHTML5</title>
+      <link>http://tableless.com.br/documentos-poliglotas-com-xhtml5/</link>
+      <pubDate>Wed, 16 May 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/documentos-poliglotas-com-xhtml5/</guid>
+      <description>
+
+&lt;p&gt;Quando se começou a falar massivamente a respeito do HTML5, em 2009, muitos desenvolvedores (inclusive eu) torceram o nariz para o fato de poder voltar a utilizar a sintaxe tolerante do HTML, ou seja, tags em uppercase ou sem fechamento, valores de atributos sem aspas, fechar tags em ordem incorreta, entre outros. Inclusive, &lt;a href=&#34;http://tableless.com.br/o-dilema-da-sintaxe-no-html5/&#34;&gt;comentei especificamente sobre isso em um outro artigo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Grande parte dos desenvolvedores aprenderam  e se habituaram a utilizar a sintaxe do XHTML, que segue as diretrizes do XML para documentos bem formados e que apresentariam erros de renderização caso essas diretrizes são fossem seguidas. Isto nos permitia códigos mais limpos e bem estruturados. Porém, no HTML5, a escolha é sua e você não será punido por não fechar tags.&lt;/p&gt;
+
+&lt;p&gt;Com toda essa preocupação, no mesmo ano começou a ideia do XHTML5, uma tentativa de contornar o problema, adicionando as restrições de marcação do XML a documentos escritos em HTML5. Podemos dizer que seria uma tentativa de unir o melhor de cada especificação. O &lt;a href=&#34;http://html5doctor.com/html-5-xml-xhtml-5/&#34;&gt;artigo escrito por Bruce Lawson para o HTML5 Doctor&lt;/a&gt; (com &lt;a href=&#34;http://www.pinceladasdaweb.com.br/blog/2009/12/10/html-5-xml-xhtml-5/&#34;&gt;versão traduzida no Pinceladas da Web&lt;/a&gt;) foi um dos primeiros a comentar sobre o tema.&lt;/p&gt;
+
+&lt;p&gt;Durante cerca de 1 ano isto era uma forma, digamos, marginalizada de tratar essa questão, por não ser algo reconhecido pelo  &lt;a title=&#34;Web Hypertext Application Technology Working Group&#34; href=&#34;http://www.whatwg.org/&#34; target=&#34;_blank&#34;&gt;WHATWG&lt;/a&gt; / &lt;a title=&#34;W3C HTML Working Group&#34; href=&#34;http://www.w3.org/html/wg/&#34; target=&#34;_blank&#34;&gt;HTML WG&lt;/a&gt;. Mas em 2010 surgiu o primeiro draft com a proposta de nortear o uso do HTML5 com a sintaxe do XML/XHTML. O W3C denominou essa metodologia de &lt;a href=&#34;http://dev.w3.org/html5/html-xhtml-author-guide/&#34;&gt;marcação poliglota&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que-é-um-documento-com-marcação-poliglota&#34;&gt;O que é um documento com marcação poliglota?&lt;/h3&gt;
+
+&lt;p&gt;Um documento com marcação poliglota é um documento escrito em HTML5 que pode ser processado tanto como HTML quanto como XML dentro de um conjunto de restrições definidas, porém, ainda seguindo a especificação do HTML5. Eles são compatíveis com o HTML e XHTML.&lt;/p&gt;
+
+&lt;p&gt;Significa que você pode utilizar todo o poder do HTML5 dentro do padrão de marcação bem formada do XML. É importante ressaltar que isto não afeta as tags que você pode utilizar. Por exemplo, elementos que são considerados &lt;em&gt;deprecated&lt;/em&gt; em XHTML mas válidos no HTML5 continuam a ser válidos. Uma exceção é com relação a algumas tags que são excluídas de documentos poliglotas por não serem possível de serem replicadas em um &lt;em&gt;parser&lt;/em&gt; XML (como é o caso da tag &lt;em&gt;&lt;noscript&gt;&lt;/em&gt;).&lt;/p&gt;
+
+&lt;p&gt;Mas em linhas gerais, esta “fusão” não altera a especificação, mas sim as regras de sintaxe para processamento e há influência no DOM também (ex.: &lt;em&gt;document.write&lt;/em&gt; não é permitido, mas sim &lt;em&gt;innerHTML&lt;/em&gt;).&lt;/p&gt;
+
+&lt;p&gt;Segundo o W3C, um documento poliglota resulta em:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Um documento HTML5 válido;&lt;/li&gt;
+&lt;li&gt;Um documento XML bem formado (mas não significa um documento XML válido);&lt;/li&gt;
+&lt;li&gt;DOM idêntico quando processado tanto como HTML quanto como XML, isto porque os parsers geram diferentes DOMs para determinados atributos relativos ao XML.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;como-escrever-um-documento-poliglota&#34;&gt;Como escrever um documento poliglota&lt;/h3&gt;
+
+&lt;p&gt;Um dos principais requisitos para escrever um documento em XHTML5 é o MIME-type utilizado. Isto vai definir se o navegador irá interpretar o documento como HTML ou XHTML. Segundo o WHATWG, um documento HTML5 se torna um documento poliglota se for provido o MIME-type application/xhtml+xml.&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;html&amp;#8221;]&lt;/p&gt;
+
+&lt;p&gt;&lt;meta http-equiv=&#34;Content-Type&#34; content=&#34;application/xhtml+xml; charset=utf-8&#34; /&gt;
+[/cc]&lt;/p&gt;
+
+&lt;p&gt;Até algum tempo atrás, o IE não suportava este MIME-type. Para isso, você pode indicar que o MIME-type é o usual &lt;em&gt;text/html&lt;/em&gt;. Ele pode ser utilizado junto com o primeiro (separando por vírgula), ou pode ser feita uma validação do navegador para decidir qual o MIME-type a ser utilizado.&lt;/p&gt;
+
+&lt;p&gt;O doctype passa a ser opcional, mas ainda é recomendável utilizar para prevenir o &lt;a href=&#34;http://en.wikipedia.org/wiki/Quirks_mode&#34;&gt;quirks mode&lt;/a&gt; dos navegadores. Se utilizado, a palavra doctype deve ser escrito adequadamente em uppercase, ex.: &lt;em&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/em&gt;. A meta-tag que especifica o charset e a declaração &lt;em&gt;&amp;lt;?xml version=”1.0” encoding=”UTF-8”?&amp;gt;&lt;/em&gt; (herdada do XHTML 1.1) também passam a ser opcionais se o charset desejado para o documento é UTF-8 (padrão do XML).&lt;/p&gt;
+
+&lt;p&gt;Além disso é preciso definir também o namespace do XHTML na tag &lt;em&gt;&lt;html&gt;&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;html&amp;#8221;][/cc]&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;Ao utilizar recursos como SVG e MathML, é preciso especificar também o atributo xml para a tag raiz correspondente de cada um.&lt;/p&gt;
+
+&lt;p&gt;Outras recomendações são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Usar tanto o atributo lang quanto xml:lang na tag &lt;em&gt;&lt;html&gt;&lt;/em&gt;;&lt;/li&gt;
+&lt;li&gt;Usar &lt;em&gt;tbody&lt;/em&gt; / &lt;em&gt;thead&lt;/em&gt; / &lt;em&gt;tfoot&lt;/em&gt; em _&lt;table&gt;_s;&lt;/li&gt;
+&lt;li&gt;Quando o elemento &lt;em&gt;&lt;col&gt;&lt;/em&gt; é utilizado em tabelas, utilizar também o elemento &lt;em&gt;&lt;colgroup&gt;&lt;/em&gt;;&lt;/li&gt;
+&lt;li&gt;Não utilizar o elemento &lt;em&gt;&lt;noscript&gt;&lt;/em&gt;;&lt;/li&gt;
+&lt;li&gt;Não iniciar as tags &lt;em&gt;&lt;pre&gt;&lt;/em&gt; e &lt;em&gt;&lt;textarea&gt;&lt;/em&gt; com linha em branco;&lt;/li&gt;
+&lt;li&gt;Utilizar &lt;em&gt;innerHTML&lt;/em&gt; ao invés de &lt;em&gt;documento.write&lt;/em&gt;;&lt;/li&gt;
+&lt;li&gt;Para scripts embutidos na página, escreva o código entre uma seção CDATA com os delimitadores comentados. É uma forma de fazer com que o parser do XML (que analisa apenas a marcação) não acuse erros ao utilizar &amp;lt; ou &amp;amp; no script;&lt;/li&gt;
+&lt;li&gt;Os atributos &lt;em&gt;xml:space&lt;/em&gt; e &lt;em&gt;xml:base&lt;/em&gt; são permitidos apenas nos elementos relativos a SVG e MathML;&lt;/li&gt;
+&lt;li&gt;Elementos que podem ter conteúdo mas estão vazios não devem ser minimizados para o formato de tag órfã. Ex.: &lt;em&gt;&lt;p /&gt;&lt;/em&gt; não deve ser utilizado, mas sim &lt;em&gt;&lt;p&gt;&lt;/p&gt;&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ao escrever documentos poliglotas, é possível utilizar todas as funcionalidades do HTML5 com uma garantia de código bem formado de acordo com as restrições do XHTML. Com isso, é possível ter um código mais organizado e consistente que seja mais fácil de produzir, manter e reutilizar a longo prazo, principalmente quando este trabalho é realizado em equipe.&lt;/p&gt;
+
+&lt;h3 id=&#34;referências&#34;&gt;Referências&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://dev.w3.org/html5/html-xhtml-author-guide/&#34;&gt;Polyglot Markup: HTML-Compatible XHTML Documents&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://blog.whatwg.org/xhtml5-in-a-nutshell&#34;&gt;XHTML5 in a nutshell&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.xmlplease.com/xhtml/xhtml5polyglot/&#34;&gt;Benefits of polyglot XHTML5&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://html5doctor.com/html-5-xml-xhtml-5/&#34;&gt;HTML 5 + XML = XHTML 5&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Ah, o maravilhoso mundo real</title>
+      <link>http://tableless.com.br/ah-o-maravilhoso-mundo-real/</link>
+      <pubDate>Thu, 10 Sep 2009 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/ah-o-maravilhoso-mundo-real/</guid>
+      <description>&lt;p&gt;O Diego publicou, há mais de uma semana, um &lt;a href=&#34;http://tableless.com.br/se-prepare-para-a-revolucao&#34;&gt;artigo sobre o impacto da mudança de estratégia do W3C&lt;/a&gt; em relação ao ciclo de vida de seus padrões. O artigo gerou algumas opiniões contrárias nos comentários, em relação ao fato de ele ter dito que bordas arredondadas são mais importantes que a web semântica e em relação à estratégia de especificações modulares do W3C. Vou compartilhar minha opinião sobre os dois pontos.&lt;/p&gt;
+
+&lt;p&gt;Em primeiro lugar, é importante distinguir o ideal daquilo que é possível fazer. Li um bocado sobre RDF e ontologias há uns dez anos. Li &amp;#8220;A Revolução Inacabada&amp;#8221;, vi o RSS nascer e se tornar popular, vi as primeiras aplicações entenderem o formato. RDF falhou. Dez anos se passaram e continuamos escrevendo HTML para ser lido por navegadores e só. Há poucos exemplos de aplicações semânticas na vida real, e a maioria seria desenvolvida de uma forma ou de outra.&lt;/p&gt;
+
+&lt;p&gt;Há muita gente, por exemplo, definindo seu próprio padrão de XML para trocar dados com sistemas parceiros. Quantos desses estão usando RDF, com uma ontologia interpretada automaticamente por sistemas que &amp;#8220;descobrem&amp;#8221; os serviços um do outro? Ou seja, não há novidades nisso nos últimos dez anos.&lt;/p&gt;
+
+&lt;p&gt;Escrever HTML bom é importante, porque vai ajudar o Google a indexar seu site e vai facilitar a vida de quem tentar HTML parsing nele. Mas, seja sincero, você tem mesmo esperanças de que alguém vá lê-lo como XML? Vê alguma vantagem real em validar seu código como XHTML, além de provar a si próprio que fez tudo direito? E onde está a promessa dos microformats? Microformats só fazem diferença se forem usados por muita gente. Ninguém vai fazer um parser de um formato usado em apenas um site. Você consegue citar, de cabeça, cinco sites que usem microformats e não foram feitos por você? Ah, claro, não vale incluir na lista o microformats.org.&lt;/p&gt;
+
+&lt;p&gt;Nem RSS é um bom exemplo de aplicação de semântica XML. Existem pelo menos dois formatos populares do padrão, além do padrão Atom, que serve para a mesma coisa. E não sei de nenhum leitor de RSS de sucesso que faça parsing dos feeds como XML. O que todos fazem é ler e interpretar a string. É isso mesmo que você entendeu, quase tão bom quanto um CSV! Outro exemplo digno de nota é o SOAP, que foi criado para fornecer aos webservices a capacidade de &amp;#8220;autodescoberta&amp;#8221;. Você conhece alguém que use isso de verdade? Já viu algum robô que varre a web em busca de serviços e entende sozinho como usá-los? SOAP só tem a vantagem de oferecer tooltips para ajudar os programadores .Net que usam Visual Studio. Enquanto isso, lá fora, XMLRPC e REST (com JSON) estão mudando o mundo.&lt;/p&gt;
+
+&lt;p&gt;Por que essas tecnologias falharam, embora pareçam todas boas idéias? Meu palpite é que elas exigiam um raciocínio de longo prazo, um tipo de aposta, que é muito difícil de conseguir. Embora XHTML, Microformats ou SOAP sejam idéias muito boas, aplicá-las em seu site só vai ter valor se muito mais gente o fizer. Se você aplicar o formato sozinho vai perder seu tempo.&lt;/p&gt;
+
+&lt;p&gt;O que é muito diferente de, por exemplo, deixar de usar tabelas para layout, escrever bom HTML ou usar jQuery. Essas coisas lhe devolvem um benefício imediato. Se deixar de usar tabelas para layout vai ter um site mais leve e vai perder muito menos tempo quando tiver que mudar o layout, se escrever HTML bom vai ter menos trabalho para escrever CSS, para fazer o CSS mobile e o de impressão, e se usar jQuery vai escrever javascript em um terço do tempo.&lt;/p&gt;
+
+&lt;p&gt;Note que esses três exemplos também tiram benefícios do fato de muita gente estar usando. Há muitos bons lugares para se aprender HTML e CSS, há muitos sistemas Open Source que já trabalham gerando código bom e os buscadores entendem a semântica do bom HTML. Mas você não depende desses benefícios para tomar a decisão de uso. Quando começamos, há dez anos, a fazer layouts tableless, não aparecíamos melhor no Google e praticamente não havia sistemas gerando HTML direito. Mas o fizemos assim mesmo porque os benefícios imediatos compensavam o esforço.&lt;/p&gt;
+
+&lt;p&gt;É por isso que eu temo que nunca teremos uma web semântica de verdade, e estamos condenados a fazer HTML parsing para sempre.&lt;/p&gt;
+
+&lt;p&gt;Há exceções. RSS, por exemplo. RSS é uma sombra do que poderia, mas é um padrão de sucesso, amplamente adotado. E não pode ser explicado com minha teoria do benefício individual imediato. Se você estiver usando RSS sozinho no mundo, não terá nenhum benefício. Talvez o sucesso do RSS se deva ao fato de precisar de uma pequena rede de usuários para oferecer um grande benefício.&lt;/p&gt;
+
+&lt;p&gt;Você já se perguntou como foram vendidos os primeiros aparelhos de FAX? Ter um FAX só faz sentido se mais gente tiver. Foram vendidos aos pares. As empresas o compravam para trocar documentos entre a matriz e as filiais. O fato de poder trocar documentos com o resto do mundo era, no início, um &amp;#8220;benefício adicional&amp;#8221;. Se você precisa trocar conteúdo com um site parceiro e vocês forem os únicos usuários de RSS no mundo, terá valido a pena. Conforme a comunidade de usuários aumentava, o valor de ter RSS crescia. Muita gente começou a usar Bloglines e todo mundo queria entrar na festa.&lt;/p&gt;
+
+&lt;p&gt;Há alguns anos eu percorri o país com o pessoal da Locaweb comparando o modelo de adoção do RSS com o que eu imaginava que seriam os microformats. Eu estava errado. Pense um segundo no formato de reviews dos microformats. Qual o real benefício de usá-lo? Há alguma aplicação indispensável, onde você realmente quer estar, baseada em hReview? Para que você vai perder seu tempo?&lt;/p&gt;
+
+&lt;p&gt;Será que não estamos resolvendo o problema errado? Quando o Diego diz que bordas arredondadas são mais importantes que RDF, será que ele não tem razão? Para meus clientes, hoje, bordas arredondadas com CSS significam um site mais rápido, mais barato (menos tempo gasto recortando imagens) e, para os sites muito visitados, economia de banda. É uma diferença pequena, mas é uma vantagem. E RDF? Além de oferecer RSS, que nem vai ser lido como XML, o que eu posso fazer de real hoje com RDF para meus clientes?&lt;/p&gt;
+
+&lt;p&gt;Desculpe se meu raciocínio parece mesquinho. Ele é. Estou tentando ser realista. Uma das principais influências sobre as decisões humanas é a inércia, e não acredito que o mundo vá, num futuro próximo, adotar de maneira revolucionária o RDF ou mesmo o XHTML. Ainda acho essas idéias fantásticas, só não sei se são possíveis.&lt;/p&gt;
+
+&lt;p&gt;O realismo também me faz crer que a nova estratégia de especificações modulares do W3C é uma coisa boa. Sofremos décadas com implementações parciais do HTML 4 e do CSS 2. Agora vamos assumir a realidade inevitável. Os desenvolvedores de navegador se sentirão mais à vontade para dizer a você o que funciona ou não. E não precisamos esperar anos para a definição de um padrão. Podemos usar os recursos com os quais o consórcio já concordou hoje. Leva mesmo alguns anos para o W3C bater o martelo sobre determinado padrão, e as especificações modulares representam um ciclo de releases muito mais dinâmico.&lt;/p&gt;
+
+&lt;p&gt;Já temos um acordo sobre CSS Transform, bordas arredondadas, múltiplos backgrounds, repetição no DOM, validadores de formulários, SVG, DOM Storage, querySelectors e uma série de outros recursos legais. Por que esperar até a próxima Olimpíada para dizer aos desenvolvedores de browsers: &amp;#8220;Ok, pessoal, fechamos tudo, HTML 5 e CSS 3 já são padrões, podem implementar&amp;#8221;? De qualquer maneira, a adoção modular das especificações do W3C é inevitável. Embora a especificação tenha saído inteira, a adoção foi modular no HTML 3, no HTML 4, no CSS 2. Sabendo que não vai ser diferente mesmo, não é melhor que tenhamos bonitas tabelas de compatibilidade entre o que existe e o que cada navegador suporta?&lt;/p&gt;
+
+&lt;p&gt;Dá uma olhada na &lt;a href=&#34;http://www.w3.org/Style/CSS/current-work&#34;&gt;lista de módulos do CSS3&lt;/a&gt;. Você não quer esperar isso tudo ficar pronto para ter bordas arredondadas.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>SEO – Sitemaps</title>
+      <link>http://tableless.com.br/seo-sitemaps/</link>
+      <pubDate>Wed, 02 Jul 2008 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/seo-sitemaps/</guid>
+      <description>&lt;p&gt;O &lt;a href=&#34;http://www.sitemaps.org/pt_BR/index.php&#34;&gt;Sitemaps é um formato simples de XML&lt;/a&gt; que serve para informar aos sistemas de buscas sobre seus endereços disponíveis para indexação. Esse XML relaciona as URLs existentes do seu site, com algumas informações como data da última atualização, prioridade da página em relação às outras páginas e freqüencia de atualização.&lt;/p&gt;
+
+&lt;p&gt;O sitemap.xml é um arquivo que pode ser &lt;a href=&#34;http://code.google.com/sm_thirdparty.html&#34;&gt;gerado automaticamente por um plugin&lt;/a&gt; ou até mesmo escrito à mão pelo desenvolvedor.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;p&gt;O código básico do Sitemap:&lt;/p&gt;
+
+&lt;p&gt;[cc lang=&amp;#8221;xml&amp;#8221;]&amp;lt;?xml version=&amp;ldquo;1.0&amp;rdquo; encoding=&amp;ldquo;UTF-8&amp;rdquo;?&amp;gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;urlset xmlns=&#34;http://www.sitemaps.org/schemas/sitemap/0.9&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;url&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;loc&gt;&lt;a href=&#34;http://www.example.com/&#34;&gt;http://www.example.com/&lt;/a&gt;&lt;/loc&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;_&amp;lt;lastmod&amp;gt;2005-01-01&amp;lt;/lastmod&amp;gt;_
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;    &lt;changefreq&gt;monthly&lt;/changefreq&gt; &lt;priority&gt;0.8&lt;/priority&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;/url&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;/urlset&gt;[/cc]&lt;/p&gt;
+
+&lt;p&gt;As tags que podem ser inseridas no sitemap.xml são essas:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;urlset&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Executa o encapsulamento do arquivo e faz referência ao padrão de protocolo atual.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;url&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Tag pai de cada entrada de URL. O restante das tags são as tags filhas dessa tag.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;loc&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;URL da página. Esse URL deve começar com um protocolo (como http) e terminar com&lt;/p&gt;
+
+&lt;p&gt;uma barra final, caso seja exigido pelo seu servidor. Esse valor deve conter menos&lt;/p&gt;
+
+&lt;p&gt;de 2.048 caracteres.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;lastmod&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;A data da última modificação do arquivo. Essa data deve estar no formato de [&lt;/p&gt;
+
+&lt;p&gt;data e hora do W3C]&lt;a href=&#34;http://www.w3.org/TR/NOTE-datetime&#34;&gt;3&lt;/a&gt;. Esse formato permite omitir o horário, se desejar, e&lt;/p&gt;
+
+&lt;p&gt;usar AAAA-MM-DD.&lt;/p&gt;
+
+&lt;p&gt;Lembre-se de que esta tag é separada do cabeçalho If-Modified-Since (304) que o servidor pode retornar, e os mecanismos de pesquisa podem usar as informações de ambas as fontes de forma diferente.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;changefreq&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;A freqüência com que a página é alterada. Esse valor fornece informações gerais para os mecanismos de pesquisa e pode ser que ele não corresponda exatamente à freqüência de indexação da página. Os valores válidos são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;always&lt;/li&gt;
+&lt;li&gt;hourly&lt;/li&gt;
+&lt;li&gt;daily&lt;/li&gt;
+&lt;li&gt;weekly&lt;/li&gt;
+&lt;li&gt;monthly&lt;/li&gt;
+&lt;li&gt;anual&lt;/li&gt;
+&lt;li&gt;never&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;O valor &amp;#8220;always&amp;#8221; deve ser usado para descrever os documentos que sempre são alterados quando acessados. O valor &amp;#8220;never&amp;#8221; deve ser usado para descrever os URLs arquivados. Observe que o valor dessa tag é considerado uma &lt;em&gt;dica&lt;/em&gt; e não um comando. Mesmo que os indexadores de mecanismo de pesquisa possam considerar essas informações ao tomar decisões, pode ser que indexem as páginas marcadas como &amp;#8220;horárias&amp;#8221; com menos freqüência do que isso e talvez façam a indexação de páginas marcadas como &amp;#8220;anualmente&amp;#8221; com mais freqüência do que isso. Os indexadores podem indexar páginas marcadas como &amp;#8220;nunca&amp;#8221; periodicamente, para que possam lidar com alterações inesperadas&lt;/p&gt;
+
+&lt;p&gt;nessas páginas.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;priority&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;A prioridade desse URL em relação a outros URLs do mesmo site. Os valores válidos vão de 0.0 a 1.0. Esse valor não afeta o modo como as páginas são comparadas às páginas em outros sites — apenas permite que os mecanismos de pesquisa saibam quais páginas você considera mais importantes para os indexadores.&lt;/p&gt;
+
+&lt;p&gt;A prioridade padrão de uma página é 0,5.&lt;/p&gt;
+
+&lt;p&gt;Observe que não é provável que a prioridade atribuída a uma página influencie a posição dos URLs nas páginas de resultados de um mecanismo de pesquisa. Os mecanismos de pesquisa podem usar essas informações quando selecionam entre URLs no mesmo site. Use essa tag para aumentar a probabilidade de a maioria das páginas importantes estarem presentes em um índice de pesquisa.&lt;/p&gt;
+
+&lt;p&gt;Além disso, observe que a atribuição de uma prioridade alta a todos os URLs no site provavelmente não o ajudará. Como a prioridade é relativa, ela só é usada para priorizar os URLs do seu site.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.sitemaps.org/pt_BR/protocol.php&#34;&gt;Tabela retirada do sitemaps.org&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;local-dos-arquivos-sitemaps-xml&#34;&gt;Local dos arquivos sitemaps.xml&lt;/h3&gt;
+
+&lt;p&gt;É importante saber que o local que o sitemap.xml é colocado determina o quais urls podem ser colocadas no arquivo. Exemplo: fiz um &lt;a href=&#34;http://visie.com.br/treinamento/sitemap.xml&#34;&gt;sitemap.xml&lt;/a&gt; para o &lt;a href=&#34;http://visie.com.br/treinamento/&#34;&gt;site de treinamentos da Visie&lt;/a&gt; cuja URL é visie.com.br/treinamento. No meu sitemap.xml apenas poderá haver URLs que comecem com visie.com.br/treinamento e não apenas visie.com.br.&lt;/p&gt;
+
+&lt;p&gt;Todas as URLs que estão no Sitemap precisam utilizar o mesmo protocolo &amp;#8211; no exemplo da Visie estou utilizando o HTTP &amp;#8211; e precisam estar no mesmo host que o Sitemap. Por exmeplo, se o Sitemap estiver localizado em: visie.com.br/treinamento/sitemap.xml, ele não pode incluir URLs de um subdominio.visie.com.br.&lt;/p&gt;
+
+&lt;h3 id=&#34;informando-os-buscadores-que-seu-sitemap-xml-existe&#34;&gt;Informando os buscadores que seu sitemap.xml existe&lt;/h3&gt;
+
+&lt;p&gt;Há duas maneiras fáceis para avisar aos sistemas de busca que seu sitemap.xml está disponível:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Enviando o seu Sitemap por meio da interface de envio do mecanismo de pesquisa&lt;/li&gt;
+&lt;li&gt;Especificando a localização do Sitemap no seu arquivo robots.txt&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Enviando o seu Sitemap por meio da interface de envio do mecanismo de pesquisa.&lt;/strong&gt; O Google tem um local muito interessante onde além de informar o endereço do seu sitemap.xml você pode ter uma série de outras informações importantes para seu site, é o &lt;a href=&#34;https://www.google.com/webmasters/tools/&#34;&gt;Google Webmaster Tools&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Especificando a localização do Sitemap no seu arquivo robots.txt.&lt;/strong&gt; Para indicar o sitemap.xml pelo robots.txt basta acrescentar essa linha: Sitemap: &lt;local\_do\_Sitemap&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você quiser, você pode colocar vários endereços de Sitemaps, bastando inserir várias linhas como as de cima indicando os endereços dos respectivos sitemaps.&lt;/p&gt;
+
+&lt;p&gt;Ter um sitemap.xml não garante que você uma URL seja ou não mais indexada que as outras. Mesmo assim, é um adendo para que os buscadores fiquem mais informados com os endereços do seu site. Se você não utiliza nenhum plugin para que o sitemap.xml seja gerado automaticamente, fique atento às atualizações das URLs. Você pode estar informando aos buscadores URLs antigas e isso pode afetar nos resultados organicos com o do Google. Se você quiser testar alguns plugins ou programas para gerar seu sitemap.xml automaticamente, &lt;a href=&#34;http://code.google.com/sm_thirdparty.html&#34;&gt;visite este link&lt;/a&gt;.&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Charsets e Encodes – Tabelas de caracteres</title>
+      <link>http://tableless.com.br/charsets-e-encodes-tabelas-de-caracteres/</link>
+      <pubDate>Mon, 31 Mar 2008 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/charsets-e-encodes-tabelas-de-caracteres/</guid>
+      <description>&lt;p&gt;Quando você escreve um documento HTML (ou qualquer outra linguagem baseada em SGML) é necessário que especifiquemos o Charset utilizado. O &lt;strong&gt;Charset é o conjunto de caracteres utilizados para escrever o documento&lt;/strong&gt;. Um jogo de caracteres consiste em ter 1) repertório com caracteres e 2) uma posição de referência para cada um dos caracteres no repertório. Cada caractere é identificado e localizado por este código de posição. Por exemplo, na tabela ASCII, as posições 65, 66 e 67 se referem às letras A, B e C respectivamente. Abaixo, veja a tabela de caracteres ASCII:&lt;/p&gt;
+
+&lt;table summary=&#34;tabela ASCII&#34; width=&#34;100%&#34;&gt;
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          00 &amp;#8211; (NUL)
+        &lt;/li&gt;
+        &lt;li&gt;
+          01 &amp;#8211; (SOH)
+        &lt;/li&gt;
+        &lt;li&gt;
+          02 &amp;#8211; (STX)
+        &lt;/li&gt;
+        &lt;li&gt;
+          03 &amp;#8211; (ETX)
+        &lt;/li&gt;
+        &lt;li&gt;
+          04 &amp;#8211; (EOT)
+        &lt;/li&gt;
+        &lt;li&gt;
+          05 &amp;#8211; (ENQ)
+        &lt;/li&gt;
+        &lt;li&gt;
+          06 &amp;#8211; (ACK)
+        &lt;/li&gt;
+        &lt;li&gt;
+          07 &amp;#8211; (BEL)
+        &lt;/li&gt;
+        &lt;li&gt;
+          08 &amp;#8211; (BS)
+        &lt;/li&gt;
+        &lt;li&gt;
+          09 &amp;#8211; (HT)
+        &lt;/li&gt;
+        &lt;li&gt;
+          10 &amp;#8211; (LF)
+        &lt;/li&gt;
+        &lt;li&gt;
+          11 &amp;#8211; (VT)
+        &lt;/li&gt;
+        &lt;li&gt;
+          12 &amp;#8211; (FF)
+        &lt;/li&gt;
+        &lt;li&gt;
+          13 &amp;#8211; (CR)
+        &lt;/li&gt;
+        &lt;li&gt;
+          14 &amp;#8211; (SO)
+        &lt;/li&gt;
+        &lt;li&gt;
+          15 &amp;#8211; (SI)
+        &lt;/li&gt;
+        &lt;li&gt;
+          16 &amp;#8211; (DLE)
+        &lt;/li&gt;
+        &lt;li&gt;
+          17 &amp;#8211; (D1)
+        &lt;/li&gt;
+        &lt;li&gt;
+          18 &amp;#8211; (D2)
+        &lt;/li&gt;
+        &lt;li&gt;
+          19 &amp;#8211; (D3)
+        &lt;/li&gt;
+        &lt;li&gt;
+          20 &amp;#8211; (D4)
+        &lt;/li&gt;
+        &lt;li&gt;
+          21 &amp;#8211; (NAK)
+        &lt;/li&gt;
+        &lt;li&gt;
+          22 &amp;#8211; (SYN)
+        &lt;/li&gt;
+        &lt;li&gt;
+          23 &amp;#8211; (ETB)
+        &lt;/li&gt;
+        &lt;li&gt;
+          24 &amp;#8211; (CAN)
+        &lt;/li&gt;
+        &lt;li&gt;
+          25 &amp;#8211; (EM)
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          26 &amp;#8211; (SUB)
+        &lt;/li&gt;
+        &lt;li&gt;
+          27 &amp;#8211; (ESC)
+        &lt;/li&gt;
+        &lt;li&gt;
+          28 &amp;#8211; (FS)
+        &lt;/li&gt;
+        &lt;li&gt;
+          29 &amp;#8211; (GS)
+        &lt;/li&gt;
+        &lt;li&gt;
+          30 &amp;#8211; (RS)
+        &lt;/li&gt;
+        &lt;li&gt;
+          31 &amp;#8211; (US)
+        &lt;/li&gt;
+        &lt;li&gt;
+          32 &amp;#8211; (Espaço)
+        &lt;/li&gt;
+        &lt;li&gt;
+          33 &amp;#8211; !
+        &lt;/li&gt;
+        &lt;li&gt;
+          34 &amp;#8211; &amp;#8220;
+        &lt;/li&gt;
+        &lt;li&gt;
+          35 &amp;#8211; #
+        &lt;/li&gt;
+        &lt;li&gt;
+          36 &amp;#8211; $
+        &lt;/li&gt;
+        &lt;li&gt;
+          37 &amp;#8211; %
+        &lt;/li&gt;
+        &lt;li&gt;
+          38 &amp;#8211; &amp;
+        &lt;/li&gt;
+        &lt;li&gt;
+          39 &amp;#8211; &amp;#8216;
+        &lt;/li&gt;
+        &lt;li&gt;
+          40 &amp;#8211; (
+        &lt;/li&gt;
+        &lt;li&gt;
+          41 &amp;#8211; )
+        &lt;/li&gt;
+        &lt;li&gt;
+          42 &amp;#8211; *
+        &lt;/li&gt;
+        &lt;li&gt;
+          43 &amp;#8211; +
+        &lt;/li&gt;
+        &lt;li&gt;
+          44 &amp;#8211; ,
+        &lt;/li&gt;
+        &lt;li&gt;
+          45 &amp;#8211; &amp;#8211;
+        &lt;/li&gt;
+        &lt;li&gt;
+          46 &amp;#8211; .
+        &lt;/li&gt;
+        &lt;li&gt;
+          47 &amp;#8211; /
+        &lt;/li&gt;
+        &lt;li&gt;
+          48 &amp;#8211; 0
+        &lt;/li&gt;
+        &lt;li&gt;
+          49 &amp;#8211; 1
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          50 &amp;#8211; 2
+        &lt;/li&gt;
+        &lt;li&gt;
+          51 &amp;#8211; 3
+        &lt;/li&gt;
+        &lt;li&gt;
+          52 &amp;#8211; 4
+        &lt;/li&gt;
+        &lt;li&gt;
+          53 &amp;#8211; 5
+        &lt;/li&gt;
+        &lt;li&gt;
+          54 &amp;#8211; 6
+        &lt;/li&gt;
+        &lt;li&gt;
+          55 &amp;#8211; 7
+        &lt;/li&gt;
+        &lt;li&gt;
+          56 &amp;#8211; 8
+        &lt;/li&gt;
+        &lt;li&gt;
+          57 &amp;#8211; 9
+        &lt;/li&gt;
+        &lt;li&gt;
+          58 &amp;#8211; :
+        &lt;/li&gt;
+        &lt;li&gt;
+          59 &amp;#8211; ;
+        &lt;/li&gt;
+        &lt;li&gt;
+          60 &amp;#8211; &lt;
+        &lt;/li&gt;
+        &lt;li&gt;
+          61 &amp;#8211; =
+        &lt;/li&gt;
+        &lt;li&gt;
+          62 &amp;#8211; &amp;gt/
+        &lt;/li&gt;
+        &lt;li&gt;
+          63 &amp;#8211; ?
+        &lt;/li&gt;
+        &lt;li&gt;
+          64 &amp;#8211; @
+        &lt;/li&gt;
+        &lt;li&gt;
+          65 &amp;#8211; A
+        &lt;/li&gt;
+        &lt;li&gt;
+          66 &amp;#8211; B
+        &lt;/li&gt;
+        &lt;li&gt;
+          67 &amp;#8211; C
+        &lt;/li&gt;
+        &lt;li&gt;
+          68 &amp;#8211; D
+        &lt;/li&gt;
+        &lt;li&gt;
+          69 &amp;#8211; E
+        &lt;/li&gt;
+        &lt;li&gt;
+          70 &amp;#8211; F
+        &lt;/li&gt;
+        &lt;li&gt;
+          71 &amp;#8211; G
+        &lt;/li&gt;
+        &lt;li&gt;
+          72 &amp;#8211; H
+        &lt;/li&gt;
+        &lt;li&gt;
+          73 &amp;#8211; I
+        &lt;/li&gt;
+        &lt;li&gt;
+          74 &amp;#8211; J
+        &lt;/li&gt;
+        &lt;li&gt;
+          75 &amp;#8211; K
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          76 &amp;#8211; L
+        &lt;/li&gt;
+        &lt;li&gt;
+          77 &amp;#8211; M
+        &lt;/li&gt;
+        &lt;li&gt;
+          78 &amp;#8211; N
+        &lt;/li&gt;
+        &lt;li&gt;
+          79 &amp;#8211; O
+        &lt;/li&gt;
+        &lt;li&gt;
+          80 &amp;#8211; P
+        &lt;/li&gt;
+        &lt;li&gt;
+          81 &amp;#8211; Q
+        &lt;/li&gt;
+        &lt;li&gt;
+          82 &amp;#8211; R
+        &lt;/li&gt;
+        &lt;li&gt;
+          83 &amp;#8211; S
+        &lt;/li&gt;
+        &lt;li&gt;
+          84 &amp;#8211; T
+        &lt;/li&gt;
+        &lt;li&gt;
+          85 &amp;#8211; U
+        &lt;/li&gt;
+        &lt;li&gt;
+          86 &amp;#8211; V
+        &lt;/li&gt;
+        &lt;li&gt;
+          87 &amp;#8211; W
+        &lt;/li&gt;
+        &lt;li&gt;
+          88 &amp;#8211; X
+        &lt;/li&gt;
+        &lt;li&gt;
+          89 &amp;#8211; Y
+        &lt;/li&gt;
+        &lt;li&gt;
+          90 &amp;#8211; Z
+        &lt;/li&gt;
+        &lt;li&gt;
+          91 &amp;#8211; [
+        &lt;/li&gt;
+        &lt;li&gt;
+          92 &amp;#8211; \
+        &lt;/li&gt;
+        &lt;li&gt;
+          93 &amp;#8211; ]
+        &lt;/li&gt;
+        &lt;li&gt;
+          94 &amp;#8211; ^
+        &lt;/li&gt;
+        &lt;li&gt;
+          95 &amp;#8211; _
+        &lt;/li&gt;
+        &lt;li&gt;
+          96 &amp;#8211; `
+        &lt;/li&gt;
+        &lt;li&gt;
+          97 &amp;#8211; a
+        &lt;/li&gt;
+        &lt;li&gt;
+          98 &amp;#8211; b
+        &lt;/li&gt;
+        &lt;li&gt;
+          99 &amp;#8211; c
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          100 &amp;#8211; d
+        &lt;/li&gt;
+        &lt;li&gt;
+          101 &amp;#8211; e
+        &lt;/li&gt;
+        &lt;li&gt;
+          102 &amp;#8211; f
+        &lt;/li&gt;
+        &lt;li&gt;
+          103 &amp;#8211; g
+        &lt;/li&gt;
+        &lt;li&gt;
+          104 &amp;#8211; h
+        &lt;/li&gt;
+        &lt;li&gt;
+          105 &amp;#8211; i
+        &lt;/li&gt;
+        &lt;li&gt;
+          106 &amp;#8211; j
+        &lt;/li&gt;
+        &lt;li&gt;
+          107 &amp;#8211; k
+        &lt;/li&gt;
+        &lt;li&gt;
+          108 &amp;#8211; l
+        &lt;/li&gt;
+        &lt;li&gt;
+          109 &amp;#8211; m
+        &lt;/li&gt;
+        &lt;li&gt;
+          110 &amp;#8211; n
+        &lt;/li&gt;
+        &lt;li&gt;
+          111 &amp;#8211; o
+        &lt;/li&gt;
+        &lt;li&gt;
+          112 &amp;#8211; p
+        &lt;/li&gt;
+        &lt;li&gt;
+          113 &amp;#8211; q
+        &lt;/li&gt;
+        &lt;li&gt;
+          114 &amp;#8211; r
+        &lt;/li&gt;
+        &lt;li&gt;
+          115 &amp;#8211; s
+        &lt;/li&gt;
+        &lt;li&gt;
+          116 &amp;#8211; t
+        &lt;/li&gt;
+        &lt;li&gt;
+          117 &amp;#8211; u
+        &lt;/li&gt;
+        &lt;li&gt;
+          118 &amp;#8211; v
+        &lt;/li&gt;
+        &lt;li&gt;
+          119 &amp;#8211; w
+        &lt;/li&gt;
+        &lt;li&gt;
+          120 &amp;#8211; x
+        &lt;/li&gt;
+        &lt;li&gt;
+          121 &amp;#8211; y
+        &lt;/li&gt;
+        &lt;li&gt;
+          122 &amp;#8211; z
+        &lt;/li&gt;
+        &lt;li&gt;
+          123 &amp;#8211; {
+        &lt;/li&gt;
+        &lt;li&gt;
+          124 &amp;#8211; |
+        &lt;/li&gt;
+        &lt;li&gt;
+          125 &amp;#8211; }
+        &lt;/li&gt;
+        &lt;li&gt;
+          126 &amp;#8211; ~
+        &lt;/li&gt;
+        &lt;li&gt;
+          127 &amp;#8211; (DELETE)
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;A tabela de caracteres ASCII (Código Padrão Americano para Intercâmbio de Informações) foi a primeira tabela utilizada em larga escala. O computador foi desenvolvido nos Estados Unidos. No vocabulário americano, não existem acentos, além disso, era um código de 7 bits, e não 8. Ou seja, ao invés de 256 posições, a tabela ASCII tinha apenas 128 posições &amp;#8211; como você sabe, tudo nos computadores são um grupo de zeros (0) e uns (1) chamados de bits. Esses zeros e uns formam grupos de oito em oito que chamados de bytes e representam um número entre 0 e 255. Como as imagens, áudio, vídeos, programas e tudo o que temos nos sistemas de hoje, os caracteres que aparecem na sua tela são grupos de zeros e uns.&lt;/p&gt;
+
+&lt;p&gt;O computador se popularizou e a necessidade de utilizar acentos e outros tipos de caracteres (Chineses, por exemplo) tornou-se um problema.&lt;/p&gt;
+
+&lt;p&gt;Hoje, a maioria das tabelas utilizadas foram criadas suprindo as necessidades de um idioma específico, por este motivo elas se tornaram muito limitadas.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo, se você estiver escrevendo um documento utilizando a tabela de caracteres chinesa, você não poderá escrever algo em hebraico neste documento.&lt;/p&gt;
+
+&lt;p&gt;Por conta disso muitos problemas podem surgir, por exemplo, seria impossível criar um curso online de hebraico para chineses. Será também um problema se você tiver que fazer um site ou sistema com suporte a diversos idiomas. Por exemplo, um sistema de blog projetado para uso internacional. Isso por que a posição dos caracteres varia de tabela para tabela. Dois codificadores podem usar o mesmo número para dois caracteres diferentes ou usar números diferentes para o mesmo caractere.&lt;/p&gt;
+
+&lt;h3 id=&#34;a-tabela-de-caractéres-unicode-8211-utf-8&#34;&gt;A tabela de caractéres Unicode &amp;#8211; UTF-8&lt;/h3&gt;
+
+&lt;p&gt;A Web é acessada por pessoas do mundo inteiro. Ter um sistema ou um site que limite o acesso e pessoas de outros países é algo que vai contra a tradição e os ideais da internet. Por isso, foi criado uma tabela que suprisse essas necessidades, essa tabela se chama Unicode. A tabela Unicode suporta algo em torno de um milhão de caracteres. Ao invés de cada região ter sua tabela de caracteres, é muito mais sensato haver uma tabela padrão com o maior número de caracteres possível. Atualmente a maioria dos sistemas e browsers utilizados por usuários suportam plenamente Unicode. Por isso, fazendo seu sistema Unicode você garante que ele será bem visualizado aqui, na China ou em qualquer outro lugar do mundo.&lt;/p&gt;
+
+&lt;p&gt;O que o Unicode faz é fornecer um único número para cada caractere, não importa a plataforma, nem o programa, nem a língua.&lt;/p&gt;
+
+&lt;h3 id=&#34;antes-de-começar-você-precisa-saber&#34;&gt;Antes de começar, você precisa saber&lt;/h3&gt;
+
+&lt;p&gt;Há algumas recomendações que você precisa saber antes de começar a mudar seu site para Unicode.&lt;/p&gt;
+
+&lt;p&gt;Existem três principais maneiras para você indicar a seu site qual tabela de caractere você está utilizando:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Cabeçalho HTTP Content-type&lt;/strong&gt; &amp;#8211; Desta forma é necessário configurar o servidor web, algo que não é fácil nem para qualquer um. Dependendo de onde você trabalha, se for em um lugar grande, com vários sites neste mesmo servidor, pode ser a melhor maneira porque você terá que fazer isso uma vez. Caso for vários projetos com servidores diferentes isso pode ser uma dor de cabeça.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Metatag Content-type&lt;/strong&gt; &amp;#8211; Colocando este código no HEAD de seu documento, ele avisará para o browser localmente e na hora da renderização do site qual Charset ele deve utilizar para exibir os caracteres. Esta é uma ótima escolha caso você não tenha acesso aos servidores. Certamente é a maneira mais simples de ser utilizada. ``Quando você escreve um documento HTML (ou qualquer outra linguagem baseada em SGML) é necessário que especifiquemos o Charset utilizado. O &lt;strong&gt;Charset é o conjunto de caracteres utilizados para escrever o documento&lt;/strong&gt;. Um jogo de caracteres consiste em ter 1) repertório com caracteres e 2) uma posição de referência para cada um dos caracteres no repertório. Cada caractere é identificado e localizado por este código de posição. Por exemplo, na tabela ASCII, as posições 65, 66 e 67 se referem às letras A, B e C respectivamente.HUGOMORE42 Abaixo, veja a tabela de caracteres ASCII:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;table summary=&#34;tabela ASCII&#34; width=&#34;100%&#34;&gt;
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          00 &amp;#8211; (NUL)
+        &lt;/li&gt;
+        &lt;li&gt;
+          01 &amp;#8211; (SOH)
+        &lt;/li&gt;
+        &lt;li&gt;
+          02 &amp;#8211; (STX)
+        &lt;/li&gt;
+        &lt;li&gt;
+          03 &amp;#8211; (ETX)
+        &lt;/li&gt;
+        &lt;li&gt;
+          04 &amp;#8211; (EOT)
+        &lt;/li&gt;
+        &lt;li&gt;
+          05 &amp;#8211; (ENQ)
+        &lt;/li&gt;
+        &lt;li&gt;
+          06 &amp;#8211; (ACK)
+        &lt;/li&gt;
+        &lt;li&gt;
+          07 &amp;#8211; (BEL)
+        &lt;/li&gt;
+        &lt;li&gt;
+          08 &amp;#8211; (BS)
+        &lt;/li&gt;
+        &lt;li&gt;
+          09 &amp;#8211; (HT)
+        &lt;/li&gt;
+        &lt;li&gt;
+          10 &amp;#8211; (LF)
+        &lt;/li&gt;
+        &lt;li&gt;
+          11 &amp;#8211; (VT)
+        &lt;/li&gt;
+        &lt;li&gt;
+          12 &amp;#8211; (FF)
+        &lt;/li&gt;
+        &lt;li&gt;
+          13 &amp;#8211; (CR)
+        &lt;/li&gt;
+        &lt;li&gt;
+          14 &amp;#8211; (SO)
+        &lt;/li&gt;
+        &lt;li&gt;
+          15 &amp;#8211; (SI)
+        &lt;/li&gt;
+        &lt;li&gt;
+          16 &amp;#8211; (DLE)
+        &lt;/li&gt;
+        &lt;li&gt;
+          17 &amp;#8211; (D1)
+        &lt;/li&gt;
+        &lt;li&gt;
+          18 &amp;#8211; (D2)
+        &lt;/li&gt;
+        &lt;li&gt;
+          19 &amp;#8211; (D3)
+        &lt;/li&gt;
+        &lt;li&gt;
+          20 &amp;#8211; (D4)
+        &lt;/li&gt;
+        &lt;li&gt;
+          21 &amp;#8211; (NAK)
+        &lt;/li&gt;
+        &lt;li&gt;
+          22 &amp;#8211; (SYN)
+        &lt;/li&gt;
+        &lt;li&gt;
+          23 &amp;#8211; (ETB)
+        &lt;/li&gt;
+        &lt;li&gt;
+          24 &amp;#8211; (CAN)
+        &lt;/li&gt;
+        &lt;li&gt;
+          25 &amp;#8211; (EM)
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          26 &amp;#8211; (SUB)
+        &lt;/li&gt;
+        &lt;li&gt;
+          27 &amp;#8211; (ESC)
+        &lt;/li&gt;
+        &lt;li&gt;
+          28 &amp;#8211; (FS)
+        &lt;/li&gt;
+        &lt;li&gt;
+          29 &amp;#8211; (GS)
+        &lt;/li&gt;
+        &lt;li&gt;
+          30 &amp;#8211; (RS)
+        &lt;/li&gt;
+        &lt;li&gt;
+          31 &amp;#8211; (US)
+        &lt;/li&gt;
+        &lt;li&gt;
+          32 &amp;#8211; (Espaço)
+        &lt;/li&gt;
+        &lt;li&gt;
+          33 &amp;#8211; !
+        &lt;/li&gt;
+        &lt;li&gt;
+          34 &amp;#8211; &amp;#8220;
+        &lt;/li&gt;
+        &lt;li&gt;
+          35 &amp;#8211; #
+        &lt;/li&gt;
+        &lt;li&gt;
+          36 &amp;#8211; $
+        &lt;/li&gt;
+        &lt;li&gt;
+          37 &amp;#8211; %
+        &lt;/li&gt;
+        &lt;li&gt;
+          38 &amp;#8211; &amp;
+        &lt;/li&gt;
+        &lt;li&gt;
+          39 &amp;#8211; &amp;#8216;
+        &lt;/li&gt;
+        &lt;li&gt;
+          40 &amp;#8211; (
+        &lt;/li&gt;
+        &lt;li&gt;
+          41 &amp;#8211; )
+        &lt;/li&gt;
+        &lt;li&gt;
+          42 &amp;#8211; *
+        &lt;/li&gt;
+        &lt;li&gt;
+          43 &amp;#8211; +
+        &lt;/li&gt;
+        &lt;li&gt;
+          44 &amp;#8211; ,
+        &lt;/li&gt;
+        &lt;li&gt;
+          45 &amp;#8211; &amp;#8211;
+        &lt;/li&gt;
+        &lt;li&gt;
+          46 &amp;#8211; .
+        &lt;/li&gt;
+        &lt;li&gt;
+          47 &amp;#8211; /
+        &lt;/li&gt;
+        &lt;li&gt;
+          48 &amp;#8211; 0
+        &lt;/li&gt;
+        &lt;li&gt;
+          49 &amp;#8211; 1
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          50 &amp;#8211; 2
+        &lt;/li&gt;
+        &lt;li&gt;
+          51 &amp;#8211; 3
+        &lt;/li&gt;
+        &lt;li&gt;
+          52 &amp;#8211; 4
+        &lt;/li&gt;
+        &lt;li&gt;
+          53 &amp;#8211; 5
+        &lt;/li&gt;
+        &lt;li&gt;
+          54 &amp;#8211; 6
+        &lt;/li&gt;
+        &lt;li&gt;
+          55 &amp;#8211; 7
+        &lt;/li&gt;
+        &lt;li&gt;
+          56 &amp;#8211; 8
+        &lt;/li&gt;
+        &lt;li&gt;
+          57 &amp;#8211; 9
+        &lt;/li&gt;
+        &lt;li&gt;
+          58 &amp;#8211; :
+        &lt;/li&gt;
+        &lt;li&gt;
+          59 &amp;#8211; ;
+        &lt;/li&gt;
+        &lt;li&gt;
+          60 &amp;#8211; &lt;
+        &lt;/li&gt;
+        &lt;li&gt;
+          61 &amp;#8211; =
+        &lt;/li&gt;
+        &lt;li&gt;
+          62 &amp;#8211; &amp;gt/
+        &lt;/li&gt;
+        &lt;li&gt;
+          63 &amp;#8211; ?
+        &lt;/li&gt;
+        &lt;li&gt;
+          64 &amp;#8211; @
+        &lt;/li&gt;
+        &lt;li&gt;
+          65 &amp;#8211; A
+        &lt;/li&gt;
+        &lt;li&gt;
+          66 &amp;#8211; B
+        &lt;/li&gt;
+        &lt;li&gt;
+          67 &amp;#8211; C
+        &lt;/li&gt;
+        &lt;li&gt;
+          68 &amp;#8211; D
+        &lt;/li&gt;
+        &lt;li&gt;
+          69 &amp;#8211; E
+        &lt;/li&gt;
+        &lt;li&gt;
+          70 &amp;#8211; F
+        &lt;/li&gt;
+        &lt;li&gt;
+          71 &amp;#8211; G
+        &lt;/li&gt;
+        &lt;li&gt;
+          72 &amp;#8211; H
+        &lt;/li&gt;
+        &lt;li&gt;
+          73 &amp;#8211; I
+        &lt;/li&gt;
+        &lt;li&gt;
+          74 &amp;#8211; J
+        &lt;/li&gt;
+        &lt;li&gt;
+          75 &amp;#8211; K
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          76 &amp;#8211; L
+        &lt;/li&gt;
+        &lt;li&gt;
+          77 &amp;#8211; M
+        &lt;/li&gt;
+        &lt;li&gt;
+          78 &amp;#8211; N
+        &lt;/li&gt;
+        &lt;li&gt;
+          79 &amp;#8211; O
+        &lt;/li&gt;
+        &lt;li&gt;
+          80 &amp;#8211; P
+        &lt;/li&gt;
+        &lt;li&gt;
+          81 &amp;#8211; Q
+        &lt;/li&gt;
+        &lt;li&gt;
+          82 &amp;#8211; R
+        &lt;/li&gt;
+        &lt;li&gt;
+          83 &amp;#8211; S
+        &lt;/li&gt;
+        &lt;li&gt;
+          84 &amp;#8211; T
+        &lt;/li&gt;
+        &lt;li&gt;
+          85 &amp;#8211; U
+        &lt;/li&gt;
+        &lt;li&gt;
+          86 &amp;#8211; V
+        &lt;/li&gt;
+        &lt;li&gt;
+          87 &amp;#8211; W
+        &lt;/li&gt;
+        &lt;li&gt;
+          88 &amp;#8211; X
+        &lt;/li&gt;
+        &lt;li&gt;
+          89 &amp;#8211; Y
+        &lt;/li&gt;
+        &lt;li&gt;
+          90 &amp;#8211; Z
+        &lt;/li&gt;
+        &lt;li&gt;
+          91 &amp;#8211; [
+        &lt;/li&gt;
+        &lt;li&gt;
+          92 &amp;#8211; \
+        &lt;/li&gt;
+        &lt;li&gt;
+          93 &amp;#8211; ]
+        &lt;/li&gt;
+        &lt;li&gt;
+          94 &amp;#8211; ^
+        &lt;/li&gt;
+        &lt;li&gt;
+          95 &amp;#8211; _
+        &lt;/li&gt;
+        &lt;li&gt;
+          96 &amp;#8211; `
+        &lt;/li&gt;
+        &lt;li&gt;
+          97 &amp;#8211; a
+        &lt;/li&gt;
+        &lt;li&gt;
+          98 &amp;#8211; b
+        &lt;/li&gt;
+        &lt;li&gt;
+          99 &amp;#8211; c
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;ul&gt;
+        &lt;li&gt;
+          100 &amp;#8211; d
+        &lt;/li&gt;
+        &lt;li&gt;
+          101 &amp;#8211; e
+        &lt;/li&gt;
+        &lt;li&gt;
+          102 &amp;#8211; f
+        &lt;/li&gt;
+        &lt;li&gt;
+          103 &amp;#8211; g
+        &lt;/li&gt;
+        &lt;li&gt;
+          104 &amp;#8211; h
+        &lt;/li&gt;
+        &lt;li&gt;
+          105 &amp;#8211; i
+        &lt;/li&gt;
+        &lt;li&gt;
+          106 &amp;#8211; j
+        &lt;/li&gt;
+        &lt;li&gt;
+          107 &amp;#8211; k
+        &lt;/li&gt;
+        &lt;li&gt;
+          108 &amp;#8211; l
+        &lt;/li&gt;
+        &lt;li&gt;
+          109 &amp;#8211; m
+        &lt;/li&gt;
+        &lt;li&gt;
+          110 &amp;#8211; n
+        &lt;/li&gt;
+        &lt;li&gt;
+          111 &amp;#8211; o
+        &lt;/li&gt;
+        &lt;li&gt;
+          112 &amp;#8211; p
+        &lt;/li&gt;
+        &lt;li&gt;
+          113 &amp;#8211; q
+        &lt;/li&gt;
+        &lt;li&gt;
+          114 &amp;#8211; r
+        &lt;/li&gt;
+        &lt;li&gt;
+          115 &amp;#8211; s
+        &lt;/li&gt;
+        &lt;li&gt;
+          116 &amp;#8211; t
+        &lt;/li&gt;
+        &lt;li&gt;
+          117 &amp;#8211; u
+        &lt;/li&gt;
+        &lt;li&gt;
+          118 &amp;#8211; v
+        &lt;/li&gt;
+        &lt;li&gt;
+          119 &amp;#8211; w
+        &lt;/li&gt;
+        &lt;li&gt;
+          120 &amp;#8211; x
+        &lt;/li&gt;
+        &lt;li&gt;
+          121 &amp;#8211; y
+        &lt;/li&gt;
+        &lt;li&gt;
+          122 &amp;#8211; z
+        &lt;/li&gt;
+        &lt;li&gt;
+          123 &amp;#8211; {
+        &lt;/li&gt;
+        &lt;li&gt;
+          124 &amp;#8211; |
+        &lt;/li&gt;
+        &lt;li&gt;
+          125 &amp;#8211; }
+        &lt;/li&gt;
+        &lt;li&gt;
+          126 &amp;#8211; ~
+        &lt;/li&gt;
+        &lt;li&gt;
+          127 &amp;#8211; (DELETE)
+        &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;A tabela de caracteres ASCII (Código Padrão Americano para Intercâmbio de Informações) foi a primeira tabela utilizada em larga escala. O computador foi desenvolvido nos Estados Unidos. No vocabulário americano, não existem acentos, além disso, era um código de 7 bits, e não 8. Ou seja, ao invés de 256 posições, a tabela ASCII tinha apenas 128 posições &amp;#8211; como você sabe, tudo nos computadores são um grupo de zeros (0) e uns (1) chamados de bits. Esses zeros e uns formam grupos de oito em oito que chamados de bytes e representam um número entre 0 e 255. Como as imagens, áudio, vídeos, programas e tudo o que temos nos sistemas de hoje, os caracteres que aparecem na sua tela são grupos de zeros e uns.&lt;/p&gt;
+
+&lt;p&gt;O computador se popularizou e a necessidade de utilizar acentos e outros tipos de caracteres (Chineses, por exemplo) tornou-se um problema.&lt;/p&gt;
+
+&lt;p&gt;Hoje, a maioria das tabelas utilizadas foram criadas suprindo as necessidades de um idioma específico, por este motivo elas se tornaram muito limitadas.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo, se você estiver escrevendo um documento utilizando a tabela de caracteres chinesa, você não poderá escrever algo em hebraico neste documento.&lt;/p&gt;
+
+&lt;p&gt;Por conta disso muitos problemas podem surgir, por exemplo, seria impossível criar um curso online de hebraico para chineses. Será também um problema se você tiver que fazer um site ou sistema com suporte a diversos idiomas. Por exemplo, um sistema de blog projetado para uso internacional. Isso por que a posição dos caracteres varia de tabela para tabela. Dois codificadores podem usar o mesmo número para dois caracteres diferentes ou usar números diferentes para o mesmo caractere.&lt;/p&gt;
+
+&lt;h3 id=&#34;a-tabela-de-caractéres-unicode-8211-utf-8-1&#34;&gt;A tabela de caractéres Unicode &amp;#8211; UTF-8&lt;/h3&gt;
+
+&lt;p&gt;A Web é acessada por pessoas do mundo inteiro. Ter um sistema ou um site que limite o acesso e pessoas de outros países é algo que vai contra a tradição e os ideais da internet. Por isso, foi criado uma tabela que suprisse essas necessidades, essa tabela se chama Unicode. A tabela Unicode suporta algo em torno de um milhão de caracteres. Ao invés de cada região ter sua tabela de caracteres, é muito mais sensato haver uma tabela padrão com o maior número de caracteres possível. Atualmente a maioria dos sistemas e browsers utilizados por usuários suportam plenamente Unicode. Por isso, fazendo seu sistema Unicode você garante que ele será bem visualizado aqui, na China ou em qualquer outro lugar do mundo.&lt;/p&gt;
+
+&lt;p&gt;O que o Unicode faz é fornecer um único número para cada caractere, não importa a plataforma, nem o programa, nem a língua.&lt;/p&gt;
+
+&lt;h3 id=&#34;antes-de-começar-você-precisa-saber-1&#34;&gt;Antes de começar, você precisa saber&lt;/h3&gt;
+
+&lt;p&gt;Há algumas recomendações que você precisa saber antes de começar a mudar seu site para Unicode.&lt;/p&gt;
+
+&lt;p&gt;Existem três principais maneiras para você indicar a seu site qual tabela de caractere você está utilizando:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Cabeçalho HTTP Content-type&lt;/strong&gt; &amp;#8211; Desta forma é necessário configurar o servidor web, algo que não é fácil nem para qualquer um. Dependendo de onde você trabalha, se for em um lugar grande, com vários sites neste mesmo servidor, pode ser a melhor maneira porque você terá que fazer isso uma vez. Caso for vários projetos com servidores diferentes isso pode ser uma dor de cabeça.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Metatag Content-type&lt;/strong&gt; &amp;#8211; Colocando este código no HEAD de seu documento, ele avisará para o browser localmente e na hora da renderização do site qual Charset ele deve utilizar para exibir os caracteres. Esta é uma ótima escolha caso você não tenha acesso aos servidores. Certamente é a maneira mais simples de ser utilizada.``&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Através do prolog xml&lt;/strong&gt; &amp;#8211; O prolog XML é utilizado em documentos XML ou XHTML para indicar a versão e a tabela de caracteres daquele documento. &lt;code&gt;&amp;lt;? xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot; ?&amp;gt;&lt;/code&gt; Não é uma boa utilizar este prolog por conta do chaveamento do Internet Explorer 6 para Quirks Mode. Quando o prolog é utilizado, o Internet Explorer 6 renderiza os sites como o Internet Explorer 5, trazendo muitos problemas de compatibilidade. Não recomendo.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Outro ponto importante é não esquecer de salvar seu documento no formato da tabela que você indicou. Não adianta nada indicar que código que está utilizando a tabela de caracteres UTF-8 e seu editor salvar seus documentos com a tabela ISO-8859-1. Isso fará com que os caracteres de seu documento apareçam corrompidos. Por isso, ao definir qual será a tabela utilizada no projeto (recomendo sempre UTF-8), defina como seu editor irá salvar seus documentos. Todos os editores de código hoje em dia tem essa opção, basta procurar. Não adianta também você salvar seus arquivos em UTF-8 e o resto da equipe continuar utilizando ISO-8859-1. Os arquivos irão corromper da mesma maneira. É uma decisão que a equipe inteira deve tomar para não haver retrabalho e dor de cabeça.&lt;/p&gt;
+
+&lt;p&gt;Se um projeto já está no ar, é bom fazer uma análise para ter certeza se vale a pena ou não mudar a tabela de um projeto que já está no ar e funcionando. Recomendo que esse novo padrão sempre comece a ser utilizado em novos projetos. Mesmo assim, um bom programador pode fazer um script que converta a tabela de caracteres de um diretório inteiro.&lt;/p&gt;
+
+&lt;p&gt;O importante é garantir que seu site aqui seja visto da maneira correta em outros lugares do mundo. Isso é importante para você e seu cliente.&lt;/p&gt;
+
+&lt;!--object width=&#34;425&#34; height=&#34;355&#34;&gt;&lt;embed src=&#34;http://www.youtube.com/v/SX5bCCtHYXo&amp;hl=en&#34; type=&#34;application/x-shockwave-flash&#34; wmode=&#34;transparent&#34; width=&#34;425&#34; height=&#34;355&#34;&gt;&lt;/embed&gt;&lt;/object--&gt;</description>
+    </item>
+    
+    <item>
+      <title>WordPress – Uma pequena introdução</title>
+      <link>http://tableless.com.br/wordpress-uma-pequena-introducao/</link>
+      <pubDate>Sun, 10 Feb 2008 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/wordpress-uma-pequena-introducao/</guid>
+      <description>
+
+&lt;p&gt;O WordPress não foi feito para ser um CMS. Ele foi criado primeiramente para suprir necessidades de criação de blogs. Por acaso, talvez como se fosse um acidente, começamos a utilizá-lo para criar websites, desde os mais simples até os mais complicados. O pessoal do WordPress curtiu a ideia e agora está melhorando cada vez mais o sistema para que ele se torne um CMS de verdade, mesmo assim mantendo toda a simplicidade do WordPress original. E o melhor, é tudo de graça.&lt;/p&gt;
+
+&lt;p&gt;Quero mostrar aqui o caminho das pedras. O que você precisa aprender para não ficar batendo cabeça no começo. É coisa simples.&lt;/p&gt;
+
+&lt;h3 id=&#34;criando-o-index-php-e-o-style-css&#34;&gt;Criando o index.php e o style.css&lt;/h3&gt;
+
+&lt;p&gt;Para fazer um tema de WordPress, você precisa apenas de dois arquivos: &lt;strong&gt;index.php&lt;/strong&gt; e o &lt;strong&gt;style.css&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;O &lt;strong&gt;style.css&lt;/strong&gt; tem uma pequena sintaxe no começo do arquivo com informações do autor do Template. Essas informações serão utilizadas pelo WordPress na tela de Templates.&lt;/p&gt;
+
+&lt;p&gt;A sintaxe que está escrita no meu &lt;strong&gt;style.css&lt;/strong&gt; é este:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/*  
+Theme Name: Oficina WordPress da Tableless
+Theme URI: http://tableless.com.br/
+Description: O layout do Tableless
+Version: 1.0
+Author: Diego Eis
+Author URI: http://tableless.com.br/
+
+     http://tableless.com.br
+
+    This theme was designed and built by Diego Eis,
+    whose blog you will find at http://tableless.com.br/
+
+*/
+&lt;/pre&gt;
+
+&lt;p&gt;Você pode utilizar esse código e modificar para ficar com suas informações. Não precisa decorar, isso é coisa de maluco. 😉&lt;/p&gt;
+
+&lt;p&gt;Crie um &lt;strong&gt;style.css&lt;/strong&gt; com este código dentro. Não iremos utilizar o CSS neste artigo.&lt;/p&gt;
+
+&lt;p&gt;Crie também um &lt;strong&gt;index.php&lt;/strong&gt; com a estrutura básica de HTML. Eu utilizo sempre assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;meta http-equiv=&#34;Content-Type&#34; content=&#34;text/html; charset=utf-8&#34; /&amp;gt;
+    &amp;lt;title&amp;gt;&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Daqui para frente, irei colocar apenas o código que irá dentro do BODY do documento. Portanto, tudo que iremos ver agora, insira dentro do BODY do seu documento.&lt;/p&gt;
+
+&lt;h3 id=&#34;as-template-tags&#34;&gt;As Template Tags&lt;/h3&gt;
+
+&lt;p&gt;O segredo do WordPress são as Template Tags. Você pode conferir todas aqui: &lt;a href=&#34;http://codex.wordpress.org/Template_Tags&#34;&gt;http://codex.wordpress.org/Template_Tags&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Os templates do wordpress são escritos em PHP. Isso torna pro designer um pouco complicado, mas não muito. Se você souber um pouco de PHP, fazer um template é muito fácil, porque PHP é uma linguagem que todo mundo usa. Para facilitar, o WordPress chama as funções do PHP que são utilizadas pelo seu sistema de Template Tags. As Template Tags não passam de funções PHP que recuperam do banco, informações que você precisará para compor o conteúdo do site. Para o programador isso não muda nada. Mas para o pessoal que não é tão íntimo assim com a linguagem PHP, a forma que usamos essas &amp;#8220;funções&amp;#8221; (Template Tags) facilita demais.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-loop-8211-listando-os-posts-na-página&#34;&gt;O Loop &amp;#8211; Listando os posts na página&lt;/h3&gt;
+
+&lt;p&gt;O Loop é o responsável pelo trecho de código que será repetido para cada post impresso na tela.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php while ( have_posts() ) : the_post (); ?&amp;gt;
+
+&amp;lt;?php endwhile; ?&amp;gt;
+&amp;lt;/pre&amp;gt;
+Pra voc&amp;ecirc; chamar os posts do blog &amp;eacute; muito simples. Voc&amp;ecirc; come&amp;ccedil;ar&amp;aacute; utilizando duas Template Tags dentro deste c&amp;oacute;digo de Loop.
+&amp;lt;pre class=&#34;lang-php&#34;&amp;gt;
+&amp;lt;?php while ( have_posts() ) : the_post (); ?&amp;gt;
+&amp;lt;h2&amp;gt;&amp;lt;? the_title(); ?&amp;gt;&amp;lt;/h2&amp;gt;
+&amp;lt;? the_content(); ?&amp;gt;
+&amp;lt;?php endwhile; ?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;A primeira Template Tag que coloquei foi a the_title(). Ela chama os títulos dos posts do site.&lt;/p&gt;
+
+&lt;p&gt;A segunda, the_content() chama o conteúdo dos posts. O Conteúdo vem escrito da forma que você criou no WordPress.&lt;/p&gt;
+
+&lt;p&gt;Apenas com esse código acima, você não faz um blog completo. Um blog tem outras características importantes. E são elas que iremos ver agora.&lt;/p&gt;
+
+&lt;h3 id=&#34;características-de-um-blog&#34;&gt;Características de um Blog&lt;/h3&gt;
+
+&lt;p&gt;Há algumas características que compõem um blog. Essas características são encontradas geralmente em blogs, isso não quer dizer que em sites de notícias não podem contem essas características:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Comentários&lt;/li&gt;
+&lt;li&gt;Categorias&lt;/li&gt;
+&lt;li&gt;Data, autor&lt;/li&gt;
+&lt;li&gt;Feed&lt;/li&gt;
+&lt;li&gt;Arquivo (histórico)&lt;/li&gt;
+&lt;li&gt;Busca&lt;/li&gt;
+&lt;li&gt;Permalink&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Não iremos mostrar em nosso código como se faz Comentários nem Categorias. O Artigo iria ficar muito mais complicado. Portanto, se estiver interessado, faça a &lt;a href=&#34;http://visie.com.br/wordpress/&#34; title=&#34;Oficina de WordPress da Visie&#34;&gt;Oficina de WordPress da Visie&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Vamos agora melhorar um bocado esse código para que o site se pareça mais com um blog.&lt;/p&gt;
+
+&lt;p&gt;Primeiro, vamos colocar Permalinks nos títulos dos posts.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php while ( have_posts() ) : the_post (); ?&amp;gt;
+
+&amp;lt;h2&amp;gt;&amp;lt;a href=&#34;&amp;lt;? the_permalink(); ?&amp;gt;&#34;&amp;gt;&amp;lt;? the_title(); ?&amp;gt;&amp;lt;/a&amp;gt;&amp;lt;/h2&amp;gt;
+&amp;lt;? the_content(); ?&amp;gt;
+
+&amp;lt;?php endwhile; ?&amp;gt;
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;autor-e-data&#34;&gt;Autor e Data&lt;/h3&gt;
+
+&lt;p&gt;A Template Tag que iremos utilizar é a the_author_posts_link() para Autor, que colocará a o nome do Autor com o link para seus posts. E a the_time() para colocar a data.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php while ( have_posts() ) : the_post (); ?&amp;gt;
+
+&amp;lt;p&amp;gt;por &amp;lt;? the_author_posts_link(); ?&amp;gt; em &amp;lt;? the_time(); ?&amp;gt;&amp;lt;/p&amp;gt;
+
+&amp;lt;h2&amp;gt;&amp;lt;a href=&#34;&amp;lt;? the_permalink(); ?&amp;gt;&#34;&amp;gt;&amp;lt;? the_title(); ?&amp;gt;&amp;lt;/a&amp;gt;&amp;lt;/h2&amp;gt;
+&amp;lt;? the_content(); ?&amp;gt;
+
+&amp;lt;?php endwhile; ?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Você pode deixar a Template Tag the_time do jeito que você quiser. Ela usa aquela tabela de formatação padrão de data do PHP, você pode encontrar essa tabela aqui: &lt;a href=&#34;http://php.net/date/&#34;&gt;http://php.net/date/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Iremos formatar nossa data aqui:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php while ( have_posts() ) : the_post (); ?&amp;gt;
+
+&amp;lt;p&amp;gt;por &amp;lt;? the_author_posts_link(); ?&amp;gt; em &amp;lt;? the_time(d/m/Y); ?&amp;gt;&amp;lt;/p&amp;gt;
+
+&amp;lt;h2&amp;gt;&amp;lt;a href=&#34;&amp;lt;? the_permalink(); ?&amp;gt;&#34;&amp;gt;&amp;lt;? the_title(); ?&amp;gt;&amp;lt;/a&amp;gt;&amp;lt;/h2&amp;gt;
+&amp;lt;? the_content(); ?&amp;gt;
+
+&amp;lt;?php endwhile; ?&amp;gt;
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;busca&#34;&gt;BUSCA&lt;/h3&gt;
+
+&lt;p&gt;Para colocar um formulário de busca é muito simples. O código do formulário será:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;form action=&#34;&amp;lt;? bloginfo(&#39;home&#39;); ?&amp;gt;&#34;&amp;gt;
+&amp;lt;input name=&#34;s&#34; type=&#34;text&#34; id=&#34;busca&#34; value=&#34;&amp;lt;? =$_GET[&#39;s&#39;] ?&amp;gt;&#34; /&amp;gt;
+&amp;lt;input type=&#34;submit&#34; value=&#34;Procurar&#34; /&amp;gt;
+&amp;lt;/form&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;A Template Tag bloginfo() tráz do banco informações sobre o site. Neste caso, ele vai trazer a URL da home do site.&lt;/p&gt;
+
+&lt;p&gt;Os inputs do formulário de busca do WordPress já vem com nomes pré-definidos, o input de busca, por exemplo, chama-se &lt;strong&gt;s&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Nosso código está assim agora.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;form action=&#34;&amp;lt;? bloginfo(&#39;home&#39;); ?&amp;gt;&#34;&amp;gt;
+&amp;lt;input name=&#34;s&#34; type=&#34;text&#34; id=&#34;busca&#34; value=&#34;&amp;lt;? =$_GET[&#39;s&#39;] ?&amp;gt;&#34; /&amp;gt;
+&amp;lt;input type=&#34;submit&#34; value=&#34;Procurar&#34; /&amp;gt;
+&amp;lt;/form&amp;gt;
+
+&amp;lt;?php while ( have_posts() ) : the_post (); ?&amp;gt;
+
+&amp;lt;p&amp;gt;por &amp;lt;? the_author_posts_link(); ?&amp;gt; em &amp;lt;? the_time(d/m/Y); ?&amp;gt;&amp;lt;/p&amp;gt;
+
+&amp;lt;h2&amp;gt;&amp;lt;a href=&#34;&amp;lt;? the_permalink(); ?&amp;gt;&#34;&amp;gt;&amp;lt;? the_title(); ?&amp;gt;&amp;lt;/a&amp;gt;&amp;lt;/h2&amp;gt;
+&amp;lt;? the_content(); ?&amp;gt;
+
+&amp;lt;?php endwhile; ?&amp;gt;
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;arquivo-e-histórico&#34;&gt;Arquivo e Histórico&lt;/h3&gt;
+
+&lt;p&gt;Para criar os arquivos, ou histórico, iremos utilizar a Template Tag: wp_get_archives().&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;? wp_get_archives(); ?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Por padrão, essa Template Tag irá gerar uma lista de links dos meses que há posts. Preste bem atenção no código HTML que ele retorna. Ele cria uma lista de LI sem UL ou OL envolta.&lt;/p&gt;
+
+&lt;p&gt;Por tanto, temos que escrever dessa forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;ul&amp;gt;
+&amp;lt;? wp_get_archives(); ?&amp;gt;
+&amp;lt;/ul&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Ele faz deste modo caso você queira colocar uma CLASS ou ID para nomear a lista.&lt;/p&gt;
+
+&lt;h3 id=&#34;linkando-o-feed-o-arquivo-css&#34;&gt;Linkando o FEED o arquivo CSS&lt;/h3&gt;
+
+&lt;p&gt;O WordPress já cria os Feeds automaticamente. O trabalho que temos é colocar um link para o que o visitante consiga copiar o endereço do RSS e cadastrar no leitor de Feeds preferido dele. Podemos oferecer em RSS, RSS 2 ou ATOM. Existem pessoas que oferecem os três formatos. Vamos oferecer apenas um formato: o RSS2.&lt;/p&gt;
+
+&lt;p&gt;A tag link tem um atributo &amp;#8216;rel&amp;#8217;. O atributo rel é mandatório, ele vai dizer qual será o resto da tag. Se você por exemplo colocar o valor rel=&amp;#8221;stylesheet&amp;#8221;, você está dizendo ao navegador que essa tag link é relativo a uma folha de estilo.&lt;/p&gt;
+
+&lt;p&gt;O valor &amp;#8216;alternate&amp;#8217; diz ao navegador que estamos diponibilizando o conteúdo de nosso site em um meio alternativo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;link rel=&#34;alternate&#34; ...
+&amp;lt;link rel=&#34;stylesheet&#34; ...
+&lt;/pre&gt;
+
+&lt;p&gt;A tag type serve para indicar o tipo de arquivo que será carregada. No caso da folha de estillo, existem dois tipos que são utilizados hoje: o XSLT, que é utilizado para formatar código XML. E o tipo CSS, que é para formatar código HTML.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;link rel=&#34;alternate&#34; type=&#34;application/rss+xml&#34; href=&#34;&amp;lt;? bloginfo(&#39;rss_url&#39;); ?&amp;gt;&#34; /&amp;gt;
+&amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;&amp;lt;? bloginfo(&#39;stylesheet_url&#39;); ?&amp;gt;&#34; /&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Novamente iremos utilizar a tag boginfo(). Agora ela irá buscar o endereço do RSS e do CSS.&lt;/p&gt;
+
+&lt;p&gt;Perceba que utilizamos neste exemplo apenas um arquivo, o &lt;strong&gt;index.php&lt;/strong&gt; para listar o conteúdo. O WordPress tem uma maneira eficaz de hierarquia de arquivos. Por exemplo: nós precisamos de um arquivo chamado archives.php para criar a lista de histórico. Na falta deste arquivo, o WordPress utiliza o &lt;strong&gt;index.php&lt;/strong&gt; para criar a lista. Se tivéssemos feito o archives.php e colocado o código que utlizamos acima que cria a lista de histórico, o WordPress não utilizará o &lt;strong&gt;index.php&lt;/strong&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>PDF grátis sobre XSLT</title>
+      <link>http://tableless.com.br/pdf-gratis-sobre-xslt/</link>
+      <pubDate>Mon, 28 Jan 2008 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/pdf-gratis-sobre-xslt/</guid>
+      <description>&lt;p&gt;A &lt;a href=&#34;http://visie.com.br/&#34;&gt;Visie&lt;/a&gt; está disponibilizando um &lt;a href=&#34;http://visie.com.br/treinamento/cursosrapidos/&#34;&gt;PDF grátis sobre XSLT&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;A linguagem XSLT é utilizada para transformar dados de um formato XML em vários outros formatos. Há implementações de XSLT para praticamente qualquer linguagem de programação disponível hoje, incluindo PHP, JSP, ASP, ColdFusion, Python, Visual Basic, .NET e Delphi. No PDF estudamos os fundamentos e principais comandos da linguagem, permitindo a transformação de conteúdo baseado em XML em formatos como TXT, CSV, HTML e o próprio XML. Entre os exemplos realizados estão a transformação em HTML de um arquivo XML com dados de previsão do tempo atualizados em tempo real, e a criação de um sistema de clipping de notícias baseado em RSS ou ATOM.&lt;/p&gt;
+
+&lt;p&gt;O conteúdo do PDF era usado para ministrar cursos aqui na Visie sobre XSLT. Se quiser sugerir alguma alteração, por favor, me diga. E claro, divulgue para outros desenvolvedores.&lt;/p&gt;
+
+&lt;p&gt;Aproveite!&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Escrevendo um XHTML válido</title>
+      <link>http://tableless.com.br/escrevendo-um-xhtml-valido/</link>
+      <pubDate>Thu, 06 Dec 2007 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/escrevendo-um-xhtml-valido/</guid>
+      <description>
+
+&lt;p&gt;Acho que todos já ouviram falar de Web Semântica, para quem não ouviu, em poucas palavras é: Um projeto para organizar e estruturar a informação da WEB.&lt;/p&gt;
+
+&lt;p&gt;Ter uma Web com as suas informações todas &amp;#8220;organizadas&amp;#8221; é extremamente importante, isso facilita uma busca pela Web por informações mais precisas.&lt;/p&gt;
+
+&lt;p&gt;Para que seu arquivo possa ser lido por máquinas além de humanos é muito importante que você escreva um XHTML válido, com isso você está fazendo com que as informações do seu site fique mais acessível para as buscas, contribuindo para o projeto e principalmente melhorando as visitas do seu site.&lt;/p&gt;
+
+&lt;h3 id=&#34;doc-o-que&#34;&gt;DOC o que?!&lt;/h3&gt;
+
+&lt;p&gt;O Doctype (Document Type Definition, vulgo DTD) é a primeira coisa que se deve escrever em um arquivo XHTML, ele vai na PRIMEIRA LINHA do seu documento, se você quiser ter um XML Válido, não devemos esquecê-lo, ele serve para informar ao browser que tipo de documento será visualizado, ok?&lt;/p&gt;
+
+&lt;p&gt;Existem 3 tipos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Strict&lt;/strong&gt;: Este tipo é usado quando você fez um código 100% XHTML, sem erros, deve ser escrito assim:&lt;/p&gt;
+
+&lt;p&gt;&amp;lt;!DOCTYPE html&lt;/p&gt;
+
+&lt;p&gt;PUBLIC &amp;#8220;-//W3C//DTD XHTML 1.0 Strict//EN&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;&amp;#8220;&lt;a href=&#34;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&amp;amp;#8221;&amp;gt;&#34;&gt;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&amp;amp;#8221;&amp;gt;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Transitional&lt;/strong&gt;: Este é o modo mais usado, você o usa quando está começando a migrar do nosso amigo HTML para o poderoso XHTML, sua sintaxe é:&lt;/p&gt;
+
+&lt;p&gt;&amp;lt;!DOCTYPE html&lt;/p&gt;
+
+&lt;p&gt;PUBLIC &amp;#8220;-//W3C//DTD XHTML 1.0 Transitional//EN&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;&amp;#8220;&lt;a href=&#34;http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd&amp;amp;#8221;&amp;gt;&#34;&gt;http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd&amp;amp;#8221;&amp;gt;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Frameset&lt;/strong&gt;: É usado quando você está utilizando FRAMES em seu site, se escreve assim:&lt;/p&gt;
+
+&lt;p&gt;&amp;lt;!DOCTYPE html&lt;/p&gt;
+
+&lt;p&gt;PUBLIC &amp;#8220;-//W3C//DTD XHTML 1.0 Frameset//EN&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;&amp;#8220;&lt;a href=&#34;http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd&amp;amp;#8221;&amp;gt;&#34;&gt;http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd&amp;amp;#8221;&amp;gt;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Exemplo:&lt;/p&gt;
+
+&lt;p&gt;&amp;lt;!DOCTYPE html&lt;/p&gt;
+
+&lt;p&gt;PUBLIC &amp;#8220;-//W3C//DTD XHTML 1.0 Strict//EN&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;&amp;#8220;&lt;a href=&#34;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&amp;amp;#8221;&amp;gt;&#34;&gt;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&amp;amp;#8221;&amp;gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;html&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;head&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;title&gt;&lt;/title&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;/head&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;body&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;&lt;/body&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;/html&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;feche-todas-as-tags&#34;&gt;Feche TODAS as tags&lt;/h3&gt;
+
+&lt;p&gt;Quem já escreveu algum XML sabe que ele não funciona até que TODAS as tags estiverem bem fechadas, no HTML era diferente, muitas vezes deixávamos tags abertas, e ele funcionava que era uma beleza.&lt;/p&gt;
+
+&lt;p&gt;Para se fazer um XHTML válido, devemos fechar TODAS as tags:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Não devemos esquecer de fechar as tags que estamos carecas de conhecer: &lt;p&gt;&lt;/p&gt;, &lt;b&gt;&lt;/b&gt;, etc&amp;#8230;&lt;/li&gt;
+&lt;li&gt;E não devemos esquecer de forma alguma de fechar as tags &amp;#8220;solitárias&amp;#8221;, assim, ao invés de &lt;br&gt; escrevemos &lt;br&gt;&lt;/br&gt;, ou na forma simplificada: &lt;br /&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Descobriram que fechando tags desta forma &lt;br/&gt;, não se sabe porque estava causando um problema no Netscape, mas apenas colocando um espaço antes da / o problema é solucionado.&lt;/p&gt;
+
+&lt;h3 id=&#34;use-letras-minúsculas&#34;&gt;Use letras minúsculas&lt;/h3&gt;
+
+&lt;p&gt;Quem nunca viu um código fonte de um documento HTML escrito assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;A href=&amp;#8221;http://tags.com.letras.minúsculas/&amp;#8221; TARGET=&amp;#8221;_BLANK&amp;#8221;&gt; &lt;/A&gt;&lt;/p&gt;
+
+&lt;p&gt;Um documento XHTML deve ter TODAS as tags e seus respectivos atributos escritos com letra minúscula!&lt;/p&gt;
+
+&lt;h3 id=&#34;não-esqueça-das-8220-aspas-8221&#34;&gt;Não esqueça das &amp;#8220;ASPAS&amp;#8221;&lt;/h3&gt;
+
+&lt;p&gt;Esta regra é bem simples. Todos os atributos XHTML devem conter as benditas &amp;#8220;ASPAS&amp;#8221;.&lt;/p&gt;
+
+&lt;h3 id=&#34;atributo-name&#34;&gt;Atributo NAME&lt;/h3&gt;
+
+&lt;p&gt;O antigo atributo NAME foi substituído pelo atributo ID. Se seus usuários, clientes, etc, utilizam ainda antigos browsers, você pode sem problema nenhum utilizar as duas formas juntas durante neste período em que estamos migrando:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&amp;#8221;imagem.gif&amp;#8221; id=&amp;#8221;imagem&amp;#8221; name=&amp;#8221;imagem&amp;#8221; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;atributos-sem-valor&#34;&gt;Atributos sem valor&lt;/h3&gt;
+
+&lt;p&gt;Não devemos esquecer também os atributos que escrevemos sem valor, por exemplo:&lt;/p&gt;
+
+&lt;p&gt;ERRADO:&lt;/p&gt;
+
+&lt;p&gt;&lt;option selected&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;frame noresize&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;input checked&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;input readonly&gt;&lt;/p&gt;
+
+&lt;p&gt;CERTO:&lt;/p&gt;
+
+&lt;p&gt;&lt;option selected=&amp;#8221;selected&amp;#8221;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;frame noresize=&amp;#8221;noresize&amp;#8221;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;input checked=&amp;#8221;checked&amp;#8221;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;input readonly=&amp;#8221;readonly&amp;#8221;&gt;&lt;/p&gt;
+
+&lt;p&gt;E assim por diante.&lt;/p&gt;
+
+&lt;h3 id=&#34;quer-uma-ajudinha&#34;&gt;Quer uma ajudinha?&lt;/h3&gt;
+
+&lt;p&gt;Se você está migrando do HTML para o XHTML, o TIDY pode te dar uma forcinha.&lt;/p&gt;
+
+&lt;p&gt;O TIDY é uma ferramenta para validar e consertar códigos HTML, ele tem opções que você pode escolher qual a versão do HTML você quer validar, uma dessas opções é a XHTML. Se você já está escrevendo um XHTML e quer que seu código fique livre de todos os erros, o TIDY arruma para você.&lt;/p&gt;
+
+&lt;p&gt;Ele foi originalmente desenvolvido por Dave Raggett e hoje é mantido por um projeto de código aberto: SourceForge, por um grupo de voluntários.&lt;/p&gt;
+
+&lt;h3 id=&#34;últimas-palavras&#34;&gt;Últimas palavras&lt;/h3&gt;
+
+&lt;p&gt;Fazendo todas essas pequenas porém importantes regras, quer dizer, regras não, LEIS, você terá um belo de um documento XHTML válido, e acima de tudo, estará contribuindo para uma WEB melhor.&lt;/p&gt;
+
+&lt;p&gt;Como eu passei apenas o miolo, navegando nestes links poderão ser achados mais informações a respeito:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.w3schools.com/xhtml/xhtml_reference.asp&#34; target=&#34;_blank&#34;&gt;Referência de XHTML 1.0&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.w3schools.com/w3c/&#34; target=&#34;_blank&#34;&gt;Tutorial da W3C&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.w3schools.com/default.asp&#34; target=&#34;_blank&#34;&gt;W3Schools:&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.comciencia.br/reportagens/internet/net08.htm&#34; target=&#34;_blank&#34;&gt;WebSemântica&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;notas&#34;&gt;Notas:&lt;/h3&gt;
+
+&lt;p&gt;Para saber se seu documento XHTML é válido:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://validator.w3.org&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://validator.w3.org&#34;&gt;http://validator.w3.org&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Tidy:&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;Source Forge&#34; href=&#34;http://tidy.sourceforge.net/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://tidy.sourceforge.net/&#34;&gt;http://tidy.sourceforge.net/&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;Dave Raggett&#39;s Original&#34; href=&#34;http://www.w3.org/People/Raggett/tidy/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.w3.org/People/Raggett/tidy/&#34;&gt;http://www.w3.org/People/Raggett/tidy/&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>HTML simples com XML e CSS</title>
+      <link>http://tableless.com.br/html-simples-com-xml-e-css/</link>
+      <pubDate>Thu, 06 Dec 2007 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/html-simples-com-xml-e-css/</guid>
+      <description>
+
+&lt;p&gt;Qualquer um que codifique HTML, ou mesmo use um editor WYSIWYG, já esbarrou no problema. Se você trabalha com internet, já deve ter tido também esse problema. O código se tornou complexo, com várias tabelas, uma dentro da outra. Vários frames, com uma porção de scripts para manter o&lt;/p&gt;
+
+&lt;p&gt;conteúdo atualizado entre eles. Uma parte da aplicação rodando em um pop-up, com um script&lt;/p&gt;
+
+&lt;p&gt;que atualiza o conteúdo principal.&lt;/p&gt;
+
+&lt;p&gt;Então, cumprindo a lei de Murphy, um dos seguintes fatos indesejáveis acontece:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Um cliente liga reclamando que o site está dando um tal de &amp;#8220;erro de script&amp;#8221; quando clica num link, você&lt;/p&gt;
+
+&lt;p&gt;tenta, mas não consegue reproduzir o erro em nenhum navegador.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Alguém da diretoria resolve que os títulos devem ser azuis, não vermelhos. E você se&lt;/p&gt;
+
+&lt;p&gt;põe a localizar &lt;font face=&amp;#8221;verdana&amp;#8221; size=&amp;#8221;5&amp;#8243; color=&amp;#8221;red&amp;#8221;&gt; para poder mudar a cor.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Alguma tabela não fechada corretamente estádando problemas no Netscape, mas o código tem cincotabelas aninhadas e você perde um dia tentando acharo defeito.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Você percebe uma certa demora para carregar algumaspáginas, vai conferir o código e descobrealgumas coisas assim: &lt;font face=&amp;#8221;Verdana&amp;#8221;&gt;&lt;b&gt;&lt;/b&gt;&lt;i&gt;&lt;/i&gt;&lt;fontsize=&amp;#8221;1&amp;#8243;&gt;&lt;b&gt;&lt;/b&gt;&lt;/font&gt;&lt;fontface=&amp;#8221;Arial&amp;#8221;&gt;Texto&lt;/font&gt;&lt;/font&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Que fazer? É claro que com muito cuidado e talentoesse tipo de problema pode ser evitado, mas isso envolve umaquantidade de trabalho insana. Já vi muitos projetosonde se gastou mais tempo preso nas entranhas de umcódigo complexo do que em qualquer outra fase doprojeto.&lt;/p&gt;
+
+&lt;p&gt;Tem um pessoal na web que propõe umasolução bastante interessante para isso.É a turma do WaSP (www.webstandards.org.) Assoluções não são apenas uma listade novas tecnologias, mas também uma filosofia dedesenvolvimento baseada na simplicidade.&lt;/p&gt;
+
+&lt;p&gt;Baseado nessa filosofia da simplicidade, que tem me rendidoresultados surpreendentes, gostaria de fazer algumassugestões interessantes:&lt;/p&gt;
+
+&lt;h3 id=&#34;xhtml&#34;&gt;XHTML&lt;/h3&gt;
+
+&lt;p&gt;Quem já trabalha com XML certamente percebeu o poderda flexibilidade e da simplicidade. Éimpossível escrever um XML com erros de sintaxe,porque os interpretadores reclamam imediatamente. Émuito simples escrever documentos XML, sendo fácilextrair dados de qualquer banco de dados etransformá-los em XML (a maioria dos SGBDs incorporaou tem planos de incorporar o suporte nativo a XML.)Através da poderosa linguagem XSL e da farta oferta deparsers gratuitos, XML pode ser transformado em praticamentequalquer formato de arquivo.&lt;/p&gt;
+
+&lt;p&gt;XHTML nada mais é do que uma forma de escrever umdocumento HTML de modo que ele também seja umdocumento XML válido. Ou seja, seu documento HTMLganha a coerência e flexibilidade de um documento XML,podendo ser facilmente lido por ferramentasautomáticas e convertido em outros formatos dearquivos. Com XHTML torna-se muito fácil oferecer osdados do seu site através de WAP ou de um RSS(&lt;a href=&#34;http://rssficado.pilger.inf.br&#34;&gt;http://rssficado.pilger.inf.br&lt;/a&gt;)por exemplo. Torna-se fácil também transformaro resultado de uma consulta a banco de dados ou um documentoXML numa página web.&lt;/p&gt;
+
+&lt;p&gt;A boa notícia é que é muito fácilescrever XHTML. Qualquer um que escreva HTML pode aprender afazê-lo sem muita dificuldade. Existem inclusive umasérie de ferramentas interessantes para tornar esseprocesso mais produtivo, como o excelente HTML Tidy(&lt;a href=&#34;http://tidy.sourceforge.net&#34;&gt;http://tidy.sourceforge.net&lt;/a&gt;)que tem uma eficiência impressionante para umaferramenta automática.&lt;/p&gt;
+
+&lt;h3 id=&#34;css-e-a-abordagem-semântica&#34;&gt;CSS e a Abordagem Semântica&lt;/h3&gt;
+
+&lt;p&gt;Como você cria um título num documento HTML?&lt;/p&gt;
+
+&lt;p&gt;O meio comum hoje em dia para fazê-lo é:&lt;font face=&amp;#8221;Arial&amp;#8221; size=&amp;#8221;4&amp;#8243; color=&amp;#8221;blue&amp;#8221;&gt;Texto doTítulo&lt;/font&gt;.&lt;/p&gt;
+
+&lt;p&gt;Quando eu estudei HTML, em 1996, aprendi que existia uma tagespecífica para criação detítulos. É a tag h1. Assim, a maneira de secriar um título em HTML seria: &lt;h1&gt;Texto doTítulo&lt;/h1&gt;.&lt;/p&gt;
+
+&lt;p&gt;Extremamente mais simples, não é verdade? Etorna o código também mais significativo. Assimum interpretador pode saber, por exemplo, onde estãoos títulos no meio do texto. Ou seja, esta abordagemdá significado semântico ao código.Aquele tag passa a significar alguma coisa, mesmo quenão seja vista num browser que renderize a fonte maiore azul que você tinha planejado.&lt;/p&gt;
+
+&lt;p&gt;Aliás, por falar no texto azul, se você usar asegunda abordagem seu título será exibido comos estilos padrão do navegador, e seu azul vai para obeleléu. Como você não quer perder abonita formatação que havia planejado, aquientra uma segunda linguagem, o CSS. Com CSS você podecolocar toda essa informação sobreformatação num arquivo externo. Assimvocê fica com um arquivo HTML apenas cominformação (que fica muito mais simples,organizado e rápido de se escrever) e mantémtoda a formatação num arquivo externo. Se umdia seu chefe resolver que todos os títulos do sitetem que ser vermelhos ao invés de azuis (acredite,isso é muito comum) você sóprecisará alterar uma palavra em um únicoarquivo e todos os títulos do site estarãoautomaticamente ajustados.&lt;/p&gt;
+
+&lt;h3 id=&#34;no-tables&#34;&gt;No Tables&lt;/h3&gt;
+
+&lt;p&gt;Tabelas são um recurso muito útil do HTML. Semtabelas como exibiríamos informaçõescomo uma lista de produtos, um extrato bancário ou umcalendário? O problema é que tabelas tem sidousadas para muito mais do que isso. É preciso colocaro menu ao lado do texto? Cria-se uma tabela. É precisoque o texto tenha uma largura delimitada? Cria-se uma tabela.Imagem junto ao texto? Menu no cabeçalho? Duas colunasde texto? Tabela neles!&lt;/p&gt;
+
+&lt;p&gt;E como fica, nessa situação, a semânticado documento? Como você deve imaginar, nãohá aqui aquela prática separaçãoentre informação e formatação.Além disso, temos um outro sério problema: embrowsers antigos, ou mesmo em browsers modernos maldesenvolvidos, como o Internet Explorer, as tabelas sósão exibidas depois que a última tag&lt;/table&gt; chega ao navegador.&lt;/p&gt;
+
+&lt;p&gt;É por isso que, quando você estáconectado via dial-up, em alguns sites a tela fica em brancodurante longos segundos (às vezes minutos) atéque é exibido de uma vez só.&lt;/p&gt;
+
+&lt;p&gt;Abrir mão de tabelas para montar layouts vai tornarseu código muito menor, mais simples e organizado. Vaitambém centralizar a formatação,colocando tudo que se refere a layout em um únicoarquivo. Imagine a facilidade de manutenção.Melhora também a experiência do usuário,pois a informação é exibida instantaneamente, assim que chega ao browser.&lt;/p&gt;
+
+&lt;p&gt;Dá-se a esta abordagem o nome de tableless. Apesar donome, não é a ausência total de tabelas,mas o seu uso apenas onde é semanticamentejustificável. De lambuja, um documento tableless bempensado vai funcionar em qualquer navegador, em qualquer sistema operacional, mesmo em PDAs.&lt;/p&gt;
+
+&lt;h3 id=&#34;no-frames-no-pop-ups-no-dhtml&#34;&gt;No Frames, No Pop-ups, No DHTML&lt;/h3&gt;
+
+&lt;p&gt;Pense muito antes de aplicar uma solução&lt;/p&gt;
+
+&lt;p&gt;baseada em frames, DHTML, scripts absurdos, pop-ups, plugins,&lt;/p&gt;
+
+&lt;p&gt;ActiveX, Applets ou qualquer outra tecnologia que quebre&lt;/p&gt;
+
+&lt;p&gt;essas duas premissas da internet:&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; A web é um ambiente multiplataforma.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Cada documento na web tem um endereço associado a&lt;/p&gt;
+
+&lt;p&gt;ele.&lt;/p&gt;
+
+&lt;p&gt;Não vou me alongar nesse tópico, mas gostaria que você tomasse um tempo para ler:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.wired.com/news/culture/0,1284,55675,00.html&#34;&gt;http://www.wired.com/news/culture/0,1284,55675,00.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.digital-web.com/features/feature_2001-6.shtml&#34;&gt;http://www.digital-web.com/features/feature_2001-6.shtml&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.digital-web.com/features/feature_2002-09.shtml&#34;&gt;http://www.digital-web.com/features/feature_2002-09.shtml&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.useit.com/alertbox/990530.html&#34;&gt;http://www.useit.com/alertbox/990530.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.useit.com/alertbox/9612.html&#34;&gt;http://www.useit.com/alertbox/9612.html&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;vamos-com-calma&#34;&gt;Vamos com calma&lt;/h3&gt;
+
+&lt;p&gt;O interessante dessa abordagem baseada na simplicidadeé que você não precisa fazer tudo de umavez. Se está inseguro para começar, pode apenaseliminar as tags &lt;font&gt; e criar um arquivo CSSúnico. Ou pode começar usando os recursos deXML do seu banco de dados para gerar XHTML, ou criando umRSS. O importante é começar a simplificar antes que você fique maluco!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>O Caminho Suave para o Tableless</title>
+      <link>http://tableless.com.br/o-caminho-suave-para-o-tableless/</link>
+      <pubDate>Thu, 06 Dec 2007 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/o-caminho-suave-para-o-tableless/</guid>
+      <description>
+
+&lt;p&gt;A maior parte dos desenvolvedores web, designers ou programadores, começaram antes do surgimento dos movimentos em prol dos &lt;a href=&#34;http://www.webstandards.org/&#34; title=&#34;Web Standards Project&#34;&gt;padrões web&lt;/a&gt;, usando tabelas para montar layouts em editores &lt;acronym title=&#34;What You See Is What You Get, Editores Visuais&#34;&gt;WYSIWYG&lt;/acronym&gt;, e ainda hoje este método é usado na maioria dos projetos de internet. Logo, é natural que muita gente, ao começar a entender o valor dos &lt;a href=&#34;http://www.webstandards.org/&#34; title=&#34;Web Standards Project&#34;&gt;padrões&lt;/a&gt;, se pergunte como migrar do desenvolvimento &amp;#8220;tradicional&amp;#8221; para o desenvolvimento de código semanticamente coerente.&lt;/p&gt;
+
+&lt;p&gt;É um caminho muito duro o que separa o desenvolvedor acostumado a editores visuais do desenvolvimento de código coerente. E é muito comum que o designer desista após uma primeira tentativa frustrada de desenvolver um website tableless, com layout &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt; e &lt;a href=&#34;http://www.w3schools.com/xhtml/&#34; title=&#34;Extensible HyperText Markup Language&#34;&gt;XHTML&lt;/a&gt; &lt;a href=&#34;http://validator.w3.org/&#34; title=&#34;W3C MarkUp Validation Service&#34;&gt;validado&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Por isso gostaria de propor um caminho gradual, mais suave, para aqueles que querem se aventurar pela primeira vez pelos &lt;a href=&#34;http://www.webstandards.org/&#34; title=&#34;Web Standards Project&#34;&gt;padrões web&lt;/a&gt;. O princípio desse método é da recompensa. Você pode obter um grande benefício aproximando seu código dos &lt;a href=&#34;http://www.webstandards.org/&#34; title=&#34;Web Standards Project&#34;&gt;padrões web&lt;/a&gt;, mesmo que não faça tudo de uma vez. Quero mostrar como você pode começar, e obter benefícios imediatos.&lt;/p&gt;
+
+&lt;h3 id=&#34;limpe-seu-html&#34;&gt;Limpe seu HTML&lt;/h3&gt;
+
+&lt;p&gt;A minha primeira recomendação é que você estude &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt;. Comece pela formatação básica de fonte, cor e tamanho. Isso vai te garantir código menor e produtividade maior com pouquíssimo esforço.&lt;/p&gt;
+
+&lt;p&gt;Assim, ao criar um item de menu, você vai evitar códigos como este:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;a href=&#34;parceiros.asp&#34;&amp;gt;&amp;lt;font
+face=&#34;Arial, Helvetica, Sans-serif&#34; size=&#34;2&#34;
+color=&#34;#FF3300&#34;&amp;gt;&amp;lt;b&amp;gt;Parceiros&amp;lt;/b&amp;gt;&amp;lt;/font&amp;gt;&amp;lt;/a&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Colocando no lugar:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;a href=&#34;parceiros.asp&#34; class=&#34;menu&#34;&amp;gt;Parceiros&amp;lt;/a&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Tendo no &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt;:&lt;/p&gt;
+
+&lt;pre&gt;.menu{
+&lt;a href=&#34;http://www.w3.org/TR/REC-CSS1#font-family&#34;&gt;font-family&lt;/a&gt;: Arial, Helvetica, Sans-serif;
+&lt;a href=&#34;http://www.w3.org/TR/REC-CSS1#font-size&#34;&gt;font-size&lt;/a&gt;: 80%;
+&lt;a href=&#34;http://www.w3.org/TR/REC-CSS1#font-weight&#34;&gt;font-weight&lt;/a&gt;: bold;
+&lt;a href=&#34;http://www.w3.org/TR/REC-CSS1#color&#34;&gt;color&lt;/a&gt;:#FF3300;
+}&lt;/pre&gt;
+
+&lt;p&gt;Como você pode ver, o &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt; é extremamente simples. Aprender esses quatro atributos, mais o &amp;#8220;&lt;a href=&#34;http://www.w3.org/TR/REC-CSS1#font-style&#34;&gt;font-style&lt;/a&gt;&amp;#8221; (para fazer itálico), é a primeira coisa que eu recomendo. É claro, isso apenas faz cócegas nas possibilidades do &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt;, ainda há muito o que aprender, mas recomendo começar por aí porque é algo que você pode aprender em alguns minutos e vai te salvar muito, muito tempo. E você vai começar a ter o controle da formatação, tendo todas as definições de fonte em um único arquivo, podendo alterar, por exemplo, a qualquer momento, a fonte de todo o conteúdo ou de todos os menus do site.&lt;/p&gt;
+
+&lt;p&gt;O passo seguinte para limpar seu HTML é se livrar do spacer.gif, aquele gif transparente de 1 pixel que se usa para dar espaços em tabelas, e das dezenas de tabelas aninhadas. Para isso vamos começar a estudar o &amp;#8220;box-model&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;O pulo-do-gato aqui é um atributo &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt; chamado &lt;a href=&#34;http://www.w3.org/TR/REC-CSS1#padding&#34;&gt;padding&lt;/a&gt;. O &lt;a href=&#34;http://www.w3.org/TR/REC-CSS1#padding&#34;&gt;padding&lt;/a&gt; é a distância entre as bordas de um elemento e o texto dentro dele. Assim, se é preciso que o conteúdo de uma célula esteja a 10 pixels da borda esquerda, ao invés de inserir uma célula extra como espaçador, ou inserir mais uma tabela, basta definir uma classe para essa célula. Uma vez que você já está colocando a formatação no &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt;, provavelmente esta célula já tem uma classe. Então basta:&lt;/p&gt;
+
+&lt;pre&gt;.conteudo{
+&lt;a href=&#34;http://www.w3.org/TR/REC-CSS1#padding&#34;&gt;padding&lt;/a&gt;-left:10px;
+}&lt;/pre&gt;
+
+&lt;p&gt;Isso vai fazer com que o texto esteja a 10 pixels da borda esquerda do documento. Ah, claro, o &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt; também pode livrar você de definir no HTML as bordas e o background das células de sua tabela. Lembre-se, quanto mais layout e formatação você colocar no &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt;, mais controle terá sobre seu site, principalmente em mudanças de layout durante o processo de produção e em futuras manutenções. O site também será mais leve para carregar.&lt;/p&gt;
+
+&lt;p&gt;Concluímos então que, após aprender os atributos de formatação de fonte, o passo seguinte é aprender os atributos &lt;a href=&#34;http://www.w3.org/TR/REC-CSS1#background&#34;&gt;background&lt;/a&gt;, &lt;a href=&#34;http://www.w3.org/TR/REC-CSS1#border&#34;&gt;border&lt;/a&gt; e &lt;a href=&#34;http://www.w3.org/TR/REC-CSS1#padding&#34;&gt;padding&lt;/a&gt;. Indo até aqui você com certeza será um desenvolvedor muito mais feliz! Depois de limpar seu HTML, ganhar controle sobre a formatação de seu site e se tornar muito mais produtivo, você está pronto para passar à segunda etapa, correndo atrás da semântica.&lt;/p&gt;
+
+&lt;h3 id=&#34;começando-o-trabalho-de-gente-grande&#34;&gt;Começando o Trabalho de Gente Grande&lt;/h3&gt;
+
+&lt;p&gt;Muito bem, agora você já pode limpar seu código. Vamos estudar um exemplo prático. No começo de cada uma de suas páginas você tem um título, cujo código hoje é assim:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;font face=&#34;Arial, Helvetica, Sans-serif&#34; size=&#34;4&#34;
+color=&#34;#FFFF00&#34;&amp;gt;&amp;lt;b&amp;gt;Novidades&amp;lt;/b&amp;gt;&amp;lt;/font&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Ao limpar esse código, você vai substituir esse monte de tags por uma só. Que tag você vai usar? Como o &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt; te permite formatar qualquer elemento, muita gente que começa a estudar o assunto acha que é indiferente que tag usar, e coloca algo como:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;p class=&#34;titulo&#34;&amp;gt;Novidades&amp;lt;/p&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Agora, veja bem, outro desenvolvedor poderia resolver o mesmo problema com:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;div class=&#34;titulo&#34;&amp;gt;Novidades&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;E o resultado visual poderia ser o mesmo. Acontece que há algo na natureza do HTML que nos diz que tag usar. Chamamos esse algo de &amp;#8220;semântica&amp;#8221;: as tags do HTML tem significado. A tag P é para parágrafos, a tag DIV para divisões no conteúdo, e há uma série de tags para título, h1, h2, h3, h4, h5 e h6. Assim, se você pode usar qualquer tag, pode fazer assim:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;h1&amp;gt;Novidades&amp;lt;/h1&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;O que você ganha com essa preocupação? Os buscadores inteligentes podem ler semanticamente o conteúdo de um documento, entendendo que trecho de código é um título, por exemplo. Assim, escrever HTML semanticamente correto pode melhorar muito sua visibilidade em buscadores. O segundo bom motivo é que você vai saber para que serve cada tag se tiver que mexer nesse mesmo documento daqui a alguns meses. E vai ser mais fácil também se outra pessoa tiver que dar manutenção no seu código.&lt;/p&gt;
+
+&lt;p&gt;Logo, use as tags do HTML para aquilo para o que foram criadas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;dd, dl e dt para listas de definições (um glossário, por exemplo)&lt;/li&gt;
+&lt;li&gt;h1 a h6 para títulos&lt;/li&gt;
+&lt;li&gt;p para parágrafos&lt;/li&gt;
+&lt;li&gt;abbr para abreviaturas e acronym para acrônimos&lt;/li&gt;
+&lt;li&gt;blockquote e q para citações longas e curtas&lt;/li&gt;
+&lt;li&gt;address para endereços (sabe aquele rodapé onde vai o endereço e o telefone da empresa?)&lt;/li&gt;
+&lt;li&gt;ul e ol para listas e li para os itens da lista&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Você pode obter uma lista mais abrangente em:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.w3schools.com/xhtml/xhtml_reference.asp&#34; title=&#34;XHTML Reference&#34;&gt;http://www.w3schools.com/xhtml/xhtml_reference.asp&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;E formate tudo ao seu gosto com &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;finalmente-livrando-se-das-tabelas&#34;&gt;Finalmente, Livrando-se das Tabelas&lt;/h3&gt;
+
+&lt;p&gt;Não há bons motivos para você eliminar a qualquer custo todas as tabelas de seu primeiro trabalho. Conheço alguns excelentes profissionais, muito talentosos, que fizeram um ótimo trabalho em sua primeira tentativa de tableless. Mas a maioria dos que eu vi tentarem demoraram muito para conseguir da primeira vez, e alguns não obtiveram os resultados que esperavam. Isso tudo serve para que você possa produzir mais rápido e melhor, não o contrário. Então vá com calma. Faça alguns estudos em tableless, comece eliminando parte das tabelas em seus primeiros trabalhos. Por exemplo, remover as células de tabela que formam o menu, trocando por uma lista (com as tags ul e li), é um ótimo desafio para o primeiro projeto.&lt;/p&gt;
+
+&lt;p&gt;Ah, e não se esqueça que para dados como uma tabela periódica ou um calendário a solução semanticamente correta é a tabela mesmo. Ou seja, tableless não é ausência de tabelas, é o seu uso apenas onde é semanticamente justificável.&lt;/p&gt;
+
+&lt;p&gt;Não vou entrar em detalhes aqui, porque já escrevi bastante sobre como construir um layout no &lt;a href=&#34;http://tableless.com.br/tutorial/&#34;&gt;Tutorial Tableless Básico&lt;/a&gt;, mas o conselho é ir com calma, sem estresse. Você logo vai estar produzindo tableless mais fácil do que produz sites com tabelas.&lt;/p&gt;
+
+&lt;h3 id=&#34;xhtml&#34;&gt;XHTML&lt;/h3&gt;
+
+&lt;p&gt;Há uma coisa que muita gente que está começando me pergunta: o que é e para que serve esse tal de &lt;a href=&#34;http://www.w3schools.com/xhtml/&#34; title=&#34;Extensible HyperText Markup Language&#34;&gt;XHTML&lt;/a&gt;? É muito mais simples do que parece. Um arquivo &lt;a href=&#34;http://www.w3schools.com/xhtml/&#34; title=&#34;Extensible HyperText Markup Language&#34;&gt;XHTML&lt;/a&gt; é um arquivo HTML, que pode ser lido por qualquer browser. Não estamos falando de um novo HTML, com novas tags ou coisa assim. Pelo contrário, o &lt;a href=&#34;http://www.w3schools.com/xhtml/&#34; title=&#34;Extensible HyperText Markup Language&#34;&gt;XHTML&lt;/a&gt; 1 foi feito para funcionar mesmo em navegadores antigos. Mas, ao mesmo tempo, Um arquivo &lt;a href=&#34;http://www.w3schools.com/xhtml/&#34; title=&#34;Extensible HyperText Markup Language&#34;&gt;XHTML&lt;/a&gt; é também um arquivo &lt;a href=&#34;http://www.w3.org/XML/&#34; title=&#34;Extensible Markup Language&#34;&gt;XML&lt;/a&gt; &lt;a href=&#34;http://validator.w3.org/&#34; title=&#34;W3C MarkUp Validation Service&#34;&gt;válido&lt;/a&gt;, que pode ser lido por qualquer interpretador de &lt;a href=&#34;http://www.w3.org/XML/&#34; title=&#34;Extensible Markup Language&#34;&gt;XML&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Meu primeiro conselho, nesse caso, é que você, se não trabalha com &lt;a href=&#34;http://www.w3.org/XML/&#34; title=&#34;Extensible Markup Language&#34;&gt;XML&lt;/a&gt;, deixe preocupação com o &lt;a href=&#34;http://www.w3schools.com/xhtml/&#34; title=&#34;Extensible HyperText Markup Language&#34;&gt;XHTML&lt;/a&gt; para depois de dominar bem o código semântico e o layout tableless. Não porque seja complicado, pelo contrário, transformar bom HTML em &lt;a href=&#34;http://www.w3schools.com/xhtml/&#34; title=&#34;Extensible HyperText Markup Language&#34;&gt;XHTML&lt;/a&gt; é bem simples, mas simplesmente porque você pode obter benefícios muito significativos, e muito mais rapidamente, aprendendo &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt; do que &lt;a href=&#34;http://www.w3schools.com/xhtml/&#34; title=&#34;Extensible HyperText Markup Language&#34;&gt;XHTML&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O segundo conselho é que você comece a estudar o assunto. Depois de dominar bem layouts &lt;a href=&#34;http://www.w3.org/Style/CSS/&#34; title=&#34;Cascading Style Sheets&#34;&gt;CSS&lt;/a&gt;, mergulhe no &lt;a href=&#34;http://www.w3.org/XML/&#34; title=&#34;Extensible Markup Language&#34;&gt;XML&lt;/a&gt;. A maioria dos bancos de dados hoje permite extrair dados diretamente em &lt;a href=&#34;http://www.w3.org/XML/&#34; title=&#34;Extensible Markup Language&#34;&gt;XML&lt;/a&gt; e todas as plataformas de aplicações web trabalham bem com &lt;a href=&#34;http://www.w3.org/XML/&#34; title=&#34;Extensible Markup Language&#34;&gt;XML&lt;/a&gt;. E com a poderosa linguagem &lt;a href=&#34;http://www.w3.org/Style/XSL/&#34; title=&#34;Extensible Stylesheet Language&#34;&gt;XSLT&lt;/a&gt; você pode muito facilmente oferecer seus os dados em &lt;a href=&#34;http://www.w3schools.com/xhtml/&#34; title=&#34;Extensible HyperText Markup Language&#34;&gt;XHTML&lt;/a&gt; para o navegador.&lt;/p&gt;
+
+&lt;h3 id=&#34;voando-alto&#34;&gt;Voando Alto&lt;/h3&gt;
+
+&lt;p&gt;Estamos falando de muito mais do que criar sites estilosos. Há duas semanas esteve aqui um amigo com um Palm novo, um &lt;a href=&#34;http://www.palmone.com/us/products/handhelds/zire71/&#34;&gt;Zire 71&lt;/a&gt;, e um celular com acesso à internet. Isso está se tornando cada vez mais barato e comum. Conheço também uma porção de empresas e instituições, entre elas uma série significativa de TeleCentros e órgãos públicos, que estão adotando &lt;a href=&#34;http://www.google.com.br/search?q=Linux&amp;amp;btnI=1&amp;amp;lr=lang_pt&#34;&gt;Linux&lt;/a&gt; como sistema operacional para desktops. O &lt;a href=&#34;http://www.google.com.br&#34; title=&#34;O Oráculo&#34;&gt;Google&lt;/a&gt; hoje é responsável por 90% do tráfego que meu site consegue de buscadores. É o primeiro colocado absoluto entre os buscadores. E conseguiu isso indexando semanticamente o conteúdo real dos sites. Praticamente todas as plataformas web estão oferendo suporte a &lt;a href=&#34;http://www.w3.org/XML/&#34; title=&#34;Extensible Markup Language&#34;&gt;XML&lt;/a&gt; e apostando na idéia de &lt;a href=&#34;http://www.google.com.br/search?q=webservices+xml&amp;amp;btnI=1&amp;amp;lr=lang_pt&#34;&gt;webservices&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Quem segue os &lt;a href=&#34;http://www.webstandards.org/&#34; title=&#34;Web Standards Project&#34;&gt;padrões web&lt;/a&gt; não precisa ter medo do futuro. Não importa que browser vai ser o mais usado daqui a dois anos, que tecnologia vai estar na moda ou de onde as pessoas vão estar usando a internet. Seu site estará lá, leve, acessível, atual e útil.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Novo Tableless, agora WordPress</title>
+      <link>http://tableless.com.br/mudancas-repentinas/</link>
+      <pubDate>Tue, 13 Dec 2005 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/mudancas-repentinas/</guid>
+      <description>&lt;p&gt;Como podem ver, o Tableless passou por uma reformulação. Tradicionalmente, costumo fazer essas mudanças no dia 1º de Janeiro, mas desta vez será diferente.&lt;/p&gt;
+
+&lt;p&gt;Mudamos não só layout (gostou?) mas também nosso sistema de publicação. Nos anos passados, sofríamos um bocado para postar no site. Por isso, nessa reformulação, migramos para WordPress. Estamos gostando muito dessa ferramenta. Eu era um pouco avesso a aplicações prontas de publicação de blog. Por isso, ou fazíamos o nosso próprio ou editávamos direto o XML. Agora com WP nossos problemas acabaram.&lt;/p&gt;
+
+&lt;p&gt;Mudamos o layout também, como de costume. Feito meio às pressas, mas acho que ele agüenta até a próxima etapa.&lt;/p&gt;
+
+&lt;p&gt;Reformulei todo o Código XHTML e CSS. Se alguém abrisse o source do Tableless antigo, iria se deparar com técnicas ultrapassadas: image-replacement com SPAN, e outras coisas do tipo.&lt;/p&gt;
+
+&lt;p&gt;Agora, se você conferir nosso source, vai encontrar tudo comentado (para aqueles que gostam de estudar) bem como um CSS bem feito.&lt;/p&gt;
+
+&lt;p&gt;Mas o ponto forte, é que fomos para outro &amp;#8220;hospedeiro&amp;#8221;. Migramos para a &lt;a href=&#34;http://www.dreamhost.com/r.cgi?diegoeis/shared/&#34;&gt;DreamHost&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O pessoal que conheço (&lt;a href=&#34;http://brunotorres.net/&#34;&gt;Bruno Torres&lt;/a&gt;, &lt;a href=&#34;http://www.digitalminds.com.br&#34;&gt;Danilo Medeiros&lt;/a&gt;, &lt;a href=&#34;http://www.mobilelife.com.br/&#34;&gt;Thiago Rigonatti&lt;/a&gt; e outros) indica muito esse host. Com apenas US$7,95 você já consegue colocar seu site lá. Mais barato que os hosts brasileiros, e o serviço é impecável. E dizem que o suporte é fascinante.&lt;/p&gt;
+
+&lt;p&gt;Agora, estamos lá. 🙂&lt;/p&gt;
+
+&lt;p&gt;Espero que as alterações sejam apreciadas por vocês, caros leitores.&lt;/p&gt;
+
+&lt;p&gt;Outras modificações virão com certeza.&lt;/p&gt;
+
+&lt;p&gt;OBS.: Gostaria de agradecer o &lt;a href=&#34;http://brunotorres.net/&#34;&gt;Bruno Torres&lt;/a&gt; por ter ajudado a fazer essa migração. O cara simplesmente fez tudo. Desde instalação do WP até importação do XML enorme do site antigo.&lt;/p&gt;
+
+&lt;p&gt;Valeu cara.&lt;/p&gt;
+
+&lt;p&gt;A respeito do &lt;a href=&#34;http://tableless.com.br/forum/&#34;&gt;fórum&lt;/a&gt;, migramos para phpBB. Logo, logo, vamos dar um jeito também no layout. Infelizmente, não é possível importar as senhas do Snitz, que são codificadas num formato próprio. Então, para acessar, você vai precisar criar uma senha nova. Acesse por &lt;a href=&#34;http://tableless.dreamhosters.com/forum/profile.php?mode=sendpassword&#34;&gt;aqui&lt;/a&gt; e coloque seu nome de usuário e seu e-mail. Uma nova senha será gerada e enviada para você por e-mail. Se você não sabe seu nome de usuário, basta procurar algum post seu no fórum. É o seu nome, do jeito que estiver aparecendo lá.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>O que é Tableless?</title>
+      <link>http://tableless.com.br/o-que-etableless/</link>
+      <pubDate>Tue, 09 Aug 2005 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/o-que-etableless/</guid>
+      <description>&lt;p&gt;A Web foi criada para ser um ambiente onde fosse possível trocar informações livremente, e que essas informações pudessem ser acessadas ao redor do planeta por qualquer pessoa. Em 1994, foi criado o W3C (World Wide Web Consortium): um consórcio internacional, onde são desenvolvidas os padrões para a web (Web Standards) tais como: HTML, CSS, XML, XSLT, entre outros.&lt;/p&gt;
+
+&lt;p&gt;Naquela época, no mercado de browsers, as opções ainda eram poucas: consistiam apenas em Lynx, Mozaic e Netscape Navigator, da Netscape Communications, então liderada por James Clark. A Microsoft, de Bill Gates, resolveu entrar nesse mercado lançando o Internet Explorer. A partir daí, o Netscape e o Internet Explorer começaram a travar uma guerra atrás de adeptos. A concorrência entre os dois browsers é chamada até hoje de Guerra dos Browsers. Durante essa &amp;#8220;guerra&amp;#8221;, os padrões do W3C ainda eram meros rascunhos. Por conta disso, as duas empresas que não podiam esperar que esses rascunhos ficassem prontos começaram a lançar seus browsers com padrões proprietários.&lt;/p&gt;
+
+&lt;p&gt;Agora o impasse: Os browsers tinham seus próprios padrões… Já os desenvolvedores não conseguiam criar um único código que funcionasse nos dois navegadores. Por este motivo, eles eram obrigados a desenvolver, na maioria das vezes, para apenas um browser.&lt;/p&gt;
+
+&lt;p&gt;Isso trouxe mais um problema, agora para os usuários. O usuário que usava Netscape, não conseguia acessar sites que eram feitos para Internet Explorer, e vice-versa.&lt;/p&gt;
+
+&lt;p&gt;Como a web não tinha sido projetada para desenvolver os criativos ambientes gráficos que temos atualmente, naturalmente, os recursos de desenvolvimento eram limitados e os criadores faziam das tripas coração para criar seus sites. Entre as muitas idéias que surgiram para ultrapassar ao ambiente de &amp;#8220;apenas texto&amp;#8221; da internet, estava aquela de utilizar tabelas de HTML para posicionar os elementos no layout, utilizando slices de imagem, gifs transparentes e a técnica de aninhamento de tabelas para contornar os problemas que os padrões proprietários traziam. A esse tipo de técnica, que foi usadapela maior parte dos websites, chamamos de layout com tabelas.&lt;/p&gt;
+
+&lt;p&gt;Os sites que seguem os Padrões Web utilizam uma metodologia de desenvolvimento baseado em 3 camadas, são elas:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Informação&lt;/strong&gt; &amp;#8211; A informação do site é exibida utilizando código XHTML ou HTML.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Formatação&lt;/strong&gt; &amp;#8211; O XHTML que exibe a informação é formatada com CSS (Folhas de Estilo). É com CSS que comandamos todo o visual do site. Tudo que é visual e decorativo deve ser feito por CSS.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Comportamento&lt;/strong&gt; &amp;#8211; Definida por Javascript e AJAX. É a camada que define como os elementos irão se comportar de acordo com as ações do usuário.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Em poucas palavras: um site tableless é um site que não utiliza tables para a estruturação do Layout. É um site que segue os Padrões Web.&lt;/p&gt;
+
+&lt;p&gt;O termo &amp;#8220;tableless&amp;#8221; é usado mais largamente aqui no Brasil. Em outros países outros foram mais difundidos, por exemplo: CSS Layouts.&lt;/p&gt;
+
+&lt;p&gt;Um site tabeless segue obrigatoriamente regras de semântica. Cada tag tem sua função própria. Por exemplo, para criar um parágrafo de texto, usamos a tag &lt;p&gt;&lt;/p&gt;. A tag Table e suas filhas são utilizados para exibir dados tabulados, por exemplo, uma listagem de produtos, onde são mostrados algumas informações sobre o produto como tamanho, preço, cor, material, disponibilidade, etc&amp;#8230;&lt;/p&gt;
+
+&lt;table style=&#34;margin:0 0 15px;&#34;&gt;
+  &lt;tr&gt;
+    &lt;th&gt;
+      Tênis
+    &lt;/th&gt;
+    
+    &lt;th&gt;
+      Cor
+    &lt;/th&gt;
+    
+    &lt;th&gt;
+      Tamanho
+    &lt;/th&gt;
+    
+    &lt;th&gt;
+      Preço
+    &lt;/th&gt;
+    
+    &lt;th&gt;
+      Disponibilidade
+    &lt;/th&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      Nike
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      Preto
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      38-39
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      R$ 100,00
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      Em Estoque
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      Adidas
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      Branco
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      40-41
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      R$ 120,00
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      Esgotado
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Formatar informações dos sites não é algo novo. Por volta de 1970, no começo da tragetória do SGML, vários browsers já personalizavam as aparências dos documentos, cada um com seu estilo próprio.&lt;/p&gt;
+
+&lt;p&gt;Håkon Wium Lie, estudava e percebia as dificuldades que se tinham ao desenvolver um site, e resolveu criar uma maneira fácil para formatar a informação do HTML. Foi aí que ele propôs a criação do CSS ou Cascading Style Sheets. Esse era o ano de 1994.&lt;/p&gt;
+
+&lt;p&gt;Em 1995 eles apresentaram sua proposta e finalmente, o W3C &amp;#8211; World Wide Web Consortium &amp;#8211; que estava acabando de nascer, se interessou pelo projeto e resolveu criar uma equipe, obviamente liderada por Håkon e Bert Bos. O resultado apareceu logo, em 1996, eles lançaram a recomendação oficial pelo W3C do CSS Level 1 (CSS 1).&lt;/p&gt;
+
+&lt;p&gt;Dois anos depois, no dia 12 de Maio de 1998, eles lançaram a recomendação do CSS de nível 2. A segunda versão das Folhas de Estilo para web.&lt;/p&gt;
+
+&lt;p&gt;Hoje em dia, o nível de compatibilidade entre os browsers é muito parecido, de forma que se você implementar algo específico em um browser, é muito provável que em outro browser esteja igual.&lt;/p&gt;
+
+&lt;p&gt;Portanto, o desenvolvedor pode ficar tranqüilo quanto a maioria dos problemas causados por diferenças entre browsers.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Documentos do W3C em Português</title>
+      <link>http://tableless.com.br/documentos_w3c_portugues/</link>
+      <pubDate>Thu, 07 Aug 2003 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/documentos_w3c_portugues/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;http://www.w3.org/2003/03/Translations/byLanguage?language=pt-br&#34; title=&#34;Traduções para o português de documentos W3C&#34;&gt;Traduções para o português de documentos W3C&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Alguns artigos do W3C traduzidos para o português. Vale a pena conferir.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>RSS</title>
+      <link>http://tableless.com.br/rss-2/</link>
+      <pubDate>Thu, 03 Jul 2003 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/rss-2/</guid>
+      <description>&lt;p&gt;O &lt;a href=&#34;http://pilger.inf.br&#34; title=&#34;pilger.inf.br: Blogs, RSS e um tal de Charles...&#34;&gt;Charles&lt;/a&gt; deu a idéia inicial. Tomei um tempinho pra pensar, e aqui vai: &lt;a href=&#34;http://elcio.locaweb.com.br/rss&#34; title=&#34;Crie RSS com ASP, fácil e rápido&#34;&gt;RSSficador&lt;/a&gt;, um jeito fácil de criar RSS com ASP, XML e Expressões Regulares. De quebra, o Tableless também ganhou um &lt;a href=&#34;http://tableless.com.br/makerss.asp?feed=tableless&#34;&gt;RSS&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

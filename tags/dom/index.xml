@@ -1,0 +1,514 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Dom on Tableless</title>
+    <link>http://tableless.com.br/tags/dom/index.xml</link>
+    <description>Recent content in Dom on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/dom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Tenha o DOM</title>
+      <link>http://tableless.com.br/tenha-o-dom/</link>
+      <pubDate>Mon, 25 Jul 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/tenha-o-dom/</guid>
+      <description>
+
+&lt;p&gt;Muito ja foi falado sobre DOM e posso estar sendo repetitivo aqui, mas é importante falar deste assunto que em dias de manipulação pesada de seletores, percebo que pouca atenção é dada. Temos muita literatura boa sobre o assunto mas muitas vezes o foco acaba sendo o novo plugin que saiu e faz mais-do-mesmo-no-front-end-só-que-mais-fácil (E se você tiver sorte ele é free).&lt;/p&gt;
+
+&lt;p&gt;Entender realmente como um navegador funciona é importante, e garante seu entendimento do &lt;strong&gt;real&lt;/strong&gt; dos problemas que está enfrentando no código que está implementando. Tem mais! Criar um código que manipula o layout (leia-se DOM) fica mais fácil, é uma relação &lt;em&gt;win-win&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Criado pelo W3C, &lt;strong&gt;O DOM é uma multi-plataforma que representa como as marcações em HTML, XHTML e XML são organizadas e lidas pelo navegador que você usa&lt;/strong&gt;. Uma vez indexadas, estas marcações se transformam em elementos de uma árvore que você pode manipular via API &amp;#8211; que é o que fazemos quando usamos programas ou scripts para alterar funcionalidades de uma página: conteudo, estrutura ou folha de estilo.&lt;/p&gt;
+
+&lt;h2 id=&#34;um-pouco-de-história&#34;&gt;Um pouco de história&lt;/h2&gt;
+
+&lt;p&gt;Não tem graça falar sobre o assunto sem mostrar como ele surgiu. Isso só reforça ainda mais a importância de conhecermos bem o assunto pois mostra sua relevância (e porque falar de _browser wars_ é bem legal, apesar de evidenciar os cabelos brancos).&lt;/p&gt;
+
+&lt;p&gt;Netscape e Microsoft guerreavam com Netscape 2 e IE3.0 lá em 1996 e enquanto a Netscape lançava o &lt;strong&gt;Javascript&lt;/strong&gt; a Microsoft lançava o &lt;strong&gt;JScript&lt;/strong&gt;. A diferença entre um e outro não é nada mais além do nome &amp;#8211; acredite! Por razões comerciais devido as “&lt;span&gt;sangrentas” &lt;em&gt;browser wars&lt;/em&gt; as empresas decidiram adotar nomes diferentes para a mesma coisa &amp;#8211; que na verdade era (e continua sendo) o &lt;strong&gt;ECMAScript&lt;/strong&gt;, a linguagem que comecou a ser criada em 1994 quando o W3C colocou na mesma mesa as duas empresas e várias outras para desenvolver um padrão para linguagens de script para os navegadores. &lt;strong&gt;Javascript, JScript e ActionScript não são nada mais que &lt;/strong&gt;&lt;strong&gt;&lt;em&gt;dialetos&lt;/em&gt; de ECMAScript.&lt;/strong&gt;&lt;/p&gt;&lt;/p&gt;
+
+&lt;h2&gt;
+  O DOM em sua forma e como é reconhecido pelos navegadores
+&lt;/h2&gt;
+
+&lt;p&gt;
+  &lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/dom_tree.gif&#34; alt=&#34;dom_tree&#34; width=&#34;700&#34; height=&#34;365&#34; class=&#34;alignnone size-full wp-image-43633&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;
+  A figura acima mostra a estrutura de uma árvore DOM, a linearização  das marcações de modo que ela possa ser montada inicialmente por um navegador. Esta estrutura não será o que veremos no navegador &amp;#8211; o layout em si. O DOM é a base para uma outra árvore que é o que realmente um browser monta na tela, a &lt;strong&gt;Árvore de Renderização &lt;/strong&gt;&amp;#8211; &lt;em&gt;aka &lt;/em&gt;&lt;em&gt;Render Tree&lt;/em&gt;.
+&lt;/p&gt;
+
+&lt;p&gt;
+  A base para todos os nós da árvore DOM é o base class chamado &lt;strong&gt;Node.h&lt;/strong&gt;. Ele possui várias categorias, e as relevantes para renderizarmos código no navegador são os nós de &lt;strong&gt;documentos, elementos &lt;/strong&gt;e&lt;strong&gt; texto&lt;/strong&gt;.
+&lt;/p&gt;
+
+&lt;ol start=&#34;1&#34;&gt;
+  &lt;li&gt;
+    &lt;strong&gt;Documentos &lt;/strong&gt;é o nó mais importante do DOM, com três classes diferentes: &lt;strong&gt;Document&lt;/strong&gt;, que é usado por todos os documentos XML e outros que não sejam SVG (que também é um XML, porém com marcação já padronizada), &lt;strong&gt;HTMLDocument &lt;/strong&gt;que como o nome diz, cuida de documentos HTML e SVGDocument, responsável pelos documentos SVG e tambem por outros documentos herdados da classe Document (Como o &lt;strong&gt;Document.h &lt;/strong&gt;e o &lt;strong&gt;HTMLDocument.h&lt;/strong&gt;).
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;strong&gt;Elementos&lt;/strong&gt; são todas as tags que estão em arquivos HTML ou XML se transformam em elementos da árvore DOM. Considerando a renderização do navegador, um elemento é um nó com uma tag que pode ser usada para fazer subclasses específicas que podem ser processadas de acordo com as necessidades da &lt;em&gt;&lt;span class=&#34;c4 c9&#34;&gt;Render Tree &lt;/em&gt;(&lt;strong&gt;Element.h&lt;/strong&gt;).&lt;/li&gt; 
+    
+    &lt;li&gt;
+      &lt;strong&gt;Texto&lt;/strong&gt;: É o texto que vai entre os elementos. Todo o conteúdo das tags (&lt;p&gt;Isto é um text node&lt;/p&gt;). O nó de Texto guarda basicamente texto puro, que pode ser renderizado ou trabalhado via script.
+    &lt;/li&gt;&lt;/ol&gt; 
+    
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;h2&amp;gt;
+  A Render Tree
+&amp;lt;/h2&amp;gt;
+
+&amp;lt;div id=&amp;quot;attachment_3942&amp;quot; style=&amp;quot;width: 413px&amp;quot; class=&amp;quot;wp-caption alignnone&amp;quot;&amp;gt;
+  &amp;lt;a href=&amp;quot;http://tableless.com.br/wp-content/uploads/2011/07/render.png&amp;quot;&amp;gt;&amp;lt;img class=&amp;quot;size-full wp-image-3942  &amp;quot; src=&amp;quot;http://tableless.com.br/wp-content/uploads/2011/07/render.png&amp;quot; alt=&amp;quot;Como a render tree e montada&amp;quot; width=&amp;quot;403&amp;quot; height=&amp;quot;187&amp;quot; srcset=&amp;quot;uploads/2011/07/render.png 630w, uploads/2011/07/render-300x139.png 300w&amp;quot; sizes=&amp;quot;(max-width: 403px) 100vw, 403px&amp;quot; /&amp;gt;&amp;lt;/a&amp;gt;
+
+  &amp;lt;p class=&amp;quot;wp-caption-text&amp;quot;&amp;gt;
+    Como a render tree é montada
+  &amp;lt;/p&amp;gt;
+&amp;lt;/div&amp;gt;
+
+&amp;lt;p&amp;gt;
+  A &amp;lt;em&amp;gt;Render Tree&amp;lt;/em&amp;gt; é a parte mais importante do processo de renderização. Bem parecida com a árvore DOM, cada objeto corresponde a nós de &amp;lt;strong&amp;gt;Documentos, Elementos ou&amp;lt;/strong&amp;gt;&amp;lt;strong&amp;gt; Texto&amp;lt;/strong&amp;gt;. A diferença é que q &amp;lt;em&amp;gt;Render Tree&amp;lt;/em&amp;gt; possui tambem objetos que não possuem nós na árvore DOM, como &amp;lt;strong&amp;gt;scripts e folhas de estilos&amp;lt;/strong&amp;gt;.
+&amp;lt;/p&amp;gt;
+
+&amp;lt;p&amp;gt;
+  O processo de criação da&amp;lt;strong&amp;gt; Render Tree&amp;lt;/strong&amp;gt; passa pelos seguintes passos:
+&amp;lt;/p&amp;gt;
+
+&amp;lt;ol start=&amp;quot;1&amp;quot;&amp;gt;
+  &amp;lt;li&amp;gt;
+    &amp;lt;strong&amp;gt;Attachment&amp;lt;/strong&amp;gt;: Após finalizar o parse do DOM e a criação de seus nós, os navegadores chamam um método chamado &amp;lt;strong&amp;gt;attach &amp;lt;/strong&amp;gt;para começar a renderização. O attach adiciona primeiramente as folhas de estilo a árvore DOM e começa a estilização da página. Um bom exemplo é o uso das propriedades CSS display x visibility: Caso um elemento da árvore DOM tenha uma propriedade display:none, este elemento (e seus nós filhos) não será criado na&amp;lt;em&amp;gt; Render Tree&amp;lt;/em&amp;gt;. Ao contrário do uso de visibility:hidden, que vai renderizar o elemento na &amp;lt;span&amp;gt;árvore, porém  ele irá remover (ou adicionar quando visibility:visible) via&amp;lt;strong&amp;gt; Repaint &amp;lt;/strong&amp;gt;as cores (ou propriedades) que formam este elemento. Vale lembrar também que este processo de attach é &amp;lt;em&amp;gt;top down&amp;lt;/em&amp;gt;, criando sempre inicialmente os nós parent e depois seus descendentes (nós filhos). (&amp;lt;a href=&amp;quot;http://tableless.com.br/entendendo-os-reflows-2&amp;quot; title=&amp;quot;Entendendo os Reflows&amp;quot;&amp;gt;Para saber mais sobre Repaint e Reflows, veja este outro artigo&amp;lt;/a&amp;gt;)&amp;lt;/li&amp;gt; 
+
+    &amp;lt;li&amp;gt;
+      &amp;lt;strong&amp;gt;RenderStyle.h&amp;lt;/strong&amp;gt;: Durante o processo de attach um método é criado, o &amp;lt;strong&amp;gt;RenderStyle.h&amp;lt;/strong&amp;gt; que vai guardar objetos de referência com cada uma das propriedades CSS do documento. O nó criado no DOM é verificado no documento de CSS e caso existam propriedades que incidam naquele elemento, ela é aplicada. Esta propriedade fica salva dentro da &amp;lt;em&amp;gt;Render Tree &amp;lt;/em&amp;gt;até que ela seja destruída ou que este valor seja alterado por algum script.
+    &amp;lt;/li&amp;gt;
+    &amp;lt;li&amp;gt;
+      &amp;lt;strong&amp;gt;CSS Box Model: &amp;lt;/strong&amp;gt;Após o método &amp;lt;strong&amp;gt;RenderStyle&amp;lt;/strong&amp;gt; ser criado, ele é acessado via &amp;lt;strong&amp;gt;RenderObject&amp;lt;/strong&amp;gt;. O Box model é usado para posicionar um elemento dentro da página, oferecendo suporte para o conteúdo, padding, bordas e margens que envolvem este elemento
+    &amp;lt;/li&amp;gt;&amp;lt;/ol&amp;gt; 
+
+    &amp;lt;p&amp;gt;
+      &amp;lt;img class=&amp;quot;alignnone&amp;quot; src=&amp;quot;http://www.w3.org/TR/CSS21/images/boxdim.png&amp;quot; alt=&amp;quot;Uma representação visual do CSS box model&amp;quot; width=&amp;quot;455&amp;quot; height=&amp;quot;340&amp;quot; /&amp;gt;
+    &amp;lt;/p&amp;gt;
+
+    &amp;lt;h2&amp;gt;
+      Destruindo (ou atualizando) a Render Tree
+    &amp;lt;/h2&amp;gt;
+
+    &amp;lt;p&amp;gt;
+      A &amp;lt;em&amp;gt;Render Tree&amp;lt;/em&amp;gt; é destruída quando nós da árvore DOM são removidos, causando a necessidade de um novo parse no DOM, ou quando uma tab do navegador com a árvore DOM usada é fechada. Após o refresh da árvore DOM, todo o processo acima é refeito, com attach chamando o RenderStyle, que montado chama o método &amp;lt;strong&amp;gt;style()&amp;lt;/strong&amp;gt; do RenderObject que acessa o CSS BOX model.
+    &amp;lt;/p&amp;gt;
+
+    &amp;lt;h2&amp;gt;
+      Como os navegadores interpretam todos estes elementos criados por DOM e Render Tree antes de aplicar o estilo?
+    &amp;lt;/h2&amp;gt;
+
+    &amp;lt;p&amp;gt;
+      Todo navegador tem uma lista de elementos HTML suportados. Quando o seu markup possui tags presentes na lista, a árvore DOM é montada e o processo de attachment começa logo na sequência e os estilos são aplicados, dando continuidade a criação da &amp;lt;span&amp;gt;&amp;lt;em&amp;gt;Render tree&amp;lt;/em&amp;gt;.&amp;lt;/p&amp;gt; 
+
+      &amp;lt;p&amp;gt;
+        O grande problema é que cada navegador tem a sua própria lista, que trata situações similares de maneiras diferentes. Obviamente já sabemos que o navegador que mais apresenta problemas para as situações acima é o Internet Explorer, mas acredite, &amp;lt;strong&amp;gt;todos &amp;lt;/strong&amp;gt;os navegadores apresentam problemas quando um elemento não está em sua lista de elementos permitidos, e precisa de um trabalho para fazer tudo acontecer na &amp;lt;span&amp;gt;Render Tree como deve ser feito.&amp;lt;/p&amp;gt; 
+
+        &amp;lt;p&amp;gt;
+          Elementos fora desta lista são tratados como Elementos desconhecidos. E eles são uma grande fonte de problemas:
+        &amp;lt;/p&amp;gt;
+
+        &amp;lt;ol start=&amp;quot;1&amp;quot;&amp;gt;
+          &amp;lt;li&amp;gt;
+            &amp;lt;strong&amp;gt;Como estilizar este elemento?&amp;lt;/strong&amp;gt;Por exemplo, a tag &amp;lt;p&amp;gt; tem por padrão espacamento no topo e bottom, &amp;lt;blockquote&amp;gt; possui uma indentação automática adicionando uma margem à esquerda ou &amp;lt;h1&amp;gt; tem uma fonte maior que o &amp;lt;p&amp;gt; por ser um cabeçalho. Tudo isso esta padronizado, mas como cuidar de algo que não existe?
+          &amp;lt;/li&amp;gt;
+          &amp;lt;li&amp;gt;
+            &amp;lt;strong&amp;gt;Como este elemento deve aparecer na árvore DOM?&amp;lt;/strong&amp;gt;Os navegadores também possuem uma lista que mostra quais elementos podem ser filhos de outros elementos. Por exemplo, se você adiciona por engano no seu markup &amp;lt;p&amp;gt;&amp;lt;p&amp;gt; o segundo paragrafo implicitamente fechará o primeiro &amp;lt;p&amp;gt;, fazendo que os dois elementos sejam irmãos (no mesmo nível na árvore DOM) e nao como nós filhos como de maneira linear pode parecer. Porém se vc adiciona um &amp;lt;p&amp;gt;&amp;lt;span&amp;gt;, este paragrafo inicial não será fechado, porque o navegador permite que &amp;lt;span&amp;gt; seja filho de elementos de paragrafo, fazendo assim o &amp;lt;span&amp;gt; ser nó filho de &amp;lt;p&amp;gt;
+          &amp;lt;/li&amp;gt;
+        &amp;lt;/ol&amp;gt;
+
+        &amp;lt;p&amp;gt;
+          Para elementos desconhecidos, a ideia é não estilizar. Caso queira algum estilo em elementos desconhecidos, você deve colocá-lo no nó acima (se necessário um &amp;lt;em&amp;gt;wrapper&amp;lt;/em&amp;gt;), para fazer com que ele herde o estilo.
+        &amp;lt;/p&amp;gt;
+
+        &amp;lt;p&amp;gt;
+          Perceba a sutileza de como isso funciona. Os dois diagramas mostram uma árvore DOM, montada por um navegador suporte HTML5 nativo e o Internet Explorer 8 (navegadores que não suportam HTML5 tem funcionamento semelhante):
+        &amp;lt;/p&amp;gt;
+
+        &amp;lt;div id=&amp;quot;attachment_3988&amp;quot; style=&amp;quot;width: 570px&amp;quot; class=&amp;quot;wp-caption alignnone&amp;quot;&amp;gt;
+          &amp;lt;a href=&amp;quot;http://tableless.com.br/wp-content/uploads/2011/07/renderizaao_HTML5-5.png&amp;quot;&amp;gt;&amp;lt;img class=&amp;quot;size-full wp-image-3988 &amp;quot; src=&amp;quot;http://tableless.com.br/wp-content/uploads/2011/07/renderizaao_HTML5-5.png&amp;quot; alt=&amp;quot;Arvore DOM com suporte HTML5&amp;quot; width=&amp;quot;560&amp;quot; height=&amp;quot;472&amp;quot; srcset=&amp;quot;uploads/2011/07/renderizaao_HTML5-5.png 800w, uploads/2011/07/renderizaao_HTML5-5-300x252.png 300w&amp;quot; sizes=&amp;quot;(max-width: 560px) 100vw, 560px&amp;quot; /&amp;gt;&amp;lt;/a&amp;gt;
+
+          &amp;lt;p class=&amp;quot;wp-caption-text&amp;quot;&amp;gt;
+            Arvore DOM com suporte HTML5
+          &amp;lt;/p&amp;gt;
+        &amp;lt;/div&amp;gt;
+
+        &amp;lt;div id=&amp;quot;attachment_3987&amp;quot; style=&amp;quot;width: 576px&amp;quot; class=&amp;quot;wp-caption alignnone&amp;quot;&amp;gt;
+          &amp;lt;a href=&amp;quot;http://tableless.com.br/wp-content/uploads/2011/07/renderizacaoIE-5.png&amp;quot;&amp;gt;&amp;lt;img class=&amp;quot;size-full wp-image-3987  &amp;quot; src=&amp;quot;http://tableless.com.br/wp-content/uploads/2011/07/renderizacaoIE-5.png&amp;quot; alt=&amp;quot;Arvore DOM IE e outros navegadores sem suporte HTML5&amp;quot; width=&amp;quot;566&amp;quot; height=&amp;quot;458&amp;quot; srcset=&amp;quot;uploads/2011/07/renderizacaoIE-5.png 1178w, uploads/2011/07/renderizacaoIE-5-300x243.png 300w, uploads/2011/07/renderizacaoIE-5-1024x830.png 1024w&amp;quot; sizes=&amp;quot;(max-width: 566px) 100vw, 566px&amp;quot; /&amp;gt;&amp;lt;/a&amp;gt;
+
+          &amp;lt;p class=&amp;quot;wp-caption-text&amp;quot;&amp;gt;
+            Arvore DOM IE e outros navegadores sem suporte HTML5
+          &amp;lt;/p&amp;gt;
+        &amp;lt;/div&amp;gt;
+
+        &amp;lt;p&amp;gt;
+          É por essas e outras que a gente usa o modernizr, o HTML5shiv ou um simples document.create(“SECTION”) / document.create(“ARTICLE”). E é isso que acontece quando navegadores interpretam elementos desconhecidos. Eles desconsideram o nó real aonde o elemento está, e o reconhece como filho de &amp;lt;BODY&amp;gt;. E por favor, sem trocadilhos com o &amp;lt;span&amp;gt;filho dos outros.&amp;lt;/p&amp;gt; 
+
+          &amp;lt;p&amp;gt;
+            Ver como uma árvore DOM é montada  e como a &amp;lt;em&amp;gt;Render tree &amp;lt;/em&amp;gt;é feita nos dá idéia do quão importante é ter um documento semântico. &amp;lt;strong&amp;gt;Realmente semântico&amp;lt;/strong&amp;gt;. Uma vez entendidos os conceitos, a manipulação e a programação dos elementos fica mais fácil.
+          &amp;lt;/p&amp;gt;
+
+          &amp;lt;p&amp;gt;
+            E você começa a entender como os navegadores funcionam.
+          &amp;lt;/p&amp;gt;
+
+          &amp;lt;h2&amp;gt;
+            Referências
+          &amp;lt;/h2&amp;gt;
+
+          &amp;lt;ul&amp;gt;
+            &amp;lt;li&amp;gt;
+              &amp;lt;a href=&amp;quot;http://tableless.com.br/entendendo-os-reflows-2&amp;quot;&amp;gt;Entendendo os Reflows&amp;lt;/a&amp;gt; por Alysson Franklin
+            &amp;lt;/li&amp;gt;
+            &amp;lt;li&amp;gt;
+              &amp;lt;a href=&amp;quot;http://www.modernizr.com/&amp;quot;&amp;gt;Modernizr&amp;lt;/a&amp;gt; para suporte HTML5
+            &amp;lt;/li&amp;gt;
+            &amp;lt;li&amp;gt;
+              &amp;lt;a href=&amp;quot;http://code.google.com/p/html5shiv/&amp;quot;&amp;gt;HTML5shiv&amp;lt;/a&amp;gt; para suporte HTML5
+            &amp;lt;/li&amp;gt;
+            &amp;lt;li&amp;gt;
+              &amp;lt;a href=&amp;quot;http://en.wikipedia.org/wiki/Browser_wars&amp;quot;&amp;gt;Browser Wars&amp;lt;/a&amp;gt; pela Wikipedia
+            &amp;lt;/li&amp;gt;
+            &amp;lt;li&amp;gt;
+              &amp;lt;a href=&amp;quot;http://en.wikipedia.org/wiki/ECMAScript&amp;quot;&amp;gt;ECMAScript&amp;lt;/a&amp;gt; pela Wikipedia
+            &amp;lt;/li&amp;gt;
+            &amp;lt;li&amp;gt;
+              &amp;lt;a href=&amp;quot;http://en.wikipedia.org/wiki/JavaScript&amp;quot;&amp;gt;Javascript&amp;lt;/a&amp;gt; pela Wikipedia
+            &amp;lt;/li&amp;gt;
+            &amp;lt;li&amp;gt;
+              &amp;lt;a href=&amp;quot;http://en.wikipedia.org/wiki/JScript&amp;quot;&amp;gt;JScript&amp;lt;/a&amp;gt; pela Wikipedia
+            &amp;lt;/li&amp;gt;
+            &amp;lt;li&amp;gt;
+              &amp;lt;a href=&amp;quot;http://www.w3.org/TR/CSS21/box.html#box-dimensions&amp;quot;&amp;gt;CSS Box model&amp;lt;/a&amp;gt; pelo W3C
+            &amp;lt;/li&amp;gt;
+            &amp;lt;ul&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Entendendo os Reflows</title>
+      <link>http://tableless.com.br/entendendo-os-reflows-2/</link>
+      <pubDate>Mon, 18 Jul 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/entendendo-os-reflows-2/</guid>
+      <description>
+
+&lt;p&gt;Reflow é um assunto extenso e necessário. Ele sempre vai existir nos navegadores, então temos que entendê-lo para saber como utilizá-lo de maneira racional. O mais legal é entender todo o contexto sobre o que são e como funcionam, para a partir daí repensar o código que renderizamos no navegador para obtermos maior performance.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Reflow é o resultado de um evento que desencadeia mudanças no jeito que a pagina deve ser renderizada, tomando tempo para cálculo e reposicionamento de elementos.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Para explicar como isso acontece, o importante é entender como um navegador renderiza uma página web.&lt;/p&gt;
+
+&lt;h2 id=&#34;dom&#34;&gt;DOM&lt;/h2&gt;
+
+&lt;p&gt;Document Object Model (DOM) é uma interface independente de linguagem e plataforma para representar e interagir com objetos em HTML, XHTML e XML. Mas o DOM é mais que isso; toda linguagem estruturada tem uma arvore DOM.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_3941&#34; style=&#34;width: 490px&#34; class=&#34;wp-caption alignleft&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif&#34;&gt;&lt;img class=&#34;size-full wp-image-3941 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif&#34; alt=&#34;Exemplo de arvore DOM para documento HTML&#34; width=&#34;480&#34; height=&#34;212&#34; srcset=&#34;uploads/2011/07/DOMTree.gif 800w, uploads/2011/07/DOMTree-300x132.gif 300w&#34; sizes=&#34;(max-width: 480px) 100vw, 480px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Exemplo de arvore DOM para documento HTML
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Mas sobre o DOM podemos dizer que programas ou scripts podem dinamicamente acessar elementos na árvore DOM e alterar seu conteúdo, estrutura e estilo. Adicional ao estado inicial da pagina, estas alterações são agregadas a árvore DOM. O resultado é a renderização &amp;#8211; o que nós vemos em um navegador. Mas a nossa &lt;em&gt;Render Tree&lt;/em&gt; tem mais que isso:&lt;/p&gt;
+
+&lt;h2 id=&#34;render-tree-e-como-realmente-entender-display-x-visibility&#34;&gt;Render Tree e como realmente entender display X visibility&lt;/h2&gt;
+
+&lt;div id=&#34;attachment_3942&#34; style=&#34;width: 514px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/07/render.png&#34;&gt;&lt;img class=&#34;size-full wp-image-3942 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/render.png&#34; alt=&#34;Como a render tree e montada&#34; width=&#34;504&#34; height=&#34;234&#34; srcset=&#34;uploads/2011/07/render.png 630w, uploads/2011/07/render-300x139.png 300w&#34; sizes=&#34;(max-width: 504px) 100vw, 504px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Como a render tree é montada
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;O DOM é resultado do parse do markup HTML que você montou dentro de um navegador. Só que dentro de um HTML você não tem apenas a estrutura do documento, estilos em CSS e funcionalidades em javascript também estarão no seu markup. E a Render tree é a soma de DOM mais estilos, que depois podem ser manipulados (seus scripts).&lt;/p&gt;
+
+&lt;p&gt;Pode parecer estranho, mas para mim a melhor maneira de entender as diferencas entre DOM e Render Tree é encarar esta última como um &lt;span class=&#34;c17&#34;&gt;individuo narcisista&lt;/span&gt;. Isso mesmo: A Render Tree gosta de aparecer, é o que vemos no browser. O DOM acontece por trás das cortinas. &lt;em&gt;À Render tree, o palco&lt;/em&gt;. (&lt;a href=&#34;http://tableless.com.br/tenha-o-dom&#34; title=&#34;Tenha o DOM&#34;&gt;Para saber mais sobre o DOM, veja este outro artigo&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;Uma página que tem controles de show/hide mostra isso muito bem. Enquanto todo o conteúdo da página está presente na árvore DOM, apenas alguns itens estarão disponíveis na Render Tree &amp;#8211; os visíveis na página (display:block). Alterar os elementos display:none vão disparar mudanças na render tree, e não na árvore DOM.&lt;/p&gt;
+
+&lt;p&gt;Já tentou entender as diferenças entre display:none e visibility:hidden? A maioria das explicações que vemos é que um “deixa de mostrar o elemento totalmente, incluindo seu espaço em tela” e o outro “deixa de mostrar o elemento visual, mas sua área de exibição continua sendo utilizada”. Esta explicação não está incorreta, mas seria melhor dizer que a propriedade display altera a estrutura da render tree, adicionando algo que antes não estava ali, enquanto visibility não faz alterações, apenas o câmbio de mostrar ou não um elemento que já esta na render tree.&lt;/p&gt;
+
+&lt;h2 id=&#34;repaint&#34;&gt;Repaint&lt;/h2&gt;
+
+&lt;p&gt;Entendido as diferenças entre display e visibility, além do contexto de área do elemento, conseguimos explicar o Repaint. Uma ação que faça alteração de propriedades de background &lt;strong&gt;sem alterar dimensões ou outras propriedades do elemento&lt;/strong&gt; não causam o reflow, apenas o repaint, que seria a atualização da propriedade de cor ou da imagem &amp;#8211; literalmente pintar novamente o elemento. Repaints gastam menos CPU que reflows.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-um-navegador-monta-seu-documento-html&#34;&gt;Como um navegador monta seu documento HTML&lt;/h2&gt;
+
+&lt;p&gt;Esses vídeos são sensacionais. Eles explicam o que são os reflows e dai como minimizá-los durante a fase de desenvolvimento do documento (sempre usando &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://tableless.com.br/bem-vindo-a-xangrila-parte-1&#34;&gt;Progressive Enhancement&lt;/a&gt;&lt;/span&gt; quando possível) é mais fácil..&lt;/p&gt;
+
+&lt;p&gt;[youtube &lt;a href=&#34;http://www.youtube.com/watch?v=ZTnIxIA5KGw&#34;&gt;http://www.youtube.com/watch?v=ZTnIxIA5KGw&lt;/a&gt;]&lt;/p&gt;
+
+&lt;p class=&#34;c6 anotacao&#34;&gt;
+  Esta é uma representação de como a página da Mozilla é montada. Quer mais? Veja também como a &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://video.google.com/videoplay?docid=-5863446593724321515&#34;&gt;Wikipedia&lt;/a&gt;&lt;/span&gt; e a página do &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://video.google.com/videoplay?docid=-1471976166301235697&#34;&gt;Google&lt;/a&gt;&lt;/span&gt; no Japão são renderizadas.
+&lt;/p&gt;
+
+&lt;p&gt;Analisando o primeiro vídeo, perceba que ao finalizar a montagem do rodapé, “algo mais” acontece (a partir de 12seg). São os Reflows. A maioria dos elementos são recalculados e reposicionados. Se ponderarmos que o rodapé acaba de ser montado aos 14 segundos e a renderização termina aos 26 segundos da pagina, estamos falando quase de 50% do tempo de renderização sendo gasto com Reflows, o que é muito, dependendo do que a sua página deve fazer.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que-causam-exatamente-os-reflows&#34;&gt;O que causam exatamente os reflows?&lt;/h3&gt;
+
+&lt;h5 id=&#34;reflow-é-um-assunto-extenso-e-necessário-ele-sempre-vai-existir-nos-navegadores-então-temos-que-entendê-lo-para-saber-como-utilizá-lo-de-maneira-racional-o-mais-legal-é-entender-todo-o-contexto-sobre-o-que-são-e-como-funcionam-para-a-partir-daí-repensar-o-código-que-renderizamos-no-navegador-para-obtermos-maior-performance&#34;&gt;`Reflow é um assunto extenso e necessário. Ele sempre vai existir nos navegadores, então temos que entendê-lo para saber como utilizá-lo de maneira racional. O mais legal é entender todo o contexto sobre o que são e como funcionam, para a partir daí repensar o código que renderizamos no navegador para obtermos maior performance.&lt;/h5&gt;
+
+&lt;p&gt;&lt;strong&gt;Reflow é o resultado de um evento que desencadeia mudanças no jeito que a pagina deve ser renderizada, tomando tempo para cálculo e reposicionamento de elementos.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Para explicar como isso acontece, o importante é entender como um navegador renderiza uma página web.&lt;/p&gt;
+
+&lt;h2 id=&#34;dom-1&#34;&gt;DOM&lt;/h2&gt;
+
+&lt;p&gt;Document Object Model (DOM) é uma interface independente de linguagem e plataforma para representar e interagir com objetos em HTML, XHTML e XML. Mas o DOM é mais que isso; toda linguagem estruturada tem uma arvore DOM.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_3941&#34; style=&#34;width: 490px&#34; class=&#34;wp-caption alignleft&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif&#34;&gt;&lt;img class=&#34;size-full wp-image-3941 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/DOMTree.gif&#34; alt=&#34;Exemplo de arvore DOM para documento HTML&#34; width=&#34;480&#34; height=&#34;212&#34; srcset=&#34;uploads/2011/07/DOMTree.gif 800w, uploads/2011/07/DOMTree-300x132.gif 300w&#34; sizes=&#34;(max-width: 480px) 100vw, 480px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Exemplo de arvore DOM para documento HTML
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Mas sobre o DOM podemos dizer que programas ou scripts podem dinamicamente acessar elementos na árvore DOM e alterar seu conteúdo, estrutura e estilo. Adicional ao estado inicial da pagina, estas alterações são agregadas a árvore DOM. O resultado é a renderização &amp;#8211; o que nós vemos em um navegador. Mas a nossa &lt;em&gt;Render Tree&lt;/em&gt; tem mais que isso:&lt;/p&gt;
+
+&lt;h2 id=&#34;render-tree-e-como-realmente-entender-display-x-visibility-1&#34;&gt;Render Tree e como realmente entender display X visibility&lt;/h2&gt;
+
+&lt;div id=&#34;attachment_3942&#34; style=&#34;width: 514px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2011/07/render.png&#34;&gt;&lt;img class=&#34;size-full wp-image-3942 &#34; src=&#34;http://tableless.com.br/wp-content/uploads/2011/07/render.png&#34; alt=&#34;Como a render tree e montada&#34; width=&#34;504&#34; height=&#34;234&#34; srcset=&#34;uploads/2011/07/render.png 630w, uploads/2011/07/render-300x139.png 300w&#34; sizes=&#34;(max-width: 504px) 100vw, 504px&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Como a render tree é montada
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;O DOM é resultado do parse do markup HTML que você montou dentro de um navegador. Só que dentro de um HTML você não tem apenas a estrutura do documento, estilos em CSS e funcionalidades em javascript também estarão no seu markup. E a Render tree é a soma de DOM mais estilos, que depois podem ser manipulados (seus scripts).&lt;/p&gt;
+
+&lt;p&gt;Pode parecer estranho, mas para mim a melhor maneira de entender as diferencas entre DOM e Render Tree é encarar esta última como um &lt;span class=&#34;c17&#34;&gt;individuo narcisista&lt;/span&gt;. Isso mesmo: A Render Tree gosta de aparecer, é o que vemos no browser. O DOM acontece por trás das cortinas. &lt;em&gt;À Render tree, o palco&lt;/em&gt;. (&lt;a href=&#34;http://tableless.com.br/tenha-o-dom&#34; title=&#34;Tenha o DOM&#34;&gt;Para saber mais sobre o DOM, veja este outro artigo&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;Uma página que tem controles de show/hide mostra isso muito bem. Enquanto todo o conteúdo da página está presente na árvore DOM, apenas alguns itens estarão disponíveis na Render Tree &amp;#8211; os visíveis na página (display:block). Alterar os elementos display:none vão disparar mudanças na render tree, e não na árvore DOM.&lt;/p&gt;
+
+&lt;p&gt;Já tentou entender as diferenças entre display:none e visibility:hidden? A maioria das explicações que vemos é que um “deixa de mostrar o elemento totalmente, incluindo seu espaço em tela” e o outro “deixa de mostrar o elemento visual, mas sua área de exibição continua sendo utilizada”. Esta explicação não está incorreta, mas seria melhor dizer que a propriedade display altera a estrutura da render tree, adicionando algo que antes não estava ali, enquanto visibility não faz alterações, apenas o câmbio de mostrar ou não um elemento que já esta na render tree.&lt;/p&gt;
+
+&lt;h2 id=&#34;repaint-1&#34;&gt;Repaint&lt;/h2&gt;
+
+&lt;p&gt;Entendido as diferenças entre display e visibility, além do contexto de área do elemento, conseguimos explicar o Repaint. Uma ação que faça alteração de propriedades de background &lt;strong&gt;sem alterar dimensões ou outras propriedades do elemento&lt;/strong&gt; não causam o reflow, apenas o repaint, que seria a atualização da propriedade de cor ou da imagem &amp;#8211; literalmente pintar novamente o elemento. Repaints gastam menos CPU que reflows.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-um-navegador-monta-seu-documento-html-1&#34;&gt;Como um navegador monta seu documento HTML&lt;/h2&gt;
+
+&lt;p&gt;Esses vídeos são sensacionais. Eles explicam o que são os reflows e dai como minimizá-los durante a fase de desenvolvimento do documento (sempre usando &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://tableless.com.br/bem-vindo-a-xangrila-parte-1&#34;&gt;Progressive Enhancement&lt;/a&gt;&lt;/span&gt; quando possível) é mais fácil..&lt;/p&gt;
+
+&lt;p&gt;[youtube &lt;a href=&#34;http://www.youtube.com/watch?v=ZTnIxIA5KGw&#34;&gt;http://www.youtube.com/watch?v=ZTnIxIA5KGw&lt;/a&gt;]&lt;/p&gt;
+
+&lt;p class=&#34;c6 anotacao&#34;&gt;
+  Esta é uma representação de como a página da Mozilla é montada. Quer mais? Veja também como a &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://video.google.com/videoplay?docid=-5863446593724321515&#34;&gt;Wikipedia&lt;/a&gt;&lt;/span&gt; e a página do &lt;span class=&#34;c9&#34;&gt;&lt;a class=&#34;c7&#34; href=&#34;http://video.google.com/videoplay?docid=-1471976166301235697&#34;&gt;Google&lt;/a&gt;&lt;/span&gt; no Japão são renderizadas.
+&lt;/p&gt;
+
+&lt;p&gt;Analisando o primeiro vídeo, perceba que ao finalizar a montagem do rodapé, “algo mais” acontece (a partir de 12seg). São os Reflows. A maioria dos elementos são recalculados e reposicionados. Se ponderarmos que o rodapé acaba de ser montado aos 14 segundos e a renderização termina aos 26 segundos da pagina, estamos falando quase de 50% do tempo de renderização sendo gasto com Reflows, o que é muito, dependendo do que a sua página deve fazer.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que-causam-exatamente-os-reflows-1&#34;&gt;O que causam exatamente os reflows?&lt;/h3&gt;
+
+&lt;p&gt;#####`&lt;/p&gt;
+
+&lt;p&gt;Reflows são excessivamente pesados e para reduzir efeitos uma das táticas que navegadores usam é processar nossos scripts em lote. Uma fila é criada para todos os comandos que causam reflow sejam processados de uma única vez. Porém o foco é entender o que causa um reflow e tentar minimizar o seu uso para ganhar performance na aplicação.&lt;/p&gt;
+
+&lt;p&gt;Este assunto é novo, e com certeza, A lista que mostro abaixo deve crescer. É importante mantermos a atenção a este assunto porque pequenos cuidados podem significar muito. Em um site web visualizado em desktops a diferença é óbvia sobre o tempo de renderização. Mas isso implica em outras coisas, que podem fazer a diferença não apenas em montar uma página mais rápido, mas também para menor gasto de processamento, o que garante também mais tempo de bateria em mobiles e tablets por exemplo.&lt;/p&gt;
+
+&lt;ol start=&#34;1&#34;&gt;
+  &lt;li&gt;
+    Adicionar, remover ou atualizar o DOM;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Esconder nós do DOM usando display:none;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Mover e animar o DOM na página;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Adicionar folhas de estilo on-the-fly que mudem o comportamento dos elementos;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Redimensionar janelas;
+  &lt;/li&gt;
+  &lt;li&gt;
+    Alterar tamanho de fontes;
+  &lt;/li&gt;
+  &lt;li class=&#34;c6 c15&#34;&gt;
+    Scroll de página;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Em um dos posts sobre o assunto, Tony G mapeou pesquisas prévias e montou a seguinte tabela, que também está sendo constantemente atualizada.&lt;/p&gt;
+
+&lt;table class=&#34;c16&#34; cellspacing=&#34;0&#34; cellpadding=&#34;0&#34;&gt;
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;Element&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;Frame, Image&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;Range&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;SVGLocatable&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;SVGTextContent&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;SVGUse&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;h4&gt;
+        &lt;strong&gt;window&lt;/strong&gt;
+      &lt;/h4&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;span class=&#34;c0&#34;&gt;clientHeight,&lt;br /&gt; &lt;/span&gt;&lt;span class=&#34;c0&#34;&gt;clientLeft,&lt;br /&gt; &lt;/span&gt;&lt;span class=&#34;c0&#34;&gt;clientTop,&lt;br /&gt; &lt;/span&gt;&lt;span class=&#34;c0&#34;&gt;clientWidth,&lt;br /&gt; focus(), getBoundingClientRect(), getClientRects(), innerText,&lt;br /&gt; offsetHeight,&lt;br /&gt; offsetLeft,&lt;br /&gt; offsetParent,&lt;br /&gt; offsetTop,&lt;br /&gt; offsetWidth,&lt;br /&gt; outerText,&lt;br /&gt; scrollByLines(), scrollByPages(), scrollHeight, scrollIntoView(), scrollIntoViewIfNeeded(), scrollLeft,&lt;br /&gt; scrollTop,&lt;br /&gt; &lt;/span&gt;scrollWidth
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;span class=&#34;c0&#34;&gt;height, width&lt;/span&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;span class=&#34;c0&#34;&gt;getBoundingClientRect(), getClientRects()&lt;/span&gt;
+    &lt;/td&gt;
+    
+    &lt;td&gt;
+      &lt;span class=&#34;c0&#34;&gt;computeCTM(), getBBox()&lt;/span&gt;&lt;/p&gt; 
+      
+      &lt;p class=&#34;c5&#34;&gt;
+        &lt;/td&gt; 
+        
+        &lt;td&gt;
+          &lt;span class=&#34;c0&#34;&gt;getCharNumAtPosition(), getComputedTextLength(), getEndPositionOfChar(), getExtentOfChar(), getNumberOfChars(), getRotationOfChar(), getStartPositionOfChar(), getSubStringLength(), selectSubString()&lt;/span&gt;
+        &lt;/td&gt;
+        
+        &lt;td&gt;
+          &lt;span class=&#34;c0&#34;&gt;instanceRoot&lt;/span&gt;
+        &lt;/td&gt;
+        
+        &lt;td&gt;
+          &lt;span class=&#34;c0&#34;&gt;getComputedStyle(),&lt;br /&gt; scrollBy(),&lt;br /&gt; scrollTo(),&lt;br /&gt; scrollX,&lt;br /&gt; scrollY, webkitConvertPointFromNodeToPage(), webkitConvertPointFromPageToNode()&lt;/span&gt;
+        &lt;/td&gt;&lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt; 
+        
+
+&lt;pre&gt;&lt;code&gt;    &amp;lt;h2&amp;gt;
+      Como melhorar o meu código para minimizar os reflows?
+    &amp;lt;/h2&amp;gt;
+
+    &amp;lt;p&amp;gt;
+      É simples. Basta minimizar o uso de requisições de estilo, que façam o navegador executar reflows ou repaints.
+    &amp;lt;/p&amp;gt;
+
+    &amp;lt;ol start=&amp;quot;1&amp;quot;&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Planejar a sua aplicação e entender como plugins e scripts criados vão se comportar em relação a reflow e repaints. Arquitetar o uso de plugins de acordo com a personalização que deve ser feita. Minimize o uso de alteração de estilos on-the-fly.&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Quando precisar alterar a propriedade de um estilo, troque o nome da classe, planeje a existência deste estado e adicione-o ao CSS previamente. Se o valor desta nova classe for dinâmica, use cssText. Evite alterar a propriedade diretamente para qualquer mudança.&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c0&amp;quot;&amp;gt;Pense como suas mudanças afetam a render tree e o quanto precisará ser revalidado depois desta mudanca. Se você usa position:absolute em um elemento, ele deixa de pertencer ao nó que está, e passa a ser filho do BODY. Alterá-lo então, não será tão custoso em termos de performance. Mesmo que alterações neste nó sobreponha outras areas, o reflow acontecerá apenas neste nó, e não em toda a render tree. &amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Limpe seu CSS. Classes não utilizadas devem ser removidas.&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Reduza o número de mudanças no DOM. Ele vai causar mudanças estruturais em todas as outras etapas. E mais tempo de reflow. &amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Animações na página, transições? Pondere sobre posicioná-la de maneira absoluta e trabalhar com ela a partir do BODY.&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;span class=&amp;quot;c11&amp;quot;&amp;gt;Vá com calma nos seletores CSS &amp;amp;#8211; os descendentes em particular &amp;amp;#8211; pois usam maior poder de CPU para executar a tarefa (CPU = Bateria).&amp;lt;/span&amp;gt;
+      &amp;lt;/li&amp;gt;
+    &amp;lt;/ol&amp;gt;
+
+    &amp;lt;h2&amp;gt;
+      Referências
+    &amp;lt;/h2&amp;gt;
+
+    &amp;lt;ul&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://en.wikipedia.org/wiki/Document_Object_Model&amp;quot;&amp;gt;DOM&amp;lt;/a&amp;gt; pela wikipedia
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://video.google.com/videoplay?docid=-1471976166301235697#docid=1020647662203348823&amp;quot;&amp;gt;Gecko Reflow&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://paulirish.com/2011/dom-html5-css3-performance/&amp;quot;&amp;gt;DOM, HTML5, CSS3 e Performance&amp;lt;/a&amp;gt; &amp;amp;#8211; &amp;lt;a href=&amp;quot;http://dl.dropbox.com/u/39519/talks/gperf/index.html&amp;quot;&amp;gt;Slides&amp;lt;/a&amp;gt; por Paul Irish
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.mozilla.org/newlayout/doc/reflow.html&amp;quot;&amp;gt;Reflow&amp;lt;/a&amp;gt; pelo Mozilla Labs
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://ajaxian.com/archives/browser-reflows-how-do-they-affect-performance&amp;quot;&amp;gt;Reflow e Repaint&amp;lt;/a&amp;gt; na Ajaxian
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://code.google.com/speed/articles/reflow.html&amp;quot;&amp;gt;Reflow&amp;lt;/a&amp;gt; pelo Google Code
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.w3.org/DOM/&amp;quot;&amp;gt;W3C Overview do DOM&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.dayofjs.com/videos/22158462/web-browsers_alex-russel&amp;quot;&amp;gt;1 dia de javascript com Alex Russel: Como Navegadores Veem as suas Apps&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://gent.ilcore.com/2011/03/how-not-to-trigger-layout-in-webkit.html&amp;quot;&amp;gt;Como (não) criar um layout no webkit por Tony G&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.webkit.org/blog/1091/more-web-inspector-updates/#timeline_panel&amp;quot;&amp;gt;Usando a timeline panel em navegadores webkit&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.bookofspeed.com/&amp;quot;&amp;gt;The book of Speed&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.phpied.com/rendering-repaint-reflowrelayout-restyle/&amp;quot;&amp;gt;Reflow/Repaint&amp;lt;/a&amp;gt; por Stoyan Stefanov
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://calendar.perfplanet.com/2009/the-new-game-show-will-it-reflow/&amp;quot;&amp;gt;Inconsistências dos navegadores em Reflows&amp;lt;/a&amp;gt; por Stoyan Stefanov
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.browserscope.org/?category=reflow&amp;quot;&amp;gt;BrowserScope tests para reflows&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.youtube.com/watch?v=a2_6bGNZ7bA&amp;quot;&amp;gt;Browsers para Web Developers&amp;lt;/a&amp;gt; David Baron da Mozilla labs
+      &amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;
+        &amp;lt;a href=&amp;quot;http://www.webkit.org/blog/114/webcore-rendering-i-the-basics/&amp;quot;&amp;gt;Renderização no webkit, o básico&amp;lt;/a&amp;gt;
+      &amp;lt;/li&amp;gt;
+    &amp;lt;/ul&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

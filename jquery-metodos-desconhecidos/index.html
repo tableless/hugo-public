@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/jquery-metodos-desconhecidos/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/jquery-metodos-desconhecidos/">jQuery: métodos desconhecidos</a></h1>
+  <p class="tb-hero-p">
+    
+    Conheça alguns métodos pouco utilizados mas que podem ser grandes aliados dos desenvolvedores jQuery.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/davi-ferreira">Davi Ferreira</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>No meu [último artigo][1] falei sobre dicas de otimização e performance de códigos jQuery. Na versão inicial do texto eu havia planejado um tópico sobre os métodos não muito conhecidos, já que alguns, como o ajaxSetup, podem também atuar na performance da sua aplicação.</p>
+
+<p>Acabei descobrindo que este tópico ficaria enorme e, por isso, preferi escrever sobre o assunto em um artigo próprio.</p>
+
+<p>Com vocês, alguns dos métodos menos populares do jQuery!</p>
+
+<h2 id="proxy">proxy()</h2>
+
+<p>O método proxy() permite executar um outros método forçando um determinado contexto. Seu objetivo principal é evitar a confusão do &#8216;this&#8217; causada quando um objeto é utilizado dentro de um método de outro objeto.</p>
+
+<p>Por exemplo:</p>
+
+<pre class="lang-javascript">$(".botao").click(function() {
+  setTimeout(function() {
+    console.log(this); //window
+  }, 400);
+});
+
+$(".botao").click(function() {
+  setTimeout($.proxy(function() {
+    console.log(this); //.botao
+  }, this), 400);
+});
+</pre>
+
+<p>É possível utilizar o proxy() através de duas assinaturas. A primeira recebe como parâmetros uma função e o escopo. A segunda funciona passando o escopo e o nome do método como uma string.</p>
+
+<pre class="lang-javascript">$.proxy( funcao(){}, 'objeto' );
+$.proxy( 'objeto', 'metodo' );
+</pre>
+
+<p>Quem sabe agora você para de usar o truque do &#8216;var that = this&#8217;, hein?</p>
+
+<h2 id="isarray-e-isfunction">isArray() e isFunction()</h2>
+
+<p>Esses dois métodos fazem parte da família de utilitários do jQuery. Como seus nomes sugerem, o primeiro verifica se o objeto é um array JavaScript e o segundo se o objeto é uma função.</p>
+
+<pre class="lang-javascript">var jogadores = ['Obina', 'Vagner Love', 'Zico'];
+var chutar = function(jogador){
+  console.log("Gol de " + jogadores[jogador]);
+};
+console.log($.isArray(jogadores)); // true
+console.log($.isFunction(chutar)); // true
+</pre>
+
+<p>Uma observação: a função isArray retorna <em>true</em> apenas para verdadeiros Arrays (e não objetos &#8220;tipo array&#8221;, como um objeto jQuery, por exemplo).</p>
+
+<pre class="lang-javascript">var jogadores = $('.jogadores');
+console.log($.isArray(jogadores)); // false
+</pre>
+
+<p>A [lista de utilitários][2] possui outros métodos interessantes, tais como grep(), map(), merge() etc.</p>
+
+<h2 id="queue-e-dequeue">queue() e dequeue()</h2>
+
+<p>Apesar de terem sido desenvolvidos originalmente para o uso de animações, os métodos queue() e dequeue() podem ser utilizados para qualquer tipo de fila.</p>
+
+<p>A fila padrão é chamada de &#8216;fx&#8217;: essa é a fila das animações. Ela será utilziada caso não seja passado nos parâmetros o nome de uma fila. No exemplo abaixo, estamos criando a fila &#8216;ajaxRequests&#8217;.</p>
+
+<pre class="lang-javascript">$(document).queue('ajaxRequests', function(){
+  $.ajax({
+    type: 'GET',
+    url: '/tableless',
+    complete: function(jqXHR, textStatus){
+      $(document).dequeue("ajaxRequests");
+    }
+  });
+});
+
+$(document).queue('ajaxRequests', function(){
+    $.post('/tableless', {categoria: 'jquery'});
+});
+</pre>
+
+<p>Para dar sequência no andamento da fila, você precisa utilizar o método dequeue(). Ele deve ser chamado no final da execução de um processo da fila (e como essa é uma fila de processos AJAX, utilizamos o dequeue no evento <em>complete</em>).</p>
+
+<p>Outro recurso interessante é a possibilidade de saber o tamanho da fila, ou seja, quantos eventos ainda serão executados. Para isso, basta utilizar a propriedade <em>length</em> após o método queue().</p>
+
+<pre class="lang-javascript">$(document).queue('ajaxRequests').length; // 2
+$(document).dequeue("ajaxRequests"); // executa fila
+$(document).queue('ajaxRequests').length; // 0
+</pre>
+
+<h2 id="detach">detach()</h2>
+
+<p>Assim como o remove(), o detach() retira um elemento do DOM. No entanto, esse método guarda as referências, eventos e dados associados ao elemento retornando um objeto jQuery que pode ser re-inserido no DOM.</p>
+
+<pre class="lang-javascript">$('.link').click(function(e){
+  e.preventDefault();  
+  console.log('clique');
+});
+$('.link').click(); // 'clique'
+var link = $('.link').detach();
+$('body').append(link);
+$('.link').click(); // 'clique'
+$('.link').remove();
+$('body').append('&lt;a href="#" class="link"&gt;link&lt;/a&gt;');
+$('.link').click(); // []
+</pre>
+
+<h2 id="ajaxsetup-e-afins">ajaxSetup() e afins</h2>
+
+<p>Talvez esses sejam os métodos mais injustiçados do jQuery. É muito comum a repetição de chamadas AJAX, incluindo seus parâmetros. Esses métodos de configuração permitem definir valores padrão para qualquer evento AJAX em sua aplicação.</p>
+
+<p>Com o ajaxSetup() é possível, por exemplo, habilitar ou desabilitar o <em>cache</em> e definir o tipo de requisição: POST ou GET.</p>
+
+<pre class="lang-javascript">$.ajaxSetup({
+  type: 'POST',
+  dataType: 'json',
+  cache: true
+});
+</pre>
+
+<p>Você ainda pode configurar uma URL padrão e também parâmetros passados durante a chamada:</p>
+
+<pre class="lang-javascript">$.ajaxSetup({  
+  data: {
+      origem: 'tableless'
+  },
+  url: '/tableless'
+});
+</pre>
+
+<p>Para conferir uma lista completa das propriedades configuráveis, visite a [página do método AJAX na API do jQuery][3].</p>
+
+<p>Os <em>callbacks</em> e eventos relacionados à execução de métodos AJAX também podem ser configurados. No entanto, essa configuração deve ser feita através dos seguintes métodos específicos: ajaxStart(), ajaxStop(), ajaxComplete(), ajaxError(), ajaxSuccess() e ajaxSend().</p>
+
+<p>Por exemplo, você poderia utilizar a configuração abaixo para exibir um indicador de carregamento no início da execução de um método AJAX.</p>
+
+<pre class="lang-javascript">$('.carregando')
+  .ajaxStart(function(){
+    $(this).show();
+  })
+  .ajaxStop(function(){
+    $(this).hide();
+  });
+</pre>
+
+<p>Você pode associar os eventos a qualquer elemento e o jQuery se encarregará de encontrar e executar todos os métodos associados.</p>
+
+<h2 id="delay">delay()</h2>
+
+<p>O método delay() serve para adiar a execução de uma função, método ou animação. Ele é especialmente útil para controlar o tempo de animações.</p>
+
+<pre class="lang-javascript">$('.alerta').fadeIn().delay(1000).slideUp();
+</pre>
+
+<p>No exemplo acima, o elemento com a classe &#8220;alerta&#8221; é exibido através de uma transição <em>fade</em> e, um segundo depois, ocultado através do método slideUp().</p>
+
+<h2 id="replacewith-e-replaceall">replaceWith() e replaceAll()</h2>
+
+<p>Imagine que você queira substituir todos os elementos que tenham a classe &#8220;pontos&#8221;. Com o método replaceWith() fica fácil. O que ele faz é buscar todos os objetos que se encaixem no seletor indicado e substituir seu conteúdo.</p>
+
+<pre class="lang-javascript">$('.pontos').replaceWith('&lt;h2&gt;1 milhão de pontos!&lt;/h2&gt;');
+</pre>
+
+<p>O replaceWith() também funciona com elementos que não estejam presentes no DOM, ou seja, você pode criar um objeto jQuery e substituir/manipular seu conteúdo antes de inserí-lo no DOM.</p>
+
+<pre class="lang-javascript">$('&lt;div class="carregando" /&gt;').replaceWith('&lt;p class="carregando"&gt;Carregando...&lt;/p&gt;');
+</pre>
+
+<p>Da mesma forma, o método replaceAll() também substiui o conteúdo de elementos, mas a origem e o destino são invertidos. Você também pode passar seletores como conteúdo. Nesse caso o funcionamento é um pouco diferente já que o elemento não é clonado e sim movido no DOM.</p>
+
+<pre class="lang-javascript">$('&lt;h2&gt;Carregamento completo!&lt;/h2&gt;').replaceAll('.carregando');
+$('.titulo').replaceAll('.carregando');
+</pre>
+
+<p>Note que a diferença dos métodos acima para os métodos tradiconais html() e text() é que o próprio elemento também é substituído e não só o seu conteúdo.</p>
+
+<hr />
+
+<p>Estes foram alguns métodos que pouca gente conhece ou utiliza. Pode até ser que você nunca tenha sentido falta deles, mas é sempre bom ter umas cartas extras na manga.</p>
+
+<p>E se você gostou, garanto que ao consultar a [API do jQuery][4] você descobrirá vários outros métodos desconhecidos, mas que podem ser úteis em algum momento do desenvolvimento dos seus projetos.</p>
+
+<p>[1]: <a href="http://tableless.com.br/jquery-dicas-de-otimizacao-e-performance/">http://tableless.com.br/jquery-dicas-de-otimizacao-e-performance/</a> &ldquo;&rdquo;
+ [2]: <a href="http://api.jquery.com/category/utilities/">http://api.jquery.com/category/utilities/</a> &ldquo;&rdquo;
+ [3]: <a href="http://api.jquery.com/jQuery.ajax/">http://api.jquery.com/jQuery.ajax/</a> &ldquo;&rdquo;
+ [4]: <a href="http://api.jquery.com/">http://api.jquery.com/</a> &ldquo;&rdquo;</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

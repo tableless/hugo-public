@@ -1,0 +1,398 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/crie-seu-jogo-em-html5-com-enchant-js/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/crie-seu-jogo-em-html5-com-enchant-js/">Crie seu jogo em HTML5 com enchant.js</a></h1>
+  <p class="tb-hero-p">
+    
+    Com poucas linhas de código é possível criar um jogo simples em HTML5 utilizando o framework enchant.js.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/ezequiel-m.-mello">Ezequiel M. Mello</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Mantido na UEI (Ubiquitous Entertainment, Inc), por membros do Centro de Pesquisa de Akihabara, o <em>framework</em> japonês chamado <strong><a href="http://enchantjs.com/pt-br/" target="_blank">enchant.js</a></strong>, permite criar com poucas linhas de código um jogo simples em HTML5.</p>
+
+<p>Com <strong>enchant.js</strong>, você pode criar desde simples jogos 2D até avançados jogos em três dimensões, graças ao suporte WebGL usado como plugin.</p>
+
+<p>Os elementos criados em um bloco do enchant.js são renderizado através do DOM e do Canvas, além de rodar nas plataformas mais conhecidas. Os eventos são voltados para <em>mobile</em>, como o <strong>Event.TOUCH_MOVE</strong>, disparado quando o usuário toca na tela e a segura. O enchant.js ainda possui uma <a href="http://code.9leap.net/" target="_blank">plataforma</a> com bibliotecas e jogos prontos para serem usados quando quiser.</p>
+
+<h2 id="sprites"><em>Sprites</em></h2>
+
+<p>O enchant.js trabalha com <em>sprites</em> para renderizar objetos na tela. Esse recurso tem várias utilidades, como criar um personagem ou mesmo um ambiente. O <em>sprite</em> permite além de renderizar um objeto no DOM ou no Canvas, criar animações com frames a partir de uma imagem <em>sprite</em>. Cada quadro é definido como um índice em um <em>array</em>, iniciado com zero, e com limite máximo da quantidade de imagens. Exemplo:</p>
+
+<pre>var Person = new Sprite(64, 64);
+Person.image = game.assets['images/Person.png'];
+Person.frame = [0, 1, 4, 5, 1]; // linha importante</pre>
+
+<p>Isto fará que a imagem passe entre estes sprites em um intervalo de tempo determinado pela propriedade <strong>fps</strong> do objeto <strong>Core</strong> (versões mais recentes), e <strong>Game</strong> (versões anteriores).</p>
+
+<h2 id="o-código">O código</h2>
+
+<p>Vamos criar um personagem movendo-se em um ambiente usando <em>sprite</em>.</p>
+
+<h3 id="html"><strong>HTML:</strong></h3>
+
+<pre>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+
+ &lt;head&gt;
+ &lt;script src="enchant.js"&gt;&lt;/script&gt;
+ &lt;script src="script.js"&gt;&lt;/script&gt;
+ &lt;/head&gt;
+
+ &lt;body&gt;&lt;/body&gt;
+
+&lt;/html&gt;</pre>
+
+<h3 id="javascript"><strong>JavaScript</strong>:</h3>
+
+<pre>(function() {
+   function initialize() {
+     enchant();
+     var game = new Core(640, 480);
+     var gohan = "http://tinyurl.com/p2z8qlt";
+     var fundo = "http://tinyurl.com/nc39d4y";
+     game.preload(gohan, fundo);
+     game.fps = 16; // seta o fps. Quanto maior, mais lento
+ 
+     game.onload = function() {
+       // cria fundo
+       var background = new Sprite(1024, 698);
+       background.image = game.assets[fundo];
+      game.rootScene.addChild(background);
+ 
+      // cria player
+     var player = new Sprite(63, 97);
+     player.image = game.assets[gohan];
+     player.frame = [0, 1];
+     player.x = (game.width/2)-(player.width/2); // centraliza no eixo X
+     player.y = 250;
+    player.tl.scaleTo(1.5, 1.5, 50);
+    game.rootScene.addChild(player);
+ 
+    // executa o tempo todo enquanto o player existir
+    player.onenterframe = function() {
+      if (this.age &gt;= 50) this.frame = [2, 3, 4];
+      if (this.age % 10 == 0) 
+        this.tl.moveBy(50,0,10).moveBy(-50,0,10).loop();
+     }
+   }
+   game.start(); // inicia o jogo
+ }
+  window.addEventListener('load', initialize, false);
+}).apply(this);
+</pre>
+
+<p><strong><a href="http://plnkr.co/edit/dCxps2" target="_blank">Veja o exemplo no Plunker</a></strong>.</p>
+
+<p>Primeiro chamamos o enchant.js na linha <strong>3</strong>. Na linha <strong>4</strong> criamos uma variável para guardar o objeto principal do jogo. Na linha <strong>7</strong>, dizemos ao enchant.js o que precisamos carregar antes de iniciar o jogo. Na linha <strong>8</strong> setamos os <em>frames per second</em> do jogo (esta propriedade existe em todos os objetos do enchant.js). Na linha <strong>10</strong> definimos o que acontece quando o enchant.js terminar de carregar os <em>assets</em>. Na linha <strong>12</strong> criamos um novo sprite com largura e altura passadas como argumento. Na linha <strong>13</strong>, atribuímos a imagem de fundo, que já foi carregada à propriedade <em>image</em> do <em>sprite background</em>. Na linha <strong>14</strong>, adicionamos esse fundo à cena principal (game.rootScene). Na linha <strong>19</strong>, criamos uma animação passando as imagens 0 e 1 do sprite. Na linha <strong>22</strong>, há o efeito de escala, como no CSS <em>(transform: scale(x, y))</em>, mas com a diferença do terceiro argumento que define o tempo (quanto maior, mais demorado). Na linha <strong>29</strong>, obtêm-se o efeito de mover em uma determinada direção em X e Y, definindo como terceiro argumento um tempo. O <em>loop()</em> serve para repetir infinitamente a ação atual.</p>
+
+<h2 id="adicionando-um-novo-personagem">Adicionando um novo personagem</h2>
+
+<p>Que tal deixar nosso jogo mais emocionante e adicionar um inimigo para combater nosso protagonista?</p>
+
+<pre>(function() {
+   function initialize() {
+   enchant();
+
+   var game = new Core(640, 480)
+   , gohan = "http://tinyurl.com/p2z8qlt"
+   , fundo = "http://tinyurl.com/nc39d4y"
+   , freeza = "http://tinyurl.com/parueup"
+   , powerImage = "http://tinyurl.com/o734vyr";
+   game.preload(gohan, fundo, freeza, powerImage);
+   game.fps = 16;
+ 
+   game.onload = function() {
+ 
+     var scene = new Scene(); // cria nova cena
+     game.pushScene(scene); // nova cena na principal
+ 
+     // adiciona o fundo
+     var background = new Sprite(1024, 698);
+     background.image = game.assets[fundo];
+     scene.addChild(background);
+ 
+     // modelo de player
+    var Player = Class.create(Sprite, {
+        initialize: function(data) {
+          Sprite.apply(this, [data.w, data.h]);
+          this.image = game.assets[data.image];
+          data.scene.addChild(this);
+      }
+    });
+ 
+    var Power = Class.create(Sprite, {
+      initialize: function(w, h, image, scene) {
+        Sprite.call(this, w, h);
+        this.image = game.assets[image];
+        scene.addChild(this);
+      }
+    });
+ 
+
+    // Gohan
+    var player = new Player({
+    w: 63, h: 97, scene: scene, image: gohan
+    });
+ 
+    player.frame = [0, 1];
+    player.x = ((game.width/2)-(player.width/2))-200;
+    player.y = 250;
+    player.tl.scaleTo(1.5, 1.5, 50);
+ 
+   player.onenterframe = function() {
+     if (this.age &gt;= 50) this.frame = [2, 3, 4];
+     if (this.age % 10 == 0) 
+    this.tl.moveBy(50,0,10).moveBy(-50,0,10).loop();
+   }
+ 
+   player.addEventListener(Event.TOUCH_START,function(evt){
+     var power = new Power(133, 61, powerImage, scene);
+     power.x = evt.x;
+     power.y = evt.y;
+
+     power.addEventListener('enterframe', function() {
+       this.x += 2;
+       if (this.intersect(enemy)) {
+         scene.removeChild(enemy);
+         player.frame = 0;
+       }
+     });
+   });
+ 
+   // Freeza
+   var enemy = new Player({
+     scene: scene, w: 65, h: 85, image: freeza
+   });
+ 
+   enemy.x = 400;;
+   enemy.y = 180;
+   enemy.tl.scaleTo(-1, 1, 1);
+   enemy.tl.scaleTo(-3,3, 100);
+ 
+   enemy.onenterframe = function() {
+     if (this.age &gt;= 50) this.frame = [2, 3, 4];
+     if (this.age%10==0) this.tl.moveBy(0,-50,10).moveBy(0,50,10).loop();
+   }
+
+ }
+ game.start();
+}
+
+ window.addEventListener('load', initialize, false);
+}).apply(this);
+</pre>
+
+<p><strong><a href="http://plnkr.co/edit/7F6ytf" target="_blank">Veja o exemplo com dois personagens no Plunker</a></strong>.</p>
+
+<p>Neste segundo exemplo, temos funções novas:</p>
+
+<h3 id="class-create">Class.create()</h3>
+
+<p>Este método recebe dois argumentos (classe e objeto). O objeto utiliza a propriedade <em>initialize</em> para executar o objeto quando é criado como um construtor. Outras propriedades funcionam como eventos:</p>
+
+<pre>Class.create(Class,{initialize:function(){},onenterframe:function(){}});</pre>
+
+<p>Dentro do <em>initialize</em>, precisamos chamar a classe com <em>call</em> ou <em>apply</em> e seguir o mesmo padrão do exemplo 1 ao criar um objeto.</p>
+
+<h3 id="intersect">intersect()</h3>
+
+<p>Esta função facilita a nossa vida, detectando uma colisão. Só é preciso usar este método em um objeto e passar ao outro como argumento. Exemplo:</p>
+
+<pre>player.intersect(enemy); // true ou false</pre>
+
+<p>Isto nos poupa de fazer uma lógica como esta:</p>
+
+<pre>function intersect(t, other) {
+  return t.x &lt; other.x + other.width
+    && other.x &lt; t.x + t.width 
+    && t.y &lt; other.y + other.height 
+    && other.y &lt; t.y + t.height;
+}
+</pre>
+
+<pre>intersect(player, enemy); // true ou false</pre>
+
+<p>Apesar deste ser um exemplo simples de como criar um jogo em HTML5, a <a href="http://enchantjs.com/resource/api-documentation/" target="_blank">documentação</a> do enchant.js é bastante completa, e tem muita coisa que permite ser incorporada para tornar nosso exemplo mais dinâmico e interativo.</p>
+
+<p>Confira mais <a href="http://enchantjs.com/pt-br/" target="_blank">demos</a> no site, os <a href="http://enchantjs.com/tutorial/lets-start-with-enchant-js/" target="_blank">tutoriais</a> e os <a href="http://enchantjs.com/showcase/games-on-9leap-net/" target="_blank">jogos já desenvolvidos</a> com a plataforma.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

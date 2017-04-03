@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Amd on Tableless</title>
+    <link>http://tableless.com.br/tags/amd/index.xml</link>
+    <description>Recent content in Amd on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/amd/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Introdução ao AMD com Require.js</title>
+      <link>http://tableless.com.br/introducao-ao-amd-com-requirejs/</link>
+      <pubDate>Fri, 14 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/introducao-ao-amd-com-requirejs/</guid>
+      <description>
+
+&lt;p&gt;Antes de entrarmos no foco do artigo, é importantíssimo tocar no assunto &lt;strong&gt;&lt;em&gt;modularização&lt;/em&gt;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;A modularização é um conceito muito antigo em termos computacionais, em poucas palavras, é a &lt;strong&gt;separação de funcionalidades&lt;/strong&gt;, &lt;strong&gt;redução de complexidade&lt;/strong&gt; e principalmente, o &lt;strong&gt;reuso de código&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://jcemer.com/&#34; target=&#34;_blank&#34;&gt;Jean Carlo Emer&lt;/a&gt; postou um um artigo aqui mesmo muito bom sobre _Modularização em JavaScript._ Recomendo fortemente ler o &lt;a href=&#34;http://tableless.com.br/modularizacao-em-javascript/&#34; target=&#34;_blank&#34;&gt;artigo na íntegra&lt;/a&gt;. Nele, o autor também dá um exemplo com AMD e fala dos pontos fracos e fortes do uso.&lt;/p&gt;
+
+&lt;h3 id=&#34;amd&#34;&gt;AMD&lt;/h3&gt;
+
+&lt;p&gt;Buscando a modularização do código JavaScript, um dos padrões mais falados ultimamente é o Asyncronous Module Definition (AMD), consiste basicamente de que nossos módulos escritos podem ser requisitados assincronamente quando necessários.&lt;/p&gt;
+
+&lt;h3 id=&#34;require-js&#34;&gt;Require.js&lt;/h3&gt;
+
+&lt;p&gt;O &lt;em&gt;script loader&lt;/em&gt; mais famoso da internet, o RequireJS é o cara responsável por carregar os nossos scripts assincronamente. A &lt;a href=&#34;http://requirejs.org/&#34; target=&#34;_blank&#34;&gt;página do projeto&lt;/a&gt; dá muito mais informações sobre compatibilidade e benefícios de seu uso.&lt;/p&gt;
+
+&lt;h2 id=&#34;exemplificando&#34;&gt;Exemplificando&lt;/h2&gt;
+
+&lt;p&gt;Para exemplificar o AMD com RequireJS, vamos criar uma aplicação simples que usa o jQuery para pegar os números de dois inputs da tela, passa para outro módulo que faz apenas a soma desses números, e devolve para a aplicação principal.&lt;/p&gt;
+
+&lt;p&gt;Sim, apenas isso&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;A intenção deste artigo é introduzir à estruturação, e como aplicar o AMD utilizando o RequireJS.&lt;/p&gt;
+
+&lt;h3 id=&#34;1º-passo-adicione-o-require-js-ao-seu-projeto&#34;&gt;1º Passo: Adicione o require.js ao seu projeto&lt;/h3&gt;
+
+&lt;p&gt;Faça o download no &lt;a href=&#34;http://requirejs.org/docs/download.html&#34; target=&#34;_blank&#34;&gt;site oficial&lt;/a&gt; (ou use CDN), e incorpore-o na aplicação:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script data-main=&#34;js/app&#34; src=&#34;//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js&#34;&amp;gt;
+    &amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;O atributo &lt;code&gt;data-main&lt;/code&gt; diz ao RequireJS carregar o arquivo app.js, logo após que carregar o require.js.&lt;/p&gt;
+
+&lt;h3 id=&#34;2º-passo-configuração&#34;&gt;2º Passo: Configuração&lt;/h3&gt;
+
+&lt;p&gt;Dentro do arquivo &lt;em&gt;app.js&lt;/em&gt;, vamos configurar da seguinte forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;requirejs.config({
+    &#34;baseUrl&#34;: &#34;js/modules&#34;,
+    &#34;paths&#34;: {
+        &#34;jquery&#34;: &#34;//code.jquery.com/jquery-2.1.1.min&#34;,
+        &#34;main&#34;: &#34;../main&#34;
+    }
+});
+
+// Chamando módulo principal para iniciar a aplicação
+requirejs([&#34;main&#34;]);
+&lt;/pre&gt;
+
+&lt;p&gt;A propriedade &lt;code&gt;baseUrl&lt;/code&gt; diz de onde os módulos serão carregados, exceto os que passamos em &lt;code&gt;paths&lt;/code&gt;. Onde que o &lt;em&gt;main&lt;/em&gt; está em um diretório anterior de acordo com o diretório configurado no &lt;em&gt;baseUrl&lt;/em&gt;. E o jQuery que vem por CDN.&lt;/p&gt;
+
+&lt;p&gt;Mais abaixo, chamamos o nosso módulo &lt;em&gt;main&lt;/em&gt;, que será o módulo principal da aplicação.&lt;/p&gt;
+
+&lt;h3 id=&#34;3º-passo-criando-nosso-módulo&#34;&gt;3º Passo: Criando nosso módulo&lt;/h3&gt;
+
+&lt;p&gt;No arquivo &lt;em&gt;modules/myModule.js&lt;/em&gt; criamos nosso simples módulo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Ou podemos declarar o nome explicitamente...
+// define(&#39;myModule&#39;, function () {
+define(function () {
+    return {
+        sum: function (a, b) {
+            return (+a) + (+b);
+        }
+    }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;O grande &lt;a href=&#34;http://addyosmani.com/&#34; target=&#34;_blank&#34;&gt;Addy Osmani&lt;/a&gt;, publicou um &lt;a href=&#34;http://addyosmani.com/writing-modular-js/&#34; target=&#34;_blank&#34;&gt;artigo muito bom&lt;/a&gt; sobre JavaScript Modular, onde demonstra outras formas de declarar módulos AMD.&lt;/p&gt;
+
+&lt;h3 id=&#34;4º-passo-criando-o-main-js&#34;&gt;4º Passo: Criando o main.js&lt;/h3&gt;
+
+&lt;p&gt;Neste arquivo é onde controlamos nossa aplicação, tendo como &lt;strong&gt;dependência&lt;/strong&gt; dois módulos, &lt;em&gt;jquery&lt;/em&gt; e &lt;em&gt;myModule&lt;/em&gt;. Ou seja, para iniciar o módulo main, temos que primeiro carregar suas dependências.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;define(
+    [&#34;jquery&#34;, &#34;myModule&#34;],
+    function ( $, myModule ) {
+        $(function () {
+            $(&#39;.btn&#39;).on(&#39;click&#39;, function () {
+                var number1 = $(&#39;#number1&#39;).val();
+                var number2 = $(&#39;#number2&#39;).val();
+                alert(myModule.sum(number1, number2));
+            });
+        });
+    }
+);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;concluindo&#34;&gt;Concluindo&lt;/h2&gt;
+
+&lt;p&gt;Finalizamos por aqui pessoal, apesar do exemplo ser tão simples, acho que consegui introduzir o conceito necessário.&lt;/p&gt;
+
+&lt;p&gt;Disponibilizei o código do exemplo no &lt;a href=&#34;http://plnkr.co/edit/OdLRwo62uV4KJPKSL4zh&#34; target=&#34;_blank&#34;&gt;Plunker&lt;/a&gt;, dá uma olhada lá caso precise 😉&lt;/p&gt;
+
+&lt;p&gt;Abraço!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

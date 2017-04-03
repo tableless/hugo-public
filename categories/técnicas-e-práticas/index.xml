@@ -1,0 +1,2250 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Técnicas E Práticas on Tableless</title>
+    <link>http://tableless.com.br/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/index.xml</link>
+    <description>Recent content in Técnicas E Práticas on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Teste de carga em APIs utilizando Artillery</title>
+      <link>http://tableless.com.br/teste-de-carga-em-apis-utilizando-artillery/</link>
+      <pubDate>Mon, 06 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/teste-de-carga-em-apis-utilizando-artillery/</guid>
+      <description>&lt;p&gt;Independente do produto que você esteja criando, é sempre importante assegurar a qualidade do mesmo fazendo uma bateria de testes antes de colocar no mercado. Se tratando de desenvolvimento de software, existem algumas métricas que são essenciais para deixar claro para todos os envolvidos no projeto, incluindo seus usuários, o quanto determinado sistema/aplicativo é confiável para suportar o uso do público.&lt;/p&gt;
+
+&lt;p&gt;Dentro da área de qualidade de software, existem diversos tipos de testes que visam atingir o objetivo citado acima, de mostrar a todos que o produto é estável e robusto, alguns deles: teste de integração, teste unitário, teste de penetração, teste de regressão e por aí vai.&lt;/p&gt;
+
+&lt;p&gt;Este post tem como objetivo falar um pouco sobre o teste de carga, que em sua essência foi criado para simular quantidades diferentes de tentativa de acesso a determinado sistema ou device, tendo como saída um relatório de como o software se comportou em determinado cenário.&lt;/p&gt;
+
+&lt;p&gt;Quando falamos de APIs e escalonamento de infra, é interessante saber o número exato de requisições que o servidor (ou servidores) consegue responder corretamente em um tempo aceitável para seus clientes.&lt;/p&gt;
+
+&lt;p&gt;Caso você já tenha tentado fazer algo do tipo, provavelmente se deparou com o JMeter, que é uma das ferramentas mais famosas e completas para esse tipo de trabalho. Porém, a curva de aprendizado com o JMeter é um pouco longa, pois existem muitas configurações/opções que o usuário acaba se perdendo no início, até encontrar o que realmente precisa para o seu caso.&lt;figure class=&#34;graf graf--figure&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;graf-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*1hZHPrQKHwCctBX7bFOPmw.png&#34; /&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;Na tentativa de tornar esse processo de teste de carga um pouco mais amigável ao usuário, foi criado o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://artillery.io/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Artillery&lt;/a&gt;, uma ferramenta que com poucos passos permite você simular diversos tipos de cenários para teste de serviços que estejam utilizando para comunicação http e/ou web sockets.&lt;/p&gt;
+
+&lt;p&gt;Basicamente você precisa ter o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;node&lt;/a&gt; e o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://www.npmjs.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;npm&lt;/a&gt; instalado para poder começar a brincadeira.&lt;/p&gt;
+
+&lt;p&gt;Para instalar o Artillery:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ npm install -g artillery&lt;/pre&gt;
+
+&lt;p&gt;Para testar sua instalação:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ artillery dino&lt;/pre&gt;
+
+&lt;p&gt;Caso tenha aparecido um dinossauro em seu terminal, está tudo certo e você pode seguir adiante.&lt;/p&gt;
+
+&lt;p&gt;Para começar a rodar seus testes de carga, é necessário criar um arquivo de configuração. Você pode dar qualquer nome a ele, mas para esse artigo, criarei um chamado &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;artillery.yml&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Neste cara que você colocará todas as informações referentes a sua API, como endpoint, rotas e cenários. Você pode tanto testar rotas/recursos isolados, quanto cenários mais complexos, como por exemplo um processo de compra em um ecommerce, que basicamente teria uma rota para buscar os produtos, outra pra fazer checkout e outra para pagamento.&lt;/p&gt;
+
+&lt;p&gt;Segue abaixo um exemplo desse arquivo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;config:
+  target: &#39;&lt;a class=&#34;markup--anchor markup--pre-anchor&#34; href=&#34;http://localhost:3000%27&#34; target=&#34;_blank&#34; rel=&#34;nofollow noopener noopener&#34;&gt;http://localhost:3000&#39;&lt;/a&gt;
+  phases:
+    - duration: 60
+      arrivalRate: 20
+scenarios:
+  -
+    name: &#39;Listagem de usuários&#39;
+    flow:
+    - get:
+        url: &#34;/users&#34;&lt;/pre&gt;
+
+&lt;p&gt;No arquivo acima colocamos o endpoint da nossa API, o atributo &lt;em&gt;duration&lt;/em&gt; representa a duração deste ciclo de teste em segundos e o &lt;em&gt;arrivalRate&lt;/em&gt; o número de novos usuários por segundo.&lt;/p&gt;
+
+&lt;p&gt;Para rodar o teste, rode o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ artillery run artillery.yml&lt;/pre&gt;
+
+&lt;p&gt;Após a execução, temos o seguinte resultado:&lt;figure class=&#34;graf graf--figure&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;graf-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*iuh0Z_BoqM4epjC2pOvt_A.png&#34; /&gt;&lt;figcaption class=&#34;imageCaption&#34;&gt;Output do Artillery&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;Todas as métricas de tempo são em milis, &lt;em class=&#34;markup--em markup--p-em&#34;&gt;RPS&lt;/em&gt; (request per second), &lt;em class=&#34;markup--em markup--p-em&#34;&gt;codes&lt;/em&gt; são os códigos HTTP e o número de respostas com o mesmo, no caso acima, tivemos 1200 (60&amp;#215;20, como configuramos) requisições em 60 segundos e todas retornaram 200. &lt;em class=&#34;markup--em markup--p-em&#34;&gt;Scenarios launched&lt;/em&gt; são os ‘usuários virtuais’ criados e &lt;em class=&#34;markup--em markup--p-em&#34;&gt;Scenarios completed&lt;/em&gt; são quantos deles conseguiram executar o cenário com sucesso.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;Importante: &lt;/strong&gt;Enquanto o teste estiver rodando, um preview do resultado vai sendo printado no terminal a cada 10 segundos, mas só no final você tem os números consolidados do teste completo.&lt;/p&gt;
+
+&lt;p&gt;Agora você pode ir alterando números de usuários concorrentes, quantidade de tempo do teste, novos cenários, simulando fluxos mais complexos e etc.&lt;/p&gt;
+
+&lt;p&gt;Vale a pena dar uma olhada na &lt;a href=&#34;https://artillery.io/docs/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;documentação&lt;/a&gt; que é super objetiva e simples de entender.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Código Limpo – Escreva seu código hoje sem esquecer da manutenção de amanhã</title>
+      <link>http://tableless.com.br/codigo-limpo-escreva-seu-codigo-hoje-sem-esquecer-da-manutencao-de-amanha/</link>
+      <pubDate>Fri, 13 Jan 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/codigo-limpo-escreva-seu-codigo-hoje-sem-esquecer-da-manutencao-de-amanha/</guid>
+      <description>
+
+&lt;p&gt;Você provavelmente já precisou entender o código de outra pessoa. Seja para realizar uma alteração, corrigir um &lt;em&gt;bug&lt;/em&gt; ou até mesmo para procurar um comportamento específico.&lt;/p&gt;
+
+&lt;p&gt;Talvez você até tenha feito isso no seu próprio código!&lt;/p&gt;
+
+&lt;p&gt;Agora pense por alguns segundos: O código foi &lt;strong&gt;fácil&lt;/strong&gt; de entender?&lt;/p&gt;
+
+&lt;p&gt;Você, &lt;strong&gt;só pela leitura&lt;/strong&gt;, conseguiu identificar o método exato que precisava alterar?&lt;/p&gt;
+
+&lt;p&gt;Se a resposta for positiva: ótimo! O programador fez a sua parte e conseguiu deixar o código limpo (ou pelo menos fez um código simples o suficiente para ser entendido).&lt;/p&gt;
+
+&lt;p&gt;Mas se a resposta for &amp;#8220;mais ou menos&amp;#8221;, ou &amp;#8220;nem um pouco&amp;#8221;, é aí que mora o problema.&lt;/p&gt;
+
+&lt;p&gt;E essa é a explicação para o título deste post.&lt;/p&gt;
+
+&lt;h2 id=&#34;mas-por-que-isso-acontece&#34;&gt;Mas por que isso acontece?&lt;/h2&gt;
+
+&lt;p&gt;Quando aprendemos a programar, estamos mais preocupados em aprender a lógica de programação e fazer as coisas funcionarem do que com a estrutura e leitura do código. E isso é totalmente normal, afinal, estamos iniciando.&lt;/p&gt;
+
+&lt;p&gt;Porém, na minha opinião, o problema começa quando evoluímos em nossa carreira (começamos a trabalhar em projetos maiores e ter mais responsabilidades) e &lt;strong&gt;não evoluímos o nosso código na mesma medida&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Aí começam a aparecer os famosos &amp;#8220;códigos espaguete&amp;#8221; ou mesmo aquele monte de variáveis que não ajudam em nada a entender o código.&lt;/p&gt;
+
+&lt;p&gt;Leia o código abaixo e responda:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Consegue identificar qual método você precisa chamar primeiro pra cadastrar um novo cliente?&lt;/li&gt;
+&lt;li&gt;Percebe como os métodos estão sem ordem nenhuma e um chama o outro internamente, formando um &amp;#8220;espaguete&amp;#8221;?&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;class CadastroCliente
+{
+    public function enviarEmail()
+    {
+        $mailer = new Mailer();
+        $mailer-&amp;gt;send();
+    } 
+    
+    public function gerarSenha()
+    {
+        // codigo para gerar senha
+        
+        return $senha;
+    }
+    
+    public function atualizar($cliente)
+    {
+        $model = new ClienteModel();
+        $model-&amp;gt;confirmar($cliente);
+    }
+
+    public function criar($cliente)
+    {
+        $senha = $this-&amp;gt;gerarSenha();
+        
+        $model = new ClienteModel();
+        $model-&amp;gt;add($cliente, $senha);
+
+        $this-&amp;gt;enviarEmail();
+    }
+    
+    public function confirmarCadastro($cliente)
+    {
+        $this-&amp;gt;enviarEmail();
+        $this-&amp;gt;atualizar($cliente);
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O problema dessa evolução tardia é que somente depois de muito tempo o desenvolvedor vai descobrir que poderia ter feito melhor. Note que começar escrevendo códigos confusos não é o problema, mas sim o tempo necessário para entender que essa evolução é importante.&lt;/p&gt;
+
+&lt;p&gt;E então, ao perceber que o código não está dos melhores, o desenvolvedor pode escolher entre:&lt;/p&gt;
+
+&lt;p&gt;1 &amp;#8211; Deixar pra lá, por que o seu código sempre funciona&lt;/p&gt;
+
+&lt;p&gt;2 &amp;#8211; Começar a melhorar o seu código pensando na qualidade do software&lt;/p&gt;
+
+&lt;h2 id=&#34;código-funcionando-next&#34;&gt;Código funcionando! Next!&lt;/h2&gt;
+
+&lt;p&gt;A sensação de ver nosso código funcionando é ótima! Quem não gosta?&lt;/p&gt;
+
+&lt;p&gt;Só que muita gente para por aí, nem lembra que por trás daquele comportamento existem classes, métodos, variáveis, etc.&lt;/p&gt;
+
+&lt;p&gt;Mas será que esse código está legível? As classes possuem responsabilidades definidas? Os métodos estão coerentes?&lt;/p&gt;
+
+&lt;p&gt;Pois é, existem vários pontos que precisamos estar atentos para que nosso código seja limpo.&lt;/p&gt;
+
+&lt;p&gt;Mas apesar de parecer muito complicado, na verdade podemos começar da forma mais simples possível: comece aos poucos e vá sempre buscando deixá-lo mais legível. Não tem como você fazer o melhor código de primeira.&lt;/p&gt;
+
+&lt;p&gt;Para exemplificar essa transformação de um código difícil de ser lido em um código limpo, veja o trecho abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;class Carrinho
+{
+    private $vl;
+    private $prods;
+
+    public function adic($prods)
+    {
+        foreach ($prods as $prod) {
+            if ($prod-&amp;gt;getCat() == &#39;P&#39;) {
+                $vl = $prod-&amp;gt;getVl() * 0.75;
+                $this-&amp;gt;vl += $vl;
+                $this-&amp;gt;prods[] = $prod;
+            } elseif ($prod-&amp;gt;getCat() == &#39;B&#39;) {
+                $vl = 0;
+                $this-&amp;gt;vl += $vl;
+                $this-&amp;gt;prods[] = $prod;
+            } elseif ($prod-&amp;gt;getCat() == &#39;&#39;) {
+                $vl = $prod-&amp;gt;getVl();
+                $this-&amp;gt;vl += $vl;
+                $this-&amp;gt;prods[] = $prod;
+            }
+        }
+    } 
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Você consegue identificar o que são aqueles valores (P e B) ou até mesmo entender rapidamente o que o método faz?&lt;/p&gt;
+
+&lt;p&gt;Vamos deixá-lo um pouco mais claro:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;class Carrinho
+{
+    private $valorTotal;
+    private $produtos;
+
+    public function adicionarProduto($produtos)
+    {
+        foreach ($produtos as $produto) {
+            if ($produto-&amp;gt;getCategoria() == &#39;PROMOCAO&#39;) {
+                $valor = $produto-&amp;gt;getValor() * 0.75;
+                $this-&amp;gt;valorTotal += $valor;
+                $this-&amp;gt;produtos[] = $produto;
+            } elseif ($produto-&amp;gt;getCategoria() == &#39;BRINDE&#39;) {
+                $valor = 0;
+                $this-&amp;gt;valorTotal += $valor;
+                $this-&amp;gt;produtos[] = $produto;
+            } elseif ($produto-&amp;gt;getCategoria() == &#39;&#39;) {
+                $valor = $produto-&amp;gt;getValor();
+                $this-&amp;gt;valorTotal += $valor;
+                $this-&amp;gt;produtos[] = $produto;
+            }
+        }
+    } 
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora já dá pra entender mais rápido o que o método faz: adicionar um produto no carrinho e acrescenta o valor do produto no valor total.&lt;/p&gt;
+
+&lt;p&gt;Mas dá pra melhorar ainda mais:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;class Carrinho
+{
+    private $valorTotal;
+    private $produtos;
+
+    public function adicionarProduto($produtos)
+    {   
+        foreach ($produtos as $produto) {
+            $valor = $produto-&amp;gt;getValor();
+            
+            if ($produto-&amp;gt;getCategoria() == &#39;PROMOCAO&#39;) {
+                $valor = $produto-&amp;gt;getValor() * 0.75;
+            } elseif ($produto-&amp;gt;getCategoria() == &#39;BRINDE&#39;) {
+                $valor = 0;
+            }
+
+            $this-&amp;gt;valorTotal += $valor;
+            $this-&amp;gt;produtos[] = $produto;
+        }
+    } 
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Notou que as linhas que atualizam o valor total e os produtos internos da classe se repetiam a cada &lt;code&gt;if&lt;/code&gt;?&lt;/p&gt;
+
+&lt;p&gt;Já que se repetem, podemos tirar de dentro dos &lt;code&gt;ifs&lt;/code&gt;, pois ele sempre será executado independente da condição.&lt;/p&gt;
+
+&lt;p&gt;Além disso, podemos inicializar a variável &lt;code&gt;$valor&lt;/code&gt; com o valor do produto, e de acordo com a categoria do produto atualizamos essa variável. Assim conseguimos eliminar a utilização de um &lt;code&gt;if&lt;/code&gt; desnecessário verificando se o produto não tem categoria.&lt;/p&gt;
+
+&lt;p&gt;Agora o toque final:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;class Carrinho
+{
+    private $valorTotal;
+    private $produtos;
+
+    public function adicionarProduto($produtos = [])
+    {   
+        foreach ($produtos as $produto) {
+            $this-&amp;gt;valorTotal += $this-&amp;gt;calcularValorProduto($produto);
+            $this-&amp;gt;produtos[] = $produto;
+        }
+    }
+
+    private function calcularValorProduto(Produto $produto)
+    {
+        if ($produto-&amp;gt;getCategoria() == Produto::CATEGORIA_BRINDE) {
+            return 0;
+        }
+
+        if ($produto-&amp;gt;getCategoria() == Produto::CATEGORIA_PROMOCAO) {
+            return $produto-&amp;gt;getValor() * 0.75;
+        }
+
+        return $produto-&amp;gt;getValor();
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Pronto, o código agora ficou mais simples e os métodos com uma únicaresponsabilidade definida.&lt;/p&gt;
+
+&lt;p&gt;Veja as alterações realizadas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Agora o cálculo do valor fica em um método privado da classe, para não ficar tudo no método &lt;code&gt;adicionarProduto&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Foi adicionado um &lt;em&gt;Type Hint&lt;/em&gt; no método &lt;code&gt;calcularValorProduto&lt;/code&gt; para garantir que a variável &lt;code&gt;$produto&lt;/code&gt; seja um objeto da classe &lt;code&gt;Produto&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;No método de cálculo, trocamos o &lt;code&gt;elseif&lt;/code&gt; por dois &lt;code&gt;ifs&lt;/code&gt; separados: isso facilita a separação por blocos de código, e consequentemente a leitura&lt;/li&gt;
+&lt;li&gt;Ainda no método de cálculo, ao invés de inicializar a variável &lt;code&gt;$valor&lt;/code&gt; com o valor do produto, foram adicionados &lt;code&gt;returns&lt;/code&gt; em cada condição: isso possibilita o método retornar o valor mais rapidamente, já que não é mais necessário executar o método inteiro&lt;/li&gt;
+&lt;li&gt;Foram trocados os valores fixos das categorias por constantes da classe &lt;code&gt;Produto&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Objetivo alcançado: conseguimos deixar o código mais descritivo, separar os métodos e manter o mesmo funcionamento. E o mais importante: tudo isso foi feito de forma incremental.&lt;/p&gt;
+
+&lt;p&gt;Talvez depois de um tempo outras melhorias possam sem aplicadas, mas o código já melhorou o suficiente por enquanto.&lt;/p&gt;
+
+&lt;p&gt;Aliás, isso é o que todos nós deveríamos fazer: ao invés de você tentar abraçar o mundo e deixar seu código perfeito, tente deixá-lo o mais simples possível (e que atenda os requisitos, claro), e vá aperfeiçoando com o tempo.&lt;/p&gt;
+
+&lt;p&gt;Até por que provavelmente você terá que realizar alterações nele depois, e aí você pode &amp;#8220;aparar as arestas&amp;#8221; e ir deixando cada vez melhor.&lt;/p&gt;
+
+&lt;p&gt;Só não deixe seu código para trás sem revisá-lo antes, isso com certeza vai deixar alterações futuras muito mais custosas de serem feitas.&lt;/p&gt;
+
+&lt;h2 id=&#34;certo-mas-e-se-o-prazo-estiver-apertado&#34;&gt;Certo, mas e se o prazo estiver apertado?&lt;/h2&gt;
+
+&lt;p&gt;No ciclo de desenvolvimento de software, sempre existem os casos em que o prazo é bem apertado.&lt;/p&gt;
+
+&lt;p&gt;Apesar de entender que precisamos de tempo suficiente para sempre testar nosso código e escrevê-lo bem, algumas vezes realmente não há saída: precisamos entregar e ponto.&lt;/p&gt;
+
+&lt;p&gt;Nestes casos, precisamos sempre colocar na balança se vale a pena gastar mais tempo para projetar melhor a arquitetura, testar todas as nossas classes e revisar o código.&lt;/p&gt;
+
+&lt;p&gt;O que não pode acontecer é utilizar estes argumentos como desculpas para não entregar a solução.&lt;/p&gt;
+
+&lt;p&gt;Se há espaço para refinar o código e testá-lo, então eu recomendo que faça. Você vai agradecer um dia por ter feito isso.&lt;/p&gt;
+
+&lt;p&gt;Caso a entrega seja de muita urgência, desenvolva de uma forma que conseguirá entregar no prazo. Mas também não use isso como desculpa para escrever qualquer código!&lt;/p&gt;
+
+&lt;p&gt;Fique atento a boas práticas durante o desenvolvimento acelerado, seja nomeando suas variáveis e métodos melhor, quebrando os comportamento em classes menores, etc.&lt;/p&gt;
+
+&lt;p&gt;Observe uma alteração pequena usando o exemplo anterior, mas que vai ajudar a tornar o código muito mais simples:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;class Carrinho
+{
+    private $vl;
+    private $prods;
+
+    // Adiciona um produto no carrinho
+    // Passar um array de produtos
+    public function adic($prods)
+    {
+        foreach ($prods as $prod) {
+            // Categoria do produto -&amp;gt; P = Promocao
+            if ($prod-&amp;gt;getCat() == &#39;P&#39;) {
+                $vl = $prod-&amp;gt;getVl() * 0.75;
+                $this-&amp;gt;vl += $vl;
+                $this-&amp;gt;prods[] = $prod;
+                
+            // Categoria do produto -&amp;gt; B = Brinde
+            } elseif ($prod-&amp;gt;getCat() == &#39;B&#39;) {
+                $vl = 0;
+                $this-&amp;gt;vl += $vl;
+                $this-&amp;gt;prods[] = $prod;
+            
+            // Sem categoria, utilizar o valor do produto
+            } elseif ($prod-&amp;gt;getCat() == &#39;&#39;) {
+                $vl = $prod-&amp;gt;getVl();
+                $this-&amp;gt;vl += $vl;
+                $this-&amp;gt;prods[] = $prod;
+            }
+        }
+    } 
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Você acha que esses comentários são importantes para o código? E se um dia algum outro desenvolvedor alterar as siglas das categorias, você acha que os comentários serão atualizados?&lt;/p&gt;
+
+&lt;p&gt;E se ao invés de adicionar comentários, você deixasse explícito o que cada variável e método faz por meio do nome deles?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;class Carrinho
+{
+    private $valorTotal;
+    private $produtos;
+
+    public function adicionarProduto($produtos)
+    {
+        foreach ($produtos as $produto) {
+            if ($produto-&amp;gt;getCategoria() == &#39;PROMOCAO&#39;) {
+                $valor = $produto-&amp;gt;getValor() * 0.75;
+                $this-&amp;gt;valorTotal += $valor;
+                $this-&amp;gt;produtos[] = $produto;
+            } elseif ($produto-&amp;gt;getCategoria() == &#39;BRINDE&#39;) {
+                $valor = 0;
+                $this-&amp;gt;valorTotal += $valor;
+                $this-&amp;gt;produtos[] = $produto;
+            } elseif ($produto-&amp;gt;getCategoria() == &#39;&#39;) {
+                $valor = $produto-&amp;gt;getValor();
+                $this-&amp;gt;valorTotal += $valor;
+                $this-&amp;gt;produtos[] = $produto;
+            }
+        }
+    } 
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que todos os comentários foram removidos. Ao invés de escrever o comportamento da classe nos comentários, os métodos e variáveis já dizem o que fazem e para o que servem.&lt;/p&gt;
+
+&lt;p&gt;Por isso, por mais que o prazo seja apertado, sempre há um jeito de deixar o código mais limpo.&lt;/p&gt;
+
+&lt;p&gt;Só não deixe de entregar o seu trabalho no prazo tentando fazer o código perfeito, isso talvez não valha tanto a pena no final.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Você provavelmente percebeu o valor de escrever código limpo.&lt;/p&gt;
+
+&lt;p&gt;Isso no longo prazo faz uma enorme diferença, e é uma responsabilidade que todos nós programadores precisamos estar cientes. Não basta apenas escrever código, você tem que sempre pensar que outras pessoas também irão trabalhar nele.&lt;/p&gt;
+
+&lt;p&gt;Por isso sempre procure aperfeiçoar suas habilidades não só para aprender outras linguagens, mas para melhorar o seu código em si, independente da linguagem que você trabalhe.&lt;/p&gt;
+
+&lt;p&gt;E se você quer aprender como escrever código limpo, existem alguns livros que irão explicar os principais conceitos e técnicas.&lt;/p&gt;
+
+&lt;p&gt;Um deles que eu recomendo é o &lt;a href=&#34;https://www.amazon.com.br/C%C3%B3digo-Limpo-Habilidades-Pr%C3%A1ticas-Softwar/dp/8576082675/ref=sr_1_1?ie=UTF8&amp;qid=1467162877&amp;sr=8-1&amp;keywords=c%C3%B3digo+limpo&#34; target=&#34;_blank&#34;&gt;Código Limpo, do Robert C. Martin (Uncle Bob)&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Além disso, existem algumas práticas para auxiliar no projeto de classes e na implementação dos métodos, como &lt;em&gt;SOLID&lt;/em&gt; e &lt;em&gt;Object Calisthenics&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Por fim, esta é a minha visão sobre qualidade de código, se você tiver outro ponto de vista ou algum complemento, escreva nos comentários!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>O que aprendi em 5 dias como Front-end, e uma pergunta: você esta preparado para se tornar um desenvolvedor?</title>
+      <link>http://tableless.com.br/o-que-aprendi-em-5-dias-como-front-end--e-uma-pergunta-voce-esta-preparado-para-se-tornar-um-desenvolvedor/</link>
+      <pubDate>Fri, 13 Jan 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/o-que-aprendi-em-5-dias-como-front-end--e-uma-pergunta-voce-esta-preparado-para-se-tornar-um-desenvolvedor/</guid>
+      <description>
+
+&lt;p&gt;Gostaria de partilhar um pouco de minha experiência como front-end. e neste link explico como consegui uma vaga na área front-end. &lt;a href=&#34;https://medium.com/trainingcenter/minha-experi%C3%AAncia-com-o-ct-centro-de-treinamento-ce08e58d247f#.j932om52k&#34;&gt;Minha experiência com o Centro de Treinamento&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Tudo no inicio pra mim foi uma aventura, uma história curta e imprevisível, cheia de quebras de paradigmas, dogmas, conceitos e preconceitos. Acho bem claro, que cursos técnicos e faculdades não te preparam para o mercado de trabalho, apenas te dão um norte de como fazer algo e um bocado de coisas mais, pois para se tornar um desenvolvedor existem alguns pontos a serem esclarecidos.&lt;/p&gt;
+
+&lt;p&gt;Por isso, vou listar para vocês algumas coisas que nunca encontrei em post técnico, revista, livro, faculdade, curso técnico ou algo parecido.&lt;/p&gt;
+
+&lt;h4 id=&#34;além-da-tecnologia&#34;&gt;Além da tecnologia&lt;/h4&gt;
+
+&lt;p&gt;Vou te contar um segredo, para se tornar um Desenvolvedor de sucesso, é preciso ir além da Sintaxe. Não basta ter um código bonito, bem indentado, bem organizado, e nem venha me falar de teoria. Eu era um cara que achava que as empresas deviam me valorizar pelo simples fato da teoria estar em minha cabeça.  Hahaha oh ilusão!&lt;/p&gt;
+
+&lt;p&gt;É preciso mostrar/criar algo para que as pessoas acreditem de fato, que você manja das paradas entende!! Algo que as surpreenda, que demonstre o seu potencial,  pois as vezes, elas esquecem que somos seres &lt;strong&gt;humanos&lt;/strong&gt; e criamos coisas para &lt;strong&gt;humanos&lt;/strong&gt; iguais a nós.&lt;/p&gt;
+
+&lt;p&gt;Então, mediante a isto, gostaria de quebrar alguns paradigmas, afim de demonstrar como podemos agir. Se você é uma pessoa que:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Não aceita brincadeiras, apelidos;&lt;/li&gt;
+&lt;li&gt;Críticas construtivas;&lt;/li&gt;
+&lt;li&gt;Pensamentos diferentes;&lt;/li&gt;
+&lt;li&gt;Outras culturas.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Você terá grandes problemas, pois a maioria das pessoas que sonham em se tornar um(a) Desenvolvedor(a), criam uma expectativa de que não vão precisar interagir com o próximo. Eu pensava assim, mas mudei de opinião, precisamos do outro, até quando nos prejudicam, pois eles sempre estão nos ensinando algo.&lt;/p&gt;
+
+&lt;p&gt;E tudo, é questão de aprendizado. Basta observar de um ângulo que permita a compreensão, sem que haja a necessidade de um pré-julgamento.&lt;/p&gt;
+
+&lt;h4 id=&#34;quais-são-seus-preconceitos&#34;&gt;&lt;strong&gt;Quais são seus preconceitos?&lt;/strong&gt;&lt;/h4&gt;
+
+&lt;p&gt;Na moral, vai por mim: não adianta escondê-los. Suas ações demonstram quem você é de fato!!&lt;/p&gt;
+
+&lt;p&gt;Nossos preconceitos atrapalham nossas vidas de diversas maneiras. Como você irá se tornar um programador de sucesso, se o preconceito te atrapalhar a pensar fora da caixa, a aprender com as outras pessoas, e a usar aquela lógica de programação que você tanto estuda nos livros?&lt;/p&gt;
+
+&lt;h4 id=&#34;aprenda-a-pensar&#34;&gt;&lt;strong&gt;Aprenda a pensar&lt;/strong&gt;&lt;/h4&gt;
+
+&lt;p&gt;Eu sempre fui um cara que fazia tudo no automático. Hoje, estou tentando respirar fundo, ler algo, pensar sobre isso, para depois realizar alguma ação. Isso ajuda demais!&lt;/p&gt;
+
+&lt;p&gt;Somos pagos pra pensar e assim criar. Não dá pra ser distraído!&lt;/p&gt;
+
+&lt;h4 id=&#34;você-vai-errar-isso-é-fato-aprenda-com-os-erros&#34;&gt;&lt;strong&gt;Você vai errar isso é fato — aprenda com os erros&lt;/strong&gt;&lt;/h4&gt;
+
+&lt;p&gt;&lt;img src=&#34;uploads/2016/12/1-k2jCuITW_bheQVa-tMDYtQ.jpeg&#34; alt=&#34;Foco e desafio&#34; width=&#34;700&#34; height=&#34;815&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Outras pessoas já erraram antes de nós, e para aprender é preciso tentar várias vezes. E não há nada de errado em recomeçar de novo.&lt;/p&gt;
+
+&lt;p&gt;Estou estudando uma forma de aprender com os erros, e gostaria de compartilhar com você. Funciona assim:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Entenda que a primeira vez você pode errar;&lt;/li&gt;
+&lt;li&gt;Dê um jeito de Documentar em que ponto/linha você errou;&lt;/li&gt;
+&lt;li&gt;Refaça a tarefa do ponto que você errou;&lt;/li&gt;
+&lt;li&gt;Use um sistema de controle de versão para criar branches;&lt;/li&gt;
+&lt;li&gt;Peça feedback’s pros seus colegas de trabalho.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Isso serve também para tarefas não técnicas. Revise seu dia, anote seus erros e aprenda com eles.&lt;/p&gt;
+
+&lt;h4 id=&#34;não-existe-o-pica-das-galaxias&#34;&gt;&lt;strong&gt;Não existe o Pica das Galaxias&lt;/strong&gt;&lt;/h4&gt;
+
+&lt;p&gt;Talvez seja frustante descobrir isso, mas é verdade . Até aquele cara mais impressionante que você conhece, tem seus defeitos, problemas e inseguranças.&lt;/p&gt;
+
+&lt;p&gt;Vai por mim: você sabe de coisas que ele pode não saber. Por isso, é importante um diálogo com pessoas que você admira. Não tem bicho de sete cabeças ,  é só ir lá e trocar uma ideia de boa. 🙂&lt;/p&gt;
+
+&lt;h4 id=&#34;conselho-final&#34;&gt;&lt;strong&gt;Conselho final&lt;/strong&gt;&lt;/h4&gt;
+
+&lt;p&gt;Estude, estude e admita que não sabe de tudo, pois pra que pagar de dono do saber e não passar de 45 Dias numa empresa? Hahaha!!&lt;/p&gt;
+
+&lt;p&gt;Eae, você está preparado(a) para se desconstruir e se tornar melhor no que faz?&lt;/p&gt;
+
+&lt;p&gt;Espero ter ajudado alguém. Se viu algo que não gostou, deixe uma crítica construtiva  para eu poder melhorar.&lt;/p&gt;
+
+&lt;p&gt;Grande Abraço! 😉&lt;/p&gt;
+
+&lt;p&gt;Try the free &lt;a href=&#34;https://html-cleaner.com/css/&#34; rel=&#34;nofollow&#34;&gt;CSS tidy&lt;/a&gt; which lets you beautify stylesheets for your websites.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Integração Contínua com Travis CI — Parte 01</title>
+      <link>http://tableless.com.br/integracao-continua-com-travis-ci-parte-01/</link>
+      <pubDate>Mon, 12 Dec 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/integracao-continua-com-travis-ci-parte-01/</guid>
+      <description>
+
+&lt;p&gt;O objetivo geral do artigo é mostrar como fazer uma Integração Contínua (técnica de desenvolvimento agile) com &lt;a href=&#34;https://travis-ci.com/&#34;&gt;Travi CI&lt;/a&gt;, criando um repositório no &lt;a href=&#34;https://github.com/&#34;&gt;O objetivo geral do artigo é mostrar como fazer uma Integração Contínua (técnica de desenvolvimento agile) com &lt;a href=&#34;https://travis-ci.com/&#34;&gt;Travi CI&lt;/a&gt;, criando um repositório no&lt;/a&gt; e publicando nosso projeto em um Host utilizando o &lt;a href=&#34;https://www.heroku.com/&#34;&gt;Heroku&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Nesse primeiro post iremos montar toda nossa estrutura de diretórios e configuração de arquivos. Por fim iremos criar nosso repositório no GitHub e enviar o nosso projeto local.&lt;/p&gt;
+
+&lt;p&gt;No segundo post iremos registrar nossa aplicação no Dribbble, configurar o Travis e Heroku e finalizar nossa aplicação client-side.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Sobre o Travis&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Travis CI é uma plataforma/serviço de &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://en.wikipedia.org/wiki/Continuous_integration&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;Integração Contínua&lt;/a&gt;, que é free para todos os projetos open source hospedados no GitHub. Com apenas um arquivo chamado &lt;em class=&#34;markup--em markup--p-em&#34;&gt;.travis.yml&lt;/em&gt; contendo algumas informações sobre o projeto, podemos produzir builds automatizados com todas as mudanças, para o branch master ou outro, e até mesmo através de &lt;em class=&#34;markup--em markup--p-em&#34;&gt;pull request&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Pré Requisitos&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Conta no GitHub&lt;/li&gt;
+&lt;li&gt;Conta no Heroku&lt;/li&gt;
+&lt;li&gt;Para o Travis você poderá usar a mesma conta do GitHub&lt;/li&gt;
+&lt;li&gt;Git, NodeJS e Bower instalado&lt;/li&gt;
+&lt;li&gt;Um editor de texto: Sublime Text, Atom ou qualquer outro de sua preferência.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Descrição do Projeto&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Iremos implementar uma aplicação client-side que consulta uma API do site **[O objetivo geral do artigo é mostrar como fazer uma Integração Contínua (técnica de desenvolvimento agile) com &lt;a href=&#34;https://travis-ci.com/&#34;&gt;Travi CI&lt;/a&gt;, criando um repositório no &lt;a href=&#34;https://github.com/&#34;&gt;O objetivo geral do artigo é mostrar como fazer uma Integração Contínua (técnica de desenvolvimento agile) com &lt;a href=&#34;https://travis-ci.com/&#34;&gt;Travi CI&lt;/a&gt;, criando um repositório no&lt;/a&gt; e publicando nosso projeto em um Host utilizando o &lt;a href=&#34;https://www.heroku.com/&#34;&gt;Heroku&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Nesse primeiro post iremos montar toda nossa estrutura de diretórios e configuração de arquivos. Por fim iremos criar nosso repositório no GitHub e enviar o nosso projeto local.&lt;/p&gt;
+
+&lt;p&gt;No segundo post iremos registrar nossa aplicação no Dribbble, configurar o Travis e Heroku e finalizar nossa aplicação client-side.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Sobre o Travis&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Travis CI é uma plataforma/serviço de &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://en.wikipedia.org/wiki/Continuous_integration&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;Integração Contínua&lt;/a&gt;, que é free para todos os projetos open source hospedados no GitHub. Com apenas um arquivo chamado &lt;em class=&#34;markup--em markup--p-em&#34;&gt;.travis.yml&lt;/em&gt; contendo algumas informações sobre o projeto, podemos produzir builds automatizados com todas as mudanças, para o branch master ou outro, e até mesmo através de &lt;em class=&#34;markup--em markup--p-em&#34;&gt;pull request&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Pré Requisitos&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Conta no GitHub&lt;/li&gt;
+&lt;li&gt;Conta no Heroku&lt;/li&gt;
+&lt;li&gt;Para o Travis você poderá usar a mesma conta do GitHub&lt;/li&gt;
+&lt;li&gt;Git, NodeJS e Bower instalado&lt;/li&gt;
+&lt;li&gt;Um editor de texto: Sublime Text, Atom ou qualquer outro de sua preferência.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Descrição do Projeto&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Iremos implementar uma aplicação client-side que consulta uma API do site &lt;strong&gt;]&lt;a href=&#34;https://dribbble.com&#34;&gt;4&lt;/a&gt;&lt;/strong&gt; e mostre os Shots mais populares. Usaremos as seguintes tecnologias no front-end: &lt;strong&gt;&lt;a href=&#34;https://angularjs.org/&#34;&gt;Angularjs&lt;/a&gt;&lt;/strong&gt; e &lt;strong&gt;&lt;a href=&#34;http://materializecss.com&#34;&gt;Materialize.css&lt;/a&gt;&lt;/strong&gt; como framework de componentes. Para gerenciar os pacotes e dependências utilizaremos o Bower. No server-side usaremos a plataforma NodeJS como nosso servidor web, e o &lt;strong&gt;&lt;a href=&#34;http://gruntjs.com/&#34;&gt;Gruntjs&lt;/a&gt;&lt;/strong&gt; para automatizar algumas tarefas. Para o versionamento utilizaremos o &lt;strong&gt;Git&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Criando Nossa Estrutura de Diretórios&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*b5H0NRwfSN13Ex659Hw_Ag.png&#34; alt=&#34;Estrutura de Diretórios&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Os arquivos e diretórios podem ser criados da maneira que você se sentir mas a vontade. &lt;strong&gt;OBS.:&lt;/strong&gt; Não crie o diretório “.git”, pois ele será criado através da nossa linha de comando, o restante pode ser criado manualmente.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Detalhamento da Estrutura&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul class=&#34;postList&#34;&gt;
+  &lt;li id=&#34;4172&#34; class=&#34;graf graf--li graf-after--h4&#34;&gt;
+    &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;client&lt;/strong&gt;: diretório onde ficará todos os nossos arquivos de front-end.
+  &lt;/li&gt;
+  &lt;li id=&#34;fc63&#34; class=&#34;graf graf--li graf-after--li&#34;&gt;
+    &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;.bowerrc&lt;/strong&gt;: arquivo de configuração do &lt;em class=&#34;markup--em markup--li-em&#34;&gt;Bower&lt;/em&gt;, é nele que iremos definir onde serão instalados nossos pacotes. Se você não criá-lo as dependências serão instaladas no diretório chamado &lt;em class=&#34;markup--em markup--li-em&#34;&gt;bower_components&lt;/em&gt; padrão do bower.
+  &lt;/li&gt;
+  &lt;li id=&#34;d36f&#34; class=&#34;graf graf--li graf-after--li&#34;&gt;
+    &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;.gitignore&lt;/strong&gt;: arquivos que podem ser ignorados pelo versionamento do Git.
+  &lt;/li&gt;
+  &lt;li id=&#34;94ba&#34; class=&#34;graf graf--li graf-after--li&#34;&gt;
+    &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;.travis.yml&lt;/strong&gt;: arquivo de configuração da nossa integração com o Travis.
+  &lt;/li&gt;
+  &lt;li id=&#34;c613&#34; class=&#34;graf graf--li graf-after--li&#34;&gt;
+    &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;Gruntfile.js&lt;/strong&gt;: arquivo onde ficará todas as configurações de tarefas automatizadas, como por exemplo: concatenação e minificação dos arquivos.
+  &lt;/li&gt;
+  &lt;li id=&#34;2e90&#34; class=&#34;graf graf--li graf-after--li&#34;&gt;
+    &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;server.js&lt;/strong&gt;: arquivo onde faremos a configuração de nosso servidor web.
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;deixe o diretório &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;client&lt;/strong&gt; com a seguinte estrutura:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*5ohek1gfXzLGL5OTdmrcPQ.png&#34; alt=&#34;Diretório Client&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;código do arquivo &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;.bowerrc&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;{&amp;lt;br /&amp;gt;
+&amp;quot;directory&amp;quot; : &amp;quot;client/vendor&amp;quot;&amp;lt;br /&amp;gt;
+}&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;código do arquivo &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;.gitignore&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;node_modules/&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;código do arquivo .travis.yml&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;language: node_js&amp;lt;br /&amp;gt;
+node_js:&amp;lt;br /&amp;gt;
+- &amp;quot;6.1&amp;quot;&amp;lt;br /&amp;gt;
+- &amp;quot;5.12.0&amp;quot;&amp;lt;br /&amp;gt;
+- &amp;quot;5.11.1&amp;quot;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;código do arquivo &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;server.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;var express = require(&#39;express&#39;);&amp;lt;br /&amp;gt;
+var serveStatic = require(&#39;serve-static&#39;);&amp;lt;br /&amp;gt;
+var app = express();&amp;lt;br /&amp;gt;
+var client = process.env.NODE_APP_DIRECTORY === &#39;production&#39;&amp;lt;br /&amp;gt;
+? &#39;/client/dist&#39; : &#39;/client&#39;;&amp;lt;br /&amp;gt;
+var port = process.env.PORT || 8081;&amp;lt;br /&amp;gt;
+app.use(serveStatic(__dirname + client));&amp;lt;br /&amp;gt;
+app.listen(port,function(){&amp;lt;br /&amp;gt;
+console.log(&#39;localhost:&#39;+port);&amp;lt;br /&amp;gt;
+});&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Link para o código do arquivo &lt;strong&gt;&lt;a href=&#34;https://gist.github.com/dejaneves/b983dd0cfd54d63d6bd9f4310a812289&#34;&gt;server.js&lt;/a&gt; &lt;/strong&gt;no GitHub&lt;strong&gt;.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;código do arquivo &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;&lt;a href=&#34;https://gist.github.com/dejaneves/996644e20b2f651939c2da892dbea555#file-gruntfile-ci-agile-th-js&#34;&gt;Gruntfile.js&lt;/a&gt;. &lt;/strong&gt;O código e toda sua configuração, será explicado na segunda parte do post.&lt;/p&gt;
+
+&lt;h4 id=&#34;d351.graf.graf--h4.graf-after--figure&#34;&gt;Bower: Instalação dos Pacotes e suas dependências&lt;/h4&gt;
+
+&lt;p&gt;Vá para raiz do projeto e digite o seguinte comando para instalação das dependências.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;$ bower install angular angular-resource angular-ui-router angular-sanitize&amp;lt;br /&amp;gt;
+angular-loading-bar bootstrap materialize&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;após a execução desse comando o seu diretório &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;client/vendor&lt;/strong&gt; ficará da seguinte forma:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*0z-hRCazRdhCpIMfe3gQ1g.png&#34; alt=&#34;Pasta Client&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;40e5.graf.graf--h4.graf-after--figure&#34;&gt;Nodejs: Instalação e Configuração dos Pacotes&lt;/h4&gt;
+
+&lt;p&gt;&lt;code&gt;$ npm init -y&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;após a execução desse comando será criado um arquivo na raiz do seu projeto chamado &lt;em class=&#34;markup--em markup--p-em&#34;&gt;package.json&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;bf1d.graf.graf--h4.graf-after--p&#34;&gt;Instalação das Dependências&lt;/h4&gt;
+
+&lt;p&gt;&lt;code&gt;$ npm install express serve-static --save&lt;/code&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;3693.graf.graf--h4.graf-after--pre&#34;&gt;Iniciando o Versionamento com o GIT&lt;/h4&gt;
+
+&lt;p&gt;&lt;code&gt;$ git init&amp;lt;br /&amp;gt;
+$ git add .&amp;lt;br /&amp;gt;
+$ git commit -m &amp;quot;primeiro commit&amp;quot;&lt;/code&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;6204.graf.graf--h4.graf-after--pre&#34;&gt;Executando a aplicação&lt;/h4&gt;
+
+&lt;p&gt;&lt;code&gt;node server.js&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;o seu sistema terá que exibir a seguinte mensagem&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;client: /client&amp;lt;br /&amp;gt;
+environment: undefined&amp;lt;br /&amp;gt;
+localhost:8081&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;para parar a execução do servidor pressione &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;ctrl&lt;/strong&gt; + &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;c&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;66d0.graf.graf--h3.graf-after--p&#34;&gt;Criando Repositório no GitHub&lt;/h3&gt;
+
+&lt;p id=&#34;3970&#34; class=&#34;graf graf--p graf-after--h3&#34;&gt;
+  Abra o site do &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://github.com/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;GitHub&lt;/a&gt;, crie um repositório público chamado &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;ci-agile-th.&lt;/strong&gt;
+&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/800/1*h3yRLVKf2peVF_UucGQYJg.png&#34; alt=&#34;Criando um repositório&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;após a criação aparecerá a seguinte tela&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/800/1*VQf-VyPNBK8dSQl3Lqmq_A.png&#34; alt=&#34;Repositório&#34; /&gt;digite os comandos que estão dentro do 2º bloco na raiz do seu projeto&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;$ git remote add origin https://github.com/dejaneves/ci-agile-th.git&amp;lt;br /&amp;gt;
+$ git push -u origin master&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;te espero no próximo post.&lt;/p&gt;
+
+&lt;h3 id=&#34;8a4b.graf.graf--h3.graf-after--p&#34;&gt;Links Úteis&lt;/h3&gt;
+
+&lt;p id=&#34;0259&#34; class=&#34;graf graf--p graf-after--h3&#34;&gt;
+  Instalação do NodeJS
+&lt;/p&gt;
+
+&lt;ul class=&#34;postList&#34;&gt;
+  &lt;li id=&#34;67c7&#34; class=&#34;graf graf--li graf-after--p&#34;&gt;
+    &lt;a class=&#34;markup--anchor markup--li-anchor&#34; href=&#34;https://udgwebdev.com/node-js-para-leigos-instalacao-e-configuracao&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;Underground WebDev&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li id=&#34;0c62&#34; class=&#34;graf graf--li graf-after--li&#34;&gt;
+    &lt;a class=&#34;markup--anchor markup--li-anchor&#34; href=&#34;http://tableless.com.br/o-que-nodejs-primeiros-passos-com-node-js&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;Tableless&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li id=&#34;e04c&#34; class=&#34;graf graf--li graf-after--li&#34;&gt;
+    &lt;a class=&#34;markup--anchor markup--li-anchor&#34; href=&#34;https://www.digitalocean.com/community/tutorials/como-instalar-o-node-js-em-um-servidor-ubuntu-14-04-pt&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;Digitalocean&lt;/a&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p id=&#34;273d&#34; class=&#34;graf graf--p graf-after--li&#34;&gt;
+  Instalação do Bower
+&lt;/p&gt;
+
+&lt;ul class=&#34;postList&#34;&gt;
+  &lt;li id=&#34;caf2&#34; class=&#34;graf graf--li graf-after--p&#34;&gt;
+    &lt;a class=&#34;markup--anchor markup--li-anchor&#34; href=&#34;http://tableless.com.br/bower-na-pratica&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;Tableless&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li id=&#34;4a32&#34; class=&#34;graf graf--li graf-after--li&#34;&gt;
+    &lt;a class=&#34;markup--anchor markup--li-anchor&#34; href=&#34;http://www.carvalhoweb.com/articles/bower-guia-definitivo&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;Carvalho Web&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li id=&#34;1621&#34; class=&#34;graf graf--li graf-after--li graf--last&#34;&gt;
+    &lt;a class=&#34;markup--anchor markup--li-anchor&#34; href=&#34;http://blog.thiagobelem.net/gerenciando-assets-com-o-bower&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;Thiago Belem&lt;/a&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Como camuflar seu ip like a ninja</title>
+      <link>http://tableless.com.br/como-camuflar-seu-ip-like-ninja/</link>
+      <pubDate>Sun, 04 Dec 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/como-camuflar-seu-ip-like-ninja/</guid>
+      <description>
+
+&lt;p&gt;Temos algumas formas de camuflar ip, alguns programas que nos auxiliam a fazer isso de forma fácil. A um tempo atrás eu estava usando o sistema operacional &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;WHONIX&lt;/strong&gt; para poder fazer esse tunelamento pra mim, ele é realmente eficaz e eu não precisei me preocupar muito com detalhes, porém eu testei algumas outras opções e tiveram duas que eu realmente gostei, uma é o &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;PROXYCHAINS&lt;/strong&gt; e a outra o &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;JONDO&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;https://anonymous-proxy-servers.net/en/jondo.html&#34;&gt;https://anonymous-proxy-servers.net/en/jondo.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://proxychains.sourceforge.net&#34;&gt;http://proxychains.sourceforge.net&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Ambas tem seus prós e contras obviamente, achei o &lt;strong&gt;proxychains&lt;/strong&gt; com mais liberdade para trabalhar em diversas áreas e o &lt;strong&gt;jondo mais eficaz no que se propõe a fazer, &lt;/strong&gt;porém um pouco mais limitado.&lt;/p&gt;
+
+&lt;p&gt;Vou ensinar as duas formas ok? Deste modo você pode fazer testes com as duas e escolher qual é a melhor para &lt;strong&gt;o seu propósito&lt;/strong&gt;, vamos lá:&lt;/p&gt;
+
+&lt;h3 id=&#34;proxychains&#34;&gt;ProxyChains&lt;/h3&gt;
+
+&lt;p&gt;O &lt;strong&gt;proxychains&lt;/strong&gt; é um programa que faz o roteamento de suas requisições através de &lt;strong&gt;proxys&lt;/strong&gt; que você escolhe por uma lista &lt;strong&gt;que você mesmo faz&lt;/strong&gt;, porém vamos fazer um pouco diferente usando o &lt;strong&gt;tor router&lt;/strong&gt; para direcionar as requisições diretamente para porta do tor, fazendo com que tudo passe pelo router do tor antes de ir para web.&lt;/p&gt;
+
+&lt;p&gt;Eu não uso o &lt;strong&gt;kali linux&lt;/strong&gt;, porém baixei todos os repositórios dele para o ubuntu com o “&lt;strong&gt;KATOOLIN&lt;/strong&gt;” ( &lt;a href=&#34;https://github.com/LionSec/katoolin&#34; rel=&#34;nofollow&#34;&gt;&lt;strong&gt;&lt;a href=&#34;https://github.com/LionSec/katoolin&#34;&gt;https://github.com/LionSec/katoolin&lt;/a&gt;&lt;/strong&gt;&lt;/a&gt; ), á partir daí instalei o &lt;strong&gt;proxychains&lt;/strong&gt; na minha maquina, caso você use o kali, os repositórios que vamos usar já vem na distro por default então é só instalar.&lt;/p&gt;
+
+&lt;p&gt;Vamos instalar o &lt;strong&gt;tor&lt;/strong&gt; e o &lt;strong&gt;proxychains&lt;/strong&gt; para que eles trabalhem juntos:&lt;/p&gt;
+
+&lt;pre&gt;sudo apt-get install tor
+sudo apt-get install proxychains&lt;/pre&gt;
+
+&lt;p&gt;Feito a instalação a configuração é muito fácil, vamos precisar abrir o arquivo de configurações do proxychains, que é o “/etc/proxychains.conf”. Vamos abrir ele com o nano:&lt;/p&gt;
+
+&lt;pre&gt;sudo nano /etc/proxychains.conf&lt;/pre&gt;
+
+&lt;p&gt;Com o arquivo aberto vamos comentar a linha “strict_chain” e descomentar a linha “dynamic_chain”, e no final do arquivo vamos adicionar a seguinte linha:&lt;/p&gt;
+
+&lt;pre&gt;socks5 127.0.0.1 9050&lt;/pre&gt;
+
+&lt;p&gt;Vamos salvar o arquivo e podemos iniciar o services do Tor para depois podermos começar com o proxychains:&lt;/p&gt;
+
+&lt;pre&gt;sudo service tor start&lt;/pre&gt;
+
+&lt;p&gt;Agora para fazermos com que o tunelamento funcione com o proxychains é só adicionar o comando “proxychains” antes do programa que você quer utilizar, exemplo:&lt;/p&gt;
+
+&lt;pre&gt;sudo proxychains firefox&lt;/pre&gt;
+
+&lt;p&gt;Entre em algum site de consulta de ip e veja seu ip camuflado com sucesso utilizando o tor e o proxychains ;D&lt;/p&gt;
+
+&lt;h3 id=&#34;jondo&#34;&gt;JonDo&lt;/h3&gt;
+
+&lt;p&gt;Você pode usar JonDonym para navegar anônimo, e-mail anônimo, chats e outros fins. &lt;strong&gt;JonDo&lt;/strong&gt; , anteriormente JAP, é uma ferramenta de proxy IP Changer. Ele atua como um proxy e irá encaminhar o tráfego de suas aplicações de internet criptografadas, e por isso vai esconder o seu endereço IP. É uma aplicação Java, open source e você pode baixá-lo gratuitamente.&lt;/p&gt;
+
+&lt;p&gt;Com o &lt;strong&gt;JonDo&lt;/strong&gt; é o mesmo esquema, caso tenha o &lt;strong&gt;kali linux&lt;/strong&gt; você só vai precisar instalar pelo repositório, caso use outra distro recomendo o &lt;strong&gt;KATOOLIN&lt;/strong&gt; para baixar os repositórios do kali e assim instalar as aplicações dele.&lt;/p&gt;
+
+&lt;p&gt;Para instalação do &lt;strong&gt;JonDo&lt;/strong&gt; e do &lt;strong&gt;JonDoFox&lt;/strong&gt; ( que é um &lt;strong&gt;firefox modificado &lt;/strong&gt;para não termos risco de sermos descobertos, ele desabilita o javascript e muitas coisas que podem dar informações sobre nossa navegação ) vamos precisar instalar o &lt;strong&gt;java jre e algumas &lt;/strong&gt;&lt;strong&gt;dependências&lt;/strong&gt;, e claro o jondo e jondofox que baixamos no site oficial indicado acima:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;sudo aptitude install default-jre java-wrappers firefox
+sudo dpkg -i jondo_all.deb
+sudo dpkg -i jondofox-en_all.deb&lt;/pre&gt;
+
+&lt;p&gt;Com o &lt;strong&gt;JonDo&lt;/strong&gt; e o &lt;strong&gt;JonDoFox&lt;/strong&gt; instalados na minha maquina vou entrar no terminal e dar um “&lt;strong&gt;sudo jondo&lt;/strong&gt;” assim, vamos inicializar a aplicação do &lt;strong&gt;JonDo&lt;/strong&gt;, lá podemos ver algumas opções de configuração e tudo que o programa oferece, veja:&lt;figure&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/800/1*ThtPBRe1tD7aqjiFMEWvlQ.png&#34; alt=&#34;&#34; /&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Com o &lt;strong&gt;JonDo&lt;/strong&gt; rodando, podemos agora inicializar o &lt;strong&gt;JonDoFox&lt;/strong&gt;, que vai ser nosso &lt;strong&gt;navegador anonimo&lt;/strong&gt; trabalhando junto ao &lt;strong&gt;JonDo&lt;/strong&gt;, vamos inicializar e entrar em algum site de consulta de ip para nos localizarmos, veja:&lt;figure&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/800/1*4cjyOlP2MnoNHbnyuEhsbA.png&#34; alt=&#34;&#34; /&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Por aí já da para vermos que estamos utilizando o &lt;strong&gt;JonDo&lt;/strong&gt; corretamente, o site de status deles nos da essa resposta assim que entramos para fazer o teste.&lt;figure&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://cdn-images-1.medium.com/max/800/1*1qhJ-OTxjcv2ritD_DKjSg.png&#34; alt=&#34;&#34; /&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;É bem legal o jeito que ele dá o &lt;strong&gt;status completo do seu anonimato&lt;/strong&gt;, este site é próprio do &lt;strong&gt;JonDo&lt;/strong&gt; para testar seu anonimato. Acho importante ser a &lt;strong&gt;primeira coisa que você deve fazer&lt;/strong&gt; ao iniciar o serviço.&lt;/p&gt;
+
+&lt;p&gt;Espero que tenham curtido o post, qualquer dúvida só comentar ai em baixo! Abraços e até o próximo post.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Proteja seu código usando o Webpack</title>
+      <link>http://tableless.com.br/proteja-seu-codigo-usando-o-webpack/</link>
+      <pubDate>Mon, 28 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/proteja-seu-codigo-usando-o-webpack/</guid>
+      <description>
+
+&lt;p&gt;Não é um eufemismo dizer que que as ferramentas de front-end avançam rapidamente. Por um tempo, &lt;a href=&#34;http://gruntjs.com/&#34; target=&#34;_blank&#34;&gt;Grunt&lt;/a&gt; foi o principal automatizador. E desde então a comunidade adotou o &lt;a href=&#34;http://gulpjs.com/&#34; target=&#34;_blank&#34;&gt;Gulp&lt;/a&gt;, uma alternativa de streaming. Embora essas ferramentas sejam ótimas, você ainda precisará trabalhar dura para manter o seu sistema. E é aí que entram os empacotadores como o &lt;a href=&#34;http://browserify.org/&#34; target=&#34;_blank&#34;&gt;Browserify&lt;/a&gt; e &lt;a href=&#34;https://webpack.github.io/&#34; target=&#34;_blank&#34;&gt;Webpack&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-usar-um-empacotador&#34;&gt;Como usar um empacotador&lt;/h2&gt;
+
+&lt;p&gt;Os empacotadores resolvem o problema fundamental no desenvolvimento front-end. Eles permitem que você transforme assets arbitrários em algo que possa ser consumido por um navegador. Se você está usando NPM, e deveria, você pode empacotar todos esses pacotes que está utilizando em seu aplicativo para poder usá-los no navegador. Mas há a possibilidade de você querer fazer muitas outras coisas além de empacotar, então você vai entrelaçar isso com alguma ferramenta de automação como o Grunt ou Gulp. Você pode até ignorar um task runner e implementar suas tarefas por meio da seção de &lt;strong&gt;scripts&lt;/strong&gt; &lt;code&gt;package.json&lt;/code&gt; (se estiver usando NPM) para configurar as transformações do Browserify.&lt;/p&gt;
+
+&lt;h2 id=&#34;conhecendo-o-webpack&#34;&gt;Conhecendo o Webpack&lt;/h2&gt;
+
+&lt;p&gt;Você pode alcançar resultados similares tanto com o Browserify quanto o Webpack. O Browserify está mais próximo da filosofia Unix. Ao usá-lo você está literalmente colando pequenos utilitários juntos. Como resultado, o Browserify é fácil de conseguir. Mas se você tem uma lista longa de transformações que deseja aplicar em seu código é melhor utilizar um task runner como Grunt ou Gulp para automatizar esse processo.&lt;/p&gt;
+
+&lt;p&gt;Por outro lado, se você usa Webpack pode nem precisar do Grunt ou Gulp. O Webpack presume que existem certas tarefas que você sempre deseja executar. É claro que você deseja mover os arquivos de uma pasta de origem para um diretório de compilação. Claro que você vai querer completar seu código fonte usando uma (geralmente longa) lista de transformações (aliás, elas são chamadas de &lt;strong&gt;loaders&lt;/strong&gt;, ou carregadores, no Webpack). É claro que você quer usar bibliotecas em diferentes formatos de módulo como CoomonJS, RequireJS ou os novos módulos ES6 se desejar.&lt;/p&gt;
+
+&lt;p&gt;Você pode até desejar lidar com diferentes formatos de arquivos. Para lhe dar um exemplo melhor do que isso significa na prática, considere os códigos abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;style.css&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body {
+    font-family: sans-serif;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;index.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// load style to the resulting bundle
+require(&#39;./style.css&#39;);
+
+// just print hello, normally we would do
+// something more involved and start the
+// application here
+console.log(&#39;hello world&#39;);&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;webpack.config.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var webpack = require(&#39;webpack&#39;);
+
+    module.exports = {
+    // this is the top level file or set of files
+    entry: &#39;./index.js&#39;,
+    // it will bundle everything inside this output path
+    output: {
+    path: __dirname,
+    filename: &#39;bundle.js&#39;
+},
+module: {
+loaders: [
+{
+    // 1. resolve @import and url() through css-loader
+    // 2. load the result to bundle using style-loader
+    // note that loaders are interpreted from right to left
+    test: /.css$/, // A regexp to test the require path
+    loaders: [&#39;style&#39;, &#39;css&#39;]
+}
+]
+},
+plugins: [
+    // minify output
+    new webpack.optimize.UglifyJsPlugin()
+]
+};&lt;/pre&gt;
+
+&lt;p&gt;O Webpack permite que você carregue o CSS da mesma forma que carrega outros códigos com &lt;a href=&#34;https://github.com/webpack/css-loader&#34; target=&#34;_blank&#34;&gt;css-loader&lt;/a&gt; e &lt;a href=&#34;https://github.com/webpack/style-loader&#34; target=&#34;_blank&#34;&gt;style-loader&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Por que você iria querer usar o require para o seu CSS em vez da mesma velha maneira que temos utilizado CSS? Bem, porque o Webpack é inteligente o suficiente para concatenar seu CSS quando ele é pequeno o bastante, caso contrário ele irá minificar o arquivo e dar a ele um nome único para fins de cache. O mesmo pode ser feito com imagens utilizando o &lt;a href=&#34;https://github.com/webpack/url-loader&#34; target=&#34;_blank&#34;&gt;url-loader&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se você executou o Webpack contra essa configuração, você irá acabar com um &lt;code&gt;bundle.js&lt;/code&gt; minificado que contém CSS inline. Pode parecer muito esforço para alcançar um simples resultado como esse. Isso está além do ponto. Considere o seguinte:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;E se você quisesse usar os novos recursos do Javascript em seu projeto? Você teria que configurar o &lt;a href=&#34;https://www.npmjs.com/package/babel-loader&#34; target=&#34;_blank&#34;&gt;babel-loader&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;E se você quisesse usar CSS compilado? Você precisaria configurar o &lt;a href=&#34;https://github.com/webpack/less-loader&#34; target=&#34;_blank&#34;&gt;less-loader&lt;/a&gt; ou o &lt;a href=&#34;https://github.com/jtangelder/sass-loader&#34; target=&#34;_blank&#34;&gt;sass-loader&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;E se você quisesse sourcemaps? Você teria que configurar a opção &lt;a href=&#34;https://webpack.github.io/docs/configuration.html#devtool&#34; target=&#34;_blank&#34;&gt;devtool&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;E se você quisesse uma saída UMD para sua biblioteca? É preciso configurar o &lt;a href=&#34;https://webpack.github.io/docs/configuration.html#output-librarytarget&#34; target=&#34;_blank&#34;&gt;output.libraryTarget&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;E se você quisesse um servidor de desenvolvimento &lt;em&gt;hot loading&lt;/em&gt;? Você precisaria configurar o &lt;a href=&#34;https://webpack.github.io/docs/webpack-dev-server.html&#34; target=&#34;_blank&#34;&gt;webpack-dev-server&lt;/a&gt; ou construir um sozinho baseado no Express, como mostrado no &lt;a href=&#34;https://github.com/gaearon/react-transform-boilerplate&#34; target=&#34;_blank&#34;&gt;react-transform-boilerplate&lt;/a&gt;. O recurso de &lt;em&gt;hot loading&lt;/em&gt; separa Webpack conforme atualiza seu navegador automaticamente enquanto mantém o estado do aplicativo.&lt;/li&gt;
+&lt;li&gt;E se você quisesse múltiplas metas (desenvolvimento, produção, teste)? Poderia usar uma solução como a &lt;a href=&#34;https://www.npmjs.com/package/webpack-merge&#34; target=&#34;_blank&#34;&gt;webpack-merge&lt;/a&gt; e conectar seu automatizador de tarefas com ela.&lt;/li&gt;
+&lt;li&gt;E se você quisesse carregar algumas dependências lentamente? Você precisaria configurar o &lt;a href=&#34;https://webpack.github.io/docs/code-splitting.html#require-ensure&#34; target=&#34;_blank&#34;&gt;require.ensure&lt;/a&gt;. O Webpack irá gerar pacotes separados para dividir os pontos e carregá-los sob demanda.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Basicamente, você pode desenvolver as configurações para várias direções baseado em suas necessidades. Há definitivamente uma curva de aprendizado e leva um tempo para entender todas as opções. Dito isso, a abordagem é poderosa uma vez que você entende.&lt;/p&gt;
+
+&lt;h2 id=&#34;conectando-o-webpack-com-jscrambler&#34;&gt;Conectando o Webpack com Jscrambler&lt;/h2&gt;
+
+&lt;p&gt;Se você quiser adicionar o Jscrambler para o seu processo de desenvolvimento e estiver usando o Webpack, nós temos uma boa notícia para você! O &lt;a href=&#34;https://github.com/jscrambler/jscrambler-loader&#34; target=&#34;_blank&#34;&gt;jscrambler-loader&lt;/a&gt; está disponível e é realmente fácil de configurar assim como a maioria dos loaders do Webpack.&lt;/p&gt;
+
+&lt;p&gt;Nós vamos lhe mostrar o quanto essa configuração é fácil utilizando o exemplo abaixo e adicionando o &lt;a href=&#34;https://github.com/jscrambler/jscrambler-loader&#34; target=&#34;_blank&#34;&gt;jscrambler-loader&lt;/a&gt; em nosso processo. Também vamos remover o &lt;strong&gt;UglifyJsPlugin&lt;/strong&gt;, já que o &lt;strong&gt;Jscrambler&lt;/strong&gt; pode desempenhar essa mesma função.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;webpack.config.js&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var webpack = require(&#39;webpack&#39;);
+
+    module.exports = {
+    // this is the top level file or set of files
+    entry: &#39;./index.js&#39;,
+    // it will bundle everything inside this output path
+    output: {
+    path: __dirname,
+    filename: &#39;bundle.js&#39;
+},
+module: {
+loaders: [
+{
+    // 1. resolve @import and url() through css-loader
+    // 2. load the result to bundle using style-loader
+    // note that loaders are interpreted from right to left
+    test: /.css$/, // A regexp to test the require path
+    loaders: [&#39;style&#39;, &#39;css&#39;]
+},
+{
+    test: /.js$/,
+    exclude: /node_modules/,
+    loader: &#39;jscrambler-loader&#39;
+}
+]
+}
+};&lt;/pre&gt;
+
+&lt;p&gt;Você também irá precisar criar um arquivo chamado &lt;strong&gt;.jscramblerrc&lt;/strong&gt; com suas credenciais da API.&lt;/p&gt;
+
+&lt;p&gt;Você irá encontrar elas no painel de controlo da sua conta Jscrambler.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;.jscramblerrc&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+    &#34;keys&#34;: {
+    &#34;accessKey&#34;: &#34;XXXXXX&#34;,
+    &#34;secretKey&#34;: &#34;XXXXXX&#34;
+},
+&#34;params&#34;: {
+    &#34;self_defending&#34;: &#34;%DEFAULT%&#34;
+    // there is a big set of transformations that you can use
+    // check https://jscrambler.com/en/help/javascript_obfuscation
+}
+}&lt;/pre&gt;
+
+&lt;p&gt;Pronto! Você está pronto para depurar o seu código protegido!&lt;/p&gt;
+
+&lt;p&gt;Há várias outras formas de conectar o Jscrambler com o seu sistema. Isso depende do seu task runner. Eu reuni as possíveis abordagens abaixo:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Grunt &amp;#8211; &lt;a href=&#34;https://www.npmjs.com/package/grunt-jscrambler&#34; target=&#34;_blank&#34;&gt;grunt-jscrambler&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Gulp &amp;#8211; &lt;a href=&#34;https://www.npmjs.com/package/gulp-jscrambler&#34; target=&#34;_blank&#34;&gt;gulp-jscrambler&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;package.json&lt;/em&gt; &amp;#8211; &lt;a href=&#34;https://www.npmjs.com/package/jscrambler&#34; target=&#34;_blank&#34;&gt;Jscrambler CLI tool&lt;/a&gt;. Para isso funcionar, crie um &lt;em&gt;script&lt;/em&gt; separado e depois passe sua versão minificada do Webpack através dele. É preferível manter uma versão local da ferramenta Jscrambler CLI (&lt;code&gt;npm i jscrambler --save-dev&lt;/code&gt;) dentro de seu projeto para que tudo funcione independentemente do ambiente.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;O Jscrambler tem um conjunto de ferramentas para proteger seu código (ofuscação + armadilhas no código + serviço de autoproteção de aplicativo, ou RASP em inglês), fazendo com que a engenharia reversa fique significantemente difícil, mas também tem alguns recursos de otimização de código para você tirar vantagem. Você pode até usá-lo para minificação ou compressão.&lt;/p&gt;
+
+&lt;p&gt;Saiba mais sobre o Jscrambler em &lt;a href=&#34;https://jscrambler.com?utm_medium=social&amp;utm_source=tableless&#34; target=&#34;_blank&#34;&gt;jscrambler.com&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Ainda que o Webpack não seja a ferramenta mais fácil de aprender, eu recomendo que você dê uma olhada nela. O livro &lt;a href=&#34;http://survivejs.com/&#34; target=&#34;_blank&#34;&gt;SurviveJS &amp;#8211; Webpack and React&lt;/a&gt;, que está em inglês, fala sobre essa ferramenta com mais detalhes. A maioria dos conteúdos está disponível gratuitamente e irá lhe ajudar a entender o Webpack e React a um nível mais profundo.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Trabalhando com serviços no Javascript</title>
+      <link>http://tableless.com.br/trabalhando-com-servicos-no-javascript/</link>
+      <pubDate>Tue, 08 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/trabalhando-com-servicos-no-javascript/</guid>
+      <description>
+
+&lt;p&gt;JavaScript é uma &lt;em&gt;linguagem multiparadigma&lt;/em&gt;. Pode-se “_emular_” várias técnicas de programação com ele, e isso é &lt;strong&gt;incrível&lt;/strong&gt; pois podemos decidir qual o melhor paradigma para a resolução dos problemas dos nossos projetos. Porém se por um lado isso pode parecer poderoso para a linguagem, também pode deixar os iniciantes bem confusos, é muito comum escolher a abordagem errada para o problema. Por esse motivo que o JavaScript em sido polêmico nos últimos anos.&lt;/p&gt;
+
+&lt;p&gt;Pensando nisso muitos desenvolvedores criam suas próprias soluções, uns pensando em ajudar e outros em forçar padrões.&lt;/p&gt;
+
+&lt;p&gt;Eu prefiro ensinar a pescar, pois JavaScript não tem que ser complexo. A &lt;strong&gt;versão 6 do JavaScript (ES6/ES2015)&lt;/strong&gt; tornou a linguagem muito mais expressiva, facilitando muito o entendimento.&lt;/p&gt;
+
+&lt;h3 id=&#34;encapsulando-lógicas&#34;&gt;Encapsulando lógicas&lt;/h3&gt;
+
+&lt;p&gt;Tudo em JavaScript são objetos (exceto &lt;em&gt;undefined&lt;/em&gt;), então &lt;strong&gt;serviços também são objetos&lt;/strong&gt;, dominando como criamos e trabalhamos com objetos todas as coisas ficam bem mais tranquilas.&lt;/p&gt;
+
+&lt;p&gt;O Jean Carlo Emer fez um artigo muito, &lt;a href=&#34;http://tableless.com.br/modularizacao-em-javascript/&#34;&gt;mas muito bom sobre Modularização no JavaScript&lt;/a&gt;. Sugiro que você leia, mas vou explicar um pouco sobre o assunto logo abaixo.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;size-medium aligncenter&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*hsXIPyBqqI7ZTh2QyLfizw.gif&#34; alt=&#34;i know JavaScript basics &#34; width=&#34;320&#34; height=&#34;237&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;scope-e-closures&#34;&gt;Scope e Closures&lt;/h4&gt;
+
+&lt;p&gt;JavaScript possui escopo léxico. Entre outras coisas isso permite que você crie &lt;em&gt;closures&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;De maneira resumida você cria um “ambiente controlado” onde há funções/variáveis que só podem ser acessadas naquele escopo, criando um enclausuramento (&lt;em&gt;closure&lt;/em&gt;).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const initPage = (root) =&amp;gt; {
+  const $root = $(root);
+  const $menu = $root.find(&#39;.menu&#39;);
+  const $profile = $menu.find(&#39;.profile&#39;);
+
+  const initProfile = () =&amp;gt; {
+    $.get(&#39;/me&#39;)
+      .then(response =&amp;gt; $profile.text(response.username));
+    // ...
+  };
+
+  const showProfileModal = e =&amp;gt; {
+   // ...
+  };
+
+  $profile.on(&#39;click&#39;, e =&amp;gt; showProfileModal(e));
+
+  initProfile();
+};
+
+initPage(&#39;body&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Este é um exemplo bem bobo, mas que ilustra bem como criamos &lt;em&gt;closures&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;As variáveis declaradas dentro de &lt;em&gt;initPage&lt;/em&gt; só existem naquele escopo.&lt;/p&gt;
+
+&lt;p&gt;No mesmo exemplo podemos refatorar esse código em uma &lt;strong&gt;IIFE (Immediately-Invoked Function Expression)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;((root) =&amp;gt; {
+  const $root = $(root);
+  const $menu = $root.find(&#39;.menu&#39;);
+  const $profile = $menu.find(&#39;.profile&#39;);
+
+  const initProfile = () =&amp;gt; {
+    $.get(&#39;/me&#39;)
+     .then(response =&amp;gt; $profile.text(response.username));
+    //  ...
+  };
+
+  const showProfileModal = e =&amp;gt; {
+    // ...
+  };
+
+  $profile.on(&#39;click&#39;, e =&amp;gt; showProfileModal(e));
+
+  initProfile();
+})(&#39;body&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse código declaramos uma função e a executamos imediatamente, passando um argumento. Isso é extremamente útil quando queremos fazer um processamento de uma informação que vai servir apenas para criar uma variável.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const timezones = (() =&amp;gt; {
+  const zones = [];
+  const min = -12;
+  const max = 13;
+  let simbol;
+
+  for (let i = min; i &amp;lt;= max; i++) {
+    simbol = (i &amp;lt; 0) ? &#39;&#39; : &#39;+&#39;;
+    zones.push(`GMT${simbol}${i}`);
+  }
+
+  return zones;
+})();
+&lt;/pre&gt;
+
+&lt;p&gt;Como você já pode perceber, é possível expor dados de uma &lt;em&gt;closure&lt;/em&gt; como no exemplo anterior. A variável zones é retornada, assim a variável &lt;em&gt;timezones&lt;/em&gt; agora possui como valor o resultado da &lt;em&gt;closure&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Nesse exemplo a &lt;em&gt;closure&lt;/em&gt; não usa dados externos a ela (&lt;em&gt;parent scope&lt;/em&gt;/escopo pai) porém dada a natureza do JavaScript isso é perfeitamente possível.&lt;/p&gt;
+
+&lt;p&gt;Isso é útil para não poluir o escopo principal com informações irrelevantes.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const makeCounter = (start = 0) =&amp;gt; {
+  let current = start;
+
+  const add = (value = 1) =&amp;gt; current += value;
+  const remove = (value = 1) =&amp;gt; add(value * -1);
+  const get = () =&amp;gt; current;
+
+  return { add, remove, get };
+};
+
+const counter = makeCounter(10);
+
+counter.add() // 11
+counter.add() // 12
+counter.add(8) // 20
+counter.remove(10) // 10
+&lt;/pre&gt;
+
+&lt;p&gt;Este é um exemplo bem interessante. Estamos combinando &lt;em&gt;closures&lt;/em&gt; com &lt;em&gt;factory&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Com isso podemos criar vários contadores, e trabalhar como melhor convir com estes contadores.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_56186&#34; style=&#34;width: 510px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;img class=&#34;wp-image-56186 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/wtf.gif&#34; alt=&#34;Só isso! Simples, né?&#34; width=&#34;500&#34; height=&#34;284&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Só isso! Simples, né?
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Se você entendeu como o exemplo do contador funciona, parabéns você já sabe criar serviços com javascript.&lt;/p&gt;
+
+&lt;p&gt;Isso mesmo, este contator é um serviço. Na verdade ele é um &lt;em&gt;factory&lt;/em&gt;, mas com pequenos ajustes ele vira um serviço de fácil reuso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// makeCounter.js -&amp;gt; factory
+const makeCounter = (start = 0) =&amp;gt; {
+  let current = start;
+
+  const add = (value = 1) =&amp;gt; current += value;
+  const remove = (value = 1) =&amp;gt; add(value * -1);
+  const get = () =&amp;gt; current;
+
+  return { add, remove, get };
+};
+
+export default makeCounter
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// counter.js -&amp;gt; service
+import makeCounter from &#39;./makeCounter.js&#39;;
+
+export default makeCounter(0);
+&lt;/pre&gt;
+
+&lt;p&gt;Agora temos dois arquivos, um contendo o &lt;em&gt;factory&lt;/em&gt; do contador, e outro contendo o serviço de contagem.&lt;/p&gt;
+
+&lt;h2 id=&#34;módulos-javascript&#34;&gt;Módulos JavaScript&lt;/h2&gt;
+
+&lt;p&gt;&lt;img class=&#34;size-full wp-image-56185 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/module.gif&#34; alt=&#34;module&#34; width=&#34;400&#34; height=&#34;250&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Como visto anteriormente, é bem simples criar serviços com JavaScript, basta antes entender alguns conceitos.&lt;/p&gt;
+
+&lt;p&gt;Porém isso não é tudo, se você esta criando um serviço é porque tem a intenção de reusar esta lógica em mais de um local da aplicação. Isto não é uma regra, talvez você queira apenas centralizar a lógica da operação.&lt;/p&gt;
+
+&lt;p&gt;Não importa o objetivo inicial, você vai acabar criando um módulo JavaScript para aquela sua operação/serviço. No exemplo do contador foram criados dois arquivos, o &lt;em&gt;contador&lt;/em&gt; e o &lt;em&gt;factory do contador&lt;/em&gt;. Nesse momento você precisa entender minimamente o que são módulos JavaScript.&lt;/p&gt;
+
+&lt;p&gt;Em resumo: um arquivo JavaScript é um módulo e um módulo JavaScript é um arquivo.&lt;/p&gt;
+
+&lt;p&gt;Você pode criar um módulo a partir de outros módulos, como é o exemplo do contador, ele é composto a partir do módulo &lt;em&gt;makeCouter&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Em geral a lógica dos módulo é encapsulada em &lt;em&gt;closures&lt;/em&gt; e o retorno delas é &lt;em&gt;cacheado&lt;/em&gt;, sendo assim, uma vez que você importa um módulo, ele será &lt;strong&gt;o mesmo sempre, compartilhando seu estado&lt;/strong&gt;. Saiba mais &lt;a href=&#34;http://www.vuejs-brasil.com.br/utilizando-vuex-na-forma-modular-2/#vamosentenderoqueaconteceu&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;usando-serviços&#34;&gt;Usando serviços&lt;/h3&gt;
+
+&lt;p&gt;Agora que você possui essas informações acredito que criar seus próprios serviços não será nenhum &lt;em&gt;bicho de sete cabeças&lt;/em&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Vale a pena dizer que tudo pode ser considerado um serviço, inclusive &lt;em&gt;factories&lt;/em&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Para reforçar vou deixar mais um exemplo de uso de serviços.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import Http from &#39;./http.js&#39;;
+import UsersService from &#39;./modules/users/service.js&#39;;
+
+Http.setToken(&#39;XPTO&#39;); // Define o token de autentificação
+
+// Cattega a primeira página de usuários
+// Exibe um alerta com o nome do primeiro usuário retornado pelo serviço
+
+UsersService
+  .getAll({ page: 1 })
+  .then(result =&amp;gt; result.data)
+  .then(data =&amp;gt; data[0])
+  .then(first =&amp;gt; {
+    alert(first.name);
+  });
+&lt;/pre&gt;
+
+&lt;p&gt;Para efeito de aprendizado uma sintaxe alternativa, com &lt;a href=&#34;https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Statements/import&#34;&gt;&lt;em&gt;import binding&lt;/em&gt;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import { setToken } from &#39;./http.js&#39;;
+import { getAll as getAllUsers } from &#39;./modules/users/service.js&#39;;
+
+setToken(&#39;XPTO&#39;); // Define o token de autentificação
+
+// Carrega a primeira página de usuários
+// Exibe um alerta com o nome do primeiro usuário retornado pelo serviço
+
+getAllUsers({ page: 1 })
+  .then(result =&amp;gt; result.data)
+  .then(data =&amp;gt; data[0])
+  .then(first =&amp;gt; {
+    alert(first.name);
+  });
+&lt;/pre&gt;
+
+&lt;p&gt;Este pode não parecer para alguns mas é um exemplo bem prático do uso de serviços.&lt;/p&gt;
+
+&lt;p&gt;O serviço de &lt;em&gt;Http&lt;/em&gt; também é usado pelo &lt;em&gt;serviço de usuários&lt;/em&gt;, por isso é possível definir o &lt;strong&gt;&lt;em&gt;token&lt;/em&gt;&lt;/strong&gt; de autentificação antes de efetivamente usar os serviços, pois eles vão compartilhar o mesmo estado/serviço.&lt;/p&gt;
+
+&lt;p&gt;Outra característica interessante é que esses serviços não estão ligados diretamente a nenhum contexto. Isso significa que não importa que ambiente você esteja ou que &lt;em&gt;framework&lt;/em&gt; você esta usando, os serviços são agnósticos. Eles podem ser usados no &lt;strong&gt;NodeJS, VueJS, ReactJS&lt;/strong&gt;, etc.&lt;/p&gt;
+
+&lt;p&gt;Este é um dos princípios do polimorfismos do JavaScript porém este é outro assunto.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Se quiser saber mais sobre meu trabalho visite meu blog&lt;a href=&#34;https://medium.com/@luizvinicius73&#34;&gt; https://medium.com/@luizvinicius73&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Este artigo foi originalmente postado no meu &lt;a href=&#34;https://medium.com/by-vinicius-reis/trabalhando-com-servicos-no-javascript-864310cf386c&#34;&gt;blog no medium&lt;/a&gt; em 31 de Julho de 2016&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Como boas práticas de escrita de código podem influenciar em uma melhor rotina de trabalho</title>
+      <link>http://tableless.com.br/como-boas-praticas-de-escrita-de-codigo-podem-influenciar-em-uma-melhor-rotina-de-trabalho/</link>
+      <pubDate>Sat, 17 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/como-boas-praticas-de-escrita-de-codigo-podem-influenciar-em-uma-melhor-rotina-de-trabalho/</guid>
+      <description>
+
+&lt;p&gt;Observei que alguns itens estão me ajudando na rotina de trabalho, como obter um melhor tempo de produção e um melhor controle sobre o que estou fazendo.&lt;/p&gt;
+
+&lt;p&gt;São alguns hábitos simples que podem lhe ajudar muito. É apenas questão de implementar no seu dia a dia e demonstrar para a sua equipe (caso trabalhe em equipe) o quanto é mais organizado e produtivo trabalhar desta forma.&lt;/p&gt;
+
+&lt;p&gt;A seguir listei algumas técnicas que podem ajudar bastante no seu dia a dia como desenvolvedor front-end.&lt;/p&gt;
+
+&lt;h4 id=&#34;style-guide&#34;&gt;Style Guide&lt;/h4&gt;
+
+&lt;p&gt;É um documento que contém estilos e padrões de um projeto, que podem ser utilizados para manter a pregnância do design e desenvolvimento.&lt;/p&gt;
+
+&lt;p&gt;Existem algumas metodologias que podem ajudar você no desenvolvimento desse &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;Style Guide, &lt;/strong&gt;como: &lt;a href=&#34;http://getbem.com/introduction/&#34; target=&#34;_blank&#34;&gt;BEM&lt;/a&gt;, &lt;a href=&#34;https://github.com/necolas/idiomatic-css/tree/master/translations/pt-BR&#34; target=&#34;_blank&#34;&gt;IDIOMATIC&lt;/a&gt;, &lt;a href=&#34;http://primercss.io/scaffolding/&#34; target=&#34;_blank&#34;&gt;PRIMER CSS&lt;/a&gt;, &lt;a href=&#34;http://getbootstrap.com/css/&#34; target=&#34;_blank&#34;&gt;Twitter Bootstrap&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;skeleton-ou-estruturas-boilerplate&#34;&gt;Skeleton ou Estruturas Boilerplate&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.initializr.com/&#34; target=&#34;_blank&#34;&gt;Initializr&lt;/a&gt;, &lt;a href=&#34;https://github.com/helderburato/generator-hyapp&#34; target=&#34;_blank&#34;&gt;Gerador HyApp&lt;/a&gt; + &lt;a href=&#34;http://yeoman.io/&#34; target=&#34;_blank&#34;&gt;Yeoman&lt;/a&gt; e &lt;a href=&#34;https://html5boilerplate.com/&#34; target=&#34;_blank&#34;&gt;HTML5 Boilerplate&lt;/a&gt;. Que são geradores de pequenas estruturas de diretórios para iniciar projetos em HTML/CSS/JS;&lt;/p&gt;
+
+&lt;h4 id=&#34;font-ícones&#34;&gt;Font Ícones&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://fontawesome.io/&#34; target=&#34;_blank&#34;&gt;Font Awesome&lt;/a&gt;, &lt;a href=&#34;http://fontello.com/&#34; target=&#34;_blank&#34;&gt;Fontello&lt;/a&gt;, &lt;a href=&#34;https://icomoon.io/app/#/select&#34; target=&#34;_blank&#34;&gt;IcoMoon&lt;/a&gt; são ótimas opções. No meu dia a dia costumo utilizar na maioria dos projetos o &amp;#8220;Font Awesome&amp;#8221; pela facilidade e padronização nos layouts da empresa em que trabalho;&lt;/p&gt;
+
+&lt;h4 id=&#34;web-fonts&#34;&gt;Web Fonts&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://fonts.google.com/&#34; target=&#34;_blank&#34;&gt;Google Fonts&lt;/a&gt; sem dúvidas é uma ótima opção e agiliza bastante quando utilizada nos layouts;&lt;/p&gt;
+
+&lt;h4 id=&#34;task-runner&#34;&gt;Task Runner&lt;/h4&gt;
+
+&lt;p&gt;Tratando-se de automatizadores de tarefas os mais conhecidos são o &lt;a href=&#34;http://gulpjs.com/&#34; target=&#34;_blank&#34;&gt;GulpJS&lt;/a&gt; e o &lt;a href=&#34;http://gruntjs.com/&#34; target=&#34;_blank&#34;&gt;GruntJS&lt;/a&gt;. Costumo utilizar o Gulp pois foi o que mais me identifiquei, mas você pode escolher o que mais adequar ao seu projeto ou ao modo de trabalho de sua equipe.&lt;/p&gt;
+
+&lt;h3 id=&#34;será-que-isso-influencia-mesmo-na-rotina-ou-nos-custos-do-produto-final&#34;&gt;Será que isso influencia mesmo na rotina ou nos custos do produto final?&lt;/h3&gt;
+
+&lt;p&gt;Segundo uma experiência direta da &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;IBM &lt;/strong&gt;e também de dados reunidos por pesquisadores que trabalham com centenas de empresas, percebe-se que a maioria das empresas acabam investindo &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;25% &lt;/strong&gt;a mais do orçamento no ciclo de vida do desenvolvimento para garantir a qualidade do software.&lt;/p&gt;
+
+&lt;p&gt;Além disso, &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;30%&lt;/strong&gt; dos custos de projeto para desenvolvimento de software estão associados a retrabalho e &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;70%&lt;/strong&gt; desse valor estão relacionados a erros de requisitos.&lt;/p&gt;
+
+&lt;p&gt;A qualidade de escrita de código influencia diretamente nos custos do projeto e da qualidade de vida do software.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-56001&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/09/Group.png&#34; alt=&#34;Group&#34; width=&#34;1138&#34; height=&#34;600&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;mente-aberta-para-novas-ideias&#34;&gt;Mente aberta para novas ideias&lt;/h3&gt;
+
+&lt;p&gt;Sou totalmente aberto a novas ideias e sugestões naquilo que eu posso melhorar no meu dia a dia de trabalho, mas parece que nem todo desenvolvedor enxerga as observações no seu próprio código como algo bom, algo produtivo. E sim como uma crítica pessoal.&lt;/p&gt;
+
+&lt;p&gt;Lógico, todos nós temos dias difíceis, prazos curtos. E todo desenvolvedor que tem um pouco mais de experiência compreende muito bem como é correr contra o tempo para lançar um novo produto ou &lt;em class=&#34;markup--em markup--p-em&#34;&gt;feature&lt;/em&gt;. Mas creio que isso não seja motivo para excluir a possibilidade de mudança, de tentar o novo. &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;O que seria do mundo se ninguém tivesse tentado algo diferente?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Me deparo fazendo esse tipo de pergunta quase que diariamente, costumo estar sempre dando uma olhada em novas tecnologias, mesmo que seja por brincadeira. Mas me sinto frustrado quando não é possível aplicar nas equipes ou em projetos. Entendo que nem sempre é possível sair utilizando tudo que é novo, ainda mais quando nos deparamos com coisas novas todos os dias no nosso ramo, mas não podemos ficar presos ao velho para sempre.&lt;/p&gt;
+
+&lt;p&gt;Tire 1 ou 2 dias agora para escrever bem seu código e no futuro você verá como o trabalho ficará mais fácil ao entrar novos membros na equipe e for necessário explicar como as coisas funcionam.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Padrões são bons!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Essa frase parece que assusta muitas pessoas, mas diferente de medo, ela deveria emitir a sensação de algo bom, pois é o que ela traz com o tempo.&lt;/p&gt;
+
+&lt;p&gt;Agradeço a todos que tiraram um tempo e leram o texto, e qualquer sugestão de melhoria estou a disposição, obrigado!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Invertendo o Redux</title>
+      <link>http://tableless.com.br/invertendo-o-redux/</link>
+      <pubDate>Fri, 09 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/invertendo-o-redux/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Já faz um tempo desde que implementei pela primeira vez o &lt;a href=&#34;http://redux.js.org/&#34;&gt;Redux&lt;/a&gt;. Numa época que só se falava nos frameworks, ele apareceu do nada, pelo menos para mim. Eu já conhecia o Flux, mas ainda não era o que estava procurando. O &lt;strong&gt;Redux&lt;/strong&gt; realmente é uma das melhores idéias que vi, para mim faz todo o sentido e ainda é simples de entender e de se implementar.&lt;/p&gt;
+
+&lt;p&gt;Depois de usá-lo algumas vezes você precisa se policiar para não se ver usando esta arquitetura em todos os projetos e virar um pregador da arquitetura. A idéia deste post é apresentar alguns aspectos que aprendi usando este padrão, ter um olhar mais crítico apesar do entusiasmo, e apresentar uma proposta um pouco diferente que pode lhe ser útil em alguma situação.&lt;/p&gt;
+
+&lt;h2 id=&#34;uma-visão-crítica&#34;&gt;Uma visão crítica&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Como havia dito, apesar de todo o amor que se pode ter por uma solução, é preciso um pouco de maturidade e entender que tudo o que você gosta possui contras, pontos negativos. Ter consciência disso pode te ajudar a tomar uma decisão melhor quando possui diferentes soluções parecidas para um determinado problema. Te ajudará também a saber quando dar mais atenção aos contras quando estes podem ser mais prejudiciais do que os benefícios dos seus prós. Isso te fará ser mais lúcido, mais racional, tomará menos decisões com natureza emocional. Com isto dito, vamos à alguns pontos sobre o &lt;strong&gt;Redux&lt;/strong&gt; sob minha perspectiva.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Redux&lt;/strong&gt; não é para todas as aplicações, é claro. Me vi em alguns projetos que não eram dos mais complexos, mas também não eram tão simples, nestes casos, a implementação do &lt;strong&gt;Redux&lt;/strong&gt; parece ser demais, um over-engineering, em português claro, um canhão para matar um mosquito.&lt;/li&gt;
+&lt;li&gt;Todos os reducers tem um grupo de switch cases que testam o tipo de ação disparada. Estes reducers podem ficar incrivelmente grandes além de ser difícil saber de forma rápida e prática, quais reducers respondem uma determinada ação. Para saber isso você deve abrir cada arquivo do &lt;em&gt;reducer&lt;/em&gt; para descobrir.&lt;/li&gt;
+&lt;li&gt;A composição dos reducers pode ser um pouco complicada às vezes de se entender. Principalmente para que está iniciando.&lt;/li&gt;
+&lt;li&gt;Em algumas situações você vai preferir que o relacionamento entre as ações e os reducers fosse mais direta, mais simples.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;metodologia&#34;&gt;Metodologia&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Resumidamente, o Redux funciona alterando as propriedades de um único objeto que armazena todo o estado de sua aplicação, utiliza funções puras ( _reducers ) _para aplicar mudanças nestes estados de acordo com uma determinada ação.&lt;/p&gt;
+
+&lt;p&gt;Os tipos das ações são imutáveis, ou seja, são constantes é por isso são usadas strings em &lt;em&gt;uppercase. &lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Pensando em uma alternativa,  removi os tipos das ações de dentro dos reducers, e coloquei no contexto da minha Store. No Redux você pode executar vários reducers para uma mesma ação, mas não pode disparar várias ações usando um reducer.&lt;/p&gt;
+
+&lt;p&gt;Então,  a conclusão que tirei é que posso escrever os tipos das ações como métodos de um objeto. A vantagem disso é que especifico todos os reducers que quero executar para cada um destes métodos, resolvendo o &lt;strong&gt;item 2.&lt;/strong&gt; É fácil enxergar qual &lt;em&gt;reducer&lt;/em&gt; é executado numa ação disparada e como efeito colateral eu resolvo o &lt;strong&gt;item 3&lt;/strong&gt; também, pois a composição entre reducers é direta.&lt;/p&gt;
+
+&lt;p&gt;A lógica no final é: Ao invés de executar _n_ reducers que vão testar todos os tipos das ações, eu faço isso de maneira &lt;strong&gt;inversa&lt;/strong&gt;, eu testo apenas a ação, se esta ação existir no meu objeto, então executo os &lt;em&gt;n&lt;/em&gt; reducers. Por isso chamei esse formato de &lt;em&gt;&lt;strong&gt;Inverted Redux&lt;/strong&gt;&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;iredux-store&#34;&gt;IRedux Store&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Com esta lógica em mente, foi só necessário escrever o código que comprove a eficácia ou não da hipótese do Inverted Redux. Para meu espanto foi ridiculamente simples. Para simplificar ainda mais por questões de didática, vou partir do princípio que esta nova Store receberá um objeto que implementa o padrão &lt;a href=&#34;https://davidwalsh.name/pubsub-javascript&#34;&gt;publish/subscribe&lt;/a&gt; ( &lt;em&gt;que é um padrão bem simples de se implementar&lt;/em&gt; ).&lt;/p&gt;
+
+&lt;p&gt;Esta é a implementação final desta Store:&lt;/p&gt;
+
+&lt;pre&gt;export default ( pubsub, state ) =&amp;gt; {
+        let Store = {
+            getState(){
+                return state
+        },
+            subscribe( callback ){
+                pubsub.subscribe(&#39;store:update&#39;, callback)
+            },
+            dispatch( action ){
+                pubsub.publish(&#39;store&#39;, action)
+            }
+        }
+        pubsub.subscribe(&#39;store&#39;, ( payload ) =&amp;gt;{
+            if( payload.type in Store ){
+                var newstate = Store[ payload.type ].call(null, state, payload );
+                pubsub.publish( &#39;store:update&#39;, newstate );
+            }
+        });
+
+    return Store
+}
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;reducers&#34;&gt;Reducers&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Com esta mudança, os reducers ficaram muito mais simples do que a versão com os _&lt;strong&gt;switch cases&lt;/strong&gt;,_ ficando mais fácil de entender, de compor e de reutilizar também.&lt;/p&gt;
+
+&lt;p&gt;Eu prefiro exportar um objeto contendo os meus reducers agrupados por um contexto em comum. Para exemplificar, vou criar aqui um objeto com as tarefas de &lt;strong&gt;adicionar&lt;/strong&gt;, &lt;strong&gt;remover&lt;/strong&gt; e &lt;strong&gt;editar&lt;/strong&gt; itens de uma lista.&lt;/p&gt;
+
+&lt;pre&gt;export default{
+
+    add( state = [], action ){
+        return [...state, {
+            text :action.item,
+            id   :(Math.random() * Math.pow(10, 20))
+        }]
+    },
+
+    remove( state = [], action ){
+        return state.filter( item =&amp;gt; item.id != action.id )
+    },
+
+    edit( state = [], action ){
+        return state.map( item =&amp;gt; {
+            if( item.id == action.id )
+                return { id : item.id, text : action.text }
+            else
+                return { id : item.id, text : item.text }
+        })
+    }
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Neste formato a principal diferença é que os reducers não testam as ações, apenas se preocupam no tratamento dos dados que lhe são passados.&lt;/p&gt;
+
+&lt;h2 id=&#34;juntando-as-peças&#34;&gt;Juntando as peças&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Bom, o resultado final ficou bem simples, considerando que você já tem sua implementação do Inverted Redux e tem os seus reducers prontos, a junção da instância da sua Store com os reducers se dá da seguinte forma:&lt;/p&gt;
+
+&lt;pre&gt;import store from &#39;Iredux&#39;
+import Pubsub from &#39;Pubsub&#39;
+import reducersList from &#39;reducers/list&#39;
+
+let AppStore = store( Pubsub, {
+    produtos :[]
+})
+
+AppStore.subscribe( state =&amp;gt;
+    console.log( &#39;AppStore.State&#39;, state )
+)
+
+AppStore.ADD = ( state, action ) =&amp;gt;{
+    state.produtos = reducersList.add( state.produtos, action )
+}
+
+AppStore.REMOVE = ( state, action ) =&amp;gt;{
+    state.produtos = reducersList.remove( state.produtos, action )
+}
+
+AppStore.EDIT = ( state, action ) =&amp;gt;{
+    state.produtos = reducersList.edit( state.produtos, action )
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Os métodos representam os tipos das ações do Redux, usei a mesma convenção de constantes, usando os nomes em &lt;em&gt;uppercase&lt;/em&gt;. Sua Store além de ter os métodos &lt;code&gt;dispatch()&lt;/code&gt;, &lt;code&gt;subscribe()&lt;/code&gt; e &lt;code&gt;getState()&lt;/code&gt;, ainda contém estes métodos que serão executados no disparo de uma ação.&lt;/p&gt;
+
+&lt;p&gt;Esta mudança me ajudou não só na visualização, pois você facilmente consegue identificar quais ações sua Store possui, como também na hora de compor os reducers. Posso também disparar um evento de remoção passando apenas o id, sem a necessidade de passar a lista ( de produtos no meu caso ) na hora de criar uma ação:&lt;/p&gt;
+
+&lt;pre&gt;import PubSub from &#39;PubSub&#39;
+
+$(document.body).on(&#39;click&#39;, &#39;.remove-item&#39;, (e)=&amp;gt;{
+    let id = e.target.id
+    PubSub.publish(&#39;store&#39;, { type:&#39;REMOVE&#39;, id })
+})
+&lt;/pre&gt;
+
+&lt;p&gt;No caso do código acima, eu usei o Singleton PubSub para publicar &lt;code&gt;store&lt;/code&gt; , passando apenas o id, porque no arquivo da minha Store propriamente dita, eu já mando o estado &lt;code&gt;produtos&lt;/code&gt; que sempre será uma lista conforme meu reducer &lt;code&gt;edit&lt;/code&gt; espera.&lt;/p&gt;
+
+&lt;p&gt;Assim que a minha Store tiver executado todos os reducers ela disparará novamente outro evento global para meu pubsub, o &lt;code&gt;store:update&lt;/code&gt; . Diferente do Redux, eu preferi sempre enviar o estado da minha aplicação para receber como argumento na hora de registrar um callback, porque eu vi que sempre tinha de executar o método .getState() e tava ficando redundante.&lt;/p&gt;
+
+&lt;pre&gt;AppStore.subscribe( state =&amp;gt;
+    console.log( &#39;AppStore.State =&amp;gt;&#39;, state )
+)
+&lt;/pre&gt;
+
+&lt;p&gt;Ao usar este padrão, percebi também que em alguns casos eu sempre repetia as mesmas chamadas dos reducers em diferentes ações, isso deixava o código meio duplicado e redundante. Mas a solução foi novamente muito simples, bastava criar um reducer intermediário, um middleware, que executava todos os reducers que precisava para uma determinada ação. Passei por isso pela primeira vez quando implementei uma aplicação &lt;code&gt;todomvc&lt;/code&gt; para testar os conceitos, criei um reducer chamado &lt;code&gt;common&lt;/code&gt; :&lt;/p&gt;
+
+&lt;pre&gt;import r from &#39;stores/reducers/todos&#39;
+
+export default ( store )=&amp;gt;{
+
+    let common = ( state, action )=&amp;gt;{
+        state.items     = r.filter( state.todos, { filter : state.filter } )
+        state.remaining = r.remaining( state.remaining, { todos: state.todos } )
+        return state
+    }
+
+    store.ADD = ( state, action ) =&amp;gt;{
+        state.todos = r.add( state.todos, action )
+        return common( state, action )
+    }
+
+    store.REMOVE = ( state, action ) =&amp;gt;{
+        state.todos = r.remove( state.todos, action )
+        return common( state, action )
+    }
+
+    store.UPDATE = ( state, action ) =&amp;gt;{
+        state.todos = r.update( state.todos, action )
+        return common( state, action )
+    }
+
+    store.TOGGLE = ( state, action ) =&amp;gt;{
+        state.todos = r.toggle( state.todos, action )
+        return common( state, action )
+    }
+
+    store.TOGGLE_ALL = ( state, action ) =&amp;gt;{
+        state.todos = r.toggle_all( state.todos, action )
+        return common( state, action )
+    }
+
+    store.EDIT = ( state, action ) =&amp;gt;{
+        state.todos = r.edit( state.todos, action )
+        return common( state, action )
+    }
+
+    store.CANCEL = ( state, action ) =&amp;gt;{
+        state.todos = r.cancel( state.todos, action )
+        return common( state, action )
+    }
+
+    store.CLEAR = ( state, action ) =&amp;gt;{
+        state.todos = r.clear( state.todos, action )
+        return common( state, action )
+    }
+
+    store.FILTER = ( state, action )=&amp;gt;{
+        state.filter = action.filter || &#39;all&#39;
+        return common( state, action )
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Deixei o &lt;code&gt;common&lt;/code&gt;  ali para ficar mais claro de entender o que ele faz, poderia muito bem ter colocado dentro do objeto que contém todos os reducers relacionados à minha lista de Todo&amp;#8217;s e referenciá-lo como fiz com outros métodos. Ali dá para ver que eu atualizo os estados &lt;code&gt;items&lt;/code&gt; e &lt;code&gt;remaining&lt;/code&gt; , e passo normalmente para estes reducers actions customizadas, enviando dados que meus reducers sempre esperam.&lt;/p&gt;
+
+&lt;p&gt;Claro, é possível perceber logo de cara que o arquivo da sua Store vai crescer, você pode resolver isso movendo estas ações para outro arquivo, e mandando sua store como parâmetro:&lt;/p&gt;
+
+&lt;pre&gt;import Pubsub from &#39;Pubsub&#39;
+import store from &#39;Iredux&#39;
+import actions from &#39;stores/actions&#39;
+
+let AppStore = store( Pubsub, {
+    produtos :[]
+})
+
+AppStore.subscribe( state =&amp;gt;
+    console.log( &#39;AppStore.State&#39;, state )
+)
+
+// @Actions
+actions( AppStore )&lt;/pre&gt;
+
+&lt;p&gt;Neste arquivo &lt;code&gt;stores/actions&lt;/code&gt; eu exporto uma função que recebe a store e faz o registro de todas as ações que esta store deve ter. Aí a organização com relação à estrutura de pastas e a lógica como isso vai se dar, depende de você e também da sua aplicação.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusões&#34;&gt;Conclusões&lt;/h2&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Eu fiquei bastante surpreso com o resultado disso na prática. Há projetos onde criar todos os componentes usando &lt;strong&gt;Redux&lt;/strong&gt; ou mesmo o &lt;em&gt;Inverted Redux&lt;/em&gt; é loucura, principalmente porque muitos componentes acabam trabalhando bem sozinhos, são stand-alone, e não precisam estar num flow mais complexo de relacionamento.&lt;/p&gt;
+
+&lt;p&gt;Na prática, no mundo real, há uma necessidade de se analisar quais estados realmente devem estar em sua Store. Alguns componentes apenas precisam resolver problemas de UI, ou validação, não implicando em um relacionamento mais complexo entre as partes. Você não deve criar toda uma arquitetura Redux, Flux ou qualquer que seja, se sua página apenas contém um formulário que faz um post para uma outra página depois de uma validação simples, ou mesmo ao desenvolver um sticky header.&lt;/p&gt;
+
+&lt;p&gt;Muitas vezes você se depara com soluções do mercado e não sabe se é ou não uma solução otimizada para o seu projeto. Pense que muitas soluções do mercado estão focando nos problemas das &lt;strong&gt;Single Page Applications&lt;/strong&gt;, e fazem isso com toda a razão pois &lt;em&gt;SPA&amp;#8217;s&lt;/em&gt; são difíceis de se desenvolver e mais difícil ainda é criar uma aplicação neste formato com fácil manutenção. Porém há um nicho muito grande que são as páginas que possuem ajax, possuem uma forma um pouco mais rica na interface, mas que não podem ser consideradas totalmente &lt;em&gt;SPA&amp;#8217;s&lt;/em&gt;. Você não deve desprezar  ou subestimar estas aplicações, grandes dores de cabeça costumam vir de onde menos se espera.&lt;/p&gt;
+
+&lt;p&gt;Ao meu ver existe uma supervalorização do verbo &amp;#8220;&lt;strong&gt;escalar&lt;/strong&gt;&amp;#8221; no contexto do desenvolvimento front-end. Vejo muitas soluções serem vendidas utilizando o argumento de que você deve usar isto ou aquilo pois caso contrário sua aplicação não irá escalar. Nenhuma solução é ótima por si só, não há regras inquebráveis e todas elas dependem de um contexto. É por este motivo que escolher um Framework A ou B, ou um padrão C ou D não será suficiente para que sua aplicação escale. É necessário mais que isso, experiência, boas análises de requisitos, funcionalidades e especificações, refactories constantes, organização etc. Portanto, não é um caminho simples.&lt;/p&gt;
+
+&lt;p&gt;A minha intenção com este post, além de compartilhar minhas experiências, é mostrar que o Redux abriu minha mente, minha forma de pensar, fez com que eu voltasse a pensar fora da caixa. Deve servir como solução mas também como uma inspiração, uma forma de te motivar à pensar em outras soluções, à questionar as que já tem, a seguir em frente estimulando sua criatividade.&lt;/p&gt;
+
+&lt;p&gt;Até a próxima, um grande abraço.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Upload de imagens desmistificado com simpleGallery.js</title>
+      <link>http://tableless.com.br/upload-de-imagens-desmistificado-com-simplegallery-js/</link>
+      <pubDate>Wed, 07 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/upload-de-imagens-desmistificado-com-simplegallery-js/</guid>
+      <description>
+
+&lt;p&gt;Olá pessoal, tudo bem?&lt;/p&gt;
+
+&lt;p&gt;Neste artigo vou procurar abordar algo comum no dia-a-dia de qualquer desenvolver, o &amp;#8220;temido&amp;#8221; upload de imagens. No processo utilizarei NodeJS e Express para o back-end. A grande sacada será a utilização da lib &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;, que nos auxiliará no front-end.&lt;/p&gt;
+
+&lt;h2 id=&#34;passos-iniciais&#34;&gt;Passos iniciais..&lt;/h2&gt;
+
+&lt;p&gt;A seguir criaremos um servidor bem simples. Utilizarei o package &amp;#8220;Multer&amp;#8221; como middleware para as requisições de arquivo. Não vou prezar por segurança nem boas práticas, já que este artigo é apenas para encorajar aqueles que ainda possuem dificuldades.&lt;/p&gt;
+
+&lt;p&gt;Primeiro começaremos com a instalação do NodeJS e NPM, para mais informações:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://nodejs.org/en/&#34;&gt;https://nodejs.org/en/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.npmjs.org/post/85484771375/how-to-install-npm&#34;&gt;http://blog.npmjs.org/post/85484771375/how-to-install-npm&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Após NodeJS e NPM instalados, é hora de criarmos nosso &lt;code&gt;package.json&lt;/code&gt;, que será responsável por armazenar o nome do app, versão, nossos packages etc. Abra o terminal e digite:&lt;/p&gt;
+
+&lt;pre&gt;npm init /my-upload-app
+cd my-upload-app
+mkdir public&lt;/pre&gt;
+
+&lt;p&gt;Após todos os dados inseridos, partiremos para a inclusão dos packages que utilizaremos.&lt;/p&gt;
+
+&lt;pre&gt;npm install --save-dev express multer&lt;/pre&gt;
+
+&lt;p&gt;Este comando instalará as últimas versões de cada package, permitindo a sua utilização junto ao NodeJS.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-o-server&#34;&gt;Criando o Server&lt;/h2&gt;
+
+&lt;p&gt;Com tudo instalado, basta criar um arquivo em nosso diretório chamado de &lt;code&gt;index.js&lt;/code&gt;. Este conterá o básico para criar nossa API e seus respectivos endpoints. Estou utilizando o Hello World do próprio Express, que está presente &lt;a href=&#34;http://expressjs.com/pt-br/starter/hello-world.html&#34;&gt;neste&lt;/a&gt; link.&lt;/p&gt;
+
+&lt;pre&gt;const express = require(&#39;express&#39;)
+const app = express()
+
+app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+ res.sendFile(&#39;public/index.html&#39;)
+})
+
+app.listen(3000, () =&amp;gt; console.log(&#39;Lstening on port 3000!&#39;))
+
+&lt;/pre&gt;
+
+&lt;p&gt;Isto já é o suficiente para rodar nosso server (digite &lt;code&gt;node index.js&lt;/code&gt;). Tudo que estiver dentro da pasta &lt;code&gt;/public&lt;/code&gt; obviamente será considerado como público e &amp;#8220;visível&amp;#8221; ao browser.&lt;/p&gt;
+
+&lt;p&gt;Sem mais delongas, vamos partir para o endpoint que receberá os arquivos e retornará um JSON com as respectivas URL&amp;#8217;s, ele também será responsável por armazenar nossas imagens na pasta &lt;code&gt;/uploads&lt;/code&gt;. Neste ponto utilizo uma configuração mínima do &amp;#8216;Multer&amp;#8217;, você pode melhorar este processo limitando os arquivos por tamanho, tipo, quantidade etc. Para mais informações, clique &lt;a href=&#34;https://github.com/expressjs/multer&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre&gt;const express = require(&#39;express&#39;)
+const app = express()
+const multer = require(&#39;multer&#39;)
+
+const upload = multer({ dest: &#39;public/uploads/&#39; }) // Configuramos o destino dos arquivos.
+
+app.get(&#39;/&#39;, (req, res) =&amp;gt; {
+ res.sendFile(&#39;public/index.html&#39;)
+})
+
+app.post(&#39;/upload&#39;, upload.array(&#39;gallery[]&#39;), (req, res) =&amp;gt; {
+ let gallery = []
+ req.files.map((image) =&amp;gt; gallery.push({&#39;url&#39;: `http://localhost:3000/uploads/${image.filename}`}))
+ res.status(200).json(gallery)
+})
+
+app.listen(3000, () =&amp;gt; console.log(&#39;Listening on port 3000!&#39;))&lt;/pre&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Agora nossa API já está 100% funcional. Para testar, submeta um POST com as imagens para a url &lt;code&gt;http://localhost:3000/uploads&lt;/code&gt;. Você receberá uma resposta formato JSON com a URL das imagens enviadas.&lt;/p&gt;
+
+&lt;h2 id=&#34;já-no-front-end&#34;&gt;Já no Front-End..&lt;/h2&gt;
+
+&lt;p&gt;Com a nossa API criada, agora precisamos configurar o nosso front-end. Para isto, vamos iniciar criando um &lt;code&gt;index.html&lt;/code&gt; dentro da pasta &lt;code&gt;/public&lt;/code&gt;. Após criado, é hora de escrevermos nosso HTML:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+ &amp;lt;head&amp;gt;
+ &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Upload App&amp;lt;/title&amp;gt;
+ &amp;lt;/head&amp;gt;
+ &amp;lt;body&amp;gt;
+ &amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+ &amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;
+ &amp;lt;label for=&#34;&#34;&amp;gt;Image Gallery&amp;lt;/label&amp;gt;
+ &amp;lt;div class=&#34;input-upload btn&#34;&amp;gt;
+ Upload
+ &amp;lt;input class=&#34;upload&#34; type=&#34;file&#34; multiple=&#34;multiple&#34; accept=&#34;image/*&#34;&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=&#34;gallery-container&#34;&amp;gt;&amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+ &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Até agora nenhuma novidade, um formulário &lt;code&gt;enctype=&amp;quot;multipart/form-data&amp;quot;&lt;/code&gt; com os campos necessários para enviarmos as fotos para nossa API.&lt;/p&gt;
+
+&lt;h2 id=&#34;8220-hora-do-show-8221&#34;&gt;&amp;#8220;Hora do show!&amp;#8221;&lt;/h2&gt;
+
+&lt;p&gt;Chegou a hora de implementarmos o &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;, uma lib JS vanilla, de apenas 2kb gzipped. Esta será responsável por submeter as imagens e salvar o JSON de retorno em algum input hidden, em nosso exemplo, utilizaremos o padrão da lib que será:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Também faremos a inclusão do CSS e JS, que pode ser encontrado no próprio repositório do &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;. Ou via NPM/Bower, basta procurar por: &lt;code&gt;simple-gallery-js&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;O &lt;a href=&#34;https://github.com/RubaXa/Sortable&#34;&gt;Sortable&lt;/a&gt;, uma lib JS vanilla, será responsável por permitir a reordenação de nossa galeria.&lt;/p&gt;
+
+&lt;p&gt;O código final fica assim:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+ &amp;lt;head&amp;gt;
+ &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Upload App&amp;lt;/title&amp;gt;
+ &amp;lt;link rel=&#34;stylesheet&#34; href=&#34;https://raw.githubusercontent.com/fccoelho7/simpleGallery.js/master/dist/simple-gallery.min.css&#34; media=&#34;screen&#34; charset=&#34;utf-8&#34;&amp;gt;
+ &amp;lt;/head&amp;gt;
+ &amp;lt;body&amp;gt;
+ &amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+ &amp;lt;input type=&#34;hidden&#34; name=&#34;gallery&#34;&amp;gt;
+ &amp;lt;label for=&#34;&#34;&amp;gt;Image Gallery&amp;lt;/label&amp;gt;
+ &amp;lt;div class=&#34;input-upload btn&#34;&amp;gt;
+Upload
+ &amp;lt;input class=&#34;upload&#34; type=&#34;file&#34; multiple=&#34;multiple&#34; accept=&#34;image/*&#34;&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=&#34;gallery-container&#34;&amp;gt;&amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+
+&amp;lt;script src=&#34;https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.4.2/Sortable.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script src=&#34;https://raw.githubusercontent.com/fccoelho7/simpleGallery.js/master/dist/simple-gallery.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+ &amp;lt;script type=&#34;text/javascript&#34;&amp;gt;
+ new SimpleGallery(&#39;.form-upload&#39;);
+ &amp;lt;/script&amp;gt;
+ &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;mas-pera&#34;&gt;Mas pera!&lt;/h2&gt;
+
+&lt;p&gt;&amp;#8220;Eu tenho minha API de uploads em uma URL e meu formulário será enviado para outro endpoint, como farei isso?&amp;#8221; Bom, caso você não deseje utilizar o mesmo endpoint para upload de imagens e requisição do formulário, o &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt; nos permite criar um segundo &lt;strong&gt;action. &lt;/strong&gt;Basta inserir um &lt;code&gt;data-action-gallery&lt;/code&gt;, como no exemplo abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;form class=&#34;form-upload&#34; action=&#34;/&#34; data-action-gallery=&#34;/uploads&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;por-fim&#34;&gt;Por fim.&lt;/h2&gt;
+
+&lt;p&gt;Outras opções como: trocar o name do input que receberá o JSON das url&amp;#8217;s e a classe que conterá a galeria também são possíveis, para mais informações acesse o repositório oficial do &lt;a href=&#34;https://github.com/fccoelho7/simpleGallery.js/&#34;&gt;simpleGallery.js&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;O conteúdo deste artigo pode ser encontrado &lt;a href=&#34;https://github.com/fccoelho7/simple-gallery-demo&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Bom, é isso. Espero que tenha gostado e perdido o medo quando o assunto é &amp;#8220;upload de imagens&amp;#8221;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Deixando seu site online com Surge.sh</title>
+      <link>http://tableless.com.br/deixando-seu-site-online-com-surge-sh/</link>
+      <pubDate>Mon, 29 Aug 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/deixando-seu-site-online-com-surge-sh/</guid>
+      <description>
+
+&lt;p&gt;Já pensou em um mundo perfeito onde você pode digitar uma linha de comando e em poucos segundos o seu website está online? E mais um detalhe, &lt;strong&gt;GRATUITAMENTE&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Sim, é verdade, esse mundo existe com o &lt;a href=&#34;https://surge.sh/&#34; target=&#34;_blank&#34;&gt;Surge.sh&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://surge.sh/&#34; target=&#34;_blank&#34;&gt;Surge.sh&lt;/a&gt; é muito simples de usar, para você instalar você precisa do gerenciador de pacotes &lt;a href=&#34;http://nodejs.org&#34; target=&#34;_blank&#34;&gt;npm&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando&#34;&gt;Instalando&lt;/h2&gt;
+
+&lt;p&gt;Para instalar digite o comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell prettyprint linenums prettyprinted&#34;&gt;$ npm install --global surge 
+&lt;/pre&gt;
+
+&lt;p&gt;Pronto! O &lt;a href=&#34;https://surge.sh/&#34; target=&#34;_blank&#34;&gt;Surge.sh&lt;/a&gt; já está pronto para usar.&lt;/p&gt;
+
+&lt;h2 id=&#34;utilizando&#34;&gt;Utilizando&lt;/h2&gt;
+
+&lt;p&gt;Para utilizar basta ir para pasta do seu projeto e digitar o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell prettyprint linenums prettyprinted&#34;&gt;$ surge
+&lt;/pre&gt;
+
+&lt;p&gt;Se for o seu primeiro uso, você terá que criar uma conta de forma gratuita na plataforma. Depois de criar a conta ou logar, o &lt;a href=&#34;https://surge.sh/&#34; target=&#34;_blank&#34;&gt;Surge.sh&lt;/a&gt; mostrará algumas informações:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://surge.sh/images/help/getting-started-with-surge.gif&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Ele mostra o diretório do teu projeto, o tamanho e quantidade de arquivos e ele sugere um subdomínio aleatório, mas que você pode alterar, inclusive pode incluir um domínio próprio, que eu vou ensinar como fazer daqui a pouco.&lt;/p&gt;
+
+&lt;p&gt;Depois disso, PRONTO, o seu website estático está online.&lt;/p&gt;
+
+&lt;h2 id=&#34;definino-o-próprio-domínio&#34;&gt;Definino o próprio domínio&lt;/h2&gt;
+
+&lt;p&gt;Com &lt;a href=&#34;https://surge.sh/&#34; target=&#34;_blank&#34;&gt;Surge.sh&lt;/a&gt; você pode usar um domínio próprio, isso significa que você pode publicar o &lt;em&gt;seu-dominio.com.br&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;definindo-o-cname&#34;&gt;Definindo o CNAME&lt;/h3&gt;
+
+&lt;p&gt;Vá no seu servidor DNS e adicione o seu subdomínio surge.sh &lt;strong&gt;CNAME&lt;/strong&gt;(&lt;em&gt;mega-dev.surge.sh&lt;/em&gt; por exemplo). Caso seu DNS não suporte &lt;strong&gt;CNAME&lt;/strong&gt;, suporte apenas &lt;strong&gt;A&lt;/strong&gt; você pode colocar o IP &lt;code&gt;45.55.110.124&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora na linha de comando é só usar o comando&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell prettyprint linenums prettyprinted&#34;&gt;$ surge diretorio/do/projeto seu-dominio.com.br
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;salvando-o-domínio-personalizado&#34;&gt;Salvando o domínio personalizado&lt;/h3&gt;
+
+&lt;p&gt;Para que o &lt;a href=&#34;https://surge.sh/&#34; target=&#34;_blank&#34;&gt;Surge.sh&lt;/a&gt; &amp;#8220;se lembre&amp;#8221; do domínio personalizado, é preciso salvar o domínio em um aquivo chamado &lt;strong&gt;CNAME&lt;/strong&gt;(sem extensão) na pasta raiz do seu projeto. Apenas o domínio na primeira linha sem qualquer tipo de marcação.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell prettyprint linenums prettyprinted&#34;&gt;echo seu-dominio.com.br &amp;gt; CNAME
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;e-se-eu-quiser-retirar-o-site-da-rede&#34;&gt;E se eu quiser retirar o site da rede?&lt;/h2&gt;
+
+&lt;p&gt;Para desativar o site, ter todos os arquivos apagados e liberar o domínio também é preciso apenas um comando&lt;/p&gt;
+
+&lt;pre class=&#34;lang-shell prettyprint linenums prettyprinted&#34;&gt;$ surge teardown seu-dominio.com.br
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;O &lt;a href=&#34;https://surge.sh/&#34; target=&#34;_blank&#34;&gt;Surge.sh&lt;/a&gt; possui diversas outras funcionalidades, como adicionar alguém ao seu projeto, usar URL amigáveis, usar Jekyll caso você queira conteúdo dinâmico. Você pode acessar o &lt;a href=&#34;https://surge.sh/&#34; target=&#34;_blank&#34;&gt;site&lt;/a&gt; e ler a &lt;a href=&#34;https://surge.sh/help/getting-started-with-surge&#34; target=&#34;_blank&#34;&gt;documentação&lt;/a&gt; para atender as suas necessidades. A plataforma possui um plano pago que te permite utilizar várias outras funções.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Começando com o Angular Material  – Parte 1</title>
+      <link>http://tableless.com.br/comecando-com-o-angular-material-parte-1/</link>
+      <pubDate>Mon, 08 Aug 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/comecando-com-o-angular-material-parte-1/</guid>
+      <description>
+
+&lt;p&gt;Decidi começar essa série de posts sobre &lt;strong&gt;Angular&lt;/strong&gt; pois ultimamente é o que mais estou estudando, e pirando também rs, estou &lt;strong&gt;viciado&lt;/strong&gt; no angular confesso, e não podia deixar de escrever sobre o &lt;strong&gt;angular material&lt;/strong&gt; pois ele realmente me surpreendeu com sua facilidade que junto a sua beleza o torna bem &lt;strong&gt;interessante&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Vou escrever uma série com alguns posts baseados no que eu aprendi do angular material nesses tempos estudando na internet, espero que possa ajudar uma galera que queria muito conhecer porém não sabia por onde começar ou tem dificuldade de achar algo em português.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Lembrando que esta série exige um certo conhecimento de AngularJS para ser compreendida ok?&lt;/em&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;parte-1-baixar-e-instalar&#34;&gt;Parte 1 — Baixar e instalar&lt;/h4&gt;
+
+&lt;p&gt;Vamos começar criando uma &lt;strong&gt;nova pasta&lt;/strong&gt; e começando um &lt;strong&gt;projeto npm &lt;/strong&gt;dentro dela, veja:&lt;/p&gt;
+
+&lt;pre&gt;cd Desktop
+mkdir project
+cd project
+npm init&lt;/pre&gt;
+
+&lt;p&gt;Vão aparecer algumas opções do projeto npm pra preencher, preencha conforme queira ou pule apertando “&lt;strong&gt;enter&lt;/strong&gt;”.&lt;/p&gt;
+
+&lt;p&gt;Agora vamos instalar o &lt;strong&gt;angular,&lt;/strong&gt; o &lt;strong&gt;angular material&lt;/strong&gt; e as &lt;strong&gt;dependências do material&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;npm install angular angular-material angular-animate angular-aria --save&lt;/pre&gt;
+
+&lt;p&gt;Legal, instalamos as dependências que precisamos para começar nosso projeto, agora &lt;strong&gt;precisamos linkar&lt;/strong&gt; com nosso arquivo html certo? Então vamos começar linkando &lt;strong&gt;5 arquivos de dependências&lt;/strong&gt;, um de css que deverá ser linkado no &lt;strong&gt;&lt;head&gt;&lt;/strong&gt;, e outros 4 scripts que linkamos &lt;strong&gt;antes da tag de fechamento do body&lt;/strong&gt;, vejamos:&lt;/p&gt;
+
+&lt;pre class=&#34;graf--pre graf-after--p&#34;&gt;&amp;lt;html ng-app=&#34;app&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;link rel=&#34;stylesheet&#34; href=&#34;node_modules/angular-material/angular-material.css&#34;&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+    &amp;lt;div&amp;gt;&amp;lt;/div&amp;gt;
+    &amp;lt;script src=&#34;node_modules/angular/angular.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+    &amp;lt;script src=&#34;node_modules/angular-animate/angular-animate.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+    &amp;lt;script src=&#34;node_modules/angular-aria/angular-aria.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+    &amp;lt;script src=&#34;node_modules/angular-material/angular-material.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Feito isso precisamos &lt;strong&gt;chamar o módulo&lt;/strong&gt; e &lt;strong&gt;incluir a dependência do angular-material&lt;/strong&gt;, veja:&lt;/p&gt;
+
+&lt;pre class=&#34;graf--pre graf-after--pre&#34;&gt;&amp;lt;script&amp;gt;
+    angular.module(&#39;app&#39;, [&#39;ngMaterial&#39;])
+        .run(function(){
+        console.log(&#39;Funcionando!&#39;)
+    });
+&amp;lt;/script&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Vejam que eu chamei nosso &lt;strong&gt;ng-app&lt;/strong&gt; na tag &lt;strong&gt;&lt;html&gt;&lt;/strong&gt;, isto é muito importante em nosso passo a passo pois vamos chamar o nosso módulo por ela, então como chamei na tag &lt;strong&gt;&lt;html&gt;&lt;/strong&gt; ele vai se estender por toda a página procurando por diretivas, controllers etc.&lt;/p&gt;
+
+&lt;p&gt;Ainda neste exemplo, escrevi uma função que quando a página é carregada ela dispara uma mensagem no console, &lt;strong&gt;você pode testar em sua máquina &lt;/strong&gt;para assimilar o que eu fiz até aqui.&lt;/p&gt;
+
+&lt;p&gt;Antes de dar continuidade ao artigo vou deixar o &lt;strong&gt;link da documentação oficial&lt;/strong&gt; do angular material que é bem explicativa e com certeza vai te ajudar bastante nessa jornada de aprendizado, além do que vamos usar bastante os exemplos de lá nos artigos:&lt;/p&gt;
+
+&lt;p style=&#34;text-align: center;&#34;&gt;
+  &lt;a href=&#34;https://material.angularjs.org/&#34;&gt;https://material.angularjs.org/&lt;/a&gt;
+&lt;/p&gt;
+
+&lt;h4 id=&#34;action-graf-h4-graf-after-mixtapeembed&#34;&gt;Action {.graf&amp;ndash;h4.graf-after&amp;ndash;mixtapeEmbed}&lt;/h4&gt;
+
+&lt;p class=&#34;graf-after--h4&#34;&gt;
+  Ambiente preparado tudo funcionando? Legal, bora pra &lt;strong&gt;action&lt;/strong&gt;, eu ia postar somente até aqui na parte 1 pro post não ficar gigante, porém acho que ficaria &lt;strong&gt;meio chato&lt;/strong&gt; porque sei que se você está lendo isso quer ir logo pra &lt;strong&gt;action! &lt;/strong&gt;Então decidi postar um combo parte 1 + parte 2, segura:
+&lt;/p&gt;
+
+&lt;h4 id=&#34;layout&#34;&gt;Layout&lt;/h4&gt;
+
+&lt;p class=&#34;graf-after--h4&#34;&gt;
+  No Angular Material podemos usar algumas diretivas pré prontas para criarmos interfaces. Usando estas diretivas html podemos definir valores (ex:&lt;strong&gt;layout=”row”&lt;/strong&gt;), que vão nos ajudar bastante a separar as coisas do jeito mais fácil para trabalharmos, pois os atributos vão definir o layout baseado nas &lt;strong&gt;classes css que já existem no angular material&lt;/strong&gt;. Conforme a documentação, segue abaixo uma tabela contendo algumas especificações:
+&lt;/p&gt;&lt;figure&gt; 
+
+&lt;
+
+div class=&amp;#8221;aspectRatioPlaceholder is-locked&amp;#8221;&gt;
+  
+&lt;img class=&#34;progressiveMedia-image js-progressiveMedia-image aligncenter&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*Zh1tH1Cuk-V7ljIIKukbXQ.png&#34; /&gt;
+  
+&lt;/figure&gt; 
+
+Então, como o angular material **tem uma api flexbox** podemos setar uma div**row**, e dentro dela **criar 2 divs** com um “**flex=”50”**”, assim cada div dentro da div **row** terá o espaço de **50% da tela** uma ao lado da outra, veja o exemplo:
+
+&lt;pre class=&#34;graf--pre graf-after--p&#34;&gt;&amp;lt;div layout=&#34;row&#34;&amp;gt;
+    &amp;lt;div flex=&#34;50&#34;&amp;gt;Primeira div&amp;lt;/div&amp;gt;
+    &amp;lt;div flex=&#34;50&#34;&amp;gt;Segunda div&amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+
+&lt;/pre&gt;
+
+Abaixo temos algumas **especificações de breakpoints** que também serão bem importante pra criarmos nossos apps e deixarmos tudo responsivo, vamos **associar breakpoints** **a definições de mediaquery**, veja:&lt;figure&gt; 
+
+&lt;img class=&#34;progressiveMedia-image js-progressiveMedia-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*gRZXmgUUu4Nu48zmSVKATA.png&#34; /&gt;
+  
+&lt;/figure&gt; 
+
+Agora podemos **combinar o breakpoint junto a api layout** e pronto, temos responsividade em nosso app 😀 veja como funciona:&lt;figure&gt; 
+
+&lt;img class=&#34;progressiveMedia-image js-progressiveMedia-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*bF72D6KkAPhg1IS9jcjvBA.png&#34; /&gt;
+  
+&lt;/figure&gt; 
+
+Com essas informações já podemos começar a fazer algumas coisas como fazer a div aparecer com uma estrutura default para quando estiver no **desktop**, e outra quando estiver no **celular** apenas manipulando a api **layout**, veja:
+
+&lt;pre class=&#34;graf--pre graf-after--p&#34;&gt;&amp;lt;md-content class=&#34;md-padding&#34; layout-xs=&#34;column&#34; layout=&#34;row&#34;&amp;gt;&amp;lt;/md-content&amp;gt;&lt;/pre&gt;
+
+Veja que eu pedi para por default o **md-content** vir como **row**, e quando a tela for menor que **599px** como vimos nos breakpoints setando o **xs**, ele mude para **column**.
+
+#### Layout-align
+
+&lt;p class=&#34;graf-after--h4&#34;&gt;
+  Podemos também alinhar elementos em nossa página com a api &lt;strong&gt;layout-align&lt;/strong&gt;, veja um exemplo:
+&lt;/p&gt;
+
+&lt;pre class=&#34;graf--pre graf-after--p&#34;&gt;&amp;lt;div layout=&#34;row&#34; layout-align=&#34;center&#34;&amp;gt;
+    Hello World!
+&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Podemos também &lt;strong&gt;combinar com os breakpoints&lt;/strong&gt; caso for preciso para deixarmos responsivo, veja a tabela:&lt;figure&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;progressiveMedia-image js-progressiveMedia-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*hltJORr9bcACAOwG3EkQlg.png&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;graf-h4-graf-after-figure&#34;&gt;{.graf&amp;ndash;h4.graf-after&amp;ndash;figure}&lt;/h4&gt;
+
+&lt;h4 id=&#34;graf-h4-graf-after-figure-1&#34;&gt;{.graf&amp;ndash;h4.graf-after&amp;ndash;figure}&lt;/h4&gt;
+
+&lt;h4 id=&#34;show-hide-graf-h4-graf-after-figure&#34;&gt;Show &amp;amp; Hide {.graf&amp;ndash;h4.graf-after&amp;ndash;figure}&lt;/h4&gt;
+
+&lt;p&gt;&lt;p class=&#34;graf-after--h4&#34;&gt;
+  Outra coisa muito interessante na parte de layouts do angular material é o &lt;strong&gt;show &amp;amp; hide&lt;/strong&gt;, uma api que pode ser usada para &lt;strong&gt;mostrar ou esconder&lt;/strong&gt; algum elemento conforme a resolução:
+&lt;/p&gt;&lt;figure&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;progressiveMedia-image js-progressiveMedia-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*eBPJTlusl1IEA7gGhRxV0w.png&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;Reproduza o código abaixo para ver o comportamento da página quando &lt;strong&gt;diminuímos a janela do navegador&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;graf--pre graf-after--p&#34;&gt;&amp;lt;div layout=&#34;row&#34;&amp;gt;
+    &amp;lt;div hide show-gt-sm flex&amp;gt;
+        Mostrar somente em dispositivos gt-sm
+    &amp;lt;/div&amp;gt;
+    &amp;lt;div hide-gt-sm flex&amp;gt;
+        Mostrar em resolução pequena e média&amp;lt;br&amp;gt;
+        Esconder em dispositivos gt-sm        
+    &amp;lt;/div&amp;gt;
+    &amp;lt;div show hide-gt-md flex&amp;gt;
+        Mostrar em resolução pequena e média&amp;lt;br&amp;gt;
+        Esconder em dispositivos gt-md        
+    &amp;lt;/div&amp;gt;
+    &amp;lt;div hide show-md flex&amp;gt;
+        Mostrar somente em resoluções médias&amp;lt;br&amp;gt;
+    &amp;lt;/div&amp;gt;
+    &amp;lt;div hide show-gt-lg flex&amp;gt;
+        Mostrar em resoluções maiores que 1200px de largura&amp;lt;br&amp;gt;
+    &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Viu só? Facilitou bastante o jeito como podemos construir nossas estruturas responsivas. Aprendemos hoje como colocar e iniciar o angular-material no seu projeto, e um pouco mais sobre a parte de layout e layout responsivo, creio que no próximo post vamos poder brincar com coisas mais legais, porém essa parte é &lt;strong&gt;essencial para qualquer pessoa que quer aprender o angular material&lt;/strong&gt;, sem ela fica muito difícil de trabalharmos.&lt;/p&gt;
+
+&lt;p&gt;Peço desculpas &lt;strong&gt;pelo tamanho do post&lt;/strong&gt; porque creio que tenha ficado meio enorme rs e isso não foi &lt;strong&gt;absolutamente nada&lt;/strong&gt; do que o angular-material pode fazer, espero que tenha contribuído com seu conhecimento, e no próximo post vou explicando um pouco sobre os services do angular material,&lt;strong&gt;qualquer feedback será bem-vindo&lt;/strong&gt;!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Você conhece AMP?</title>
+      <link>http://tableless.com.br/voce-conhece-amp/</link>
+      <pubDate>Wed, 13 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/voce-conhece-amp/</guid>
+      <description>&lt;p&gt;O projeto &lt;a href=&#34;https://www.ampproject.org/&#34; target=&#34;_blank&#34;&gt;AMP &amp;#8211; Accelerated Mobile Pages&lt;/a&gt;, é uma iniciativa Google em conjunto com alguns publishers como Chartbeat, Vox, WordPress.com, Twitter, The Washington Post, UOL, etc; de trabalhar uma estrutura de rápido carregamento de conteúdos em Smartphones. Afinal, apesar da navegação mobile crescer dia-a-dia as soluções para uma entrega com mais velocidade ainda andam a passos lentos. Nossa conexão de internet em celulares ainda não tem a devida capacidade e nos obriga a, em alguns casos, buscar tamanha versatilidade em nosso desenvolvimento web a ponto de, em um site responsivo, ter que oferecer uma &amp;#8220;cidade completa e bem elaborada&amp;#8221; em sua versão desktop e uma &amp;#8220;ilha&amp;#8221; em sua versão mobile para não correr o risco de prejudicar nosso usuário.&lt;/p&gt;
+
+&lt;p&gt;Em busca de reduzir os índices de frustração e oferecer uma solução mais rápida essa iniciativa tomou forma e o projeto vem sendo adotado e atualizado constantemente por outros publishers pelo mundo. Aqui você pode acompanhar quem esta aplicando versões AMP em seus CMS’s: &lt;a href=&#34;https://www.ampproject.org/who/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://www.ampproject.org/who/&#34;&gt;https://www.ampproject.org/who/&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;OK! Tudo bacana, mas o que tem a ver com Front/Dev? Eu te respondo: tudo!&lt;/p&gt;
+
+&lt;p&gt;O formato AMP é totalmente focado em performance e para esse resultado a estrutura exige mudanças na entrega HTML, JS e CSS das páginas web que desenvolvemos tradicionalmente. Um conteúdo deve ser estruturado de maneira que tags AMP sejam lidas e artifícios JS sejam aplicados apenas em caso de necessidade real.&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;line-height: 1.5&#34;&gt;Tecnicamente não é difícil transformar seu conteúdo em formato AMP, mas certamente, será trabalhoso caso sua estrutura seja robusta ou antiga ou os dois.&lt;/p&gt;&lt;/p&gt;
+
+&lt;h2&gt;
+  Entendendo um pouco o AMP
+&lt;/h2&gt;
+
+&lt;p&gt;
+  A estrutura é simplificada: em geral, boa parte das tags devem conter o prefixo &lt;strong&gt;&amp;#8220;amp-&amp;#8220;&amp;#8221;&lt;/strong&gt; para serem lidas. Esse é o começo dos começos:
+&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;iframe src=&#34;&#34; /&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;
+  em AMP
+&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;amp-iframe src=&#34;&#34; /&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;
+  O detalhe mais trabalhoso dessa modificação fica por conta das especificações que esses novos prefixos exigem. No exemplo acima, se nosso conteúdo for um trecho hospedado em um protocolo HTTP, provavelmente não funcionaria.
+&lt;/p&gt;
+
+&lt;p&gt;
+  &lt;strong&gt;Páginas AMP exigem que os conteúdos para iframes sejam HTTPs.&lt;/strong&gt;
+&lt;/p&gt;
+
+&lt;p&gt;
+  Além deste ponto, as imagens devem conter medidas de altura e largura, assim como qualquer outro bloco que contém algo, como trechos do Twitter ou Facebook.
+&lt;/p&gt;
+
+&lt;p&gt;
+  O JS, da forma que utilizamos também é excluído. Aquele &lt;i&gt;pluggin &lt;/i&gt;de galeria ou aquele &lt;i&gt;slider &lt;/i&gt;em Jquery, possivelmente não vão funcionar e aí você deve estar pensando:
+&lt;/p&gt;
+
+&lt;p&gt;
+  &lt;img class=&#34;alignnone&#34; src=&#34;https://media.giphy.com/media/fd1TSJqq3b4GI/giphy.gif&#34; width=&#34;600&#34; height=&#34;338&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;
+  Calma!&lt;br /&gt; Eu também reagi assim no primeiro momento mas, Google &amp;#8220;é pai e não é padastro&amp;#8221;&amp;#8221; e criou uma biblioteca de alternativas para substituirmos o tradicional pela versão AMP.
+&lt;/p&gt;
+
+&lt;p&gt;
+  Você pode dar uma conferida aqui: &lt;a href=&#34;https://www.ampproject.org/docs/reference/extended.html&#34; target=&#34;_blank&#34;&gt;&lt;span style=&#34;line-height: 1.5&#34;&gt;https://www.ampproject.org/docs/reference/extended.html&lt;/a&gt;&lt;/p&gt; 
+  
+
+&lt;p&gt;&lt;h2&gt;
+    E como eu sei que meu formato AMP esta funcionando?
+  &lt;/h2&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;p&gt;
+    Tem 2 maneiras de verificar se seu código esta de acordo com a validação AMP.
+  &lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;p&gt;
+    A primeira delas é através das ferramentas de Web Developer (F12) dos navegadores no item &amp;#8220;Console&amp;#8221;&amp;#8221;. Lá você deve ser avisado dos erros encontrados.
+  &lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;p&gt;
+    &lt;img class=&#34;alignnone size-full wp-image-55207&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/console.jpg&#34; alt=&#34;console&#34; width=&#34;466&#34; height=&#34;337&#34; /&gt;
+  &lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;p&gt;
+    Para Chrome tem uma extensão que fica no cantinho de sua tela avisando o número de erros e &amp;#8220;warnings&amp;#8221;&amp;#8221; que ele encontrou para ajustar:
+  &lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;p&gt;
+    &lt;img class=&#34;alignnone size-full wp-image-55208&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/extensaoamp.jpg&#34; alt=&#34;extensaoamp&#34; width=&#34;50&#34; height=&#34;38&#34; /&gt;
+  &lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;p&gt;
+    &amp;nbsp;
+  &lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;p&gt;
+    AMP válido e publicado, teste a busca de seus conteúdo no Google e veja como ele se apresenta. Dever algo desta forma:
+  &lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;p&gt;
+    &lt;img class=&#34;alignnone wp-image-55209&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/Google-AMP-news.jpg&#34; alt=&#34;Google-AMP-news&#34; width=&#34;800&#34; height=&#34;516&#34; /&gt;
+  &lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;p&gt;
+    A documentação completa você pode ler aqui:
+  &lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;p&gt;
+    &lt;a href=&#34;https://www.ampproject.org/docs/get_started/about-amp.html&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://www.ampproject.org/docs/get_started/about-amp.html&#34;&gt;https://www.ampproject.org/docs/get_started/about-amp.html&lt;/a&gt;&lt;/a&gt;
+  &lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;p&gt;
+    Eles explicam tudo diretinho e você tem a chance de colaborar para uma entrega mais veloz de conteúdo na internet mobile.
+  &lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;p&gt;
+    Até a próxima! 😉
+  &lt;/p&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Entendendo a indentação no Javascript</title>
+      <link>http://tableless.com.br/entendendo-indentacao-no-javascript/</link>
+      <pubDate>Wed, 06 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/entendendo-indentacao-no-javascript/</guid>
+      <description>
+
+&lt;p&gt;Código sem indentação não é legal de se ler, mas tem uma coisa um pouco pior que isso, ou tão ruim quanto, que é a falta de um padrão na indentação do projeto. Por exemplo, eu uso tab pois consigo ajustar meu editor para que ele exiba a quantidade que eu julgue necessária de espaços, mas pode ser que alguém da minha equipe use os próprios espaços, eai já imagina a beleza que vai ficar o código né? É &lt;strong&gt;MUITO&lt;/strong&gt; importante &lt;strong&gt;padronizar&lt;/strong&gt; o uso da indentação para não ter problemas futuros.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Para quem usa espaços, o padrão de validação do&lt;/em&gt; &lt;strong&gt;&lt;em&gt;JSLint&lt;/em&gt;&lt;/strong&gt; &lt;em&gt;por exemplo é de 4 (apesar de ser customizável a sua escolha), e é este que vamos usar neste artigo.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;o-que-deve-ser-indentado&#34;&gt;O que deve ser indentado?&lt;/h4&gt;
+
+&lt;p&gt;Mas o que será que eu indento? O que precisa ser indentado? Simples, qualquer coisa dentro de chaves. &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;Funções, loops, ifs, switches e propriedades de objetos&lt;/strong&gt;, vou mostrar a baixo exemplos de indentação:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function algumaFuncao(a, b) {
+    var c = 1,
+        d = 2,
+        inner;
+    if (a &amp;gt; b) {
+        inner = function() {
+        return {
+            r: c - d
+        };
+    };
+    } else {
+        inner = function () {
+            return {
+                r: c + d
+            };
+        };
+    }
+    return inner;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Caso você tenha apenas uma instrução em um &lt;strong&gt;if&lt;/strong&gt; ou &lt;strong&gt;for&lt;/strong&gt;, as chaves não são obrigatórias, porem, mesmo que sejam opcionais é importante &lt;strong&gt;sempre usa-las&lt;/strong&gt;. Isto faz com que seu código seja mais fácil de dar manutenção pois outras pessoas vão entende-lo melhor.&lt;/p&gt;
+
+&lt;p&gt;Exemplo, imagina que você tenha um &lt;strong&gt;loop for&lt;/strong&gt; com uma instrução. Você pode optar por não por as chaves e mesmo assim não haveriam erros de sintaxe:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;for (var i = 0; i &amp;lt; 10; i += 1)
+    alert(i);
+&lt;/pre&gt;
+
+&lt;p&gt;E se caso mais tarde você decidir adicionar outra linha no loop?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;for (var i = 0; i &amp;lt; 10; i += 1)
+    alert(i);
+    alert(i + &amp;#039; is &amp;#039; +(i % 2 ? &amp;#039;odd&amp;#039; : &amp;#039;even&amp;#039;));
+&lt;/pre&gt;
+
+&lt;p&gt;O segundo &lt;strong&gt;alert()&lt;/strong&gt; está fora do &lt;strong&gt;loop&lt;/strong&gt; neste caso, apesar da indentação estar tentando te enganar. Por isso temos que &lt;strong&gt;sempre usar as chaves&lt;/strong&gt;, pois evitamos ter problemas futuros, precisamos pensar a longo prazo aqui.&lt;/p&gt;
+
+&lt;h4 id=&#34;chave-de-abertura&#34;&gt;Chave de abertura&lt;/h4&gt;
+
+&lt;p&gt;Tendemos a ter preferência sobre onde colocar a chave de abertura no código, uns preferem por na &lt;strong&gt;mesma linha&lt;/strong&gt;, outros na &lt;strong&gt;linha seguinte&lt;/strong&gt;, veja:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;if (true){
+    alert(&#39;É true!&#39;)
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ou:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;if (true)
+{
+    alert(&#39;É true!&#39;)
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Neste exemplo é uma questão de preferência porém, em alguns casos o programa pode se comportar diferentemente, dependendo de onde a chave está. Isto ocorre por causa do _mecanismo de inserção de ponto e vírgula — _o JS não alarma caso você queira não terminar suas linhas com ponto e vírgula, pois neste caso &lt;strong&gt;ele adiciona para você&lt;/strong&gt;. Isso pode causar problemas quando uma função retorna um objeto literal e a chave de abertura está na linha seguinte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;function func() {
+    return
+    {
+        nome: &#39;Julio&#39;
+    };
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Se você queria que sua função retornasse o objeto “&lt;strong&gt;nome&lt;/strong&gt;”, você vai ter uma surpresa, experimente rodar no seu console do node e ver o resultado para melhor compreender. Por causa dos pontos e vírgulas a função retorna “&lt;strong&gt;undefined”&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Concluindo:&lt;/p&gt;
+
+&lt;p&gt;Sempre usar chaves, e sempre colocar a de abertura na mesma linha da instrução anterior:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function func() {
+    return {
+        nome: &#39;Julio&#39;
+    };
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Espero que tenham curtido, e que eu possa ter contribuído com o conhecimento de quem acessa o Tableless, este é meu objetivo em geral, ajudar! Abraços, te espero no próximo post!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>O básico sobre Expressões Regulares</title>
+      <link>http://tableless.com.br/o-basico-sobre-expressoes-regulares/</link>
+      <pubDate>Wed, 15 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/o-basico-sobre-expressoes-regulares/</guid>
+      <description>
+
+&lt;p&gt;Expressão Regular é uma das ferramentas mais úteis que você pode ter. Vira e mexe as Expressões Regulares (RegExp) resolvem desde problemas de Find &amp;amp; Replace no editor até validação de dados em diversos níveis do seu projeto. Mas geralmente a gente só lê sobre Expressões Regulares quando precisamos decifrar aquela linha maluca e ainda assim de um jeito meio descuidado, tateando e tentando fazer dar certo uma combinação de caracteres sem sentido.&lt;/p&gt;
+
+&lt;h2 id=&#34;entendendo-as-expressões&#34;&gt;Entendendo as Expressões&lt;/h2&gt;
+
+&lt;p&gt;Uma Expressão Regular é uma representação para que você encontre padrões em um texto. Esse texto pode ser qualquer coisa, desde o valor de um campo de formulário ou simplesmente um search no seu editor de código predileto… Não importa… O objetivo é filtrar padrões em um punhado de informação textual.&lt;/p&gt;
+
+&lt;p&gt;Se você entender que uma Expressão Regular é apenas uma representação formada por símbolos, você não vai ter dificuldades. Cada símbolo representa um tipo de informação. Por exemplo: o &lt;code&gt;.&lt;/code&gt; (ponto) é um curinga. Ele significa que você pode selecionar qualquer caractere, ou seja, qualquer letra, caractere especial ou número. Exceto a quebra de linha, que é representado pelo símbolo &lt;code&gt;\n&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;classe-de-caracteres&#34;&gt;Classe de caracteres&lt;/h3&gt;
+
+&lt;p&gt;Vamos começar pelo mais fácil: quando você faz uma busca, você pode buscar uma combinação de caracteres específica, por exemplo: no seu editor de código, se você fizer uma busca por &lt;strong&gt;a&lt;/strong&gt;, ele vai te mostrar todas as letras &lt;strong&gt;a&lt;/strong&gt; do documento. Mas e se você quiser procurar todas as letras &lt;strong&gt;a&lt;/strong&gt; e as letras &lt;strong&gt;e&lt;/strong&gt;? Simples, você faz um agrupamento utilizando os colchetes &lt;code&gt;[]&lt;/code&gt;. Essa expressão irá encontrar todos os caracteres que estiverem dentro dos colchetes. &lt;a target=&#34;_blank&#34; href=&#34;http://rubular.com/r/i7apRSchRh&#34;&gt;Veja esse exemplo, onde ele filtra as letras &lt;code&gt;[ue]&lt;/code&gt;&lt;/a&gt;. Isso se chama &lt;strong&gt;classe de caracteres&lt;/strong&gt;, onde você encontra vários caracteres diferentes ao mesmo tempo.&lt;/p&gt;
+
+&lt;p&gt;Bom, se você quiser selecionar TODAS as letras do texto, você não precisa escrever o alfabeto inteiro dentro dos colchetes, basta só usar a representação &lt;code&gt;[A-z]&lt;/code&gt;. Isso quer dizer que ele pega as letras de A até Z, maiúsculas ou minúsculas.&lt;/p&gt;
+
+&lt;p&gt;Se você quiser pegar os números, por exemplo, use &lt;code&gt;[0-9]&lt;/code&gt;. Se quiser todas as letras e todos números: &lt;code&gt;[A-z0-9]&lt;/code&gt;. Pra facilitar a expressão, você pode usar &lt;code&gt;\w&lt;/code&gt;, que vai dar no mesmo.&lt;/p&gt;
+
+&lt;p&gt;Para você fazer uma negação da Classe criada, basta adicionar um &lt;code&gt;^&lt;/code&gt; dentro da classe. Por exemplo, você quer pegar todas as combinações que não sejam formadas pela sequência &lt;code&gt;es&lt;/code&gt;: &lt;code&gt;[^es]&lt;/code&gt;. &lt;a target=&#34;_blank&#34; href=&#34;http://rubular.com/r/v5TNAzCQKa&#34;&gt;Veja esse exemplo aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Exemplos de classes de caracteres:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A expressão &lt;code&gt;[a-z]&lt;/code&gt; reconhece todas as letras minúsculas.&lt;/li&gt;
+&lt;li&gt;A expressão &lt;code&gt;[A-Z]&lt;/code&gt; reconhece todas as letras maiúsculas.&lt;/li&gt;
+&lt;li&gt;A expressão &lt;code&gt;[A-z]&lt;/code&gt; reconhece todas as letras maiúsculas e minúsculas.&lt;/li&gt;
+&lt;li&gt;A expressão &lt;code&gt;[A-Z0-9]&lt;/code&gt; reconhece todas as letras maiúsculas e números.&lt;/li&gt;
+&lt;li&gt;A expressão &lt;code&gt;[a-e]&lt;/code&gt; reconhece as letras &lt;strong&gt;a&lt;/strong&gt;, &lt;strong&gt;b&lt;/strong&gt;, &lt;strong&gt;c&lt;/strong&gt;, &lt;strong&gt;d&lt;/strong&gt; e &lt;strong&gt;e&lt;/strong&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Atalhos para as classes mais comuns:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A classe &lt;code&gt;\w&lt;/code&gt; recupera todos os caracteres alpha numericos, ou seja, letras e números, mas não acentos ou caracteres especiais. É o equivalente a &lt;code&gt;[a-zA-Z_0-9]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;A classe &lt;code&gt;\W&lt;/code&gt; pega TODOS os caracteres que não seja alpha numericos, ou seja, pontuações e espaços.&lt;/li&gt;
+&lt;li&gt;A classe &lt;code&gt;\s&lt;/code&gt; é o equivalente &lt;code&gt;[ \t\n\x0B\f\r]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;A classe &lt;code&gt;\d&lt;/code&gt; é o equivalente &lt;code&gt;[0-9]&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;E as classses de negação. Lembrando que basta colocar o sinal de &lt;code&gt;^&lt;/code&gt; logo depois do colchete inicial &lt;code&gt;[&lt;/code&gt;:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A expressão de classe &lt;code&gt;[^y]&lt;/code&gt; reconhece qualquer caractere, exceto y.&lt;/li&gt;
+&lt;li&gt;A expressão de classe &lt;code&gt;[^a-e]&lt;/code&gt; reconhece qualquer caractere, exceto &lt;strong&gt;a&lt;/strong&gt;, &lt;strong&gt;b&lt;/strong&gt;, &lt;strong&gt;c&lt;/strong&gt;, &lt;strong&gt;d&lt;/strong&gt; e &lt;strong&gt;e&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;A expressão de classe &lt;code&gt;[^\d]&lt;/code&gt; reconhece qualquer caractere, exceto 0, 1, 2, 3, 4, 5, 6, 7, 8 e 9.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;múltiplos-padrões&#34;&gt;Múltiplos padrões&lt;/h3&gt;
+
+&lt;p&gt;Imagine agora que você queira encontrar dois padrões diferentes de caracteres, por exemplo, duas palavras. Bastando usar o símbolo &lt;code&gt;|&lt;/code&gt; (pipe), que vai significar &lt;strong&gt;OU&lt;/strong&gt;. Nesse caso a expressão irá reconhecer um ou o outro padrão. &lt;a target=&#34;_blank&#34; href=&#34;http://rubular.com/r/QScUEY0F1D&#34;&gt;Veja esse exemplo&lt;/a&gt; onde recuperamos o retorno das palavras &lt;strong&gt;dolor&lt;/strong&gt; ou &lt;strong&gt;labore&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;âncoras&#34;&gt;Âncoras&lt;/h3&gt;
+
+&lt;p&gt;As âncoras recuperam a posição &lt;strong&gt;entre os caracteres, mas não os caracteres em si&lt;/strong&gt;. Por exemplo, a expressão &lt;code&gt;^dolor&lt;/code&gt;, vai recuperar as palavras &lt;strong&gt;dolor&lt;/strong&gt; que estiverem no início da linha (&lt;a target=&#34;_blank&#34; href=&#34;http://rubular.com/r/xLTGYJY1fz&#34;&gt;veja o exemplo&lt;/a&gt;). A expressão &lt;code&gt;dolor$&lt;/code&gt; vai recuperar o termo que estiver no final da linha (&lt;a target=&#34;_blank&#34; href=&#34;http://rubular.com/r/FdBuPNAeWE&#34;&gt;veja o exemplo&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;modos&#34;&gt;Modos&lt;/h3&gt;
+
+&lt;p&gt;Agora, suponha que você queira pegar uma sequência que contenha um termo parecido, mas que possa estar com algumas letras maiúsculas ou minúsculas. Por exemplo os termos &lt;strong&gt;Lorem&lt;/strong&gt;, &lt;strong&gt;lorem&lt;/strong&gt;, &lt;strong&gt;loRem&lt;/strong&gt;, &lt;strong&gt;lOrEm&lt;/strong&gt; etc, bastaria usar a representação &lt;code&gt;(?i)&lt;/code&gt; antes do termo a ser buscada. A expressão ficaria assim &lt;code&gt;(?i)lorem&lt;/code&gt;. &lt;a target=&#34;_blank&#34; href=&#34;http://rubular.com/r/oEesGNpNcZ&#34;&gt;Veja este exemplo aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;brincando-de-validar-um-email&#34;&gt;Brincando de validar um email&lt;/h3&gt;
+
+&lt;p&gt;Uma tarefa muito corriqueira é a validação de campos de e-mail. Sem entrar nas polêmicas (validar essas coisas sempre é chato), mas é legal para treinar o que você acabou de ler. A expressão para fazer a validação é essa:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;^\w*(\.\w*)?@\w*\.[a-z]+(\.[a-z]+)?$
+&lt;/pre&gt;
+
+&lt;p&gt;Explicando:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A expressão &lt;code&gt;^&lt;/code&gt; indica o começo da string/linha.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;\w*&lt;/code&gt; pega qualquer caracteres alpha numericos, é o equivalente a &lt;code&gt;[a-zA-Z0-9_]&lt;/code&gt;. O asterísco é quantitativo, detectando qualquer quantidade desses caracteres, iniciando no 0 e indo até o infinito.&lt;/li&gt;
+&lt;li&gt;A expressão &lt;code&gt;(\.\w*)?&lt;/code&gt; significa: parenteses inicia um agrupamento. A expressão &lt;code&gt;\.&lt;/code&gt; detecta literamente um ponto &lt;strong&gt;.&lt;/strong&gt;. A expressão &lt;code&gt;\w*&lt;/code&gt; qualquer quantidade de caracteres alpha numéricos.&lt;/li&gt;
+&lt;li&gt;O ponto de interrogação (&lt;code&gt;?&lt;/code&gt;) é quantitativo: determina que o que vier imediatamente antes dele aparecer na expressão 0 ou 1 vez. Nessa expressão ele aparece duas vezes.&lt;/li&gt;
+&lt;li&gt;O arroba seria o arroba do email mesmo&amp;#8230;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;\w*&lt;/code&gt; que aparece depois do arroba já falamos várias vezes logo acima.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;\.[a-z]&lt;/code&gt; pega um ponto seguido de letras minúsculas. vai detectar algo como &lt;strong&gt;.com&lt;/strong&gt;, &lt;strong&gt;.net&lt;/strong&gt;, etc&amp;#8230;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;+&lt;/code&gt; significa que o que estiver imediatamente antes dele precisa aparecer 1 ou mais vezes no termo.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;(\.[a-z]+)&lt;/code&gt;: abrimos novamente um agrupamento com o parenteses. &lt;code&gt;\.&lt;/code&gt; pega o ponto. A classe &lt;code&gt;[a-z]&lt;/code&gt; seleciona qualquer letra minúscula. E o mais aparece novamente, dizendo que tudo aquilo que estiver antes dele deve aparecer pelo menos 1 vez&lt;/li&gt;
+&lt;li&gt;E a expressão &lt;code&gt;$&lt;/code&gt; pra finalizar significa final da string.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Veja funcionando abaixo:&lt;/p&gt;
+
+&lt;h4 id=&#34;para-você-testar-e-aprender&#34;&gt;Para você testar e aprender&lt;/h4&gt;
+
+&lt;p&gt;Existem alguns sites pra facilitar a criação e o debug das expressões regulares, veja abaixo:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://regex101.com/r/vS7vZ3/224#javascript&#34;&gt;https://regex101.com/r/vS7vZ3/224#javascript&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://rubular.com&#34;&gt;http://rubular.com&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://aprenda.vidageek.net/aprenda/regex&#34;&gt;http://aprenda.vidageek.net/aprenda/regex&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://turing.com.br/material/regex/introducao.html#&#34;&gt;http://turing.com.br/material/regex/introducao.html#&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://msdn.microsoft.com/pt-br/library/az24scfc(v=vs.110).aspx&#34;&gt;https://msdn.microsoft.com/pt-br/library/az24scfc(v=vs.110).aspx&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

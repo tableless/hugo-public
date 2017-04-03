@@ -1,0 +1,316 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/design-patterns-em-javascript-observer/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/design-patterns-em-javascript-observer/">Design Patterns em JavaScript – Observer</a></h1>
+  <p class="tb-hero-p">
+    
+    Entenda um pouco mais sobre o pattern JavaScript Observer.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/bruno-ruiz">Bruno Ruiz</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<h2 id="o-que-é-design-patterns">O que é Design Patterns?</h2>
+
+<p>Desenvolver um software é se deparar constantemente com problemas. Esses problemas surgem em diversas situações e em grande quantidade. Em termos simples: nos deparamos várias vezes com um mesmo problema em diversas situações em momentos diferentes no mesmo projeto.</p>
+
+<p>Se os problemas são sempre os mesmos as soluções se repetem. Mas é muito comum darmos as mesmos soluções aos mesmos problemas de formas diferentes; isto porque não padronizamos soluções para problemas que sempre estamos resolvendo.</p>
+
+<blockquote>
+<p>Padronizar soluções é a melhor forma de resolver problemas durante o desenvolvimento de softwares.</p>
+</blockquote>
+
+<p>Em linguagens orientadas a objetos temos a disposição uma série de padrões que auxiliar na criação de objetos, na forma como eles se relacionam e nos comportamentos que eles podem adotar. Em JavaScript não é diferente. Nós podemos implementar padrões com o objetivos de auxiliar o processo de desenvolvimentos nestes aspectos.</p>
+
+<p>Vamos falar um pouco sobre um padrão de estrutura JavaScript chamada Observer.</p>
+
+<h2 id="o-que-é-o-design-pattern-observer">O que é o Design Pattern Observer?</h2>
+
+<p>Um Observer é um padrão que possibilita a um objeto observar o estado de outro objeto, sendo notificado quando ele muda de estado. Portando, existem dois papéis neste padrão de desenvolvimento: o observador e o observado. No entanto, esta relação pode ter múltiplos objetos observadores e múltiplos observados. Uma característica deste padrão, que o torna poderoso, é o <strong>acoplamento fraco</strong>; o objeto observado e o observador podem ter seu acoplamento desfeito em tempo de execução a qualquer momento.</p>
+
+<h2 id="implementando-o-design-pattern-observer">Implementando o Design Pattern Observer?</h2>
+
+<p>Vamos à pratica do padrão! Nós criaremos um objeto que será responsável por gerenciar o relacionamento entre os objetos observados e observadores.</p>
+
+<pre class="lang-javascript">var observador</pre>
+
+<p>O objeto <code>observador</code> terá quatro métodos: o primeiro método é responsável pela assinatura dos objetos observadores à objetos observados. Estes são adicionados a uma lista de objetos inscritos, conforme podemos ver abaixo:</p>
+
+<pre class="lang-javascript">observador = {
+    adicionaInscricao: function(callback){
+                 this.inscritos[this.inscritos.length] = callback;
+               }
+   }
+</pre>
+
+<p>O segundo método remove a inscrição de objeto na estrutura de um observer. Esta  possibilidade torna possível, não somente a adição, mas também a remoção de uma inscrição em tempo de execução.</p>
+
+<pre class="lang-javascript">observador = {
+    adicionaInscricao: function(callback){
+                 this.inscritos[this.inscritos.length] = callback;
+               },
+   removeInscricao: function(callback){
+                 for (var i = 0; i &lt; this.inscritos.length; i++) {
+                     if (this.inscritos[i] === callback) {
+                          delete(this.inscritos[i]);
+                        }
+                   }
+              }
+        }
+</pre>
+
+<p>Devemos ter uma forma pela qual a execução dos métodos dos objetos observados possam passar pelo observador. Somente assim os objetos inscritos poderão ser avisados da execução para a qual eles estão inscritos.</p>
+
+<pre class="lang-javascript">observador = {
+    adicionaInscricao: function(callback){
+                 this.inscritos[this.inscritos.length] = callback;
+               },
+   removeInscricao: function(callback){
+                 for (var i = 0; i &lt; this.inscritos.length; i++) {
+                     if (this.inscritos[i] === callback) {
+                          delete(this.inscritos[i]);
+                        }
+                   }
+              },
+
+    publica:function (oque) {
+              for (var i = 0; i &lt; this.inscritos.length; i++) {
+                            if (typeof this.inscritos[i] === 'function') {
+                                            this.inscriots[i](oque);
+                             }
+                        }
+                 }
+          }</pre>
+
+<p>Fazer de um objeto um observado deve  ser uma atribuição da estrutura do  nosso observador. Para isto temos o método fazObservado abaixo.</p>
+
+<pre class="lang-javascript">observador = {
+    adicionaInscricao: function(callback){
+                 this.inscritos[this.inscritos.length] = callback;
+               },
+   removeInscricao: function(callback){
+                 for (var i = 0; i &lt; this.inscritos.length; i++) {
+                     if (this.inscritos[i] === callback) {
+                          delete(this.inscritos[i]);
+                        }
+                   }
+              },
+
+    publica:function (oque) {
+              for (var i = 0; i &lt; this.inscritos.length; i++) {
+                            if (typeof this.inscritos[i] === 'function') {
+                                            this.inscritos[i](oque);
+                             }
+                        }
+                 },
+   fazObservado:function (o) { 
+              for (var i in this) {
+                  o[i] = this[i];
+                  o.inscritos= [];
+               }
+            }
+    };</pre>
+
+<h2 id="como-usar-o-design-pattern-observer">Como usar o Design Pattern Observer?</h2>
+
+<p>Ter a estrutura de observer disponibilizada em seu projeto possiblita uma orgnanização em todas as estapdas do desenvolvimento. Para termos uma idéia disto vejamos como utilizar a estrutura do observer.</p>
+
+<pre class="lang-javascript">var observado = {
+        executa:function(){
+             var conteudo = 'Executado em: ' + new Date();
+                 this.publica(conteudo);
+          }
+   };
+
+   observador.fazObservado(observado);
+
+var observaObservado = {
+      verifica:function(oque){
+           console.log("Observou "+oque)
+           }
+     };
+
+    observado.adicionaInscricao(observaObservado.verifica);
+    observado.executa();
+</pre>
+
+<p>Sempre que implementamos um padrão de desenvolvimento, ganhamos produtividade, agilidade e organização. Portanto, implemente padrões e seja feliz!</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

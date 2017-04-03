@@ -1,0 +1,2050 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Raphael Fabeni on Tableless</title>
+    <link>http://tableless.com.br/author/raphael-fabeni/index.xml</link>
+    <description>Recent content in Raphael Fabeni on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/raphael-fabeni/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>JavaScript: Dicas de bolso – parte 1</title>
+      <link>http://tableless.com.br/dicas-de-bolso-de-javascript-parte-1/</link>
+      <pubDate>Thu, 21 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/dicas-de-bolso-de-javascript-parte-1/</guid>
+      <description>
+
+&lt;h1 id=&#34;javascript-e-suas-pegadinhas&#34;&gt; JavaScript e suas pegadinhas&lt;/h1&gt;
+
+&lt;p&gt;JavaScript é uma linguagem bem legal mas cheia de &lt;em&gt;pegadinhas&lt;/em&gt;. A idéia desse post é documentar alguma dessas pegadinhas, para que possamos evitar dores de cabeça principalmente à galera que ainda não se deparou com alguma delas.&lt;/p&gt;
+
+&lt;h2 id=&#34;guarde-o-tamanho-do-array&#34;&gt;Guarde o tamanho do array&lt;/h2&gt;
+
+&lt;p&gt;No JavaScript temos nossos brothers loops &lt;code&gt;for&lt;/code&gt;, que conseguem iterar em arrays ou também em objetos semelhantes a arrays. Semelhantes? Como assim!? Por exemplo os objetos &lt;code&gt;arguments&lt;/code&gt; e &lt;code&gt;HTMLCollection&lt;/code&gt;. Provavelmente você já deve ter se deparado com um loop &lt;code&gt;for&lt;/code&gt; (já deve ter escrito alguns):&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;for(var i = 0; i &amp;lt; arrayFabeni.length; i++) {
+    // magic
+}
+&lt;/pre&gt;
+
+&lt;p&gt;De bate pronto, conseguimos perceber algo não tão bacana no código acima. O comprimento (&lt;code&gt;length&lt;/code&gt;) do array é acessado em toda iteração do loop. Isso não fica tão legal quando por exemplo, o objeto é um &lt;code&gt;HTMLCollection&lt;/code&gt;. Lembra o que são esses caras? Eles que são retornados quando a gente chama:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getElementsByName()&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getElementsByClassName()&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getElementsByTagName()&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Tá! Legal! Mas eaí né?! A zica mesmo é que toda vez que a gente itera sobre esses caras significa que estamos consultando o nosso &lt;em&gt;DOM&lt;/em&gt; ao vivo e a cores, e a *toda hora*, o que não é nada bacana.&lt;/p&gt;
+
+&lt;p&gt;Com base nisso, uma solução que podemos chegar seria &lt;em&gt;guardarmos&lt;/em&gt; o comprimento do array; algo parecido com isso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;for(var i = 0, max = arrayFabeni.length;  i &amp;lt; max; i++) {
+    // magic
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O que fizemos acima foi armazenar o valor da propriedade &lt;code&gt;length&lt;/code&gt;, evitando assim ter que calculá-la a cada iteração do loop.&lt;/p&gt;
+
+&lt;h2 id=&#34;verifique-se-a-propriedade-pertence-àquele-objeto&#34;&gt;Verifique se a propriedade pertence àquele objeto&lt;/h2&gt;
+
+&lt;p&gt;Além do nosso amigo do exemplo anterior, no JavaScript temos o loop &lt;code&gt;for-in&lt;/code&gt; que usamos pra iterar em objetos. Uma coisa bacana de se fazer e que pode evitar que algo que você não queira aconteça, é usar o método &lt;code&gt;hasOwnProperty()&lt;/code&gt;. Esse método simplesmente vai filtrar apenas as propriedades do objeto em si, excluindo as propriedades herdadas pelo &lt;code&gt;prototype&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Um exemplo rápido:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var burger = {
+    queijo: &#39;cheddar&#39;,
+    pao: &#39;integral&#39;,
+    hamburguer: &#39;picanha&#39;,
+    molho: &#39;barbecue&#39;
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Aí em uma parte obscura, aparece algo que adiciona uma propriedade a todos os objetos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;if(!Object.prototype.feijao) {
+  Object.prototype.feijao = &#39;preto&#39;;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O que aconteceu acima foi que verificamos se existe a propriedade &lt;code&gt;feijao&lt;/code&gt; em &lt;code&gt;Object&lt;/code&gt; e, caso ela não exista definimos ela com o valor &lt;code&gt;preto&lt;/code&gt;. Aí que está o negócio &lt;del&gt;da coisa&lt;/del&gt; do JavaScript, nosso objeto &lt;code&gt;burger&lt;/code&gt;, já herda a propriedade &lt;code&gt;feijao&lt;/code&gt; via &lt;code&gt;prototype&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Com isso, para evitarmos que &lt;code&gt;feijao&lt;/code&gt; apareça quando listarmos as propriedades de &lt;code&gt;burger&lt;/code&gt; (até porque feijão, na minha opinião, não combina muito com hamburguer), fazemos o seguinte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;for(var i in burger) {
+  if(burger.hasOwnProperty(i)) {
+     console.log(i + &#39; =&amp;gt; &#39; + burger[i]);
+  }
+}
+
+// Resultará no seguinte:
+// queijo =&amp;gt; cheddar
+// pao =&amp;gt; integral
+// hamburguer =&amp;gt; picanha
+// molho =&amp;gt; barbecue
+&lt;/pre&gt;
+
+&lt;p&gt;Do contrário, caso não fizéssemos essa verificação, teríamos algo assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;for(var i in burger) {
+    console.log(i + &#39; =&amp;gt; &#39; + burger[i]);
+}
+
+// Resultará no seguinte:
+// queijo =&amp;gt; cheddar
+// pao =&amp;gt; integral
+// hamburguer =&amp;gt; picanha
+// molho =&amp;gt; barbecue
+// feijao =&amp;gt; preto
+&lt;/pre&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Era isso! Dicas rápidas sobre a linguagem, que para alguns podem ser básicas, mas que muita gente ainda pode não conhecer e, que podem evitar alguns problemas no futuro.&lt;/p&gt;
+
+&lt;p&gt;Referências&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.amazon.com/Learning-JavaScript-Edition-Shelley-Powers/dp/0596521871&#34; target=&#34;_blank&#34;&gt;Learning JavaScript&lt;/a&gt; | &lt;a href=&#34;http://www.amazon.com/JavaScript-Good-Parts-Douglas-Crockford/dp/0596517742&#34; target=&#34;_blank&#34;&gt;JavaScript: The Good Parts&lt;/a&gt; | &lt;a href=&#34;http://shop.oreilly.com/product/0636920011460.do&#34; target=&#34;_blank&#34;&gt;JavaScript: Pocket Reference&lt;/a&gt; | &lt;a href=&#34;http://shop.oreilly.com/product/9780596806767.do&#34; target=&#34;_blank&#34;&gt;JavaScript Patterns&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Jasmine: entendendo os matchers</title>
+      <link>http://tableless.com.br/jasmine-entendendo-os-matchers/</link>
+      <pubDate>Mon, 30 Mar 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/jasmine-entendendo-os-matchers/</guid>
+      <description>
+
+&lt;p&gt;Uma parte legal do &lt;strong&gt;Jasmine&lt;/strong&gt; e que adianta muito o nosso lado são os &lt;em&gt;matchers&lt;/em&gt;: de um modo resumido e direto, um _matcher_ implementa uma comparação _booleana_ entre o valor atual e o valor esperado. É responsável em passar para o _framework_ se o que  &lt;em&gt;esperamos&lt;/em&gt; através do nosso teste é _verdadeiro_ ou &lt;em&gt;falso&lt;/em&gt;. Com base nisso, o _Jasmine_ vai passar ou falhar a &lt;em&gt;spec&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;toequal&#34;&gt;toEqual&lt;/h2&gt;
+
+&lt;p&gt;Esse talvez seja o mais básico e um dos que mais iremos usar. Simplemente verifica se duas coisas são iguais (e não necessariamente o mesmo objeto). Por exemplo, as seguintes _expects_ iriam passar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(true).toEqual(true);
+expect([1, 2, 3]).toEqual([1, 2, 3]);
+&lt;/pre&gt;
+
+&lt;p&gt;Da mesma forma, as seguintes iriam falhar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(5).toEqual(12);
+expect([1, 2, 3]).toEqual([11, 12, 13]);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobe&#34;&gt;toBe&lt;/h2&gt;
+
+&lt;p&gt;O _matcher_ &lt;code&gt;toBe&lt;/code&gt; a princípio parece ser igual ao anterior &lt;code&gt;toEqual&lt;/code&gt;. A diferença é que &lt;code&gt;toBe&lt;/code&gt; verifica não só se os dois valores são iguais, mas também como se eles são do mesmo objeto.&lt;/p&gt;
+
+&lt;p&gt;Pra podermos ver a diferença entre os dois:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var bob = { model: &#34;Camaro&#34; };
+var john = { model: &#34;Camaro&#34; };
+
+expect(bob).toEqual(john); // passa =&amp;gt; são equivalentes
+expect(bob).toBe(john); // falha =&amp;gt; não é o mesmo objeto
+&lt;/pre&gt;
+
+&lt;p&gt;Apesar de &lt;em&gt;bob&lt;/em&gt; e &lt;em&gt;john&lt;/em&gt; serem similares, eles não são o mesmo objeto, o que faz a &lt;em&gt;spec&lt;/em&gt; passar se for usado o &lt;em&gt;matcher&lt;/em&gt; &lt;strong&gt;toEqual&lt;/strong&gt; mas falha se for usado o &lt;em&gt;matcher&lt;/em&gt; &lt;code&gt;toBe&lt;/code&gt;. O mesmo acontece para arrays:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var group = [100, 101, 102];
+expect(group).toEqual([100, 101, 102]); // passa =&amp;gt; são equivalentes
+expect(group).toBe([100, 101, 102]); // falha =&amp;gt; não é o mesmo array
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobetruthy-e-tobefalsy&#34;&gt;toBeTruthy e toBeFalsy&lt;/h2&gt;
+
+&lt;p&gt;Para testar se algum valor é avaliado commo &lt;strong&gt;&lt;em&gt;true&lt;/em&gt;&lt;/strong&gt; ou &lt;strong&gt;&lt;em&gt;false&lt;/em&gt;&lt;/strong&gt;, podemos usar respectivamente os _matchers_ &lt;code&gt;toBeTruthy&lt;/code&gt; e &lt;code&gt;toBeFalsy&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(true).toBeTruthy();
+expect(1000).toBeTruthy();
+expect({}).toBeTruthy();
+
+expect(&#34;&#34;).toBeFalsy();
+expect(null).toBeFalsy();
+expect(false).toBeFalsy();
+&lt;/pre&gt;
+
+&lt;p&gt;Se pararmos pra olhar com calma o exemplo anterior podemos notar que a avaliação dos _matchers_ &lt;code&gt;toBeTruthy&lt;/code&gt; e &lt;code&gt;toBeFalsy&lt;/code&gt; é idêntica ao &lt;em&gt;JavaScript&lt;/em&gt;. Então temos alguns valores específicos que são considerados _falsy_ e todo o restante é avaliado como &lt;em&gt;truthy&lt;/em&gt;. Pra nossa referência, uma lista dos valores que são avaliados como &lt;em&gt;falsy&lt;/em&gt; pelo &lt;em&gt;Jasmine&lt;/em&gt;:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;&lt;em&gt;false&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;****&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&lt;strong&gt;&amp;#8220;&amp;#8221;&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;&lt;em&gt;undefined&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&lt;strong&gt;null&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;&lt;strong&gt;NaN&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;not&#34;&gt;not&lt;/h2&gt;
+
+&lt;p&gt;Muitas vezes podemos inverter um _matcher_  pra termos certeza de que ele não é um valor &lt;strong&gt;&lt;em&gt;true&lt;/em&gt;&lt;/strong&gt;. Podemos fazer isso facilmente adicionando o prefixo &lt;code&gt;.not&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(&#39;Fabeni&#39;).not.toEqual(&#39;Finelli&#39;);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tocontain&#34;&gt;toContain&lt;/h2&gt;
+
+&lt;p&gt;Conseguimos também verificar se um elemento _está contido_ em um _array_ ou &lt;strong&gt;&lt;em&gt;string&lt;/em&gt;&lt;/strong&gt; por exemplo, como o &lt;em&gt;matcher&lt;/em&gt; &lt;code&gt;toContain&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect([10, 11, 12, 13, 14, 15]).toContain(13);
+expect(&#39;Raphael Fabeni&#39;).toContain(&#39;Fabeni&#39;);
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobedefined-e-tobeundefined&#34;&gt;toBeDefined e toBeUndefined&lt;/h2&gt;
+
+&lt;p&gt;Da mesma maneira que vimos os &lt;em&gt;matchers&lt;/em&gt; &lt;code&gt;toBeTruthy&lt;/code&gt; e &lt;code&gt;toBeFalsy&lt;/code&gt;, _Jasmine_ também nos oferece os benditos &lt;code&gt;toBeDefined&lt;/code&gt; e &lt;code&gt;toBeUndefined&lt;/code&gt; que verificam se um valor é &lt;strong&gt;&lt;em&gt;defined&lt;/em&gt;&lt;/strong&gt; ou &lt;strong&gt;&lt;em&gt;undefined&lt;/em&gt;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;var iAmUndefined;
+expect(null).toBeDefined(); // passa
+expect(&#39;Fabeni&#39;).toBeDefined(); // passa
+expect(iAmUndefined).toBeDefined(); // falha
+
+expect(iAmUndefined).toBeUndefined(); // passa
+expect(12).toBeUndefined(); // falha
+expect(null).toBeUndefined(); // falha
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobenull&#34;&gt;toBeNull&lt;/h2&gt;
+
+&lt;p&gt;Direto ao ponto, esse brother simplesmente avalia se um valor é &lt;strong&gt;&lt;em&gt;null&lt;/em&gt;&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(null).toBeNull(); // passa
+expect(false).toBeNull(); // falha
+expect(1).toBeNull(); // falha
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobenan&#34;&gt;toBeNaN&lt;/h2&gt;
+
+&lt;p&gt;Sem muitas delongas, esse _matcher_ verifica se um valor é &lt;strong&gt;&lt;em&gt;NaN&lt;/em&gt;&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(0).toBeNaN(); // falha
+expect(10).not.toBeNaN(); // passa
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobegreatherthan-e-tobelessthan&#34;&gt;toBeGreatherThan e toBeLessThan&lt;/h2&gt;
+
+&lt;p&gt;Esses dois &lt;em&gt;matchers&lt;/em&gt; verificam se um valor é maior ou menor que um outro valor passado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(10).toBeGreatherThan(1); // passa
+expect(10).toBeLessThan(20); // passa
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tobecloseto&#34;&gt;toBeCloseTo&lt;/h2&gt;
+
+&lt;p&gt;Esse _matcher_ permite que possamos verificar se um certo número está próximo de um outro número, dado uma certa precisão decimal como segundo argumento. Poderíamos por exemplo, verificar se um número é próximo de _25.23_ com um ponto decimal, poderíamos fazer algo assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(25.23).toBeCloseTo(25.2, 1); // passa
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tomatch&#34;&gt;toMatch&lt;/h2&gt;
+
+&lt;p&gt;Esse cara verifica se algum valor está de acordo com base em uma &lt;strong&gt;&lt;em&gt;expressão regular&lt;/em&gt;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(&#39;Yes, we can!&#39;).toMatch(/we/); // passa
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;tothrow&#34;&gt;toThrow&lt;/h2&gt;
+
+&lt;p&gt;Esse _matcher_ permite que verifiquemos se uma função lançou um erro. Como exemplo, vamos imaginar que temos uma função &lt;code&gt;onlyNumbers&lt;/code&gt; que deve &lt;strong&gt;&lt;em&gt;lançar uma exceção&lt;/em&gt;&lt;/strong&gt; caso o argumento passado seja uma _string_ e não um número. Podemos usar aqui uma _função anônima_ para nos facilitar a vida:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;expect(function() {
+    onlyNumbers(&#39;argumento errado&#39;)
+}).toThrow();
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;ufa-8230&#34;&gt;Ufa&amp;#8230;&lt;/h2&gt;
+
+&lt;p&gt;Deu pra ver que o _framework_ nos oferece um monte de opção para utilizarmos em nossos testes. É ainda é possível fazer nossos &lt;em&gt;matchers&lt;/em&gt; customizados, mas vou deixar isso para um próximo post. Se você se interessar mais pelo assunto, recomendo o livro &lt;a href=&#34;http://shop.oreilly.com/product/0636920028277.do&#34; target=&#34;_blank&#34;&gt;JavaScript Testing with Jasmine&lt;/a&gt; que inclusive li recentemente e tive a idéia de escrever o post.&lt;/p&gt;
+
+&lt;p&gt;Acho que é isso. Se encontrar algum erro ou melhoria no post, pode postar no comentário ou pode me chamar no &lt;a href=&#34;https://twitter.com/raphaelfabeni&#34; target=&#34;_blank&#34;&gt;twitter&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Um guia para o elemento ‘time’ do HTML5</title>
+      <link>http://tableless.com.br/um-guia-para-o-elemento-time-html5/</link>
+      <pubDate>Mon, 29 Sep 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/um-guia-para-o-elemento-time-html5/</guid>
+      <description>
+
+&lt;p&gt;O HTML5 trouxe diversas coisas bacanas pra nós desenvolvedores. Uma das mais simples e que eu acho que são uma das mais legais é a questão da semântica com os novos elementos. O surgimento dessas &lt;em&gt;tags&lt;/em&gt; deixaram nossos códigos mais semânticos e legíveis, tanto por nós como pelas máquinas.&lt;/p&gt;
+
+&lt;p&gt;Um desses elementos é o &lt;code&gt;time&lt;/code&gt;. Já havia lido sobre ele, mas nunca tinha ido muito a fundo. Esses dias encontrei um texto do &lt;a href=&#34;https://twitter.com/AurelioDeRosa&#34; target=&#34;_blank&#34;&gt;Aurelio De Rosa&lt;/a&gt; no &lt;a href=&#34;http://www.sitepoint.com/&#34; target=&#34;_blank&#34;&gt;SitePoint&lt;/a&gt; que &lt;a href=&#34;http://www.sitepoint.com/html5-time-element-guide/&#34; target=&#34;_blank&#34;&gt;explica bastante coisa&lt;/a&gt; sobre este elemento e resolvi traduzir pra gente.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8212;&lt;/p&gt;
+
+&lt;p&gt;Tempo &amp;#8211; uma das poucas coisas que sabemos que é infinita. Os seres humanos, bem como animais e plantas, têm lidado com o tempo desde o início de sua existência.&lt;/p&gt;
+
+&lt;p&gt;Na web essa necessidade não é diferente. Mesmo nesse meio, precisamos nos comunicar com outras pessoas de que alguma coisa aconteceu em um determinado ponto, em uma data específica, ou em relação a um outro tempo definido.&lt;/p&gt;
+
+&lt;p&gt;Antes do HTML5 não tivemos nenhum elemento para marcar semanticamente uma data ou hora. Nos últimos anos, outras soluções, como os &lt;a href=&#34;http://microformats.org/&#34; target=&#34;_blank&#34;&gt;Microformats&lt;/a&gt; e &lt;a href=&#34;http://en.wikipedia.org/wiki/Microdata_%28HTML%29&#34; target=&#34;_blank&#34;&gt;Microdata&lt;/a&gt;, tentaram preencher esta lacuna para situações específicas (data de nascimento, a publicação de um livro, e assim por diante).&lt;/p&gt;
+
+&lt;p&gt;Nesse artigo eu irei cobrir o elemento &lt;code&gt;time&lt;/code&gt; do HTML5, o que ajuda a responder à necessidade de que acabamos de discutir.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-o-elemento-time&#34;&gt;O que é o elemento &lt;code&gt;time&lt;/code&gt;?&lt;/h2&gt;
+
+&lt;p&gt;O elemento &lt;code&gt;time&lt;/code&gt; foi introduzido na especificação do HTML5 em 2009. Então, em 2011 foi trocado  em favor do &lt;code&gt;data&lt;/code&gt;. Então, em seguida, o elemento foi reintroduzido e melhorado para permitir novos formatos de data/hora. A partir deste ponto você pode ver que as especificações podem ser bastante controversas.&lt;/p&gt;
+
+&lt;p&gt;O elemento &lt;code&gt;time&lt;/code&gt; representa uma data e/ou um tempo no &lt;a href=&#34;http://en.wikipedia.org/wiki/Gregorian_calendar&#34; target=&#34;_blank&#34;&gt;calendário gregoriano&lt;/a&gt;. É um elemento inline (como &lt;code&gt;&amp;lt;span&amp;gt;&lt;/code&gt; e &lt;code&gt;&amp;lt;a&amp;gt;&lt;/code&gt;) e deve ter uma tag de fechamento (como &lt;code&gt;&amp;lt;div&amp;gt;&lt;/code&gt; e &lt;code&gt;&amp;lt;span&amp;gt;&lt;/code&gt;). Quando usado na sua forma mais simples, o conteúdo do elemento deve ser uma string &lt;a href=&#34;http://www.w3.org/TR/html5/text-level-semantics.html#the-time-element&#34; target=&#34;_blank&#34;&gt;de data e/ou tempo válidas&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Um exemplo abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 1º Fevereiro 2009 --&amp;gt;
+&amp;lt;time&amp;gt;2009-02-01&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;No código acima, eu estou definindo uma data, especificamente 1º de fevereiro de 2009. O formato utilizado no código (aaaa-mm-dd) deve ser familiar para você se você já mexeu algum tempo com Linux, mas, como veremos mais adiante neste artigo, este não é o único formato válido.&lt;/p&gt;
+
+&lt;p&gt;No primeiro esboço das especificações, datas precisas eram um dos poucos formatos que você podia escrever. Por exemplo, você não podia especificar uma data como &amp;#8220;Novembro 2014&amp;#8221; ou &amp;#8220;476&amp;#8221; (o início da Idade Média). Isso foi um grande problema para vários casos, como a datação de uma pintura ou de um acontecimento histórico pois não havia uma data precisa.&lt;/p&gt;
+
+&lt;p&gt;Felizmente, esse tipo de data agora é permitida na especificação. Então, hoje nós podemos descrever um determinado mês de um ano sem um dia:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- Janeiro 2014 --&amp;gt;
+&amp;lt;time&amp;gt;2014-01&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;o-atributo-datetime&#34;&gt;O atributo &lt;code&gt;datetime&lt;/code&gt;&lt;/h2&gt;
+
+&lt;p&gt;A especificação para o elemento também padronizou um atributo chamado de &lt;code&gt;datetime&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Ao escrevermos datas como nos formatos discutidos na seção anterior, pode funciona em alguns países/culturas, como pode não atender outros. Por exemplo, os italianos (e nós brasileiros) escrevem datas usando o formato &lt;em&gt;dd/mm/aaaa&lt;/em&gt;. Portanto, mostrar uma data em outro formato pode gerar confusão.&lt;/p&gt;
+
+&lt;p&gt;Este problema pode ser facilmente resolvido usando o atributo &lt;code&gt;datetime&lt;/code&gt; do elemento &lt;code&gt;time&lt;/code&gt;. É um atributo opcional que contém as informações em um formato legível por uma máquina, como os observados nos exemplos anteriores, o que nos permite que possamos escrever o conteúdo do elemento da qualquer maneira que nós quisermos.&lt;/p&gt;
+
+&lt;p&gt;Na verdade, se o atributo &lt;code&gt;datetime&lt;/code&gt; não for especificado, o conteúdo deve estar em um dos formatos de data/hora válidos, caso contrário, podemos usá-lo como quisermos. Isso é ótimo porque nos permite escrever um código assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;A próxima reunião está agendada para &amp;lt;time datetime=&#34;2014-10&#34;&amp;gt;Outubro&amp;lt;/time&amp;gt;.
+&lt;/pre&gt;
+
+&lt;p&gt;Ou assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;A próxima reunião está agendada para o &amp;lt;time datetime=&#34;2014-10&#34;&amp;gt;próximo mês&amp;lt;/time&amp;gt;.
+&lt;/pre&gt;
+
+&lt;p&gt;Ambos exemplos possuem um conteúdo de data que não é legível por uma máquina de acordo com a especificação, mas são aceitáveis​​, por causa da presença do atributo &lt;code&gt;datetime&lt;/code&gt;, que &lt;em&gt;faz uso&lt;/em&gt; de um formato válido.&lt;/p&gt;
+
+&lt;p&gt;À primeira vista, isso pode parecer estranho. Mas o conteúdo do elemento foi concebido para servir os seres humanos, não máquinas. Além disso, esse fato permite a internacionalização das datas. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- Mesma mensagem anterior, só que em italiano --&amp;gt;
+Il prossimo incontro è programmato per &amp;lt;time datetime=&#34;2014-10&#34;&amp;gt;il mese prossimo&amp;lt;/time&amp;gt;.
+&lt;/pre&gt;
+
+&lt;p&gt;No código acima temos a mesma mensagem anterior, só que em Italiano.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-atributo-pubdate&#34;&gt;O atributo &lt;code&gt;pubdate&lt;/code&gt;&lt;/h2&gt;
+
+&lt;p&gt;Os primeiros rascunhos da especificação definiam um atributo &lt;code&gt;pubdate&lt;/code&gt; para o elemento &lt;code&gt;time&lt;/code&gt;. Este atributo era um &lt;em&gt;booleano&lt;/em&gt; que indicava que uma determinada data era a data de publicação do elemento pai &lt;code&gt;article&lt;/code&gt; ou, em caso de ausência de elemento &lt;code&gt;article&lt;/code&gt; pai, de todo o documento.&lt;/p&gt;
+
+&lt;p&gt;Você poderia escrever por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;article&amp;gt;
+    &amp;lt;h1&amp;gt;Um título&amp;lt;/h1&amp;gt;
+    &amp;lt;p&amp;gt;Esse é o conteúdo do article.&amp;lt;/p&amp;gt;
+    &amp;lt;footer&amp;gt;
+        &amp;lt;p&amp;gt;Artigo publicado em &amp;lt;time datetime=&#34;2014-09-05&#34; pubdate&amp;gt;05 de setembro de 2014&amp;lt;/time&amp;gt;
+    &amp;lt;/footer&amp;gt;
+&amp;lt;/article&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse caso, 05 de setembro de 2014 seria a data de publicação desse &lt;code&gt;article&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Eu fui um grande fã deste atributo desde que aprendi bastante sobre isso, mas, infelizmente, ele foi removido da especificação. Essa decisão criou um grande problema, porque um grande número de pessoas (inclusive eu) usam a data de publicação para julgar o frescor e a relevância de um artigo ou notícia. Embora seja verdade que você ainda possa acessar a página de um artigo e ver a data de publicação, precisamos de uma forma padrão para uma máquina de ler a data.&lt;/p&gt;
+
+&lt;p&gt;No atual momento não existe um atributo que substitua &lt;code&gt;pubdate&lt;/code&gt;, mas você pode empregar o &lt;a href=&#34;http://schema.org/BlogPosting&#34; target=&#34;_blank&#34;&gt;BlogPosting schema&lt;/a&gt;, e especificamente o valor &lt;code&gt;datePublished&lt;/code&gt; como mostrado abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;article itemscope itemType=&#34;http://schema.org/BlogPosting&#34;&amp;gt;
+        &amp;lt;h1 itemprop=&#34;headline&#34;&amp;gt;Um título&amp;lt;/h1&amp;gt;
+        &amp;lt;p itemprop=&#34;articleBody&#34;&amp;gt;Conteúdo do article.&amp;lt;/p&amp;gt;
+ 
+        &amp;lt;footer&amp;gt;
+            &amp;lt;p&amp;gt;Artigo publicado em &amp;lt;time datetime=&#34;2014-09-05&#34; itemprop=&#34;datePublished&#34;&amp;gt;05 de setembro de 2014&amp;lt;/time&amp;gt;
+        &amp;lt;/footer&amp;gt;
+&amp;lt;/article&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora que você tem um &lt;em&gt;overview&lt;/em&gt; completo do elemento &lt;code&gt;time&lt;/code&gt;, vamos ver os diversos formatos permitidos.&lt;/p&gt;
+
+&lt;p&gt;Os formatos validos para o conteúdo do elemento &lt;code&gt;time&lt;/code&gt; na ausência do atributo &lt;code&gt;datetime&lt;/code&gt; e para esse atributo em si são descritos nos itens seguintes.&lt;/p&gt;
+
+&lt;h2 id=&#34;um-mês-válido&#34;&gt;Um mês válido&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; especificando um mês específico de um ano no formato &lt;strong&gt;aaaa-mm&lt;/strong&gt;. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- Setembro 2014 --&amp;gt;
+&amp;lt;time&amp;gt;2014-09&amp;lt;/time&amp;gt;  
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;uma-data-válida-dia-do-mês&#34;&gt;Uma data válida (dia do mês)&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; especificando uma data precisa no formato &lt;strong&gt;aaaa-mm-dd&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 16 de setembro de 2014 --&amp;gt;
+&amp;lt;time&amp;gt;2014-09-16&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;uma-data-válida-sem-ano&#34;&gt;Uma data válida sem ano&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; especificando um mês e um dia sem um ano no formato &lt;strong&gt;mm-dd&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 29 de Junho --&amp;gt;
+&amp;lt;time&amp;gt;06-29&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;um-tempo-válido&#34;&gt;Um tempo válido&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; especificando um tempo sem uma data e usando o formato 24 horas, da seguinte maneira &lt;strong&gt;HH:MM[:SS[.mm]]&lt;/strong&gt; onde:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;H&lt;/strong&gt; são horas&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;M&lt;/strong&gt; são minutos&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;S&lt;/strong&gt; são segundos&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;m&lt;/strong&gt; são milisegundos&lt;/li&gt;
+&lt;li&gt;Os &lt;em&gt;brackets&lt;/em&gt; indicam partes que são opcionais.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Um exemplo desse formato mostrado abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 16 horas e 10 minutos (ou 4 horas e 10 minutos pm) --&amp;gt;
+&amp;lt;time datetime=&#34;16:10&#34;&amp;gt;afternoon&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;uma-data-e-hora-flutuante-válida&#34;&gt;Uma data e hora &lt;em&gt;flutuante&lt;/em&gt; válida&lt;/h2&gt;
+
+&lt;p&gt;Esse formato é apresentado na especificação do W3C, mas não na versão WHATWG. Deve ser uma data e um tempo precisos no formato &lt;strong&gt;aaaa-mm-ddTHH:MM[:SS[.mm]]&lt;/strong&gt; ou &lt;strong&gt;aaaa-mm-dd HH:MM[:SS[.mmm]]&lt;/strong&gt;. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 16 de Setembro de 2014 às 18 horas, 20 minutos, e 30 segundos --&amp;gt;
+&amp;lt;time datetime=&#34;2014-09-16T18:20:30&#34;&amp;gt;Terça-feira às 18:20&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;um-fuso-horário-válido&#34;&gt;Um fuso horário válido&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; representando um fuso horário. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- GMT+1 (Itália) --&amp;gt;
+&amp;lt;time&amp;gt;+01:00&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;uma-data-e-tempo-global-válidos&#34;&gt;Uma data e tempo global válidos&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; representando uma data completa, incluindo tempo e fuso horário. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 16 de Setembro de 2014 às 18 horas, 20 minutos, e 30 segundos um um fuso horário de GMT+1 (como a Itália) --&amp;gt;
+&amp;lt;time&amp;gt;2014-09-16&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;uma-semana-válida&#34;&gt;Uma semana válida&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; representando uma semana do ano. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- A 18ª semana de 2014 --&amp;gt;
+&amp;lt;time&amp;gt;2014-W18&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;um-ano-válido&#34;&gt;Um ano válido&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; representando um ano. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 2014 --&amp;gt;
+&amp;lt;time datetime=&#34;2014&#34;&amp;gt;Esse ano&amp;lt;/time&amp;gt;  
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;uma-string-válida-de-duração&#34;&gt;Uma &lt;em&gt;string&lt;/em&gt; válida de duração&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; representando uma duração. Uma duração pode começar com o prefixo &lt;em&gt;&amp;#8220;P&amp;#8221;&lt;/em&gt; (para &lt;em&gt;período&lt;/em&gt;) e usa &lt;em&gt;&amp;#8220;D&amp;#8221;&lt;/em&gt; para marcar os &lt;em&gt;dias&lt;/em&gt;. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- Uma duração de 4 dias --&amp;gt;
+&amp;lt;time datetime=&#34;P4D&#34;&amp;gt;quatro dias&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Em caso da necessidade de especificar melhor o período, após o &lt;em&gt;&amp;#8220;D&amp;#8221;&lt;/em&gt;, você pode adicionar um &lt;em&gt;&amp;#8220;T&amp;#8221;&lt;/em&gt;, que significa &lt;em&gt;tempo&lt;/em&gt;, e usar &lt;em&gt;&amp;#8220;H&amp;#8221;&lt;/em&gt; para &lt;em&gt;horas&lt;/em&gt;, &lt;em&gt;&amp;#8220;M&amp;#8221;&lt;/em&gt; para &lt;em&gt;minutos&lt;/em&gt; e &lt;em&gt;&amp;#8220;S&amp;#8221;&lt;/em&gt; para &lt;em&gt;segundos&lt;/em&gt;. Assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- Uma duração de quatro dias, quatro horas e três minutos --&amp;gt;
+&amp;lt;time datetime=&#34;P4DT4H3M&#34;&amp;gt;quatro dias&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Esse formato também permite a você especificar um ou mais &lt;a href=&#34;http://www.w3.org/TR/html5/infrastructure.html#duration-time-component&#34; target=&#34;_blank&#34;&gt;componentes de duração de tempo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;limitações&#34;&gt;Limitações&lt;/h2&gt;
+
+&lt;p&gt;A especificação atual tem algumas limitações no que você pode definir com o elemento &lt;code&gt;time&lt;/code&gt;. Uma dessas limitações é que você não pode indicar intervalos de datas. Então, se você estiver escrevendo um post sobre uma conferência que dura mais de um dia, por exemplo a partir de 26 de junho de 2014 a 28 de junho de 2014, você terá que usar dois elementos &lt;code&gt;time&lt;/code&gt;. Um bom exemplo pode ser encontrado na &lt;a href=&#34;http://aurelio.audero.it/speaking&#34; target=&#34;_blank&#34;&gt;página sobre palestras do meu website&lt;/a&gt;, onde eu uso o elemento &lt;code&gt;time&lt;/code&gt;, como mostrado abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;time datetime=&#34;2014-06-28&#34;&amp;gt;26&amp;lt;span class=&#34;hidden&#34;&amp;gt;de Junho de 2014&amp;lt;/span&amp;gt;&amp;lt;/time&amp;gt;-&amp;lt;time datetime=&#34;2014-06-28&#34;&amp;gt;28 Junho 2014&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Outra limitação é que você não pode usar o elemento &lt;code&gt;time&lt;/code&gt; para representar datas antes da &lt;a href=&#34;http://en.wikipedia.org/wiki/Common_Era&#34; target=&#34;_blank&#34;&gt;Era Comum&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;suporte&#34;&gt;Suporte&lt;/h2&gt;
+
+&lt;p&gt;Baseado no &lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time&#34; target=&#34;_blank&#34;&gt;artigo no MDN&lt;/a&gt;, o suporte do elemento &lt;code&gt;time&lt;/code&gt; é:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Chrome 33+&lt;/li&gt;
+&lt;li&gt;Firefox 22+&lt;/li&gt;
+&lt;li&gt;Internet Explorer 9+&lt;/li&gt;
+&lt;li&gt;Opera 22+&lt;/li&gt;
+&lt;li&gt;Safari 7+&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;No entanto, não há muito o que se preocupar sobre navegadores antigos. Na verdade, em caso do navegador não oferecer suporte para o elemento, ele será renderizado como um elemento &lt;em&gt;inline&lt;/em&gt; desconhecido.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Se você ainda não começou a usar o elemento &lt;code&gt;time&lt;/code&gt; nas suas páginas, eu espero que esse guia lhe inspire a começar.&lt;/p&gt;
+
+&lt;p&gt;Para mais informações, aqui vão alguns links relevantes:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.w3.org/html/wg/drafts/html/master/text-level-semantics.html#the-time-element&#34;&gt;&lt;code&gt;&amp;lt;time&amp;gt;&lt;/code&gt; Element on W3C&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://html.spec.whatwg.org/multipage/semantics.html#the-time-element&#34;&gt;&lt;code&gt;&amp;lt;time&amp;gt;&lt;/code&gt; Element on WHATWG&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time&#34;&gt;&lt;code&gt;&amp;lt;time&amp;gt;&lt;/code&gt; Element on MDN&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://wiki.whatwg.org/wiki/Time_element&#34;&gt;&lt;code&gt;&amp;lt;time&amp;gt;&lt;/code&gt; Element Wiki on WHATWG&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Texto traduzido e adaptado do [O HTML5 trouxe diversas coisas bacanas pra nós desenvolvedores. Uma das mais simples e que eu acho que são uma das mais legais é a questão da semântica com os novos elementos. O surgimento dessas &lt;em&gt;tags&lt;/em&gt; deixaram nossos códigos mais semânticos e legíveis, tanto por nós como pelas máquinas.&lt;/p&gt;
+
+&lt;p&gt;Um desses elementos é o &lt;code&gt;time&lt;/code&gt;. Já havia lido sobre ele, mas nunca tinha ido muito a fundo. Esses dias encontrei um texto do &lt;a href=&#34;https://twitter.com/AurelioDeRosa&#34; target=&#34;_blank&#34;&gt;Aurelio De Rosa&lt;/a&gt; no &lt;a href=&#34;http://www.sitepoint.com/&#34; target=&#34;_blank&#34;&gt;SitePoint&lt;/a&gt; que &lt;a href=&#34;http://www.sitepoint.com/html5-time-element-guide/&#34; target=&#34;_blank&#34;&gt;explica bastante coisa&lt;/a&gt; sobre este elemento e resolvi traduzir pra gente.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8212;&lt;/p&gt;
+
+&lt;p&gt;Tempo &amp;#8211; uma das poucas coisas que sabemos que é infinita. Os seres humanos, bem como animais e plantas, têm lidado com o tempo desde o início de sua existência.&lt;/p&gt;
+
+&lt;p&gt;Na web essa necessidade não é diferente. Mesmo nesse meio, precisamos nos comunicar com outras pessoas de que alguma coisa aconteceu em um determinado ponto, em uma data específica, ou em relação a um outro tempo definido.&lt;/p&gt;
+
+&lt;p&gt;Antes do HTML5 não tivemos nenhum elemento para marcar semanticamente uma data ou hora. Nos últimos anos, outras soluções, como os &lt;a href=&#34;http://microformats.org/&#34; target=&#34;_blank&#34;&gt;Microformats&lt;/a&gt; e &lt;a href=&#34;http://en.wikipedia.org/wiki/Microdata_%28HTML%29&#34; target=&#34;_blank&#34;&gt;Microdata&lt;/a&gt;, tentaram preencher esta lacuna para situações específicas (data de nascimento, a publicação de um livro, e assim por diante).&lt;/p&gt;
+
+&lt;p&gt;Nesse artigo eu irei cobrir o elemento &lt;code&gt;time&lt;/code&gt; do HTML5, o que ajuda a responder à necessidade de que acabamos de discutir.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-o-elemento-time-1&#34;&gt;O que é o elemento &lt;code&gt;time&lt;/code&gt;?&lt;/h2&gt;
+
+&lt;p&gt;O elemento &lt;code&gt;time&lt;/code&gt; foi introduzido na especificação do HTML5 em 2009. Então, em 2011 foi trocado  em favor do &lt;code&gt;data&lt;/code&gt;. Então, em seguida, o elemento foi reintroduzido e melhorado para permitir novos formatos de data/hora. A partir deste ponto você pode ver que as especificações podem ser bastante controversas.&lt;/p&gt;
+
+&lt;p&gt;O elemento &lt;code&gt;time&lt;/code&gt; representa uma data e/ou um tempo no &lt;a href=&#34;http://en.wikipedia.org/wiki/Gregorian_calendar&#34; target=&#34;_blank&#34;&gt;calendário gregoriano&lt;/a&gt;. É um elemento inline (como &lt;code&gt;&amp;lt;span&amp;gt;&lt;/code&gt; e &lt;code&gt;&amp;lt;a&amp;gt;&lt;/code&gt;) e deve ter uma tag de fechamento (como &lt;code&gt;&amp;lt;div&amp;gt;&lt;/code&gt; e &lt;code&gt;&amp;lt;span&amp;gt;&lt;/code&gt;). Quando usado na sua forma mais simples, o conteúdo do elemento deve ser uma string &lt;a href=&#34;http://www.w3.org/TR/html5/text-level-semantics.html#the-time-element&#34; target=&#34;_blank&#34;&gt;de data e/ou tempo válidas&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Um exemplo abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 1º Fevereiro 2009 --&amp;gt;
+&amp;lt;time&amp;gt;2009-02-01&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;No código acima, eu estou definindo uma data, especificamente 1º de fevereiro de 2009. O formato utilizado no código (aaaa-mm-dd) deve ser familiar para você se você já mexeu algum tempo com Linux, mas, como veremos mais adiante neste artigo, este não é o único formato válido.&lt;/p&gt;
+
+&lt;p&gt;No primeiro esboço das especificações, datas precisas eram um dos poucos formatos que você podia escrever. Por exemplo, você não podia especificar uma data como &amp;#8220;Novembro 2014&amp;#8221; ou &amp;#8220;476&amp;#8221; (o início da Idade Média). Isso foi um grande problema para vários casos, como a datação de uma pintura ou de um acontecimento histórico pois não havia uma data precisa.&lt;/p&gt;
+
+&lt;p&gt;Felizmente, esse tipo de data agora é permitida na especificação. Então, hoje nós podemos descrever um determinado mês de um ano sem um dia:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- Janeiro 2014 --&amp;gt;
+&amp;lt;time&amp;gt;2014-01&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;o-atributo-datetime-1&#34;&gt;O atributo &lt;code&gt;datetime&lt;/code&gt;&lt;/h2&gt;
+
+&lt;p&gt;A especificação para o elemento também padronizou um atributo chamado de &lt;code&gt;datetime&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Ao escrevermos datas como nos formatos discutidos na seção anterior, pode funciona em alguns países/culturas, como pode não atender outros. Por exemplo, os italianos (e nós brasileiros) escrevem datas usando o formato &lt;em&gt;dd/mm/aaaa&lt;/em&gt;. Portanto, mostrar uma data em outro formato pode gerar confusão.&lt;/p&gt;
+
+&lt;p&gt;Este problema pode ser facilmente resolvido usando o atributo &lt;code&gt;datetime&lt;/code&gt; do elemento &lt;code&gt;time&lt;/code&gt;. É um atributo opcional que contém as informações em um formato legível por uma máquina, como os observados nos exemplos anteriores, o que nos permite que possamos escrever o conteúdo do elemento da qualquer maneira que nós quisermos.&lt;/p&gt;
+
+&lt;p&gt;Na verdade, se o atributo &lt;code&gt;datetime&lt;/code&gt; não for especificado, o conteúdo deve estar em um dos formatos de data/hora válidos, caso contrário, podemos usá-lo como quisermos. Isso é ótimo porque nos permite escrever um código assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;A próxima reunião está agendada para &amp;lt;time datetime=&#34;2014-10&#34;&amp;gt;Outubro&amp;lt;/time&amp;gt;.
+&lt;/pre&gt;
+
+&lt;p&gt;Ou assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;A próxima reunião está agendada para o &amp;lt;time datetime=&#34;2014-10&#34;&amp;gt;próximo mês&amp;lt;/time&amp;gt;.
+&lt;/pre&gt;
+
+&lt;p&gt;Ambos exemplos possuem um conteúdo de data que não é legível por uma máquina de acordo com a especificação, mas são aceitáveis​​, por causa da presença do atributo &lt;code&gt;datetime&lt;/code&gt;, que &lt;em&gt;faz uso&lt;/em&gt; de um formato válido.&lt;/p&gt;
+
+&lt;p&gt;À primeira vista, isso pode parecer estranho. Mas o conteúdo do elemento foi concebido para servir os seres humanos, não máquinas. Além disso, esse fato permite a internacionalização das datas. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- Mesma mensagem anterior, só que em italiano --&amp;gt;
+Il prossimo incontro è programmato per &amp;lt;time datetime=&#34;2014-10&#34;&amp;gt;il mese prossimo&amp;lt;/time&amp;gt;.
+&lt;/pre&gt;
+
+&lt;p&gt;No código acima temos a mesma mensagem anterior, só que em Italiano.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-atributo-pubdate-1&#34;&gt;O atributo &lt;code&gt;pubdate&lt;/code&gt;&lt;/h2&gt;
+
+&lt;p&gt;Os primeiros rascunhos da especificação definiam um atributo &lt;code&gt;pubdate&lt;/code&gt; para o elemento &lt;code&gt;time&lt;/code&gt;. Este atributo era um &lt;em&gt;booleano&lt;/em&gt; que indicava que uma determinada data era a data de publicação do elemento pai &lt;code&gt;article&lt;/code&gt; ou, em caso de ausência de elemento &lt;code&gt;article&lt;/code&gt; pai, de todo o documento.&lt;/p&gt;
+
+&lt;p&gt;Você poderia escrever por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;article&amp;gt;
+    &amp;lt;h1&amp;gt;Um título&amp;lt;/h1&amp;gt;
+    &amp;lt;p&amp;gt;Esse é o conteúdo do article.&amp;lt;/p&amp;gt;
+    &amp;lt;footer&amp;gt;
+        &amp;lt;p&amp;gt;Artigo publicado em &amp;lt;time datetime=&#34;2014-09-05&#34; pubdate&amp;gt;05 de setembro de 2014&amp;lt;/time&amp;gt;
+    &amp;lt;/footer&amp;gt;
+&amp;lt;/article&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse caso, 05 de setembro de 2014 seria a data de publicação desse &lt;code&gt;article&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Eu fui um grande fã deste atributo desde que aprendi bastante sobre isso, mas, infelizmente, ele foi removido da especificação. Essa decisão criou um grande problema, porque um grande número de pessoas (inclusive eu) usam a data de publicação para julgar o frescor e a relevância de um artigo ou notícia. Embora seja verdade que você ainda possa acessar a página de um artigo e ver a data de publicação, precisamos de uma forma padrão para uma máquina de ler a data.&lt;/p&gt;
+
+&lt;p&gt;No atual momento não existe um atributo que substitua &lt;code&gt;pubdate&lt;/code&gt;, mas você pode empregar o &lt;a href=&#34;http://schema.org/BlogPosting&#34; target=&#34;_blank&#34;&gt;BlogPosting schema&lt;/a&gt;, e especificamente o valor &lt;code&gt;datePublished&lt;/code&gt; como mostrado abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;article itemscope itemType=&#34;http://schema.org/BlogPosting&#34;&amp;gt;
+        &amp;lt;h1 itemprop=&#34;headline&#34;&amp;gt;Um título&amp;lt;/h1&amp;gt;
+        &amp;lt;p itemprop=&#34;articleBody&#34;&amp;gt;Conteúdo do article.&amp;lt;/p&amp;gt;
+ 
+        &amp;lt;footer&amp;gt;
+            &amp;lt;p&amp;gt;Artigo publicado em &amp;lt;time datetime=&#34;2014-09-05&#34; itemprop=&#34;datePublished&#34;&amp;gt;05 de setembro de 2014&amp;lt;/time&amp;gt;
+        &amp;lt;/footer&amp;gt;
+&amp;lt;/article&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora que você tem um &lt;em&gt;overview&lt;/em&gt; completo do elemento &lt;code&gt;time&lt;/code&gt;, vamos ver os diversos formatos permitidos.&lt;/p&gt;
+
+&lt;p&gt;Os formatos validos para o conteúdo do elemento &lt;code&gt;time&lt;/code&gt; na ausência do atributo &lt;code&gt;datetime&lt;/code&gt; e para esse atributo em si são descritos nos itens seguintes.&lt;/p&gt;
+
+&lt;h2 id=&#34;um-mês-válido-1&#34;&gt;Um mês válido&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; especificando um mês específico de um ano no formato &lt;strong&gt;aaaa-mm&lt;/strong&gt;. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- Setembro 2014 --&amp;gt;
+&amp;lt;time&amp;gt;2014-09&amp;lt;/time&amp;gt;  
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;uma-data-válida-dia-do-mês-1&#34;&gt;Uma data válida (dia do mês)&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; especificando uma data precisa no formato &lt;strong&gt;aaaa-mm-dd&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 16 de setembro de 2014 --&amp;gt;
+&amp;lt;time&amp;gt;2014-09-16&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;uma-data-válida-sem-ano-1&#34;&gt;Uma data válida sem ano&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; especificando um mês e um dia sem um ano no formato &lt;strong&gt;mm-dd&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 29 de Junho --&amp;gt;
+&amp;lt;time&amp;gt;06-29&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;um-tempo-válido-1&#34;&gt;Um tempo válido&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; especificando um tempo sem uma data e usando o formato 24 horas, da seguinte maneira &lt;strong&gt;HH:MM[:SS[.mm]]&lt;/strong&gt; onde:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;H&lt;/strong&gt; são horas&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;M&lt;/strong&gt; são minutos&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;S&lt;/strong&gt; são segundos&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;m&lt;/strong&gt; são milisegundos&lt;/li&gt;
+&lt;li&gt;Os &lt;em&gt;brackets&lt;/em&gt; indicam partes que são opcionais.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Um exemplo desse formato mostrado abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 16 horas e 10 minutos (ou 4 horas e 10 minutos pm) --&amp;gt;
+&amp;lt;time datetime=&#34;16:10&#34;&amp;gt;afternoon&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;uma-data-e-hora-flutuante-válida-1&#34;&gt;Uma data e hora &lt;em&gt;flutuante&lt;/em&gt; válida&lt;/h2&gt;
+
+&lt;p&gt;Esse formato é apresentado na especificação do W3C, mas não na versão WHATWG. Deve ser uma data e um tempo precisos no formato &lt;strong&gt;aaaa-mm-ddTHH:MM[:SS[.mm]]&lt;/strong&gt; ou &lt;strong&gt;aaaa-mm-dd HH:MM[:SS[.mmm]]&lt;/strong&gt;. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 16 de Setembro de 2014 às 18 horas, 20 minutos, e 30 segundos --&amp;gt;
+&amp;lt;time datetime=&#34;2014-09-16T18:20:30&#34;&amp;gt;Terça-feira às 18:20&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;um-fuso-horário-válido-1&#34;&gt;Um fuso horário válido&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; representando um fuso horário. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- GMT+1 (Itália) --&amp;gt;
+&amp;lt;time&amp;gt;+01:00&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;uma-data-e-tempo-global-válidos-1&#34;&gt;Uma data e tempo global válidos&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; representando uma data completa, incluindo tempo e fuso horário. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 16 de Setembro de 2014 às 18 horas, 20 minutos, e 30 segundos um um fuso horário de GMT+1 (como a Itália) --&amp;gt;
+&amp;lt;time&amp;gt;2014-09-16&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;uma-semana-válida-1&#34;&gt;Uma semana válida&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; representando uma semana do ano. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- A 18ª semana de 2014 --&amp;gt;
+&amp;lt;time&amp;gt;2014-W18&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;um-ano-válido-1&#34;&gt;Um ano válido&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; representando um ano. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- 2014 --&amp;gt;
+&amp;lt;time datetime=&#34;2014&#34;&amp;gt;Esse ano&amp;lt;/time&amp;gt;  
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;uma-string-válida-de-duração-1&#34;&gt;Uma &lt;em&gt;string&lt;/em&gt; válida de duração&lt;/h2&gt;
+
+&lt;p&gt;Deve ser uma &lt;em&gt;string&lt;/em&gt; representando uma duração. Uma duração pode começar com o prefixo &lt;em&gt;&amp;#8220;P&amp;#8221;&lt;/em&gt; (para &lt;em&gt;período&lt;/em&gt;) e usa &lt;em&gt;&amp;#8220;D&amp;#8221;&lt;/em&gt; para marcar os &lt;em&gt;dias&lt;/em&gt;. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- Uma duração de 4 dias --&amp;gt;
+&amp;lt;time datetime=&#34;P4D&#34;&amp;gt;quatro dias&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Em caso da necessidade de especificar melhor o período, após o &lt;em&gt;&amp;#8220;D&amp;#8221;&lt;/em&gt;, você pode adicionar um &lt;em&gt;&amp;#8220;T&amp;#8221;&lt;/em&gt;, que significa &lt;em&gt;tempo&lt;/em&gt;, e usar &lt;em&gt;&amp;#8220;H&amp;#8221;&lt;/em&gt; para &lt;em&gt;horas&lt;/em&gt;, &lt;em&gt;&amp;#8220;M&amp;#8221;&lt;/em&gt; para &lt;em&gt;minutos&lt;/em&gt; e &lt;em&gt;&amp;#8220;S&amp;#8221;&lt;/em&gt; para &lt;em&gt;segundos&lt;/em&gt;. Assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!-- Uma duração de quatro dias, quatro horas e três minutos --&amp;gt;
+&amp;lt;time datetime=&#34;P4DT4H3M&#34;&amp;gt;quatro dias&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Esse formato também permite a você especificar um ou mais &lt;a href=&#34;http://www.w3.org/TR/html5/infrastructure.html#duration-time-component&#34; target=&#34;_blank&#34;&gt;componentes de duração de tempo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;limitações-1&#34;&gt;Limitações&lt;/h2&gt;
+
+&lt;p&gt;A especificação atual tem algumas limitações no que você pode definir com o elemento &lt;code&gt;time&lt;/code&gt;. Uma dessas limitações é que você não pode indicar intervalos de datas. Então, se você estiver escrevendo um post sobre uma conferência que dura mais de um dia, por exemplo a partir de 26 de junho de 2014 a 28 de junho de 2014, você terá que usar dois elementos &lt;code&gt;time&lt;/code&gt;. Um bom exemplo pode ser encontrado na &lt;a href=&#34;http://aurelio.audero.it/speaking&#34; target=&#34;_blank&#34;&gt;página sobre palestras do meu website&lt;/a&gt;, onde eu uso o elemento &lt;code&gt;time&lt;/code&gt;, como mostrado abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;time datetime=&#34;2014-06-28&#34;&amp;gt;26&amp;lt;span class=&#34;hidden&#34;&amp;gt;de Junho de 2014&amp;lt;/span&amp;gt;&amp;lt;/time&amp;gt;-&amp;lt;time datetime=&#34;2014-06-28&#34;&amp;gt;28 Junho 2014&amp;lt;/time&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Outra limitação é que você não pode usar o elemento &lt;code&gt;time&lt;/code&gt; para representar datas antes da &lt;a href=&#34;http://en.wikipedia.org/wiki/Common_Era&#34; target=&#34;_blank&#34;&gt;Era Comum&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;suporte-1&#34;&gt;Suporte&lt;/h2&gt;
+
+&lt;p&gt;Baseado no &lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time&#34; target=&#34;_blank&#34;&gt;artigo no MDN&lt;/a&gt;, o suporte do elemento &lt;code&gt;time&lt;/code&gt; é:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Chrome 33+&lt;/li&gt;
+&lt;li&gt;Firefox 22+&lt;/li&gt;
+&lt;li&gt;Internet Explorer 9+&lt;/li&gt;
+&lt;li&gt;Opera 22+&lt;/li&gt;
+&lt;li&gt;Safari 7+&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;No entanto, não há muito o que se preocupar sobre navegadores antigos. Na verdade, em caso do navegador não oferecer suporte para o elemento, ele será renderizado como um elemento &lt;em&gt;inline&lt;/em&gt; desconhecido.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão-1&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Se você ainda não começou a usar o elemento &lt;code&gt;time&lt;/code&gt; nas suas páginas, eu espero que esse guia lhe inspire a começar.&lt;/p&gt;
+
+&lt;p&gt;Para mais informações, aqui vão alguns links relevantes:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.w3.org/html/wg/drafts/html/master/text-level-semantics.html#the-time-element&#34;&gt;&lt;code&gt;&amp;lt;time&amp;gt;&lt;/code&gt; Element on W3C&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://html.spec.whatwg.org/multipage/semantics.html#the-time-element&#34;&gt;&lt;code&gt;&amp;lt;time&amp;gt;&lt;/code&gt; Element on WHATWG&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time&#34;&gt;&lt;code&gt;&amp;lt;time&amp;gt;&lt;/code&gt; Element on MDN&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://wiki.whatwg.org/wiki/Time_element&#34;&gt;&lt;code&gt;&amp;lt;time&amp;gt;&lt;/code&gt; Element Wiki on WHATWG&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Texto traduzido e adaptado do]&lt;a href=&#34;http://www.sitepoint.com/html5-time-element-guide/&#34;&gt;5&lt;/a&gt; escrito pelo &lt;a href=&#34;https://twitter.com/AurelioDeRosa&#34; title=&#34;Perfil do twitter&#34;&gt;Aurelio De Rosa&lt;/a&gt; em 16 de setembro de 2014.&lt;/p&gt;
+
+&lt;p&gt;Tradução autorizada pelo &lt;a href=&#34;http://www.sitepoint.com/&#34;&gt;SitePoint&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Qualquer erro ou sugestão de melhoria na tradução, é bem vinda! &lt;img class=&#34;wp-smiley&#34; src=&#34;http://tableless.com.br/wp-includes/images/smilies/icon_smile.gif&#34; alt=&#34;:)&#34; /&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Validação de formulários com HTML5</title>
+      <link>http://tableless.com.br/validacao-de-formularios-com-html5/</link>
+      <pubDate>Tue, 01 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/validacao-de-formularios-com-html5/</guid>
+      <description>
+
+&lt;p&gt;O HTML5 trouxe diversas possibilidades e, principalmente facilidades para os desenvolvedores. Uma delas é relacionada a validação de formulários. O que antes era feito com algum tempo e JavaScript, hoje pode ser feito diretamente no HTML e em um tempo muito menor. Por isso, navegando pela internet achei no &lt;a href=&#34;http://www.sitepoint.com/&#34;&gt;SitePoint&lt;/a&gt; esse &lt;a href=&#34;http://www.sitepoint.com/client-side-form-validation-html5/&#34;&gt;artigo&lt;/a&gt; do &lt;a href=&#34;https://twitter.com/tech4sky&#34;&gt;&lt;span style=&#34;text-decoration: underline&#34;&gt;A&lt;/span&gt;gbonghama Collins&lt;/a&gt;, um desenvolvedor nigeriano, que escreveu de forma rápida e direta alguns pontos da validação de formulários utilizando HTML5 e, resolvi traduzi-lo para nós.&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Quando contruímos aplicações web, é importante levarmos a segurança a sério, especialmente quando essa precisa coletar dados dos usuários.&lt;/p&gt;
+
+&lt;p&gt;Não confiar em ninguém, é uma norma máxima de segurança, portanto, nunca confie que o usuário vá inserir valores corretos e válidos no formulário. Por exemplo, em um campo de e-mail, em vez de inserir um endereço de e-mail válido, o usuário pode digitar um e-mail inválido ou dados mal-intencionados, obviamente, ignorando a indicação da requisição do campo.&lt;/p&gt;
+
+&lt;p&gt;Quando se trata de validar valores de campos de formulários, isso pode ser feito no &lt;em&gt;lado do cliente&lt;/em&gt; (navegador) e no &lt;em&gt;lado do servidor&lt;/em&gt; (usando a linguagem que preferir).&lt;/p&gt;
+
+&lt;p&gt;No passado, validações no &lt;em&gt;client-side&lt;/em&gt; só podiam ser feitas usando JavaScript ou algumas bibliotecas de &lt;em&gt;frameworks&lt;/em&gt; (como o &lt;a href=&#34;http://jqueryvalidation.org/&#34;&gt;plugin jQuery validation&lt;/a&gt;). Mas isso está mudando, ou melhor, já mudou, porque a validação agora pode ser feita usando &lt;strong&gt;HTML5&lt;/strong&gt;, sem a necessidade de escrever um código complexo de JavaScript para isso.&lt;/p&gt;
+
+&lt;h2 id=&#34;validação-de-formulário-com-html5&#34;&gt;Validação de formulário com HTML5&lt;/h2&gt;
+
+&lt;p&gt;HTML5 inclui um mecanismo bastante sólido na validação de formulários com base nos atributos da tag &lt;code&gt;input&lt;/code&gt;:  &lt;em&gt;type&lt;/em&gt;, &lt;em&gt;pattern&lt;/em&gt; e &lt;em&gt;require&lt;/em&gt;. Graças a esses novos atributos, você pode delegar algumas funções de verificação de dados para o navegador.&lt;/p&gt;
+
+&lt;p&gt;Vamos examinar esse atributos para ver como eles podem nos ajudar na validação de um formulário.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-atributo-type&#34;&gt;O atributo &lt;code&gt;type&lt;/code&gt;&lt;/h2&gt;
+
+&lt;p&gt;Esse atributo indica o tipo de controle de entrada de dados como o popular &lt;code&gt;&amp;lt;input type=&amp;quot;text&amp;quot;&amp;gt;&lt;/code&gt; para manipulação de dados de texto simples.&lt;/p&gt;
+
+&lt;p&gt;Alguns controles de formulários herdam sistemas de validação sem a necessidade de escrever qualquer código. Por exemplo, &lt;code&gt;&amp;lt;input type=&amp;quot;email&amp;quot;&amp;gt;&lt;/code&gt; valida o campo para garantir que o dado digitado seja de fato um endereço de e-mail válido. Se o campo tiver um dado inválido, o formulário não vai poder ser submetido até que esse erro seja corrigido.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-42961&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/06/validacao-email.png&#34; alt=&#34;Imagem mostrando a validação client-side em um campo de formulário&#34; width=&#34;297&#34; height=&#34;100&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codepen.io/raphaelfabeni/pen/hLcxn&#34;&gt;Teste o exemplo nesse link&lt;/a&gt; digitando um endereço de e-mail válido (&lt;a href=&#34;http://codepen.io/SitePoint/pen/BFwhz&#34;&gt;Link do CodePen original&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Há também o &lt;code&gt;&amp;lt;input type=&amp;quot;number&amp;quot;&amp;gt;&lt;/code&gt;, &lt;code&gt;&amp;lt;input type=&amp;quot;url&amp;quot;&amp;gt;&lt;/code&gt; e &lt;code&gt;&amp;lt;input type=&amp;quot;tel&amp;quot;&amp;gt;&lt;/code&gt; para validar números, URLs e telefones respectivamente.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Nota:&lt;/strong&gt; Os formatos de números de telefone variam de país para país devido à inconsistência nos tamanhos e formatos. Como resultado, a especificação não define um algoritmo para validá-los, portanto não é suportado nos navegadores web no momento da escrita.&lt;/p&gt;
+
+&lt;p&gt;Lembre-se, a validação pode ser feita para o campo telefone em conjunto com o atributo &lt;code&gt;pattern&lt;/code&gt; que aceita uma &lt;em&gt;expressão regular&lt;/em&gt;, e que veremos a seguir.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-atributo-pattern&#34;&gt;O atributo &lt;code&gt;pattern&lt;/code&gt;&lt;/h2&gt;
+
+&lt;p&gt;O atributo &lt;code&gt;pattern&lt;/code&gt; vai deixar os desenvolvedores felizes, principalmente aqueles que trabalham com front-end. Este atributo especifica um formato (na forma de expressão regular do JavaScript) em que o valor do campo é testado.&lt;/p&gt;
+
+&lt;p&gt;Expressões regulares são uma linguagem usada para analisar e manipular texto. Elas são frequentemente utilizadas para executar operações complexas de &lt;em&gt;search-and-replace&lt;/em&gt;, e para garantir que os dados de texto estão corretos.&lt;/p&gt;
+
+&lt;p&gt;Hoje em dia, as expressões regulares estão incluídas na maioria das linguagens de programação, assim como em muitas linguagens de script, editores, aplicações, bancos de dados e ferramentas de linha de comando.&lt;/p&gt;
+
+&lt;p&gt;Expressões regulares (&lt;em&gt;RegEX&lt;/em&gt;) oferecem um poderoso, conciso e flexível meio para encontrar &lt;em&gt;string&lt;/em&gt; ou textos com caracteres particulares, palavras ou padrões de caracteres.&lt;/p&gt;
+
+&lt;p&gt;Ao passarmos uma &lt;em&gt;string RegEX&lt;/em&gt; como valor para o atributo &lt;code&gt;pattern&lt;/code&gt;, conseguimos definir qual valor é aceitável pelo campo do formulário e também informar ao usuário de possíveis erros.&lt;/p&gt;
+
+&lt;p&gt;Vamos ver alguns exemplos de como usar expressões regulares para validação de dados em campos de formulário.&lt;/p&gt;
+
+&lt;h3 id=&#34;números-de-telefone&#34;&gt;Números de telefone&lt;/h3&gt;
+
+&lt;p&gt;Como mencionado, o &lt;code&gt;input&lt;/code&gt; tel não é totalmente suportado pelos navegadores web devido à inconsistência no formato dos números de telefone em diferentes países.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo, no meu país, a Nigéria, o formato do telefone é &lt;em&gt;xxxx-xxx-xxxx&lt;/em&gt;, que seria algo como &lt;em&gt;0803-555-8205&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;A &lt;em&gt;RegEX&lt;/em&gt; &lt;code&gt;^\d{4}-\d{3}-\d{4}$&lt;/code&gt; corresponde ao formato, portanto, o HTML ficaria assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt;&amp;lt;label for=&#34;phonenum&#34;&amp;gt;Número de telefone:&amp;lt;/label&amp;gt;
+&amp;lt;input pattern=&#34;^\d{4}-\d{3}-\d{4}$&#34; type=&#34;tel&#34;&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codepen.io/raphaelfabeni/pen/vDIor&#34;&gt;Veja aqui um exemplo&lt;/a&gt;. (&lt;a href=&#34;http://codepen.io/SitePoint/pen/Eambf&#34;&gt;Link do CodePen original&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;valores-alfanuméricos&#34;&gt;Valores alfanuméricos&lt;/h3&gt;
+
+&lt;p&gt;O exemplo a seguir corresponde a caracteres alfanuméricos (combinações de letras do alfabeto e números).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt;&amp;lt;input pattern=&#34;[a-zA-Z0-9]+&#34; type=&#34;text&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codepen.io/raphaelfabeni/pen/Lgsdk&#34;&gt;Veja aqui um exemplo&lt;/a&gt;. (&lt;a href=&#34;http://codepen.io/SitePoint/pen/nptlf&#34;&gt;Link do CodePen original&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;usuário-do-twitter&#34;&gt;Usuário do twitter&lt;/h3&gt;
+
+&lt;p&gt;Essa expressão regular corresponde a um usuário do Twitter com o símbolo &lt;code&gt;@&lt;/code&gt;. Por exemplo: @tech3sky&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt;&amp;lt;input pattern=&#34;^@[A-Za-z0-9_]{1,15}$&#34; type=&#34;text&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codepen.io/raphaelfabeni/pen/GBFkJ&#34;&gt;Veja aqui um exemplo&lt;/a&gt;. (&lt;a href=&#34;http://codepen.io/SitePoint/pen/nKGro&#34;&gt;Link do CodePen original&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;modo-de-cor-hex&#34;&gt;Modo de cor HEX&lt;/h3&gt;
+
+&lt;p&gt;Esse corresponde a cores hexadecimais. Por exemplo #3b5998 ou #000.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html prettyprint linenums&#34;&gt;&amp;lt;input pattern=&#34;^#+([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$&#34; type=&#34;text&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codepen.io/raphaelfabeni/pen/ifvFI&#34;&gt;Veja aqui um exemplo&lt;/a&gt;. (&lt;a href=&#34;http://codepen.io/SitePoint/pen/ejqig&#34;&gt;Link do CodePen original&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;dando-algumas-dicas&#34;&gt;Dando algumas dicas&lt;/h3&gt;
+
+&lt;p&gt;Para fornecer ao usuário uma descrição da &lt;code&gt;pattern&lt;/code&gt;, ou um erro reportando que o valor inserido está inválido, você pode utilizar o atributo &lt;code&gt;title&lt;/code&gt;, dessa maneira:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-42964&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/06/validacao-title.png&#34; alt=&#34;Imagem mostra o atributo title de um campo de formulário ao usuário deixar o mouse sob ele&#34; width=&#34;273&#34; height=&#34;100&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-42965&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/06/validacao-erro.png&#34; alt=&#34;Imagem mostra erro devido à entrada de dados inválidos em um campo de formuláriop&#34; width=&#34;269&#34; height=&#34;100&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codepen.io/raphaelfabeni/pen/ifsje&#34;&gt;Veja aqui um exemplo&lt;/a&gt;. (&lt;a href=&#34;http://codepen.io/SitePoint/pen/hbuxg&#34;&gt;Link para o CodePen original&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Se você é novo com expressões regulares, você pode &lt;a href=&#34;http://docs.webplatform.org/wiki/concepts/programming/javascript/regex&#34;&gt;consultar esse documento no WebPlatform para lhe dar uma ajuda inicial&lt;/a&gt;. No entanto, na maioria dos casos, você pode usar o Google para ajudar a procurar a expressão regular que você quer, ou até mesmo &lt;a href=&#34;https://www.google.com.br/?gfe_rd=cr&amp;amp;ei=lkiWU4S-Momk8weRlIBw#q=regular+expression+tool&#34;&gt;utilizar uma ferramenta para ajudá-lo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-atributo-required&#34;&gt;O atributo &lt;code&gt;required&lt;/code&gt;&lt;/h2&gt;
+
+&lt;p&gt;Esse é um atributo &lt;em&gt;booleano&lt;/em&gt; usado para indicar que um determinando campo de formulário é obrigatório para o envio do mesmo. Ao adicionar esse atributo a um campo de formulário, o navegador obriga o usuário a inserir dados naquele campo antes de enviar o formulário.&lt;/p&gt;
+
+&lt;p&gt;Essa validação substitui a validação básica de formulário implementada com JavaScript, tornando as coisas um pouco mais úteis e nos poupando algum tempo de desenvolvimento.&lt;/p&gt;
+
+&lt;p&gt;Exemplo: &lt;code&gt;&amp;lt;input name=&amp;quot;my_name&amp;quot; required=&amp;quot;&amp;quot; type=&amp;quot;text&amp;quot;&amp;gt;&lt;/code&gt; ou &lt;code&gt;&amp;lt;input name=&amp;quot;my_name&amp;quot; required=&amp;quot;required&amp;quot; type=&amp;quot;text&amp;quot;&amp;gt;&lt;/code&gt; para compatibilidade XHTML.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-42966&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/06/validacao-required.png&#34; alt=&#34;Imagem mostra erro da validação HTML5 em um campo de formulário que é obrigatório.&#34; width=&#34;208&#34; height=&#34;150&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Todos os links de exemplos acima utilizam o atributo &lt;code&gt;required&lt;/code&gt;, assim você pode testá-los tentando submetê-los sem digitar nada nos campos.&lt;/p&gt;
+
+&lt;h2 id=&#34;resumo&#34;&gt;Resumo&lt;/h2&gt;
+
+&lt;p&gt;O suporte dos navegadores para as &lt;em&gt;features&lt;/em&gt; de validação de formulários é bem grande, e você pode utilizar &lt;em&gt;polyfills&lt;/em&gt; quando necessário.&lt;/p&gt;
+
+&lt;p&gt;Vale a pena lembrar que confiar apenas no navegador (&lt;em&gt;client-side&lt;/em&gt;) para a validação pode ser perigoso, pois isso pode ser contornado por um usuário mal-intencionado ou por &lt;em&gt;bots&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Nem todos os navegadores suportam HTML5 e nem toda entrada de texto enviada para seu script virá do formulário. Isso significa que validação do lado do servidor também deve estar antes do envio dos dados para o processamento do servidor.&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Texto traduzido e adaptado do &lt;a href=&#34;http://www.sitepoint.com/client-side-form-validation-html5/&#34;&gt;artigo&lt;/a&gt; escrito pelo &lt;a href=&#34;https://twitter.com/tech4sky&#34;&gt;Agbonghama Collins&lt;/a&gt; em 06 de junho de 2014. Tradução autorizada pelo autor.&lt;/p&gt;
+
+&lt;p&gt;Dei um _fork_ em todos os exemplos do CodePen colocando o texto em português, mas mantive os links para os originais também.&lt;/p&gt;
+
+&lt;p&gt;Qualquer erro ou sugestão de melhoria na tradução, é bem vinda! 🙂&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Utilizando o MarkerClusterer no Google Maps</title>
+      <link>http://tableless.com.br/utilizando-o-markerclusterer-google-maps/</link>
+      <pubDate>Wed, 07 May 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/utilizando-o-markerclusterer-google-maps/</guid>
+      <description>
+
+&lt;p&gt;Seja você desenvolvedor ou não, temos que admitir o poder do Google Maps. É bem difícil encontrar alguém hoje em dia que não tenha acessado pelo menos uma vez o famoso &lt;em&gt;Maps&lt;/em&gt; para ver onde ficava um determinado lugar.&lt;/p&gt;
+
+&lt;p&gt;Esses dias me deparei novamente com o excelente artigo do Thulio Philipe sobre a &lt;a href=&#34;http://tableless.com.br/api-google-maps-v3/&#34;&gt;API do Google Maps V3&lt;/a&gt; e resolvi escrever um pouco sobre um recurso chamado &lt;strong&gt;MarkerClusterer&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-o-markerclusterer&#34;&gt;O que é o MarkerClusterer?&lt;/h2&gt;
+
+&lt;p&gt;Segundo o Google, trata-se de uma solução para o problema de muitos &lt;em&gt;pontos&lt;/em&gt; em um mapa. Indo direto ao ponto, ele agrupa pontos (&lt;em&gt;markers&lt;/em&gt;) que são muito próximos uns dos outros no mapa e renderiza um ponto diferente com o número de ícones agrupados.&lt;/p&gt;
+
+&lt;p&gt;Confuso? Visualmente fica mais fácil para explicar. Imagine que tivéssemos um mapa assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo-antes-MarkerClusterer.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-42294&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo-antes-MarkerClusterer.png&#34; alt=&#34;Exemplo de mapa simples sem a utilização do MarkerClusterer&#34; width=&#34;624&#34; height=&#34;424&#34; srcset=&#34;uploads/2014/04/exemplo-antes-MarkerClusterer.png 624w, uploads/2014/04/exemplo-antes-MarkerClusterer-400x271.png 400w&#34; sizes=&#34;(max-width: 624px) 100vw, 624px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Temos alguns pontos que são bem próximos uns dos outros enquanto outros são mais distantes. Aplicando o MarkerClusterer ficaria assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo-depois-MarkerClusterer.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-42295&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo-depois-MarkerClusterer.png&#34; alt=&#34;Exemplo de mapa simples com a utilização do MarkerClusterer&#34; width=&#34;624&#34; height=&#34;424&#34; srcset=&#34;uploads/2014/04/exemplo-depois-MarkerClusterer.png 624w, uploads/2014/04/exemplo-depois-MarkerClusterer-400x271.png 400w&#34; sizes=&#34;(max-width: 624px) 100vw, 624px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Você pode estar pensando a mesma coisa que pensei a primeira vez que vi o exemplo: &lt;em&gt;&amp;#8220;Ah, nem precisava agrupar os itens! Tem poucos no mapa!&amp;#8221;&lt;/em&gt; Pode ser. Agora imagine que tivéssemos um mapa assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo2-antes-MarkerClusterer.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-42292&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo2-antes-MarkerClusterer.png&#34; alt=&#34;Exemplo de mapa mais complexo com a utilização do MarkerClusterer&#34; width=&#34;624&#34; height=&#34;424&#34; srcset=&#34;uploads/2014/04/exemplo2-antes-MarkerClusterer.png 624w, uploads/2014/04/exemplo2-antes-MarkerClusterer-400x271.png 400w&#34; sizes=&#34;(max-width: 624px) 100vw, 624px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pois é! De acordo com o próprio Google, um mapa assim acaba por se tornar lento pelo fato de um ponto no mapa ser uma combinação de vários elementos no DOM. Logo, quanto mais pontos no mapa, maior o trabalho no navegador para renderização. O legal é que existe até um &lt;a href=&#34;http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/examples/speed_test_example.html?&#34;&gt;teste de velocidade&lt;/a&gt; comparando um mapa com e sem o uso do MarkerClusterer.&lt;/p&gt;
+
+&lt;p&gt;Como ficaria com a utilização do MarkerClusterer:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo2-depois-MarkerClusterer.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-42293&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/04/exemplo2-depois-MarkerClusterer.png&#34; alt=&#34;Exemplo de mapa mais complexo sem a utilização do MarkerClusterer&#34; width=&#34;624&#34; height=&#34;424&#34; srcset=&#34;uploads/2014/04/exemplo2-depois-MarkerClusterer.png 624w, uploads/2014/04/exemplo2-depois-MarkerClusterer-400x271.png 400w&#34; sizes=&#34;(max-width: 624px) 100vw, 624px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pode ser até que a questão da &lt;strong&gt;perfomance&lt;/strong&gt; não influencie tanto no seu projeto, mas um ponto que deve ser considerado é a &lt;strong&gt;usabilidade&lt;/strong&gt; e &lt;strong&gt;experiência do usuário&lt;/strong&gt; ao interagir com o mapa. &lt;strong&gt;Se colocar no lugar do usuário&lt;/strong&gt; nessa hora é fundamental. Pra localizar determinado ponto no mapa: fica mais fácil com todos visíveis próximos uns dos outros ou agrupados em grupos maiores? Logicamente não existe um certo ou errado pois isso vai variar de projeto para projeto, mas vale a discussão com os membros do time.&lt;/p&gt;
+
+&lt;p&gt;As imagens acima foram tiradas &lt;a href=&#34;https://developers.google.com/maps/articles/toomanymarkers?hl=pt-br#markerclusterer&#34;&gt;daqui&lt;/a&gt; onde também é possível ler mais a respeito desse recurso.&lt;/p&gt;
+
+&lt;p&gt;Peguei um exemplo do próprio Google pra podermos visualizar a diferença entre um mapa &lt;a href=&#34;http://codepen.io/raphaelfabeni/full/hdjgA&#34;&gt;sem a utilização do MarkerClusterer&lt;/a&gt; e &lt;a href=&#34;http://codepen.io/raphaelfabeni/full/zjcFd&#34;&gt;com a utilização do recurso&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Dando uma olhada no código do exemplo com a utilização do recurso temos o seguinte:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;HTML&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div id=&#34;map-container&#34;&amp;gt;&amp;lt;div id=&#34;map&#34;&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;/div&amp;gt;
+
+&amp;lt;!-- Scripts --&amp;gt;
+&amp;lt;script src=&#34;http://maps.google.com/maps/api/js?sensor=false&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;script src=&#34;http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/data.json&#34;&amp;gt;&amp;lt;/script&amp;gt;
+&amp;lt;script src=&#34;http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js&#34;&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;CSS&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body { margin: 0; }
+
+#map-container {
+  -webkit-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
+     -moz-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
+          box-shadow: rgba(64, 64, 64, 0.1) 0 2px 5px;
+  width: 600px;
+}
+
+#map {
+  width: 600px;
+  height: 400px;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;JS&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;function initialize() {
+  var center = new google.maps.LatLng(48.091534, 15.5116439);
+  
+  var map = new google.maps.Map(document.getElementById(&#39;map&#39;), {
+    zoom: 3,
+    center: center,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  });
+
+  var markers = [];
+  for (var i = 0; i &amp;lt; 100; i++) {
+    var dataPhoto = data.photos[i];
+    var latLng = new google.maps.LatLng(dataPhoto.latitude,
+              dataPhoto.longitude);
+    var marker = new google.maps.Marker({
+      position: latLng
+    });
+    markers.push(marker);
+  }
+  var markerCluster = new MarkerClusterer(map, markers);
+}
+
+google.maps.event.addDomListener(window, &#39;load&#39;, initialize);
+&lt;/pre&gt;
+
+&lt;p&gt;A parte de HTML e CSS é bem tranquila e, se pararmos pra olhar, até a parte do JS é de fácil entendimento.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Primeiro é criado o objeto do mapa com seus parâmetros e ele é passado à variável &lt;code&gt;map&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Depois é criado um array vazio que vai armazenar todos os &lt;em&gt;markers.&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Logo após é executado um &lt;code&gt;for&lt;/code&gt; que vai iterar pelo JSON que contém as informações dos pontos e, adicionar cada ponto no array que criamos acima.&lt;/li&gt;
+&lt;li&gt;Nesse momento é criado o objeto &lt;em&gt;MarkerClusterer&lt;/em&gt; passando como parâmetros o array contendo todos os pontos do JSON e o mapa.&lt;/li&gt;
+&lt;li&gt;Por fim, o mapa é iniciado no &lt;em&gt;load&lt;/em&gt; da página.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;É isso pessoal, a idéia era dar uma passada geral sobre o recurso que pode ser útil para alguém que for mexer com mapas que possuem muitos pontos!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>SASS: Mixin ou Placeholder?</title>
+      <link>http://tableless.com.br/sass-mixin-ou-placeholder/</link>
+      <pubDate>Sun, 16 Mar 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/sass-mixin-ou-placeholder/</guid>
+      <description>
+
+&lt;p&gt;Se é um tema que sempre vejo a respeito da utilização ou não, é sobre o uso de pré processadores CSS. Alguns &lt;em&gt;devs&lt;/em&gt; que costumo seguir e ler os artigos, e que pra mim são algumas das nossas referências, apontam as suas considerações sobre o tema. O Miller Medeiros, em um &lt;a href=&#34;http://blog.millermedeiros.com/the-problem-with-css-pre-processors/&#34;&gt;post&lt;/a&gt; mostra alguns pontos negativos na utilização de pré processadores. O Jean Carlos Emer em um outro &lt;a href=&#34;http://tableless.com.br/css-steroids/&#34; title=&#34;CSS on steroids&#34;&gt;post&lt;/a&gt; mostra as reais vantagens de se utilizar um pré-processador. O Diego Eis, em um outro &lt;a href=&#34;http://tableless.com.br/pre-processadores-usar-ou-nao-usar/&#34; title=&#34;Pré processadores: usar ou não usar?&#34;&gt;post&lt;/a&gt; faz uma conclusão muito boa sobre a utilização ou não:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Pré processadores podem ajudar como também podem maltratar bastante. Basta um escorregão para que seu projeto vire um inferno. &amp;#8211; Diego Eis&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;A utilização ou não de um pré processador fica a seu critério mas, se você já utiliza nos seus projetos ou está pensando em usar, você sabe o que são um &lt;strong&gt;placeholder&lt;/strong&gt; e um &lt;strong&gt;mixin&lt;/strong&gt;? Se sim, sabe qual a principal diferença entre eles e quando usar um ou outro? Navegando um dia pela internet, achei um &lt;a href=&#34;http://www.sitepoint.com/sass-mixin-placeholder/&#34;&gt;artigo&lt;/a&gt; do &lt;a href=&#34;https://twitter.com/HugoGiraudel&#34; title=&#34;Perfil do twitter do desenvolvedor Hugo Giraudel&#34;&gt;Hugo Giraudel&lt;/a&gt;, um dev front-end francês, no &lt;a href=&#34;http://www.sitepoint.com/&#34; title=&#34;Link do website SitePoint&#34;&gt;SitePoint&lt;/a&gt; que trata exatamente sobre esse assunto.&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Quando comecei a trabalhar com SASS cerca de um ano e meio atrás, uma coisa que me levou tempo para entender foi a diferença entre &lt;em&gt;&lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#mixins&#34;&gt;incluir um mixin&lt;/a&gt;&lt;/em&gt; e &lt;em&gt;&lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#placeholders&#34;&gt;estender um placeholder&lt;/a&gt;&lt;/em&gt;. Na verdade, até mesmo a noção de &lt;em&gt;placeholder&lt;/em&gt; era uma espécie de magia negra vodu naquela época.&lt;/p&gt;
+
+&lt;p&gt;Se você estiver em uma situação semelhante, não se preocupe, porque eu vou tentar iluminar o caminho. Hoje vamos aprender para que exatamente serve um &lt;em&gt;mixin&lt;/em&gt;, e quando usar um &lt;em&gt;placeholder do SASS&lt;/em&gt;. Você vai entender que ambos tem diferentes finalidades e não devem ser confundidas.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Nota: Enquanto pretendo falar sobre SASS, esse artigo pode ser aplicado a qualquer outro pré-processador CSS, seja Stylus, LESS, ou outro que você venha a usar. Essas tecnologias geralmente fazem a mesma coisa, portanto fique a vontade para adaptar o conteúdo deste artigo para a ferramenta de sua escolha&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Primeiro devemos fazer um breve resumo sobre o que estamos falando quando nos referimos aos &lt;strong&gt;placeholder e mixins do SASS&lt;/strong&gt;, então vamos fazer isso já.&lt;/p&gt;
+
+&lt;h2 id=&#34;entendendo-o-mixin&#34;&gt;Entendendo o mixin&lt;/h2&gt;
+
+&lt;p&gt;Um mixin é uma diretiva que permite que você defina várias regras com diversos argumentos. Pense nisso como uma função que irá retornar conteúdo CSS ao invés de um valor. Aqui está a definição de &lt;em&gt;mixin&lt;/em&gt; da &lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#mixin-content&#34;&gt;referência do SASS&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote cite=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#mixin-content&#34;&gt;
+  &lt;p&gt;
+    Mixins permitem definir estilos que podem ser reutilizados em toda a folha de estilo, sem a necessidade de recorrer a classes não semânticas como &lt;i&gt;.float-left&lt;/i&gt;. Mixins podem também conter regras completas de CSS e quaisquer outras coisas permitidas em um documento SASS. Eles podem até mesmo possuírem argumentos que lhe permitem produzir uma ampla variedade de estilos com poucos mixins.
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Agora que cobrimos a terminologia, vamos dizer que você encontra algumas declarações que são repetidas várias vezes ao longo da sua folha de estilos. Você que está familiarizado com o conceito de DRY (&lt;a href=&#34;http://en.wikipedia.org/wiki/Don&#39;t_repeat_yourself&#34;&gt;Don&amp;#8217;t Repeat Yourself&lt;/a&gt;), sabe que a repetição de código é ruim. Para corrigir isso, você pode escrever um mixin para todas aquelas declarações repetidas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@mixin center() {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.container {
+    @include center();
+    /* Outros estilos aqui... */
+}
+
+/* Outros estilos... */
+
+.image-cover {
+    @include center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Nota: Se você não passar um argumento para um mixin, você pode omitir os parênteses. Na verdade, você pode até omiti-los na definição do &lt;code&gt;@mixin&lt;/code&gt;&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Com este mixin recém-criado, você não precisa repetir aquelas três linhas de código cada vez que precisar centralizar um elemento; você simplesmente inclui o mixin. Muito prático, não é?!&lt;/p&gt;
+
+&lt;p&gt;Algumas vezes você vai querer um mixin para construir o que você chamaria de &lt;em&gt;shorthand&lt;/em&gt; para algumas propriedades. Por exemplo, largura e altura. Você não está cansado de escrever as duas linhas várias e várias vezes? Especialmente quando ambas tem o mesmo valor? Bem, vamos lidar com isso usando um mixin!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@mixin size($width, $height: $width) {
+    width: $width;
+    height: $height;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Muito simples, não é? Note como deixamos o parâmetro &lt;code&gt;$height&lt;/code&gt; ser opcional e, por padrão assumir o mesmo valor do parâmetro &lt;code&gt;$width&lt;/code&gt; na assinatura do mixin. Agora, sempre que você precisar definir as dimensões para um elemento, você pode simplesmente fazer isso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;.icon {
+    @include size(32px);
+}
+
+.cover {
+    @include size(100%, 10em);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Nota: Um outro bom exemplo de mixin seria &lt;a href=&#34;http://hugogiraudel.com/2013/08/05/offsets-sass-mixin/&#34;&gt;este aqui&lt;/a&gt; que eu fiz para evitar de escrever as posições &lt;code&gt;top&lt;/code&gt;, &lt;code&gt;left&lt;/code&gt;, &lt;code&gt;right&lt;/code&gt; e &lt;code&gt;bottom&lt;/code&gt; toda vez que quiser utilizar um sistema de posicionamento diferente do estático.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conhecendo-seu-placeholder&#34;&gt;Conhecendo seu Placeholder&lt;/h2&gt;
+
+&lt;p&gt;Placeholders são um tipo de coisa estranha. Eles são classes que não são retornadas quando o seu SCSS é compilado. Você deve então pensar: &lt;em&gt;&amp;#8220;Qual é o sentido disso?&amp;#8221;&lt;/em&gt;. Na verdade, o ponto seria minímo senão fosse a expressão &lt;code&gt;@extend&lt;/code&gt;. Mas vamos por partes. Essa é a forma que você escreve um placeholder:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;%center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Nota do editor: Como um placeholder, um mixin é igualmente inútil, a menos que seja referenciado, assim essa seção não está dizendo que eles são diferentes nesse aspecto, mas apenas esclarecendo que mesmo que se pareça similar com um bloco de declaração CSS, não será gerado por conta própria.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Basicamente você escreve exatamente como uma classe &lt;code&gt;CSS&lt;/code&gt; exceto pelo símbolo % ao invés do ponto. Além disso, segue as mesmas &lt;a href=&#34;http://www.w3.org/TR/html401/types.html#type-cdata&#34;&gt;regras de nomenclatura&lt;/a&gt; das classes.&lt;/p&gt;
+
+&lt;p&gt;Agora, se você tentar compilar seu SCSS, você não vai ver esse pedaço de código no arquivo gerado. Como eu disse: &lt;strong&gt;placeholders não são compilados&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Então, por agora, esse placeholder é totalmente inútil. Você não consegue fazer qualquer uso dele a não ser que você veja o &lt;code&gt;@extend&lt;/code&gt;. Um &lt;code&gt;@extend&lt;/code&gt; tem como objetivo herdar as propriedades de um seletor CSS / SCSS placeholder. Aqui como usá-lo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;.container {
+  @extend %center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao fazer isso, o arquivo SASS vai pegar o conteúdo do placeholder &lt;code&gt;%center&lt;/code&gt; e aplicá-lo no &lt;code&gt;.container&lt;/code&gt; (mesmo que isso não aconteça exatamente assim &amp;#8211; mas isso não é importante agora). Como eu disse, você também pode &lt;em&gt;estender&lt;/em&gt; seletores CSS já existentes (além de placeholders SCSS) dessa maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;.table-zebra {
+  @extend .table;
+
+  tr:nth-of-type(even) {
+    background: rgba(0,0,0,.5);
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Esse é um caso muito comum para o uso do &lt;code&gt;@extend&lt;/code&gt;. Nesse caso, pedimos para a classe &lt;code&gt;.table-zebra&lt;/code&gt; se comportar exatamente como a classe &lt;code&gt;.table&lt;/code&gt; e então adicionamos as regras específicas da classe &lt;code&gt;.table-zebra&lt;/code&gt;. &lt;em&gt;Estender&lt;/em&gt; seletores é bastante conveniente quando você desenvolve seu site ou aplicação em componentes modulares.&lt;/p&gt;
+
+&lt;h2 id=&#34;qual-utilizar&#34;&gt;Qual utilizar?&lt;/h2&gt;
+
+&lt;p&gt;Então, a pergunta permanece: o que você deve usar? Bem, como tudo em nossa área: &lt;strong&gt;depende&lt;/strong&gt;. Depende do contexto e, em uma outra análise, do que você está querendo fazer.&lt;/p&gt;
+
+&lt;p&gt;O melhor conselho seria: se você precisa de variáveis, utilize o mixin. Caso contrário, use o placeholder. Há duas razões para isso:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Primeiro, você não pode usar variáveis em um placeholder. Na verdade, até pode, mas você não consegue &lt;em&gt;passar&lt;/em&gt; uma variável em um placeholder para gerar um conteúdo específico de CSS, como você faria em um mixin.&lt;/li&gt;
+&lt;li&gt;Segundo, a forma como o SASS lida com os mixins, os torna muito incovenientes quando você os utiliza sem variáveis contextuais. Simplificando: o SASS vai duplicar a saída de um mixin toda vez que você o utilizá-lo, resultando não apenas em CSS duplicado, mas também em uma folha de estilos maior.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Considere o primeiro exemplo desse artigo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@mixin center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container {
+  @include center;
+}
+
+.image-cover {
+  @include center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O CSS compilado seria esse:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.container {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.image-cover {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Observou o CSS duplicado? Ele não é tão prejudicial se forem apenas três linhas duplicadas, mas se você tiver muitos mixins que são usados várias vezes em um projeto, essas três linhas podem facilmente se tornarem 300. E se reformularmos nosso exemplo, só que dessa vez utilizando o placeholder?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;%center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container {
+  @extend %center;
+}
+
+.image-cover {
+  @extend %center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora, esse é o CSS gerado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.container, .image-cover {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Muito melhor! A compilação leva vantagem &lt;a href=&#34;http://reference.sitepoint.com/css/selectorgrouping&#34;&gt;agrupando seletores&lt;/a&gt;, sem nenhum estilo repetido. Assim, sempre que você quiser evitar a escrever as mesmas propriedades diversas vezes, sabendo que elas não mudarão, é uma boa idéia &lt;em&gt;estender&lt;/em&gt; um placeholder. Isso resultará em um código CSS compilado muito mais limpo.&lt;/p&gt;
+
+&lt;p&gt;Por outro lado, se você precisa escrever as mesmas propriedades em vários lugares mas com valores diferentes (tamanho, cores, etc), um mixin é o melhor caminho a seguir. Agora se você possui ambos, um grupo de valores fixos e outro de valores variáveis, você deve tentar usar uma combinação dos dois.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;%center {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+@mixin skin($color, $size) {
+  @extend %center;
+  background: $color;
+  height: $size;
+}
+
+a { @include skin(pink, 10em) }
+b { @include skin(blue, 90px) }
+&lt;/pre&gt;
+
+&lt;p&gt;Neste caso, o mixin está &lt;em&gt;estendendo&lt;/em&gt; o placeholder para os valores fixos em vez de jogá-los diretamente em seu corpo. Isso gera um CSS mais limpo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;a, b {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+a {
+  background: pink;
+  height: 10em;
+}
+
+b {
+  background: blue;
+  height: 90px;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;É isso. Espero ter deixado claro não só o que são mixins e placeholders, mas também quando você deve usá-los e qual os efeitos sobre o CSS compilado.&lt;/p&gt;
+
+&lt;p&gt;Se você tiver alguma coisa a acrescentar sobre suas experiências com essas &lt;em&gt;features&lt;/em&gt; dos pré-processadores de CSS, sinta-se livre para compartilhar nos comentários.&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Texto traduzido e adaptado do [Se é um tema que sempre vejo a respeito da utilização ou não, é sobre o uso de pré processadores CSS. Alguns &lt;em&gt;devs&lt;/em&gt; que costumo seguir e ler os artigos, e que pra mim são algumas das nossas referências, apontam as suas considerações sobre o tema. O Miller Medeiros, em um &lt;a href=&#34;http://blog.millermedeiros.com/the-problem-with-css-pre-processors/&#34;&gt;post&lt;/a&gt; mostra alguns pontos negativos na utilização de pré processadores. O Jean Carlos Emer em um outro &lt;a href=&#34;http://tableless.com.br/css-steroids/&#34; title=&#34;CSS on steroids&#34;&gt;post&lt;/a&gt; mostra as reais vantagens de se utilizar um pré-processador. O Diego Eis, em um outro &lt;a href=&#34;http://tableless.com.br/pre-processadores-usar-ou-nao-usar/&#34; title=&#34;Pré processadores: usar ou não usar?&#34;&gt;post&lt;/a&gt; faz uma conclusão muito boa sobre a utilização ou não:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Pré processadores podem ajudar como também podem maltratar bastante. Basta um escorregão para que seu projeto vire um inferno. &amp;#8211; Diego Eis&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;A utilização ou não de um pré processador fica a seu critério mas, se você já utiliza nos seus projetos ou está pensando em usar, você sabe o que são um &lt;strong&gt;placeholder&lt;/strong&gt; e um &lt;strong&gt;mixin&lt;/strong&gt;? Se sim, sabe qual a principal diferença entre eles e quando usar um ou outro? Navegando um dia pela internet, achei um &lt;a href=&#34;http://www.sitepoint.com/sass-mixin-placeholder/&#34;&gt;artigo&lt;/a&gt; do &lt;a href=&#34;https://twitter.com/HugoGiraudel&#34; title=&#34;Perfil do twitter do desenvolvedor Hugo Giraudel&#34;&gt;Hugo Giraudel&lt;/a&gt;, um dev front-end francês, no &lt;a href=&#34;http://www.sitepoint.com/&#34; title=&#34;Link do website SitePoint&#34;&gt;SitePoint&lt;/a&gt; que trata exatamente sobre esse assunto.&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Quando comecei a trabalhar com SASS cerca de um ano e meio atrás, uma coisa que me levou tempo para entender foi a diferença entre &lt;em&gt;&lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#mixins&#34;&gt;incluir um mixin&lt;/a&gt;&lt;/em&gt; e &lt;em&gt;&lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#placeholders&#34;&gt;estender um placeholder&lt;/a&gt;&lt;/em&gt;. Na verdade, até mesmo a noção de &lt;em&gt;placeholder&lt;/em&gt; era uma espécie de magia negra vodu naquela época.&lt;/p&gt;
+
+&lt;p&gt;Se você estiver em uma situação semelhante, não se preocupe, porque eu vou tentar iluminar o caminho. Hoje vamos aprender para que exatamente serve um &lt;em&gt;mixin&lt;/em&gt;, e quando usar um &lt;em&gt;placeholder do SASS&lt;/em&gt;. Você vai entender que ambos tem diferentes finalidades e não devem ser confundidas.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Nota: Enquanto pretendo falar sobre SASS, esse artigo pode ser aplicado a qualquer outro pré-processador CSS, seja Stylus, LESS, ou outro que você venha a usar. Essas tecnologias geralmente fazem a mesma coisa, portanto fique a vontade para adaptar o conteúdo deste artigo para a ferramenta de sua escolha&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Primeiro devemos fazer um breve resumo sobre o que estamos falando quando nos referimos aos &lt;strong&gt;placeholder e mixins do SASS&lt;/strong&gt;, então vamos fazer isso já.&lt;/p&gt;
+
+&lt;h2 id=&#34;entendendo-o-mixin-1&#34;&gt;Entendendo o mixin&lt;/h2&gt;
+
+&lt;p&gt;Um mixin é uma diretiva que permite que você defina várias regras com diversos argumentos. Pense nisso como uma função que irá retornar conteúdo CSS ao invés de um valor. Aqui está a definição de &lt;em&gt;mixin&lt;/em&gt; da &lt;a href=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#mixin-content&#34;&gt;referência do SASS&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote cite=&#34;http://sass-lang.com/documentation/file.SASS_REFERENCE.html#mixin-content&#34;&gt;
+  &lt;p&gt;
+    Mixins permitem definir estilos que podem ser reutilizados em toda a folha de estilo, sem a necessidade de recorrer a classes não semânticas como &lt;i&gt;.float-left&lt;/i&gt;. Mixins podem também conter regras completas de CSS e quaisquer outras coisas permitidas em um documento SASS. Eles podem até mesmo possuírem argumentos que lhe permitem produzir uma ampla variedade de estilos com poucos mixins.
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Agora que cobrimos a terminologia, vamos dizer que você encontra algumas declarações que são repetidas várias vezes ao longo da sua folha de estilos. Você que está familiarizado com o conceito de DRY (&lt;a href=&#34;http://en.wikipedia.org/wiki/Don&#39;t_repeat_yourself&#34;&gt;Don&amp;#8217;t Repeat Yourself&lt;/a&gt;), sabe que a repetição de código é ruim. Para corrigir isso, você pode escrever um mixin para todas aquelas declarações repetidas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@mixin center() {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.container {
+    @include center();
+    /* Outros estilos aqui... */
+}
+
+/* Outros estilos... */
+
+.image-cover {
+    @include center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Nota: Se você não passar um argumento para um mixin, você pode omitir os parênteses. Na verdade, você pode até omiti-los na definição do &lt;code&gt;@mixin&lt;/code&gt;&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Com este mixin recém-criado, você não precisa repetir aquelas três linhas de código cada vez que precisar centralizar um elemento; você simplesmente inclui o mixin. Muito prático, não é?!&lt;/p&gt;
+
+&lt;p&gt;Algumas vezes você vai querer um mixin para construir o que você chamaria de &lt;em&gt;shorthand&lt;/em&gt; para algumas propriedades. Por exemplo, largura e altura. Você não está cansado de escrever as duas linhas várias e várias vezes? Especialmente quando ambas tem o mesmo valor? Bem, vamos lidar com isso usando um mixin!&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@mixin size($width, $height: $width) {
+    width: $width;
+    height: $height;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Muito simples, não é? Note como deixamos o parâmetro &lt;code&gt;$height&lt;/code&gt; ser opcional e, por padrão assumir o mesmo valor do parâmetro &lt;code&gt;$width&lt;/code&gt; na assinatura do mixin. Agora, sempre que você precisar definir as dimensões para um elemento, você pode simplesmente fazer isso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;.icon {
+    @include size(32px);
+}
+
+.cover {
+    @include size(100%, 10em);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Nota: Um outro bom exemplo de mixin seria &lt;a href=&#34;http://hugogiraudel.com/2013/08/05/offsets-sass-mixin/&#34;&gt;este aqui&lt;/a&gt; que eu fiz para evitar de escrever as posições &lt;code&gt;top&lt;/code&gt;, &lt;code&gt;left&lt;/code&gt;, &lt;code&gt;right&lt;/code&gt; e &lt;code&gt;bottom&lt;/code&gt; toda vez que quiser utilizar um sistema de posicionamento diferente do estático.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;conhecendo-seu-placeholder-1&#34;&gt;Conhecendo seu Placeholder&lt;/h2&gt;
+
+&lt;p&gt;Placeholders são um tipo de coisa estranha. Eles são classes que não são retornadas quando o seu SCSS é compilado. Você deve então pensar: &lt;em&gt;&amp;#8220;Qual é o sentido disso?&amp;#8221;&lt;/em&gt;. Na verdade, o ponto seria minímo senão fosse a expressão &lt;code&gt;@extend&lt;/code&gt;. Mas vamos por partes. Essa é a forma que você escreve um placeholder:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;%center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Nota do editor: Como um placeholder, um mixin é igualmente inútil, a menos que seja referenciado, assim essa seção não está dizendo que eles são diferentes nesse aspecto, mas apenas esclarecendo que mesmo que se pareça similar com um bloco de declaração CSS, não será gerado por conta própria.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Basicamente você escreve exatamente como uma classe &lt;code&gt;CSS&lt;/code&gt; exceto pelo símbolo % ao invés do ponto. Além disso, segue as mesmas &lt;a href=&#34;http://www.w3.org/TR/html401/types.html#type-cdata&#34;&gt;regras de nomenclatura&lt;/a&gt; das classes.&lt;/p&gt;
+
+&lt;p&gt;Agora, se você tentar compilar seu SCSS, você não vai ver esse pedaço de código no arquivo gerado. Como eu disse: &lt;strong&gt;placeholders não são compilados&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Então, por agora, esse placeholder é totalmente inútil. Você não consegue fazer qualquer uso dele a não ser que você veja o &lt;code&gt;@extend&lt;/code&gt;. Um &lt;code&gt;@extend&lt;/code&gt; tem como objetivo herdar as propriedades de um seletor CSS / SCSS placeholder. Aqui como usá-lo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;.container {
+  @extend %center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao fazer isso, o arquivo SASS vai pegar o conteúdo do placeholder &lt;code&gt;%center&lt;/code&gt; e aplicá-lo no &lt;code&gt;.container&lt;/code&gt; (mesmo que isso não aconteça exatamente assim &amp;#8211; mas isso não é importante agora). Como eu disse, você também pode &lt;em&gt;estender&lt;/em&gt; seletores CSS já existentes (além de placeholders SCSS) dessa maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;.table-zebra {
+  @extend .table;
+
+  tr:nth-of-type(even) {
+    background: rgba(0,0,0,.5);
+  }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Esse é um caso muito comum para o uso do &lt;code&gt;@extend&lt;/code&gt;. Nesse caso, pedimos para a classe &lt;code&gt;.table-zebra&lt;/code&gt; se comportar exatamente como a classe &lt;code&gt;.table&lt;/code&gt; e então adicionamos as regras específicas da classe &lt;code&gt;.table-zebra&lt;/code&gt;. &lt;em&gt;Estender&lt;/em&gt; seletores é bastante conveniente quando você desenvolve seu site ou aplicação em componentes modulares.&lt;/p&gt;
+
+&lt;h2 id=&#34;qual-utilizar-1&#34;&gt;Qual utilizar?&lt;/h2&gt;
+
+&lt;p&gt;Então, a pergunta permanece: o que você deve usar? Bem, como tudo em nossa área: &lt;strong&gt;depende&lt;/strong&gt;. Depende do contexto e, em uma outra análise, do que você está querendo fazer.&lt;/p&gt;
+
+&lt;p&gt;O melhor conselho seria: se você precisa de variáveis, utilize o mixin. Caso contrário, use o placeholder. Há duas razões para isso:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Primeiro, você não pode usar variáveis em um placeholder. Na verdade, até pode, mas você não consegue &lt;em&gt;passar&lt;/em&gt; uma variável em um placeholder para gerar um conteúdo específico de CSS, como você faria em um mixin.&lt;/li&gt;
+&lt;li&gt;Segundo, a forma como o SASS lida com os mixins, os torna muito incovenientes quando você os utiliza sem variáveis contextuais. Simplificando: o SASS vai duplicar a saída de um mixin toda vez que você o utilizá-lo, resultando não apenas em CSS duplicado, mas também em uma folha de estilos maior.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Considere o primeiro exemplo desse artigo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;@mixin center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container {
+  @include center;
+}
+
+.image-cover {
+  @include center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O CSS compilado seria esse:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.container {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.image-cover {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Observou o CSS duplicado? Ele não é tão prejudicial se forem apenas três linhas duplicadas, mas se você tiver muitos mixins que são usados várias vezes em um projeto, essas três linhas podem facilmente se tornarem 300. E se reformularmos nosso exemplo, só que dessa vez utilizando o placeholder?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;%center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container {
+  @extend %center;
+}
+
+.image-cover {
+  @extend %center;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora, esse é o CSS gerado:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.container, .image-cover {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Muito melhor! A compilação leva vantagem &lt;a href=&#34;http://reference.sitepoint.com/css/selectorgrouping&#34;&gt;agrupando seletores&lt;/a&gt;, sem nenhum estilo repetido. Assim, sempre que você quiser evitar a escrever as mesmas propriedades diversas vezes, sabendo que elas não mudarão, é uma boa idéia &lt;em&gt;estender&lt;/em&gt; um placeholder. Isso resultará em um código CSS compilado muito mais limpo.&lt;/p&gt;
+
+&lt;p&gt;Por outro lado, se você precisa escrever as mesmas propriedades em vários lugares mas com valores diferentes (tamanho, cores, etc), um mixin é o melhor caminho a seguir. Agora se você possui ambos, um grupo de valores fixos e outro de valores variáveis, você deve tentar usar uma combinação dos dois.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-scss&#34;&gt;%center {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+@mixin skin($color, $size) {
+  @extend %center;
+  background: $color;
+  height: $size;
+}
+
+a { @include skin(pink, 10em) }
+b { @include skin(blue, 90px) }
+&lt;/pre&gt;
+
+&lt;p&gt;Neste caso, o mixin está &lt;em&gt;estendendo&lt;/em&gt; o placeholder para os valores fixos em vez de jogá-los diretamente em seu corpo. Isso gera um CSS mais limpo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;a, b {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+a {
+  background: pink;
+  height: 10em;
+}
+
+b {
+  background: blue;
+  height: 90px;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;conclusão-1&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;É isso. Espero ter deixado claro não só o que são mixins e placeholders, mas também quando você deve usá-los e qual os efeitos sobre o CSS compilado.&lt;/p&gt;
+
+&lt;p&gt;Se você tiver alguma coisa a acrescentar sobre suas experiências com essas &lt;em&gt;features&lt;/em&gt; dos pré-processadores de CSS, sinta-se livre para compartilhar nos comentários.&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Texto traduzido e adaptado do]&lt;a href=&#34;http://www.sitepoint.com/sass-mixin-placeholder/&#34;&gt;4&lt;/a&gt; escrito pelo &lt;a href=&#34;https://twitter.com/HugoGiraudel&#34; title=&#34;Perfil do twitter&#34;&gt;Hugo Giraudel&lt;/a&gt; em 30 de janeiro de 2014.&lt;/p&gt;
+
+&lt;p&gt;Tradução autorizada pelo &lt;a href=&#34;http://www.sitepoint.com/&#34;&gt;SitePoint&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Qualquer erro ou sugestão de melhoria na tradução, é bem vinda! 🙂&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Transições inteligentes na experiência do usuário</title>
+      <link>http://tableless.com.br/transicoes-inteligentes-na-experiencia-usuario/</link>
+      <pubDate>Mon, 16 Dec 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/transicoes-inteligentes-na-experiencia-usuario/</guid>
+      <description>
+
+&lt;p&gt;As novas propriedades do CSS3 nos surpreendem cada vez mais. Não só pelo fato de terem simplificado muitas coisas (só quem lembra do trabalho para se fazer uma borda arredondada ou sombra em um elemento entende o quão úteis são algumas propriedades), mas também pelo poder que nos deu de enriquecermos a experiência do usuário. Se você ainda não está por dentro dessa maravilha, &lt;a href=&#34;http://tableless.com.br/?s=css3&#34;&gt;confira mais artigos sobre CSS3&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Um dia, navegando pela &lt;em&gt;interwebs&lt;/em&gt;, achei esse &lt;a href=&#34;http://uxdesign.smashingmagazine.com/2013/10/23/smart-transitions-in-user-experience-design/&#34; title=&#34;Smart transitions in user experience design&#34;&gt;artigo&lt;/a&gt; do &lt;a href=&#34;https://twitter.com/webchaeschtli&#34; title=&#34;Perfil do twitter&#34;&gt;Adrian Zumbrunnen&lt;/a&gt; no site da Smashing Magazine. Gostei bastante do conteúdo e resolvi traduzi-lo pra gente.&lt;/p&gt;
+
+&lt;p&gt;A idéia era a tradução ao pé da letra, mas em alguns casos de expressões que ficariam estranhas no português, deixei em inglês mesmo (algumas que inclusive estamos mais acostumados a usar). Vamos lá&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Alguns websites superam outros, seja em seu conteúdo, usabilidade, design, funcionalidades, etc. Detalhes do design de interação e animação fazem uma diferença fundamental em websites modernos. Vamos compartilhar algumas lições tiradas de vários modelos e analisar por que esses simples padrões funcionam tão bem.&lt;/p&gt;
+
+&lt;p&gt;Quando desenhamos/projetamos produtos digitais, nós frequentemente utilizamos aplicações digitais como Photoshop e Sketch. A maioria das pessoas que já estão no mercado por alguns anos, obviamente sabem que design é muito mais que apenas apresentação visual. Ainda assim, muitos continuam a criar interfaces com design estático. &lt;a href=&#34;http://www.nytimes.com/2003/11/30/magazine/30IPOD.html?pagewanted=all&#34;&gt;Steve Jobs uma vez disse&lt;/a&gt; sobre design:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&amp;#8220;Design não é apenas o que parece e o que se sente. Design é como funciona.&amp;#8221;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Nossa experiência e impressão de um produto são formadas por uma combinação de fatores, com a interação desempenhando um papel fundamental. Não podemos mais pensar em interfaces de usuário com design estático e adicionar a mágica da interação depois. Em vez disso, precisamos abraçar a natureza interativa da web desde o início e pensar na interação como componente natural.&lt;/p&gt;
+
+&lt;p&gt;Vejamos alguns exemplos em que a interação inteligente, definida pela animação sutil, melhora suavemente a experiência do usuário.&lt;/p&gt;
+
+&lt;h2 id=&#34;scroll-animado&#34;&gt;Scroll Animado&lt;/h2&gt;
+
+&lt;p&gt;A benção e a maldição da web são os hiperlinks. Quando você clica em um link, isso pode levá-lo a qualquer lugar, da página de um produto para o site da loja do velho e assustador fantoche no fim da rua. O resultado é a perda de contexto.&lt;/p&gt;
+
+&lt;p&gt;Uma das grandes características sobre a experiência do usuário de livros é a linearidade. Cada capítulo em um livro baseia-se no anterior. Você deve ler o capítulo um para poder entender o capítulo dois. Quando você pula um capítulo, você está ciente de que pode perder algo e, assim não obter algum conhecimento sobre o conteúdo subseqüente. Na web, e principalmente em websites longos, isso muitas vezes acontece inconscientemente. Ao adicionar um scroll animado, podemos consertar isso:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39940&#34; alt=&#34;scroll-animado&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/scroll-animado.gif&#34; width=&#34;500&#34; height=&#34;580&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Compare a imagem anterior com essa:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39943&#34; alt=&#34;scroll-sem-animacao&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/scroll-sem-animacao.gif&#34; width=&#34;500&#34; height=&#34;580&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Compare o comportamento padrão dos links (âncoras) com o comportamento animado. Pular conteúdo não é mais uma ação inconsciente; é uma decisão. O site &lt;a href=&#34;http://hopelies.com/&#34;&gt;Hope Lies at 24 Frames Per Second&lt;/a&gt; tem um botão de menu para a sua versão móvel que envia o usuário para o topo da página, sem qualquer animação. Levei mais de um minuto para descobrir o que realmente tinha acontecido.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Mudanças bruscas em uma interface são difíceis para os usuários entenderem. Não deixe-os no escuro, sempre mostre o que está acontecendo.&lt;/p&gt;
+
+&lt;h2 id=&#34;alternância-de-estados&#34;&gt;Alternância de estados&lt;/h2&gt;
+
+&lt;p&gt;Como vimos no último exemplo, transições ajudam os usuários a entender o ritmo e o fluxo de uma interface. Nada parece mais artificial do que uma mudança brusca, pois &lt;strong&gt;mudanças bruscas simplesmente não existem no mundo real&lt;/strong&gt;. Vamos olhar outro exemplo: &lt;em&gt;menus que se alternam (toggle menus)&lt;/em&gt;. Usuários associam o ícone de &amp;#8220;&lt;em&gt;mais&lt;/em&gt;&amp;#8221; (+) com a ação de adicionar conteúdo ou expandir um elemento. Girando o ícone em 45°, o &amp;#8220;&lt;em&gt;mais&lt;/em&gt;&amp;#8221; (+) torna-se uma &amp;#8220;&lt;em&gt;xis&lt;/em&gt;&amp;#8221; (x), um elemento de interface amplamente entendido como &lt;em&gt;fechar&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39944&#34; alt=&#34;Stateful-toggle&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/Stateful-toggle.gif&#34; width=&#34;500&#34; height=&#34;580&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Essa simples transição muda completamente o significado do ícone. Esse pequeno detalhe faz a diferença entre ter que adivinhar o que vai acontecer a seguir e saber o que o ícone significa em cada estado. Se você me perguntar, essa alternância é bastante &lt;em&gt;&amp;#8220;amigável&amp;#8221; (user-friendly&lt;/em&gt;). Além disso, observe que o ícone de &amp;#8220;&lt;em&gt;mais&lt;/em&gt;&amp;#8221; sempre gira na mesma direção que o conteúdo, reforçando o fluxo de informações.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Faça os elementos de interface do seu website compreensíveis em cada estado.&lt;/p&gt;
+
+&lt;h2 id=&#34;formulários-e-comentários-recolhidos-collapsed&#34;&gt;Formulários e comentários recolhidos (&lt;em&gt;collapsed&lt;/em&gt;)&lt;/h2&gt;
+
+&lt;p&gt;Os formulários de comentários em vários blogs e sites de notícias não são os elementos mais bonitos de um website. Por que? Bem, a maioria deles não são um tanto amigáveis, certo? Quando você está prestes a postar um comentário, você só quer começar a escrever o comentário em si e nada mais. Ao invés disso, um formulário padrão de comentários lhe pede todos os tipos de outras coisas primeiro. É irritante.&lt;/p&gt;
+
+&lt;p&gt;Para motivarmos as pessoas a comentarem mais, nós podemos &lt;em&gt;recolher&lt;/em&gt; (&lt;em&gt;collapse&lt;/em&gt;) o formulário e &lt;strong&gt;só mostrarmos o elemento mais crucial: o campo de comentário&lt;/strong&gt;. Quando o usuário clica no campo, você pode expandir o formulário. Um exemplo no mundo real dessa revelação progressiva pode ser encontrado na versão beta do site do New York Times:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39945&#34; alt=&#34;NY-Times&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/NY-Times.gif&#34; width=&#34;530&#34; height=&#34;592&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Você pode ir até mais longe, definindo o foco do cursor no campo de comentario quando o formulário se expandir. Porém, essa abordagem tem um problema: um princípio fundamental do design de interação é que &lt;strong&gt;uma ação deve acontecer próxima ao local da onde a interação ocorre&lt;/strong&gt; (próximo ao local de atenção). Podemos então ir um passo além, e animar o campo de comentário para orientar o usuário:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39946&#34; alt=&#34;ExpandingComments&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/ExpandingComments.gif&#34; width=&#34;500&#34; height=&#34;580&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Você pode até fixar o campo de comentário no topo, expandi-lo nesse sentido e exibir os campos adicionais abaixo dele.&lt;/p&gt;
+
+&lt;p&gt;Como você pode ver, isso reduz a desordem e faz com que o formulário de comentário seja mais convidativo. Mas, e se &lt;em&gt;&amp;#8220;recolhermos&amp;#8221; (collapsing)&lt;/em&gt; todo os comentários anteriores também?&lt;/p&gt;
+
+&lt;p&gt;Recolhendo os comentários, nós temos a barra de rolagem para representar o comprimento do artigo (conteúdo) em si, ao invés da página inteira (com os comentários expandidos). Uma prática comum é a de carregar automaticamente os comentários quando o usuário chega ao fim de uma página. Devemos evitar forçar o usuário a clicar a menos que haja uma boa razão para isso.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Exibição progressiva a fim de reduzir os componentes de interface do usuário à sua essência. Revele funcionalidades de acordo com que os usuários precisem delas.&lt;/p&gt;
+
+&lt;h2 id=&#34;puxe-para-atualizar&#34;&gt;Puxe para atualizar&lt;/h2&gt;
+
+&lt;p&gt;Uma das interações mais interessantes a surgir logo após a introdução do iPhone foi o &amp;#8220;&lt;em&gt;puxar para atualizar (pull to refresh)&lt;/em&gt;&amp;#8220;, iniciada por Loren Brichter. Ela permite ao usuário atualizar o conteúdo de rolagem que esteja disposto numa ordem cronológica reversa. Você pode ver esse conceito em ação no aplicativo do Twitter. Uma vez que você deslizou para o topo da lista de tweets, deslize um pouco mais para atualizar a &lt;em&gt;timeline&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39947&#34; alt=&#34;Twitter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/Twitter.gif&#34; width=&#34;240&#34; height=&#34;360&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Por que isso funciona tão bem? Antes do &amp;#8220;&lt;em&gt;puxar para atualizar&lt;/em&gt;&amp;#8221; existir, os usuários tinham que apertar o botão de atualizar nos navegadores para carregar mais conteúdo. Ao juntar o desejo do usuário de encontrar mais conteúdo com a ação de atualizar, a necessidade de uma ação explícita tornou-se obsoleta.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Ao ligar inteção com ação, a experiência torna-se mais transparente.&lt;/p&gt;
+
+&lt;h2 id=&#34;sticky-labels&#34;&gt;Sticky Labels&lt;/h2&gt;
+
+&lt;p&gt;&lt;em&gt;Sticky labels&lt;/em&gt; são uma outra sutil, mas útil combinação de um componente de interface e uma transição significativa. Confira o uso desta técnica no &lt;a href=&#34;http://edenspiekermann.com/projects&#34;&gt;portfólio&lt;/a&gt; da Edenspiekermann.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39948&#34; alt=&#34;Sticky-Label&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/Sticky-Label.gif&#34; width=&#34;500&#34; height=&#34;580&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As &lt;em&gt;labels&lt;/em&gt; de projeto deslizam juntamente com o conteúdo, proporcionando assim contexto para as imagens à direita, até o próximo projeto aparecer. Este comportamento é semelhante ao livro de endereços no iOS e é especialmente útil para fornecer contextos em seções longas. A transição oferece uma melhor orientação e descrições fáceis baseadas no contexto.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Use &lt;em&gt;sticky labels&lt;/em&gt; para seções longas em que as descrições ou títulos adicionam informações valiosas ao conteúdo que não cabe na &lt;em&gt;viewport&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;affordance-transition&#34;&gt;Affordance transition&lt;/h2&gt;
+
+&lt;p&gt;O conceito de &lt;em&gt;affordance&lt;/em&gt; deriva da psicologia cognitiva e refere-se às características particulares de um objeto que guia o espectador.&lt;/p&gt;
+
+&lt;p&gt;No contexto de UI design, o &lt;a href=&#34;http://ec.europa.eu/regional_policy/archive/country/commu/docevent/26112008/5_doulgerof_glossary.pdf&#34;&gt;glossário de usabilidade&lt;/a&gt; (PDF) do website da EU, define-o assim:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&amp;#8220;&lt;em&gt;Affordance&lt;/em&gt; é uma propriedade desejável de uma interface de usuário &amp;#8211; software que, naturalmente, leva as pessoas a tomarem as medidas corretas para realizarem seus objetivos.&amp;#8221;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;em&gt;Ridges (detalhes?)&lt;/em&gt; são muitas vezes utilizados para melhorar a &lt;em&gt;affordance&lt;/em&gt;. &lt;em&gt;Ridges&lt;/em&gt; em torno de um botão sugerem que este pode ser manipulado. Esta técnica de UX foi amplamente popularizada pelo aplicativo da câmera no iOS.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39949&#34; alt=&#34;iOS_Lockscreen-500-final&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/iOS_Lockscreen-500-final.jpg&#34; width=&#34;500&#34; height=&#34;750&#34; srcset=&#34;uploads/2013/12/iOS_Lockscreen-500-final.jpg 500w, uploads/2013/12/iOS_Lockscreen-500-final-112x168.jpg 112w, uploads/2013/12/iOS_Lockscreen-500-final-206x310.jpg 206w&#34; sizes=&#34;(max-width: 500px) 100vw, 500px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Os traços (&lt;em&gt;ripples&lt;/em&gt;) em torno do botão de câmera na tela de bloqueio do iOS 6, sugerem a idéia do botão ser arrastável. A Apple removeu-os no iOS 7, aparentemente porque os usuários se acostumaram a isso, tornando o ícone mais parecido com um botão independente. Porém, o que acontece é ainda a mesma coisa: quando você arrasta o botão, a tela de bloqueio revela a câmera por baixo. Essa é uma grande técnica para apontar os usuários para os recursos em uma interface.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Dê aos elementos uma alta &lt;em&gt;affordance&lt;/em&gt; para apontar os usuários para os recursos em uma interface.&lt;/p&gt;
+
+&lt;h2 id=&#34;ocultar-com-base-no-contexto&#34;&gt;Ocultar com base no contexto&lt;/h2&gt;
+
+&lt;p&gt;O Google Chrome no iOS teve o a ação de ocultar baseada no contexto desde que foi lançado. Veja na imagem a seguir:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39950&#34; alt=&#34;CBH&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/CBH.gif&#34; width=&#34;500&#34; height=&#34;580&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A idéia básica é que os controles de navegação se escondam automaticamente uma vez que o usuário rolar a página para baixo. Assim que o usuário rolar a página para cima novamente, os controles reaparecem. Essa abordagem tanto melhora a experiência contextual (com foco no conteúdo em si) como aumenta o espaço da tela. Esse último, claro, particularmente importante em dispositivos móveis.&lt;/p&gt;
+
+&lt;p&gt;A premissa é que os &lt;strong&gt;usuários vão fluir com o conteúdo que estão consumindo&lt;/strong&gt;. Logo que eles pararem esse fluxo, uma mudança de contexto provavelmente seja necessária; assim, os controles de navegação reaparecem. Embora essa técnica economize espaço de tela, verifique se essa premissa é válida no seu caso.&lt;/p&gt;
+
+&lt;p&gt;O iOS levou isso a um passo adiante. Quando você chega ao fim de uma página, os controles de navegação se expandem novamente. Isso é um bom exemplo de incorporação dinâmica das necessidades do usuário em uma interface.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Use a ação de ocultar baseada no contexto para melhorar o foco do usuário e economizar espaço na tela.&lt;/p&gt;
+
+&lt;h2 id=&#34;transição-do-foco&#34;&gt;Transição do foco&lt;/h2&gt;
+
+&lt;p&gt;Há cerca de uma semana atrás, Nikita Vasilyev, uma UI designer de Toronto, teve uma idéia bem legal. Ela desenvolveu um script que anima elementos que recebem foco. Embora ainda seja um projeto experimental, o conceito é bastante interessante. Dê uma olhada no &lt;a href=&#34;http://www.youtube.com/watch?v=MyIE9vjy8Zo&#34;&gt;vídeo&lt;/a&gt;. (E por favor, coloque seus fones de ouvido &amp;#8211; a música é épica).&lt;/p&gt;
+
+&lt;p&gt;Ao navegar pelo teclado, muitas vezes não fica claro pro usuário para onde o foco mudou após pressionar a tecla Tab. A animação aponta-os para o lugar certo na página. A transição é sútil mas tem um grande impacto em orientar o usuário.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Oriente o usuário, independentemente de como eles navegam.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Esses são apenas alguns exemplos, entre muitos outros por aí. A questão não é mostrar as mais recentes e extravagantes técnicas de interação, mas sim destacar como pequenos detalhes de interação podem melhorar significativamente a experiência do usuário.&lt;/p&gt;
+
+&lt;p&gt;Se nós estamos a projetar melhores produtos digitais, então &lt;strong&gt;temos que desafiar nossas crenças atuais&lt;/strong&gt; e ver como padrões de interação podem, potencialmente, facilitar a vida do usuário. Eu não estou dizendo que devemos reinventar a roda, mas seria muito ingênuo pararmos de explorar. Então, saia da sua zona de conforto. Continue explorando e testando.&lt;/p&gt;
+
+&lt;p&gt;Se você gostou desse artigo, você pode &lt;a href=&#34;https://twitter.com/webchaeschtli&#34;&gt;me seguir&lt;/a&gt; no Twitter ou se juntar a mim para comer uma barra de chocolate suiço na Suíça.&lt;/p&gt;
+
+&lt;p&gt;Que padrões de transição você achou especialmente útil nos seus projetos?&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Texto traduzido e adaptado do [As novas propriedades do CSS3 nos surpreendem cada vez mais. Não só pelo fato de terem simplificado muitas coisas (só quem lembra do trabalho para se fazer uma borda arredondada ou sombra em um elemento entende o quão úteis são algumas propriedades), mas também pelo poder que nos deu de enriquecermos a experiência do usuário. Se você ainda não está por dentro dessa maravilha, &lt;a href=&#34;http://tableless.com.br/?s=css3&#34;&gt;confira mais artigos sobre CSS3&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Um dia, navegando pela &lt;em&gt;interwebs&lt;/em&gt;, achei esse &lt;a href=&#34;http://uxdesign.smashingmagazine.com/2013/10/23/smart-transitions-in-user-experience-design/&#34; title=&#34;Smart transitions in user experience design&#34;&gt;artigo&lt;/a&gt; do &lt;a href=&#34;https://twitter.com/webchaeschtli&#34; title=&#34;Perfil do twitter&#34;&gt;Adrian Zumbrunnen&lt;/a&gt; no site da Smashing Magazine. Gostei bastante do conteúdo e resolvi traduzi-lo pra gente.&lt;/p&gt;
+
+&lt;p&gt;A idéia era a tradução ao pé da letra, mas em alguns casos de expressões que ficariam estranhas no português, deixei em inglês mesmo (algumas que inclusive estamos mais acostumados a usar). Vamos lá&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Alguns websites superam outros, seja em seu conteúdo, usabilidade, design, funcionalidades, etc. Detalhes do design de interação e animação fazem uma diferença fundamental em websites modernos. Vamos compartilhar algumas lições tiradas de vários modelos e analisar por que esses simples padrões funcionam tão bem.&lt;/p&gt;
+
+&lt;p&gt;Quando desenhamos/projetamos produtos digitais, nós frequentemente utilizamos aplicações digitais como Photoshop e Sketch. A maioria das pessoas que já estão no mercado por alguns anos, obviamente sabem que design é muito mais que apenas apresentação visual. Ainda assim, muitos continuam a criar interfaces com design estático. &lt;a href=&#34;http://www.nytimes.com/2003/11/30/magazine/30IPOD.html?pagewanted=all&#34;&gt;Steve Jobs uma vez disse&lt;/a&gt; sobre design:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&amp;#8220;Design não é apenas o que parece e o que se sente. Design é como funciona.&amp;#8221;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Nossa experiência e impressão de um produto são formadas por uma combinação de fatores, com a interação desempenhando um papel fundamental. Não podemos mais pensar em interfaces de usuário com design estático e adicionar a mágica da interação depois. Em vez disso, precisamos abraçar a natureza interativa da web desde o início e pensar na interação como componente natural.&lt;/p&gt;
+
+&lt;p&gt;Vejamos alguns exemplos em que a interação inteligente, definida pela animação sutil, melhora suavemente a experiência do usuário.&lt;/p&gt;
+
+&lt;h2 id=&#34;scroll-animado-1&#34;&gt;Scroll Animado&lt;/h2&gt;
+
+&lt;p&gt;A benção e a maldição da web são os hiperlinks. Quando você clica em um link, isso pode levá-lo a qualquer lugar, da página de um produto para o site da loja do velho e assustador fantoche no fim da rua. O resultado é a perda de contexto.&lt;/p&gt;
+
+&lt;p&gt;Uma das grandes características sobre a experiência do usuário de livros é a linearidade. Cada capítulo em um livro baseia-se no anterior. Você deve ler o capítulo um para poder entender o capítulo dois. Quando você pula um capítulo, você está ciente de que pode perder algo e, assim não obter algum conhecimento sobre o conteúdo subseqüente. Na web, e principalmente em websites longos, isso muitas vezes acontece inconscientemente. Ao adicionar um scroll animado, podemos consertar isso:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39940&#34; alt=&#34;scroll-animado&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/scroll-animado.gif&#34; width=&#34;500&#34; height=&#34;580&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Compare a imagem anterior com essa:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39943&#34; alt=&#34;scroll-sem-animacao&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/scroll-sem-animacao.gif&#34; width=&#34;500&#34; height=&#34;580&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Compare o comportamento padrão dos links (âncoras) com o comportamento animado. Pular conteúdo não é mais uma ação inconsciente; é uma decisão. O site &lt;a href=&#34;http://hopelies.com/&#34;&gt;Hope Lies at 24 Frames Per Second&lt;/a&gt; tem um botão de menu para a sua versão móvel que envia o usuário para o topo da página, sem qualquer animação. Levei mais de um minuto para descobrir o que realmente tinha acontecido.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Mudanças bruscas em uma interface são difíceis para os usuários entenderem. Não deixe-os no escuro, sempre mostre o que está acontecendo.&lt;/p&gt;
+
+&lt;h2 id=&#34;alternância-de-estados-1&#34;&gt;Alternância de estados&lt;/h2&gt;
+
+&lt;p&gt;Como vimos no último exemplo, transições ajudam os usuários a entender o ritmo e o fluxo de uma interface. Nada parece mais artificial do que uma mudança brusca, pois &lt;strong&gt;mudanças bruscas simplesmente não existem no mundo real&lt;/strong&gt;. Vamos olhar outro exemplo: &lt;em&gt;menus que se alternam (toggle menus)&lt;/em&gt;. Usuários associam o ícone de &amp;#8220;&lt;em&gt;mais&lt;/em&gt;&amp;#8221; (+) com a ação de adicionar conteúdo ou expandir um elemento. Girando o ícone em 45°, o &amp;#8220;&lt;em&gt;mais&lt;/em&gt;&amp;#8221; (+) torna-se uma &amp;#8220;&lt;em&gt;xis&lt;/em&gt;&amp;#8221; (x), um elemento de interface amplamente entendido como &lt;em&gt;fechar&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39944&#34; alt=&#34;Stateful-toggle&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/Stateful-toggle.gif&#34; width=&#34;500&#34; height=&#34;580&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Essa simples transição muda completamente o significado do ícone. Esse pequeno detalhe faz a diferença entre ter que adivinhar o que vai acontecer a seguir e saber o que o ícone significa em cada estado. Se você me perguntar, essa alternância é bastante &lt;em&gt;&amp;#8220;amigável&amp;#8221; (user-friendly&lt;/em&gt;). Além disso, observe que o ícone de &amp;#8220;&lt;em&gt;mais&lt;/em&gt;&amp;#8221; sempre gira na mesma direção que o conteúdo, reforçando o fluxo de informações.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Faça os elementos de interface do seu website compreensíveis em cada estado.&lt;/p&gt;
+
+&lt;h2 id=&#34;formulários-e-comentários-recolhidos-collapsed-1&#34;&gt;Formulários e comentários recolhidos (&lt;em&gt;collapsed&lt;/em&gt;)&lt;/h2&gt;
+
+&lt;p&gt;Os formulários de comentários em vários blogs e sites de notícias não são os elementos mais bonitos de um website. Por que? Bem, a maioria deles não são um tanto amigáveis, certo? Quando você está prestes a postar um comentário, você só quer começar a escrever o comentário em si e nada mais. Ao invés disso, um formulário padrão de comentários lhe pede todos os tipos de outras coisas primeiro. É irritante.&lt;/p&gt;
+
+&lt;p&gt;Para motivarmos as pessoas a comentarem mais, nós podemos &lt;em&gt;recolher&lt;/em&gt; (&lt;em&gt;collapse&lt;/em&gt;) o formulário e &lt;strong&gt;só mostrarmos o elemento mais crucial: o campo de comentário&lt;/strong&gt;. Quando o usuário clica no campo, você pode expandir o formulário. Um exemplo no mundo real dessa revelação progressiva pode ser encontrado na versão beta do site do New York Times:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39945&#34; alt=&#34;NY-Times&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/NY-Times.gif&#34; width=&#34;530&#34; height=&#34;592&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Você pode ir até mais longe, definindo o foco do cursor no campo de comentario quando o formulário se expandir. Porém, essa abordagem tem um problema: um princípio fundamental do design de interação é que &lt;strong&gt;uma ação deve acontecer próxima ao local da onde a interação ocorre&lt;/strong&gt; (próximo ao local de atenção). Podemos então ir um passo além, e animar o campo de comentário para orientar o usuário:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39946&#34; alt=&#34;ExpandingComments&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/ExpandingComments.gif&#34; width=&#34;500&#34; height=&#34;580&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Você pode até fixar o campo de comentário no topo, expandi-lo nesse sentido e exibir os campos adicionais abaixo dele.&lt;/p&gt;
+
+&lt;p&gt;Como você pode ver, isso reduz a desordem e faz com que o formulário de comentário seja mais convidativo. Mas, e se &lt;em&gt;&amp;#8220;recolhermos&amp;#8221; (collapsing)&lt;/em&gt; todo os comentários anteriores também?&lt;/p&gt;
+
+&lt;p&gt;Recolhendo os comentários, nós temos a barra de rolagem para representar o comprimento do artigo (conteúdo) em si, ao invés da página inteira (com os comentários expandidos). Uma prática comum é a de carregar automaticamente os comentários quando o usuário chega ao fim de uma página. Devemos evitar forçar o usuário a clicar a menos que haja uma boa razão para isso.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Exibição progressiva a fim de reduzir os componentes de interface do usuário à sua essência. Revele funcionalidades de acordo com que os usuários precisem delas.&lt;/p&gt;
+
+&lt;h2 id=&#34;puxe-para-atualizar-1&#34;&gt;Puxe para atualizar&lt;/h2&gt;
+
+&lt;p&gt;Uma das interações mais interessantes a surgir logo após a introdução do iPhone foi o &amp;#8220;&lt;em&gt;puxar para atualizar (pull to refresh)&lt;/em&gt;&amp;#8220;, iniciada por Loren Brichter. Ela permite ao usuário atualizar o conteúdo de rolagem que esteja disposto numa ordem cronológica reversa. Você pode ver esse conceito em ação no aplicativo do Twitter. Uma vez que você deslizou para o topo da lista de tweets, deslize um pouco mais para atualizar a &lt;em&gt;timeline&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39947&#34; alt=&#34;Twitter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/Twitter.gif&#34; width=&#34;240&#34; height=&#34;360&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Por que isso funciona tão bem? Antes do &amp;#8220;&lt;em&gt;puxar para atualizar&lt;/em&gt;&amp;#8221; existir, os usuários tinham que apertar o botão de atualizar nos navegadores para carregar mais conteúdo. Ao juntar o desejo do usuário de encontrar mais conteúdo com a ação de atualizar, a necessidade de uma ação explícita tornou-se obsoleta.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Ao ligar inteção com ação, a experiência torna-se mais transparente.&lt;/p&gt;
+
+&lt;h2 id=&#34;sticky-labels-1&#34;&gt;Sticky Labels&lt;/h2&gt;
+
+&lt;p&gt;&lt;em&gt;Sticky labels&lt;/em&gt; são uma outra sutil, mas útil combinação de um componente de interface e uma transição significativa. Confira o uso desta técnica no &lt;a href=&#34;http://edenspiekermann.com/projects&#34;&gt;portfólio&lt;/a&gt; da Edenspiekermann.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39948&#34; alt=&#34;Sticky-Label&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/Sticky-Label.gif&#34; width=&#34;500&#34; height=&#34;580&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As &lt;em&gt;labels&lt;/em&gt; de projeto deslizam juntamente com o conteúdo, proporcionando assim contexto para as imagens à direita, até o próximo projeto aparecer. Este comportamento é semelhante ao livro de endereços no iOS e é especialmente útil para fornecer contextos em seções longas. A transição oferece uma melhor orientação e descrições fáceis baseadas no contexto.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Use &lt;em&gt;sticky labels&lt;/em&gt; para seções longas em que as descrições ou títulos adicionam informações valiosas ao conteúdo que não cabe na &lt;em&gt;viewport&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;affordance-transition-1&#34;&gt;Affordance transition&lt;/h2&gt;
+
+&lt;p&gt;O conceito de &lt;em&gt;affordance&lt;/em&gt; deriva da psicologia cognitiva e refere-se às características particulares de um objeto que guia o espectador.&lt;/p&gt;
+
+&lt;p&gt;No contexto de UI design, o &lt;a href=&#34;http://ec.europa.eu/regional_policy/archive/country/commu/docevent/26112008/5_doulgerof_glossary.pdf&#34;&gt;glossário de usabilidade&lt;/a&gt; (PDF) do website da EU, define-o assim:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&amp;#8220;&lt;em&gt;Affordance&lt;/em&gt; é uma propriedade desejável de uma interface de usuário &amp;#8211; software que, naturalmente, leva as pessoas a tomarem as medidas corretas para realizarem seus objetivos.&amp;#8221;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;em&gt;Ridges (detalhes?)&lt;/em&gt; são muitas vezes utilizados para melhorar a &lt;em&gt;affordance&lt;/em&gt;. &lt;em&gt;Ridges&lt;/em&gt; em torno de um botão sugerem que este pode ser manipulado. Esta técnica de UX foi amplamente popularizada pelo aplicativo da câmera no iOS.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39949&#34; alt=&#34;iOS_Lockscreen-500-final&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/iOS_Lockscreen-500-final.jpg&#34; width=&#34;500&#34; height=&#34;750&#34; srcset=&#34;uploads/2013/12/iOS_Lockscreen-500-final.jpg 500w, uploads/2013/12/iOS_Lockscreen-500-final-112x168.jpg 112w, uploads/2013/12/iOS_Lockscreen-500-final-206x310.jpg 206w&#34; sizes=&#34;(max-width: 500px) 100vw, 500px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Os traços (&lt;em&gt;ripples&lt;/em&gt;) em torno do botão de câmera na tela de bloqueio do iOS 6, sugerem a idéia do botão ser arrastável. A Apple removeu-os no iOS 7, aparentemente porque os usuários se acostumaram a isso, tornando o ícone mais parecido com um botão independente. Porém, o que acontece é ainda a mesma coisa: quando você arrasta o botão, a tela de bloqueio revela a câmera por baixo. Essa é uma grande técnica para apontar os usuários para os recursos em uma interface.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Dê aos elementos uma alta &lt;em&gt;affordance&lt;/em&gt; para apontar os usuários para os recursos em uma interface.&lt;/p&gt;
+
+&lt;h2 id=&#34;ocultar-com-base-no-contexto-1&#34;&gt;Ocultar com base no contexto&lt;/h2&gt;
+
+&lt;p&gt;O Google Chrome no iOS teve o a ação de ocultar baseada no contexto desde que foi lançado. Veja na imagem a seguir:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-39950&#34; alt=&#34;CBH&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/12/CBH.gif&#34; width=&#34;500&#34; height=&#34;580&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A idéia básica é que os controles de navegação se escondam automaticamente uma vez que o usuário rolar a página para baixo. Assim que o usuário rolar a página para cima novamente, os controles reaparecem. Essa abordagem tanto melhora a experiência contextual (com foco no conteúdo em si) como aumenta o espaço da tela. Esse último, claro, particularmente importante em dispositivos móveis.&lt;/p&gt;
+
+&lt;p&gt;A premissa é que os &lt;strong&gt;usuários vão fluir com o conteúdo que estão consumindo&lt;/strong&gt;. Logo que eles pararem esse fluxo, uma mudança de contexto provavelmente seja necessária; assim, os controles de navegação reaparecem. Embora essa técnica economize espaço de tela, verifique se essa premissa é válida no seu caso.&lt;/p&gt;
+
+&lt;p&gt;O iOS levou isso a um passo adiante. Quando você chega ao fim de uma página, os controles de navegação se expandem novamente. Isso é um bom exemplo de incorporação dinâmica das necessidades do usuário em uma interface.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Use a ação de ocultar baseada no contexto para melhorar o foco do usuário e economizar espaço na tela.&lt;/p&gt;
+
+&lt;h2 id=&#34;transição-do-foco-1&#34;&gt;Transição do foco&lt;/h2&gt;
+
+&lt;p&gt;Há cerca de uma semana atrás, Nikita Vasilyev, uma UI designer de Toronto, teve uma idéia bem legal. Ela desenvolveu um script que anima elementos que recebem foco. Embora ainda seja um projeto experimental, o conceito é bastante interessante. Dê uma olhada no &lt;a href=&#34;http://www.youtube.com/watch?v=MyIE9vjy8Zo&#34;&gt;vídeo&lt;/a&gt;. (E por favor, coloque seus fones de ouvido &amp;#8211; a música é épica).&lt;/p&gt;
+
+&lt;p&gt;Ao navegar pelo teclado, muitas vezes não fica claro pro usuário para onde o foco mudou após pressionar a tecla Tab. A animação aponta-os para o lugar certo na página. A transição é sútil mas tem um grande impacto em orientar o usuário.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Leve em conta:&lt;/strong&gt; Oriente o usuário, independentemente de como eles navegam.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão-1&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Esses são apenas alguns exemplos, entre muitos outros por aí. A questão não é mostrar as mais recentes e extravagantes técnicas de interação, mas sim destacar como pequenos detalhes de interação podem melhorar significativamente a experiência do usuário.&lt;/p&gt;
+
+&lt;p&gt;Se nós estamos a projetar melhores produtos digitais, então &lt;strong&gt;temos que desafiar nossas crenças atuais&lt;/strong&gt; e ver como padrões de interação podem, potencialmente, facilitar a vida do usuário. Eu não estou dizendo que devemos reinventar a roda, mas seria muito ingênuo pararmos de explorar. Então, saia da sua zona de conforto. Continue explorando e testando.&lt;/p&gt;
+
+&lt;p&gt;Se você gostou desse artigo, você pode &lt;a href=&#34;https://twitter.com/webchaeschtli&#34;&gt;me seguir&lt;/a&gt; no Twitter ou se juntar a mim para comer uma barra de chocolate suiço na Suíça.&lt;/p&gt;
+
+&lt;p&gt;Que padrões de transição você achou especialmente útil nos seus projetos?&lt;/p&gt;
+
+&lt;p&gt;—&lt;/p&gt;
+
+&lt;p&gt;Texto traduzido e adaptado do]&lt;a href=&#34;http://uxdesign.smashingmagazine.com/2013/10/23/smart-transitions-in-user-experience-design/&#34;&gt;10&lt;/a&gt; escrito pelo &lt;a href=&#34;https://twitter.com/webchaeschtli&#34; title=&#34;Perfil do twitter&#34;&gt;Adrian Zumbrunnen&lt;/a&gt; em 23 de outubro de 2013.&lt;/p&gt;
+
+&lt;p&gt;Tradução autorizada pela &lt;a href=&#34;http://www.smashingmagazine.com/&#34;&gt;Smashing Magazine&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Qualquer erro ou sugestão de melhoria na tradução, é bem vinda! 🙂&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>CSS Transition e CSS Animation</title>
+      <link>http://tableless.com.br/transition-e-animation/</link>
+      <pubDate>Fri, 19 Apr 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/transition-e-animation/</guid>
+      <description>
+
+&lt;h2 id=&#34;transition-prazer&#34;&gt;Transition. Prazer!&lt;/h2&gt;
+
+&lt;blockquote cite=&#34;http://www.w3schools.com/css3/css3_transitions.asp&#34;&gt;
+  &lt;p&gt;
+    &amp;#8220;Com CSS3, podemos adicionar um efeito quando o navegador troca de um estilo para outro, sem usar animações em Flash ou JavaScript.&amp;#8221; &amp;#8211; w3schools
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Mostrar um feedback ao usuário quando ele passar o mouse sobre um link (&lt;em&gt;:hover&lt;/em&gt;) ou quando ele der foco em um campo input (&lt;em&gt;:focus&lt;/em&gt;) são boas práticas. Há muitos jeitos de fazermos isso: mudando a cor do texto, tirando o &lt;em&gt;underline da palavra&lt;/em&gt;, alterando a borda do &lt;em&gt;input&lt;/em&gt; que recebeu o foco ou até alterando a cor de &lt;em&gt;background&lt;/em&gt; do elemento. (&lt;a href=&#34;http://www.smashingmagazine.com/2010/02/13/the-definitive-guide-to-styling-web-links/&#34;&gt;Esse&lt;/a&gt; artigo da &lt;em&gt;Smashing Magazine&lt;/em&gt; trata muito bem a questão da estilização de links).&lt;/p&gt;
+
+&lt;p&gt;Normalmente fazemos isso alterando o valor de uma propriedade &lt;em&gt;CSS&lt;/em&gt; no estado &lt;em&gt;:hover&lt;/em&gt; ou &lt;em&gt;:focus&lt;/em&gt; do elemento. Quando fazemos isso, o resultado é instantâneo. Melhor dizendo, a alteração ocorre imediatamente ao usuário fazer a ação (seja passar o mouse sobre o elemento ou este ganhar foco). A alteração ocorre de forma brusca, do valor antigo da propriedade para o novo valor. Por exemplo, quando temos um elemento com borda colorida, e utilizamos o estado &lt;em&gt;:hover&lt;/em&gt; para alterarmos a cor da borda, essa transição entre uma cor e outra acontece imediatamente assim que você passa o mouse em cima do elemento.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div { 
+   display: block;
+   background-color: #666;
+   width: 100px;
+   height: 40px;
+   border: solid 5px red;
+}
+
+div:hover { border: solid 5px black; }&lt;/pre&gt;
+
+&lt;p&gt;É aí que entra a &lt;strong&gt;transition&lt;/strong&gt; do &lt;em&gt;CSS3&lt;/em&gt;. Ela analisa a mudança de valor entre a propriedade e faz com que essa transição, ao invés de ocorrer de forma brusca, ocorra suavemente em um tempo determinado.&lt;/p&gt;
+
+&lt;blockquote cite=&#34;http://www.w3.org/TR/css3-transitions/&#34;&gt;
+  &lt;p&gt;
+    &amp;#8220;CSS transitions permite que as mudanças nos valores das propriedades CSS ocorram suavemente sobre uma duração especificada.&amp;#8221; &amp;#8211; w3c
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Nesse &lt;a href=&#34;http://codepen.io/raphaelfabeni/full/Fkbej&#34;&gt;exemplo&lt;/a&gt;, passe o mouse sobre o logo do Tableless abaixo e veja um exemplo da propriedade &lt;em&gt;transition&lt;/em&gt; em conjunto com a propriedade &lt;em&gt;transform&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;tá-legal-entendi-mas-como-faz&#34;&gt;Tá legal, entendi. Mas como faz?&lt;/h3&gt;
+
+&lt;p&gt;A propriedade transition possui quatro propriedades para você configurar:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;transition-property&lt;/em&gt;*,&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;transition-duration&lt;/em&gt;*,&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;transition-timing-function&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;e &lt;em&gt;transition-delay&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;small&gt;* propriedades obrigatórias na declaração. As demais caso omitidas, assumem seu valor &lt;i&gt;default&lt;/i&gt;.&lt;/small&gt; &lt;strong&gt;transition-property&lt;/strong&gt;: Nome da propriedade &lt;em&gt;CSS&lt;/em&gt; sobre a qual o efeito da transição vai ser aplicado. É obrigatória na declaração pois caso seja omitida, não existirá uma propriedade para se aplicar o efeito da transição. É possível ainda aplicar uma mesma transição para todas as propriedades &lt;em&gt;CSS&lt;/em&gt; do elemento, basta colocar o valor &lt;em&gt;all&lt;/em&gt;. &lt;a href=&#34;http://www.w3.org/TR/css3-transitions/#animatable-properties-&#34;&gt;Aqui&lt;/a&gt; você encontra uma tabela com todas as propriedades que suportam &lt;em&gt;transition&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;transition-property: border-color;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;transition-duration&lt;/strong&gt;: Duração do efeito em segundos (o padrão é 0). Também é obrigatória na declaração pois, se omitida, assume seu valor &lt;em&gt;default&lt;/em&gt; que é zero e a transição não vai ter efeito.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;transition-duration: 1s;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;transition-timing-function&lt;/strong&gt;: Forma como a transição progride no tempo (o padrão é &lt;em&gt;ease&lt;/em&gt;). Falando de um jeito mais fácil, é como se comporta o ritmo da transição durante o efeito. Pode ser usado de duas maneiras: uma é utilizando alguns valores já pré-definidos que são:&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;linear&lt;/em&gt;, &lt;em&gt;ease&lt;/em&gt;, &lt;em&gt;ease-in&lt;/em&gt;, &lt;em&gt;ease-out&lt;/em&gt; e &lt;em&gt;ease-in-out&lt;/em&gt;;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;transition-timing-function: linear;&lt;/pre&gt;
+
+&lt;p&gt;&amp;#8230;e a outra é definindo uma função customizada, especificando quatro coordenadas para definir a &lt;em&gt;cubic bezier curve&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;transition-timing-function: cubic-bezier(0.005, 0.625, 0.365, 0.0840);&lt;/pre&gt;
+
+&lt;p&gt;Esse &lt;a href=&#34;http://matthewlein.com/ceaser/&#34;&gt;site&lt;/a&gt; ajuda e muito. Tanto para entender o funcionamento da cubic bezier, quanto para customizar a sua própria transição.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;transition-delay&lt;/strong&gt;: Define a partir de quanto tempo (em segundos) o efeito da transição vai se iniciar (o padrão é 0).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;transition-delay: 0.1s;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Passe&lt;/strong&gt; o mouse sobre o retângulo cinza no exemplo abaixo para ver a &lt;em&gt;transition&lt;/em&gt; em ação:&lt;/p&gt;
+
+&lt;p&gt;*Nos exemplos a seguir, para facilitar a leitura, não utilizei prefixos. Mas, recomendo que dêem uma olhada no &lt;a href=&#34;http://caniuse.com/css-transitions&#34;&gt;Can I Use&lt;/a&gt; para usar os prefixos correspondentes para cada browser.&lt;/p&gt;
+
+&lt;pre class=&#34;codepen&#34;&gt;&lt;/pre&gt;
+
+&lt;p&gt;No exemplo acima, a propriedade que recebeu o efeito da &lt;em&gt;transição&lt;/em&gt; é a &lt;em&gt;border-color&lt;/em&gt;, a &lt;em&gt;duração&lt;/em&gt; do efeito é de &lt;em&gt;1 segundo&lt;/em&gt;, o &lt;em&gt;efeito&lt;/em&gt; (ou ritmo) é &lt;em&gt;linear&lt;/em&gt; e o &lt;em&gt;delay&lt;/em&gt; para a transição se iniciar é de &lt;em&gt;0.1 segundo&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;escrevendo-menos-8230&#34;&gt;Escrevendo menos&amp;#8230;&lt;/h3&gt;
+
+&lt;p&gt;É possível encurtar a sintaxe em um shortcode bem simples. Basta declarar a propriedade &lt;em&gt;transition&lt;/em&gt; que ela agrupa as quatro propriedades específicas que vimos acima. As palavras mágicas e a ordem são as seguintes:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div { transition: |property| |duration| |timing-function| |delay|; }&lt;/pre&gt;
+
+&lt;p&gt;O exemplo visto acima ficaria dessa maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div { transition: border-color 1s linear 0.1s; }&lt;/pre&gt;
+
+&lt;p&gt;Um outro exemplo, agora adicionando o efeito da transição na &lt;em&gt;opacidade&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;codepen&#34;&gt;&lt;/pre&gt;
+
+&lt;p&gt;No exemplo acima, se olharmos a aba do &lt;em&gt;CSS&lt;/em&gt; identificamos a seguinte chamada:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div &amp;gt; a {
+   display: block;
+   transition: opacity 0.5s;
+}&lt;/pre&gt;
+
+&lt;p&gt;Podemos notar que as propriedades &lt;em&gt;timing-function&lt;/em&gt; e &lt;em&gt;delay&lt;/em&gt; foram omitidas. Com isso, elas assumem seus valores &lt;em&gt;default&lt;/em&gt; que são &lt;em&gt;ease&lt;/em&gt; e __ respectivamente.&lt;/p&gt;
+
+&lt;h3 id=&#34;e-mais-de-uma-propriedade-tem-como&#34;&gt;E mais de uma propriedade.. tem como?&lt;/h3&gt;
+
+&lt;p&gt;É possível aplicar transições diferentes para mais de uma propriedade em um mesmo elemento. Para isso é só você separar cada bloco de declaração de efeito com vírgulas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div { transition: opacity 0.5s, padding 0.25s; }&lt;/pre&gt;
+
+&lt;p&gt;No código acima definimos duas transições:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;a primeira com o efeito da transição aplicado na opacidade, que já havia sido configurada no exemplo anterior;&lt;/li&gt;
+&lt;li&gt;a segunda que define que a propriedade a receber o efeito da transição é o &lt;em&gt;padding&lt;/em&gt;, a &lt;em&gt;duração&lt;/em&gt; vai ser de &lt;em&gt;0.25 segundos&lt;/em&gt;, o &lt;em&gt;ritmo&lt;/em&gt; como está omitido assume seu valor &lt;em&gt;default&lt;/em&gt; que é &lt;em&gt;ease&lt;/em&gt; e o &lt;em&gt;delay&lt;/em&gt;, como também está omitido, assume seu valor &lt;em&gt;default&lt;/em&gt; que é __.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre class=&#34;codepen&#34;&gt;&lt;/pre&gt;
+
+&lt;p&gt;É possível ainda definir uma transição padrão para todas as propriedades de um elemento:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div { transition: all 1s linear; }&lt;/pre&gt;
+
+&lt;p&gt;No caso, definimos o valor &lt;em&gt;all&lt;/em&gt; para a &lt;em&gt;property&lt;/em&gt;, o que significa que &lt;strong&gt;todas&lt;/strong&gt; as transições do elemento terão a &lt;em&gt;duração&lt;/em&gt; de &lt;em&gt;1 segundo&lt;/em&gt;, o &lt;em&gt;ritmo&lt;/em&gt; será &lt;em&gt;linear&lt;/em&gt; e o &lt;em&gt;delay&lt;/em&gt; será __.&lt;/p&gt;
+
+&lt;h3 id=&#34;suporte&#34;&gt;Suporte&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;IE&lt;/strong&gt; 10&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;FF&lt;/strong&gt; 1&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Chrome&lt;/strong&gt; 4&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Safari&lt;/strong&gt; 3.1&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Opera&lt;/strong&gt; 10.5&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;small&gt;Fonte: &lt;a href=&#34;http://caniuse.com/css-transitions&#34;&gt;Can I Use&lt;/a&gt;&lt;/small&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;animation&#34;&gt;Animation&lt;/h2&gt;
+
+&lt;blockquote cite=&#34;http://www.w3schools.com/css3/css3_animations.asp&#34;&gt;
+  &lt;p&gt;
+    &amp;#8220;Com CSS3, conseguimos criar animações que podem substituir imagens animadas, animações em Flash e JavaScript em muitas páginas web&amp;#8221; &amp;#8211; w3schools
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&#34;a-regra-dos-keyframes&#34;&gt;A regra dos keyframes&lt;/h3&gt;
+
+&lt;p&gt;Indo direto ao ponto: É aonde as animações são criadas.&lt;/p&gt;
+
+&lt;p&gt;Um keyframe descreve como o elemento que vai ser animado, deve ser renderizado em uma determinada &lt;strong&gt;fase&lt;/strong&gt;, durante a sequência da animação.&lt;/p&gt;
+
+&lt;p&gt;Ou seja, cada keyframe contém uma ou mais propriedades CSS que vão ser aplicadas no elemento que será ser animado e, a animação se encarrega de mudar de um keyframe para outro, aplicando a transição entre as mudanças de CSS.&lt;/p&gt;
+
+&lt;p&gt;A sintaxe para a criação de keyframes é a seguinte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@keyframes nomedaanimacao {
+   seletores-keyframe { estilo css para esse determinado keyframe; }
+}&lt;/pre&gt;
+
+&lt;p&gt;Existem duas maneiras para se criar nossos amigos keyframes:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@keyframes animacao {
+   from {
+      width: 100px; 
+      background: black;
+   }
+   to { 
+     background: yellow;
+      width: 200px;
+   }
+}&lt;/pre&gt;
+
+&lt;p&gt;É a forma mais básica, onde definimos um início e um fim para a animação. No exemplo acima, &lt;em&gt;from&lt;/em&gt; é equivalente ao início da animação (&lt;em&gt;0%&lt;/em&gt;) e &lt;em&gt;to&lt;/em&gt; é equivalente ao final da animação (&lt;em&gt;100%&lt;/em&gt;).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@keyframes animacaoBolada {
+   0%   { 
+      background: black;
+      width: 100px;
+   }
+   25%  { background: green; }
+   50%  { background: blue; }
+   75%  { background: red; }
+   100% { 
+      background: yellow;
+      width: 200px;
+   }
+}&lt;/pre&gt;
+
+&lt;p&gt;Já essa é a maneira que temos maior controle da animação. Para isso, utilizamos porcentagem para definir os &lt;em&gt;keyframes&lt;/em&gt;. No código acima, a animação possui 5 passos e, a &lt;strong&gt;porcentagem é relativa à duração da animação&lt;/strong&gt; que vai ser definida posteriormente.&lt;/p&gt;
+
+&lt;p&gt;Com a animação criada nos &lt;em&gt;keyframes&lt;/em&gt;, precisamos vinculá-la a algum seletor, &lt;strong&gt;caso contrário a animação não terá nenhum efeito&lt;/strong&gt;. Para fazer isso, temos que declarar pelo menos duas propriedades que são obrigatórias:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;o nome da animação (igual ao especificado nos &lt;em&gt;keyframes&lt;/em&gt;);&lt;/li&gt;
+&lt;li&gt;a duração da animação (se não for declarada, a animação não se inicia pois o valor padrão é 0).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Confira no &lt;a href=&#34;http://cdpn.io/eCGhx&#34;&gt;exemplo&lt;/a&gt; as animações com os dois modelos de &lt;em&gt;keyframes&lt;/em&gt; citados acima:&lt;/p&gt;
+
+&lt;p&gt;Mas a &lt;em&gt;animation&lt;/em&gt; do CSS3 possui mais propriedades. Vamos conhecer as outras&amp;#8230;.&lt;/p&gt;
+
+&lt;h3 id=&#34;as-propriedades&#34;&gt;As propriedades&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;animation-name&lt;/strong&gt;: Nome da animação especificada nos &lt;em&gt;@keyframes&lt;/em&gt;;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;animation-name: animacaoBolada;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;animation-duration&lt;/strong&gt;: Quanto tempo, em segundos ou milisegundos, durará um ciclo da animação (o padrão é 0).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;animation-duration: 5s;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;animation-timing-function&lt;/strong&gt;: Forma como a animação progride no tempo (o padrão é &lt;em&gt;ease&lt;/em&gt;). Do mesmo modo que a propriedade &lt;em&gt;transition&lt;/em&gt;, pode ser usada de duas maneiras: uma é utilizando alguns valores já pré-definidos que são:&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;linear&lt;/em&gt;, &lt;em&gt;ease&lt;/em&gt;, &lt;em&gt;ease-in&lt;/em&gt;, &lt;em&gt;ease-out&lt;/em&gt; e &lt;em&gt;ease-in-out&lt;/em&gt;;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;animation-timing-function: ease;&lt;/pre&gt;
+
+&lt;p&gt;&amp;#8230; e a outra é definindo uma função customizada, especificando quatro coordenadas para definir a &lt;em&gt;cubic bezier curve&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;animation-timing-function: cubic-bezier(0.005, 0.0625, 0.365, 0.0840);&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;animation-delay&lt;/strong&gt;: Define a partir de quanto tempo a animação vai se iniciar (o padrão é 0).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;animation-delay: 0.2s;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;animation-iteration-count&lt;/strong&gt;: Determina o número de vezes que a animação vai se repetir (o padrão é 1). Podemos deixar a animação repetindo infinitamente, basta especificar o valor &lt;em&gt;infinite&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;animation-iteration-count: infinite;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;animation-direction&lt;/strong&gt;: Especifica se ao final da animação, ela deve reiniciar seu fluxo normalmente (&lt;em&gt;normal&lt;/em&gt;), que é o padrão, ou voltar no sentido inverso (&lt;em&gt;reverse&lt;/em&gt;).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;animation-direction: reverse;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;animation-play-state&lt;/strong&gt;: Define se a animação está rodando (&lt;em&gt;running&lt;/em&gt;), que é o padrão, ou pausada (&lt;em&gt;paused&lt;/em&gt;).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;animation-play-state: running;&lt;/pre&gt;
+
+&lt;h3 id=&#34;montando-o-bolo-8230&#34;&gt;Montando o bolo&amp;#8230;&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div {
+   animation-name: animacaoBolada;
+   animation-duration: 5s;
+   animation-timing-function: ease;
+   animation-delay: 1s;
+   animation-iteration-count: infinite;
+   animation-direction: alternate;
+   animation-play-state: running;
+}&lt;/pre&gt;
+
+&lt;h3 id=&#34;escrevendo-menos-8230-1&#34;&gt;Escrevendo menos&amp;#8230;&lt;/h3&gt;
+
+&lt;p&gt;Da mesma forma que a propriedade &lt;em&gt;transition&lt;/em&gt;, também é possível encurtar a sintaxe em um &lt;em&gt;shortcode&lt;/em&gt;. Basta declarar a propriedade &lt;em&gt;animation&lt;/em&gt; que ela agrupa todas as propriedades que vimos acima. As palavras mágicas e a ordem são as seguintes:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div {
+   |name| |duration| |timing-function| |delay| |iteration-count| |direction| |play-state|;
+}&lt;/pre&gt;
+
+&lt;p&gt;O &lt;em&gt;bolo&lt;/em&gt; acima ficaria dessa maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div { animation: animacaoBolada 5s ease 1s infinite alternate; }&lt;/pre&gt;
+
+&lt;p&gt;Mais dois exemplos (&lt;a href=&#34;http://cdpn.io/qHkgJ&#34;&gt;1&lt;/a&gt; e &lt;a href=&#34;http://cdpn.io/csubG&#34;&gt;2&lt;/a&gt;) em conjunto com a propriedade &lt;em&gt;transform&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;suporte-1&#34;&gt;Suporte&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;IE&lt;/strong&gt; 10&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;FF&lt;/strong&gt; 5&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Chrome&lt;/strong&gt; 4&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Safari&lt;/strong&gt; 4&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Opera&lt;/strong&gt; 12&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;small&gt;Fonte: &lt;a href=&#34;http://caniuse.com/css-animation&#34;&gt;Can I Use&lt;/a&gt;&lt;/small&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Dart on Tableless</title>
+    <link>http://tableless.com.br/tags/dart/index.xml</link>
+    <description>Recent content in Dart on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/dart/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Como criar um Chrome App com o seu Chromebook</title>
+      <link>http://tableless.com.br/como-criar-um-chrome-app-com-o-seu-chromebook/</link>
+      <pubDate>Mon, 01 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/como-criar-um-chrome-app-com-o-seu-chromebook/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-é-um-chrome-app&#34;&gt;O que é um chrome app&lt;/h2&gt;
+
+&lt;p&gt;A ideia de &lt;a href=&#34;https://www.google.com/chrome/webstore/apps-create.html&#34;&gt;chrome app&lt;/a&gt;&amp;nbsp;é trazer ferramentas que você usa no browser para o seu computador. Como se fosse uma extensão do browser. &amp;nbsp;A&amp;nbsp;instalação/desinstalação destes apps é fácil, rápida e sem dor de cabeça, além de contar com aplicativos que podem funcionar off-line.&lt;/p&gt;
+
+&lt;h2 id=&#34;por-que-criar-um-chrome-app&#34;&gt;Por que criar um chrome APP?&lt;/h2&gt;
+
+&lt;p&gt;A grande vantagem, é que aplicativos nativos para Chrome&amp;nbsp;OS são feitos com tecnologias que já conhecemos como HTML, CSS e JS. Podendo também utilizar a linguagem &lt;a href=&#34;http://pt.wikipedia.org/wiki/Dart_%28linguagem_de_programa%C3%A7%C3%A3o%29&#34;&gt;dart&lt;/a&gt;&amp;nbsp;que me parece bem interessante.&lt;/p&gt;
+
+&lt;h2 id=&#34;equipamento-necessário&#34;&gt;Equipamento necessário&lt;/h2&gt;
+
+&lt;p&gt;Encontrei vários editores de texto para o Chromebook, mas me familiarizei com o &lt;a href=&#34;http://thomaswilburn.net/caret/&#34;&gt;Caret&lt;/a&gt;. Gosto dele, pois além de informar erros, ele dá dicas de otimizações, e avisa se você esquecer de deixar callbacks para outros navegadores. Isso evita uma grande dor de cabeça. Fique à vontade para escolher o editor que mais te agrade.&lt;/p&gt;
+
+&lt;h2 id=&#34;começar-pelo-inicio&#34;&gt;Começar pelo inicio&lt;/h2&gt;
+
+&lt;p&gt;Para iniciar Você vai precisar de um arquivo &lt;strong&gt;manifest.json&lt;/strong&gt; para informar detalhes sobre a aplicação como titulo, descrição e icones. E de um arquivo JavaScript para criar a tela responsável pela interação com o APP conhecido como &lt;strong&gt;background.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Crie um diretório para o seu projeto. Na raiz dele vamos criar um arquivo chamado &lt;strong&gt;manifest.json&lt;/strong&gt;. A sintaxe para quem não conhece é composta por &lt;strong&gt;&amp;#8220;chave&amp;#8221;: &amp;#8220;valor&amp;#8221;&lt;/strong&gt;. É &amp;#8220;tipo&amp;#8221; um objeto JavaScript (na verdade ele é). Nele informamos nome, descrição, versão da aplicação, versão do arquivo manifest, o script de background e os ícones que serão usados no APP.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;{
+  &#34;name&#34;: &#34;Nome do meu APP&#34;,
+  &#34;description&#34;: &#34;Descrição do meu APP&#34;,
+  &#34;version&#34;: &#34;0.1&#34;,
+  &#34;manifest_version&#34;: 2,
+  &#34;app&#34;: {
+    &#34;background&#34;: {
+      &#34;scripts&#34;: [&#34;background.js&#34;]
+    }
+  },
+  &#34;icons&#34;: { &#34;16&#34;: &#34;icone-16.png&#34;, &#34;128&#34;: &#34;icone-128.png&#34; }
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Os icones são opcionais. Contudo, se você não tiver ícones para testar agora, tire essa linha. Na linha onde setamos &amp;#8220;app&amp;#8221;, setamos também o arquivo de background que é muito importante para nós.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-o-script-de-background&#34;&gt;Criando o script de background&lt;/h2&gt;
+
+&lt;p&gt;Após setar o script background.js, precisamos cria-lo. Aqui, por enquanto não tem segredo. Criamos o o arquivo js como o abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;chrome.app.runtime.onLaunched.addListener(function() {
+  chrome.app.window.create(&#39;index.html&#39;, {
+    &#39;bounds&#39;: {
+      &#39;width&#39;: 400,
+      &#39;height&#39;: 500
+    }
+  });
+});&lt;/pre&gt;
+
+&lt;p&gt;Na primeira linha, criamos um listener para ouvir nossos eventos de onLaunched, ou seja quando iniciarmos nossa aplicação. dentro dele criamos a nossa primeira tela, a função &lt;code&gt;chrome.app.window.create&lt;/code&gt; cria a nossa view index.html com o tamanho de 400&amp;#215;500.&lt;/p&gt;
+
+&lt;h2 id=&#34;criando-a-view&#34;&gt;Criando a view&lt;/h2&gt;
+
+&lt;p&gt;É mais simples do que vocês estão pensando. Criamos um arquivo index.html que será chamado pelo background.js quando executarmos nosso app.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+  &amp;lt;head&amp;gt;
+  &amp;lt;/head&amp;gt;
+  &amp;lt;body&amp;gt;
+    &amp;lt;h1&amp;gt;Minha primeira aplicação&amp;lt;/h1&amp;gt;
+  &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;como-testar-meu-chrome-app&#34;&gt;Como testar meu Chrome App?&lt;/h2&gt;
+
+&lt;p&gt;Acesse o endereço pelo seu chrome &lt;strong&gt;chrome://flags&lt;/strong&gt;. Procure por &amp;#8220;&lt;strong&gt;Experimental Extension APIs&lt;/strong&gt;&amp;#8220;, use &amp;#8220;ctrl+f&amp;#8221; ou &amp;#8220;command+f&amp;#8221; para acelerar o processo, e clique no link &amp;#8220;Enable&amp;#8221;. Caso esteja com o chrome em pt-br procure por &amp;#8220;&lt;strong&gt;APIs de extensões experimentais&amp;#8221;&lt;/strong&gt; e clique no link ativar.&lt;/p&gt;
+
+&lt;p&gt;Após ativarmos as extensões experimentais, podemos agora finalmente carregar nossa aplicação para teste.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Vá no menu do chrome&amp;gt;&amp;gt; Mais ferramentas &amp;gt;&amp;gt; Extensões&amp;#8221;&lt;/em&gt; Ou acesse o endereço &lt;strong&gt;chrome://extensions/&lt;/strong&gt; acho mais fácil. Verifique se o modo desenvolvedor está ativado.&lt;/p&gt;
+
+&lt;p&gt;Clique em &amp;#8220;&lt;strong&gt;carregar extensão expandida&lt;/strong&gt;&amp;#8221;&amp;nbsp;, escolha a pasta do seu projeto. Agora é só você procurar na sua lista de app do seu chrome, e sua aplicação está lá.&lt;/p&gt;
+
+&lt;h2 id=&#34;tornando-as-coisas-mais-simples-com-o-nbsp-chrome-dev-editor&#34;&gt;Tornando as coisas mais simples com o&amp;nbsp;Chrome Dev Editor&lt;/h2&gt;
+
+&lt;ul class=&#34;postList&#34;&gt;
+  &lt;li class=&#34;li&#34;&gt;
+    Primeiro vamos instalar&amp;nbsp;o Chrome Dev Editor acessando &lt;a class=&#34;markup--anchor markup--li-anchor&#34; href=&#34;https://chrome.google.com/webstore/detail/chrome-dev-editor-develop/pnoffddplpippgcfjdhbmhkofpnaalpg&#34;&gt;esse link&lt;/a&gt;.
+  &lt;/li&gt;
+  &lt;li class=&#34;li&#34;&gt;
+    Acessamos o menu principal, e clicamos em &lt;em class=&#34;markup--em markup--li-em&#34;&gt;New Project&lt;/em&gt;
+  &lt;/li&gt;
+  &lt;li class=&#34;li&#34;&gt;
+    Digitamos o nome da aplicação, e escolhemos o &lt;em class=&#34;markup--em markup--li-em&#34;&gt;Project Type&lt;/em&gt;
+  &lt;/li&gt;
+  &lt;li class=&#34;li&#34;&gt;
+    Usamos o atalho &lt;em class=&#34;markup--em markup--li-em&#34;&gt;ctrl+r &lt;/em&gt;para testar a aplicação
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Nessa IDE, temos várias opções de &lt;em&gt;Project Type&lt;/em&gt;, mas o que importa para nós agora são os &lt;strong&gt;Chrome Apps&lt;/strong&gt;. Podemos iniciar um projeto usando &lt;a href=&#34;http://pt.wikipedia.org/wiki/Dart_%28linguagem_de_programa%C3%A7%C3%A3o%29&#34;&gt;Dart&lt;/a&gt;, ou &lt;a href=&#34;http://pt.wikipedia.org/wiki/JavaScript&#34;&gt;JavaScript&lt;/a&gt;, também iniciar um projeto usando &lt;a href=&#34;https://www.polymer-project.org/0.5/&#34;&gt;Polymer&lt;/a&gt; e todas as facilidades dele. A Facilidade, é que os arquivos que expliquei anteriormente são criados automaticamente, e a instalação e teste também são automáticos, fazemos tudo pela IDE. Tem jeito mais fácil&amp;nbsp;?&lt;/p&gt;
+
+&lt;p&gt;É claro que isso é só o básico sobre criação de chrome Apps, mas já dá pra brincar um pouquinho. Abraço, e bons estudos. ☺&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

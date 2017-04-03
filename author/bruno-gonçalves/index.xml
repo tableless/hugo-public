@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bruno Gonçalves on Tableless</title>
+    <link>http://tableless.com.br/author/bruno-gon%C3%A7alves/index.xml</link>
+    <description>Recent content in Bruno Gonçalves on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/bruno-gon%C3%A7alves/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Programação funcional em Javascript. Implementando Curry e Compose, com bind e reduce.</title>
+      <link>http://tableless.com.br/programacao-funcional-em-javascript-implementando-curry-e-compose-com-bind-e-reduce/</link>
+      <pubDate>Wed, 29 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/programacao-funcional-em-javascript-implementando-curry-e-compose-com-bind-e-reduce/</guid>
+      <description>
+
+&lt;p&gt;Nos últimos tempos só se fala em programação funcional, seus benefícios, funções puras, dados imutáveis, composição de funções, etc.&lt;/p&gt;
+
+&lt;p&gt;Atualmente temos diversas libs que auxiliam o javascript na missão de ser funcional, Lodash, Underscore e Ramda são uma delas. Então porque estarei falando do &lt;a href=&#34;https://github.com/concretesolutions/pareto.js&#34;&gt;Pareto.js&lt;/a&gt;? Simples como o Princípio de Pareto, a lib criada tem o objetivo de ser leve e resolver 80% dos seus problemas com 20% de código.&lt;/p&gt;
+
+&lt;p&gt;Geralmente procuro aprender algo desmitificando a “mágica” por tras da implementação. Foi assim quando comecei a aprender Angular, e agora o mesmo está sendo aplicado à programação funcional. Por isso nesse post vamos avaliar as implementações de Curry e Compose do Pareto.js.&lt;/p&gt;
+
+&lt;h3 id=&#34;curry-graf-h3-graf-after-p&#34;&gt;Curry {.graf&amp;ndash;h3.graf-after&amp;ndash;p}&lt;/h3&gt;
+
+&lt;p class=&#34;graf-after--h3&#34;&gt;
+  Curry é a ação de pegar uma função que receba múltiplos argumentos e transforma-la em uma cadeia de funções, em que cada uma receba somente um parâmetro.
+&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const curry = (fn, ...args) =&amp;gt; {
+    if (args.length === fn.length) {
+        return fn(...args)
+    }
+    return curry.bind(this, fn, ...args)
+}&lt;/pre&gt;
+
+&lt;p&gt;Vamos agora ver o teste dessa função:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;describe(&#39;curry&#39;, () =&amp;gt; {
+  it(&#39;returns the curried function&#39;, () =&amp;gt; {
+      const add = (a, b) =&amp;gt; a + b
+
+      expect(FunctionUtils.curry(add, 1, 2)).toBe(3)
+      expect(FunctionUtils.curry(add)(1)(2)).toBe(3)
+      expect(FunctionUtils.curry(add)(1, 2)).toBe(3)
+      expect(FunctionUtils.curry(add, 1)(2)).toBe(3)
+  })
+})
+
+&lt;/pre&gt;
+
+&lt;p&gt;Para começarmos a desmitificar a mágica, temos duas perguntas a serem feitas:&lt;/p&gt;
+
+&lt;ul class=&#34;postList&#34;&gt;
+  &lt;li&gt;
+    Como a nossa função curry irá armazenar os parâmetros já passados?
+  &lt;/li&gt;
+  &lt;li&gt;
+    O que o Function.prototype.bind() tem a ver com isso?
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;function-prototype-bind&#34;&gt;Function.prototype.bind()&lt;/h4&gt;
+
+&lt;p&gt;Comumente usamos .bind() para passarmos para uma função um contexto para sua execução, porém nos esquecemos de algo importante, como dito na documentação do &lt;a href=&#34;https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Function/bind&#34; rel=&#34;nofollow&#34;&gt;developer.mozilla.org&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Partial Functions&lt;/p&gt;
+
+&lt;p&gt;The next simplest use of bind() is to make a function with pre-specified initial arguments. These arguments (if any) follow the provided this value and are then inserted at the start of the arguments passed to the target function…&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p class=&#34;graf-after--blockquote&#34;&gt;
+  Resumindo:
+&lt;/p&gt;&lt;p Um dos usos de bind() é construir uma função 
+
+&lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;com argumentos iniciais pré-especificados&lt;/strong&gt;. Esses argumentos, serão passados após o valor de &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;&lt;em class=&#34;markup--em markup--p-em&#34;&gt;This&lt;/em&gt;&lt;/strong&gt; e &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;serão inseridos no inicio dos argumentos passados para a função de destino&lt;/strong&gt;…&lt;/p&gt; &lt;p Difícil de entender? Então vamos a mais um exemplo (em ES5 para que você possa abrir o &lt;em class=&#34;markup--em markup--p-em&#34;&gt;devtools &lt;/em&gt;e já testar).&lt;/p&gt; 
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;&#34;use strict&#34;;
+
+function myNumbers(x, y, z){
+  console.log(x);
+  console.log(y);
+  console.log(z);
+}
+
+var foo = myNumbers.bind(this, 1);
+foo(); 
+// 1
+// undefined
+// undefined
+
+var bar = foo.bind(this, 2);
+bar();
+// 1
+// 2
+// undefined
+
+var baz = bar.bind(this, 3);
+baz();
+//1
+//2
+//3
+&lt;/pre&gt;
+
+&lt;p&gt;Reparem que a função &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;myNumbers &lt;/strong&gt;espera três parâmetros, a cada vez que chamamos &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;.bind(this, val)&lt;/strong&gt;, a função retornada pelo método .bind() &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;automagicamente &lt;/strong&gt;guarda o argumento passado.&amp;lt;p E com isso chegamos à implementação do curry no pareto.js, que irá chamar curry.bind(this, fn, &amp;hellip;args), empilhando os parâmetros no&lt;/p&gt;
+
+&lt;p&gt;&lt;em class=&#34;markup--em markup--p-em&#34;&gt;spread operator &amp;#8230;args &lt;/em&gt;até que a quantidade de argumentos seja a mesma que a função espera &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;(args.length === fn.length)&lt;/strong&gt;. Caso não tenha entendido o que é &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;&lt;em class=&#34;markup--em markup--p-em&#34;&gt;…args&lt;/em&gt;&lt;/strong&gt;&lt;em class=&#34;markup--em markup--p-em&#34;&gt;,&lt;/em&gt; dê uma lida em &lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator&#34; rel=&#34;nofollow&#34;&gt;&lt;em class=&#34;markup--em markup--p-em&#34;&gt;spread operator&lt;/em&gt;&lt;/a&gt;&lt;em class=&#34;markup--em markup--p-em&#34;&gt;.&lt;/em&gt;&lt;/p&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;compose-graf-h3-graf-after-p&#34;&gt;Compose {.graf&amp;ndash;h3.graf-after&amp;ndash;p}&lt;/h3&gt;
+
+&lt;p class=&#34;graf-after--h3&#34;&gt;
+  Como o próprio nome sugere, &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;&lt;em class=&#34;markup--em markup--p-em&#34;&gt;Compose &lt;/em&gt;&lt;/strong&gt;é construir funções mais complexas através de funções mais simples, compondo-as. Vamos à implementação no Pareto.js:
+&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const compose = (...fns) =&amp;gt; fns.reduce((f, g) =&amp;gt; (...args) =&amp;gt; f(g(...args)))
+
+&lt;/pre&gt;
+
+&lt;p&gt;Vamos ao teste dessa função:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;describe(&#39;compose&#39;, () =&amp;gt; {
+    it(&#39;composes functions&#39;, () =&amp;gt; {
+        const toUpperCase = x =&amp;gt; x.toUpperCase()
+        const exclaim = x =&amp;gt; `${x}!`
+        const moreExclaim = x =&amp;gt; `${x}!!`
+
+        expect(FunctionUtils.compose(toUpperCase, exclaim)(&#39;test&#39;)).toBe(&#39;TEST!&#39;)
+        expect(FunctionUtils.compose(toUpperCase, exclaim, moreExclaim)(&#39;test&#39;)).toBe(&#39;TEST!!!&#39;)
+    })
+})
+
+&lt;/pre&gt;
+
+&lt;p&gt;E assim temos uma pergunta:&lt;/p&gt;
+
+&lt;ul class=&#34;postList&#34;&gt;
+  &lt;li&gt;
+    O que Array.prototype.reduce() está fazendo aí no meio ?
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;array-prototype-reduce&#34;&gt;Array.prototype.reduce()&lt;/h4&gt;
+
+&lt;p&gt;Em geral pensamos no .reduce() como um acumulador, porém somente no sentido de soma de valores e não de &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;composição&lt;/strong&gt;. Sabemos que o .reduce() aplica uma função de callback sobre um &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;acumulador&lt;/strong&gt;, varrendo &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;todos os elementos do array&lt;/strong&gt;. Vamos começar a desconstrução do nosso compose:&lt;/p&gt;
+
+&lt;ul class=&#34;postList&#34;&gt;
+  &lt;li&gt;
+    Sabemos que ele recebe um array de funções como argumentos, através do spread operator …args;
+  &lt;/li&gt;
+  &lt;li&gt;
+    A função de &lt;em class=&#34;markup--em markup--li-em&#34;&gt;callback &lt;/em&gt;do .reduce(), que será executada sobre cada item do nosso array, pode receber até 4 parâmetros, sendo eles: &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;&lt;em class=&#34;markup--em markup--li-em&#34;&gt;previousValue, currentValue, index, array&lt;/em&gt;&lt;/strong&gt;. Porém aqui só iremos utilizar os dois primeiros (&lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;&lt;em class=&#34;markup--em markup--li-em&#34;&gt;previousValue&lt;/em&gt;&lt;/strong&gt; e &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;&lt;em class=&#34;markup--em markup--li-em&#34;&gt;currentValue&lt;/em&gt;&lt;/strong&gt;). Lembrando que na primeira chamada à nossa função de callback, &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;&lt;em class=&#34;markup--em markup--li-em&#34;&gt;previousValue&lt;/em&gt; será o valor do primeiro elemento do array e &lt;em class=&#34;markup--em markup--li-em&#34;&gt;currentValue&lt;/em&gt; será o valor do elemento seguinte;&lt;/strong&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    A nossa função de &lt;em class=&#34;markup--em markup--li-em&#34;&gt;callback&lt;/em&gt; irá compor a função passada em &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;&lt;em class=&#34;markup--em markup--li-em&#34;&gt;previousValue&lt;/em&gt;&lt;/strong&gt; com a que está em &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;&lt;em class=&#34;markup--em markup--li-em&#34;&gt;currentValue&lt;/em&gt;&lt;/strong&gt;, adicionando na declaração da função que ela poderá receber &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;N&lt;/strong&gt; argumentos (…args). Resultando em &lt;strong class=&#34;markup--strong markup--li-strong&#34;&gt;&lt;em class=&#34;markup--em markup--li-em&#34;&gt;previousValue(currentValue(…args))&lt;/em&gt;.&lt;/strong&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;De acordo com o nosso testes, vamos observar os passos de execução em uma tabela:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-53670&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/compose-print.png&#34; alt=&#34;compose-print&#34; width=&#34;737&#34; height=&#34;83&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;E com isso temos o resultado da função mais interna (&lt;em class=&#34;markup--em markup--p-em&#34;&gt;moreExclaim&lt;/em&gt;) alimentando as funções mais externas (&lt;em class=&#34;markup--em markup--p-em&#34;&gt;exclaim&lt;/em&gt; e depois &lt;em class=&#34;markup--em markup--p-em&#34;&gt;toUpperCase&lt;/em&gt;).&lt;/p&gt;
+
+&lt;p&gt;&amp;lt;&lt;/p&gt;
+
+&lt;p&gt;p E é isso pessoal. Espero que tenha ajudado à vocês a entenderem a relação de curry e compose com .bind() e .reduce(). Feedbacks são mais do que bem-vindos e incentivados. Até a proxima.&lt;/p&gt;
+
+&lt;p&gt;Fontes:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Function/bind&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Function/bind&#34;&gt;https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Function/bind&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Function/bind&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce&#34;&gt;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator&#34;&gt;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;[&lt;a href=&#34;https://medium.com/@matheusml/entendendo-programa%C3%A7%C3%A3o-funcional-em-javascript-de-uma-vez-c676489be08b#&#34;&gt;https://medium.com/@matheusml/entendendo-programa%C3%A7%C3%A3o-funcional-em-javascript-de-uma-vez-c676489be08b#&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/concretesolutions/pareto.js][2&#34;&gt;https://github.com/concretesolutions/pareto.js][2&lt;/a&gt;]&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

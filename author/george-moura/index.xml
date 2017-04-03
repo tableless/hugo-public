@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>George Moura on Tableless</title>
+    <link>http://tableless.com.br/author/george-moura/index.xml</link>
+    <description>Recent content in George Moura on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/george-moura/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>PHP Slim Framework</title>
+      <link>http://tableless.com.br/php-slim-framework/</link>
+      <pubDate>Wed, 04 Jun 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/php-slim-framework/</guid>
+      <description>
+
+&lt;p&gt;O Slim Framework é um microframework PHP que facilita sua vida na hora de fazer pequenas APIs.&lt;/p&gt;
+
+&lt;p&gt;Vou falar sobre um problema que tive em um projeto em uma empresa que trabalho. Lá eu codifico com diferentes linguagens de programação em pequenos sistemas. Esses sistemas precisam ser acessados por 3 filiais e os usuários se logam com o mesmo login usado no E.R.P. que eles utilizam.&lt;/p&gt;
+
+&lt;p&gt;Para simplificar meu trabalho resolvi criar uma API simples para autenticar os usuários. Como eu queria usar uma estrutura REST e não queria fazer tudo na unha e nem queria colocar um framework grande como Rails, Laravel, Zend ou Django. Pesquisei sobre microframeworks PHP e cheguei ao &lt;a href=&#34;http://www.sinatrarb.com/&#34;&gt;Sinatra&lt;/a&gt;, que já conhecia, e o &lt;a href=&#34;http://flask.pocoo.org/&#34;&gt;Flask&lt;/a&gt; (Python). Então encontrei o &lt;a href=&#34;http://www.slimframework.com/&#34;&gt;Slim&lt;/a&gt; um microframework PHP.&lt;/p&gt;
+
+&lt;p&gt;Eu queria trabalhar com uma estrutura REST e o Slim já faz isso de forma muito simples criando rotas, como qualquer outro framework que trabalha com REST, a diferença é que um microframework é mais leve e não precisa de tantas configurações. É uma mão na roda para quem precisa escrever uma API. Para vocês terem ideia: em um dia consegui resolver meu problema de autenticação.&lt;/p&gt;
+
+&lt;h2 id=&#34;código&#34;&gt;Código&lt;/h2&gt;
+
+&lt;p&gt;Agora vamos ao código! O Slim pode ser instalado via &lt;a href=&#34;https://getcomposer.org/&#34;&gt;Composer&lt;/a&gt; ou fazendo o download do código fonte, para quem não conhece ele é um gerenciador de dependências para PHP assim como &lt;a href=&#34;http://bundler.io/&#34;&gt;Bundler&lt;/a&gt; é para o Ruby, nesse post vou mostrar a instalação via composer:&lt;/p&gt;
+
+&lt;h3 id=&#34;passo-1-8211-instalação-do-composer&#34;&gt;Passo 1 &amp;#8211; Instalação do composer&lt;/h3&gt;
+
+&lt;p&gt;Leia o post (&lt;a href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34;&gt;Composer para iniciantes&lt;/a&gt;) do &lt;a href=&#34;http://tableless.com.br/author/andrecardosodev/&#34;&gt;Andre Cardoso&lt;/a&gt;. Mas basicamente, para quem tem linux, é só abrir o terminal e digitar o código abaixo, se tiver windows, é só pegar o executável no site e instalar.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;curl -s https://getcomposer.org/installer | php&lt;/pre&gt;
+
+&lt;h3 id=&#34;passo-2-8211-criar-o-arquivo-composer-json&#34;&gt;Passo 2 &amp;#8211; Criar o arquivo composer.json&lt;/h3&gt;
+
+&lt;p&gt;Crie um diretorio para seu projeto(no meu caso eu chamei de api) e coloque um arquivo chamado composer.json dentro dela:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;mkdir api
+cd api
+&lt;/pre&gt;
+
+&lt;p&gt;No arquivo composer.json adicione as seguintes linhas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-json&#34;&gt;{
+    &#34;require&#34;: {
+        &#34;slim/slim&#34;: &#34;2.*&#34;
+    }
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;passo-3-8211-instalar-as-dependências&#34;&gt;Passo 3 &amp;#8211; Instalar as dependências&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;composer install&lt;/pre&gt;
+
+&lt;p&gt;Caso você não tenha o Composer, as suas variáveis de ambiente deverão ser assim:&lt;/p&gt;
+
+&lt;pre&gt;php composer.phar install&lt;/pre&gt;
+
+&lt;h3 id=&#34;passo-4-8211-criação-da-app&#34;&gt;Passo 4 &amp;#8211; Criação da app&lt;/h3&gt;
+
+&lt;p&gt;Crie um arquivo &lt;code&gt;index.php&lt;/code&gt; e dentro dele coloque:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+require &#39;vendor/autoload.php&#39;;
+
+//instancie o objeto
+$app = new \Slim\Slim();
+
+//defina a rota
+get(&#39;/&#39;, function () { 
+  echo &#34;Hello, World!&#34;; 
+}); 
+//rode a aplicação Slim 
+$app-&amp;gt;run();&lt;/pre&gt;
+
+&lt;p&gt;Se você acessar &lt;code&gt;http://localhost/api/&lt;/code&gt; você verá a mensagem &lt;strong&gt;&amp;#8220;Hello World!&amp;#8221;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mas não é isso que queremos, queremos uma API REST que retorne um JSON. Então vamos ver um exemplo bem simples. O Slim também trabalha com templates, então dentro do diretório da nossa aplicação vamos criar um diretório chamado de &lt;code&gt;templates&lt;/code&gt; e dentro dele criaremos um arquivo chamado &lt;code&gt;default.php&lt;/code&gt;, neste arquivo coloque o seguintes conteúdo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php 
+header(&#39;Content-Type: application/json; charset=utf-8&#39;);
+echo json_encode($data);
+&lt;/pre&gt;
+
+&lt;p&gt;Agora voltando ao nosso arquivo &lt;code&gt;index.php&lt;/code&gt; edite-o deixando da seguinte forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+require &#39;vendor/autoload.php&#39;;
+
+//instancie o objeto
+$app = new \Slim\Slim(array(
+&#39;templates.path&#39; =&amp;gt; &#39;templates&#39;
+));
+
+//defina a rota
+$app-&amp;gt;get(&#39;/&#39;, function () use ($app){ 
+  //defina
+  $data = array(&#34;data&#34;=&amp;gt;array(&#34;Hello&#34;=&amp;gt;&#34;World!&#34;)); 
+  //set o arquivo de template
+  $app-&amp;gt;render(&#39;default.php&#39;,$data,200); 
+}); 
+
+//rode a apliçicação Slim
+$app-&amp;gt;run();&lt;/pre&gt;
+
+&lt;p&gt;Quando você acessar a url novamente você verá algo como:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-json&#34;&gt;{&#34;Hello&#34;:&#34;World!&#34;}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora vamos incrementar mais. No mesmo arquivo &lt;code&gt;index.php&lt;/code&gt; antes de &lt;code class=&#34;lang-php&#34;&gt;$app-&amp;gt;run();&lt;/code&gt; adicione:&lt;/p&gt;
+
+&lt;pre&gt;$app-&amp;gt;group(&#39;/users&#39;,function() use ($app){
+
+  //rota para a home
+  $app-&amp;gt;get(&#39;/&#39;,function() use ($app){
+    //exemplo de lista de usuarios
+    $users = array(
+     &#39;users&#39;=&amp;gt;array(
+       &#39;jo&#39;=&amp;gt;&#39;senhadejo&#39;,
+       &#39;luca&#39;=&amp;gt;&#39;senhaluca&#39;,
+       &#39;yasmin&#39;=&amp;gt;&#39;senhayasmin&#39;,
+       &#39;eric&#39;=&amp;gt;&#39;seric&#39;
+     )
+    );
+    $data = array(
+      &#39;data&#39;=&amp;gt;$users
+      );
+    $app-&amp;gt;render(&#39;default.php&#39;,$data,200);
+  });
+
+  //rota para login
+  $app-&amp;gt;post(&#39;/login/&#39;,function() use ($app){
+    if(isset($_POST))
+    {
+      $data = $_POST;
+      $app-&amp;gt;render(&#39;default.php&#39;,$data,200);
+    }
+    else
+    {
+      $app-&amp;gt;render(404);
+    }
+  });
+
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Caso você esteja acessando o sistema por subdiretório crie um arquivo chamado &lt;code&gt;.htaccess&lt;/code&gt; com o seguinte conteúdo:&lt;/p&gt;
+
+&lt;pre&gt;RewriteEngine On
+RewriteBase /api/
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /api/index.php [L]
+&lt;/pre&gt;
+
+&lt;p&gt;Perceba que adicionei o método group no arquivo &lt;code&gt;index.php.&lt;/code&gt; O Slim trabalha também com grupos de rotas, então é possível criar vários grupos com rotas próprias, dessa forma podemos organizar o código e não ter que ficar digitando o mesmo código várias vezes. Com o grupo de rotas chamado /users tudo que tiver dentro dele deverá vir precedido de /users ex: (/users/login/, /users/update/).&lt;/p&gt;
+
+&lt;p&gt;Acessando &lt;code&gt;http://localhost/api/users/&lt;/code&gt; você verá uma lista de usuários, caso acesse &lt;code&gt;http://localhost/api/users/login/&lt;/code&gt; você verá uma página de erro. Isso ocorre porque setamos apenas uma rota POST para /users/login/ e como você acessou via GET o sistema redirecionou pois não existe a rota GET para /users/login/.&lt;/p&gt;
+
+&lt;p&gt;Daqui para frente é só continuar implementando coisas novas, criando uma classe para conectar ao banco de dados, utilizando outros verbos HTTP, novos templates e etc. Você pode criar classes e usá-las normalmente é só incluí-las com o require e instanciar o objeto;&lt;/p&gt;
+
+&lt;p&gt;O post termina aqui. O link para documentação do Slim é esse &lt;a href=&#34;http://docs.slimframework.com/&#34;&gt;http://docs.slimframework.com/&lt;/a&gt; divirtam-se e mãos a obra! ;D&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Debug Remoto com Chrome no Android</title>
+      <link>http://tableless.com.br/debug-remoto-com-chrome-android/</link>
+      <pubDate>Sat, 22 Feb 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/debug-remoto-com-chrome-android/</guid>
+      <description>
+
+&lt;p&gt;Vasculhando a web me deparei com uma coisa muito interessante: a Google criou uma forma de nós, desenvolvedores, usarmos nossas máquinas e o Google Chrome DevTools para inspecionar, debugar e analizar páginas em nossos dispositivos móveis.&lt;/p&gt;
+
+&lt;p&gt;Como isso funciona? O &amp;#8220;&lt;em&gt;RemoteDebugging&lt;/em&gt;&amp;#8221; ocorre pela porta USB, a partir do momento que você conecta seu celular no computador, você pode inspecionar páginas html, css, javascript, rodar scripts no console, visualizar o comportamento de uma página nem precisar realizar deploy, testar web apps, outra coisa interessante é que você pode até inspecionar Webviews.&lt;/p&gt;
+
+&lt;p&gt;Para iniciar debug remoto você precisará de:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Um celular ou tablet Android com Chrome for Android na versão 31 ou maior instalado via Google Play. (O Chrome for Android beta já esta na versão 32 &amp;#8211; é uma boa opção para sempre testar as novidades &amp;#8211; requer ADB-free para conectar)&lt;/li&gt;
+&lt;li&gt;Um cabo usb para plugar o seu dispositivo. (Para usuários windows instalar um &lt;a title=&#34;OEM USB Android&#34; href=&#34;http://developer.android.com/tools/extras/oem-usb.html&#34; target=&#34;_blank&#34;&gt;driver USB apropriado&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Google Chrome na versão 31 ou maior em sua máquina&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Vamos agora às configurações:&lt;/p&gt;
+
+&lt;h2 id=&#34;1-8211-configurando-seus-dispositivos&#34;&gt;1 &amp;#8211; Configurando seus dispositivos&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;Configurando o Android&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Caso as opções de desenvolvedor não estejam habilitadas, será necessário fazê-las. A partir da versão 4.2 do Android essa funcionalidade vem escondida por default. Para desabilita-la vá até Configurações &amp;gt; Sobre  o telefone e aperte 7 vezes a opção Build number. No Android 4.0 e 4.1 é só ir em Configurações &amp;gt; Opções de Desenvolvedor. Em opções do desenvolvedor basta habilitar a opção Debug USB.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Configurando o Computador&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Caso tenha um linux será necessário instalar alguns programas para que o celular ou tablet seja reconhecido pelo computador.&lt;/p&gt;
+
+&lt;p&gt;Utiliza os seguintes comandos:&lt;/p&gt;
+
+&lt;p&gt;Para instalar os drivers para reconhecimento do dispositivo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$  sudo apt-get -y install mtp-tools mtpfs gmtp
+&lt;/pre&gt;
+
+&lt;p&gt;Para instalar o Chromium Browser &amp;#8211; a versão open source do Google Chrome:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$  sudo apt-get install chromium-browser
+&lt;/pre&gt;
+
+&lt;p&gt;Caso esteja em Windows será necessário ir no site do android e instalar o &lt;a title=&#34;OEM USB Android&#34; href=&#34;http://developer.android.com/tools/extras/oem-usb.html&#34; target=&#34;_blank&#34;&gt;driver usb&lt;/a&gt; do fabricante apropriado.&lt;/p&gt;
+
+&lt;p&gt;As versões 32 do Chrome  (as versões beta) tem suporte nativo para Debug Remoto, basta a acessar &lt;code&gt;about:inspect&lt;/code&gt; e ver a lista de dispositivos.&lt;/p&gt;
+
+&lt;p&gt;Para versões m31 e anteriores é necessário instalar a extensão do chrome &lt;a href=&#34;https://developers.google.com/chrome-developer-tools/docs/remote-debugging?hl=pt-br#remote-debugging-chrome-extension&#34;&gt;ADB Chrome extension&lt;/a&gt;.  Essa extenção inclui o Android Debug Bridge(ADB) e seguintes benefícios:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Inclui ADB se não tiver instalado o pacote total do sdk android.&lt;/li&gt;
+&lt;li&gt;Fornece uma interface de usuário para facilmente ligar e desligar o ADB e listar dispositivos conectados.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Quando a ADB Chrome extension tiver sido instalada um ícone cinza do android aparecerá ao lado do menu do Chrome&lt;/p&gt;
+
+&lt;p&gt;1 &amp;#8211; Clique no ícone do android e depois em &lt;strong&gt;Start ADB&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-adb-plugin-menu.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-40309&#34; alt=&#34;tableless-adb-plugin-menu&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-adb-plugin-menu.png&#34; width=&#34;206&#34; height=&#34;141&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Após iniciado o ícone do android ficará verde e o número de dispositivos ativos será exibido.&lt;/p&gt;
+
+&lt;p&gt;2 &amp;#8211; Clique em &lt;strong&gt;View Inspection Targets&lt;/strong&gt; para abrir a página &lt;strong&gt;about:inspect&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-adb-plugin-menu-active.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-40310&#34; alt=&#34;tableless-adb-plugin-menu-active&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-adb-plugin-menu-active.png&#34; width=&#34;205&#34; height=&#34;144&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;3 &amp;#8211; Conecte seu celular&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Conecte seu dispositivo a maquina de desenvolvimento via cabo USB. Qdo você plugar o cabo a seguinte mensagem será exibida:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/usb-debugging-dialog.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-40314&#34; alt=&#34;usb-debugging-dialog&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/usb-debugging-dialog.png&#34; width=&#34;344&#34; height=&#34;292&#34; srcset=&#34;uploads/2014/01/usb-debugging-dialog.png 344w, uploads/2014/01/usb-debugging-dialog-197x168.png 197w&#34; sizes=&#34;(max-width: 344px) 100vw, 344px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Após apertar em OK vá para página &lt;code&gt;about:inspect&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/devices-list.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40316&#34; alt=&#34;devices-list&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/devices-list-588x226.png&#34; width=&#34;588&#34; height=&#34;226&#34; srcset=&#34;uploads/2014/01/devices-list-588x226.png 588w, uploads/2014/01/devices-list-329x126.png 329w, uploads/2014/01/devices-list-660x254.png 660w, uploads/2014/01/devices-list.png 674w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Nessa tela, basta clicar no link &amp;#8220;&lt;em&gt;inspect&lt;/em&gt;&amp;#8221; e você verá a seguinte tela:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/02/inspect-1.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40923&#34; alt=&#34;inspect-1&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/02/inspect-1-450x310.png&#34; width=&#34;450&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/02/inspect-1-450x310.png 450w, uploads/2014/02/inspect-1-244x168.png 244w, uploads/2014/02/inspect-1.png 973w&#34; sizes=&#34;(max-width: 450px) 100vw, 450px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Clicando no botão &lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/02/screencast0.png&#34;&gt;&lt;img alt=&#34;screencast0&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/02/screencast0.png&#34; width=&#34;25&#34; height=&#34;26&#34; /&gt;&lt;/a&gt; você verá:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/02/inspect2.png&#34;&gt;&lt;img alt=&#34;inspect2&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/02/inspect2-562x310.png&#34; width=&#34;562&#34; height=&#34;310&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Com o screencast você pode interagir com a tela do seu device como se fosse um site, usar todas as ferramentas de desenvolvedor do chrome e tudo que é feito no device é repetido no seu pc e vice-versa, veja abaixo um video no youtube demonstrando a interação.&lt;/p&gt;
+
+&lt;p&gt;Fonte e mais informações: &lt;a title=&#34;Chorme Developer Tools - Remote Debug com Chrome&#34; href=&#34;https://developers.google.com/chrome-developer-tools/docs/remote-debugging?hl=pt-BR&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://developers.google.com/chrome-developer-tools/docs/remote-debugging?hl=pt-BR&#34;&gt;https://developers.google.com/chrome-developer-tools/docs/remote-debugging?hl=pt-BR&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Deletando registros duplicados no banco de dados</title>
+      <link>http://tableless.com.br/deletando-registros-duplicados-banco-de-dados/</link>
+      <pubDate>Thu, 09 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/deletando-registros-duplicados-banco-de-dados/</guid>
+      <description>&lt;p&gt;Precisei fazer a migração de dados de algumas tabelas de cadastro (telefones, hobbies, interesses, formações e etc.) para uma única tabela diferenciando-os pelo id do usuário e o id do campo. O problema é que meu script acabou duplicando as informações. Para a minha sorte isso aconteceu em um banco de desenvolvimento, onde era possível apagar os dados da tabela, ajustar os scripts e refazer a migração. Eu não queria ter esse trabalho novamente e logo resolvi pesquisar um script sql que me ajudasse a apagar os registros duplicados, nesse caso deixando apenas o último registro gravado.&lt;/p&gt;
+
+&lt;p&gt;Assumindo que você use o banco de dados MySql e tenha uma tabela chamada &amp;#8220;nomes&amp;#8221;, e que essa tabela tenha os campos id e nome. Essa sintaxe pode ser usada em outros bancos, utilizaremos o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;DELETE a FROM nomes AS a, nomes AS b WHERE a.nome=b.nome AND a.id &amp;lt; b.id&lt;/pre&gt;
+
+&lt;p&gt;Perceba que no comando sql após o &lt;code&gt;FROM&lt;/code&gt; eu chamo duas vezes a tabela &amp;#8220;nomes&amp;#8221;, mas as diferencio pelas letras &lt;strong&gt;a&lt;/strong&gt; e &lt;strong&gt;b&lt;/strong&gt;. Você poderia dar o nome que quisesse. Note também que depois do &lt;code&gt;WHERE&lt;/code&gt; eu faço a comparação entre as colunas, verificando a duplicidade e depois digo que o id de &amp;#8220;a&amp;#8221; deve ser menor que o de &amp;#8220;b&amp;#8221;. Dessa forma o MySql vai comparar todos os registros com o mesmo nome e apagar aqueles que contenham o menor id.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;nomes&lt;/strong&gt;: É a tabela com os registros duplicados.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;nome&lt;/strong&gt;: É o campo para comparação dos registros.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;id&lt;/strong&gt;: É a chave primária da tabela.&lt;/p&gt;
+
+&lt;p&gt;Veja na prática como acontece:&lt;/p&gt;
+
+&lt;p&gt;Tabelas com os registros duplicados&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-select-mysql.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-40122&#34; alt=&#34;tableless-select-mysql&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-select-mysql.png&#34; width=&#34;487&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/01/tableless-select-mysql.png 487w, uploads/2014/01/tableless-select-mysql-263x168.png 263w&#34; sizes=&#34;(max-width: 487px) 100vw, 487px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Aplicando o script descrito acima:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-mysql-script-delete.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40121&#34; alt=&#34;tableless-mysql-script-delete&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-mysql-script-delete-588x205.png&#34; width=&#34;588&#34; height=&#34;205&#34; srcset=&#34;uploads/2014/01/tableless-mysql-script-delete-588x205.png 588w, uploads/2014/01/tableless-mysql-script-delete-329x115.png 329w, uploads/2014/01/tableless-mysql-script-delete-660x231.png 660w, uploads/2014/01/tableless-mysql-script-delete.png 720w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Caso queira apagar todos os registros duplicados, deixando apenas os registros únicos é só trocar o “&amp;lt;” por “!=”&lt;/p&gt;
+
+&lt;p&gt;veja um exemplo:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-mysql-script-deletall.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40120&#34; alt=&#34;tableless-mysql-script-deletall&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-mysql-script-deletall-410x310.png&#34; width=&#34;410&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/01/tableless-mysql-script-deletall-410x310.png 410w, uploads/2014/01/tableless-mysql-script-deletall-222x168.png 222w, uploads/2014/01/tableless-mysql-script-deletall.png 733w&#34; sizes=&#34;(max-width: 410px) 100vw, 410px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto! É isso aí pessoal, muito simples né?&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Breno Alves on Tableless</title>
+    <link>http://tableless.com.br/author/breno-alves/index.xml</link>
+    <description>Recent content in Breno Alves on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/breno-alves/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>JavaScript e CSS no WordPress</title>
+      <link>http://tableless.com.br/javascript-e-css-no-wordpress/</link>
+      <pubDate>Wed, 02 Dec 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/javascript-e-css-no-wordpress/</guid>
+      <description>
+
+&lt;p&gt;Você faz um front-end impecável, mas ao transformá-lo em um tema WordPress, o carregamento fica lento, os plugins não funcionam e ocorrem milhares de outros problemas? Saiba que você pode não estar utilizando seus scripts corretamente no WordPress.&lt;/p&gt;
+
+&lt;p&gt;Não se prenda ao termo! Neste post vamos usar &amp;#8220;scripts&amp;#8221; para qualquer JavaScript ou CSS que você queira adicionar ao seu tema ou plugin.&lt;/p&gt;
+
+&lt;p&gt;Ao adicionar um novo script na sua aplicação, você deve fazê-lo da forma adequada para que o WordPress cuide de todo o processo, não usando código desnecessário e impedindo conflitos entre sua aplicação e de terceiros (plugins).&lt;/p&gt;
+
+&lt;h2 id=&#34;o-problema&#34;&gt;O problema&lt;/h2&gt;
+
+&lt;p&gt;Imagine que você está desenvolvendo um tema usando jQuery. Mas ao mesmo tempo você vai usar alguns plugins que também usam o jQuery. Se você simplesmente adicionar diretamente o jQuery na sua página, sua aplicação vai estar carregando o jQuery que você adicionou e o dos plugins.&lt;/p&gt;
+
+&lt;p&gt;Nada bom, né? Sem contar que cada um pode estar usando uma versão diferente, gerar conflitos e aí o buraco fica mais fundo.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-solução&#34;&gt;A solução&lt;/h2&gt;
+
+&lt;p&gt;O WordPress possui uma série de funções que permitem a você controlar o enfileiramento (enqueue) de scripts da sua aplicação. Com elas você pode adicionar, remover ou até mesmo registrar um script para uso posterior.&lt;/p&gt;
+
+&lt;p&gt;Ao desenvolver um tema, você precisa adicionar a função &lt;code&gt;&amp;lt;a href=&amp;quot;https://codex.wordpress.org/Function_Reference/wp_head&amp;quot;&amp;gt;wp_head()&amp;lt;/a&amp;gt;&lt;/code&gt; antes da tag &lt;code&gt;&amp;lt;/head&amp;gt;&lt;/code&gt; do seu tema e a função &lt;code&gt;&amp;lt;a href=&amp;quot;https://codex.wordpress.org/Plugin_API/Action_Reference/wp_footer&amp;quot;&amp;gt;wp_footer()&amp;lt;/a&amp;gt;&lt;/code&gt; antes da &lt;code&gt;&amp;lt;/body&amp;gt;&lt;/code&gt;. Dentro dessas funções é que a mágica acontece, como veremos mais a frente.&lt;/p&gt;
+
+&lt;p&gt;Como de costume no WordPress, as funções são simples e bastante auto-explicativas:&lt;/p&gt;
+
+&lt;p&gt;Acompanhe todos os comentários do código para não ter dúvidas. 😉&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint lang-php&#34;&gt;// Identificador para o script
+$handle = &amp;#039;my-script&amp;#039;;
+
+// Caminho para o arquivo
+$src = get_template_directory_uri() . &amp;#039;/js/my-script.js&amp;#039;;
+
+// Array com os identificadores das dependências deste arquivo
+$deps = array();
+
+// Versão do arquivo
+$ver = &amp;#039;1.0.0&amp;#039;;
+
+// Imprimir no footer? Caso seja false, imprime no head.
+$in_footer = true;
+
+
+// Enfileira um script
+wp_enqueue_script( $handle, $src, $deps, $ver, $in_footer );
+
+// Desenfileira um script
+wp_dequeue_script( $handle );
+&lt;/pre&gt;
+
+&lt;p&gt;Para CSS é tudo bem parecido e mudam apenas o sufixo das funções e uma opção.&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint lang-php&#34;&gt;// Identificador para o script
+$handle = &amp;#039;my-style&amp;#039;;
+
+// Caminho para o arquivo
+$src = get_template_directory_uri() . &amp;#039;/css/my-style.css&amp;#039;;
+
+// Array de identificadores das dependências deste arquivo
+$deps = array();
+
+// Versão do arquivo
+$ver = &amp;#039;1.0.0&amp;#039;;
+
+// Atributo media da folha de estilos. Ex.: screen, print, all
+$media = &amp;#039;screen&amp;#039;;
+
+
+// Enfileira um style
+wp_enqueue_style( $handle, $src, $deps, $ver, $media );
+
+// Desenfileira um style
+wp_dequeue_style( $handle );
+&lt;/pre&gt;
+
+&lt;p&gt;Você deverá usar estas funções no hook &lt;code&gt;wp_enqueue_scripts&lt;/code&gt;, que é responsável por todo gerenciamentos de scripts públicos do seu WordPress (os que aparecem no front-end).&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint lang-php&#34;&gt;&amp;lt;?php
+
+/*
+ * Insira no functions.php ou em um arquivo separado.
+ *
+ * Não existe uma action específica para styles (wp_enqueue_styles).
+ * Você deverá adicionar todas as funções aqui mesmo.
+ */
+function theme_scripts() {
+    // Suas funções de enqueue vão aqui.
+}
+add_action( &amp;#039;wp_enqueue_scripts&amp;#039;, &amp;#039;theme_scripts&amp;#039; );
+&lt;/pre&gt;
+
+&lt;p&gt;Você também tem o &lt;code&gt;&amp;lt;a href=&amp;quot;https://codex.wordpress.org/Plugin_API/Action_Reference/admin_enqueue_scripts&amp;quot;&amp;gt;admin_enqueue_scripts&amp;lt;/a&amp;gt;&lt;/code&gt; e &lt;code&gt;&amp;lt;a href=&amp;quot;https://codex.wordpress.org/Plugin_API/Action_Reference/login_enqueue_scripts&amp;quot;&amp;gt;login_enqueue_scripts&amp;lt;/a&amp;gt;&lt;/code&gt; caso queira adicionar scripts ao admin e a tela de login respectivamente.&lt;/p&gt;
+
+&lt;p&gt;O WordPress já possui também vários &lt;a href=&#34;https://codex.wordpress.org/Function_Reference/wp_enqueue_script#Default_Scripts_Included_and_Registered_by_WordPress&#34;&gt;scripts embutidos por padrão&lt;/a&gt; e para usar qualquer um deles, basta usar a função adequada com o identificador do script.&lt;/p&gt;
+
+&lt;p&gt;Uma das recomendações é sempre dar prioridade ao uso desses scripts que já vêm embutidos (sem colocar jQuery no braço, hein galera!) pois assim garantimos que não teremos problemas com a maior parte dos plugins do repositório do WordPress.&lt;/p&gt;
+
+&lt;p&gt;Poderíamos, por exemplo, adicionar o jQuery como dependência de &lt;code&gt;my-script&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint lang-php&#34;&gt;&amp;lt;?php
+
+// Identificador
+$handle = &amp;#039;my-script&amp;#039;;
+
+// Caminho para o arquivo
+$src = get_template_directory_uri() . &amp;#039;/js/my-script.js&amp;#039;;
+
+// Array com o identificador do jQuery embutido por padrão
+$deps = array( &amp;#039;jquery&amp;#039; );
+
+// Versão
+$ver = &amp;#039;1.0.0&amp;#039;;
+
+// Imprime no footer (boa prática)
+$in_footer = true;
+
+
+// Enfileira o script
+wp_enqueue_script( $handle, $src, $deps, $ver, $in_footer );
+&lt;/pre&gt;
+
+&lt;p&gt;Ou até mesmo enfileirarmos os dois (seguirá sempre a ordem de chamada das funções).&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint lang-php&#34;&gt;&amp;lt;?php
+
+// Um plugin já registrado pode ser enfileirado, usando apenas o seu identificador
+wp_enqueue_script( &#39;jquery&#39; );
+wp_enqueue_script( $handle, $src, $deps, $ver, $in_footer );
+&lt;/pre&gt;
+
+&lt;p&gt;Ambos os casos farão com que o WordPress adicione uma tag &lt;code&gt;&amp;lt;script&amp;gt;&lt;/code&gt; para o jQuery e outra para &lt;code&gt;my-script&lt;/code&gt;. E caso algum outro plugin já esteja usando o jQuery, o WordPress cuidará de adicioná-lo apenas uma vez.&lt;/p&gt;
+
+&lt;p&gt;Você também pode &lt;a href=&#34;https://codex.wordpress.org/Function_Reference/wp_register_script&#34;&gt;registrar&lt;/a&gt; ou &lt;a href=&#34;https://codex.wordpress.org/Function_Reference/wp_deregister_script&#34;&gt;desregistrar&lt;/a&gt; um script ou folha de estilo que ficará disponível para ser usado a qualquer momento por qualquer plugin ou tema.&lt;/p&gt;
+
+&lt;p&gt;Os parâmetros são os mesmos da função de enqueue:&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint lang-php&#34;&gt;&amp;lt;?php
+
+/*
+ * Ao registrar um script, você poderá
+ * enfileirá-lo usando apenas o seu identificador.
+ */
+wp_register_script( $handle, $src, $deps, $ver, $in_footer );
+wp_enqueue_script( &#39;my-script&#39; );
+
+// Desregistra o script
+wp_deregister_script( &#39;my-script&#39; );
+&lt;/pre&gt;
+
+&lt;p&gt;E combinando o uso dessas funções com as &lt;a href=&#34;https://codex.wordpress.org/Conditional_Tags&#34;&gt;tags condicionais&lt;/a&gt; do WordPress, você pode melhorar muito a performance das suas páginas. Você pode criar folhas de estilo específicas para cada template e carregá-las somente quando for necessário.&lt;/p&gt;
+
+&lt;pre class=&#34;prettyprint lang-php&#34;&gt;&amp;lt;?php
+
+if ( is_page() ) {
+    // Essa folha de estilos será carregada apenas nos templates de páginas
+    wp_enqueue_style( &#39;my-page-style&#39; );
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Bem tranquilo, né?&lt;/p&gt;
+
+&lt;p&gt;Apenas tome cuidado para não exagerar! Não saia criando uma folha de estilos para cada página. Lembre-se que usar o cache dos navegadores é sempre muito importante, além de ajudar a reduzir custos em alguns casos.&lt;/p&gt;
+
+&lt;p&gt;Também vale fazer uma análise da aplicação e pensar um pouquinho em &lt;a href=&#34;http://tableless.com.br/o-que-e-design-atomic/&#34;&gt;Atomic Design&lt;/a&gt; para componentizar melhor seu CSS.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Child Themes – O que é, como fazer e quando usar</title>
+      <link>http://tableless.com.br/child-themes-o-que-e-como-fazer-e-quando-usar/</link>
+      <pubDate>Thu, 04 Jul 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/child-themes-o-que-e-como-fazer-e-quando-usar/</guid>
+      <description>
+
+&lt;p&gt;Acredito que o &lt;strong&gt;Child Theme&lt;/strong&gt;, ou “tema filho”, ****é um dos melhores recursos do WordPress. Com ele você pode adicionar ou alterar estilos, funções, templates de páginas e etc. sem a necessidade de mexer nos arquivos core do seu tema.&lt;/p&gt;
+
+&lt;p&gt;Ao criar um child theme você herda todas as funcionalidades de outro tema e pode modificá-las através de um novo arquivo totalmente independente.&lt;/p&gt;
+
+&lt;p&gt;Neste artigo vou mostrar como é fácil criar, ativar e fazer uma alteração no seu tema com o uso de um child theme e mostrar quais são os prós e contras em usá-lo.&lt;/p&gt;
+
+&lt;h2 id=&#34;vamos-começar&#34;&gt;Vamos começar!&lt;/h2&gt;
+
+&lt;p&gt;Primeiramente precisamos criar um diretório para o seu child theme na pasta de temas do wordpress (wp-content/themes) .&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2013/07/criar.jpg&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-37984&#34; alt=&#34;criar&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/07/criar.jpg&#34; width=&#34;294&#34; height=&#34;174&#34; srcset=&#34;uploads/2013/07/criar.jpg 294w, uploads/2013/07/criar-283x168.jpg 283w&#34; sizes=&#34;(max-width: 294px) 100vw, 294px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Você pode dar qualquer nome a este diretório, mas o &lt;a href=&#34;http://codex.wordpress.org/Child_Themes&#34;&gt;codex do WordPress&lt;/a&gt; recomenda que você use o nome do tema pai sucedido de “-child” apenas por uma questão de organização.&lt;/p&gt;
+
+&lt;p&gt;Em seguida devemos criar dentro do diretório do child theme um arquivo &lt;strong&gt;style.css&lt;/strong&gt; que é o único arquivo obrigatório para que ele funcione.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;/*
+Theme Name:     Twenty Twelve Child
+Theme URI:      http://www.tableless.com.br/
+Description:    Tutorial de Child Theme para o Tableless
+Author:         Tableless
+Author URI:     http://www.tableless.com.br/
+Template:       twentytwelve                             
+Version:        1.0
+*/&lt;/pre&gt;
+
+&lt;p&gt;A única diferença do arquivo &lt;strong&gt;style.css&lt;/strong&gt; de um child theme para o de um tema comum é a presença do nome do template pai, que em nosso caso é o “twentytwelve”.&lt;/p&gt;
+
+&lt;p&gt;Agora só falta ativarmos o tema no painel do wordpress.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2013/07/ativar.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-37989&#34; alt=&#34;ativar&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/07/ativar.png&#34; width=&#34;328&#34; height=&#34;344&#34; srcset=&#34;uploads/2013/07/ativar.png 328w, uploads/2013/07/ativar-160x168.png 160w, uploads/2013/07/ativar-295x310.png 295w&#34; sizes=&#34;(max-width: 328px) 100vw, 328px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;como-funciona&#34;&gt;Como funciona?&lt;/h2&gt;
+
+&lt;p&gt;Pronto, agora que criamos o nosso child theme vamos entender como ele funciona.&lt;/p&gt;
+
+&lt;p&gt;Após ativar o tema, nosso site deverá aparecer assim (sem estilos aplicados):&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2013/07/theme-zero.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-37991&#34; style=&#34;border: 1px solid #333&#34; alt=&#34;theme-zero&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/07/theme-zero.png&#34; width=&#34;468&#34; height=&#34;380&#34; srcset=&#34;uploads/2013/07/theme-zero.png 468w, uploads/2013/07/theme-zero-206x168.png 206w, uploads/2013/07/theme-zero-381x310.png 381w&#34; sizes=&#34;(max-width: 468px) 100vw, 468px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Isso ocorre pois o WordPress desativa a folha de estilos padrão (do tema pai) ao ativar o tema filho. Logo precisamos adicionar uma nova folha de estilos ao nosso tema.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+/*
+ * Você deve usar o hook wp_enqueue_scripts para 
+ * inserir arquivos CSS e JS no seu tema corretamente.
+ */
+function child_theme_scripts() {
+  // O id abaixo deve mudar de acordo com o tema pai.
+  wp_enqueue_style( &amp;#039;twentytwelve-style&amp;#039; );
+}
+add_action( &amp;#039;wp_enqueue_scripts&amp;#039;, &amp;#039;child_theme_scripts&amp;#039; );
+&lt;/pre&gt;
+
+&lt;p&gt;Pronto, no código acima estamos importando a folha de estilos do nosso tema pai. Agora seu site deve estar com os estilos funcionando perfeitamente e você poderá adicionar ou alterar qualquer estilo por este arquivo.&lt;/p&gt;
+
+&lt;p&gt;O seu child theme depois de criado, herda automaticamente todos os templates e funcionalidades do tema pai. Você só precisará adicionar na pasta do child theme os arquivos que você deseja alterar.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo, se você quiser criar um novo rodapé para o seu site, basta criar um novo footer.php e colocá-lo na pasta do seu child theme, que ele irá substituir o footer.php do tema pai, sem que você precise modificá-lo diretamente.&lt;/p&gt;
+
+&lt;h2 id=&#34;na-prática&#34;&gt;Na prática&lt;/h2&gt;
+
+&lt;p&gt;Vamos alterar a cor do título da página e adicionar um subtítulo para demonstrar como funcionam as modificações em estilos. Para isso é só adicionar um novo estilo, na nossa folha de estilos do child theme.&lt;/p&gt;
+
+&lt;pre&gt;article h1 {
+    font-family: Georgia, Geneva, serif;
+    font-size: 20px;
+    color: #FF0000;
+}&lt;/pre&gt;
+
+&lt;p&gt;Pronto, no código acima estamos importando a folha de estilos do nosso tema pai. Agora seu site deve estar com os estilos funcionando perfeitamente e você poderá adicionar ou alterar qualquer estilo por este arquivo.&lt;/p&gt;
+
+&lt;p&gt;Antes&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2013/07/antes.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-37998&#34; alt=&#34;antes&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/07/antes.png&#34; width=&#34;355&#34; height=&#34;200&#34; srcset=&#34;uploads/2013/07/antes.png 355w, uploads/2013/07/antes-298x168.png 298w&#34; sizes=&#34;(max-width: 355px) 100vw, 355px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Depois&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2013/07/depois.png&#34;&gt;&lt;img alt=&#34;depois&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/07/depois.png&#34; width=&#34;355&#34; height=&#34;200&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto! Assim as alterações em estilos são bem simples de ser feitas, basta saber as classes do tema pai e um pouco de &lt;a href=&#34;http://www.tableless.com.br/efeito-cascata-e-especificidade-do-css/&#34;&gt;efeito cascata, herança e especificidade do CSS&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Este recurso também facilita muito o estudo para quem está começando na criação de temas para WP e para quem trabalha sozinho, ou tem uma pequena empresa, ganhar tempo no desenvolvimento de novos sites.&lt;/p&gt;
+
+&lt;p&gt;Trabalho numa empresa pequena onde somos poucos desenvolvedores (dois) então o que mais fazemos é comprar um tema com funcionalidades básicas prontas (slider, carousel e etc.) e apenas estilizá-lo pelo child theme, fazendo pouquíssimas modificações no core. Até porque quando se tem um sistema pago, a frequência de atualizações é maior, aumentando o risco de surgirem problemas a cada versão. E ninguém quer deixar o seu cliente na mão, certo? 😉&lt;/p&gt;
+
+&lt;p&gt;É claro, como tudo na vida, nada é perfeito e há sim uma perda na velocidade de carregamento nas páginas, afinal ao importarmos os estilos e optarmos por evitar mexer no core, acabamos sobrescrevendo algumas classes com nossos novos estilos. Mas se essa não for a maior das prioridades no seu projeto, como no nosso caso, é uma excelente solução!&lt;/p&gt;
+
+&lt;p&gt;Espero que tenham gostado e qualquer dúvida postem nos comentários!&lt;/p&gt;
+
+&lt;p&gt;Abraço!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

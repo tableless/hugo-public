@@ -1,0 +1,804 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Pre Processadores on Tableless</title>
+    <link>http://tableless.com.br/tags/pre-processadores/index.xml</link>
+    <description>Recent content in Pre Processadores on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/pre-processadores/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Analisando o código Stylus de um projeto</title>
+      <link>http://tableless.com.br/iniciando-com-o-pre-processador-stylus/</link>
+      <pubDate>Fri, 18 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/iniciando-com-o-pre-processador-stylus/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-é-um-pré-processador-css&#34;&gt;&lt;strong&gt;O que é um pré-processador CSS?&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Como o nome ja diz, é uma linguagem que precisa ser pré-processada por um &lt;em&gt;parser&lt;/em&gt; para assim gerar o arquivo de extensão &lt;strong&gt;.css&lt;/strong&gt; que será renderizado pelo browser. Atualmente há vários pré-processadores que você pode utilizar para facilitar a codificação e reaproveitamento de código, você pode estar utilizando SASS, LESS e Stylus que são os mais conhecidos no mercado. A diferença do &lt;a href=&#34;http://stylus-lang.com/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;Stylus&lt;/a&gt; para os outros pré-processadores que estão sendo utilizados no mercado é que ele já é baseado em &lt;a href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;NodeJS&lt;/a&gt; e não em ruby. Por conta disso não há necessidade de uma tecnologia intermediária em seu workflow para processá-lo.&lt;/p&gt;
+
+&lt;h2 id=&#34;vamos-começar&#34;&gt;Vamos começar!&lt;/h2&gt;
+
+&lt;p&gt;Tendo em mente que você ja conhece um pouco sobre pré-processadores e algumas de suas vantagens (variáveis, mixins, operadores, funções) vamos criar um projeto utilizando algumas dessas funcionalidades.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Faça o download do &lt;a href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;strong&gt;NodeJS&lt;/strong&gt;&lt;/a&gt; e efetue a instalação&lt;strong&gt;;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Considerando que tenha o node rodando em seu sistema, instale o &lt;strong&gt;Stylus &lt;/strong&gt;de forma global e execute o seguinte comando em seu terminal &lt;strong&gt;npm install -g stylus&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Vamos criar a estrutura de diretórios de nosso projeto:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/director.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Após ter seu diretório criado de acordo com a estrutura da imagem acima, você pode acessá-lo via terminal com o comando &lt;strong&gt;cd /seu-diretorio&lt;/strong&gt; e na sequência executar o compilador stylus da seguinte maneira:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;stylus -w a&lt;/code&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;parâmetros&#34;&gt;&lt;strong&gt;Parâmetros&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;-w (Observar alterações nos arquivos .styl e re-compilar gerando os arquivos resultantes .css);&lt;/li&gt;
+&lt;li&gt;-o (Após este parâmetro deve ser passado o caminho que deve ser salvo o arquivo compilado);&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;desmistificando-a-estrutura&#34;&gt;Desmistificando a Estrutura&lt;/h2&gt;
+
+&lt;h3 id=&#34;assets&#34;&gt;ASSETS&lt;/h3&gt;
+
+&lt;p&gt;Costumo sempre utilizar esta estrutura como raíz para os diretórios front-end principalmente pela facilidade em migrar para servidores independentes e também para evitar confusão entre o pessoal de back-end.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-css&#34;&gt;&lt;strong&gt;ASSETS/css&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;Arquivos gerados após executar o pré-processador, gerando assim os arquivos com extensão &lt;strong&gt;.css&lt;/strong&gt; prontos para utilização em seu código.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus&#34;&gt;ASSETS/stylus&lt;/h3&gt;
+
+&lt;p&gt;Neste diretório fica toda a nossa organização de diretórios e arquivos .styl (Extensão utilizada pelo &lt;strong&gt;Stylus&lt;/strong&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-base-tipografia-reset-variáveis-cores&#34;&gt;ASSETS/stylus/base (Tipografia, reset, variáveis, cores)&lt;/h3&gt;
+
+&lt;p&gt;O nome dos arquivos em si é bem descritivo, colors.styl para cores, variables.styl para variáveis reutilizáveis, typography.styl para definições de fonts e reset.styl (reset de elementos css).&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-components-pequenos-componentes&#34;&gt;ASSETS/stylus/components (Pequenos componentes)&lt;/h3&gt;
+
+&lt;p&gt;Utilizado para pequenos componentes como botões, formulários, modals e o que surgir de necessidade conforme o desenvolvimento de seu projeto.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-helpers-utilitários-para-seus-projetos&#34;&gt;ASSETS/stylus/helpers (Utilitários para seus projetos)&lt;/h3&gt;
+
+&lt;p&gt;Neste diretório geralmente são encontrados os seguintes arquivos: functions.styl, helpers.styl (classes utilitárias ex.: .pull-left, .show), mixins.styl (são blocos de códigos reutilizáveis semelhantes a funções).&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-layout-definições-do-seu-layout&#34;&gt;ASSETS/stylus/layout (Definições do seu layout)&lt;/h3&gt;
+
+&lt;p&gt;Você vai encontrar os arquivos com definições de estilo com a cara do seu layout, como header, footer e grid.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-theme-temas-do-projeto&#34;&gt;ASSETS/stylus/theme (Temas do projeto)&lt;/h3&gt;
+
+&lt;p&gt;Definições de temas do projeto. Caso o projeto tenha mais de um tema, é uma boa prática para manter a organização e facilidade de manutenção no código.&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-main-styl&#34;&gt;ASSETS/stylus/main.styl&lt;/h3&gt;
+
+&lt;p&gt;Este é o arquivo primário que será lido pelo seu compilador, deve possuir todas as importações necessárias para gerar o arquivo .css resultante. Obs: Todos os arquivos all.styl servem para facilitar a importação no arquivo principal.&lt;/p&gt;
+
+&lt;h2 id=&#34;botando-a-mão-na-massa&#34;&gt;Botando a mão na massa&lt;/h2&gt;
+
+&lt;p&gt;Uma vez que você compreendeu a ideia dos diretórios criados e está com o compilador rodando corretamente, vamos ao código:&lt;/p&gt;
+
+&lt;h3 id=&#34;assets-stylus-base&#34;&gt;assets/stylus/base&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;all.styl (Import de todos os arquivos do diretório)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;// Import all from base
+&amp;lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&amp;gt;@import&amp;lt;/a&amp;gt; ‘reset.styl’
+&amp;lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&amp;gt;@import&amp;lt;/a&amp;gt; ‘colors.styl’
+&amp;lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&amp;gt;@import&amp;lt;/a&amp;gt; ‘typography.styl’
+&amp;lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&amp;gt;@import&amp;lt;/a&amp;gt; ‘variables.styl’&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;colors.styl (Definições de cores do projeto)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;orange = #FF6347
+gray-darker = #AAAAAA
+gray-lighter = #EEEEEE
+lighter = #FFF
+darker = #444444
+blue = #0080FF
+blue-lighter = #1EC0FF
+yellow = #F9C00C
+red = #E71D36
+green = #3AC569
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;reset.styl (Foi utilizado o normalize.css)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://necolas.github.io/normalize.css/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;normalize.css&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;typography.styl (Definições de fonts)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;font-size-h1 = 40px
+font-size-h2 = 34px
+font-size-h3 = 28px
+line-height-h1 = 55px
+line-height-h2 = 46px
+line-height-h3 = 38px
+h1, h2, h3
+ color darker
+ font-weight bold
+h1
+ font-size font-size-h1
+ line-height line-height-h1
+ color darker
+ margin-bottom 30px
+h2
+ font-size font-size-h2
+ line-height line-height-h1
+h3
+ font-size font-size-h3
+ line-height line-height-h3
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;variables.styl (Variáveis reutilizáveis do projeto)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;// Font Weights
+light = 300
+regular = 400
+bold = 700&lt;/pre&gt;
+
+&lt;pre&gt;// Base Font
+base-font-family = ‘Open Sans’, sans-serif
+base-font-weight = light
+base-font-size = 20px
+base-line-height = 27px
+form-label-font-size = base-font-size
+form-field-font-size = 18px&lt;/pre&gt;
+
+&lt;pre&gt;// Buttons
+btn-font-weight = bold
+btn-default-border = gray-darker
+btn-default-color = darker
+btn-primary-color = lighter
+btn-success-color = lighter
+btn-danger-color = lighter
+btn-warning-color = lighter
+btn-info-color = lighter
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;assets-stylus-components&#34;&gt;assets/stylus/components&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;all.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;// Import all from components
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘buttons.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘forms.styl’&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;buttons.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;.btn
+ font-weight bold
+ padding 15px 27px
+ border 1px solid transparent
+ display inline-block
+ cursor pointer
+ border-radius(5px)
+&amp;-info
+ &amp;-primary
+ &amp;-success
+ &amp;-danger
+ color lighter
+&amp;-default
+ color darker
+ border-color gray-darker
+ background-color lighter
+&amp;-primary
+ background-color blue
+ border-color blue
+&amp;:hover
+ &amp;:focus
+ background-color darken(blue, 20%)
+ border-color darken(blue, 20%)
+&amp;-info
+ background-color blue-lighter
+ border-color blue-lighter
+&amp;:hover
+ &amp;:focus
+ background-color darken(blue-lighter, 20%)
+ border-color darken(blue-lighter, 20%)
+&amp;-warning
+ background-color yellow
+ border-color yellow
+&amp;:hover
+ &amp;:focus
+ background-color darken(yellow, 20%)
+ border-color darken(yellow, 20%)
+&amp;-success
+ background-color green
+ border-color green
+&amp;:hover
+ &amp;:focus
+ background-color darken(green, 20%)
+ border-color darken(green, 20%)
+&amp;-danger
+ background-color red
+ border-color red
+&amp;:hover
+ &amp;:focus
+ background-color darken(red, 20%)
+ border-color darken(red, 20%)&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;forms.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;.form
+ &amp;__group
+ margin-bottom 20px
+&amp;__label
+ color darker
+ font-size form-label-font-size
+ font-weight bold
+ margin-bottom 10px
+&amp;__field
+ display block
+ width 100%
+ padding 6px 18px
+ height 60px
+ border 1px solid gray-darker
+ color darker
+ font-size form-field-font-size
+ border-radius(3px)
+&amp;:hover
+ &amp;:focus
+ border-color orange&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;helpers.styl (Utilitários do projeto)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;all.styl (Import de todos os arquivos do diretório)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;// Import all from helpers
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘functions.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘helpers.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘mixins.styl’&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;functions.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;make-media-queries-breakpoints()
+ for screen-width in screen-desktop-large screen-desktop screen-tablet screen-mobile
+ &lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: screen-width)
+ if (screen-width == screen-desktop-large)
+ .container
+ width container-desktop
+ else if (screen-width == screen-desktop)
+ .container
+ width container-tablet
+ else if (screen-width == screen-tablet)
+ .container
+ .columns
+ width container-mobile !important
+make-row()
+ margin 0 (-(grid-gutter-width / 2))
+calc-container-padding()
+ padding 0 (grid-gutter-width / 2)
+make-columns()
+ for i in grid-columns..0
+ .col-{i}
+ width percentage(i, grid-columns)
+.col-offset-{i}
+ margin-left percentage(i, grid-columns)
+percentage(index, divider)
+ if index == 0
+ 0
+ else
+ unit((index * 100) / divider, “%”)&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;helpers.styl (Classes utilitárias para uso no html)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;.pull-left
+ float left
+.pull-right
+ float right
+.show
+ display block
+.hide
+ display none
+.text-center
+ text-align center
+.text-left
+ text-align left
+.text-right
+ text-align right
+.absolute
+ position absolute
+.relative
+ position relative
+.in-block
+ display inline-block
+.center-block
+ margin 0 auto
+ display block
+.img-responsive
+ max-width 100%
+.clearfix
+ &amp;:before
+ &amp;:after
+ content “ “
+ display table
+&amp;:after
+ clear both&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;mixins.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;vendor(prop, args)
+ -webkit-{prop} args
+ -moz-{prop} args
+ {prop} args
+border-radius()
+ vendor(‘border-radius’, arguments)
+box-shadow()
+ vendor(‘box-shadow’, arguments)
+opacity(n)
+ opacity n
+ filter unquote(‘progid:DXImageTransform.Microsoft.Alpha(Opacity=’ + round(n * 100) + ‘)’)&lt;/pre&gt;
+
+&lt;h3 id=&#34;assets-stylus-layout&#34;&gt;assets/stylus/layout&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;header.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.header
+ background-color orange
+ padding 30px 0
+.header__img
+ max-width 150px&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;footer.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.footer
+ padding 40px 0
+ background-color darker
+ color lighter
+&amp; a
+ color lighter
+ &amp;:hover
+ color orange
+&amp; p
+ font-size 16px
+ line-height 22px
+ margin 0 0 10px 0
+&amp; .fa
+ color #E84545
+ margin 0 2px
+&amp; img
+ max-width 150px
+ &amp;:hover
+ opacity(0.6)&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;grid.styl (Sistema de grids utilizado no projeto)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;// Media Queries Breakpoints
+screen-desktop-large = 1200px
+screen-desktop = 992px
+screen-tablet = 768px
+screen-mobile = 480px
+// Grid System
+grid-columns = 12
+grid-gutter-width = 30px
+// Container Sizes
+container-desktop-large = 1170px
+container-desktop = 940px
+container-tablet = 720px
+container-mobile = 100%
+.container
+ width container-desktop-large
+ calc-container-padding()
+ margin 0 auto
+.row
+.columns
+ box-sizing border-box
+.row
+ make-row()
+&amp;:before
+ &amp;:after
+ content “ “
+ display table
+&amp;:after
+ clear both
+.columns
+ &lt;a title=&#34;Twitter profile for @extend&#34; href=&#34;http://twitter.com/extend&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@extend&lt;/a&gt; .relative
+ &lt;a title=&#34;Twitter profile for @extend&#34; href=&#34;http://twitter.com/extend&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@extend&lt;/a&gt; .pull-left
+ padding 0 (grid-gutter-width / 2)
+make-media-queries-breakpoints()
+make-columns()&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;login.styl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.content
+ padding-top 60px
+ padding-bottom 60px
+ min-height 470px
+&amp;__login
+ padding 30px
+ border-radius(3px)
+ background-color gray-lighter
+ box-shadow(0 0 5px rgba(0,0,0,0.09))
+ max-width 530px
+ background-color darker
+&amp; .form__label
+ &amp; h3
+ color lighter
+&amp; h3
+ margin-bottom 20px&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;assets/stylus/themes (Temas do projeto admin, padrão e quais forem necessários)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;default.styl (Tema padrão)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;*
+ vendor(‘box-sizing’, border-box)
+body
+ font-family base-font-family
+ font-weight base-font-weight
+ font-size base-font-size
+ line-height base-line-height
+ background-color lighter
+a
+ text-decoration none&lt;/pre&gt;
+
+&lt;h3 id=&#34;assets-stylus-main-styl-arquivo-principal&#34;&gt;assets/stylus/main.styl (Arquivo principal)&lt;/h3&gt;
+
+&lt;p&gt;Neste arquivo você deve efetuar todas as importações necessárias do seu projeto. Em nosso tutorial o arquivo ficou assim:&lt;/p&gt;
+
+&lt;pre&gt;&lt;a title=&#34;Twitter profile for @charset&#34; href=&#34;http://twitter.com/charset&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@charset&lt;/a&gt; “UTF-8”
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘base/all.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘helpers/all.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘components/all.styl’
+// Imports from layout
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘layout/grid.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘layout/header.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘layout/footer.styl’
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘layout/login.styl’
+// Import themes
+&lt;a title=&#34;Twitter profile for @import&#34; href=&#34;http://twitter.com/import&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@import&lt;/a&gt; ‘themes/default.styl’&lt;/pre&gt;
+
+&lt;p&gt;Por fim, crie um arquivo &lt;strong&gt;index.html&lt;/strong&gt; na raíz de seu projeto com o seguinte código:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=”en”&amp;gt;
+&amp;lt;head&amp;gt;
+ &amp;lt;meta charset=”UTF-8&#34;&amp;gt;
+ &amp;lt;title&amp;gt;Iniciando com Stylus&amp;lt;/title&amp;gt;
+&amp;lt;link href=”&lt;a href=&#34;https://fonts.googleapis.com/css?family=Open+Sans:300,400,700&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;https://fonts.googleapis.com/css?family=Open+Sans:300,400,700&lt;/a&gt;&#34; rel=”stylesheet”&amp;gt;
+&amp;lt;link rel=”stylesheet” href=”&lt;a href=&#34;https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css&lt;/a&gt;&#34;&amp;gt;
+&amp;lt;link rel=”stylesheet” href=”assets/css/main.css”&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+ &amp;lt;header class=”header”&amp;gt;
+ &amp;lt;div class=”container”&amp;gt;
+ &amp;lt;img class=”header__img img-responsive center-block” src=”assets/images/stylus-logo.png” alt=”” /&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;/header&amp;gt;
+&amp;lt;div class=”content container”&amp;gt;
+ &amp;lt;h1 class=”text-center”&amp;gt;Iniciando com Stylus&amp;lt;/h1&amp;gt;
+&amp;lt;div class=”content__login center-block”&amp;gt;
+ &amp;lt;h3 class=”text-center”&amp;gt;Acesse sua conta&amp;lt;/h3&amp;gt;
+&amp;lt;form action=”#”&amp;gt;
+ &amp;lt;div class=”form__group”&amp;gt;
+ &amp;lt;label for=”name” class=”form__label show”&amp;gt;Nome&amp;lt;/label&amp;gt;
+&amp;lt;input type=”text” name=”name” id=”name” class=”form__field”&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=”form__group”&amp;gt;
+ &amp;lt;label for=”email” class=”form__label show”&amp;gt;Email&amp;lt;/label&amp;gt;
+&amp;lt;input type=”text” name=”email” id=”email” class=”form__field”&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;div class=”submit text-right”&amp;gt;
+ &amp;lt;button type=”submit” class=”btn btn-success”&amp;gt;
+ Submit
+ &amp;lt;/button&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;/form&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;/div&amp;gt;
+&amp;lt;footer class=”footer text-center”&amp;gt;
+ &amp;lt;div class=”container”&amp;gt;
+ &amp;lt;p&amp;gt;
+ Feito com &amp;lt;i class=”fa fa-heart”&amp;gt;&amp;lt;/i&amp;gt; por &amp;lt;a href=”&lt;a href=&#34;http://helderburato.com/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;http://helderburato.com/&lt;/a&gt;”&amp;gt;Helder Burato Berto&amp;lt;/a&amp;gt;
+ &amp;lt;/p&amp;gt;
+&amp;lt;a class=”in-block” href=”&lt;a href=&#34;http://uilab.com.br/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;http://uilab.com.br/&lt;/a&gt;&#34;&amp;gt;
+ &amp;lt;img class=”img-responsive” src=”assets/images/uilab-logo.png” alt=””&amp;gt;
+ &amp;lt;/a&amp;gt;
+ &amp;lt;/div&amp;gt;
+ &amp;lt;/footer&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;compreendendo-a-linguagem-stylus&#34;&gt;Compreendendo a linguagem Stylus&lt;/h2&gt;
+
+&lt;p&gt;Você pode observar que foram utilizados algumas particularidades da linguagem, que não são comuns para quem está acostumado apenas com CSS, sendo elas: &lt;strong&gt;&amp;amp;:&lt;/strong&gt; Usado para referenciar parcialmente um elemento citado anteriormente, por exemplo:&lt;/p&gt;
+
+&lt;pre&gt;.foo
+ color #000
+ &amp; a
+ color #fff&lt;/pre&gt;
+
+&lt;p&gt;Será compilado para:&lt;/p&gt;
+
+&lt;pre&gt;.foo {
+ color: #000;
+}
+.foo a {
+ color: #fff;
+}&lt;/pre&gt;
+
+&lt;p&gt;Você percebe o quanto isso é poderoso e tem utilidade?&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;border-radius():&lt;/strong&gt; Mixin definido para ser reutilizado e com possibilidade de uso com parâmetros.&lt;/p&gt;
+
+&lt;p&gt;Exemplo de uso:&lt;/p&gt;
+
+&lt;pre&gt;.foo
+ border-radius(5px)&lt;/pre&gt;
+
+&lt;p&gt;Será compilado para:&lt;/p&gt;
+
+&lt;pre&gt;.foo {
+ border-radius: 5px;
+ -webkit-border-radius: 5px;
+ -moz-border-radius: 5px;
+}&lt;/pre&gt;
+
+&lt;p&gt;Observe que foi gerado o código ja com os prefixos para outros browsers, facilitando na escrita.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;IF&lt;/strong&gt; e &lt;strong&gt;FOR:&lt;/strong&gt; Vamos descrever o uso de IF e for com uma função que foi utilizado no tutorial chamada &lt;strong&gt;make-media-queries-breakpoints()&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre&gt;make-media-queries-breakpoints()
+ for screen-width in screen-desktop-large screen-desktop screen-tablet screen-mobile
+ &lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: screen-width)
+ if (screen-width == screen-desktop-large)
+ .container
+ width container-desktop
+ else if (screen-width == screen-desktop)
+ .container
+ width container-tablet
+ else if (screen-width == screen-tablet)
+ .container
+ .columns
+ width container-mobile !important&lt;/pre&gt;
+
+&lt;p&gt;Nós utilizamos o FOR para percorrer as variáveis declaradas posteriormente e IF para modificar a width de nosso container principal de acordo com a media queria utilizada.&lt;/p&gt;
+
+&lt;p&gt;O código acima após a compilação:&lt;/p&gt;
+
+&lt;pre&gt;&lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: 1200px) {
+ .container {
+ width: 1170px;
+ }
+}
+&lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: 992px) {
+ .container {
+ width: 720px;
+ }
+}
+&lt;a title=&#34;Twitter profile for @media&#34; href=&#34;http://twitter.com/media&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;@media&lt;/a&gt; only screen and (max-width: 768px) {
+ .container,
+ .columns {
+ width: 100%;
+ }
+}&lt;/pre&gt;
+
+&lt;h3 id=&#34;sintaxe&#34;&gt;Sintaxe&lt;/h3&gt;
+
+&lt;p&gt;Você provavelmente deve ter percebido que com Stylus não temos a necessidade do uso de &lt;strong&gt;{}&lt;/strong&gt; e&lt;strong&gt;;&lt;/strong&gt; nas declarações CSS, isso em prática ajuda muito na produtividade.&lt;/p&gt;
+
+&lt;h3 id=&#34;variáveis&#34;&gt;Variáveis&lt;/h3&gt;
+
+&lt;p&gt;Você pode declarar variáveis sem o uso de &lt;strong&gt;$&lt;/strong&gt; mas caso você já utilizou outros pré;-processadores, fica a seu crité;rio o uso dele ou não.&lt;/p&gt;
+
+&lt;p&gt;Bom espero que tenha conseguido compartilhar um pouco do que é; esta grande ferramenta e que lhe seja útil na hora de pensar em usar um pré;-processador.&lt;/p&gt;
+
+&lt;p&gt;Um grande abraço, obrigado!&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Link do Projeto: &lt;a href=&#34;https://helderburato.github.io/iniciando-stylus/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://helderburato.github.io/iniciando-stylus/&#34;&gt;https://helderburato.github.io/iniciando-stylus/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Git do Projeto: &lt;a href=&#34;https://github.com/helderburato/iniciando-stylus&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://github.com/helderburato/iniciando-stylus&#34;&gt;https://github.com/helderburato/iniciando-stylus&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Layout: &lt;a href=&#34;https://github.com/helderburato/iniciando-stylus/tree/master/sketch&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://github.com/helderburato/iniciando-stylus/tree/master/sketch&#34;&gt;https://github.com/helderburato/iniciando-stylus/tree/master/sketch&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Use as facilidades do CSS 4 hoje</title>
+      <link>http://tableless.com.br/use-as-facilidades-do-css-4-hoje/</link>
+      <pubDate>Mon, 26 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/use-as-facilidades-do-css-4-hoje/</guid>
+      <description>
+
+&lt;p&gt;Se CSS 3 trouxe muitas animações e transições, CSS 4 por sua vez traz muitos seletores novos que facilitam e muito a resolver problemas recorrentes em projetos complexos e grandes. E a maioria ou quase todas você já pode usar hoje com ajuda de alguns transpilers de CSS. Você consegue ter variáveis sem precisar usar pre processadores como Sass ou Less. A spec de CSS nível 4 ainda está em desenvolvimento, mas com transpilers como &lt;a href=&#34;http://cssnext.io/features/&#34;&gt;CSSNext&lt;/a&gt; e &lt;a href=&#34;https://github.com/reworkcss/rework&#34;&gt;Rework&lt;/a&gt;, você já pode começar a usar essas features hoje.&lt;/p&gt;
+
+&lt;p&gt;A maioria dos seletores da especificação do CSS 4 são pseudo-classes. Os seletores sempre estiveram presentes desde o início da CSS, mas agora eles estão no nível 4 e tem um monte de adições incríveis. Vamos ver apenas as mais interessantes e ver como podemos fazer elas funcionarem hoje com a ajuda dos transpilers.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que-é-o-cssnext&#34;&gt;O que é o CSSNext?&lt;/h3&gt;
+
+&lt;p&gt;CSSNext é um transpiler que permite que você use as mais recentes features do CSS. Ele transforma as novas especificações CSS em CSS compatível com os navegadores hoje. E em um futuro proxímo, os navegadores irão implementar as novas especificações CSS. E com o tempo, poderemos ir removendo algumas transformações do cssnext que não será mais necessário.&lt;/p&gt;
+
+&lt;p&gt;Ele é muito rápido, cssnext usa &lt;a href=&#34;https://github.com/postcss/postcss&#34;&gt;PostCSS&lt;/a&gt; que tem parser CSS de forma mais rápida. É um bom concorrente para libsass, e um pouco mais rápido que o Less por exemplo.&lt;/p&gt;
+
+&lt;h3 id=&#34;como-começar-com-o-cssnext&#34;&gt;Como começar com o cssnext?&lt;/h3&gt;
+
+&lt;p&gt;Para começarmos a brincar com o cssnext precisamos instalar ele, e pode ser feito de duas maneiras com Git ou NPM, que é o mais fácil.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;$ npm install cssnext&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Você pode instalá-lo local (&amp;#8211;save ou &amp;#8211;save-dev), ou instalar globalmente (-g) que não é muito recomendado.&lt;/p&gt;
+
+&lt;p&gt;Podemos usar cssnext via CLI, com alguma lib JavaScript, algum plugin PostCSS ou através do Gulp, Grunt, broccoli e outros.&lt;/p&gt;
+
+&lt;p&gt;E para você compilar um arquivo com as novas features CSS 4 para CSS compatível, basta você executar o arquivo de CSS 4 e o arquivo de saida:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;$ cssnext index.css output.css&lt;/code&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;vamos-as-features&#34;&gt;Vamos as features!&lt;/h3&gt;
+
+&lt;h4 id=&#34;1-custom-properties-var&#34;&gt;1. custom properties &amp;amp; var()&lt;/h4&gt;
+
+&lt;p&gt;A especificação de CSS 4 dá a possibilidade de poder usar variáveis sem a necessidade de pré-processadores, hoje apenas o Chrome tem suporte a essa feature. E então o cssnext nós ajuda com isso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;:root {
+  --mainBgColor: blue;
+}
+
+body {
+  color: var(--mainBgColor);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/10/variables.gif&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51818&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/10/variables.gif&#34; alt=&#34;variables&#34; width=&#34;1145&#34; height=&#34;433&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;2-gray&#34;&gt;2. gray()&lt;/h4&gt;
+
+&lt;p&gt;Permite que você use mais de 50 tons de cinza (transpilado para rgba()). No primeiro argumento, você pode usar um número entre 0 e 255 ou uma porcentagem.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.foo {
+  color: gray(85%);
+}
+
+.bar {
+  color: gray(10%, 50%);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/10/gray.gif&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51819&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/10/gray.gif&#34; alt=&#34;gray&#34; width=&#34;1145&#34; height=&#34;433&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;3-any-link&#34;&gt;3. any-link&lt;/h4&gt;
+
+&lt;p&gt;any-link simplifica os seletores de target de links. Como :link, :visited, :actived, para somente :any-link.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;nav :any-link {
+  background-color: yellow;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/10/any-link.gif&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51820&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/10/any-link.gif&#34; alt=&#34;any-link&#34; width=&#34;1145&#34; height=&#34;433&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;E tem muitas outras features incríveis que vem com o CSS 4, e se você quiser saber mais recomendo você ver esse artigo do &lt;a href=&#34;http://tableless.com.br/seletores-css-nivel-4-o-que-vem-por-ai/&#34;&gt;Diego Eis&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;CSS 4 está trazendo muitas features interessantes para seletores inteligentes, por enquanto só podemos brincar e experimentar as novidades do CSS 4 com a ajuda desses transpilers. Isso também mostra o quanto a W3C está interessada em solucionar os problemas dos devs sem a necessidade de usar um pre-processor.&lt;/p&gt;
+
+&lt;h2 id=&#34;links&#34;&gt;Links&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://cssnext.io/&#34;&gt;CSSNext&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/reworkcss/rework&#34;&gt;Rework&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://css4.rocks/&#34;&gt;CSS4 Rocks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/postcss/&#34;&gt;PostCSS&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Drops 15 – Eu era contra pré-processadores</title>
+      <link>http://tableless.com.br/drops-15-eu-era-contra-pre-processadores/</link>
+      <pubDate>Mon, 30 Mar 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/drops-15-eu-era-contra-pre-processadores/</guid>
+      <description>&lt;p&gt;Eu sei, eu sei, é difícil admitir, mas eu era contra pré-processadores de CSS. Na verdade, os Pré-processadores eram um símbolo de como você não consegue controlar seu código, assim como o Dreamweaver.&lt;/p&gt;
+
+&lt;div style=&#34;clear: both; height: 3px; width: auto;&#34;&gt;
+&lt;/div&gt;
+
+&lt;p style=&#34;display: block; font-size: 11px; font-family: &amp;quot;Open Sans&amp;quot;,Helvetica,Arial,sans-serif; margin: 0px; padding: 3px 4px; color: rgb(153, 153, 153); width: auto;&#34;&gt;
+  &lt;a href=&#34;https://www.mixcloud.com/tableless/drops-15-eu-era-contra-pr%C3%A9-processadores/?utm_source=widget&amp;utm_medium=web&amp;utm_campaign=base_links&amp;utm_term=resource_link&#34; target=&#34;_blank&#34; style=&#34;color:#808080; font-weight:bold;&#34;&gt;Drops 15 &amp;#8211; Eu era contra pré-processadores&lt;/a&gt;&lt;span&gt; by &lt;/span&gt;&lt;a href=&#34;https://www.mixcloud.com/tableless/?utm_source=widget&amp;utm_medium=web&amp;utm_campaign=base_links&amp;utm_term=profile_link&#34; target=&#34;_blank&#34; style=&#34;color:#808080; font-weight:bold;&#34;&gt;Tableless Padrões Web&lt;/a&gt;&lt;span&gt; on &lt;/span&gt;&lt;a href=&#34;https://www.mixcloud.com/?utm_source=widget&amp;utm_medium=web&amp;utm_campaign=base_links&amp;utm_term=homepage_link&#34; target=&#34;_blank&#34; style=&#34;color:#808080; font-weight:bold;&#34;&gt; Mixcloud&lt;/a&gt;
+&lt;/p&gt;
+
+&lt;div style=&#34;clear: both; height: 3px; width: auto;&#34;&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Utilizando Mixins em pré-processadores CSS</title>
+      <link>http://tableless.com.br/utilizando-mixins-em-css-preprocessors/</link>
+      <pubDate>Mon, 13 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/utilizando-mixins-em-css-preprocessors/</guid>
+      <description>&lt;p&gt;Recentemente respondi à uma enquete (não me perguntem aonde, eu esqueci! :-() onde era perguntado sobre como lidávamos com prefixos proprietários em nossos códigos CSS. Até aquele momento apenas cerca de 9% dos participantes usavam Pré-processadores e cerca de 26% escreviam os &lt;a href=&#34;http://tableless.com.br/prefixos-dos-browsers-a-web-precisa-de-voce/&#34; title=&#34;Prefixos dos browsers: A web precisa de você&#34;&gt;prefixos do browsers&lt;/a&gt; “na unha”.&lt;/p&gt;
+
+&lt;p&gt;Pré-processadores de CSS ainda não são um comum para algumas pessoas, mas eu, particularmente, defendo o uso devido à organização e redução de trabalho na escrita de folhas de estilo, proporcionado entre outros, pelo encadeamento e os “mixins”, algo como “associação interna”, que funcionam melhores que muitos analgésicos para dores de cabeça causadas pelo retrabalho.&lt;/p&gt;
+
+&lt;p&gt;Considero o dilema dos prefixos proprietários como o maior motivo para utilizarmos mixins, já que eles estão em processo de adaptação, sofrem recorrentes mudanças e em um curto prazo (&lt;span style=&#34;text-decoration: line-through&#34;&gt;com um pouco de fé&lt;/span&gt;) serão removidos para dar lugar à normalização (se quiser entender mais, recomendo o artigo &lt;a title=&#34;Prefixos dos browsers: A web precisa de você&#34; href=&#34;http://tableless.com.br/prefixos-dos-browsers-a-web-precisa-de-voce/&#34; target=&#34;_blank&#34;&gt;&amp;#8220;Prefixos dos browsers: A web precisa de você&amp;#8221;&lt;/a&gt;). Para você que só acredita vendo, prefixos proprietários são mais ou menos assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.elemento1 {
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  border-radius: 10px;
+}
+.elemento2 {
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  -ms-border-radius: 12px;
+  -o-border-radius: 12px;
+  border-radius: 12px;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;A grande dificuldade surge na manutenção de extensos arquivos CSS, com inúmeras referências à estes prefixos e que precisam ser alterados. No caso de um CSS puro, a melhor alternativa é abrir um editor de texto e procurar todas as ocorrências para altera-las uma a uma, agora, considerando a utilização de pré-processadores, como o &lt;a title=&#34;LESS CSS&#34; href=&#34;http://lesscss.org/&#34; target=&#34;_blank&#34;&gt;LESS&lt;/a&gt; e o &lt;a title=&#34;SASS LANG&#34; href=&#34;http://sass-lang.com/&#34; target=&#34;_blank&#34;&gt;SASS&lt;/a&gt; (de certa forma maduros), o uso de mixins pode ser adotado para concentrar a necessidade de mudança em apenas um trecho do código.&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&#34;line-height: 1.5em&#34;&gt;Exemplo LESS:&lt;/span&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.border-radius (@radius) {
+  -webkit-border-radius: @radius;
+  -moz-border-radius: @radius;
+  -ms-border-radius: @radius;
+  -o-border-radius: @radius;
+  border-radius: @radius;
+}
+.elemento1 {
+ .border-radius(10px);
+}
+.elemento2 {
+ .border-radius(12px);
+}&lt;/pre&gt;
+
+&lt;p&gt;Exemplo SASS:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@mixin border-radius ($radius) {
+  -webkit-border-radius: $radius;
+  -moz-border-radius: $radius;
+  -ms-border-radius: $radius;
+  -o-border-radius: $radius;
+  border-radius: $radius;
+}
+.elemento1 {
+ @include border-radius(10px);
+}
+.elemento2 {
+ @include border-radius(12px);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Este é um exemplo simples de mixins, em uma utilização mais aprofundada é possível trabalhar mais variáveis, valores padrões e até mesmo sobrecarga.&lt;/p&gt;
+
+&lt;p&gt;Deixando de lado o padrão de escrita de cada pré-processador, ambos resultam no seguinte código CSS:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.elemento1 {
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  border-radius: 10px;
+}
+.elemento2 {
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  -ms-border-radius: 12px;
+  -o-border-radius: 12px;
+  border-radius: 12px;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Os mixins podem ser reutilizados e reescritos, deixando um código organizado e de fácil manutenção, no entanto, eu não seria imprudente a ponto de recomendar a utilização de pré-processadores aos sete ventos. É extremamente necessário uma avaliação do projeto e suas reais necessidades da utilização de uma ferramenta dessas, que, dependendo das proporções e finalidades do CSS, acabam apenas por aumentar a complexidade do desenvolvimento.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

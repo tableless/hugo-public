@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Litmus on Tableless</title>
+    <link>http://tableless.com.br/tags/litmus/index.xml</link>
+    <description>Recent content in Litmus on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/litmus/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Email Marketing – Testes e CSS Inliner – Parte 2</title>
+      <link>http://tableless.com.br/email-marketing-testes-css-inliner-parte-2/</link>
+      <pubDate>Mon, 20 Apr 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/email-marketing-testes-css-inliner-parte-2/</guid>
+      <description>
+
+&lt;p&gt;Não é só porque você precisa fazer seus emails utilizando tabelas, você vai desdenhar das boas práticas que você aprendeu na escola. O código final de uma Newsletter vai ficar muito maior e tão complexo quanto o código de um site institucional simples. Outro ponto importante, é que você vai fazer muitas e muitas alterações até esse email ser publicado e muito provavelmente vai precisar duplicá-lo quando alguém ter a necessidade de enviar novos emails.&lt;/p&gt;
+
+&lt;p&gt;A estratégia que eu uso aqui é usar as tabelas como usamos os divs. As tabelas são necessárias e não tem por onde fugir. Isso já é um desconforto muito grande, por causa da quantidade de código gerada. Abaixo, seguem duas maneiras que uso aqui na Locaweb e nos projetos do Tableless.&lt;/p&gt;
+
+&lt;h2 id=&#34;css-inliner&#34;&gt;CSS Inliner&lt;/h2&gt;
+
+&lt;p&gt;Alguns clientes de email (estou olhando pra você, Gmail) simplesmente ignoram a tag style no HEAD ou no BODY. Eu não os culpo: como você mostraria um layout dentro do seu próprio layout, sem que o CSS e o código desse layout pirata não quebrasse o layout do seu sistema? Esse é um desafio para galera dos clientes de email baseados em web, como é o caso do Yahoo! Mail e do Gmail. Por isso, para acabar com o problema pela raiz, eles simplesmente estripam a tag style do HTML do email marketing, aceitando apenas o atributo style diretamente nos elementos.&lt;/p&gt;
+
+&lt;p&gt;O problema é que o seu trabalho é fazer newsletters ou você faz muitas newsletters por semana, a necessidade de reutilizar código é importante. Por isso o fluxo de desenvolvimento de emails precisa ser muito parecido com o desenvolvimento em ambientes normais, usando um CSS externo, provavelmente dividido por módulos e etc. Embora o HTML fique um horror de fazer manutenção por causa das tabelas, o CSS é a parte onde você vai passar mais tempo, por isso precisa ser o lugar mais organizado.&lt;/p&gt;
+
+&lt;p&gt;Para resolver esse problema, existem serviços online que pegam seu código CSS externo e colocam diretamente nas tags do seu HTML. Dependendo do seu layout o HTML final vai ficar um horror, mas isso não importa aqui. O HTML final você não vai se preocupar, porque a utilidade dele é simplesmente ser bem renderizado nos clientes.&lt;/p&gt;
+
+&lt;p&gt;Existem três serviços que fazem a mesma coisa: o &lt;a href=&#34;https://putsmail.com/inliner&#34;&gt;Inliner do PutsMail&lt;/a&gt;, o &lt;a href=&#34;http://templates.mailchimp.com/resources/inline-css/&#34;&gt;CSS Inliner Tool do MailChimp&lt;/a&gt; e o &lt;a href=&#34;http://inliner.cm/&#34;&gt;Inliner do Campaing Monitor&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Estas ferramentas já te ajudam um bocado. Mas ainda não é o fluxo ideal. Se você tem 10 emails para fazer, sua produtividade já fica prejudicada com estes serviços. Por isso eu passei a usar um plugin de Gulp no build local dos emails para fazer esse trabalho: é o &lt;a href=&#34;https://www.npmjs.com/package/gulp-inline-css&#34;&gt;Gulp Inline CSS&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se você prefere Grunt, tem um plugin que faz a mesma coisa, chamado &lt;a href=&#34;https://www.npmjs.com/package/grunt-inline-css&#34;&gt;Grunt Inline CSS&lt;/a&gt;. O problema é que até a escrita deste artigo, esse plugin dependia de outro chamado &lt;a href=&#34;https://www.npmjs.com/package/juice&#34;&gt;Juice&lt;/a&gt;, que faz a mágica por baixo dos panos, mas que estava dando uns paus loucos no Mac. Se você tiver paciência para testar, existem vários outros lá no NPM.&lt;/p&gt;
+
+&lt;p&gt;Como usamos o Middleman aqui, coloquei pra chamar a task do Gulp para ser executada depois do build do Middleman e pronto! O Build já me devolve os emails com o código direto no atributo style dos emails. Para comparar, o código de desenvolvimento fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;table cellpadding=&#34;10&#34;&amp;gt;
+    &amp;lt;tr&amp;gt;
+        &amp;lt;td class=&#34;lw-text&#34;&amp;gt;
+
+            &amp;lt;h3&amp;gt;&amp;lt;strong&amp;gt;O per&amp;iacute;odo de teste est&amp;aacute; chegando ao fim!&amp;lt;/strong&amp;gt;&amp;lt;/h3&amp;gt;
+
+            &amp;lt;p&amp;gt;Ol&amp;aacute; &amp;lt;/p&amp;gt;
+
+            &amp;lt;p&amp;gt;N&amp;atilde;o perca tempo e mantenha o seu site no ar agora mesmo com 10% de desconto no primeiro m&amp;ecirc;s. &amp;lt;/p&amp;gt;
+
+            &amp;lt;br&amp;gt;
+                &amp;lt;center&amp;gt;
+                    &amp;lt;a href=&#34;###&#34;&amp;gt;&amp;lt;img alt=&#34;Quero manter meu site&#34; src=&#34;2014-11-21-c.png&#34;&amp;gt;&amp;lt;/a&amp;gt;
+                &amp;lt;/center&amp;gt;
+
+        &amp;lt;/td&amp;gt;
+    &amp;lt;/tr&amp;gt;
+&amp;lt;/table&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;E o código buildado fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;table class=&#34;lw-wrapper&#34; bgcolor=&#34;#e7e2dc&#34; style=&#34;background-color: #e7e2dc; font-family: arial, helvetica, sans-serif; padding: 20px; width: 100%;&#34;&amp;gt;
+&amp;lt;tr&amp;gt;
+    &amp;lt;td&amp;gt;
+
+        &amp;lt;table align=&#34;center&#34; class=&#34;lw-container&#34; style=&#34;background-color: #fff; border: none; border-collapse: collapse; margin: 0 auto; width: 630px;&#34; bgcolor=&#34;#ffffff&#34;&amp;gt;
+            &amp;lt;tr&amp;gt;
+                &amp;lt;td class=&#34;lw-content&#34; style=&#34;background-color: #fff; margin: 0 auto; width: 630px;&#34;&amp;gt;
+                        &amp;lt;img src=&#34;2014-11-21-5.jpg&#34; style=&#34;border: none; text-decoration: none;&#34; width=&#34;630&#34;&amp;gt;
+
+                        &amp;lt;table cellpadding=&#34;10&#34;&amp;gt;
+    &amp;lt;tr&amp;gt;
+        &amp;lt;td class=&#34;lw-text&#34; style=&#34;margin: 0 20px;&#34;&amp;gt;
+
+            &amp;lt;h3&amp;gt;&amp;lt;strong&amp;gt;O período de teste está chegando ao fim!&amp;lt;/strong&amp;gt;&amp;lt;/h3&amp;gt;
+
+            &amp;lt;p style=&#34;font-family: arial, helvetica, sans-serif; font-size: 14px;&#34;&amp;gt;Ol&amp;#xE1; &amp;lt;/p&amp;gt;
+
+            &amp;lt;p style=&#34;font-family: arial, helvetica, sans-serif; font-size: 14px;&#34;&amp;gt;Não perca tempo e mantenha o seu site no ar agora mesmo com 10% de desconto no primeiro mês. &amp;lt;/p&amp;gt;
+
+            &amp;lt;br&amp;gt;
+                &amp;lt;center&amp;gt;
+                    &amp;lt;a href=&#34;###&#34;&amp;gt;&amp;lt;img alt=&#34;Quero manter meu site&#34; src=&#34;2014-11-21-c.png&#34;&amp;gt;&amp;lt;/a&amp;gt;
+                &amp;lt;/center&amp;gt;
+
+        &amp;lt;/td&amp;gt;
+    &amp;lt;/tr&amp;gt;
+&amp;lt;/table&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Além disso tudo, nós usamos SASS para escrever o CSS. Lembre-se: a ideia é tentar ganhar velocidade no desenvolvimento, aproximando o ambiente que você está acostumado para a criação de emails. O problema é que embora você consiga produzir código rapidamente, você vai precisar testar esse layout e você não poderá fazer isso o tempo inteiro olhando para seu browser comum. Os usuários verão isso em diversos clientes de email e você precisa testar nesses clientes. É aí que entra outra ferramenta: Litmus.&lt;/p&gt;
+
+&lt;h2 id=&#34;testando-com-o-litmus&#34;&gt;Testando com o Litmus&lt;/h2&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://litmus.com/&#34;&gt;Litmus&lt;/a&gt; é um ambiente de testes e análise de email marketing que surgiu em 2005. Além de testar seus emails, você consegue ter uma série de informações sobre taxa de abertura, forwards, deleções e outras análises. Basicamente o que os outros caras do mercado fazem, ele faz também. O grande diferencial dele é que você consegue submeter o código do seu email e ele mostra como o layout fica em praticamente todos os clientes de email do mercado, inclusive nos clientes mobile.&lt;/p&gt;
+
+&lt;p&gt;Além disso, você consegue criar ou modificar o código do seu email diretamente pelo sistema deles, facilitando MUITO a adequação do código, principalmente porque eles tem um syntax checker que verifica se você está usando alguma regra que não funciona nos clientes de email do mercado.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/04/litmus-editor.jpg&#34; alt=&#34;litmus-editor&#34; width=&#34;500&#34; height=&#34;273&#34; class=&#34;alignnone size-full wp-image-48119&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Há uma feature chamada Interactive Testing. Esse negócio conecta em uma máquina virtual com o seu layout aberto no cliente de email e um lugar para você modificar seu código. Quando você muda alguma coisa no código, ele muda no cliente de email! Pensa na utilidade desse negócio.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/04/litmus-interactive-testing.jpg&#34; alt=&#34;litmus-interactive-testing&#34; width=&#34;500&#34; height=&#34;272&#34; class=&#34;alignnone size-full wp-image-48120&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;putsmail&#34;&gt;PutsMail&lt;/h3&gt;
+
+&lt;p&gt;O &lt;a href=&#34;https://PutsMail.com/&#34;&gt;PutsMail&lt;/a&gt; é um sisteminha de testes avulso. Ele é muito fácil de usar e nem precisa de cadastro. Basta jogar seu código no campo e mandar testar. Ele foi desenvolvido por um cara chamado Pablo Cantero, aí o Litmus comprou o sistema dele em 2014 e continuou o desenvolvimento.&lt;/p&gt;
+
+&lt;h2 id=&#34;concluindo&#34;&gt;Concluindo&lt;/h2&gt;
+
+&lt;p&gt;Email bom é email em Plain Text. Não escondo isso de ninguém. Quando fazemos emails, voltar a trabalhar como nos tempos antigos e isso não é bom. Você precis alinhar muito bem as expectativas do designer, precisa testar muito bem cada cliente de email importante, precisa escrever código ruim para que funcione em todo lugar. Mas não é impossível. Com a experiência e as ferramentas que surgiram nos últimos anos, conseguimos passar pelo vale da sombra e da morte mais facilmente. Mas ainda assim nos machucamos bastante. (ó, fiz até um final filosófico! ;-D )&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

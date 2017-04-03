@@ -1,0 +1,856 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Thiguetta on Tableless</title>
+    <link>http://tableless.com.br/author/thiguetta/index.xml</link>
+    <description>Recent content in Thiguetta on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/thiguetta/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte Final</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-final/</link>
+      <pubDate>Tue, 27 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-final/</guid>
+      <description>
+
+&lt;p&gt;Os servidores HTTP são parte fundamental da Web como conhecemos, sendo responsáveis por fornecer todo o conteúdo que acessamos através de nossos navegadores. Durante esse tutorial, entenderemos como funciona a comunicação entre o navegador e o servidor e como a informação é entregue ao usuário.&lt;/p&gt;
+
+&lt;p&gt;Caso não tenha acompanhado os últimos posts, recomendo que leia as Partes &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/&#34;&gt;um&lt;/a&gt;, &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/&#34;&gt;dois&lt;/a&gt; e &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-iii/&#34;&gt;três&lt;/a&gt; antes de prosseguir a leitura deste post.&lt;/p&gt;
+
+&lt;p&gt;Essa é a última parte do tutorial, mas antes de prosseguir vamos recapitular o que vimos até agora então: Nós conhecemos o protocolo HTTP/1.1, qual o padrão de requisição e resposta, entendemos um pouco de &lt;em&gt;sockets&lt;/em&gt; e por fim montamos um mini servidor que recebe requisições HTTP, e devolve a página solicitada.&lt;/p&gt;
+
+&lt;p&gt;É claro que nosso servidor não é perfeito, além da função &lt;em&gt;main&lt;/em&gt; ter ficado gigante, nosso servidor só responde a uma requisição e para! O ideal é que o servidor permaneça em execução para receber novas requisições e também possa receber várias requisições simultâneas, afinal de contas é para isso que um servidor web serve =D&lt;/p&gt;
+
+&lt;h2 id=&#34;organizando-o-código&#34;&gt;Organizando o código&lt;/h2&gt;
+
+&lt;p&gt;Pra ficar simples, vamos separar a requisição da resposta em duas classes diferentes que vou chamar de RequisicaoHTTP e RespostaHTTP&lt;/p&gt;
+
+&lt;p&gt;RequisicaoHTTP.java&lt;/p&gt;
+
+&lt;pre&gt;import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+public class RequisicaoHTTP {
+
+    private String protocolo;
+    private String recurso;
+    private String metodo;
+    private boolean manterViva = true;
+    private long tempoLimite = 3000;
+    private Map&amp;lt;String, List&amp;gt; cabecalhos;
+
+    public static RequisicaoHTTP lerRequisicao(InputStream entrada) throws IOException {
+        RequisicaoHTTP requisicao = new RequisicaoHTTP();
+        BufferedReader buffer = new BufferedReader(new InputStreamReader(entrada));
+        System.out.println(&#34;Requisição: &#34;);
+        /* Lê a primeira linha
+         contem as informaçoes da requisição
+         */
+        String linhaRequisicao = buffer.readLine();
+        //quebra a string pelo espaço em branco
+        String[] dadosReq = linhaRequisicao.split(&#34; &#34;);
+        //pega o metodo
+        requisicao.setMetodo(dadosReq[0]);
+        //paga o caminho do arquivo
+        requisicao.setRecurso(dadosReq[1]);
+        //pega o protocolo
+        requisicao.setProtocolo(dadosReq[2]);
+        String dadosHeader = buffer.readLine();
+        //Enquanto a linha nao for nula e nao for vazia
+        while (dadosHeader != null &amp;&amp; !dadosHeader.isEmpty()) {
+            System.out.println(dadosHeader);
+            String[] linhaCabecalho = dadosHeader.split(&#34;:&#34;);
+            requisicao.setCabecalho(linhaCabecalho[0], linhaCabecalho[1].trim().split(&#34;,&#34;));
+            dadosHeader = buffer.readLine();
+        }
+        //se existir a chave Connection no cabeçalho
+        if (requisicao.getCabecalhos().containsKey(&#34;Connection&#34;)) {
+            //seta o manterviva a conexao se o connection for keep-alive
+            requisicao.setManterViva(requisicao.getCabecalhos().get(&#34;Connection&#34;).get(0).equals(&#34;keep-alive&#34;));
+        }
+        return requisicao;
+    }
+
+    public void setCabecalho(String chave, String... valores) {
+        if (cabecalhos == null) {
+            cabecalhos = new TreeMap&amp;lt;&amp;gt;();
+        }
+        cabecalhos.put(chave, Arrays.asList(valores));
+    }
+
+    //getters e setters vão aqui
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que simplesmente copiei a parte onde liamos a requisição e imprimíamos na tela, dentro de um método estático lerRequisicao() que retorna um objeto RequisicaoHTTP. Perceba ainda que esse método recebe o InputStream de onde iremos ler a requisição como parâmetro. Além do mais iremos colocar os dados do cabeçalho em um Mapa&lt;chave,valor&gt; para facilitar o manuseio desses dados posteriormente caso seja necessário.&lt;/p&gt;
+
+&lt;p&gt;Até o momento os únicos dados que utilizávamos da requisição era a primeira linha que contém o caminho do arquivo, a partir de agora vamos usar o Connection (se existir) para saber se manteremos a conexão viva ou não, veja que há uma propriedade tempoLimite que por padrão é 3000 milissegundos (3 segundos), que vamos utilizar para controlar quanto tempo uma conexão deve permanecer ativa. O resto é só você implementar (os métodos &lt;em&gt;getters&lt;/em&gt; e &lt;em&gt;setters&lt;/em&gt; eu omiti).&lt;/p&gt;
+
+&lt;p&gt;RespostaHTTP.java&lt;/p&gt;
+
+&lt;pre&gt;import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+public class RespostaHTTP {
+
+    private String protocolo;
+    private int codigoResposta;
+    private String mensagem;
+    private byte[] conteudoResposta;
+    private Map&amp;lt;String, List&amp;gt; cabecalhos;
+    private OutputStream saida;
+
+    public RespostaHTTP() {
+
+    }
+
+    public RespostaHTTP(String protocolo, int codigoResposta, String mensagem) {
+        this.protocolo = protocolo;
+        this.codigoResposta = codigoResposta;
+        this.mensagem = mensagem;
+    }
+
+    /**
+     * Envia os dados da resposta ao cliente.
+     *
+     * @throws IOException
+     */
+    public void enviar() throws IOException {
+        //escreve o headers em bytes
+        saida.write(montaCabecalho());
+        //escreve o conteudo em bytes
+        saida.write(conteudoResposta);
+        //encerra a resposta
+        saida.flush();
+    }
+
+    /**
+     * Insere um item de cabeçalho no mapa
+     *
+     * @param chave
+     * @param valores lista com um ou mais valores para esta chave
+     */
+    public void setCabecalho(String chave, String... valores) {
+        if (cabecalhos == null) {
+            cabecalhos = new TreeMap&amp;lt;&amp;gt;();
+        }
+        cabecalhos.put(chave, Arrays.asList(valores));
+    }
+
+    /**
+     * pega o tamanho da resposta em bytes
+     *
+     * @return retorna o valor em bytes do tamanho do conteudo da resposta
+     * convertido em string
+     */
+    public String getTamanhoResposta() {
+        return getConteudoResposta().length + &#34;&#34;;
+    }
+
+    /**
+     * converte o cabecalho em string.
+     *
+     * @return retorna o cabecalho em bytes
+     */
+    private byte[] montaCabecalho() {
+        return this.toString().getBytes();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append(protocolo).append(&#34; &#34;).append(codigoResposta).append(&#34; &#34;).append(mensagem).append(&#34;\r\n&#34;);
+        for (Map.Entry&amp;lt;String, List&amp;gt; entry : cabecalhos.entrySet()) {
+            str.append(entry.getKey());
+            String stringCorrigida = Arrays.toString(entry.getValue().toArray()).replace(&#34;[&#34;, &#34;&#34;).replace(&#34;]&#34;, &#34;&#34;);
+            str.append(&#34;: &#34;).append(stringCorrigida).append(&#34;\r\n&#34;);
+        }
+        str.append(&#34;\r\n&#34;);
+        return str.toString();
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que para a resposta utilizamos o mesmo conceito, estamos montando o cabeçalho na requisição em um Mapa&lt;chave, valor&gt;, criei também outros métodos para auxiliar na geração dos dados pertinentes ao cabeçalho, e sobrescrevi o método toString() para converter o mapa no formato padrão da resposta HTTP, e por fim, o método enviar para enviar a requisição ao servidor.&lt;/p&gt;
+
+&lt;p&gt;Servidor.java&lt;/p&gt;
+
+&lt;pre&gt;import java.io.File;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.file.Files;
+import java.util.Date;
+
+public class Servidor {
+
+    public static void main(String[] args) throws IOException {
+        /* cria um socket &#34;servidor&#34; associado a porta 8000
+         já aguardando conexões
+         */
+        ServerSocket servidor = new ServerSocket(8000);
+        //aceita a primeita conexao que vier
+        Socket socket = servidor.accept();
+        //verifica se esta conectado
+        if (socket.isConnected()) {
+            //imprime na tela o IP do cliente
+            System.out.println(socket.getInetAddress());
+            //cria um BufferedReader a partir do InputStream do cliente
+
+            RequisicaoHTTP requisicao = RequisicaoHTTP.lerRequisicao(socket.getInputStream());
+
+            //se o caminho foi igual a / entao deve pegar o /index.html
+            if (requisicao.getRecurso().equals(&#34;/&#34;)) {
+                requisicao.setRecurso(&#34;index.html&#34;);
+            }
+            //abre o arquivo pelo caminho
+            File arquivo = new File(requisicao.getRecurso().replaceFirst(&#34;/&#34;, &#34;&#34;));
+
+            RespostaHTTP resposta;
+
+            //se o arquivo existir então criamos a reposta de sucesso, com status 200
+            if (arquivo.exists()) {
+                resposta = new RespostaHTTP(requisicao.getProtocolo(), 200, &#34;OK&#34;);
+            } else { 
+                //se o arquivo não existe então criamos a reposta de erro, com status 404
+                resposta = new RespostaHTTP(requisicao.getProtocolo(), 404, &#34;Not Found&#34;);
+            }
+            //lê todo o conteúdo do arquivo para bytes e gera o conteudo de resposta
+            resposta.setConteudoResposta(Files.readAllBytes(arquivo.toPath()));
+            //converte o formato para o GMT espeficicado pelo protocolo HTTP
+            String dataFormatada = Util.formatarDataGMT(new Date());
+            //cabeçalho padrão da resposta HTTP/1.1
+            resposta.setCabecalho(&#34;Location&#34;, &#34;http://localhost:8000/&#34;);
+            resposta.setCabecalho(&#34;Date&#34;, dataFormatada);
+            resposta.setCabecalho(&#34;Server&#34;, &#34;MeuServidor/1.0&#34;);
+            resposta.setCabecalho(&#34;Content-Type&#34;, &#34;text/html&#34;);
+            resposta.setCabecalho(&#34;Content-Length&#34;,resposta.getTamanhoResposta());
+            //cria o canal de resposta utilizando o outputStream
+            resposta.setSaida(socket.getOutputStream());
+            resposta.enviar();
+
+        }
+    }
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Agora o código do nosso servidor está pequeno mas ainda não é o suficiente &amp;#8211; continua recebendo uma requisição e respondendo apenas uma vez. Vamos ver mais um conceito:&lt;/p&gt;
+
+&lt;h2 id=&#34;threads&#34;&gt;Threads&lt;/h2&gt;
+
+&lt;p&gt;As &lt;em&gt;threads&lt;/em&gt;, de maneira geral, são segmentos de código que são executados &amp;#8220;paralelamente&amp;#8221; (ou pelo menos quase) dentro de um mesmo programa. Para exemplificar melhor, pense nisso: imagine que ao abrir um software de grandes proporções, ele tenha que carregar todas as bibliotecas necessárias, mas ao mesmo tempo tem que mostrar ao usuário o progresso do carregamento. A ideia que temos é que esses dois trechos de código são executados paralelamente. Isso é possível graças às _threads._ Neste exemplo, temos duas &lt;em&gt;threads&lt;/em&gt; executando: uma que carrega as bibliotecas e outra que mostra o progresso para o usuário. Dentro de um programa, pode-se ter quantas threads quisermos, e enquanto o programa estiver executando, essas &lt;em&gt;threads&lt;/em&gt; podem ser criadas, executadas, terminadas, permitir que novas &lt;em&gt;threads&lt;/em&gt; e outros. Quem faz esse controle é a máquina virtual (JVM).&lt;/p&gt;
+
+&lt;p&gt;Olha que legal, um servidor recebe várias conexões simultâneas, onde por essas conexões passarão as requisições. Praticamente, todas essas requisições são processadas da mesma maneira, logo, para cada conexão que esse servidor recebe, ele cria uma nova &lt;em&gt;thread&lt;/em&gt;, permitindo tratar as requisições de um cliente. Veja só, se temos 5 computadores solicitando uma página, então teremos 5 threads processando essas requisições, e por aí vai.&lt;/p&gt;
+
+&lt;p&gt;Agora fica fácil analisar qual segmento do código queremos executar paralelamente. A partir desse segmento iremos montar uma estrutura de Thread, da seguinte maneira:&lt;/p&gt;
+
+&lt;p&gt;ThreadConexao.java&lt;/p&gt;
+
+&lt;pre&gt;import java.io.File;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.nio.file.Files;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class ThreadConexao implements Runnable {
+
+    private final Socket socket;
+    private boolean conectado;
+
+    public ThreadConexao(Socket socket) {
+        this.socket = socket;
+    }
+
+    @Override
+    public void run() {
+        conectado = true;
+        //imprime na tela o IP do cliente
+        System.out.println(socket.getInetAddress());
+        while (conectado) {
+            try {
+                //cria uma requisicao a partir do InputStream do cliente
+                RequisicaoHTTP requisicao = RequisicaoHTTP.lerRequisicao(socket.getInputStream());
+                //se a conexao esta marcada para se mantar viva entao seta keepalive e o timeout
+                if (requisicao.isManterViva()) {
+                    socket.setKeepAlive(true);
+                    socket.setSoTimeout(requisicao.getTempoLimite());
+                } else {
+                    //se nao seta um valor menor suficiente para uma requisicao
+                    socket.setSoTimeout(300);
+                }
+
+                //se o caminho foi igual a / entao deve pegar o /index.html
+                if (requisicao.getRecurso().equals(&#34;/&#34;)) {
+                    requisicao.setRecurso(&#34;index.html&#34;);
+                }
+                //abre o arquivo pelo caminho
+                File arquivo = new File(requisicao.getRecurso().replaceFirst(&#34;/&#34;, &#34;&#34;));
+
+                RespostaHTTP resposta;
+
+                //se o arquivo existir então criamos a reposta de sucesso, com status 200
+                if (arquivo.exists()) {
+                    resposta = new RespostaHTTP(requisicao.getProtocolo(), 200, &#34;OK&#34;);
+                } else {
+                    //se o arquivo não existe então criamos a reposta de erro, com status 404
+                    resposta = new RespostaHTTP(requisicao.getProtocolo(), 404, &#34;Not Found&#34;);
+                    arquivo = new File(&#34;404.html&#34;);
+                }
+                //lê todo o conteúdo do arquivo para bytes e gera o conteudo de resposta
+                resposta.setConteudoResposta(Files.readAllBytes(arquivo.toPath()));
+                //converte o formato para o GMT espeficicado pelo protocolo HTTP
+                String dataFormatada = Util.formatarDataGMT(new Date());
+                //cabeçalho padrão da resposta HTTP/1.1
+                resposta.setCabecalho(&#34;Location&#34;, &#34;http://localhost:8000/&#34;);
+                resposta.setCabecalho(&#34;Date&#34;, dataFormatada);
+                resposta.setCabecalho(&#34;Server&#34;, &#34;MeuServidor/1.0&#34;);
+                resposta.setCabecalho(&#34;Content-Type&#34;, &#34;text/html&#34;);
+                resposta.setCabecalho(&#34;Content-Length&#34;, resposta.getTamanhoResposta());
+                //cria o canal de resposta utilizando o outputStream
+                resposta.setSaida(socket.getOutputStream());
+                resposta.enviar();
+            } catch (IOException ex) {
+                //quando o tempo limite terminar encerra a thread
+                if (ex instanceof SocketTimeoutException) {
+                    try {
+                        conectado = false;
+                        socket.close();
+                    } catch (IOException ex1) {
+                        Logger.getLogger(ThreadConexao.class.getName()).log(Level.SEVERE, null, ex1);
+                    }
+                }
+            }
+
+        }
+    }
+
+}
+&lt;/pre&gt;
+
+&lt;p&gt;A estrutura de uma &lt;em&gt;thread&lt;/em&gt; é bem simples: uma classe que implementa a interface Runnable. Essa interface possui um único método a ser implementado, o método run(). Esse método é o nosso segmento de código que queremos que seja executado em paralelo. Veja que nele temos o código que tínhamos na &lt;em&gt;main&lt;/em&gt; com apenas algumas modificações para controlar o tempo máximo de conexão (o tempo que a conexão deve se manter ativa).&lt;/p&gt;
+
+&lt;h2 id=&#34;threadpools&#34;&gt;ThreadPools&lt;/h2&gt;
+
+&lt;p&gt;Por fim, temos que falar um pouco sobre as Thread Pools, que tem o trabalho de controlar a criação de &lt;em&gt;threads&lt;/em&gt;. Claro que podemos criar quantas &lt;em&gt;threads&lt;/em&gt; quisermos, mas, às vezes, a situação requer um certo controle, ainda mais quando um servidor web pode receber milhares ou até milhões de requisições por segundo. Por isso, precisamos gerenciar essas &lt;em&gt;threads&lt;/em&gt; de maneira eficiente, para que nosso servidor não sobrecarregue. Para isso, o Java tem os Executors, que criam um ambiente de execução de múltiplas &lt;em&gt;threads&lt;/em&gt;. Existem diversos tipos de ExecutorService. No nosso caso, iremos utilizar o fixo, que significa limitarmos a criação de &lt;em&gt;threads&lt;/em&gt; a um número fixo. Se o número de &lt;em&gt;threads&lt;/em&gt; criadas exceder o limite, essas novas &lt;em&gt;threads&lt;/em&gt; deverão aguardar até que as outras &lt;em&gt;threads&lt;/em&gt; terminem para começar a executar. Com isso, nossa classe Servidor passa a ficar da seguinte forma:&lt;/p&gt;
+
+&lt;p&gt;Servidor.java&lt;/p&gt;
+
+&lt;pre&gt;import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class Servidor {
+
+    public static void main(String[] args) throws IOException {
+        /* cria um socket &#34;servidor&#34; associado a porta 8000
+         já aguardando conexões
+         */
+        ServerSocket servidor = new ServerSocket(8000);
+        //executor que limita a criação de threads a 20
+        ExecutorService pool = Executors.newFixedThreadPool(20);
+        
+        while (true) {
+            //cria uma nova thread para cada nova solicitacao de conexao
+            pool.execute(new ThreadConexao(servidor.accept()));
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que agora colocamos a criação de novas &lt;em&gt;threads&lt;/em&gt; while(true). Isso impede que nosso servidor pare de executar após a primeira requisição, permitindo que ele aceite múltiplas conexões. Você deve estar a se perguntar &amp;#8211; mas um &lt;em&gt;while true&lt;/em&gt; não gera um laço infinito? &amp;#8211; de certa forma sim, mas para a nossa situação esta é a ideia, já que não queremos que o servidor pare, e que o servidor só finalize quando o usuário enviar o comando CTRL+C no prompt/terminal. De qualquer forma, o método accept() é bloqueado até que receba uma nova conexão, e esse laço sé será executado quando houver uma solicitação, caso contrário, ficará parado num estado de bloqueio =D&lt;/p&gt;
+
+&lt;p&gt;Pronto. Agora temos um servidor funcional que aceita conexões múltiplas e responde a muitas requisições.&lt;/p&gt;
+
+&lt;h2 id=&#34;considerações-finais&#34;&gt;Considerações finais&lt;/h2&gt;
+
+&lt;p&gt;Nosso servidor está longe de ser uma versão completa para competir com o Apache e outros servidores HTTP, até por que nosso servidor só envia documentos HTML. Vale lembrar que, quando o navegador recebe um HTML como resposta, ele tem que renderizá-lo, e ao fazer isto, ele encontra tags de arquivos de imagem, áudio, scripts ou estilos, o que gera outras requisições para o servidor, para que ele envie também esses arquivos. O código ainda pode ser melhorado, teríamos que fazer com que o servidor forneça o Content-Type correto para cada tipo de arquivo (o que não é difícil, fica como exercício). Também seria necessário implementar uma camada de segurança (o que hoje em dia é fundamental, pois sem ela nosso servidor está completamente vulnerável a ataques), e por aí vai.&lt;/p&gt;
+
+&lt;p&gt;Além do mais, nosso servidor responde ao padrão HTTP/1.1, mas recentemente foi lançado o protocolo HTTP2, que veio para tornar o antigo padrão ainda mais rápido. Embora tenha sofrido alterações internas (o que significa que os servidores HTTP terão que se &amp;#8220;adaptar&amp;#8221; para seguirem esse novo padrão), o conceito continua o mesmo. Você pode ler um pouco mais sobre HTTP2 nesse post &lt;a href=&#34;http://tableless.com.br/http2-atualizacao-do-protocolo-base-da-internet/&#34;&gt;&amp;#8220;HTTP/2 – Atualização do protocolo base da internet&amp;#8221;&lt;/a&gt; e nesse &lt;a href=&#34;http://tableless.com.br/http2-para-desenvolvedores-de-web/&#34;&gt;&amp;#8220;HTTP2 para Desenvolvedores de Web&amp;#8221;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Espero ter despertado em vocês a vontade de conhecer mais a fundo como as coisas funcionam, para criarem suas próprias contribuições e compartilharem com a galera, afinal, esse é o espirito do Tableless.&lt;/p&gt;
+
+&lt;p&gt;Por favor, deixem comentários, se gostaram ou não, erros, dúvidas. O feedback de vocês é importante.&lt;/p&gt;
+
+&lt;p&gt;Até a próxima =D&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h2 id=&#34;referências&#34;&gt;Referências:&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;Lições sobre socket (em inglês):&lt;/strong&gt; &lt;a title=&#34;http://www.oracle.com/technetwork/java/socket-140484.html&#34; href=&#34;http://www.oracle.com/technetwork/java/socket-140484.html&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.oracle.com/technetwork/java/socket-140484.html&#34;&gt;http://www.oracle.com/technetwork/java/socket-140484.html&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Java Tutorial Tudo sobre sockets (em inglês):&lt;/strong&gt; &lt;a title=&#34;http://docs.oracle.com/javase/tutorial/networking/sockets/&#34; href=&#34;http://docs.oracle.com/javase/tutorial/networking/sockets/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://docs.oracle.com/javase/tutorial/networking/sockets/&#34;&gt;http://docs.oracle.com/javase/tutorial/networking/sockets/&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RFC2616 (em inglês):&lt;/strong&gt; &lt;a title=&#34;http://www.w3.org/Protocols/rfc2616/rfc2616.html&#34; href=&#34;http://www.w3.org/Protocols/rfc2616/rfc2616.html&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.w3.org/Protocols/rfc2616/rfc2616.html&#34;&gt;http://www.w3.org/Protocols/rfc2616/rfc2616.html&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Código&lt;/strong&gt;&lt;strong&gt; Fonte Completo:&lt;/strong&gt; &lt;a title=&#34;Repo MeuServidorHTTP&#34; href=&#34;https://github.com/thiguetta/MeuServidorHTTP&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/thiguetta/MeuServidorHTTP&#34;&gt;https://github.com/thiguetta/MeuServidorHTTP&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Versão alternativa que fornece arquivos de imagem, javascript e css também:&lt;/strong&gt; &lt;a title=&#34;Repo SimpleHTTPServer&#34; href=&#34;https://github.com/thiguetta/SimpleHTTPServer&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/thiguetta/SimpleHTTPServer&#34;&gt;https://github.com/thiguetta/SimpleHTTPServer&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte III</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-iii/</link>
+      <pubDate>Mon, 05 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-iii/</guid>
+      <description>
+
+&lt;p&gt;Estamos entrando na terceira parte do tutorial, e quem está acompanhando até aqui já sabe então como funciona a comunicação entre cliente e servidor, envio de requisição pelo cliente e recebimento de resposta (na duvida só voltar e releia a &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/&#34; title=&#34;Criando seu próprio servidor HTTP do zero (ou quase) – Parte I&#34;&gt;Parte I&lt;/a&gt; e/ou &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/&#34; title=&#34;Criando seu próprio servidor HTTP do zero (ou quase) – Parte II&#34;&gt;Parte II&lt;/a&gt;), porém o que a gente quer é criar o servidor, receber as requisições e enviar a resposta ao cliente.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-servidor&#34;&gt;O Servidor&lt;/h2&gt;
+
+&lt;p&gt;A idéia do servidor é bem simples e estende a do cliente, como assim? Fácil, fácil. no post anterior vimos como criar um socket, no caso, nos criamos um socket já conectado ao site do google, mas o que internamente acontece é, criamos um socket, associamos esse socket a uma porta (lembrando que no caso do cliente a porta aberta é aleatória, so para que o servidor saiba onde deve retornar a resposta) e conectamos ao socket do servidor na porta especifica.&lt;/p&gt;
+
+&lt;p style=&#34;text-align: justify&#34;&gt;
+  Agora vamos pensar um pouco, no caso do servidor, temos que criar um socket, associar (bind) a uma porta especifica(para que todos os clientes saibam exatamente onde conectar) e ficamos aguardando alguém solicitar uma conexão (listen), se alguém solicitar conexão nós aceitamos (accept), resumindo o processo, temos como na imagem abaixo:
+&lt;/p&gt;
+
+&lt;div style=&#34;width: 369px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://3.bp.blogspot.com/_Gt5b2CU22sM/S4iS4lbeU5I/AAAAAAAAAUU/DBmariOce1o/s400/rzab6503.gif&#34;&gt;&lt;img src=&#34;http://3.bp.blogspot.com/_Gt5b2CU22sM/S4iS4lbeU5I/AAAAAAAAAUU/DBmariOce1o/s400/rzab6503.gif&#34; alt=&#34;&#34; width=&#34;359&#34; height=&#34;324&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Diagrama Cliente/Servidor
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Em Java já temos uma classe pronta que faz isso, que é o ServerSocket, que já cria um socket que está aguardando conexões, o que torna nossa vida bem mais simples, então vamos parar de teoria e ir pro código, para isso criamos uma classe chamada Servidor e nela faremos o seguinte:&lt;/p&gt;
+
+&lt;pre&gt;import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class Servidor {
+
+    public static void main(String[] args) throws IOException {
+        /* cria um socket &#34;servidor&#34; associado a porta 8000
+          já aguardando conexões
+        */
+        ServerSocket servidor = new ServerSocket(8000);
+        //aceita a primeita conexao que vier
+        Socket socket = servidor.accept();
+        //verifica se esta conectado  
+        if (socket.isConnected()) {
+            //imprime na tela o IP do cliente
+            System.out.println(&#34;O computador &#34;+ socket.getInetAddress() + &#34; se conectou ao servidor.&#34;);
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que estamos abrindo a porta 8000 e não a 80, isso por que embora essa seja a porta &amp;#8220;destinada/utilizada&amp;#8221; para servidores HTTP, ela é gerenciada pelo sistema operacional então não poderemos abri-la por enquanto (o SO não permitiria até por que em alguns sistemas linux já existe um servidor HTTP utilizando essa porta, em outros a porta está bloqueada pelo firewall, e teremos que abri-la manualmente mas veremos isso em breve), por isso vamos utilizar outra porta para testes, vamos compilar esse código e coloca-lo em execução, veja que ele permanecerá em execução até que ele receba pelo menos uma solicitação de conexão, que é o que vamos fazer, assim basta abrir o navegador e digitar o endereço &lt;a href=&#34;http://localhost:8000&#34;&gt;http://localhost:8000&lt;/a&gt; e ir para a página, veja que ao fazer isso sua linha de comando aparecerá a frase:&lt;/p&gt;
+
+&lt;pre&gt;java Server
+O computador /0:0:0:0:0:0:0:1 se conectou ao servidor.&lt;/pre&gt;
+
+&lt;p&gt;Veja  que este é o endereço IP do seu computador já no formato IPv6.  Note  que logo em seguida o programa foi finalizado, isso porque nosso servidor não está configurado para múltiplas conexões/requisições, porém vamos fazer isso já já, agora vamos ver qual foi a requisição que nosso navegador fez ao servidor, e para ler a entrada o conceito é o mesmo de ontem, vamos usar o InputStream para ler os dados enviados pelo cliente, então vamos adicionar o seguinte código logo após imprimir o IP:&lt;/p&gt;
+
+&lt;pre&gt;[...]
+            //cria um BufferedReader a partir do InputStream do cliente
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            System.out.println(&#34;Requisição: &#34;);
+            //Lê a primeira linha
+            String linha = buffer.readLine();
+            //Enquanto a linha não for vazia
+            while (!linha.isEmpty()) {
+                //imprime a linha
+                System.out.println(linha);
+                //lê a proxima linha
+                linha = buffer.readLine();
+            }
+[...]
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que agora utilizamos um BufferedReader ao invés do Scanner, isto por que o Scanner mesmo após ter terminado de ler a requisição ele espera que a a conexão seja encerrada, a fim de aguardar novas entradas, mas como não é interessante para gente esperar,  vamos usar o Buffer pois podemos verificar se a linha for vazia, se for, simplesmente encerra o programa sem ter que aguardar que a conexão seja encerrada. (Caso seja necessário continuar lendo a entrada antes da conexão encerras é so pegar o InputReader novamente e continuar lendo. Agora ao executarmos nosso servidor,  e acessar a página localhost:8000 no navegador teremos a seguinte saída na linha de comando:&lt;/p&gt;
+
+&lt;pre&gt;java Server
+O computador /0:0:0:0:0:0:0:1 se conectou ao servidor.
+Requisição: 
+GET / HTTP/1.1
+Host: localhost:8000
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:29.0) Gecko/20100101 Firefox/29.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Encoding: gzip, deflate
+DNT: 1
+Connection: keep-alive&lt;/pre&gt;
+
+&lt;p&gt;Veja que minha requisição foi originada de um navegador Firefox e que o formato da requisição é muito semelhante do que vimos na primeira parte do tutorial =D. Agora é so fazer o servidor tratar essas informações e devolver uma resposta ao cliente, nesse caso vamos devolver uma página HTML que é o que o navegador espera. Vamos criar duas páginas uma chamada índex.html e outra 404.html, e vamos armazena-las na mesma pasta que está colocando o código fonte do servidor com os seguintes códigos:&lt;/p&gt;
+
+&lt;p&gt;Arquivo index.html&lt;/p&gt;
+
+&lt;h1 id=&#34;funcionou&#34;&gt;Funcionou!!!!&lt;/h1&gt;
+
+&lt;p&gt;Arquivo 404.html&lt;/p&gt;
+
+&lt;pre&gt;Erro 404&lt;/pre&gt;
+
+&lt;h1 id=&#34;a-página-que-você-procura-não-foi-encontrada&#34;&gt;A página que você procura não foi encontrada&lt;/h1&gt;
+
+&lt;p&gt;Por convenção quando alguém solicita o arquivo &amp;#8220;/&amp;#8221; está solicitando a pagina inicial que geralmente é o índex.html, dependendo da configuração do servidor, no nosso caso queremos que nosso servidor retorne o índex.html, se o usuário pedir por qualquer coisa no formato &amp;#8220;/{nome da pagina}.html&amp;#8221; retornaremos esse arquivo, caso o arquivo não exista, retornaremos o erro 404 e a página de erro correspondente.&lt;/p&gt;
+
+&lt;p&gt;Sabemos que a primeira linha da requisição contem o método, o arquivo solicitado e o protocolo separados por um espaço em branco, para o nosso servidor o método não importa, então assumiremos sempre o GET, e o protocolo será sempre o HTTP/1.1, então o que nos importa é o arquivo solicitado. Vamos alterar o nosso código que deve ficar assim:&lt;/p&gt;
+
+&lt;pre&gt;[...]
+            /* Lê a primeira linha
+             contem as informaçoes da requisição
+             */
+            String linha = buffer.readLine();
+            //quebra a string pelo espaço em branco
+            String[] dadosReq = linha.split(&#34; &#34;);
+            //pega o metodo
+            String metodo = dadosReq[0];
+            //paga o caminho do arquivo
+            String caminhoArquivo = dadosReq[1];
+            //pega o protocolo
+            String protocolo = dadosReq[2];
+            //Enquanto a linha não for vazia
+            while (!linha.isEmpty()) {
+                //imprime a linha
+                System.out.println(linha);
+                //lê a proxima linha
+                linha = buffer.readLine();
+            }
+            //se o caminho foi igual a / entao deve pegar o /index.html
+            if (caminhoArquivo.equals(&#34;/&#34;)) {
+                caminhoArquivo = &#34;/index.html&#34;;
+            }
+            //abre o arquivo pelo caminho
+            File arquivo = new File(caminhoArquivo);
+            byte[] conteudo;
+            //status de sucesso - HTTP/1.1 200 OK
+            String status = protocolo + &#34; 200 OK\r\n&#34;;
+            //se o arquivo não existe então abrimos o arquivo de erro, e mudamos o status para 404
+            if (!arquivo.exists()) {
+                status = protocolo + &#34; 404 Not Found\r\n&#34;;
+                arquivo = new File(&#34;/404.html&#34;);
+            }
+            conteudo = Files.readAllBytes(arquivo.toPath());
+[...]
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que ainda não respondemos ao navegados com os dados, apenas montamos uma parte da resposta, para enviar a resposta precisaremos do OutputStream e montar uma string com a estrutura básica da resposta, dai vamos escrever esses dados no stream, semelhante ao que fizemos na parte II do nosso tutorial:&lt;/p&gt;
+
+&lt;pre&gt;//cria um formato para o GMT espeficicado pelo HTTP
+            SimpleDateFormat formatador = new SimpleDateFormat(&#34;E, dd MMM yyyy hh:mm:ss&#34;, Locale.ENGLISH);
+            formatador.setTimeZone(TimeZone.getTimeZone(&#34;GMT&#34;));
+            Date data = new Date();
+            //Formata a dara para o padrao
+            String dataFormatada = formatador.format(data) + &#34; GMT&#34;;
+            //cabeçalho padrão da resposta HTTP
+            String header = status
+                    + &#34;Location: http://localhost:8000/\r\n&#34;
+                    + &#34;Date: &#34; + dataFormatada + &#34;\r\n&#34;
+                    + &#34;Server: MeuServidor/1.0\r\n&#34;
+                    + &#34;Content-Type: text/html\r\n&#34;
+                    + &#34;Content-Length: &#34; + conteudo.length + &#34;\r\n&#34;
+                    + &#34;Connection: close\r\n&#34;
+                    + &#34;\r\n&#34;;
+            //cria o canal de resposta utilizando o outputStream
+            OutputStream resposta = socket.getOutputStream();
+            //escreve o headers em bytes
+            resposta.write(header.getBytes());
+            //escreve o conteudo em bytes
+            resposta.write(conteudo);
+            //encerra a resposta
+            resposta.flush();
+&lt;/pre&gt;
+
+&lt;p&gt;Agora é só compilar, rodar e ver o resultado =D&lt;/p&gt;
+
+&lt;p&gt;No caso de sucesso deve aparecer como na figura abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/sucesso.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51391&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/sucesso.png&#34; alt=&#34;200 - Sucesso&#34; width=&#34;1279&#34; height=&#34;707&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Caso a página não existe, deve aparecer assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/erro404.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51392&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/erro404.png&#34; alt=&#34;Erro 404&#34; width=&#34;1280&#34; height=&#34;709&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Temos um servidor funcional capaz de fornecer as páginas HTML para os clientes que solicitarem, mas perceba que nosso servidor atende a apenas uma requisição e se encerra logo em seguida, sem contar que nosso método main ficou gigante, mas fique tranquilo, isso será assunto para a próxima e ultima parte do tutorial, onde vamos organizar melhor nosso código, tratar alguns comandos do servidor importantes como manter a conexão viva e trabalhar com múltiplas requisições, conexões simultâneas e afins. Por hora fica o exercício, tente organizar o código a sua maneira, altere como desejar, crie mais páginas HTML e teste e veja se está sendo exibida corretamente, todo código feito até aqui está no final da página e está todo comentado para facilitar o entendimento.&lt;/p&gt;
+
+&lt;p&gt;Espero que estejam gostando e por favor deixem comentários com seu feedback: o que achou, dúvidas, se funcionou ou não, se a abordagem não estiver adequada ou mesmo erros que posso ter cometido pelo caminho.&lt;/p&gt;
+
+&lt;p&gt;Até o próximo post.&lt;/p&gt;
+
+&lt;p&gt;Download do código fonte: &lt;a href=&#34;https://github.com/thiguetta/ServidorHTTP&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/thiguetta/ServidorHTTP&#34;&gt;https://github.com/thiguetta/ServidorHTTP&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte II</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/</link>
+      <pubDate>Fri, 11 Sep 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/</guid>
+      <description>
+
+&lt;p&gt;Se chegou até aqui é por que você terminou de ler a primeira parte do tutorial (Caso não, leia a &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/&#34; title=&#34;Criando seu próprio servidor HTTP do zero (ou quase) – Parte I&#34;&gt;Parte I&lt;/a&gt; ), mas não desista, a parte legal vai chegar, mas antes de começar, falta mais um item de teoria &amp;#8211;  sim eu sei que é chato, mas juro que é importante &amp;#8211; os Sockets.&lt;/p&gt;
+
+&lt;h2 id=&#34;sockets-e-portas&#34;&gt;Sockets e portas&lt;/h2&gt;
+
+&lt;p&gt;Falamos muito de requisições e respostas no último post mas ainda não falamos de conexão e troca de informações. Bom, vamos lá, ligeiramente comentamos um pouco sobre os protocolos de rede, também disse que o protocolo web, o HTTP, está na camada mais alta do TCP/IP, a camada de aplicação, mas para este tutorial pouco importa o que acontece nas camadas inferiores  (se tiver curiosidade procure mais sobre), o que realmente importa é saber que esse tal de TCP/IP é responsável pela conexão entre dois pontos (dois computadores, ou no nosso caso, cliente e servidor).&lt;/p&gt;
+
+&lt;p&gt;Tanto o servidor quanto o cliente são computadores com seus respectivos sistemas operacionais (Linux, Windows, etc) e neles estão em execução diversas aplicações inclusive o navegador e o próprio servidor HTTP, mas nesse monte de aplicações em execução, como vamos saber que estamos enviando e recebendo dados da aplicação certa? precisamos de um algo que identifique cada aplicação (ou pelo menos que identifique uma aplicação que use a rede). Esses pontos de identificação, por assim dizer, são chamados de Socket (ou em português, soquete, tomada, encaixe, enfim algo que tenha uma “abertura/encaixe&amp;#8221; para conexão), resumindo é um ponto que permite conectar alguma coisa, no nosso caso, um outro computador através da rede. Para receber uma conexão, o Socket precisa de uma abertura, essa abertura é o que chamamos de porta, sei que para alguns o conceito parece ser trivial, mas para outros, inclusive profissionais de TI, esses conceitos podem embaralhar a cabeça.&lt;/p&gt;
+
+&lt;p&gt;Resumindo, um Socket é o ponto final da conexão, onde uma porta é aberta para que a aplicação possa enviar ou receber dados, cada porta é identificada por um número que é única no computador, sendo que se tentar abrir uma porta que já estiver sendo usado por outra aplicação, o sistema operacional irá barrar e retornar um erro de acesso negado ou informa que a porta está em uso.&lt;/p&gt;
+
+&lt;p&gt;Existe uma lista de portas conhecidas  que são utilizadas por algumas aplicações, as mais comuns são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;21 FTP &amp;#8211; Transferencia de arquivo&lt;/li&gt;
+&lt;li&gt;22 SSH &amp;#8211;  Secure Shell&lt;/li&gt;
+&lt;li&gt;25 SMTP &amp;#8211; Envio de Emails&lt;/li&gt;
+&lt;li&gt;80 HTTP &amp;#8211; Web&lt;/li&gt;
+&lt;li&gt;443 HTTPS &amp;#8211; Web “Segura&amp;#8221;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Uma porta ela é única por computador mas não é única na internet, quando você quer efetuar a conexão com uma determinada aplicação rodando em um computador remoto, a identificação do socket é composto pelo endereço de IP ou o nome canônico (domínio &amp;#8211; endereço do site) da máquina destino e a porta que essa aplicação usando, no seguinte formato {Endereço}:{Porta}.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;exemplo.com:80 ou
+ 192.168.1.224:1000     
+&lt;/pre&gt;
+
+&lt;p&gt;A maioria das aplicações que requerem conexão com algum serviço se conectam diretamente as portas especificas que cada uma delas usa, sendo necessário informar apenas o IP (ao menos que seja uma porta que a aplicação não conheça, o serviço está funcionando numa porta atípica ai será necessário informar, veremos mais na parte III). O que isso significa? isso significa que quando você digita o site &lt;a href=&#34;http://www.google.com.br&#34;&gt;http://www.google.com.br&lt;/a&gt; no seu navegador, ele sabe que os servidores HTTP estão executando na porta 80, então não é preciso identificar-la, pois o navegador irá &amp;#8220;converter&amp;#8221; para o formato correto, transparentemente, a mesma coisa acontece quando você acessa um site seguro utilizando &lt;a href=&#34;https://www.seubanco.com.br&#34;&gt;https://www.seubanco.com.br&lt;/a&gt; o navegador sabe que a porta de conexão segura no servidor é a 443, e tentará se conectar nela.&lt;/p&gt;
+
+&lt;p&gt;O que acontece é seu navegador irá se conectar ao site, ele sabe que o servidor está respondendo na porta 80 no endereço tal, para isso é necessário que o navegador abre uma porta local aleatória, para que assim o servidor possa saber para quem responder:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.raywenderlich.com/wp-content/uploads/2011/06/sockets.jpg&#34;&gt;&lt;img src=&#34;http://www.raywenderlich.com/wp-content/uploads/2011/06/sockets.jpg&#34; alt=&#34;&#34; width=&#34;600&#34; height=&#34;200&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto agora que entendemos o conceito (ou pelo menos espero que tenham entendido =D) vamos colocar as mãos na massa.&lt;/p&gt;
+
+&lt;p&gt;Vou partir do principio que já sabem criar uma classe e compilar um programa em Java (caso não lembre-se que o Google é nosso amigo =D). Se preferir, usando o mesmo conceito pode converter a ideia para a linguagem de sua preferência (só não esqueça de compartilhar com a galera =D).&lt;/p&gt;
+
+&lt;p&gt;Vamos lá, vou criar uma classe em Java chamada Cliente, será uma classe simples que vai se conectar a um servidor (neste caso vamos conectar no &lt;a href=&#34;http://google.com.br&#34;&gt;google.com.br&lt;/a&gt;) e ver se ele está conectado, se sim ele imprimirá na tela o IP do servidor.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import java.io.IOException;
+import java.net.Socket;
+
+public class Cliente {
+    public static void main(String[] args) throws IOException {
+        //cria um socket com o google na porta 80
+        Socket socket = new Socket(&#34;google.com.br&#34;, 80);
+        //verifica se esta conectado
+        if (socket.isConnected()) { 
+            //imprime o endereço de IP do servidor
+            System.out.println(&#34;Conectado a &#34; + socket.getInetAddress());
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao instanciar um novo objeto da classe Socket com os parâmetros domínio e porta, internamente a máquina virtual Java já abre uma porta aleatória em seu computador e em seguida conecta ao servidor google.com.br na porta 80. Veja que até então não sabemos o endereço de IP do servidor mas ao efetuar a conexão o socket já se atualiza com essa informação. Vamos compilar nossa classe e verificar o resultado que  deve ser algo desse tipo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ javac Cliente.java
+$ java Cliente
+Conectado a google.com.br/173.194.118.151&lt;/pre&gt;
+
+&lt;p&gt;Mas isso não é o suficiente queremos trocar informações com o servidor conectado, para isso nosso socket fornece 2 recursos  um para leitura dos dados recebidos (InputStream) do servidor e outro para enviar os dados que queremos para o servidor (OutputStream), é claro que para enviarmos algum dado para o servidor temos que saber como se comunicar com o servidor, como a gente já sabe, o servidor do google é um servidor HTTP que nos fornece as páginas de serviço do Google, certo? então sabemos que o servidor entende o protocolo HTTP. vamos enviar uma requisição HTTP simples a esse servidor e ver o que ele responde.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;/* veja que a requisição termina com \r\n que equivale a &amp;lt;CR&amp;gt;&amp;lt;LF&amp;gt;
+       para encerar a requisição tem uma linha em branco */
+    String requisicao = &#34;&#34;
+        + &#34;GET / HTTP/1.1\r\n&#34;
+        + &#34;Host: www.google.com.br\r\n&#34;
+        + &#34;\r\n&#34;;
+    //OutputStream para enviar a requisição
+    OutputStream envioServ = socket.getOutputStream();
+    //temos que mandar a requisição no formato de vetor de bytes
+    byte[] b = requisicao.getBytes();
+    //escreve o vetor de bytes no &#34;recurso&#34; de envio 
+    envioServ.write(b);
+    //marca a finalização da escrita
+    envioServ.flush();
+&lt;/pre&gt;
+
+&lt;p&gt;É claro que apenas isso não basta pois somente estamos enviando a requisição certo?, então precisaremos ler o InputStream logo após enviar os dados para ver o que o servidor responde, vamos facilitar as coisas afinal isto não é C, para ler o que o servidor responde vamos utilizar um Scanner, que ja faz a conversão o Input de bytes para String, assim a gente não tem que tratar esses trecos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//cria um scanner a partir do InputStream que vem do servidor
+    Scanner sc = new Scanner(socket.getInputStream());
+    //enquanto houver algo para ler
+    while (sc.hasNext()) {
+        //imprime uma linha da resposta
+        System.out.println(sc.nextLine());
+    }
+&lt;/pre&gt;
+
+&lt;p&gt;Agora se executarmos o programa podemos ler o que o servidor nos devolve e exibir na tela, logo teremos um resultado parecido com isso&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ javac Cliente.java 
+$ java Cliente
+Conectado a google.com.br/173.194.118.151 
+HTTP/1.1 200 OK
+Date: Tue, 17 Jun 2014 23:29:57 GMT
+Expires: -1
+Cache-Control: private, max-age=0
+Content-Type: text/html; charset=ISO-8859-1
+Set-Cookie: PREF=ID=fee5bb44e3822528:FF=0:TM=1403047797:LM=1403047797:S=BpVMDbzBHKUgdlRS; expires=Thu, 16-Jun-2016 23:29:57 GMT; path=/; domain=.google.com.br
+Set-Cookie: NID=67=CT9hDvtQnKCvGeox_lmn7IjB_gbZ6Z9m7YT2rM1LAw2hVDVbvas16qfTsH1Jc1TRhrynqE-j0fb3EPl_JvjttiV-kqVpJlYjmg7Qd_e8oHcnJM1L2xlHWtlKw2EcomUM; expires=Wed, 17-Dec-2014 23:29:57 GMT; path=/; domain=.google.com.br; HttpOnly
+P3P: CP=&#34;This is not a P3P policy! See http://www.google.com/support/accounts/bin/answer.py?hl=en&amp;answer=151657 for more info.&#34;
+Server: gws
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+Alternate-Protocol: 80:quic
+Transfer-Encoding: chunked
+
+8000
+&amp;lt;!doctype html&amp;gt;&amp;lt;html[...]um monte de HTML[...]
+
+0
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que o resultado é semelhante ao que vimos anteriormente sobre na nossa teoria de requisição e resposta, também há algumas outras propriedade que não vimos mas não importa para nós ao menos que queira se aprofundar no assunto. Veja também que seu programa também continua em execução, isso acontece porque o servidor do google ainda não encerrou a conexão, isso acontece porque no HTTP/1.1 a propriedade &amp;#8220;Connection: keep-alive&amp;#8221; é padrão mesmo que não enviamos na requisição, quem define esse tempo é o próprio servidor, por experiência própria eu sei que a conexão com o google se mantém ativa por aproximadamente 3 minutos, isso para dar tempo suficiente para que você faça todas as pesquisas sem ter que criar uma nova conexão para cada pesquisa que você faz, isso é importante no caso do google já que ele recebe milhares de requisições por segundo, sendo que varias delas são feitas pela mesma pessoa, então não convém criar uma nova conexão para cada nova requisição.&lt;/p&gt;
+
+&lt;p&gt;Você deve estar se perguntando, mas Thiago, isso não é o que o navegador faz?&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Sim, o que fizemos hoje foi implementar a parte mais básica de um navegados web.&lt;/p&gt;
+
+&lt;p&gt;Mas a proposta é fazer um servidor e não um navegador, certo?&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Certo, mas antes de avançarmos é importante entender bem qual é o trabalho do navegador antes de criar o servidor que irá responder as requisições dele, mas isso será assunto para a parte III.&lt;/p&gt;
+
+&lt;p&gt;Posso fazer em outra linguagem?&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Claro, socket é implementado em todas as linguagens, basta consultar a documentação da sua linguagem preferida para entender como replicar o conceito acima.&lt;/p&gt;
+
+&lt;p&gt;Por hoje ficamos por aqui pessoal, espero que tenham aproveitado bem nossa parte prática, no próximo começaremos definitivamente a criar nosso servidor.&lt;/p&gt;
+
+&lt;p&gt;Até Mais.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte I</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/</link>
+      <pubDate>Tue, 01 Sep 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/</guid>
+      <description>
+
+&lt;p&gt;Sou apaixonado por tecnologias livres e como sou extremamente curioso, gosto de saber como as coisas funcionam. Como também sou cinestésico, não me contento em apenas em entender, tenho que criar, recriar, escrever, rescrever, inventar, reinventar, enfim sentir realmente como se faz. Nesse vai e vem de aprendizado, minha última curiosidade foi entender como os servidores HTTP funcionam e criar um do zero (ou pelo menos quase).&lt;/p&gt;
+
+&lt;p&gt;É claro que para fazer isso eu não fui tão lá embaixo a ponto de utilizar C, utilizei da linguagem de programação da qual me sinto mais confortável e que já oferece algumas facilidades que em C teria que sangrar pra fazer o mesmo porém não impossível, mas enfim, optei por desenvolver em Java, os passos vou contar pra vocês aqui, mas utilizando os mesmo conceitos nada impede que utilize qualquer outra linguagem de programação.&lt;/p&gt;
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;Vamos ao que interessa! A grosso modo, um servidor HTTP é uma aplicação (software) que fornece páginas web (geralmente escritas em HTML), ou seja, ao digitar o endereço da página (URL) e dar um ENTER no seu navegador, ele envia uma requisição no servidor destino, o servidor processa essa informação e retorna o documento HTML correspondente, por fim o navegador renderiza o documento e exibe aquela página bonita (nem sempre!).&lt;/p&gt;
+
+&lt;div style=&#34;width: 510px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://www.tankonyvtar.hu/en/tartalom/tamop425/0027_ADW1/images/ADW100.png&#34;&gt;&lt;img src=&#34;http://www.tankonyvtar.hu/en/tartalom/tamop425/0027_ADW1/images/ADW100.png&#34; alt=&#34;Requisição HTTP&#34; width=&#34;500&#34; height=&#34;200&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Requisição HTTP
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Para isso vamos entender como a comunicação entre seu navegador e o servidor funciona, o protocolo, depois vamos entender como é feita a conexão, tratar e enviar documentos e por fim vamos deixar nosso servidor pronto para receber múltiplas conexões.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-protocolo-http&#34;&gt;O Protocolo HTTP&lt;/h2&gt;
+
+&lt;p&gt;É claro que nem so de Web a Internet é feita, existem uma serie de recursos que estão sobre a Internet, a web é uma delas, mas para que esses serviços sejam tratados como devem é necessário ter um linguagem comum que permita que o servidor entenda o que o navegador quer, e que o navegador saiba se a resposta do pedido está correta ou não, para isso estabelecem-se os protocolos, que são padrões estipulados por um órgão competente afim de uniformizar o “trafego” de informações de diferentes serviços na internet. Quem define esses padrões é a IETF (Internet Engineering Task Force, ou melhor, Força Tarefa de Engenharia da Internet). Para saber mais quem são eles, acesse &lt;a href=&#34;http://www.ietf.org&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt; (em Inglês)&lt;/p&gt;
+
+&lt;p&gt;O protocolo HTTP, ou Hyper Text Transfer Protocol, ou melhor ainda, protocolo de transferencia de hiper texto, direto e reto é o cara que define a troca de paginas HTML, pronto falei!. A versão mais atual (que é a que vamos adotar nesse tutorial por assim dizer) é a 1.1 que na minha opinião é a mais difundida também (pode ser que encontre por ai alguns utilizando a versão 1.0 ou até mesmo a 0.9), enfim , essa versão e seus padrões foram propostos no documento &lt;a href=&#34;http://www.ietf.org/rfc/rfc2068.txt&#34; target=&#34;_blank&#34;&gt;RFC 2068&lt;/a&gt; e atualizado e alterado por diversos outros RFCs, que não convém a gente falar aqui, mas se tiver curiosidade procura lá no site da IEFT acima que tem todos.&lt;/p&gt;
+
+&lt;p&gt;So para nos situar o HTTP está na camada mais alta do protocolo de comunicação de rede conhecido como TCP/IP (não vamos entrar em detalhes pois não é o foco), chamada camada de aplicação (Nada mais justo já que o servidor e o navegados são aplicações).&lt;/p&gt;
+
+&lt;div style=&#34;width: 430px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://static.thegeekstuff.com/wp-content/uploads/2011/10/tcp-ip.png&#34;&gt;&lt;img src=&#34;http://static.thegeekstuff.com/wp-content/uploads/2011/10/tcp-ip.png&#34; alt=&#34;Camadas de Rede (TCP/IP)&#34; width=&#34;420&#34; height=&#34;470&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Camadas de Rede (TCP/IP)
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;No nosso escopo, o servidor é um software que fica aguardando solicitações, falando em nível de aplicação, o processo é simples, o navegador (vamos chamar de cliente) envia uma requisição (request), o servidor processa e devolve uma resposta(response).&lt;/p&gt;
+
+&lt;h2 id=&#34;a-requisição&#34;&gt;A Requisição&lt;/h2&gt;
+
+&lt;p&gt;A requisição é um “documento” em texto plano composto por um cabeçalho (que define  a comunicação, requerido) e os dados (opcional, depende da aplicação).&lt;/p&gt;
+
+&lt;p&gt;O cabeçalho é bem simples, a primeira linha contém a informação principal da requisição, ou seja, qual a sua solicitação (método), o que está sendo solicitado (arquivo/página/recurso a ser acessado) e padrão de comunicação que no nosso caso é o HTTP/1.1, a segunda linha é o endereço de host do servidor que irá responder a sua solicitação, veja o exemplo:&lt;/p&gt;
+
+&lt;pre&gt;GET /index.html HTTP/1.1
+Host: &lt;a href=&#34;http://google.com&#34;&gt;google.com&lt;/a&gt;&lt;/pre&gt;
+
+&lt;p&gt;As linhas seguintes são informações pertinentes a conexão e podem conter informações de quem está solicitando, o formato dessas informações é do tipo &lt;propriedade&gt; : &lt;valor&gt; o final de cada linha é encerrado por um &lt;CR&gt;&lt;LF&gt; (cuidado, pois muitos confundem este comando com o ENTER, embora para windows esse comando corresponde ao ENTER, não é verdade para Linux e afins), o final da requisição deve ser uma linha em branco (ou seja apenas um &lt;CR&gt;&lt;LF&gt;)veja o exemplo de uma requisição completa&lt;/p&gt;
+
+&lt;pre&gt;GET /HTTP/1.1
+Host: www.google.com.br
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:29.0) Gecko/20100101 Firefox/29.0
+Accept: text/html,application/xhtml+xml,application/xml
+Accept-Language: pt-BR,pt,en-US,en
+Accept-Encoding: gzip, deflate
+Connection: keep-alive&lt;/pre&gt;
+
+&lt;p&gt;Traduzindo, queremos pegar (GET) a raiz ou página inicial ( / ) que está em “www.google.com.br”. Esta requisição está sendo enviada de um navegador (User-Agent) Firefox, que aceita (Accept) os seguintes formatos, html e xml de preferencia que estejam no idioma (Accept-Language) Português do Brasil (pt-BR) ou qualquer outro idioma a seguir (veja que é possível passar uma lista de idiomas na ordem em que gostaria que aparecessem, veja que caso o servidor não tenha nenhuma dessas páginas ou não trate essa propriedade, ele irá devolver a página no idioma padrão do html que ele encontrar correspondente a sua solicitação), o formato de compactação aceito pelo navegador  (Accept-Enconding) e por fim a persistência da conexão, ou seja se você quer que o servidor mantenha a conexão ativa, o que eu quero dizer é que para cada recurso dentro de uma pagina HTML, seja uma imagem, um estilo css, ou um javascript, que precisa ser carregado, o navegador faz uma nova requisição, não seria legal criar uma nova conexão para cada requisição ainda mais se elas acontecem em um curto espaço de tempo, então o keep-alive mantém a conexão “viva&amp;#8221; tempo pra que esses recursos sejam carregados. É claro que o protocolo define muito mais propriedades, como pode observar no documento RFC mencionado acima, porém cada servidor deve implementar essas funcionalidades, no nosso caso vamos implementar apenas as funcionalidades na requisição de exemplo e algumas mais que mencionaremos mais adiante.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-resposta&#34;&gt;A Resposta&lt;/h2&gt;
+
+&lt;p&gt;A resposta segue um formato bem parecido da requisição, a primeira linha contem o protocolo, o código e mensagem de retorno como segue:&lt;/p&gt;
+
+&lt;pre&gt;HTTP/1.1 200 OK&lt;/pre&gt;
+
+&lt;p&gt;Esse código é esperado quando a pagina solicitada foi encontrada e seu conteúdo está enviada logo abaixo do cabeçalho (veremos a diante). Existem diversos códigos de retorno de sucesso, e de erro também, quem aqui nunca recebeu um 404 Not Found ao tentar acessar uma página que não existe?, esses e outros detalhes iremos tratar na parte de implementação. Por fim as linhas seguintes da resposta contem algumas informações pertinentes ao navegador e por fim a pagina html solicitada, veja que o conteúdo é concatenado com a resposta:&lt;/p&gt;
+
+&lt;pre&gt;HTTP/1.1 200 OK
+Date: Tue, 17 Jun 2014 01:20:13 GMT
+Server: gws
+Location: https://www.google.com.br/
+Last-Modified: Tue, 17 Jun 2014 01:20:13 GMT
+Content-Encoding: gzip
+Content-Length: 234
+Connection: closeContent-Type: text/html
+
+
+&amp;lt;html&amp;gt;todo o html da página&amp;lt;/html&amp;gt; *&lt;/pre&gt;
+
+&lt;p&gt;*este conteúdo pode estar compactado&lt;/p&gt;
+
+&lt;p&gt;Nesta resposta o servidor retorna a data da resposta (Date), qual o nome/tipo/empresa que desenvolveu/sistema operacional do servidor que gerou a resposta, a localização atual (Location) importante caso seu site use caminho relativo em hiperlinks, imagens e outros (veremos com mais detalhes na implementação) ultima vez que o arquivo foi modificado (Last-Modified), importante caso o navegador permita cache de paginas, compactacao do conteúdo (Content-Enconding), para que o navegador saiba fazer a descompactacao se necessário, tamanho em bytes do  conteúdo,o estado da conexão, que neste caso o servidor informa que a conexão foi fechado, o tipo do conteúdo(Content-Type), que é um texto contendo html e por fim, é claro, o conteúdo da resposta, ou seja, aquilo que o navegador irá exibir pra gente.&lt;/p&gt;
+
+&lt;p&gt;Quer testar? Então abra o navegador de sua preferência, melhor que seja o firefox =D, em seguida abra o modo de desenvolvedor (geralmente é so apertar F12), e por fim clique na aba Rede, pronto agora é so digitar um site na barra de endereço, e acompanhar as requisições pelo console, se quiser mais detalhes clique em uma requisição e peça para exibir detalhes, se estiver usando o firefox, ele aparece esses detalhes logo na lateral da lista de requisições. analise as propriedades enviadas na requisição e veja qual foi a resposta. você irá percebem que existem mais propriedades do que comentamos aqui, mas para nós neste tutorial não será necessário, se quiser pode pesquisar mais sobre eles ou ler o documento RFC que ja falamos sobre ele.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_17&#34; style=&#34;width: 310px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://euamoaweb.com.br.md-54.webhostbox.net/arquivolivre.com.br/wp-content/uploads/2014/06/Screen-Shot-2014-06-17-at-12.00.06-AM.png&#34;&gt;&lt;img class=&#34;wp-image-17 size-medium&#34; src=&#34;http://blog-tsg0.rhcloud.com/wp-content/uploads/2014/06/Screen-Shot-2014-06-17-at-12.00.06-AM-300x165.png&#34; alt=&#34;Requisicao&#34; width=&#34;300&#34; height=&#34;165&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Requisicao
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div id=&#34;attachment_18&#34; style=&#34;width: 310px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://euamoaweb.com.br.md-54.webhostbox.net/arquivolivre.com.br/wp-content/uploads/2014/06/Screen-Shot-2014-06-17-at-12.00.34-AM.png&#34;&gt;&lt;img class=&#34;wp-image-18 size-medium&#34; src=&#34;http://blog-tsg0.rhcloud.com/wp-content/uploads/2014/06/Screen-Shot-2014-06-17-at-12.00.34-AM-300x166.png&#34; alt=&#34;Resposta&#34; width=&#34;300&#34; height=&#34;166&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Resposta
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Chegamos ao fim da primeira parte do nosso tutorial, sei que teoria é chato mas se faz necessário, mas prometo que na &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/&#34; target=&#34;_blank&#34;&gt;Parte II&lt;/a&gt; colocaremos as mãos a obra.&lt;/p&gt;
+
+&lt;p&gt;Então até a próxima.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

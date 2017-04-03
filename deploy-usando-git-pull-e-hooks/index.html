@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/deploy-usando-git-pull-e-hooks/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/deploy-usando-git-pull-e-hooks/">Deploy usando git pull e hooks</a></h1>
+  <p class="tb-hero-p">
+    
+    Se você tem qualquer projeto pessoal, você já deve ter tido a necessidade de como fazer, de forma fácil, a automatização do deploy. Para tentar automatizar os meus projetos, eu tentei usar vários serviços como CodeShip, DeployBot e etc… Esses caras são bem legais, por que te dão uma série de integrações, históricos etc. Mas as vezes você nem precisa de tanto, você só quer dar um push no projeto local pro seu repositório remoto e esse repositório atualizar seu projeto em produção.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/diego-eis">Diego Eis</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Se você tem qualquer projeto pessoal, você já deve ter tido a necessidade de como fazer, de forma fácil, a automatização do deploy. Para tentar automatizar os meus projetos, eu tentei usar vários serviços como CodeShip, DeployBot e etc… Esses caras são bem legais, por que te dão uma série de integrações, históricos etc. Mas as vezes você nem precisa de tanto, você só quer dar um push no projeto local pro seu repositório remoto e esse repositório atualizar seu projeto em produção. E nada mais simples do que o <strong>git hooks</strong> pra fazer isso.</p>
+
+<p>Vou mostrar mais ou menos como é o meu processo para atualizar meu <a href="http://diegoeis.com">blog pessoal</a>. A ideia é que você crie um repositório utilizando a flag <code>--bare</code>. E aqui vale uma pequena explicação: geralmente, quando você cria um repositório git, você faz um <code>git init</code> na sua máquina. O git cria uma pasta <code>.git</code> dentro da sua pasta local, contendo todas as referências de mudanças e etc. Mas ainda esse código não está compartilhado com ninguém. Para você compartilhar, você precisa subir para um repositório, em algum lugar, por exemplo no GitHub. Quando você cria um repositório remoto lá no GitHub, você referencia seu projeto local com o repositório remoto assim:</p>
+
+<pre class="lang-shell">git remote add origin git@github.com:diegoeis/diegoeis.com.git
+</pre>
+
+<p>Esse repositório remoto não é um repositório de trabalho, ele é um repositório que contém apenas as referências de mudanças do seu código e nada mais. Isso quer dizer que ele não tem os arquivos do seu projeto. Esse é um repositório apenas para compartilhamento, nada mais. É com esse link que todos os outros membros do seu time irão adicionar o projeto em suas máquinas.</p>
+
+<p>Nós vamos criar esse tipo de repositório na nossa máquina em produção, por que assim conseguimos configurar um hook para detectar quando submetermos uma alteração no nosso projeto. Para tanto, você precisa rodar o comando <code>git init --bare</code> no seu servidor. Isso vai gerar um repositório nu, contendo apenas as referências e não os arquivos de trabalho. No meu server fiz assim:</p>
+
+<pre class="lang-shell">mkdir public/diegoeis.com.git
+cd public/diegoeis.com.git
+git init --bare
+</pre>
+
+<p>Pronto, isso foi o suficiente para criar um repositório bare vazio. Ele vai ser o nosso <code>origin</code> no nosso repositório local. Para tanto, fazemos assim na máquina local, dentro do seu projeto:</p>
+
+<pre class="lang-shell">cd diegoeis.com
+git remote add origin meu_usuario_do_servidor@meu_dominio.com:/public/diegoeis.com.git
+</pre>
+
+<p>Pronto, agora eu adicionei um repositório remoto ao meu projeto. Se você entender bem, você faz a mesma coisa quando vai clonar um projeto usando GitHub ou qualquer outro sistema de gerenciamento de Git como GitLab, Bitbucket etc. Só que eles criam o repositório bare para você.</p>
+
+<p>Feito isso, vamos voltar para o seu servidor, lá você vai clonar o seu projeto. Isso vai criar uma pasta normal, que você já conhece.</p>
+
+<pre class="lang-shell">git clone public/diegoeis.com.git /var/www/diegoeis.com
+</pre>
+
+<h3 id="git-hooks">Git Hooks</h3>
+
+<p>Com esse &#8220;setup&#8221; feito, agora eu posso ir para o que importa, que é configurar meu hook. Lá no seu servidor, dentro do repositório bare que foi criado, encontre a pasta <code>hooks</code>, e dentro dela tem um arquivo chamado <code>post-receive</code>. Esse cara é o hook que vai detectar algo depois do recebimento de uma mudança. Você vai colocar esse código:</p>
+
+<pre class="lang-shell">#!/bin/bash
+cd /public/diegoeis.com
+env -i git reset —hard
+env -i git pull origin master
+exit
+</pre>
+
+<p>Bom, são comandos bash, simples: entra na pasta do meu site, reseta o repositório e faz um pull com as últimas alterações. Esse <code>env -i</code> é um truque que faz os comandos serem executados na pasta que você entrou ali no seu comando bash. Se não houver esse <code>env -i</code>, todos os comandos git que você rodar, vão tentar rodar na pasta fora do seu repositório. Colocando essa flag, isso não vai acontecer. O Felix Geisendörfer <a href="http://debuggable.com/posts/git-tip-auto-update-working-tree-via-post-receive-hook:49551efe-6414-4e86-aec6-544f4834cda3">sofreu com isso e falou como funciona aqui nesse artigo</a>.</p>
+
+<p>Por último, você precisa tornar o <strong>post-receive</strong> um arquivo executável rodando:</p>
+
+<pre class="lang-shell">chmod +x /public/diegoeis.com.git/hooks/post-receive
+</pre>
+
+<p>Agora, toda vez que você fizer um git push para o seu repositório remoto, ele vai atualizar e mostrar algo mais ou menos assim:</p>
+
+<pre class="lang-shell">Counting objects: 19, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (19/19), done.
+Writing objects: 100% (19/19), 1.99 KiB | 0 bytes/s, done.
+Total 19 (delta 14), reused 0 (delta 0)
+remote: HEAD is now at 9c1acad build
+remote: From /public/diegoeis.com
+remote:  * branch            master     -> FETCH_HEAD
+remote:    9c1adac..c1bc7ed  master     -> origin/master
+remote: Updating 9c1adac..c1bc7ed
+remote: Fast-forward
+remote:  build/assets/css/style.css                       |  2 +-
+remote:  build/feed.xml                                   | 12 ++++++———
+remote:  build/index.html                                 |  2 +-
+remote:  source/articles/organizando-a-informacao.html.md | 12 ++++++———
+remote:  6 files changed, 21 insertions(+), 19 deletions(-)
+To user@diegoeis.com:/public/diegoeis.com.git/
+   9c1acad..c5bb7ed  master -> master
+</pre>
+
+<p>E quase que instantaneamente seu repositório em prod vai estar atualizado.</p>
+
+<p>O <a href="http://www.akitaonrails.com/2010/02/13/deploy-com-git-push">Akita fez uma artigo em 2010</a> (!) falando sobre o mesmo assunto e existem uma série de <a href="https://githowto.com/bare_repositories">outros artigos</a> pela internet explicando a mesma coisa, é só procurar. E porque eu quis fazer um artigo igual? Só por que eu nunca tinha feito algo assim. ;-D</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

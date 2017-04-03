@@ -1,0 +1,950 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/videos-mais-acessiveis-com-html5-parte-ii/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/videos-mais-acessiveis-com-html5-parte-ii/">Vídeos mais acessíveis com HTML5 – parte II</a></h1>
+  <p class="tb-hero-p">
+    
+    Na primeira parte do artigo, vimos as principais características do DFXP, uma especificação do W3C para trabalhar com legendas em vídeos do HTML5. Agora iremos conhecer a estrutura de um arquivo DFXP e detalhar o conceito de regions.
+Estrutura básica de um arquivo DFXP Um arquivo DFXP é um arquivo baseado em XML que utiliza a linguagem Timed Text Markup Language (TTML). A TTML estabelece tags e propriedades específicas para atribuir uma informação textual a um intervalo de tempo, posicionar esta informação em uma determinada região do vídeo e formatar a apresentação desta informação.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/talita-pagani">Talita Pagani</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Na <a href="http://tableless.com.br/videos-mais-acessiveis-com-html5-parte-i">primeira parte do artigo</a>, vimos as principais características do DFXP, uma especificação do W3C para trabalhar com legendas em vídeos do HTML5. Agora iremos conhecer a estrutura de um arquivo DFXP e detalhar o conceito de regions.</p>
+
+<h3 id="estrutura-básica-de-um-arquivo-dfxp">Estrutura básica de um arquivo DFXP</h3>
+
+<p>Um arquivo DFXP é um arquivo baseado em XML que utiliza a linguagem <em>Timed Text Markup Language</em> (TTML). A TTML estabelece tags e propriedades específicas para atribuir uma informação textual a um intervalo de tempo, posicionar esta informação em uma determinada região do vídeo e formatar a apresentação desta informação. Um documento TTML começa com a tag <code>tt</code> e sua estrutura básica é composta por um cabeçalho e corpo de conteúdo. O cabeçalho apresenta informações como metadata, definições de estilo e layout, enquanto o corpo de conteúdo contém as especificações dos textos associados a tempo e referenciando estilos e informações de layout.</p>
+
+<pre lang="xml" class="1"><tt xml:lang="" xmlns="http://www.w3.org/ns/ttml">
+    
+    
+</tt>
+</pre>
+
+<p><em>Estrutura básica de um document TTML.</em></p>
+
+<h3 id="metadados">Metadados</h3>
+
+<p>A seção de metadata pode conter informações como título do documento, descrição e informações de <em>copyright</em>. As tags que representam estes metadados são especificadas através do <em>namespace</em> <code>ttm</code> (timed text metadata).</p>
+
+<pre lang="xml" class="1">&lt;metadata xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+    &lt;ttm:title>Exemplo de documento TTML&lt;/ttm:title>
+    &lt;ttm:copyright>The Authors (c) 2011&lt;/ttm:copyright>
+&lt;/metadata>
+</pre>
+
+<p>O endereço do <em>namespace</em> <code>ttm</code> definido na tag metadata assim como o <em>namespace</em> para estilos (<code>tts</code>), podem ser definidos logo na tag <code>tt</code>, deixando o código um pouco mais limpo e organizado.</p>
+
+<pre lang="xml" class="1">&lt;tt xml:lang="en"
+    xmlns="http://www.w3.org/ns/ttml"
+    xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+...
+&lt;/tt>
+</pre>
+
+<h3 id="criando-estilos-para-legendas">Criando estilos para legendas</h3>
+
+<p>Infelizmente a TTML não trabalha em conjunto com linguagens para definição de estilos como o XSLT ou o próprio CSS, mas ela possui tags e propriedades para definir e aplicar informações de estilo de modo consistente e similar à forma como fazemos com CSS. As propriedades de estilo pertencem ao namespace <code>tts</code> e podem também ser utilizadas nas tags de texto da legenda e na tag <code>region</code>. Um estilo (semelhante a uma classe CSS), é criado a partir da tag style e deve conter um id que irá utilizado para associar este estilo a outros elementos.</p>
+
+<pre lang="xml" class="1">&lt;styling xmlns:tts="http://www.w3.org/ns/ttml#styling">
+    <!-- o estilo1 especifica o padrão para cor, fonte e alinhamento de texto -->
+    &lt;style xml:id="estilo1"
+        tts:color="white"
+        tts:fontFamily="proportionalSansSerif"
+        tts:fontSize="22px"
+        tts:textAlign="center"
+    />
+    
+
+<!-- Estilo alternativo baseado no estilo1, ou seja, utilizando as mesmas propriedades mas mudando a cor para amarelo -->
+    
+
+<style xml:id="estilo2" style="estilo1" tts:color="yellow" />
+
+<!-- Outro estilo baseado no estilo1, mas alterando o alinhamento do texto para a direita -->
+    
+
+<style xml:id="estilo1Direita" style="estilo1" tts:textAlign="end" />
+
+<!-- Estilo baseado em estilo2 mas alterando o alinhamento do texto para a esquerda -->
+    
+
+<style xml:id="estilo2Esquerda" style="estilo2" tts:textAlign="start" />
+&lt;/styling>
+</pre>
+
+<p>As opções de alinhamento de texto são um pouco diferentes do convencional. Com exceção do center, o alinhamento à esquerda é definido como <em>start</em> e à direita como <em>end</em>. Outras propriedades de formatação:</p>
+
+<ul>
+<li><strong>tts:backgroundColor:</strong> aceita valores hexadecimais, RGB e cores por nome</li>
+<li><strong>tts:displayAlign:</strong> aplicável somente à <code>region</code>, define o alinhamento do bloco de conteúdo de forma semelhante ao <em>float</em> em CSS, porém tem como valores <code>before</code> (esquerda), <code>center</code>, <code>after</code> (direita)</li>
+<li><strong>tts:extent:</strong> aplicável somente à raiz do documento DFXP (<code>tt</code>) e à <code>region</code>, é utilizado para especificar largura e altura de uma region</li>
+<li><strong>tts:fontStyle:</strong> aceita valores como <code>italic&lt;em&gt; &lt;/em&gt;</code>e <code>oblique</code></li>
+<li><strong>tts:fontWeight:</strong> define o peso da fonte, aceita os valores ``Na <a href="http://tableless.com.br/videos-mais-acessiveis-com-html5-parte-i">primeira parte do artigo</a>, vimos as principais características do DFXP, uma especificação do W3C para trabalhar com legendas em vídeos do HTML5. Agora iremos conhecer a estrutura de um arquivo DFXP e detalhar o conceito de regions.</li>
+</ul>
+
+<h3 id="estrutura-básica-de-um-arquivo-dfxp-1">Estrutura básica de um arquivo DFXP</h3>
+
+<p>Um arquivo DFXP é um arquivo baseado em XML que utiliza a linguagem <em>Timed Text Markup Language</em> (TTML). A TTML estabelece tags e propriedades específicas para atribuir uma informação textual a um intervalo de tempo, posicionar esta informação em uma determinada região do vídeo e formatar a apresentação desta informação. Um documento TTML começa com a tag <code>tt</code> e sua estrutura básica é composta por um cabeçalho e corpo de conteúdo. O cabeçalho apresenta informações como metadata, definições de estilo e layout, enquanto o corpo de conteúdo contém as especificações dos textos associados a tempo e referenciando estilos e informações de layout.</p>
+
+<pre lang="xml" class="1"><tt xml:lang="" xmlns="http://www.w3.org/ns/ttml">
+    
+    
+</tt>
+</pre>
+
+<p><em>Estrutura básica de um document TTML.</em></p>
+
+<h3 id="metadados-1">Metadados</h3>
+
+<p>A seção de metadata pode conter informações como título do documento, descrição e informações de <em>copyright</em>. As tags que representam estes metadados são especificadas através do <em>namespace</em> <code>ttm</code> (timed text metadata).</p>
+
+<pre lang="xml" class="1">&lt;metadata xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+    &lt;ttm:title>Exemplo de documento TTML&lt;/ttm:title>
+    &lt;ttm:copyright>The Authors (c) 2011&lt;/ttm:copyright>
+&lt;/metadata>
+</pre>
+
+<p>O endereço do <em>namespace</em> <code>ttm</code> definido na tag metadata assim como o <em>namespace</em> para estilos (<code>tts</code>), podem ser definidos logo na tag <code>tt</code>, deixando o código um pouco mais limpo e organizado.</p>
+
+<pre lang="xml" class="1">&lt;tt xml:lang="en"
+    xmlns="http://www.w3.org/ns/ttml"
+    xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+...
+&lt;/tt>
+</pre>
+
+<h3 id="criando-estilos-para-legendas-1">Criando estilos para legendas</h3>
+
+<p>Infelizmente a TTML não trabalha em conjunto com linguagens para definição de estilos como o XSLT ou o próprio CSS, mas ela possui tags e propriedades para definir e aplicar informações de estilo de modo consistente e similar à forma como fazemos com CSS. As propriedades de estilo pertencem ao namespace <code>tts</code> e podem também ser utilizadas nas tags de texto da legenda e na tag <code>region</code>. Um estilo (semelhante a uma classe CSS), é criado a partir da tag style e deve conter um id que irá utilizado para associar este estilo a outros elementos.</p>
+
+<pre lang="xml" class="1">&lt;styling xmlns:tts="http://www.w3.org/ns/ttml#styling">
+    <!-- o estilo1 especifica o padrão para cor, fonte e alinhamento de texto -->
+    &lt;style xml:id="estilo1"
+        tts:color="white"
+        tts:fontFamily="proportionalSansSerif"
+        tts:fontSize="22px"
+        tts:textAlign="center"
+    />
+    
+
+<!-- Estilo alternativo baseado no estilo1, ou seja, utilizando as mesmas propriedades mas mudando a cor para amarelo -->
+    
+
+<style xml:id="estilo2" style="estilo1" tts:color="yellow" />
+
+<!-- Outro estilo baseado no estilo1, mas alterando o alinhamento do texto para a direita -->
+    
+
+<style xml:id="estilo1Direita" style="estilo1" tts:textAlign="end" />
+
+<!-- Estilo baseado em estilo2 mas alterando o alinhamento do texto para a esquerda -->
+    
+
+<style xml:id="estilo2Esquerda" style="estilo2" tts:textAlign="start" />
+&lt;/styling>
+</pre>
+
+<p>As opções de alinhamento de texto são um pouco diferentes do convencional. Com exceção do center, o alinhamento à esquerda é definido como <em>start</em> e à direita como <em>end</em>. Outras propriedades de formatação:</p>
+
+<ul>
+<li><strong>tts:backgroundColor:</strong> aceita valores hexadecimais, RGB e cores por nome</li>
+<li><strong>tts:displayAlign:</strong> aplicável somente à <code>region</code>, define o alinhamento do bloco de conteúdo de forma semelhante ao <em>float</em> em CSS, porém tem como valores <code>before</code> (esquerda), <code>center</code>, <code>after</code> (direita)</li>
+<li><strong>tts:extent:</strong> aplicável somente à raiz do documento DFXP (<code>tt</code>) e à <code>region</code>, é utilizado para especificar largura e altura de uma region</li>
+<li><strong>tts:fontStyle:</strong> aceita valores como <code>italic&lt;em&gt; &lt;/em&gt;</code>e <code>oblique</code></li>
+<li><strong>tts:fontWeight:</strong> define o peso da fonte, aceita os valores`<code>e</code>bold`</li>
+<li><strong>tts:lineHeight:</strong> altura da linha, aceita os valores normal ou uma altura especificada em uma unidade de medida</li>
+<li><strong>tts:opacity:</strong> aplicável somente à tag <code>region</code>, define transparência</li>
+<li><strong>tts:origin:</strong> especifica as coordenadas x e y de origem de uma <code>region</code></li>
+<li><strong>tts:overflow:</strong> define o comportamento de uma <code>region</code> quando o conteúdo estoura o espaço disponível. Aceita os valores <code>visible</code> e <code>hidden</code></li>
+<li><strong>tts:padding:</strong> espaçamento interno de uma <code>region</code>, aceita valores da mesma forma que a propriedade ```Na <a href="http://tableless.com.br/videos-mais-acessiveis-com-html5-parte-i">primeira parte do artigo</a>, vimos as principais características do DFXP, uma especificação do W3C para trabalhar com legendas em vídeos do HTML5. Agora iremos conhecer a estrutura de um arquivo DFXP e detalhar o conceito de regions.</li>
+</ul>
+
+<h3 id="estrutura-básica-de-um-arquivo-dfxp-2">Estrutura básica de um arquivo DFXP</h3>
+
+<p>Um arquivo DFXP é um arquivo baseado em XML que utiliza a linguagem <em>Timed Text Markup Language</em> (TTML). A TTML estabelece tags e propriedades específicas para atribuir uma informação textual a um intervalo de tempo, posicionar esta informação em uma determinada região do vídeo e formatar a apresentação desta informação. Um documento TTML começa com a tag <code>tt</code> e sua estrutura básica é composta por um cabeçalho e corpo de conteúdo. O cabeçalho apresenta informações como metadata, definições de estilo e layout, enquanto o corpo de conteúdo contém as especificações dos textos associados a tempo e referenciando estilos e informações de layout.</p>
+
+<pre lang="xml" class="1"><tt xml:lang="" xmlns="http://www.w3.org/ns/ttml">
+    
+    
+</tt>
+</pre>
+
+<p><em>Estrutura básica de um document TTML.</em></p>
+
+<h3 id="metadados-2">Metadados</h3>
+
+<p>A seção de metadata pode conter informações como título do documento, descrição e informações de <em>copyright</em>. As tags que representam estes metadados são especificadas através do <em>namespace</em> <code>ttm</code> (timed text metadata).</p>
+
+<pre lang="xml" class="1">&lt;metadata xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+    &lt;ttm:title>Exemplo de documento TTML&lt;/ttm:title>
+    &lt;ttm:copyright>The Authors (c) 2011&lt;/ttm:copyright>
+&lt;/metadata>
+</pre>
+
+<p>O endereço do <em>namespace</em> <code>ttm</code> definido na tag metadata assim como o <em>namespace</em> para estilos (<code>tts</code>), podem ser definidos logo na tag <code>tt</code>, deixando o código um pouco mais limpo e organizado.</p>
+
+<pre lang="xml" class="1">&lt;tt xml:lang="en"
+    xmlns="http://www.w3.org/ns/ttml"
+    xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+...
+&lt;/tt>
+</pre>
+
+<h3 id="criando-estilos-para-legendas-2">Criando estilos para legendas</h3>
+
+<p>Infelizmente a TTML não trabalha em conjunto com linguagens para definição de estilos como o XSLT ou o próprio CSS, mas ela possui tags e propriedades para definir e aplicar informações de estilo de modo consistente e similar à forma como fazemos com CSS. As propriedades de estilo pertencem ao namespace <code>tts</code> e podem também ser utilizadas nas tags de texto da legenda e na tag <code>region</code>. Um estilo (semelhante a uma classe CSS), é criado a partir da tag style e deve conter um id que irá utilizado para associar este estilo a outros elementos.</p>
+
+<pre lang="xml" class="1">&lt;styling xmlns:tts="http://www.w3.org/ns/ttml#styling">
+    <!-- o estilo1 especifica o padrão para cor, fonte e alinhamento de texto -->
+    &lt;style xml:id="estilo1"
+        tts:color="white"
+        tts:fontFamily="proportionalSansSerif"
+        tts:fontSize="22px"
+        tts:textAlign="center"
+    />
+    
+
+<!-- Estilo alternativo baseado no estilo1, ou seja, utilizando as mesmas propriedades mas mudando a cor para amarelo -->
+    
+
+<style xml:id="estilo2" style="estilo1" tts:color="yellow" />
+
+<!-- Outro estilo baseado no estilo1, mas alterando o alinhamento do texto para a direita -->
+    
+
+<style xml:id="estilo1Direita" style="estilo1" tts:textAlign="end" />
+
+<!-- Estilo baseado em estilo2 mas alterando o alinhamento do texto para a esquerda -->
+    
+
+<style xml:id="estilo2Esquerda" style="estilo2" tts:textAlign="start" />
+&lt;/styling>
+</pre>
+
+<p>As opções de alinhamento de texto são um pouco diferentes do convencional. Com exceção do center, o alinhamento à esquerda é definido como <em>start</em> e à direita como <em>end</em>. Outras propriedades de formatação:</p>
+
+<ul>
+<li><strong>tts:backgroundColor:</strong> aceita valores hexadecimais, RGB e cores por nome</li>
+<li><strong>tts:displayAlign:</strong> aplicável somente à <code>region</code>, define o alinhamento do bloco de conteúdo de forma semelhante ao <em>float</em> em CSS, porém tem como valores <code>before</code> (esquerda), <code>center</code>, <code>after</code> (direita)</li>
+<li><strong>tts:extent:</strong> aplicável somente à raiz do documento DFXP (<code>tt</code>) e à <code>region</code>, é utilizado para especificar largura e altura de uma region</li>
+<li><strong>tts:fontStyle:</strong> aceita valores como <code>italic&lt;em&gt; &lt;/em&gt;</code>e <code>oblique</code></li>
+<li><strong>tts:fontWeight:</strong> define o peso da fonte, aceita os valores ``Na <a href="http://tableless.com.br/videos-mais-acessiveis-com-html5-parte-i">primeira parte do artigo</a>, vimos as principais características do DFXP, uma especificação do W3C para trabalhar com legendas em vídeos do HTML5. Agora iremos conhecer a estrutura de um arquivo DFXP e detalhar o conceito de regions.</li>
+</ul>
+
+<h3 id="estrutura-básica-de-um-arquivo-dfxp-3">Estrutura básica de um arquivo DFXP</h3>
+
+<p>Um arquivo DFXP é um arquivo baseado em XML que utiliza a linguagem <em>Timed Text Markup Language</em> (TTML). A TTML estabelece tags e propriedades específicas para atribuir uma informação textual a um intervalo de tempo, posicionar esta informação em uma determinada região do vídeo e formatar a apresentação desta informação. Um documento TTML começa com a tag <code>tt</code> e sua estrutura básica é composta por um cabeçalho e corpo de conteúdo. O cabeçalho apresenta informações como metadata, definições de estilo e layout, enquanto o corpo de conteúdo contém as especificações dos textos associados a tempo e referenciando estilos e informações de layout.</p>
+
+<pre lang="xml" class="1"><tt xml:lang="" xmlns="http://www.w3.org/ns/ttml">
+    
+    
+</tt>
+</pre>
+
+<p><em>Estrutura básica de um document TTML.</em></p>
+
+<h3 id="metadados-3">Metadados</h3>
+
+<p>A seção de metadata pode conter informações como título do documento, descrição e informações de <em>copyright</em>. As tags que representam estes metadados são especificadas através do <em>namespace</em> <code>ttm</code> (timed text metadata).</p>
+
+<pre lang="xml" class="1">&lt;metadata xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+    &lt;ttm:title>Exemplo de documento TTML&lt;/ttm:title>
+    &lt;ttm:copyright>The Authors (c) 2011&lt;/ttm:copyright>
+&lt;/metadata>
+</pre>
+
+<p>O endereço do <em>namespace</em> <code>ttm</code> definido na tag metadata assim como o <em>namespace</em> para estilos (<code>tts</code>), podem ser definidos logo na tag <code>tt</code>, deixando o código um pouco mais limpo e organizado.</p>
+
+<pre lang="xml" class="1">&lt;tt xml:lang="en"
+    xmlns="http://www.w3.org/ns/ttml"
+    xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+...
+&lt;/tt>
+</pre>
+
+<h3 id="criando-estilos-para-legendas-3">Criando estilos para legendas</h3>
+
+<p>Infelizmente a TTML não trabalha em conjunto com linguagens para definição de estilos como o XSLT ou o próprio CSS, mas ela possui tags e propriedades para definir e aplicar informações de estilo de modo consistente e similar à forma como fazemos com CSS. As propriedades de estilo pertencem ao namespace <code>tts</code> e podem também ser utilizadas nas tags de texto da legenda e na tag <code>region</code>. Um estilo (semelhante a uma classe CSS), é criado a partir da tag style e deve conter um id que irá utilizado para associar este estilo a outros elementos.</p>
+
+<pre lang="xml" class="1">&lt;styling xmlns:tts="http://www.w3.org/ns/ttml#styling">
+    <!-- o estilo1 especifica o padrão para cor, fonte e alinhamento de texto -->
+    &lt;style xml:id="estilo1"
+        tts:color="white"
+        tts:fontFamily="proportionalSansSerif"
+        tts:fontSize="22px"
+        tts:textAlign="center"
+    />
+    
+
+<!-- Estilo alternativo baseado no estilo1, ou seja, utilizando as mesmas propriedades mas mudando a cor para amarelo -->
+    
+
+<style xml:id="estilo2" style="estilo1" tts:color="yellow" />
+
+<!-- Outro estilo baseado no estilo1, mas alterando o alinhamento do texto para a direita -->
+    
+
+<style xml:id="estilo1Direita" style="estilo1" tts:textAlign="end" />
+
+<!-- Estilo baseado em estilo2 mas alterando o alinhamento do texto para a esquerda -->
+    
+
+<style xml:id="estilo2Esquerda" style="estilo2" tts:textAlign="start" />
+&lt;/styling>
+</pre>
+
+<p>As opções de alinhamento de texto são um pouco diferentes do convencional. Com exceção do center, o alinhamento à esquerda é definido como <em>start</em> e à direita como <em>end</em>. Outras propriedades de formatação:</p>
+
+<ul>
+<li><strong>tts:backgroundColor:</strong> aceita valores hexadecimais, RGB e cores por nome</li>
+<li><strong>tts:displayAlign:</strong> aplicável somente à <code>region</code>, define o alinhamento do bloco de conteúdo de forma semelhante ao <em>float</em> em CSS, porém tem como valores <code>before</code> (esquerda), <code>center</code>, <code>after</code> (direita)</li>
+<li><strong>tts:extent:</strong> aplicável somente à raiz do documento DFXP (<code>tt</code>) e à <code>region</code>, é utilizado para especificar largura e altura de uma region</li>
+<li><strong>tts:fontStyle:</strong> aceita valores como <code>italic&lt;em&gt; &lt;/em&gt;</code>e <code>oblique</code></li>
+<li><strong>tts:fontWeight:</strong> define o peso da fonte, aceita os valores`<code>e</code>bold`</li>
+<li><strong>tts:lineHeight:</strong> altura da linha, aceita os valores normal ou uma altura especificada em uma unidade de medida</li>
+<li><strong>tts:opacity:</strong> aplicável somente à tag <code>region</code>, define transparência</li>
+<li><strong>tts:origin:</strong> especifica as coordenadas x e y de origem de uma <code>region</code></li>
+<li><strong>tts:overflow:</strong> define o comportamento de uma <code>region</code> quando o conteúdo estoura o espaço disponível. Aceita os valores <code>visible</code> e <code>hidden</code></li>
+<li><strong>tts:padding:</strong> espaçamento interno de uma <code>region</code>, aceita valores da mesma forma que a propriedade``` do CSS</li>
+<li><strong>tts:showBackground:</strong> define quando o plano de fundo de uma ````Na <a href="http://tableless.com.br/videos-mais-acessiveis-com-html5-parte-i">primeira parte do artigo</a>, vimos as principais características do DFXP, uma especificação do W3C para trabalhar com legendas em vídeos do HTML5. Agora iremos conhecer a estrutura de um arquivo DFXP e detalhar o conceito de regions.</li>
+</ul>
+
+<h3 id="estrutura-básica-de-um-arquivo-dfxp-4">Estrutura básica de um arquivo DFXP</h3>
+
+<p>Um arquivo DFXP é um arquivo baseado em XML que utiliza a linguagem <em>Timed Text Markup Language</em> (TTML). A TTML estabelece tags e propriedades específicas para atribuir uma informação textual a um intervalo de tempo, posicionar esta informação em uma determinada região do vídeo e formatar a apresentação desta informação. Um documento TTML começa com a tag <code>tt</code> e sua estrutura básica é composta por um cabeçalho e corpo de conteúdo. O cabeçalho apresenta informações como metadata, definições de estilo e layout, enquanto o corpo de conteúdo contém as especificações dos textos associados a tempo e referenciando estilos e informações de layout.</p>
+
+<pre lang="xml" class="1"><tt xml:lang="" xmlns="http://www.w3.org/ns/ttml">
+    
+    
+</tt>
+</pre>
+
+<p><em>Estrutura básica de um document TTML.</em></p>
+
+<h3 id="metadados-4">Metadados</h3>
+
+<p>A seção de metadata pode conter informações como título do documento, descrição e informações de <em>copyright</em>. As tags que representam estes metadados são especificadas através do <em>namespace</em> <code>ttm</code> (timed text metadata).</p>
+
+<pre lang="xml" class="1">&lt;metadata xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+    &lt;ttm:title>Exemplo de documento TTML&lt;/ttm:title>
+    &lt;ttm:copyright>The Authors (c) 2011&lt;/ttm:copyright>
+&lt;/metadata>
+</pre>
+
+<p>O endereço do <em>namespace</em> <code>ttm</code> definido na tag metadata assim como o <em>namespace</em> para estilos (<code>tts</code>), podem ser definidos logo na tag <code>tt</code>, deixando o código um pouco mais limpo e organizado.</p>
+
+<pre lang="xml" class="1">&lt;tt xml:lang="en"
+    xmlns="http://www.w3.org/ns/ttml"
+    xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+...
+&lt;/tt>
+</pre>
+
+<h3 id="criando-estilos-para-legendas-4">Criando estilos para legendas</h3>
+
+<p>Infelizmente a TTML não trabalha em conjunto com linguagens para definição de estilos como o XSLT ou o próprio CSS, mas ela possui tags e propriedades para definir e aplicar informações de estilo de modo consistente e similar à forma como fazemos com CSS. As propriedades de estilo pertencem ao namespace <code>tts</code> e podem também ser utilizadas nas tags de texto da legenda e na tag <code>region</code>. Um estilo (semelhante a uma classe CSS), é criado a partir da tag style e deve conter um id que irá utilizado para associar este estilo a outros elementos.</p>
+
+<pre lang="xml" class="1">&lt;styling xmlns:tts="http://www.w3.org/ns/ttml#styling">
+    <!-- o estilo1 especifica o padrão para cor, fonte e alinhamento de texto -->
+    &lt;style xml:id="estilo1"
+        tts:color="white"
+        tts:fontFamily="proportionalSansSerif"
+        tts:fontSize="22px"
+        tts:textAlign="center"
+    />
+    
+
+<!-- Estilo alternativo baseado no estilo1, ou seja, utilizando as mesmas propriedades mas mudando a cor para amarelo -->
+    
+
+<style xml:id="estilo2" style="estilo1" tts:color="yellow" />
+
+<!-- Outro estilo baseado no estilo1, mas alterando o alinhamento do texto para a direita -->
+    
+
+<style xml:id="estilo1Direita" style="estilo1" tts:textAlign="end" />
+
+<!-- Estilo baseado em estilo2 mas alterando o alinhamento do texto para a esquerda -->
+    
+
+<style xml:id="estilo2Esquerda" style="estilo2" tts:textAlign="start" />
+&lt;/styling>
+</pre>
+
+<p>As opções de alinhamento de texto são um pouco diferentes do convencional. Com exceção do center, o alinhamento à esquerda é definido como <em>start</em> e à direita como <em>end</em>. Outras propriedades de formatação:</p>
+
+<ul>
+<li><strong>tts:backgroundColor:</strong> aceita valores hexadecimais, RGB e cores por nome</li>
+<li><strong>tts:displayAlign:</strong> aplicável somente à <code>region</code>, define o alinhamento do bloco de conteúdo de forma semelhante ao <em>float</em> em CSS, porém tem como valores <code>before</code> (esquerda), <code>center</code>, <code>after</code> (direita)</li>
+<li><strong>tts:extent:</strong> aplicável somente à raiz do documento DFXP (<code>tt</code>) e à <code>region</code>, é utilizado para especificar largura e altura de uma region</li>
+<li><strong>tts:fontStyle:</strong> aceita valores como <code>italic&lt;em&gt; &lt;/em&gt;</code>e <code>oblique</code></li>
+<li><strong>tts:fontWeight:</strong> define o peso da fonte, aceita os valores ``Na <a href="http://tableless.com.br/videos-mais-acessiveis-com-html5-parte-i">primeira parte do artigo</a>, vimos as principais características do DFXP, uma especificação do W3C para trabalhar com legendas em vídeos do HTML5. Agora iremos conhecer a estrutura de um arquivo DFXP e detalhar o conceito de regions.</li>
+</ul>
+
+<h3 id="estrutura-básica-de-um-arquivo-dfxp-5">Estrutura básica de um arquivo DFXP</h3>
+
+<p>Um arquivo DFXP é um arquivo baseado em XML que utiliza a linguagem <em>Timed Text Markup Language</em> (TTML). A TTML estabelece tags e propriedades específicas para atribuir uma informação textual a um intervalo de tempo, posicionar esta informação em uma determinada região do vídeo e formatar a apresentação desta informação. Um documento TTML começa com a tag <code>tt</code> e sua estrutura básica é composta por um cabeçalho e corpo de conteúdo. O cabeçalho apresenta informações como metadata, definições de estilo e layout, enquanto o corpo de conteúdo contém as especificações dos textos associados a tempo e referenciando estilos e informações de layout.</p>
+
+<pre lang="xml" class="1"><tt xml:lang="" xmlns="http://www.w3.org/ns/ttml">
+    
+    
+</tt>
+</pre>
+
+<p><em>Estrutura básica de um document TTML.</em></p>
+
+<h3 id="metadados-5">Metadados</h3>
+
+<p>A seção de metadata pode conter informações como título do documento, descrição e informações de <em>copyright</em>. As tags que representam estes metadados são especificadas através do <em>namespace</em> <code>ttm</code> (timed text metadata).</p>
+
+<pre lang="xml" class="1">&lt;metadata xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+    &lt;ttm:title>Exemplo de documento TTML&lt;/ttm:title>
+    &lt;ttm:copyright>The Authors (c) 2011&lt;/ttm:copyright>
+&lt;/metadata>
+</pre>
+
+<p>O endereço do <em>namespace</em> <code>ttm</code> definido na tag metadata assim como o <em>namespace</em> para estilos (<code>tts</code>), podem ser definidos logo na tag <code>tt</code>, deixando o código um pouco mais limpo e organizado.</p>
+
+<pre lang="xml" class="1">&lt;tt xml:lang="en"
+    xmlns="http://www.w3.org/ns/ttml"
+    xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+...
+&lt;/tt>
+</pre>
+
+<h3 id="criando-estilos-para-legendas-5">Criando estilos para legendas</h3>
+
+<p>Infelizmente a TTML não trabalha em conjunto com linguagens para definição de estilos como o XSLT ou o próprio CSS, mas ela possui tags e propriedades para definir e aplicar informações de estilo de modo consistente e similar à forma como fazemos com CSS. As propriedades de estilo pertencem ao namespace <code>tts</code> e podem também ser utilizadas nas tags de texto da legenda e na tag <code>region</code>. Um estilo (semelhante a uma classe CSS), é criado a partir da tag style e deve conter um id que irá utilizado para associar este estilo a outros elementos.</p>
+
+<pre lang="xml" class="1">&lt;styling xmlns:tts="http://www.w3.org/ns/ttml#styling">
+    <!-- o estilo1 especifica o padrão para cor, fonte e alinhamento de texto -->
+    &lt;style xml:id="estilo1"
+        tts:color="white"
+        tts:fontFamily="proportionalSansSerif"
+        tts:fontSize="22px"
+        tts:textAlign="center"
+    />
+    
+
+<!-- Estilo alternativo baseado no estilo1, ou seja, utilizando as mesmas propriedades mas mudando a cor para amarelo -->
+    
+
+<style xml:id="estilo2" style="estilo1" tts:color="yellow" />
+
+<!-- Outro estilo baseado no estilo1, mas alterando o alinhamento do texto para a direita -->
+    
+
+<style xml:id="estilo1Direita" style="estilo1" tts:textAlign="end" />
+
+<!-- Estilo baseado em estilo2 mas alterando o alinhamento do texto para a esquerda -->
+    
+
+<style xml:id="estilo2Esquerda" style="estilo2" tts:textAlign="start" />
+&lt;/styling>
+</pre>
+
+<p>As opções de alinhamento de texto são um pouco diferentes do convencional. Com exceção do center, o alinhamento à esquerda é definido como <em>start</em> e à direita como <em>end</em>. Outras propriedades de formatação:</p>
+
+<ul>
+<li><strong>tts:backgroundColor:</strong> aceita valores hexadecimais, RGB e cores por nome</li>
+<li><strong>tts:displayAlign:</strong> aplicável somente à <code>region</code>, define o alinhamento do bloco de conteúdo de forma semelhante ao <em>float</em> em CSS, porém tem como valores <code>before</code> (esquerda), <code>center</code>, <code>after</code> (direita)</li>
+<li><strong>tts:extent:</strong> aplicável somente à raiz do documento DFXP (<code>tt</code>) e à <code>region</code>, é utilizado para especificar largura e altura de uma region</li>
+<li><strong>tts:fontStyle:</strong> aceita valores como <code>italic&lt;em&gt; &lt;/em&gt;</code>e <code>oblique</code></li>
+<li><strong>tts:fontWeight:</strong> define o peso da fonte, aceita os valores`<code>e</code>bold`</li>
+<li><strong>tts:lineHeight:</strong> altura da linha, aceita os valores normal ou uma altura especificada em uma unidade de medida</li>
+<li><strong>tts:opacity:</strong> aplicável somente à tag <code>region</code>, define transparência</li>
+<li><strong>tts:origin:</strong> especifica as coordenadas x e y de origem de uma <code>region</code></li>
+<li><strong>tts:overflow:</strong> define o comportamento de uma <code>region</code> quando o conteúdo estoura o espaço disponível. Aceita os valores <code>visible</code> e <code>hidden</code></li>
+<li><strong>tts:padding:</strong> espaçamento interno de uma <code>region</code>, aceita valores da mesma forma que a propriedade ```Na <a href="http://tableless.com.br/videos-mais-acessiveis-com-html5-parte-i">primeira parte do artigo</a>, vimos as principais características do DFXP, uma especificação do W3C para trabalhar com legendas em vídeos do HTML5. Agora iremos conhecer a estrutura de um arquivo DFXP e detalhar o conceito de regions.</li>
+</ul>
+
+<h3 id="estrutura-básica-de-um-arquivo-dfxp-6">Estrutura básica de um arquivo DFXP</h3>
+
+<p>Um arquivo DFXP é um arquivo baseado em XML que utiliza a linguagem <em>Timed Text Markup Language</em> (TTML). A TTML estabelece tags e propriedades específicas para atribuir uma informação textual a um intervalo de tempo, posicionar esta informação em uma determinada região do vídeo e formatar a apresentação desta informação. Um documento TTML começa com a tag <code>tt</code> e sua estrutura básica é composta por um cabeçalho e corpo de conteúdo. O cabeçalho apresenta informações como metadata, definições de estilo e layout, enquanto o corpo de conteúdo contém as especificações dos textos associados a tempo e referenciando estilos e informações de layout.</p>
+
+<pre lang="xml" class="1"><tt xml:lang="" xmlns="http://www.w3.org/ns/ttml">
+    
+    
+</tt>
+</pre>
+
+<p><em>Estrutura básica de um document TTML.</em></p>
+
+<h3 id="metadados-6">Metadados</h3>
+
+<p>A seção de metadata pode conter informações como título do documento, descrição e informações de <em>copyright</em>. As tags que representam estes metadados são especificadas através do <em>namespace</em> <code>ttm</code> (timed text metadata).</p>
+
+<pre lang="xml" class="1">&lt;metadata xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+    &lt;ttm:title>Exemplo de documento TTML&lt;/ttm:title>
+    &lt;ttm:copyright>The Authors (c) 2011&lt;/ttm:copyright>
+&lt;/metadata>
+</pre>
+
+<p>O endereço do <em>namespace</em> <code>ttm</code> definido na tag metadata assim como o <em>namespace</em> para estilos (<code>tts</code>), podem ser definidos logo na tag <code>tt</code>, deixando o código um pouco mais limpo e organizado.</p>
+
+<pre lang="xml" class="1">&lt;tt xml:lang="en"
+    xmlns="http://www.w3.org/ns/ttml"
+    xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+...
+&lt;/tt>
+</pre>
+
+<h3 id="criando-estilos-para-legendas-6">Criando estilos para legendas</h3>
+
+<p>Infelizmente a TTML não trabalha em conjunto com linguagens para definição de estilos como o XSLT ou o próprio CSS, mas ela possui tags e propriedades para definir e aplicar informações de estilo de modo consistente e similar à forma como fazemos com CSS. As propriedades de estilo pertencem ao namespace <code>tts</code> e podem também ser utilizadas nas tags de texto da legenda e na tag <code>region</code>. Um estilo (semelhante a uma classe CSS), é criado a partir da tag style e deve conter um id que irá utilizado para associar este estilo a outros elementos.</p>
+
+<pre lang="xml" class="1">&lt;styling xmlns:tts="http://www.w3.org/ns/ttml#styling">
+    <!-- o estilo1 especifica o padrão para cor, fonte e alinhamento de texto -->
+    &lt;style xml:id="estilo1"
+        tts:color="white"
+        tts:fontFamily="proportionalSansSerif"
+        tts:fontSize="22px"
+        tts:textAlign="center"
+    />
+    
+
+<!-- Estilo alternativo baseado no estilo1, ou seja, utilizando as mesmas propriedades mas mudando a cor para amarelo -->
+    
+
+<style xml:id="estilo2" style="estilo1" tts:color="yellow" />
+
+<!-- Outro estilo baseado no estilo1, mas alterando o alinhamento do texto para a direita -->
+    
+
+<style xml:id="estilo1Direita" style="estilo1" tts:textAlign="end" />
+
+<!-- Estilo baseado em estilo2 mas alterando o alinhamento do texto para a esquerda -->
+    
+
+<style xml:id="estilo2Esquerda" style="estilo2" tts:textAlign="start" />
+&lt;/styling>
+</pre>
+
+<p>As opções de alinhamento de texto são um pouco diferentes do convencional. Com exceção do center, o alinhamento à esquerda é definido como <em>start</em> e à direita como <em>end</em>. Outras propriedades de formatação:</p>
+
+<ul>
+<li><strong>tts:backgroundColor:</strong> aceita valores hexadecimais, RGB e cores por nome</li>
+<li><strong>tts:displayAlign:</strong> aplicável somente à <code>region</code>, define o alinhamento do bloco de conteúdo de forma semelhante ao <em>float</em> em CSS, porém tem como valores <code>before</code> (esquerda), <code>center</code>, <code>after</code> (direita)</li>
+<li><strong>tts:extent:</strong> aplicável somente à raiz do documento DFXP (<code>tt</code>) e à <code>region</code>, é utilizado para especificar largura e altura de uma region</li>
+<li><strong>tts:fontStyle:</strong> aceita valores como <code>italic&lt;em&gt; &lt;/em&gt;</code>e <code>oblique</code></li>
+<li><strong>tts:fontWeight:</strong> define o peso da fonte, aceita os valores ``Na <a href="http://tableless.com.br/videos-mais-acessiveis-com-html5-parte-i">primeira parte do artigo</a>, vimos as principais características do DFXP, uma especificação do W3C para trabalhar com legendas em vídeos do HTML5. Agora iremos conhecer a estrutura de um arquivo DFXP e detalhar o conceito de regions.</li>
+</ul>
+
+<h3 id="estrutura-básica-de-um-arquivo-dfxp-7">Estrutura básica de um arquivo DFXP</h3>
+
+<p>Um arquivo DFXP é um arquivo baseado em XML que utiliza a linguagem <em>Timed Text Markup Language</em> (TTML). A TTML estabelece tags e propriedades específicas para atribuir uma informação textual a um intervalo de tempo, posicionar esta informação em uma determinada região do vídeo e formatar a apresentação desta informação. Um documento TTML começa com a tag <code>tt</code> e sua estrutura básica é composta por um cabeçalho e corpo de conteúdo. O cabeçalho apresenta informações como metadata, definições de estilo e layout, enquanto o corpo de conteúdo contém as especificações dos textos associados a tempo e referenciando estilos e informações de layout.</p>
+
+<pre lang="xml" class="1"><tt xml:lang="" xmlns="http://www.w3.org/ns/ttml">
+    
+    
+</tt>
+</pre>
+
+<p><em>Estrutura básica de um document TTML.</em></p>
+
+<h3 id="metadados-7">Metadados</h3>
+
+<p>A seção de metadata pode conter informações como título do documento, descrição e informações de <em>copyright</em>. As tags que representam estes metadados são especificadas através do <em>namespace</em> <code>ttm</code> (timed text metadata).</p>
+
+<pre lang="xml" class="1">&lt;metadata xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+    &lt;ttm:title>Exemplo de documento TTML&lt;/ttm:title>
+    &lt;ttm:copyright>The Authors (c) 2011&lt;/ttm:copyright>
+&lt;/metadata>
+</pre>
+
+<p>O endereço do <em>namespace</em> <code>ttm</code> definido na tag metadata assim como o <em>namespace</em> para estilos (<code>tts</code>), podem ser definidos logo na tag <code>tt</code>, deixando o código um pouco mais limpo e organizado.</p>
+
+<pre lang="xml" class="1">&lt;tt xml:lang="en"
+    xmlns="http://www.w3.org/ns/ttml"
+    xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+...
+&lt;/tt>
+</pre>
+
+<h3 id="criando-estilos-para-legendas-7">Criando estilos para legendas</h3>
+
+<p>Infelizmente a TTML não trabalha em conjunto com linguagens para definição de estilos como o XSLT ou o próprio CSS, mas ela possui tags e propriedades para definir e aplicar informações de estilo de modo consistente e similar à forma como fazemos com CSS. As propriedades de estilo pertencem ao namespace <code>tts</code> e podem também ser utilizadas nas tags de texto da legenda e na tag <code>region</code>. Um estilo (semelhante a uma classe CSS), é criado a partir da tag style e deve conter um id que irá utilizado para associar este estilo a outros elementos.</p>
+
+<pre lang="xml" class="1">&lt;styling xmlns:tts="http://www.w3.org/ns/ttml#styling">
+    <!-- o estilo1 especifica o padrão para cor, fonte e alinhamento de texto -->
+    &lt;style xml:id="estilo1"
+        tts:color="white"
+        tts:fontFamily="proportionalSansSerif"
+        tts:fontSize="22px"
+        tts:textAlign="center"
+    />
+    
+
+<!-- Estilo alternativo baseado no estilo1, ou seja, utilizando as mesmas propriedades mas mudando a cor para amarelo -->
+    
+
+<style xml:id="estilo2" style="estilo1" tts:color="yellow" />
+
+<!-- Outro estilo baseado no estilo1, mas alterando o alinhamento do texto para a direita -->
+    
+
+<style xml:id="estilo1Direita" style="estilo1" tts:textAlign="end" />
+
+<!-- Estilo baseado em estilo2 mas alterando o alinhamento do texto para a esquerda -->
+    
+
+<style xml:id="estilo2Esquerda" style="estilo2" tts:textAlign="start" />
+&lt;/styling>
+</pre>
+
+<p>As opções de alinhamento de texto são um pouco diferentes do convencional. Com exceção do center, o alinhamento à esquerda é definido como <em>start</em> e à direita como <em>end</em>. Outras propriedades de formatação:</p>
+
+<ul>
+<li><strong>tts:backgroundColor:</strong> aceita valores hexadecimais, RGB e cores por nome</li>
+<li><strong>tts:displayAlign:</strong> aplicável somente à <code>region</code>, define o alinhamento do bloco de conteúdo de forma semelhante ao <em>float</em> em CSS, porém tem como valores <code>before</code> (esquerda), <code>center</code>, <code>after</code> (direita)</li>
+<li><strong>tts:extent:</strong> aplicável somente à raiz do documento DFXP (<code>tt</code>) e à <code>region</code>, é utilizado para especificar largura e altura de uma region</li>
+<li><strong>tts:fontStyle:</strong> aceita valores como <code>italic&lt;em&gt; &lt;/em&gt;</code>e <code>oblique</code></li>
+<li><strong>tts:fontWeight:</strong> define o peso da fonte, aceita os valores`<code>e</code>bold`</li>
+<li><strong>tts:lineHeight:</strong> altura da linha, aceita os valores normal ou uma altura especificada em uma unidade de medida</li>
+<li><strong>tts:opacity:</strong> aplicável somente à tag <code>region</code>, define transparência</li>
+<li><strong>tts:origin:</strong> especifica as coordenadas x e y de origem de uma <code>region</code></li>
+<li><strong>tts:overflow:</strong> define o comportamento de uma <code>region</code> quando o conteúdo estoura o espaço disponível. Aceita os valores <code>visible</code> e <code>hidden</code></li>
+<li><strong>tts:padding:</strong> espaçamento interno de uma <code>region</code>, aceita valores da mesma forma que a propriedade``` do CSS</li>
+<li><strong>tts:showBackground:</strong> define quando o plano de fundo de uma```<code>deve ser exibido. Aceita valores</code>always<code>e</code>whenActive`</li>
+<li><strong>tts:textOutline:</strong> aplica uma borda no texto. Deve conter a cor da borda, a espessura e o raio do desfoque (quanto maior, mais desfocada será a borda)</li>
+</ul>
+
+<h3 id="layout-definindo-regions">Layout: definindo regions</h3>
+
+<p>Uma <code>region</code>, conforme visto anteriormente, é um espaço para a apresentação de legenda. As <em>regions</em> do documento TTML são declararadas na tag <code>layout</code>. Uma region pode ter um estilo associado (definido previamente na tag <code>styling</code>) como também podem ter propriedades de estilo aplicadas diretamente à tag <code>region</code>.</p>
+
+<pre lang="xml" class="1">&lt;layout xmlns:tts="http://www.w3.org/ns/ttml#styling">
+    &lt;region xml:id="legenda"
+    style="estilo1"
+    tts:extent="560px 62px"
+    tts:padding="5px 3px"
+    tts:backgroundColor="black"
+    tts:displayAlign="after"
+    />
+&lt;/layout>
+</pre>
+
+<p>Exemplo de uma region com id &ldquo;legenda&rdquo; que utiliza o <em>estilo1</em> e aplica outras propriedades de formatação.</p>
+
+<p>A tag layout também precisa especificar o <em>namespace</em> para estilos, mas se já foi declarado na tag <code>tt</code>, não há necessidade.</p>
+
+<p>Ao contrário do que comentei no post anterior, não há obrigatoriedade de ter <em>regions</em> com id <em>default</em> e <em>overlay</em>, porém ao menos uma <code>region</code> deve ser especificada no documento. Caso haja apenas uma <code>region</code>, esta será considerada <em>default</em>, independente do id atribuído.</p>
+
+<p>No <a href="http://www.w3.org/2009/02/ThisIsCoffee.html">exemplo oficial do W3C</a>, o documento TTML possui 7 <em>regions</em>:</p>
+
+<ul>
+<li><em>default:</em> a região padrão, abaixo do vídeo, para a exibição das legendas;</li>
+<li><em>overlay:</em> região que ocupa toda a área útil do vídeo e é utilizada apenas para exibir o texto que apresenta o título do vídeo;</li>
+<li><em>tick1</em>, <em>tick2</em>, <em>tick3</em>, <em>tick4</em>, <em>ploc</em>: regions menores, sem background, que são posicionadas em diferentes lugares do vídeo e são utilizadas para descrever o barulho do relógio de da torneira.</li>
+</ul>
+
+<pre lang="xml" class="1">&lt;layout>
+    &lt;region xml:id="default" tts:textAlign='center' tts:backgroundColor="black" tts:color="white" tts:padding='2px' />
+    &lt;region xml:id="overlay" tts:textAlign='center' tts:origin="0px 0px" tts:extent="320px 240px" tts:opacity='0.9'
+        tts:backgroundColor="white" tts:color='black' tts:fontSize='150%'/>
+    &lt;region xml:id="tick1" style='s1' tts:origin="100px 150px" tts:fontSize='24pt'
+        tts:color="red" />
+    &lt;region xml:id="tick2" style='s1' tts:origin="200px 100px" tts:fontSize='20pt'
+        tts:color="yellow" />
+    &lt;region xml:id="tick3" style='s1' tts:origin="130px 140px" tts:fontSize='30pt'
+        tts:color="cyan" />
+    &lt;region xml:id="tick4" style='s1' tts:origin="50px 50px" tts:fontSize='40pt'
+        tts:color="lime" />
+    &lt;region xml:id="plop" style='s1' tts:origin="100px 120px" tts:fontSize='20pt'
+        tts:color="magenta" />
+&lt;/layout>
+</pre>
+
+<h3 id="o-corpo-do-documento-ttml">O corpo do documento TTML</h3>
+
+<p>O corpo do documento tem como raiz a tag <code>body</code>, um elemento de estruturação temporal que tem a função de armazenar as sequências de conteúdo textual. Dentro do <code>body</code> são aceitas as tags:</p>
+
+<ul>
+<li><strong>div:</strong> uma divisão para as legendas em um agrupamento lógico. Não é obrigatório o uso de <code>div</code>, apenas se você tem vários tipos de legendas de deseja separá-las em grupos distintos. Uma <code>div</code> pode conter outras <code>div</code>s;</li>
+<li><strong>p:</strong> tem a mesma função da tag <code>p</code> do HTML, um paragráfo de conteúdo. É o <em>container</em> principal para o texto de legenda;</li>
+<li><strong>span:</strong> tem a mesma função da tag <code>span</code> do HTML, é um elemento de linha. Pode ser utilizada para estilizar parte de um texto contido em um <code>p</code>, por exemplo, aplicar negrito, itálico, cor diferenciada, etc;</li>
+<li><strong>br:</strong> quebra de linha.</li>
+</ul>
+
+<p>Todas estas tags aceitam, além dos atributos de estilo, os seguintes atributos:</p>
+
+<ul>
+<li><strong>begin:</strong> especifica o início do intervalo de tempo em que o elemento será exibido;</li>
+<li><strong>dur:</strong> especifica a duração do intervalo de tempo;</li>
+<li><strong>end:</strong> especifica o término do intervalo de tempo. A documentação do W3C não clarifica se é necessário ter um <code>begin</code> quando se utiliza o <code>end</code>;</li>
+<li><strong>region</strong>: associa o elemento a uma <code>region</code> onde será alocado o elemento;</li>
+<li><strong>timeContainer:</strong> especifica um contexto temporal onde os nós filhos do elemento estarão temporalmente situados. Este atributo aceita dois valores: <code>par</code> e <code>seq</code>. Se o <code>timeContainer</code> for <code>par</code>, o intervalo temporal dos nós filhos é aplicado em pararelo, ou seja, de forma simultânea no tempo. Além disso, o intervalo de tempo dos nós filhos é relativo ao intervalo de tempo do elemento pai. Se o <code>timeContainer</code> for <code>seq</code>, o intervalo temporal dos nós filhos é aplicado de forma sequencial no tempo e o intervalo de tempo dos nós filhos é relativos aos seus nós irmãos. Caso seja o primeiro nó filho, o intervalo de tempo é relatrivo ao tempo do elemento pai. Se um <em>container</em> de elementos de tempo (ex.: uma <code>div</code> que é container para vários <code>p</code>) não especificar <code>timeContainer</code>, será considerado que o <code>timeContainer</code> é <code>par</code>;</li>
+</ul>
+
+<p>O W3C tem uma definição específica de expressão de tempo, que pode ser <em>clock-time</em> (hora:minuto:segundo[.frame]) ou <em>offset-time</em> (valor ou fração seguido de unidade de medida de tempo, ex.: 1h, 15m, 10s, 0.6s).</p>
+
+<p>Para exemplificar, vamos observar alguns trechos de código do exemplo do W3C:</p>
+
+<pre lang="xml" class="1">&lt;body timeContainer="par">
+</pre>
+
+<p>O corpo do documento TTML define o <code>timeContainer</code> como <code>par</code>, portanto, os nós filhos serão exibidos simultaneamente e o intervalo de tempo é relativo ao <code>body</code>.</p>
+
+<pre lang="xml" class="1">&lt;div region="plop" begin="00:00:08.263" dur="00:00:07.639" timeContainer="seq" tts:fontFamily='Balloon, Arial Black'>
+    &lt;p dur="0.4s">Plop!&lt;/p>
+    &lt;p begin="0.5s" dur="0.4s">Plop!&lt;/p>
+    &lt;p begin="0.5s" dur="0.4s">Plop!&lt;/p>
+    &lt;p begin="0.5s" dur="0.4s">Plop!&lt;/p>
+    &lt;p begin="0.5s" dur="0.4s">Plop!&lt;/p>
+    &lt;p begin="0.5s" dur="0.4s">Plop!&lt;/p>
+    &lt;p begin="0.5s" dur="0.4s">Plop!&lt;/p>
+    &lt;p begin="0.5s" dur="0.4s">Plop!&lt;/p>
+    &lt;p begin="0.5s" dur="0.4s">Plop!&lt;/p>
+    &lt;p begin="0.5s" dur="0.4s">Plop!&lt;/p>
+&lt;/div>
+</pre>
+
+<p>Esta <code>div</code> agrupa uma série de legendas que serão exibidas na <code>region &quot;plop&quot;</code>, sendo que elas começam a ser exibidas a partir de 8s do vídeo e duram 7s, de acordo com os atributos <code>begin</code> e <code>dur</code>. Nesta <code>div</code>, o <code>timeContainer</code> é definido como <code>seq</code> e aqui valem algumas observações importantes que vocês podem reparar no vídeo. O primeiro <code>p</code>, nó filho da <code>div</code>, não possui o atributo <code>begin</code> pois nesse caso o intervalo de tempo é relativo ao elemento pai. Ele tem duração de 0.4s. Reparem que os próximos <code>p</code>s começam aos 0.5s (relativo ao <code>p</code> anterior) e também têm a duração de 0.4s, sendo exibidos sequencialmente, ou seja, em nenhum momento eles coexistem na cena. Se o atributo <code>begin</code> não estivesse especificado, elas seriam exibidas sequencialmente considerando somente o atributo <code>dur</code> sem uma definição de intervalo para ser exibida após o elemento anterior.</p>
+
+<pre lang="xml" class="1">&lt;div begin="00:00:16.002" dur="00:00:07.383" timeContainer="par"  tts:fontFamily='Balloon, Impact'>
+      &lt;p region="tick1">Tick!&lt;/p>
+      &lt;p region="tick2" begin="1s">Tick!&lt;/p>
+      &lt;p region="tick3" begin="2s">Plop!&lt;/p>
+      &lt;p region="plop" begin="3s" end='6s' tts:color='white'>Plop!&lt;/p>
+      &lt;p region="tick4" begin="4s" end='5s'>Tick!&lt;/p>
+      &lt;p region="tick4" begin="5s" tts:color='blue' tts:fontSize='50pt'>Tick!&lt;/p>
+      &lt;p region="plop" begin="6s" tts:color='fuchsia' tts:fontSize='60pt'>Plop!&lt;/p>
+&lt;/div>
+</pre>
+
+<p>Esta outra <code>div</code> não possui uma associação com <code>region</code>, ela apenas agrupa os <code>p</code>s e define o intervalo inicial do tempo e a duração. Diferentemente do trecho anterior, a associação à <code>region</code> é definida em cada <code>p</code>. O <code>timeContainer</code> é definido como <code>par</code>, neste caso o atributo <code>begin</code> de cada <code>p</code> é relativo ao intervalo de tempo da <code>div</code> e podem ser exibidos simultaneamente.</p>
+
+<p>E um exemplo que não utiliza o <code>timeContainer</code> (assumindo o valor <code>par</code> como <em>default</em>) e define os intervalos de tempo de início e duração diretamente nos <code>p</code>s utilizando o formato <em>clock-time</em>:</p>
+
+<pre lang="xml" class="1"><div region='default'>
+  &lt;p begin="00:00:00.902" dur="00:00:07.104">[Clock ticking]<br />
+       [<span tts:fontStyle='italic' tts:color='lime'>tick, tick, tick</span>]&lt;/p>
+        &lt;p begin="00:00:08.263" dur="00:00:07.639">[Water dropping]<br />
+       [<span tts:fontStyle='italic' tts:color='lime'>plop, plop, plop</span>]&lt;/p>
+        &lt;p begin="00:00:16.002" dur="00:00:07.383">[Water dropping and clock ticking]<br />
+       [<span tts:fontStyle='italic' tts:color='lime'>plop, plop, plop</span>]<br />
+       [<span tts:fontStyle='italic' tts:color='red'>tick, tick, tick</span>]&lt;/p>
+        &lt;p begin="00:00:23.485" dur="00:00:08.659">[Clock ringing]<br />
+       [<span tts:fontStyle='italic' tts:fontWeight='bold' tts:color='red'>LOUD RING</span>]&lt;/p>
+  ...
+  
+</div>
+</pre>
+
+<p>Este é o trecho de código referente às legendas exibidas na <code>region &quot;default&quot;</code>. Neste exemplo também há o uso de <code>span&lt;/span&gt; demonstrando trechos de legenda em um mesmo &lt;code&gt;p</code> que possui uma estilização diferenciada.</p>
+
+<h3 id="associando-um-documento-dfxp-a-um-vídeo">Associando um documento DFXP a um vídeo</h3>
+
+<p>As legendas são associadas a um vídeo através da tag <code>text</code>. É especificado a linguagem no atributo <code>lang</code>, o que permite que a associação de múltiplos arquivos de legenda, o atributo <code>type=&quot;application/ttaf+xml&quot;</code> e o <code>src</code> apontando o caminho do arquivo.</p>
+
+<pre lang="xml" class="1">&lt;text lang='en' type="application/ttaf+xml" src="ThisIsCoffee61_captions.xml">&lt;/text>
+</pre>
+
+<p>No exemplo do W3C, também é utilizada uma API em JavaScript para permitir que todos ou a maioria dos navegadores exibam o <em>player</em> de vídeo e as legendas. Navegadores mais recentes possuem o player nativo, mas a API garante que outros navegadores sejam capazes de executar as mesmas funções, inclusive, a exibição de legendas.</p>
+
+<pre lang="html" class="1"> 
+   
+   
+    &lt;video controls="true" width="320px" height='240px' style='margin-right: 5%;'> 
+            &lt;source src="http://media.w3.org/2009/02/ThisisCo1961_tiny.ogv" type="video/ogg; codecs=&quot;theora, vorbis&quot;" /> 
+            &lt;source src="http://media.w3.org/2009/02/ThisisCo1961_tiny.mp4" type="video/mp4; codecs=&quot;avc1.42E01E, mp4a.40.2&quot;" />
+            &lt;text lang='en' type="application/ttaf+xml" src="ThisIsCoffee61_captions.xml">&lt;/text> 
+    &lt;/video> 
+     
+  
+
+</pre>
+
+<h2 id="para-saber-mais">Para saber mais</h2>
+
+<p>O conteúdo deste artigo e os os exemplos foram baseados na <a title="Timed Text Authoring Format - Distributed Format Exchange Profile" href="http://www.w3.org/TR/ttaf1-dfxp/" target="_blank">documentação do W3C para a TTML e o TTAF-DFXP</a>.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

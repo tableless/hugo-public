@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Fernahh on Tableless</title>
+    <link>http://tableless.com.br/author/fernahh/index.xml</link>
+    <description>Recent content in Fernahh on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/fernahh/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Afinal, como usar herança no CSS?</title>
+      <link>http://tableless.com.br/afinal-como-usar-heranca-no-css/</link>
+      <pubDate>Sun, 11 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/afinal-como-usar-heranca-no-css/</guid>
+      <description>
+
+&lt;p&gt;Herança surgiu para ajudar desenvolvedores a escreverem mesmo e produzirem mais. Vamos ver aqui como esse conceito básico das folhas de estilo pode nos ajudar no dia-a-dia.&lt;/p&gt;
+
+&lt;p&gt;Geralmente quando alguém começa a desenvolver interfaces web, o processo é aos trancos e barrancos. Nessa situação, iniciantes buscam aprender como se faz aquela borda arredondada ou como aplicar transparência. Por fim, acabam deixando de lado conceitos básicos de CSS. Levando isso em conta, precisamos primeiramente aprender sobre &lt;strong&gt;especificidade&lt;/strong&gt; e &lt;strong&gt;efeito cascata&lt;/strong&gt;. Esses dois pontos são essenciais para aprendermos como escrever folhas de estilo usando herança.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-especificidade-de-seletores&#34;&gt;A especificidade de seletores&lt;/h2&gt;
+
+&lt;p&gt;Um documento web possui derivadas fontes de estilo, sendo elas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;a folha de CSS servida pela página;&lt;/li&gt;
+&lt;li&gt;configurações setadas pelo usuário;&lt;/li&gt;
+&lt;li&gt;o estilo &lt;em&gt;default&lt;/em&gt; aplicado pelo &lt;em&gt;user agent&lt;/em&gt; (ex: navegadores).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A primeira é a mais importante. A folha de estilo pode sobrescrever as configurações do usuário, que por sua vez pode sobrescrever os estilos aplicados &lt;em&gt;user agent&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Apesar do CSS servido pela página web ser mais específico, é importante lembrar que o usuário tem a opção de forçar o estilo desejado por ele. Porém, isso &lt;strong&gt;não vale para regras&lt;/strong&gt; que recebem &lt;code&gt;!important&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;A &lt;a href=&#34;http://www.w3.org/TR/css3-selectors/#specificity&#34; target=&#34;_blank&#34;&gt;W3C criou uma forma de calcular a especificidade de seletores&lt;/a&gt;. Para entender de forma simples, basicamente distribuímos pesos diferentes as regras aplicadas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CSS inline: 1000 pontos;&lt;/li&gt;
+&lt;li&gt;ID: 100 pontos;&lt;/li&gt;
+&lt;li&gt;Classes, pseudo-classe e atributos: 10 pontos;&lt;/li&gt;
+&lt;li&gt;Elementos: 1 ponto.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Na prática, podemos fazer cálculos como os exemplos a seguir:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;p.foobar&lt;/code&gt;: 1 classe + 1 elemento = 11 pontos.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;div#foobar .foo .bar&lt;/code&gt;: 1 ID + 1 elemento + 3 classes = 131&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A especificidade pode dar grandes dores de cabeça em projetos complexos, ainda mais quando o número de desenvolvedores é maior. Não é rara a aplicação com um grande número de uso do &lt;code&gt;!important&lt;/code&gt;. Isso funciona como uma forma de quebrar a especificidade para sobrescrever uma regra.&lt;/p&gt;
+
+&lt;pre&gt;header h1 {
+  color: red;
+}
+
+/* Essa regra será mais específica. */
+
+h1 {
+  color: red !important;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Evite ao máximo usar &lt;code&gt;!important&lt;/code&gt;. Os 5 minutos que você economiza fazendo uso dele podem se tornar horas no futuro. Fica a dica:&lt;/p&gt;
+
+&lt;blockquote class=&#34;twitter-tweet&#34; lang=&#34;pt&#34;&gt;
+  &lt;p dir=&#34;ltr&#34; lang=&#34;en&#34;&gt;
+    Easy way to tell how screwed you are when dealing with CSS from a legacy project: `grep -rin &amp;#8216;!important&amp;#8217; assets/sass/ | wc -l`
+  &lt;/p&gt;
+  
+  &lt;p&gt;
+    — Rafael Rinaldi (@rafaelrinaldi) &lt;a href=&#34;https://twitter.com/rafaelrinaldi/status/586216597913739264&#34;&gt;9 abril 2015&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;efeito-cascata-o-coração-do-css&#34;&gt;Efeito cascata: o coração do CSS&lt;/h2&gt;
+
+&lt;p&gt;Não é a toa que o a palavra &lt;em&gt;cascade&lt;/em&gt; está no nome nas folhas de estilo. Essa técnica é utilizada para definir o estilo a um seletor mesmo em caso de conflitos.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Pergunta: você sabe o que acontece quando existem duas regras para um mesmo seletor?&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;A cascata define o peso de uma regra através das seguintes características:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;importância;&lt;/li&gt;
+&lt;li&gt;origem;&lt;/li&gt;
+&lt;li&gt;especificidade;&lt;/li&gt;
+&lt;li&gt;ordem de declaração.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Saber como o efeito cascata funciona irá lhe poupar boas horas de trabalho.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Mas e como o navegador lida com conflitos de regras?&lt;/em&gt; Primeiramente, ele vasculha &lt;strong&gt;todas as regras&lt;/strong&gt; que se aplicam ao elemento. Como segundo passo, ele irá classificar os &lt;strong&gt;níveis de importância&lt;/strong&gt; e suas &lt;strong&gt;origens&lt;/strong&gt;. Depois disso, irá ocorrer um &lt;em&gt;match&lt;/em&gt; das declarações com o &lt;strong&gt;mesmo nível de importância&lt;/strong&gt;. Por último, se houver duas regras com o mesmo peso, a que é &lt;strong&gt;declarada por último&lt;/strong&gt; ganhará.&lt;/p&gt;
+
+&lt;p&gt;Você já deve ter percebido que quanto mais fácil esse processo para o navegador, mais performática será sua aplicação.&lt;/p&gt;
+
+&lt;p&gt;Caso queira saber mais sobre efeito cascata e herança, &lt;a href=&#34;http://tableless.com.br/efeito-cascata-e-especificidade-do-css/&#34; target=&#34;_blank&#34;&gt;recomendo esse post do Tableless de 2009&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-herança&#34;&gt;A herança&lt;/h2&gt;
+
+&lt;p&gt;A palavra herança rapidamente remete ao paradigma de &lt;a href=&#34;https://pt.wikipedia.org/wiki/Orienta%C3%A7%C3%A3o_a_objetos&#34; target=&#34;_blank&#34;&gt;Orientação a Objetos&lt;/a&gt;. Caso você acompanhe discussões sobre &lt;em&gt;front-end&lt;/em&gt;, já deve saber que o termo &amp;#8220;&lt;em&gt;orientação a objetos&lt;/em&gt;&amp;#8221; não é bem visto tratando-se de CSS.&lt;/p&gt;
+
+&lt;p&gt;Assim como você herda métodos e atributos de objetos, no CSS você herda as regras de um elemento pai.&lt;/p&gt;
+
+&lt;pre&gt;/* 
+ * Todo o conteúdo textual do documento
+ * terá 16px de tamanho, pois herdam do
+ * `body`.
+ */
+
+body {
+  font-size: 16px;
+}&lt;/pre&gt;
+
+&lt;p&gt;É importante lembrar que nem todas as propriedades serão herdadas por elementos filho. Geralmente as propriedades que se referem ao &lt;em&gt;box-model&lt;/em&gt; (&lt;code&gt;height&lt;/code&gt;, &lt;code&gt;width&lt;/code&gt;, &lt;code&gt;margin&lt;/code&gt;, &lt;code&gt;padding&lt;/code&gt;) não aceitam herança. Caso você queira forçar a herança, pode usar o valor &lt;code&gt;inherit&lt;/code&gt;. Aliás, você sabe a &lt;a href=&#34;http://tableless.com.br/entendendo-os-valores-initial-e-inherit-do-css/&#34; target=&#34;_blank&#34;&gt;diferença entre initial e inherit&lt;/a&gt;?&lt;/p&gt;
+
+&lt;p&gt;Podemos fazer um uso inteligente de herança para economizar várias linhas de código. É muito mais fácil especificar valores para elementos pais e utilizá-los em seus filhos do que especificar um por um. Se você der uma olhada em códigos de &lt;em&gt;frameworks&lt;/em&gt; de CSS, irá notar que herança é fortemente usada para melhorar a manutenção do projeto.&lt;/p&gt;
+
+&lt;h2 id=&#34;herança-com-sass&#34;&gt;Herança com Sass&lt;/h2&gt;
+
+&lt;p&gt;Pré-processadores deram super poderes para desenvolvedores escreverem CSS. Em nosso contexto, &lt;code&gt;@extend&lt;/code&gt; e &lt;em&gt;mixins&lt;/em&gt; nos trazem benefícios, mas que devem ser usados com bastante cautela.&lt;/p&gt;
+
+&lt;h3 id=&#34;extend&#34;&gt;@extend&lt;/h3&gt;
+
+&lt;p&gt;Podemos extender &lt;em&gt;placeholders&lt;/em&gt; (&lt;code&gt;%placeholder&lt;/code&gt;) e classes. Muitos autores desencorajam desenvolvedores a usarem esse recurso. O motivo é o CSS gerado.&lt;/p&gt;
+
+&lt;p&gt;Por exemplo, digamos que temos uma classe &lt;code&gt;.error&lt;/code&gt; e queremos usar os estilos dela em outra classe.&lt;/p&gt;
+
+&lt;pre&gt;.error {
+  color: red;
+}
+
+.icon--error {
+  @extend .error;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O CSS gerado será o seguinte:&lt;/p&gt;
+
+&lt;pre&gt;.error, .icon--error {
+  color: red;
+}&lt;/pre&gt;
+
+&lt;p&gt;Ou seja, o Sass não &lt;em&gt;&amp;#8220;copia&amp;#8221;&lt;/em&gt; os valores, ele apenas separa o valor em uma &lt;em&gt;mesma regra&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora digamos que em outro contexto precisamos reescrever a cor de erro para um tom mais forte.&lt;/p&gt;
+
+&lt;pre&gt;.other_context .error {
+  color: darken(red, 10%);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Além de criar a regra para a classe &lt;code&gt;.error&lt;/code&gt;, o pré-processador irá aplicar a regra para as outras &lt;em&gt;&amp;#8220;instâncias&amp;#8221;&lt;/em&gt; da classe:&lt;/p&gt;
+
+&lt;pre&gt;.other_context .error, .other_context .icon--error {
+  color: #cc0000;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Isso é péssimo&lt;/strong&gt;. Além de tirar o controle do desenvolvedor, isso irá gerar &lt;strong&gt;código desnecessário&lt;/strong&gt; e prejudicar outras áreas de uma interface. Lembre-se: tome cuidado com o &lt;em&gt;bug&lt;/em&gt; dos &lt;a href=&#34;http://blogs.msdn.com/b/ieinternals/archive/2011/05/14/10164546.aspx&#34; target=&#34;_blank&#34;&gt;4095 seletores&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Usando &lt;em&gt;placeholders&lt;/em&gt;, o Sass irá realmente &amp;#8220;copiar&amp;#8221; os estilos para a classe que possui o &lt;code&gt;@extend&lt;/code&gt;. Porém, se o &lt;em&gt;placeholder&lt;/em&gt; for alterado em um contexto, isso também irá gerar uma regra para as classes que o estenderam.&lt;/p&gt;
+
+&lt;pre&gt;%error,
+.error {
+  color: red;
+}
+
+.icon--error {
+  @extend %error;
+}
+
+.other_context .error {
+  color: darken(red, 10%);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O output será esse:&lt;/p&gt;
+
+&lt;pre&gt;.error {
+  color: red;
+}
+
+.icon--error {
+  color: red;
+}
+
+.other_context .error {
+  color: #cc0000;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Perceba que dessa vez a instância de &lt;code&gt;.error&lt;/code&gt;, a classe &lt;code&gt;.icon--error&lt;/code&gt; &lt;strong&gt;não herdou as regras&lt;/strong&gt; em outro contexto.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Resumindo: evite o &lt;code&gt;@extend&lt;/code&gt;. Se for usar, vá de &lt;em&gt;placeholders&lt;/em&gt;.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;mixins&#34;&gt;Mixins&lt;/h3&gt;
+
+&lt;p&gt;Outra forma criar herança é usando &lt;em&gt;mixins&lt;/em&gt;. Com eles você pode realmente &lt;em&gt;copiar&lt;/em&gt; propriedades e valores para uma classe.&lt;/p&gt;
+
+&lt;pre&gt;@mixin error {
+  color: red;
+}
+
+.icon--error {
+  @include error;
+}
+
+.label--error {
+  @include error;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O problema com essa abordagem é que ela não será tão performática, levando em conta que ela gerará duas regras com o mesmo código:&lt;/p&gt;
+
+&lt;pre&gt;.icon--error {
+  color: red;
+}
+
+.label--error {
+  color: red;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Porém, mixins são eficientes se você precisar de parâmetros.&lt;/p&gt;
+
+&lt;p&gt;Vamos continuar com nosso exemplo. Se precisarmos de uma cor mais forte, poderemos passar essa opção por parâmetro.&lt;/p&gt;
+
+&lt;pre&gt;@mixin error($critical: false) {
+  @if $critical {
+    color: darken(red, 10%);
+  } @else {
+    color: red;
+  }
+}
+
+.icon--error {
+  @include error;
+}
+
+.icon--critical-error {
+  @include error($critical: true);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O Sass irá gerar o vermelho mais escuro quando passarmos o valor &lt;code&gt;true&lt;/code&gt; para a variável &lt;code&gt;$critical&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;.icon--error {
+  color: red;
+}
+
+.icon--critical-error {
+  color: #cc0000;
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;concatenação-de-classes&#34;&gt;Concatenação de classes&lt;/h2&gt;
+
+&lt;p&gt;Se você é purista e não gosta de pré-processadores ou prefere não usar as &amp;#8220;mágicas&amp;#8221; do Sass, você pode fazer uso da concatenação/composição de classes no HTML. O &lt;a href=&#34;http://getbootstrap.com/&#34; target=&#34;_blank&#34;&gt;Bootstrap&lt;/a&gt; usa essa abordagem.&lt;/p&gt;
+
+&lt;p&gt;Basicamente você terá estilo padrão em uma classe e usará outras, se necessário, para alterar o layout.&lt;/p&gt;
+
+&lt;p&gt;No HTML com um elemento de botão, teríamos a classe &lt;code&gt;.button&lt;/code&gt;. Se precisarmos criar um botão de sucesso, usamos a classe &lt;code&gt;.button--success&lt;/code&gt; juntamente com &lt;code&gt;.button&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;.button {
+  display: inline-block;
+  padding: 10px;
+  color: black;
+  background-color: white;
+}
+
+.button--success {
+  color: white;
+  background-color: green;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Na minha opinião essa é a forma mais correta de usarmos herança. Sempre opte por usar &lt;em&gt;features&lt;/em&gt; nativas do CSS ao invés das mágicas do Sass.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Herança é uma abordagem extremamente necessária para começar a entender o desenvolvimento de CSS escalável. Depois de entender bem o conceito, estude &lt;a href=&#34;http://tableless.com.br/oocss-smacss-bem-dry-css-afinal-como-escrever-css/&#34; target=&#34;_blank&#34;&gt;padrões de escrita&lt;/a&gt;. Olhe o código fonte de &lt;em&gt;frameworks&lt;/em&gt; para entender a arquitetura usada.&lt;/p&gt;
+
+&lt;p&gt;Nunca saia escrevendo CSS até dar certo. Entenda as regras e planeja seus passos. Pensar antes de começar sem dúvidas será mais produtivo.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Nós quebramos a web</title>
+      <link>http://tableless.com.br/nos-quebramos-web/</link>
+      <pubDate>Mon, 04 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/nos-quebramos-web/</guid>
+      <description>
+
+&lt;p&gt;Depois das grandes evoluções que tivemos na web (HTML5, CSS3 e novas APIs JavaScript), junto vieram alguns problemas, aquela história de &lt;em&gt;&amp;#8220;Com grandes poderes vem grandes responsabilidades&amp;#8221;&lt;/em&gt;. As novas features da Open Web são fantásticas. Lembro-me bem quando nós eramos cautelosos no usar certos recursos com medo de não conseguir entregar o conteúdo ao usuário. No fim, surgiram (e surgem) &lt;em&gt;polyfills&lt;/em&gt; e n maneiras de darmos &lt;em&gt;fallback&lt;/em&gt; ao usuário com menos recursos. Sendo assim, conseguimos entregar um conteúdo rico para usuários com recursos modernos, e o conteúdo com uma experiência mais simples à usuários com recursos simples.&lt;/p&gt;
+
+&lt;p&gt;Tudo perfeito? Na teoria sim, na prática não.&lt;/p&gt;
+
+&lt;h2 id=&#34;ao-menos-tente-aplicar-progressive-enhancement&#34;&gt;Ao menos tente aplicar Progressive Enhancement&lt;/h2&gt;
+
+&lt;p&gt;Em poucas palavras, &lt;strong&gt;Progressive Enhancement&lt;/strong&gt; é uma maneira de desenvolver aplicações de forma a suportar browser antigos, conexões lentar, etc. Se você não sabe o que é esse termo, vá atrás porque passou da hora. _(Recomendo esse post do &lt;a title=&#34;Diego Eis no Twitter&#34; href=&#34;https://twitter.com/diegoeis&#34; target=&#34;_blank&#34;&gt;@diegoeis&lt;/a&gt; sobre o assunto: &lt;a title=&#34;Fault Tolerance: a base do Progressive Enhancement&#34; href=&#34;http://tableless.com.br/faut-tolerant-base-progressive-enhancement/&#34; target=&#34;_blank&#34;&gt;Fault Tolerance: a base do Progressive Enhancement&lt;/a&gt;)_&lt;/p&gt;
+
+&lt;p&gt;Há pouco tempo eu era um hater de aplicações e frameworks que não davam suporte ao PE (Progressive Enhancement) ou dificultavam esse tipo de abordagem. Mas o extremismo nunca é saudável. Em um comentário que fiz em um tweet do &lt;a title=&#34;Daniel Filho no Twitter&#34; href=&#34;https://twitter.com/danielfilho&#34; target=&#34;_blank&#34;&gt;@danielfilho&lt;/a&gt;, ele respondeu algo que me fez mudar de opinião:&lt;/p&gt;
+
+&lt;blockquote class=&#34;twitter-tweet&#34; lang=&#34;pt&#34;&gt;
+  &lt;p dir=&#34;ltr&#34; lang=&#34;en&#34;&gt;
+    &lt;a href=&#34;https://twitter.com/fernahh&#34;&gt;@fernahh&lt;/a&gt; it might not support it. but you need to be aware that it’s not everyone who lives on the 1st world &amp; have blazing fast connection.
+  &lt;/p&gt;
+  
+  &lt;p&gt;
+    — Daniel Filho (@danielfilho) &lt;a href=&#34;https://twitter.com/danielfilho/status/585604385440432129&#34;&gt;8 abril 2015&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;strong&gt;É isso!&lt;/strong&gt; Nem todo mundo tem uma internet rápida ou o último release do navegador mais moderno. A ideia da web sempre foi ser inclusiva e entregar o conteúdo a todos. Mas por que não fizemos isso? Por que estamos usando o HTML só pra carregar uma tag &lt;code&gt;&amp;lt;script&amp;gt;&lt;/code&gt;? Ao menos tente aplicar Progressive Enhancement. Tudo depende de onde sua aplicação irá rodar, quem serão os usuários dela, mas se estiver na &amp;#8220;web pública&amp;#8221;, considere (muito) o PE.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-web--acessvel&#34;&gt;A web é acessível&lt;/h2&gt;
+
+&lt;p&gt;A web em sua forma mais simples é acessível. Veja &lt;a title=&#34;Exemplo de uma página acessível&#34; href=&#34;http://codepen.io/fernahh/pen/OVJNWB&#34; target=&#34;_blank&#34;&gt;esse exemplo no Codepen&lt;/a&gt;, só usei &lt;a href=&#34;http://necolas.github.io/normalize.css/&#34;&gt;Normalize&lt;/a&gt; e HTML.&lt;/p&gt;
+
+&lt;p&gt;Contraste perfeito. Links legíveis. Botões que parecem botões. Um leitor de tela provavelmente se daria bem lendo o conteúdo dessa página, mesmo sem uma extensão com &lt;a href=&#34;http://tableless.com.br/wai-aria-estendendo-o-significado-das-interacoes/&#34;&gt;WAI-ARAI&lt;/a&gt;. Um usuário provavelmente interpretaria rápido a informação com elementos expressados dessa forma.&lt;/p&gt;
+
+&lt;p&gt;Mas se a web na sua forma mais crua é acessível, por que desenvolvedores fazem isso?&lt;/p&gt;
+
+&lt;div style=&#34;width: 510px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://sighjavascript.tumblr.com/&#34; target=&#34;_blank&#34;&gt;&lt;img class=&#34;&#34; src=&#34;http://41.media.tumblr.com/49748cc0168a329867f45fcc807ae650/tumblr_mslkvjXcmX1sgju96o1_1280.png&#34; alt=&#34;Instagram sem JavaScript não funciona.&#34; width=&#34;500&#34; height=&#34;400&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Exemplo do tumblr &amp;#8220;Sign, JavaScript&amp;#8221; (http://sighjavascript.tumblr.com/)
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Todos tem a resposta para a pergunta acima na ponta da língua: desenvolvedores fazem isso pelo &lt;em&gt;hype&lt;/em&gt; de usar novas tecnologias, mas esquecem de atender todos os usuários, &lt;strong&gt;quebrando a web&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-reencontro-com-o-caminho-para-uma-web-inclusiva&#34;&gt;O reencontro com o caminho para uma web inclusiva&lt;/h2&gt;
+
+&lt;p&gt;Estamos seguindo o embalo das novas tecnologias deixando de lado o mais básico que um desenvolvedor web deve saber, que consiste em aprender protocolos, algoritimos, HTML, CSS e JavaScript. Apenas com esses caras já conseguimos entregar o conteúdo com uma experiência bacana ao usuário.&lt;/p&gt;
+
+&lt;p&gt;Estude padrões.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Frameworks&lt;/em&gt;, bibliotecas e pré-processadores são fantásticos, mas primeiro vamos fazer o que a web se propôs a fazer desde seu início: &lt;strong&gt;ser inclusiva&lt;/strong&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

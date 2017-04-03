@@ -1,0 +1,275 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/prepared-statements-no-mysql/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/prepared-statements-no-mysql/">Prepared Statements no MySQL</a></h1>
+  <p class="tb-hero-p">
+    
+    Para iniciantes, entenda como o Prepared Statements funciona no MySQL.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/layo-azevedo">Layo Azevedo</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Para quem adora padronização e organização, no MySQL existe o recurso chamado <strong>Prepared Statements</strong>.</p>
+
+<p>Imagine a seguinte situação: você precisa criar uma procedure que faça todas as consultas em todas as entidades do seu banco e outra que apenas inserções e assim por diante&#8230; Uma para cada DML (data manipulation language) tudo passando por parametros, esse é o statement prepare.</p>
+
+<p>Resumidamente você prepara a query antes de executa-lá no banco de dados, então vamos colocar a mão na massa e mostrar esse recurso.</p>
+
+<h2 id="criando-o-usuário">Criando o usuário</h2>
+
+<p>O primeiro passo é criar um usuário no banco de dados que tenha permissão para executar rotinas. Eu que trabalho sempre com stored procedures utilizo apenas o EXECUTE, mas se você trabalha com DMLs diretas nas aplicações, pode criar diversas permissões ou um usuário com todos os privilégios (ALL PRIVILEGES).</p>
+
+<p><strong>Segue abaixo o exemplo de EXECUTE:</strong></p>
+
+<pre class="lang-sql">GRANT EXECUTE 
+ON *.*
+TO layo.azevedo@localhost IDENTIFIED BY 'w9QSK4yD' WITH GRANT OPTION;</pre>
+
+<p><strong>Segue abaixo o exemplo de um ALL PRIVILEGES:</strong></p>
+
+<pre class="lang-sql">GRANT ALL PRIVILEGES
+ON *.*
+TO layo.azevedo@localhost IDENTIFIED BY 'w9QSK4yD' WITH GRANT OPTION;</pre>
+
+<p><strong>ESSES FORAM OS COMANDOS PARA CRIAR UM USUARIO:</strong></p>
+
+<p><strong>GRANT</strong> &#8211; CRIA USUARIO</p>
+
+<p><strong>EXECUTE</strong> &#8211; EXECUTA APENAS ROTINAS</p>
+
+<p><strong>ALL PRIVILEGES</strong> &#8211; PERMITE EXECUTAR TUDO NO BANCO DE DADOS</p>
+
+<p><strong>*.*</strong> &#8211; O PRIVILEGIO APLICA-SE A TODAS AS BASES</p>
+
+<p><strong>IDENTIFIED BY</strong> &#8211; É A SUA SENHA</p>
+
+<p><strong>WITH GRANT OPTION</strong> &#8211; O USUARIO PODE CRIAR DIVERSOS USUARIOS E CONCEDER PRIVILEGIOS A ELE.</p>
+
+<p>Sinceramente eu aconselho trabalhar com o EXECUTE. Com ele é difícil de tentarem injection sql.</p>
+
+<p>Agora que criamos o usuario <strong>layo.azevedo@localhost</strong> vou criar uma procedure com a função de executar qualquer select no MySQL, começando com o delimitador do código para não parar quando o MySQL achar o sinal de &#8216;;&#8217; (ponto vírgula):</p>
+
+<pre class="lang-sql">DELIMITER $$
+$$</pre>
+
+<p>Dentro do DELIMITER colocamos a procedure com o nome de SelectGeral com três parâmetros: nome da tabela, condição e valor:</p>
+
+<p><strong>1 &#8211;</strong> Chamarei tabela de p_tabela, condição de p_condicao e valor de p_valor (lembre-se que o MySQL é fortemente tipado então coloque o tipo se é VARCHAR, CHAR, INT, etc&#8230;)</p>
+
+<pre class="lang-sql">DELIMITER $$
+
+create procedure SelectGeral (p_tabela(VARCHAR(20), p_condicao(VARCHAR(10), p_valor (VARCHAR(30)) 
+BEGIN
+
+END
+$$</pre>
+
+<p>Proximo passo é criar uma variável para executar a query dentro do banco. Nesse caso usaremos o SET juntamente com o comando CONCAT para concatenarmos os dados.</p>
+
+<pre class="lang-sql">DELIMITER $$
+
+create procedure SelectGeral (p_tabela VARCHAR(20), p_condicao VARCHAR(10), p_valor VARCHAR(30))
+BEGIN
+SET @Variavel = CONCAT('SELECT * from  ', p_tabela,' WHERE ', p_condicao , ' = ''' ,p_valor,'''');
+END
+$$</pre>
+
+<p>O último passo é executar a variável:</p>
+
+<pre class="lang-sql">DELIMITER $$
+
+create procedure SelectGeral (p_tabela VARCHAR(20), p_condicao VARCHAR(10), p_valor VARCHAR(30))
+BEGIN
+SET @Variavel = CONCAT('SELECT * from  ', p_tabela,' WHERE ', p_condicao , ' = ''' ,p_valor,'''');
+PREPARE consulta_geral FROM @Variavel ;
+EXECUTE consulta_geral;
+END
+$$</pre>
+
+<p>Pronto criamos a procedure SelectGeral com o Prepared Statements. Para visualizar basta executar o seguinte comando:</p>
+
+<pre class="lang-sql">CALL SelectGeral ('usuario', 'nome', 'layo.azevedo');</pre>
+
+<p>Ou seja seria essa query = <strong>SELECT * from usuario WHERE  nome = &#8216;layo.azevedo&#8217;</strong></p>
+
+<p>Esse foi um exemplo bem básico, mostrando o caminho das pedras para iniciantes que tenham alguma dúvida sobre Prepared Statements.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

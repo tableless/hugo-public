@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Reconhecedor De Voz Javascript on Tableless</title>
+    <link>http://tableless.com.br/tags/reconhecedor-de-voz-javascript/index.xml</link>
+    <description>Recent content in Reconhecedor De Voz Javascript on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/reconhecedor-de-voz-javascript/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Web Speech API – Reconhecimento de voz com JavaScript</title>
+      <link>http://tableless.com.br/web-speech-api-reconhecimento-de-voz-com-javascript/</link>
+      <pubDate>Mon, 06 Oct 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/web-speech-api-reconhecimento-de-voz-com-javascript/</guid>
+      <description>
+
+&lt;p&gt;O reconhecimento de voz tem várias aplicações no mundo real. Muitas pessoas tornaram-se familiarizadas com este conceito graças a softwares como o Siri e S-Voice. Esta aplicação pode melhorar drasticamente a usabilidade dos websites, principalmente para deficientes visuais. Imagine websites onde os usuários podem navegar pelas páginas ou preencher campos de formulário usando a sua voz e até mesmo interagir com a página enquanto dirige, sem tirar os olhos da estrada.&lt;/p&gt;
+
+&lt;h1 id=&#34;o-que-é-web-speech-api&#34;&gt;O que é Web Speech API?&lt;/h1&gt;
+
+&lt;p&gt;A Web Speech API foi lançada no final de 2012 e permite que os desenvolvedores forneçam a entrada de voz e recursos de saída de texto-para-voz em um navegador web. Esta API cuida da privacidade dos usuários, pois antes de deixar o site para acessar a voz através do microfone, o usuário deve explicitamente conceder a permissão. Curiosamente, o pedido de autorização é o mesmo que a API getUserMedia, apesar de não precisar da webcam. Se a página que executa esta API usa o protocolo HTTPS, o navegador solicita a permissão apenas uma vez.&lt;/p&gt;
+
+&lt;p&gt;Então veremos logo abaixo, um exemplo básico de como podemos implementar esta nova API aos nossos projetos:&lt;/p&gt;
+
+&lt;h1 id=&#34;criando-a-primeira-página-com-reconhecimento-de-voz&#34;&gt;Criando a primeira página com reconhecimento de voz:&lt;/h1&gt;
+
+&lt;h2 id=&#34;passo-1-8211-estrutura-html&#34;&gt;Passo 1 &amp;#8211; Estrutura HTML:&lt;/h2&gt;
+
+&lt;p&gt;A estrutura HTML é bem simples, vejamos a marcação abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;p id=&#34;ola&#34;&amp;gt;Olá tableless, você falou:&amp;lt;/p&amp;gt;
+
+&amp;lt;div id=&#34;transcription&#34;&amp;gt;&amp;lt;/div&amp;gt;
+
+&amp;lt;button id=&#34;rect&#34;&amp;gt;Gravar&amp;lt;/button&amp;gt;
+
+&amp;lt;span id=&#34;unsupported&#34; class=&#34;hidden&#34;&amp;gt;API not supported&amp;lt;/span&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Onde:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Transcription &amp;#8211;&lt;/strong&gt; Onde se encontrará o texto informando oque o usuário falou&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Rect &amp;#8211;&lt;/strong&gt; Botão para reconhecer a voz do usuário&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;unsupported &amp;#8211;&lt;/strong&gt; Caso a API não seja suportada pelo browser&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;passo-2-8211-testando&#34;&gt;Passo 2 &amp;#8211; Testando&lt;/h2&gt;
+
+&lt;p&gt;Como qualquer API, temos que verificar primeiramente se o browser suporta SpeechRecognition:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// Test browser support
+window.SpeechRecognition = window.SpeechRecognition ||
+window.webkitSpeechRecognition ||
+null;
+
+//caso não suporte esta API DE VOZ            
+if (window.SpeechRecognition === null) {
+    document.getElementById(&#39;unsupported&#39;).classList.remove(&#39;hidden&#39;);
+}else {
+    //......
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;passo-3-8211-métodos-e-propriedades&#34;&gt;Passo 3 &amp;#8211; Métodos e propriedades&lt;/h2&gt;
+
+&lt;p&gt;Depois de testar a compatibilidade da API, iremos instanciar o reconhecedor de  voz, usando o speechRecognition(). Como o código listado abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var recognizer = new window.SpeechRecognition();
+&lt;/pre&gt;
+
+&lt;p&gt;Este objeto expõe os seguintes métodos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;onstart:&lt;/strong&gt; Define um callback que é disparado quando o serviço de reconhecimento começou a ouvir o áudio com a intenção de reconhecer.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onResult:&lt;/strong&gt; Define um callback que é disparado quando o reconhecedor de voz retorna um resultado.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onerror:&lt;/strong&gt; Define um callback que é acionado quando ocorre um erro de reconhecimento de voz.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onend:&lt;/strong&gt; Define um callback que é disparado quando o serviço foi desligado. O evento deve sempre ser gerado quando a sessão termina, não importa o que a razão.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Iremos criar uma varável que será responsável por exibir o texto que o usuário falou e também iremos definir a propriedade &lt;strong&gt;continuous = &lt;span style=&#34;color: #3366ff&#34;&gt;true&lt;/span&gt;&lt;/strong&gt;, que faz com que o reconhecedor de voz não pare de ouvir, mesmo que tenha pausas do usuário.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;var transcription = document.getElementById(&#34;transcription&#34;);
+
+            //Para o reconhecedor de voz, não parar de ouvir, mesmo que tenha pausas no usuario
+            recognizer.continuous = true;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora iremos definir a função &amp;#8220;onresult&amp;#8221; que define um callback que é disparado quando o reconhecedor de voz retorna um resultado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;recognizer.onresult = function(event){
+                transcription.textContent = &#34;&#34;;
+                for (var i = event.resultIndex; i &amp;lt; event.results.length; i++) {
+                    if(event.results[i].isFinal){
+                        transcription.textContent = event.results[i][0].transcript+&#39; (Taxa de acerto [0/1] : &#39; + event.results[i][0].confidence + &#39;)&#39;;
+                    }else{
+                        transcription.textContent += event.results[i][0].transcript;
+                    }
+                }
+            }
+&lt;/pre&gt;
+
+&lt;p&gt;Vamos analisar este código um pouco mais detalhadamente:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;transcription.textContent = &amp;#8220;&amp;#8221;;    &lt;/strong&gt;Faz com que limpe o texto que se encontra dentro da &amp;#8220;&lt;div id=&amp;#8221;transcription&amp;#8221;&gt;&amp;#8221;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;for (var i = event.resultIndex; i &amp;lt; event.results.length; i++) { &lt;/strong&gt; Loop que pecorre o evento que contém o texto que o usuário falou.&lt;/p&gt;
+
+&lt;p&gt;Note que dentro deste loop, há uma condição, que verifica se o evento se encontra na última posição (&lt;strong&gt;event.results[i].isFinal&lt;/strong&gt;), caso seja verdadeira, ele irá imprimir todo o texto, junto com a taxa de acerto, que vai de &amp;#8220;0&amp;#8221; até &amp;#8220;1&amp;#8221;. Caso seja falsa, ele vai adicionar mais texto na nossa div&lt;/p&gt;
+
+&lt;h2 id=&#34;passo-4-8211-anexando-o-evento-de-click&#34;&gt;Passo 4 &amp;#8211; Anexando o evento de click&lt;/h2&gt;
+
+&lt;p&gt;Agora iremos anexar um evento de click, ao nosso botão, segue 0 código abaixo :&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;document.querySelector(&#34;#rect&#34;).addEventListener(&#34;click&#34;,function(){
+                try {
+                    recognizer.start();
+                  } catch(ex) {
+                    alert(&#34;error: &#34;+ex.message);
+                  }
+            });
+&lt;/pre&gt;
+
+&lt;h4 id=&#34;onde&#34;&gt;Onde:&lt;/h4&gt;
+
+&lt;p&gt;&lt;strong&gt;recognizer.start(); &amp;#8211; &lt;/strong&gt;Inicia o record ( a gravação );&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;catch(ex) {&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;alert(&amp;#8220;error: &amp;#8220;+ex.message);&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;} &amp;#8211; &lt;/strong&gt; tratamento de log, caso exista, algum erro de gravação&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;É importante observarmos que o reconhecedor demora um pouco para poder interpretar a sua voz, mais ou menos uns 3 à 4 segundos, esta API ainda está em teste e que infelizmente até agora, só é  suportada no chrome,&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&#34;finalizando&#34;&gt;Finalizando&lt;/h1&gt;
+
+&lt;p&gt;Bem pessoal, essa foi uma breve introdução sobre Web Speech API. Futuramente irei trazer mais artigo&lt;/p&gt;
+
+&lt;p&gt;Disponibilizei o código no github e também disponibilizei uma demo.&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;View Demo &#34; href=&#34;http://clovisdasilvaneto.github.io/speechRecognition/&#34; target=&#34;_blank&#34;&gt;Clique aqui para ver a demo online&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a title=&#34;ver o código completo&#34; href=&#34;https://github.com/clovisdasilvaneto/speechRecognition/blob/master/meu_artigo.html&#34; target=&#34;_blank&#34;&gt;Clique aqui, para ir ao código completo.&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

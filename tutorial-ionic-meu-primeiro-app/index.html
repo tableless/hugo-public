@@ -1,0 +1,412 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/tutorial-ionic-meu-primeiro-app/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/tutorial-ionic-meu-primeiro-app/">Tutorial Ionic – Meu primeiro app</a></h1>
+  <p class="tb-hero-p">
+    
+    Tutorial de como criar seu primeiro app utilizando o Ionic Framework através de uma app meteorológica geolocalizada para Android e iOS
+    
+  </p>
+      <span class="tb-author">por <a href="/author/grillorafael">grillorafael</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<h2 id="introdução">Introdução</h2>
+
+<p>Após publicar uma <a href="http://tableless.com.br/introducao-ao-ionic-framework/" target="_blank">breve introdução do Ionic Framework</a>, vamos agora tentar construir uma app que consiga abordar o uso de componentes nativos de um celular assim como o build para as determinadas plataformas.</p>
+
+<p>Para isso, ao decorrer deste tutorial, vamos construir uma app bastante simples que utiliza a posição do usuário para exibir os dados do tempo na tela.</p>
+
+<h2 id="o-que-é-necessário">O que é necessário?</h2>
+
+<ol>
+<li>NodeJS</li>
+<li>NPM</li>
+</ol>
+
+<p>Após instalar os 2, vamos instalar o <em>ionic</em> e o <em>cordova</em> como módulos globais.</p>
+
+<pre class="lang-bash">npm install -g ionic cordova
+</pre>
+
+<h2 id="criando-o-projeto">Criando o projeto</h2>
+
+<p>Para criar a estrutura inicial do projeto, vamos utilizar o gerador do Ionic CLI. Como o app é bastante simples, vamos utilizar o gerador <em>blank</em> do ionic.</p>
+
+<pre class="lang-bash">ionic start weather blank
+</pre>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/02/Screen-Shot-2015-02-28-at-12.21.21-AM.png"><img alt="estrutura de páginas do Ionic" src="http://tableless.com.br/wp-content/uploads/2015/02/Screen-Shot-2015-02-28-at-12.21.21-AM.png" width="163" height="440" class="alignnone size-full wp-image-47368" srcset="uploads/2015/02/Screen-Shot-2015-02-28-at-12.21.21-AM.png 163w, uploads/2015/02/Screen-Shot-2015-02-28-at-12.21.21-AM-51x139.png 51w" sizes="(max-width: 163px) 100vw, 163px" /></a></p>
+
+<p>Podemos ver então a estrutura de pastas inicial do projeto. Inicialmente vamos mexer somente no conteúdo da pasta <em>www</em> que é onde se encontra nosso projecto html, css e js.</p>
+
+<h2 id="apis-e-plugins-utilizados">APIS e Plugins utilizados</h2>
+
+<p>Para fazer a captura dos dados meteorológicos vamos utilizar uma API gratuita chamada <a href="https://developer.forecast.io/" target="_blank">Forecast for Developers</a>. Para fazer a captura dos dados temos que utilizar um plugin do Cordova de Geolocalização. É importante dizer que não é recomendável utilizar o <em>navigator.geolocation</em> nativo pois ele irá pedir permissão para o usuário com frequência e irá mostrar uma mensagem não amigável para isso como a imagem abaixo ilustra.</p>
+
+<p><img alt="Diálogo de permissão de localização via html5" src="http://www.raymondcamden.com/images/bad.png" width="320" height="480" class="aligncenter" /></p>
+
+<p>Para instalar o plugin de geolocalização do Cordova, basta rodarmos o comando abaixo na pasta do projeto.</p>
+
+<pre class="lang-bash">cordova plugin add org.apache.cordova.geolocation
+</pre>
+
+<p>Após instalado o plugin do cordova, vamos instalar uma lib que tem implementado a comunicação com alguns plugins do Cordova de uma forma mais amigável para o AngularJS que é o <a href="http://ngcordova.com/" target="_blank">ngCordova</a>.</p>
+
+<p>Para instalar o <em>ngCordova</em> basta rodar</p>
+
+<pre class="lang-bash">bower install ngCordova
+</pre>
+
+<p>E importar no arquivo <em>www/index.html</em>.</p>
+
+<pre class="lang-html">&lt;script src="lib/ngCordova/dist/ng-cordova.js"&gt;&lt;/script&gt; 
+&lt;script src="cordova.js"&gt;&lt;/script&gt; 
+</pre>
+
+<p>Após feito isso, devemos avisar para o AngularJS que nosso projeto depende deste módulo. Esta definição está no arquivo <em>www/js/app.js</em></p>
+
+<pre class="lang-js">(function() {
+    angular.module('weather', ['ionic', 'ngCordova'])
+        .run(function($ionicPlatform) {
+            $ionicPlatform.ready(function() {
+                // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+                // for form inputs)
+                if (window.cordova && window.cordova.plugins.Keyboard) {
+                    cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+                }
+                if (window.StatusBar) {
+                    StatusBar.styleDefault();
+                }
+            });
+        });
+})();
+</pre>
+
+<p>Desse momento em diante temos acesso a todos os módulos do <em>ngCordova</em>.</p>
+
+<h2 id="organização">Organização</h2>
+
+<p>Como a App é bastante simples, não vamos fragmentar a implementação em diversos arquivos. Vamos focar em construir apenas utilizando o <em>app.js</em>. Vamos então construir 2 componentes no AngularJS, o serviço <em>Weather</em> para se comunicar com a API e o controller <em>WeatherCtrl</em> para fazer a ponte entre a nossa view e a api.</p>
+
+<pre class="lang-js">(function() {
+    angular.module('weather', ['ionic', 'ngCordova'])
+        .run(function($ionicPlatform) {
+            $ionicPlatform.ready(function() {
+                // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+                // for form inputs)
+                if (window.cordova && window.cordova.plugins.Keyboard) {
+                    cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+                }
+                if (window.StatusBar) {
+                    StatusBar.styleDefault();
+                }
+            });
+        })
+        .factory('Weather', function($http) {
+
+        })
+        .controller('WeatherCtrl', function($scope, Weather) {
+
+        });
+})();
+</pre>
+
+<p>Após feito isso, devemos fazer o bind entre o <em>WeatherCtrl</em> e o nosso HTML.</p>
+
+<pre class="lang-html">&lt;body ng-app="weather" ng-controller="WeatherCtrl as weatherCtrl"&gt;
+    &lt;ion-pane&gt;
+        &lt;ion-header-bar class="bar-stable"&gt;
+            &lt;h1 class="title"&gt;Weather&lt;/h1&gt;
+        &lt;/ion-header-bar&gt;
+        &lt;ion-content&gt;
+            
+        &lt;/ion-content&gt;
+    &lt;/ion-pane&gt;
+&lt;/body&gt;
+</pre>
+
+<p>Feito isso, devemos então implementar o acesso aos dados da API através de uma posição geográfica.</p>
+
+<pre class="lang-js">.factory('Weather', function($q, $http) {
+            var deferred = $q.defer();
+
+            function getCurrentWeather(lat, lng) {
+                var url = 'https://api.forecast.io/forecast/SUA_CHAVE_DE_API/' + lat +',' + lng + '?callback=JSON_CALLBACK';
+                $http.jsonp(url)
+                    .success(deferred.resolve)
+                    .error(deferred.reject);
+
+                return deferred.promise;
+            }
+
+            return {
+                getCurrentWeather: getCurrentWeather
+            };
+        })
+</pre>
+
+<p>O serviço retorna uma promise que é o retorno da chamada JSONP para a API que iremos capturar no controller após acessarmos a localização do dispositivo.</p>
+
+<p>Com o serviço pronto, vamos então fazer a chamada ao GPS no <em>controller</em> e com a posição, vamos capturar os dados meteorológicos.</p>
+
+<pre class="lang-js">.controller('WeatherCtrl', function($scope, $cordovaGeolocation, Weather) {
+            $scope.loading = true;
+
+            $scope.toCelsius = function(temperature) {
+                return ((temperature - 32) / 1.8).toFixed(1);
+            };
+
+            $cordovaGeolocation
+                .getCurrentPosition({
+                    timeout: 10000,
+                    enableHighAccuracy: false
+                })
+                .then(function(position) {
+                    var lat = position.coords.latitude;
+                    var long = position.coords.longitude;
+
+                    Weather.getCurrentWeather(lat, long).then(function(data) {
+                        $scope.weatherInfo = data;
+                        $scope.loading = false;
+                    }, function(error) {
+                        //TODO Display error message
+                    });
+                }, function(err) {
+                    //TODO Display error message
+                });
+        });
+</pre>
+
+<p>Se vocês repararem, eu adicionei umas variáveis ao escopo para controlar se está carregando dados ou não e para converter de Fahrenheit para Celsius que usaremos posteriormente no nosso HTML.</p>
+
+<p>Com o <em>controller</em> preparado vamos então preparar o nosso HTML para mostrar uma imagem de carregamento enquanto não demos os dados e posteriormente mostrar a temperatura e a sensação térmica em celsius.</p>
+
+<pre class="lang-html">&lt;body ng-app="weather" ng-controller="WeatherCtrl as weatherCtrl"&gt;
+    &lt;ion-pane&gt;
+        &lt;ion-header-bar class="bar-stable"&gt;
+            &lt;h1 class="title"&gt;Weather&lt;/h1&gt;
+        &lt;/ion-header-bar&gt;
+        &lt;ion-content class="text-center"&gt;
+            &lt;div ng-show="loading"&gt;
+                Carregando informações...
+            &lt;/div&gt;
+            &lt;div ng-hide="loading"&gt;
+                &lt;p&gt;
+                    Temperatura: {{toCelsius(weatherInfo.currently.temperature)}}º
+                &lt;/p&gt;
+                &lt;p&gt;
+                    Sensação térmica: {{toCelsius(weatherInfo.currently.apparentTemperature)}}º
+                &lt;/p&gt;
+            &lt;/div&gt;
+        &lt;/ion-content&gt;
+    &lt;/ion-pane&gt;
+&lt;/body&gt;
+</pre>
+
+<p>Para visualizar o resultado podemos rodar o projeto no navegador utilizando o comando</p>
+
+<pre class="lang-bash">ionic serve
+</pre>
+
+<h2 id="gerando-as-builds-para-o-celular">Gerando as <em>builds</em> para o celular</h2>
+
+<p>Para gerar as os pacotes de App para celular basta rodarmos alguns comandos no Ionic CLI. É importante ressaltar que para criar o projeto iOS é necessário possuir um computador OSX.</p>
+
+<h3 id="adicionando-as-plataformas">Adicionando as plataformas</h3>
+
+<p>Para adicionarmos as plataformas em que vamos compilar nossa app bastar rodar o comando <em>ionic platform add PLATFORM</em> passando a plataforma desejada. Para efeitos de teste, vamos utilizar apenas o Android.</p>
+
+<pre class="lang-bash">ionic platform add android
+</pre>
+
+<p>Após rodar esse comando vamos ver que o Ionic está criando um projeto Android dentro da pasta <em>platforms</em>.</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/02/Screen-Shot-2015-02-28-at-1.13.16-AM.png"><img src="http://tableless.com.br/wp-content/uploads/2015/02/Screen-Shot-2015-02-28-at-1.13.16-AM.png" alt="Criação do projeto Android" width="1061" height="258" class="alignnone size-full wp-image-47383" srcset="uploads/2015/02/Screen-Shot-2015-02-28-at-1.13.16-AM.png 1061w, uploads/2015/02/Screen-Shot-2015-02-28-at-1.13.16-AM-265x64.png 265w, uploads/2015/02/Screen-Shot-2015-02-28-at-1.13.16-AM-400x97.png 400w" sizes="(max-width: 1061px) 100vw, 1061px" /></a></p>
+
+<p>A partir daí não precisamos fazer mais nada! Basta rodar a app em seu aparelho ou emulador através do comando</p>
+
+<pre class="lang-bash">ionic run android
+</pre>
+
+<p>Este comando irá fazer o <em>build</em> e enviar para o celular que estiver conectado ou emulador que estiver aberto.</p>
+
+<p>Para quem quiser, o projeto está disponível no <a href="https://github.com/grillorafael/ionic-weather" target="_blank">Github</a></p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

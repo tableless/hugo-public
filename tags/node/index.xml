@@ -1,0 +1,722 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Node on Tableless</title>
+    <link>http://tableless.com.br/tags/node/index.xml</link>
+    <description>Recent content in Node on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/node/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Trabalhando com serviços no Javascript</title>
+      <link>http://tableless.com.br/trabalhando-com-servicos-no-javascript/</link>
+      <pubDate>Tue, 08 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/trabalhando-com-servicos-no-javascript/</guid>
+      <description>
+
+&lt;p&gt;JavaScript é uma &lt;em&gt;linguagem multiparadigma&lt;/em&gt;. Pode-se “_emular_” várias técnicas de programação com ele, e isso é &lt;strong&gt;incrível&lt;/strong&gt; pois podemos decidir qual o melhor paradigma para a resolução dos problemas dos nossos projetos. Porém se por um lado isso pode parecer poderoso para a linguagem, também pode deixar os iniciantes bem confusos, é muito comum escolher a abordagem errada para o problema. Por esse motivo que o JavaScript em sido polêmico nos últimos anos.&lt;/p&gt;
+
+&lt;p&gt;Pensando nisso muitos desenvolvedores criam suas próprias soluções, uns pensando em ajudar e outros em forçar padrões.&lt;/p&gt;
+
+&lt;p&gt;Eu prefiro ensinar a pescar, pois JavaScript não tem que ser complexo. A &lt;strong&gt;versão 6 do JavaScript (ES6/ES2015)&lt;/strong&gt; tornou a linguagem muito mais expressiva, facilitando muito o entendimento.&lt;/p&gt;
+
+&lt;h3 id=&#34;encapsulando-lógicas&#34;&gt;Encapsulando lógicas&lt;/h3&gt;
+
+&lt;p&gt;Tudo em JavaScript são objetos (exceto &lt;em&gt;undefined&lt;/em&gt;), então &lt;strong&gt;serviços também são objetos&lt;/strong&gt;, dominando como criamos e trabalhamos com objetos todas as coisas ficam bem mais tranquilas.&lt;/p&gt;
+
+&lt;p&gt;O Jean Carlo Emer fez um artigo muito, &lt;a href=&#34;http://tableless.com.br/modularizacao-em-javascript/&#34;&gt;mas muito bom sobre Modularização no JavaScript&lt;/a&gt;. Sugiro que você leia, mas vou explicar um pouco sobre o assunto logo abaixo.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;size-medium aligncenter&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*hsXIPyBqqI7ZTh2QyLfizw.gif&#34; alt=&#34;i know JavaScript basics &#34; width=&#34;320&#34; height=&#34;237&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;scope-e-closures&#34;&gt;Scope e Closures&lt;/h4&gt;
+
+&lt;p&gt;JavaScript possui escopo léxico. Entre outras coisas isso permite que você crie &lt;em&gt;closures&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;De maneira resumida você cria um “ambiente controlado” onde há funções/variáveis que só podem ser acessadas naquele escopo, criando um enclausuramento (&lt;em&gt;closure&lt;/em&gt;).&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const initPage = (root) =&amp;gt; {
+  const $root = $(root);
+  const $menu = $root.find(&#39;.menu&#39;);
+  const $profile = $menu.find(&#39;.profile&#39;);
+
+  const initProfile = () =&amp;gt; {
+    $.get(&#39;/me&#39;)
+      .then(response =&amp;gt; $profile.text(response.username));
+    // ...
+  };
+
+  const showProfileModal = e =&amp;gt; {
+   // ...
+  };
+
+  $profile.on(&#39;click&#39;, e =&amp;gt; showProfileModal(e));
+
+  initProfile();
+};
+
+initPage(&#39;body&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Este é um exemplo bem bobo, mas que ilustra bem como criamos &lt;em&gt;closures&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;As variáveis declaradas dentro de &lt;em&gt;initPage&lt;/em&gt; só existem naquele escopo.&lt;/p&gt;
+
+&lt;p&gt;No mesmo exemplo podemos refatorar esse código em uma &lt;strong&gt;IIFE (Immediately-Invoked Function Expression)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;((root) =&amp;gt; {
+  const $root = $(root);
+  const $menu = $root.find(&#39;.menu&#39;);
+  const $profile = $menu.find(&#39;.profile&#39;);
+
+  const initProfile = () =&amp;gt; {
+    $.get(&#39;/me&#39;)
+     .then(response =&amp;gt; $profile.text(response.username));
+    //  ...
+  };
+
+  const showProfileModal = e =&amp;gt; {
+    // ...
+  };
+
+  $profile.on(&#39;click&#39;, e =&amp;gt; showProfileModal(e));
+
+  initProfile();
+})(&#39;body&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse código declaramos uma função e a executamos imediatamente, passando um argumento. Isso é extremamente útil quando queremos fazer um processamento de uma informação que vai servir apenas para criar uma variável.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const timezones = (() =&amp;gt; {
+  const zones = [];
+  const min = -12;
+  const max = 13;
+  let simbol;
+
+  for (let i = min; i &amp;lt;= max; i++) {
+    simbol = (i &amp;lt; 0) ? &#39;&#39; : &#39;+&#39;;
+    zones.push(`GMT${simbol}${i}`);
+  }
+
+  return zones;
+})();
+&lt;/pre&gt;
+
+&lt;p&gt;Como você já pode perceber, é possível expor dados de uma &lt;em&gt;closure&lt;/em&gt; como no exemplo anterior. A variável zones é retornada, assim a variável &lt;em&gt;timezones&lt;/em&gt; agora possui como valor o resultado da &lt;em&gt;closure&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Nesse exemplo a &lt;em&gt;closure&lt;/em&gt; não usa dados externos a ela (&lt;em&gt;parent scope&lt;/em&gt;/escopo pai) porém dada a natureza do JavaScript isso é perfeitamente possível.&lt;/p&gt;
+
+&lt;p&gt;Isso é útil para não poluir o escopo principal com informações irrelevantes.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;const makeCounter = (start = 0) =&amp;gt; {
+  let current = start;
+
+  const add = (value = 1) =&amp;gt; current += value;
+  const remove = (value = 1) =&amp;gt; add(value * -1);
+  const get = () =&amp;gt; current;
+
+  return { add, remove, get };
+};
+
+const counter = makeCounter(10);
+
+counter.add() // 11
+counter.add() // 12
+counter.add(8) // 20
+counter.remove(10) // 10
+&lt;/pre&gt;
+
+&lt;p&gt;Este é um exemplo bem interessante. Estamos combinando &lt;em&gt;closures&lt;/em&gt; com &lt;em&gt;factory&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Com isso podemos criar vários contadores, e trabalhar como melhor convir com estes contadores.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_56186&#34; style=&#34;width: 510px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;img class=&#34;wp-image-56186 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/wtf.gif&#34; alt=&#34;Só isso! Simples, né?&#34; width=&#34;500&#34; height=&#34;284&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Só isso! Simples, né?
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Se você entendeu como o exemplo do contador funciona, parabéns você já sabe criar serviços com javascript.&lt;/p&gt;
+
+&lt;p&gt;Isso mesmo, este contator é um serviço. Na verdade ele é um &lt;em&gt;factory&lt;/em&gt;, mas com pequenos ajustes ele vira um serviço de fácil reuso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// makeCounter.js -&amp;gt; factory
+const makeCounter = (start = 0) =&amp;gt; {
+  let current = start;
+
+  const add = (value = 1) =&amp;gt; current += value;
+  const remove = (value = 1) =&amp;gt; add(value * -1);
+  const get = () =&amp;gt; current;
+
+  return { add, remove, get };
+};
+
+export default makeCounter
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;// counter.js -&amp;gt; service
+import makeCounter from &#39;./makeCounter.js&#39;;
+
+export default makeCounter(0);
+&lt;/pre&gt;
+
+&lt;p&gt;Agora temos dois arquivos, um contendo o &lt;em&gt;factory&lt;/em&gt; do contador, e outro contendo o serviço de contagem.&lt;/p&gt;
+
+&lt;h2 id=&#34;módulos-javascript&#34;&gt;Módulos JavaScript&lt;/h2&gt;
+
+&lt;p&gt;&lt;img class=&#34;size-full wp-image-56185 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/10/module.gif&#34; alt=&#34;module&#34; width=&#34;400&#34; height=&#34;250&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Como visto anteriormente, é bem simples criar serviços com JavaScript, basta antes entender alguns conceitos.&lt;/p&gt;
+
+&lt;p&gt;Porém isso não é tudo, se você esta criando um serviço é porque tem a intenção de reusar esta lógica em mais de um local da aplicação. Isto não é uma regra, talvez você queira apenas centralizar a lógica da operação.&lt;/p&gt;
+
+&lt;p&gt;Não importa o objetivo inicial, você vai acabar criando um módulo JavaScript para aquela sua operação/serviço. No exemplo do contador foram criados dois arquivos, o &lt;em&gt;contador&lt;/em&gt; e o &lt;em&gt;factory do contador&lt;/em&gt;. Nesse momento você precisa entender minimamente o que são módulos JavaScript.&lt;/p&gt;
+
+&lt;p&gt;Em resumo: um arquivo JavaScript é um módulo e um módulo JavaScript é um arquivo.&lt;/p&gt;
+
+&lt;p&gt;Você pode criar um módulo a partir de outros módulos, como é o exemplo do contador, ele é composto a partir do módulo &lt;em&gt;makeCouter&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Em geral a lógica dos módulo é encapsulada em &lt;em&gt;closures&lt;/em&gt; e o retorno delas é &lt;em&gt;cacheado&lt;/em&gt;, sendo assim, uma vez que você importa um módulo, ele será &lt;strong&gt;o mesmo sempre, compartilhando seu estado&lt;/strong&gt;. Saiba mais &lt;a href=&#34;http://www.vuejs-brasil.com.br/utilizando-vuex-na-forma-modular-2/#vamosentenderoqueaconteceu&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;usando-serviços&#34;&gt;Usando serviços&lt;/h3&gt;
+
+&lt;p&gt;Agora que você possui essas informações acredito que criar seus próprios serviços não será nenhum &lt;em&gt;bicho de sete cabeças&lt;/em&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Vale a pena dizer que tudo pode ser considerado um serviço, inclusive &lt;em&gt;factories&lt;/em&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Para reforçar vou deixar mais um exemplo de uso de serviços.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import Http from &#39;./http.js&#39;;
+import UsersService from &#39;./modules/users/service.js&#39;;
+
+Http.setToken(&#39;XPTO&#39;); // Define o token de autentificação
+
+// Cattega a primeira página de usuários
+// Exibe um alerta com o nome do primeiro usuário retornado pelo serviço
+
+UsersService
+  .getAll({ page: 1 })
+  .then(result =&amp;gt; result.data)
+  .then(data =&amp;gt; data[0])
+  .then(first =&amp;gt; {
+    alert(first.name);
+  });
+&lt;/pre&gt;
+
+&lt;p&gt;Para efeito de aprendizado uma sintaxe alternativa, com &lt;a href=&#34;https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Statements/import&#34;&gt;&lt;em&gt;import binding&lt;/em&gt;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import { setToken } from &#39;./http.js&#39;;
+import { getAll as getAllUsers } from &#39;./modules/users/service.js&#39;;
+
+setToken(&#39;XPTO&#39;); // Define o token de autentificação
+
+// Carrega a primeira página de usuários
+// Exibe um alerta com o nome do primeiro usuário retornado pelo serviço
+
+getAllUsers({ page: 1 })
+  .then(result =&amp;gt; result.data)
+  .then(data =&amp;gt; data[0])
+  .then(first =&amp;gt; {
+    alert(first.name);
+  });
+&lt;/pre&gt;
+
+&lt;p&gt;Este pode não parecer para alguns mas é um exemplo bem prático do uso de serviços.&lt;/p&gt;
+
+&lt;p&gt;O serviço de &lt;em&gt;Http&lt;/em&gt; também é usado pelo &lt;em&gt;serviço de usuários&lt;/em&gt;, por isso é possível definir o &lt;strong&gt;&lt;em&gt;token&lt;/em&gt;&lt;/strong&gt; de autentificação antes de efetivamente usar os serviços, pois eles vão compartilhar o mesmo estado/serviço.&lt;/p&gt;
+
+&lt;p&gt;Outra característica interessante é que esses serviços não estão ligados diretamente a nenhum contexto. Isso significa que não importa que ambiente você esteja ou que &lt;em&gt;framework&lt;/em&gt; você esta usando, os serviços são agnósticos. Eles podem ser usados no &lt;strong&gt;NodeJS, VueJS, ReactJS&lt;/strong&gt;, etc.&lt;/p&gt;
+
+&lt;p&gt;Este é um dos princípios do polimorfismos do JavaScript porém este é outro assunto.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Se quiser saber mais sobre meu trabalho visite meu blog&lt;a href=&#34;https://medium.com/@luizvinicius73&#34;&gt; https://medium.com/@luizvinicius73&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Este artigo foi originalmente postado no meu &lt;a href=&#34;https://medium.com/by-vinicius-reis/trabalhando-com-servicos-no-javascript-864310cf386c&#34;&gt;blog no medium&lt;/a&gt; em 31 de Julho de 2016&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Acelere o desenvolvimento front-end com Jade</title>
+      <link>http://tableless.com.br/acelere-o-desenvolvimento-front-end-com-jade/</link>
+      <pubDate>Mon, 03 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/acelere-o-desenvolvimento-front-end-com-jade/</guid>
+      <description>&lt;p&gt;Certos elementos em nossos sites sempre se repetem, como o menu, o cabeçalho e o rodapé. Replicar o código desses elementos em cada página é uma péssima ideia. Imagine ter um site com mais de 100 páginas HTML e para cada uma, ter que codificar o mesmo menu, o mesmo cabeçalho e o mesmo rodapé. Além de ser algo extremamente trabalhoso, dar manutenção em um código desses é uma tarefa complicada. Imagine que para uma simples alteração de ano, geralmente encontrada no rodapé de muitos sites, seria necessário alterar 100 arquivos. O risco de esquecer algum deles e deixar suas páginas com um layout inconsistente é alto.&lt;/p&gt;
+
+&lt;p&gt;Com o advento do HTML5, existe uma nova especificação para reutilização de HTML. São os &lt;a href=&#34;http://www.w3.org/TR/html-imports/&#34; target=&#34;_blank&#34;&gt;HTML imports&lt;/a&gt;. Porém, sua &lt;a href=&#34;http://caniuse.com/#search=import&#34; target=&#34;_blank&#34;&gt;adoção pelos navegadores atuais(07/2015) &lt;/a&gt;ainda é mínima. Outra estratégia largamente utilizada é o uso do &lt;em&gt;include&lt;/em&gt; do &lt;em&gt;PHP&lt;/em&gt;, como visto em &lt;a href=&#34;http://tableless.com.br/otimizando-e-organizando-seu-front-end-com-php/&#34; target=&#34;_blank&#34;&gt;outro artigo&lt;/a&gt; aqui mesmo no Tableless. Porém, essa não é uma solução elegante, já que depende de um servidor &lt;em&gt;PHP,&lt;/em&gt; e nem todo site/sistema é criado com base nessa estrutura de &lt;em&gt;backend&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Entra em cena o &lt;em&gt;template engine&lt;/em&gt; &lt;a href=&#34;http://jade-lang.com&#34; target=&#34;_blank&#34;&gt;Jade&lt;/a&gt;. Com recursos para fazer &lt;em&gt;include&lt;/em&gt; de HTML e muitas outras funcionalidades, sua sintaxe é extremamente limpa, baseada em indentação, como o &lt;em&gt;Python&lt;/em&gt;. No exemplo a seguir (retirado e adaptado do site oficial do projeto) compare seu equivalente transformado em HTML:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-21.12.59.png&#34; target=&#34;_blank&#34;&gt;&lt;img class=&#34;alignnone&#34; title=&#34;JADE e HTML lado a lado&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-21.12.59.png&#34; alt=&#34;Jade e o HTML gerado&#34; width=&#34;800&#34; height=&#34;357&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Todo começo de linha é interpretado como uma tag HTML, a menos que comece com o operador &amp;#8220;|&amp;#8221;. Neste caso, será interpretado como innerHTML, assim como o texto após uma tag e um espaço (visto na linha 4 da imagem acima).&lt;/p&gt;
+
+&lt;p&gt;No Jade, os atributos das tags são definidos dentro de parênteses, separados entre si por vírgula:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-haml&#34;&gt;form(name=&#34;form&#34;, novalidate)
+  textarea(name=&#34;pergunta&#34;, required, id=&#34;pergunta&#34;)
+  label(for=&#34;pergunta&#34;) Digite sua pergunta
+&lt;/pre&gt;
+
+&lt;p&gt;Equivalente em HTML:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;form name=&#34;form&#34; novalidate&amp;gt;
+  &amp;lt;textarea name=&#34;pergunta&#34; required id=&#34;pergunta&#34;&amp;gt;&amp;lt;/textarea&amp;gt;
+  &amp;lt;label for=&#34;pergunta&#34;&amp;gt;Digite sua pergunta&amp;lt;/label&amp;gt;
+&amp;lt;/form&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Ids e classes podem igualmente ser definidos dentro dos parênteses ou através de atalhos, onde &lt;code&gt;#&lt;/code&gt; é um atalho para id e &lt;code&gt;.&lt;/code&gt; é um atalho para classes:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;div#container
+  input#titulo.validate.bordered(type=&#34;text&#34;)
+&lt;/pre&gt;
+
+&lt;p&gt;O código acima irá gerar:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div id=&#34;container&#34;&amp;gt;
+  &amp;lt;input id=&#34;titulo&#34; class=&#34;validate bordered&#34; type=&#34;text&#34;&amp;gt;
+&amp;lt;div&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;O Jade é muito mais que uma sintaxe limpa para seu HTML. Um grande recurso do Jade é o uso da herança de templates e &lt;em&gt;includes&lt;/em&gt;. É possível criar uma página base e então criar páginas que estendam esta página com um conteúdo específico. Assim, conseguimos criar um template com os trechos que se repetem em nosso site, como o cabeçalho, o rodapé, etc. Abaixo, um exemplo de herança de templates do Jade:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-21.29.23.png&#34; alt=&#34;Templates e includes&#34; width=&#34;343&#34; height=&#34;240&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;No arquivo layout.jade acima, é definido o template que será estendido por todas as outras páginas. É possível também visualizar o recurso de includes.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;include head&lt;/code&gt; : arquivo head.jade, onde é carregado folhas de estilo, definido o title da página, o viewport, dentre outros;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;include cabecalho&lt;/code&gt;: arquivo cabecalho.jade onde é carregado a logo do site;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;include menu&lt;/code&gt;: arquivo menu.jade onde é inserido o menu do site. Pode também ser colocado junto com o cabecalho, mas aqui mantivemos em um arquivo separado;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;block contentBlock&lt;/code&gt; : esse é o trecho que será sobrescrito por cada página que extender o layout.jade;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;include footer&lt;/code&gt;: arquivo footer.jade com o rodapé do site (simplificado para melhor entendimento):&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-22.07.49.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-50039 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-22.07.49.png&#34; alt=&#34;exemplo de footer do arquivo Jade&#34; width=&#34;599&#34; height=&#34;120&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O Jade &amp;#8220;inclui&amp;#8221; o código do arquivo no lugar onde ele invocado (onde foi feito o &lt;em&gt;include&lt;/em&gt;). Criado o layout.jade, basta estender esse layout para cada página do seu site como visto no código abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-22.16.40.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-50040 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-22.16.40.png&#34; alt=&#34;contentBlock foi o nome do bloco definido no arquivo layout.jade para ser sobrescrito.&#34; width=&#34;746&#34; height=&#34;172&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O nome &lt;em&gt;contentBlock&lt;/em&gt; foi definido no arquivo layout.jade para ser sobrescrito. Com o recurso de &lt;em&gt;includes&lt;/em&gt; e &lt;em&gt;extends&lt;/em&gt; conseguimos resolver o problema sem ter que replicar código HTML para várias páginas.&lt;/p&gt;
+
+&lt;p&gt;Outra funcionalidade que acelera nosso processo de desenvolvimento é o uso dos &lt;strong&gt;&lt;em&gt;mixins&lt;/em&gt;&lt;/strong&gt;. &lt;em&gt;Mixins&lt;/em&gt; reusam fragmentos de código HTML, possibilitando parametrizar certos pedaços de código. Vamos tomar como exemplo o _&lt;a href=&#34;http://getbootstrap.com/components/#panels-alternatives&#34; target=&#34;_blank&#34;&gt;panel&lt;/a&gt;_ do Bootstrap. Esse é o código usado para criar um &lt;em&gt;panel&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-23.23.28.png&#34; target=&#34;_blank&#34;&gt;&lt;img class=&#34;alignnone wp-image-50050 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-13-às-23.23.28.png&#34; alt=&#34;Código para criação de um panel no Bootstrap.&#34; width=&#34;636&#34; height=&#34;393&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Não é tanto &lt;em&gt;markup&lt;/em&gt;, mas que tal usarmos a estrutura de um &lt;em&gt;panel&lt;/em&gt; com apenas uma linha? Com o uso de &lt;em&gt;mixins&lt;/em&gt; isso é possível. Criamos uma estrutura inicial com o &lt;em&gt;markup&lt;/em&gt; de um &lt;em&gt;panel&lt;/em&gt;, parametrizando o que for necessário como o título, o rodapé e o estilo do &lt;em&gt;panel&lt;/em&gt;. Após criada essa estrutura (&lt;em&gt;mixin&lt;/em&gt;) para inserir um &lt;em&gt;panel&lt;/em&gt;, basta chamá-lo com o comando &lt;em&gt;+panel()&lt;/em&gt;, passando os parâmetros desejados.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-15-às-21.59.46.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-50150 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-15-às-21.59.46.png&#34; alt=&#34;Mixin e seu uso&#34; width=&#34;612&#34; height=&#34;441&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O seguinte código gerou os &lt;em&gt;panels&lt;/em&gt; abaixo. Perceba, que na estrutura criada, se não informarmos um título, o &lt;em&gt;panel&lt;/em&gt; ficará sem o seu título. O mesmo para o rodapé. Se não informarmos a classe para estilizar o &lt;em&gt;panel&lt;/em&gt;, nosso &lt;em&gt;mixin&lt;/em&gt; aplica a classe &lt;em&gt;panel-default&lt;/em&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-15-às-21.58.49.png&#34;&gt;&lt;img class=&#34;alignnone wp-image-50151 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/Captura-de-Tela-2015-07-15-às-21.58.49.png&#34; alt=&#34;Panels com uso de mixins&#34; width=&#34;579&#34; height=&#34;488&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Note que no conteúdo do &lt;em&gt;mixin&lt;/em&gt;, temos um &lt;em&gt;block&lt;/em&gt;. Esse será o bloco substituído pelo conteúdo definido abaixo da chamada ao &lt;em&gt;panel&lt;/em&gt;. Nesse &lt;em&gt;mixin&lt;/em&gt;, é apresentado também o conceito de variáveis e o comando de decisão &lt;code&gt;if&lt;/code&gt;. Perceba o grande poder que os &lt;em&gt;mixins&lt;/em&gt; nos proporciona. O exemplo acima é simples, mas podemos criar qualquer &amp;#8220;componente&amp;#8221; mais complexo e reutilizá-lo ao longo do nosso desenvolvimento.&lt;/p&gt;
+
+&lt;p&gt;Se interessou pelo Jade? Quer começar a usar hoje mesmo? No &lt;a href=&#34;http://jade-lang.com&#34; target=&#34;_blank&#34;&gt;site oficial do projeto&lt;/a&gt; você encontra um passo a passo de como usá-lo, além de documentação para outros recursos não citados nesse post. A princípio, a sintaxe do Jade pode parecer um pouco intimidadora, mas sua curva de aprendizado é rápida. Em questão de alguns minutos você já está familiarizado com sua estrutura.&lt;/p&gt;
+
+&lt;p&gt;Com o Jade também é possível gerar o HTML preservando a indentação ou configurando-o para remover espaços e quebras de linha, gerando um HTML &amp;#8220;minificado&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;E se você utiliza algum automatizador de tarefas, basta adicionar o Jade ao seu workflow com o &lt;a href=&#34;https://github.com/gruntjs/grunt-contrib-jade&#34; target=&#34;_blank&#34;&gt;Grunt&lt;/a&gt; ou o &lt;a href=&#34;https://github.com/phated/gulp-jade&#34; target=&#34;_blank&#34;&gt;Gulp&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Em um relacionamento sério com generators front-end – Parte 3</title>
+      <link>http://tableless.com.br/em-um-relacionamento-serio-com-generators-front-end-parte-3/</link>
+      <pubDate>Fri, 06 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/em-um-relacionamento-serio-com-generators-front-end-parte-3/</guid>
+      <description>
+
+&lt;h2 style=&#34;text-align: center&#34;&gt;
+  &lt;img class=&#34;aligncenter size-full wp-image-46781&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/02/pngbase643ef91c517603490c.png&#34; alt=&#34;png;base643ef91c517603490c&#34; width=&#34;281&#34; height=&#34;408&#34; srcset=&#34;uploads/2015/02/pngbase643ef91c517603490c.png 281w, uploads/2015/02/pngbase643ef91c517603490c-96x139.png 96w&#34; sizes=&#34;(max-width: 281px) 100vw, 281px&#34; /&gt;
+&lt;/h2&gt;
+
+&lt;h2 id=&#34;tl-dr&#34;&gt;TL;DR&lt;/h2&gt;
+
+&lt;p&gt;Antes de iniciarmos o post, vale lembrar que em momento nenhum eu e o &lt;a href=&#34;https://twitter.com/PedroPolisenso&#34; target=&#34;_blank&#34;&gt;Pedro Polisenso&lt;/a&gt; estamos elegendo o melhor ou pior generator, visto que o output desse tipo de ferramenta é geralmente o mesmo dependendo da comparação, sendo assim, cabe a você analisar prós e contras de cada um e realizar uma escolha satisfatória pra sua necessidade.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Mas vamos parar de mimimi e vamos ao que importa.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;slush-um-gerador-baseado-em-streamings-e-no-gulp&#34;&gt;Slush, um gerador baseado em streamings (e no gulp).&lt;/h2&gt;
+
+&lt;p&gt;Nossa! Entramos no assunto principal e de cara deixando explícito que o &lt;a href=&#34;http://slushjs.github.io/&#34; target=&#34;_blank&#34;&gt;Slush&lt;/a&gt; utiliza Streamings e o Gulp, e se usa eles, já que todo mundo fala de Streamings e Gulp, é porque é bom, não é? Mas o que são Streamings e porque isso pode fazer a diferença na escolha do Slush como gerador? E que raios é esse tal de Gulp?&lt;/p&gt;
+
+&lt;h3 id=&#34;stream&#34;&gt;Stream&lt;/h3&gt;
+
+&lt;p&gt;Sendo bem objetivo, &lt;a href=&#34;http://pt.wikipedia.org/wiki/Stream&#34; target=&#34;_blank&#34;&gt;Stream&lt;/a&gt; é um processo computacional para lidar com informações. Ok, mas o que isso quer dizer para nós? Quer dizer que&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Streams está para o Slush, Como a cereja está para o bolo.&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Isso mesmo! E quando digo isso, é porque, ao utilizar Streamings ganhamos agilidade para trabalhar com dados provenientes de arquivos ou seja lá qual for a origem, pois esta forma de processo, armazena toda a informação em memória, o que não nos obriga por exemplo, abrir(&lt;em&gt;ler&lt;/em&gt;) e fechar(&lt;em&gt;escrever&lt;/em&gt;) arquivos e/ou conexões o todo tempo para manipular essa informação, além de outros benefícios, que não vou abordar neste post, visto que o foco dele é o Slush, certo? 😀&lt;/p&gt;
+
+&lt;h3 id=&#34;gulp&#34;&gt;Gulp&lt;/h3&gt;
+
+&lt;p&gt;O &lt;a href=&#34;http://gulpjs.com/&#34; target=&#34;_blank&#34;&gt;Gulp&lt;/a&gt; é um Task Runner baseado em Streamings, e ao ler isso, normalmente a pessoa faz uma cara de espertinho, sabendo de cara que esse é o motivo do Slush ser um Scaffolding Generator baseado em Streamings (&lt;em&gt;dã&lt;/em&gt;). Ok! Mas ao chegar nessa conclusão, o que digo a vocês é que estão &lt;strong&gt;CERTÍSSIMOS&lt;/strong&gt; 😉&lt;/p&gt;
+
+&lt;p&gt;Mas não é só isso, Gulp é de fácil uso, alta eficiência e qualidade de código, e além de tudo, fácil de aprender e isso o Slush herda por default ao utilizar ele.&lt;/p&gt;
+
+&lt;p&gt;Tá! Mas não da pra falar do Gulp sem falar do Grunt (&lt;em&gt;mimimi4ever&lt;/em&gt;), porém, não quero gerar nenhum flame, o principal tópico que tenho a dizer sobre isso, é que no final, ambos tem a mesma finalidade, mas a forma de execução e as vezes de processamento, é que pode variar… oO&amp;#8230;mas vamos deixar esses breves conceitos embutidos pra lá e voltar ao assunto principal&amp;#8230;&lt;/p&gt;
+
+&lt;h2 id=&#34;tudo-bem-mas-8230-é-só-isso-que-o-slush-tem-de-bom&#34;&gt;Tudo bem, mas&amp;#8230; é só isso que o Slush tem de bom?&lt;/h2&gt;
+
+&lt;p&gt;Se fosse só o uso do Gulp e Streamings já seria bastante coisa, mas a boa notícia é que o Slush tem muito mais a oferecer, e para ilustrar, fiz uma pequena lista de benefícios trazidos por ele:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://slushjs.github.io/generators/#/&#34; target=&#34;_blank&#34;&gt;Repositório de Generators oficial&lt;/a&gt;;&lt;/li&gt;
+&lt;li&gt;É extremamente flexível para criação e distribuição de Generators;&lt;/li&gt;
+&lt;li&gt;Faz tudo que o Grunt faz, e muita das vezes de forma bem mais simples;&lt;/li&gt;
+&lt;li&gt;Utiliza o Gulp em sua base e que por sua vez aplica outros inúmeros benefícios e comodidades;&lt;/li&gt;
+&lt;li&gt;É totalmente testavél.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;entendi-e-gostei-como-faço-para-começar-a-utilizar&#34;&gt;Entendi e gostei, como faço para começar a utilizar?&lt;/h2&gt;
+
+&lt;h4 id=&#34;instalação&#34;&gt;Instalação&lt;/h4&gt;
+
+&lt;p&gt;Para instalar o Slush, basta você ter o &lt;a href=&#34;http://nodejs.org/&#34; target=&#34;_blank&#34;&gt;NodeJS&lt;/a&gt; no seu computador e executar o seguinte comando no terminal:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; $ npm install -g slush
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Para testar a instalação, basta executar o comando:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; $ slush -v
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Se ele retonar a versão do mesmo, é porque ocorreu tudo supimpa (&lt;em&gt;rs&amp;#8230;&lt;/em&gt;).&lt;/p&gt;
+
+&lt;h4 id=&#34;utilizando-generators-de-terceiros&#34;&gt;Utilizando Generators de terceiros&lt;/h4&gt;
+
+&lt;p&gt;Para utilizar Generators de terceiros ou até mesmo distribuir e utilizar os que você criar em qualquer lugar daqui pra frente, vamos recorrer ao repositório disponibilizado pelo &lt;a href=&#34;http://joakim.beng.se/&#34; target=&#34;_blank&#34;&gt;criador do Slush&lt;/a&gt;, que você pode conferir &lt;a href=&#34;http://slushjs.github.io/generators/#/&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;. Nele existem centenas de Generators dos mais variados tipos e finalidades, e para exemplificar o uso de Generators de terceiros, irei utilizar um que eu mesmo criei: O &lt;a href=&#34;https://github.com/webcomponents/slush-element/&#34; target=&#34;_blank&#34;&gt;&lt;strong&gt;slush-element&lt;/strong&gt;&lt;/a&gt;, que basicamente serve pra criar Web Components, utilizando-se do padrão do Polymer, X-Tags ou Nativo (VannilaJS).&lt;/p&gt;
+
+&lt;p&gt;Para iniciarmos o uso do generator &lt;strong&gt;element&lt;/strong&gt;, precisamos instalar o mesmo e para isso, basta executar o seguinte comando no terminal:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; $ npm install -g &amp;lt;strong&amp;gt;slush-element&amp;lt;/strong&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Após concluir a instalação, você poderá executar esse generator em sua forma &lt;em&gt;default&lt;/em&gt; ou através de tarefas disponibilizadas, e a forma de se fazer isso, eu exemplifico logo abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; # Executando tarefa &amp;lt;em&amp;gt;&#39;default&#39;&amp;lt;/em&amp;gt; do generator &amp;lt;strong&amp;gt;element&amp;lt;/strong&amp;gt;
+ $ slush element
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Ou então, se desejar e caso exista alguma tarefa específica, faça o seguinte:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; # Executando tarefa &amp;lt;em&amp;gt;&#39;repo&#39;&amp;lt;/em&amp;gt; do generator &amp;lt;strong&amp;gt;element&amp;lt;/strong&amp;gt;
+ $ slush element:&amp;lt;strong&amp;gt;repo&amp;lt;/strong&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Mas claro, existem múltiplas opções de saída dentro deste exemplo, porém, vai lá, instala o generator, teste-o e divirta-se, e principalmente se você curtir o assunto Web Components como eu, este gerador será uma super mão na roda pra você. Mas para saber mais sobre ele, acesse este &lt;a href=&#34;https://github.com/webcomponents/slush-element&#34;&gt;link&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;bacana-mas-e-seu-eu-quiser-fazer-um-comofaz&#34;&gt;Bacana, mas e seu eu quiser fazer um? #comofaz&lt;/h2&gt;
+
+&lt;p&gt;Bom, não irei aprofundar muito nos detalhes de criação, pois dá pra fazer uma série só sobre esses detalhes, mas irei demonstrar os arquivos necessários para desenvolvermos um Generator para o Slush e também colocarei o conteúdo que cada um deles necessita com comentários explicativos, mas qualquer dúvida a mais que você tiver, é só deixar nos comentários! Vou ter um prazer enorme em responder. E lá vamos nós 😀&lt;/p&gt;
+
+&lt;pre&gt;slush-boilerplate/
+   node_modules/         # Diretório de instalação local das dependências obrigatórias do Slush e do seu generator, se ele tiver alguma.
+   templates/            # Local que armazenamos os templates do generator.
+   templates/index.html  # Arquivo* de template [&lt;em&gt;*poderia ser qualquer arquivo&lt;/em&gt;].
+   package.json          # Arquivo de configuração do NodeJS e onde ficam declaradas as dependências do Slush   Generator.
+   slushfile.js          # Arquivo de configuração que o Slush busca para execução do generator.&lt;/pre&gt;
+
+&lt;h3 id=&#34;arquivo-package-json&#34;&gt;Arquivo package.json&lt;/h3&gt;
+
+&lt;p&gt;Em primeiro lugar, vou falar do &lt;em&gt;package.json,&lt;/em&gt; que além de declarar as dependências necessárias para que o Slush e o Generator possa trabalhar, possui uma keyword chamada &lt;strong&gt;slushgenerator&lt;/strong&gt;, que é obrigatória para indexação no repositório oficial de Generators do Slush, mas não se preocupe em colocar outras além dessa, pois isso também ajudará na hora de buscar pelo seu Generator. Segue o modelo do package.json do nosso Generator abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+  &amp;quot;name&amp;quot;: &amp;quot;slush-boilerplate&amp;quot;,
+  &amp;quot;description&amp;quot;: &amp;quot;A slush generator boilerplate&amp;quot;,
+  &amp;quot;version&amp;quot;: &amp;quot;1.0.0&amp;quot;,
+  &amp;quot;homepage&amp;quot;: &amp;quot;https://github.com/obetomuniz/slush-boilerplate&amp;quot;,
+  &amp;quot;author&amp;quot;: {
+    &amp;quot;name&amp;quot;: &amp;quot;Beto Muniz&amp;quot;,
+    &amp;quot;email&amp;quot;: &amp;quot;contato@betomuniz.com&amp;quot;
+  },
+  &amp;quot;repository&amp;quot;: {
+    &amp;quot;type&amp;quot;: &amp;quot;git&amp;quot;,
+    &amp;quot;url&amp;quot;: &amp;quot;git://github.com/obetomuniz/slush-boilerplate.git&amp;quot;
+  },
+  &amp;quot;bugs&amp;quot;: {
+    &amp;quot;url&amp;quot;: &amp;quot;https://github.com/obetomuniz/slush-boilerplate/issues&amp;quot;
+  },
+  &amp;quot;licenses&amp;quot;: [{
+    &amp;quot;type&amp;quot;: &amp;quot;MIT&amp;quot;,
+    &amp;quot;url&amp;quot;: &amp;quot;https://github.com/obetomuniz/slush-boilerplate/blob/master/LICENSE&amp;quot;
+  }],
+  &amp;quot;main&amp;quot;: &amp;quot;slushfile.js&amp;quot;,
+  &amp;quot;dependencies&amp;quot;: {
+&amp;lt;strong&amp;gt;    &amp;quot;gulp&amp;quot;: &amp;quot;^3.8.7&amp;quot;,
+    &amp;quot;gulp-conflict&amp;quot;: &amp;quot;^0.3.0&amp;quot;,
+    &amp;quot;gulp-install&amp;quot;: &amp;quot;^0.2.0&amp;quot;,
+    &amp;quot;gulp-template&amp;quot;: &amp;quot;^2.0.0&amp;quot;,
+    &amp;quot;inquirer&amp;quot;: &amp;quot;^0.8.0&amp;quot;&amp;lt;/strong&amp;gt;
+  },
+  &amp;quot;keywords&amp;quot;: [
+    &amp;quot;&amp;lt;strong&amp;gt;slushgenerator&amp;lt;/strong&amp;gt;&amp;quot;
+  ]
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;arquivo-slushfile-js&#34;&gt;Arquivo slushfile.js&lt;/h4&gt;
+
+&lt;p&gt;Em segundo lugar e não menos importante, iremos criar o &lt;em&gt;slushfile.js&lt;/em&gt;, mas para entender melhor como funciona cada parte, leia os comentários no conteúdo logo abaixo:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&#39;use strict&#39;;
+
+// Requisição das dependências do Slush
+var gulp = require(&#39;gulp&#39;),
+    install = require(&#39;gulp-install&#39;),
+    conflict = require(&#39;gulp-conflict&#39;),
+    template = require(&#39;gulp-template&#39;),
+    inquirer = require(&#39;inquirer&#39;);
+
+// Aqui está nossa tarefa default, ou seja, ao executarmos o comando `&amp;lt;em&amp;gt;slush boilerplate&amp;lt;/em&amp;gt;`, esta tarefa é a que será chamada.
+gulp.task(&#39;default&#39;, function(done) {
+
+  // Está é a lista de perguntas. Podemos aplicar uma ou mais perguntas, e de diferentes tipos como: lista, checklist, boleano, texto, etc.
+  var prompts = [{
+    name: &#39;seuNome&#39;,
+    message: &amp;quot;Qual seu nome?&amp;quot;,
+    default: &amp;quot;Fulano de Tal&amp;quot;
+  }];
+
+  inquirer.prompt(prompts, function(answers) {
+
+    // Aqui os templates são declarados para serem encontrados no diretório `&amp;lt;em&amp;gt;templates&amp;lt;/em&amp;gt;`
+    var files = [];
+    files.push(__dirname + &#39;/templates/**&#39;);
+
+    // Executando e processando nossos arquivos a serem gerados.
+    gulp.src(files)
+      .pipe(template(answers))
+      .pipe(conflict(&#39;./&#39;))
+      .pipe(gulp.dest(&#39;./&#39;))
+      .pipe(install())
+      .on(&#39;end&#39;, function() {
+        done();
+      });
+  });
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;diretório-templates&#34;&gt;Diretório `&lt;em&gt;templates&lt;/em&gt;`&lt;/h4&gt;
+
+&lt;p&gt;Neste diretório serão armazenado os arquivos que serão entregues ao se utilizar o Generator. No nosso caso, iremos entregar dentro do diretório apenas um arquivo &lt;em&gt;index.html&lt;/em&gt;, mas nada impede você de colocar imagens, vídeos, sub-diretórios, arquivos de JavaScript, folhas de estilo, Markdown, ou seja, qualquer tipo de arquivo pode ser um “template” aqui dentro.&lt;/p&gt;
+
+&lt;h4 id=&#34;arquivo-index-html-dentro-do-diretório-templates&#34;&gt;Arquivo `&lt;em&gt;index.html&lt;/em&gt;` dentro do diretório `&lt;em&gt;templates&lt;/em&gt;`&lt;/h4&gt;
+
+&lt;pre class=&#34;prettyprint lang-html&#34;&gt;&lt;code&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+  &amp;lt;meta charset=&#34;UTF-8&#34;&amp;gt;
+  &amp;lt;title&amp;gt;Slush - Simple Bootstrap&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+  &amp;lt;h1&amp;gt;Olá, &amp;lt;%= seuNome %&amp;gt;.&amp;lt;/h1&amp;gt; &amp;lt;!-- Repare que coloco a mesma declaração de variável que eu crio na resposta da pergunta do slushfile.js. --&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;E basicamente serão estes 3 arquivos + um sub-diretório que iremos precisar.&lt;/p&gt;
+
+&lt;p&gt;Para testar localmente, além de ter o Slush instalado e ter rodado o comando &lt;code&gt;npm install&lt;/code&gt; no diretório do nosso Generator, será preciso executar no seu terminal o comando &lt;code&gt;npm link .&lt;/code&gt; dentro do diretório do nosso Generator, e assim, o mesmo será adicionado a lista de módulos do NPM do seu computador para uso normal.&lt;/p&gt;
+
+&lt;p&gt;Em no nosso caso após executar o comando &lt;code&gt;npm link .&lt;/code&gt; iremos executar o comando abaixo dentro de uma pasta qualquer:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; $ slush boilerplate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Ao fazer isso, será perguntado a você o seu nome, e em seguida, um arquivo &lt;em&gt;index.html&lt;/em&gt; será criado  neste diretório. Sim, é só isso mesmo 🙂&lt;/p&gt;
+
+&lt;p&gt;E por fim, para distribuir seu generator, será necessário uma conta no &lt;a href=&#34;https://www.npmjs.com/&#34; target=&#34;_blank&#34;&gt;NPMJS.ORG&lt;/a&gt; e a execução do comando &lt;code&gt;npm publish&lt;/code&gt; dentro do diretório do seu Generator. Caso você não esteja logado localmente no NPM, ao executar o comando, será solicitado seu &lt;strong&gt;username, senha e email&lt;/strong&gt; cadastrados no &lt;em&gt;NPMJS.ORG&lt;/em&gt;, para prosseguir, basta oferecer tais dados e executar novamente o comando &lt;code&gt;npm publish&lt;/code&gt;. E por fim, pra conferir a publicação, basta acessar sua conta no &lt;em&gt;NPMJS.ORG&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;OBS:&lt;/strong&gt; Se seu Generator tiver a keyword &lt;strong&gt;slushgenerator&lt;/strong&gt;, em pouco tempo ele será adicionado automaticamente no Repositório oficial de Generators do Slush.&lt;/p&gt;
+
+&lt;h2 id=&#34;e-isso-é-tudo-pessoal-8230-o&#34;&gt;E isso é tudo pessoal&amp;#8230; o/&lt;/h2&gt;
+
+&lt;p&gt;Mas antes de fechar o post, primeiramente espero que tenham gostado do tema e agradeço imensamente a leitura, mas deixo a dica para que não se prendam apenas nesse post, sempre busquem outras fontes de conhecimento, pois só assim, o seu senso crítico irá evoluir. Ah! E não deixem pra lá outros tópicos abordados aqui, como Streamings, Gulp, Grunt e bolos (sim, bolos).&lt;/p&gt;
+
+&lt;p&gt;Mas é isso&amp;#8230;Um abração!!! E até o próximo post.&lt;/p&gt;
+
+&lt;h2 id=&#34;referências&#34;&gt;Referências&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/slushjs/mock-gulp-dest&#34; target=&#34;_blank&#34;&gt;Ferramenta de Testes para Slush&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://en.wikipedia.org/wiki/Stream_%28computing%29&#34; target=&#34;_blank&#34;&gt;Stream&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://gulpjs.com/&#34; target=&#34;_blank&#34;&gt;GulpJS&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://slushjs.github.io/#/&#34; target=&#34;_blank&#34;&gt;Slush&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://slushjs.github.io/generators/#/&#34; target=&#34;_blank&#34;&gt;Slush Generators&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://nodejs.org/&#34; target=&#34;_blank&#34;&gt;NodeJS&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.npmjs.com/&#34; target=&#34;_blank&#34;&gt;NPMJS.ORG&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/obetomuniz/slush-boilerplate&#34; target=&#34;_blank&#34;&gt;Slush Generator Boilerplate&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/webcomponents/slush-element&#34; target=&#34;_blank&#34;&gt;Slush Element&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignleft size-medium wp-image-46783&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/02/elvis-thanks.gif&#34; alt=&#34;elvis-thanks&#34; width=&#34;247&#34; height=&#34;139&#34; /&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>O que é Node.js e saiba os primeiros passos</title>
+      <link>http://tableless.com.br/o-que-nodejs-primeiros-passos-com-node-js/</link>
+      <pubDate>Mon, 28 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/o-que-nodejs-primeiros-passos-com-node-js/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-é-node-js&#34;&gt;O que é Node.js?&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.nodejs.org/&#34; rel=&#34;noreferrer&#34;&gt;Node.js&lt;/a&gt; é uma plataforma para desenvolvimento de aplicações &lt;em&gt;server-side&lt;/em&gt; baseadas em rede utilizando &lt;strong&gt;JavaScript&lt;/strong&gt; e o &lt;strong&gt;V8 JavaScript Engine&lt;/strong&gt;, ou seja, com &lt;strong&gt;Node.js&lt;/strong&gt; podemos criar uma variedade de aplicações &lt;em&gt;Web&lt;/em&gt; utilizando apenas código em &lt;strong&gt;JavaScript&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Em uma primeira análise essa informação pode não parecer tão interessante, uma vez que existem diversas outras maneiras em que esses tipos de serviços podem ser implementados. Mas se pensarmos um pouco mais sobre as demandas de aplicações na internet e o modo em que o código em &lt;strong&gt;JavaScript&lt;/strong&gt; pode ser estruturado, vamos nos deparar com uma gama de novas possibilidades para desenvolvimento &lt;em&gt;Web&lt;/em&gt;, e provavelmente nos juntar à crescente comunidade que tem adotado essa plataforma.&lt;/p&gt;
+
+&lt;p&gt;Uma importante diferença está no fato do Node ser &lt;em&gt;single threaded&lt;/em&gt;. Embora isso possa parecer uma desvantagem em um primeiro momento, o que percebemos ao desenvolver com &lt;strong&gt;Node.js&lt;/strong&gt; é que isso simplifica extremamente a construção da aplicação, e por &lt;strong&gt;Node.js&lt;/strong&gt; utilizar uma abordagem não obstrutiva, essa diferença vai ser imperceptível na maioria dos casos.&lt;/p&gt;
+
+&lt;h3 id=&#34;v8-javascript-engine&#34;&gt;V8 JavaScript Engine&lt;/h3&gt;
+
+&lt;p&gt;É o interpretador de &lt;strong&gt;JavaScript&lt;/strong&gt; open source implementado pelo &lt;strong&gt;Google&lt;/strong&gt; em &lt;strong&gt;C++&lt;/strong&gt; e utilizado pelo &lt;strong&gt;Chrome&lt;/strong&gt;. O que sem dúvidas gera uma grande expectativa em relação ao desempenho do &lt;strong&gt;Node.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando-o-node-js&#34;&gt;Instalando o Node.js&lt;/h2&gt;
+
+&lt;p&gt;A instalação do &lt;strong&gt;Node.js&lt;/strong&gt; é extremamente simples graças ao fato de o &lt;strong&gt;V8 JavaScript Engine&lt;/strong&gt; ser completamente multi-plataforma, tudo que você precisa fazer é visitar a &lt;a href=&#34;http://www.nodejs.org/&#34; rel=&#34;noreferrer&#34;&gt;página oficial do Node.js&lt;/a&gt;, clicar em &amp;#8220;INSTALL&amp;#8221; e seguir as instruções.&lt;/p&gt;
+
+&lt;p&gt;&lt;img style=&#34;width: 100%&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/07/node_2.png&#34; alt=&#34;img node 2&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Após a instalação, basta executar o seguinte comando no seu terminal para verificar se foi instalado corretamente:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-plain&#34;&gt;$ node -v
+&amp;gt; v0.10.26
+&lt;/pre&gt;
+
+&lt;p&gt;deve retornar a versão do node que foi instalada, como por exemplo &lt;em&gt;v0.10.26&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-web-server-8216-olá-mundo&#34;&gt;O web server &amp;#8216;Olá mundo!’&lt;/h2&gt;
+
+&lt;p&gt;Ok, então vamos construir alguma coisa.&lt;/p&gt;
+
+&lt;p&gt;Nosso primeiro exemplo é um servidor que retorna a string &amp;#8216;Olá mundo&amp;#8217; para qualquer requisição. Para fazer isso utilizando Node você vai precisar de criar um arquivo &lt;strong&gt;JavaScript&lt;/strong&gt; que pode ser chamado &lt;em&gt;olanode.js&lt;/em&gt; e de três minutos do seu tempo.&lt;/p&gt;
+
+&lt;p&gt;Escreva o seguinte código no seu arquivo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var http = require(&#39;http&#39;);
+http.createServer(function(req,res) {
+  res.writeHead(200, { &#39;Content-Type&#39;: &#39;text/plain; charset=utf-8&#39; }); 
+  res.end(&#39;Olá mundo!&#39;);
+}).listen(3000);
+console.log(&#39;Servidor iniciado em localhost:3000. Ctrl+C para encerrar…&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Para executar o seu programa Node basta o seguinte comando no seu terminal:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-plain&#34;&gt;$ node olanode.js
+&lt;/pre&gt;
+
+&lt;p&gt;Para testar seu servidor você pode acessar &lt;em&gt;localhost:3000&lt;/em&gt; no seu navegador ou utilizar linha de comando com o comando &lt;code&gt;curl&lt;/code&gt; (em uma nova instância do terminal) como mostrado a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-plain&#34;&gt;$ curl http://0.0.0.0:3000/
+&amp;gt; Olá mundo!
+&lt;/pre&gt;
+
+&lt;p&gt;Caso você prefira retornar algum &lt;em&gt;html&lt;/em&gt; válido para o navegador, basta alterar &lt;code&gt;&#39;text/plain&#39;&lt;/code&gt; para &lt;code&gt;&#39;text/html&#39;&lt;/code&gt; no código acima e utilizar uma &lt;em&gt;tag html&lt;/em&gt; legal como &lt;code&gt;&amp;lt;h2&amp;gt;&lt;/code&gt;, como foi feito a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var http = require(&#39;http&#39;);
+
+http.createServer(function(req,res) { 
+  res.writeHead(200, { &#39;Content-Type&#39;: &#39;text/html; charset=utf-8&#39; }); 
+  res.end(&#39;&amp;lt;h2&amp;gt; Olá mundo! &amp;lt;/h2&amp;gt;&#39;);
+}).listen(3000);
+
+console.log(&#39;Servidor iniciado em localhost:3000. Ctrl+C para encerrar…’);
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;img style=&#34;width: 100%&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/07/node_1.png&#34; alt=&#34;img node 1&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora basta voltar ao seu navegador e ver o resultado.&lt;/p&gt;
+
+&lt;h2 id=&#34;orientado-a-eventos-e-não-obstrutivo&#34;&gt;Orientado a eventos e não obstrutivo&lt;/h2&gt;
+
+&lt;h3 id=&#34;orientado-a-eventos&#34;&gt;Orientado a eventos&lt;/h3&gt;
+
+&lt;p&gt;Vamos aproveitar este momento de euforia após a construção do seu primeiro servidor para aprender um pouco mais sobre &lt;strong&gt;Node.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Quando estamos desenvolvendo com &lt;strong&gt;Node.js&lt;/strong&gt; devemos utilizar uma abordagem orientada a eventos, isso quer dizer que o desenvolvedor precisa conhecer os eventos que serão emitidos em diferentes momentos da execução e também saber como ouvi-los para executar as operações necessárias.&lt;/p&gt;
+
+&lt;p&gt;Um bom exemplo de orientação a eventos está na construção de interfaces de usuário. Muitas vezes utilizamos elementos como por exemplo os botões que ao serem clicados emitem um evento do tipo &lt;em&gt;click&lt;/em&gt; ao qual podemos ouvir e executar alguma operação.&lt;/p&gt;
+
+&lt;p&gt;No nosso exemplo anterior utilizamos esse conceito quando chamamos método &lt;code&gt;listen&lt;/code&gt; do objeto do tipo &lt;em&gt;web server&lt;/em&gt; e passamos como parâmetro a porta 3000, com isso fizemos que a nossa aplicação ouvisse ao evento que é emitido sempre que alguém faz uma requisição no &lt;code&gt;localhost:3000&lt;/code&gt; e a nossa resposta foi servir a string ou a página html. Este evento é chamado &lt;em&gt;request&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para ilustrar estes conceitos, podemos escrever o nosso exemplo anterior em uma sintaxe alternativa da seguinte forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var http = require(&#39;http&#39;);
+
+var server = http.createServer();
+
+server.on(&#39;request&#39;, function(req,res) { 
+  res.writeHead(200, { &#39;Content-Type&#39;: &#39;text/html; charset=utf-8&#39; }); 
+  res.end(&#39;&amp;lt;h2&amp;gt; Olá mundo! &amp;lt;/h2&amp;gt;&#39;);
+});
+
+server.listen(3000);
+
+console.log(&#39;Servidor iniciado em localhost:3000. Ctrl+C para encerrar…’);
+&lt;/pre&gt;
+
+&lt;p&gt;Dessa forma podemos ver claramente a maneira em que o &lt;strong&gt;Node.js&lt;/strong&gt; opera para servir a sua página. Utilizamos o método &lt;code&gt;on&lt;/code&gt; do nosso objeto &lt;em&gt;server&lt;/em&gt; para ouvir ao evento &lt;em&gt;request&lt;/em&gt; e fazer as operações. E definimos que estamos servindo na porta 3000.&lt;/p&gt;
+
+&lt;h3 id=&#34;não-obstrutivo&#34;&gt;Não obstrutivo&lt;/h3&gt;
+
+&lt;p&gt;Todos os recursos presentes no &lt;strong&gt;Node.js&lt;/strong&gt; e também a maioria das bibliotecas feitas para ele adotaram um padrão não obstrutivo de escrever código, isso quer dizer que em &lt;strong&gt;Node.js&lt;/strong&gt; você geralmente vai conseguir estruturar seu código de uma maneira que operações que não dependem de nada que está sendo executado possam ser executadas de forma independente.&lt;/p&gt;
+
+&lt;p&gt;Para mostrar um pouco como isso funciona, vamos um programa que escreve duas frases no terminal, porém uma dessas frases precisa ser carregada da memória antes de ser impressa.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var frase;
+
+carregaFrase = function (callback) {  
+  setTimeout(function() {
+    //Simula leitura da frase no banco de dados.
+    frase = &#34;Minha frase obstrutiva&#34;;
+    callback();
+  }, 3000)
+}
+
+imprimeFrase = function () {
+  console.log(frase);
+}
+
+carregaFrase(imprimeFrase);
+
+console.log(“Olá&#34;);
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse exemplo foi criada uma função chamada &lt;code&gt;carregaFrase&lt;/code&gt; cujo objetivo é ler uma determinada frase de uma fonte de dados, e uma outra função chamada &lt;code&gt;imprimeFrase&lt;/code&gt; que imprime o valor de uma determinada variável no console. Como dependemos da leitura da frase na fonte de dados para imprimir o valor, passamos a função que imprime como parâmetro para a função de leitura para que possamos executar essa função quando a leitura for concluída. Esse tipo de função que é passada como parâmetro dessa maneira é chamada de &lt;em&gt;callback&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Ao executar este exemplo com &lt;strong&gt;Node.js&lt;/strong&gt; ou qualquer mecanismo &lt;strong&gt;JavaScript&lt;/strong&gt; você vai perceber que a frase &amp;#8220;Olá&amp;#8221; será impressa antes da outra frase mesmo estando posicionada depois no código, isso se deve ao fato de sua execução não depender de nada enquanto a execução da outra frase depende de uma operação que leva 3 segundos.&lt;/p&gt;
+
+&lt;p&gt;Este é um exemplo extremamente simples de como criar um código não obstrutivo, portanto use sua imaginação para imaginar cenários em que isso pode ser útil.&lt;/p&gt;
+
+&lt;p&gt;Observe que no nosso primeiro exemplo com &lt;strong&gt;Node.js&lt;/strong&gt; tanto a função &lt;code&gt;on&lt;/code&gt; quanto a função &lt;code&gt;createServer&lt;/code&gt; podem receber uma função de &lt;em&gt;callback&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Espero que este tutorial tenha sido o suficiente para provocar o seu interesse em aprender mais sobre &lt;strong&gt;Node.js&lt;/strong&gt;. Portanto visite a &lt;a href=&#34;http://nodejs.org/api/&#34; rel=&#34;noreferrer&#34;&gt;documentação do Node.js&lt;/a&gt; para obter mais informações e exemplos de aplicações dessa plataforma e também a página da &lt;a href=&#34;https://www.joyent.com&#34; rel=&#34;noreferrer&#34;&gt;Joyent&lt;/a&gt;, patrocinadora oficial do projeto.&lt;/p&gt;
+
+&lt;p&gt;E finalmente, &lt;strong&gt;Node.js&lt;/strong&gt; é um projeto &lt;em&gt;open source&lt;/em&gt;, portanto você pode visualizar o código fonte e contribuir no &lt;a href=&#34;https://github.com/joyent/node&#34; rel=&#34;noreferrer&#34;&gt;repositório do Node.js no GitHub&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

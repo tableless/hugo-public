@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Temas Em Wordpress on Tableless</title>
+    <link>http://tableless.com.br/tags/temas-em-wordpress/index.xml</link>
+    <description>Recent content in Temas Em Wordpress on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/temas-em-wordpress/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Utilizando a API do bit.ly para gerar links encurtados para seus posts WordPress</title>
+      <link>http://tableless.com.br/utilizando-api-bit-ly-para-gerar-links-encurtados-para-seus-posts-wordpress/</link>
+      <pubDate>Wed, 29 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/utilizando-api-bit-ly-para-gerar-links-encurtados-para-seus-posts-wordpress/</guid>
+      <description>&lt;p&gt;Todo mundo sabe que é fundamental criar links de compartilhamento no seu artigo, só que no Twitter isso se restringe a 140 caracteres, e ao enviar o título do seu artigo, URL e seu usuário no Twitter pode faltar espaço. E para economizar espaço fazemos o quê? Uma das táticas é utilizar links curtos através de serviços como o &lt;a href=&#34;http://bit.ly&#34;&gt;bit.ly&lt;/a&gt;. Como tudo na programação, criamos uma maneira de automatizar nossas ações e para isso vamos ao código!&lt;/p&gt;
+
+&lt;p&gt;Primeiramente precisamos entender como a API do bit.ly funciona. Podemos fazer uma requisição via URL e a mesma nos retornará um arquivo XML:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://api.bit.ly/shorten?version=**[VERSÃO]**&amp;amp;longUrl=**[URL]**&amp;amp;login=**[LOGIN]**&amp;amp;apiKey=**[API]**&amp;amp;format=**[FORMATO]**&#34;&gt;http://api.bit.ly/shorten?version=**[VERSÃO]**&amp;amp;longUrl=**[URL]**&amp;amp;login=**[LOGIN]**&amp;amp;apiKey=**[API]**&amp;amp;format=**[FORMATO]**&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[VERSÃO]&lt;/strong&gt; &amp;#8211; A versão do XML&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[URL]&lt;/strong&gt; &amp;#8211; A URL a ser encurtada&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[LOGIN]&lt;/strong&gt; &amp;#8211; Seu login no bit.ly&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[API]&lt;/strong&gt; &amp;#8211; Seu código de API no bit.ly&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[FORMATO]&lt;/strong&gt; &amp;#8211; O formato de retorno (no nosso caso vamos usar XML)&lt;/p&gt;
+
+&lt;p&gt;Basta substituir os dados pelos seus e a requisição retornará um arquivo XML com as informações que precisamos. Veja um exemplo:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-50423 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/XML2.png&#34; alt=&#34;&#34; width=&#34;879&#34; height=&#34;288&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Bom, visto isso vamos aos códigos! Primeiramente criaremos uma função no &lt;strong&gt;functions.php&lt;/strong&gt; do seu tema, substituindo LOGIN e API por seus respectivos dados:&lt;/p&gt;
+
+&lt;pre&gt;function make_bitly_url($url,$format = &#39;xml&#39;,$version = &#39;2.0.1&#39;)
+{
+  //Set up account info
+  $bitly_login = &#39;LOGIN&#39;;
+  $bitly_api = &#39;API&#39;;
+  //create the URL
+  $bitly = &#39;http://api.bit.ly/shorten?version=&#39;.$version.&#39;&amp;longUrl=&#39;.urlencode($url).&#39;&amp;login=&#39;.$bitly_login.&#39;&amp;apiKey=&#39;.$bitly_api.&#39;&amp;format=&#39;.$format;
+  $xml = simplexml_load_file($bitly) -&amp;gt; results;
+  foreach($xml -&amp;gt; nodeKeyVal as $nodeKeyVal) {
+    return (string)$nodeKeyVal -&amp;gt; shortUrl;
+  }
+}&lt;/pre&gt;
+
+&lt;p&gt;Vamos às explicações: o código acima é basicamente um leitor de XML, e informando os seus dados ele vai formar uma URL que vai fazer uma requisição ao serviço do bit.ly e retornar o &lt;strong&gt;XML&lt;/strong&gt; que será lido pela função &lt;strong&gt;simplexml_load&lt;/strong&gt; e armazenado como um vetor na variável&lt;strong&gt; $xml&lt;/strong&gt;. Depois fazemos um loop com o &lt;strong&gt;foreach&lt;/strong&gt; por todos os itens &lt;strong&gt;nodeKeyVal&lt;/strong&gt; e retornamos a tag &lt;strong&gt;shortUrl&lt;/strong&gt; para a função que vamos chamar depois. Repare que colocamos uma (string) antes de puxar o &lt;strong&gt;$nodeKeyVal -&amp;gt; shortUrl&lt;/strong&gt;; isso é pra transformá-la em um valor retornável.&lt;/p&gt;
+
+&lt;p&gt;Como quase toda API, a do bit.ly tem limitação de requisições. Por isso precisamos armazenar as URLs encurtadas em nosso banco de dados. Vamos ao código de novo; dessa vez você vai colocar logo após iniciar o seu loop no &lt;strong&gt;single.php&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+global $short_url;
+// Checar se ja existe um URL encurtado armazenado no banco de dados
+if(get_post_meta($post-&amp;gt;ID, &#34;short_url&#34;, true) != &#34;&#34;){
+  //Short URL already exists, pull from post meta
+  $short_url = get_post_meta($post-&amp;gt;ID, &#34;short_url&#34;, true);
+}
+else {
+  // Caso não tenha, vamos criar uma
+  $full_url = get_permalink();
+  $short_url = make_bitly_url($full_url);
+  // Salvar no port_meta
+  add_post_meta($post-&amp;gt;ID, &#39;short_url&#39;, $short_url, true);
+}
+?&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;O código já está comentado mas vale explicar algumas coisas: usamos um condicional para checar se no nosso &lt;strong&gt;post_meta&lt;/strong&gt; existe uma tag &lt;strong&gt;short_url&lt;/strong&gt; diferente de um valor nulo; caso já exista ele vai pegá-la e armazenar na variável &lt;strong&gt;$short_url&lt;/strong&gt;. Caso não exista, iremos criar uma chamando a função &lt;strong&gt;make_bitly_url,&lt;/strong&gt; armazenando na variável &lt;strong&gt;$short_url&lt;/strong&gt; e depois adicionando-a ao &lt;strong&gt;post_meta.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto! Isso é quase o fim, agora só precisamos imprimir a variável &lt;strong&gt;$short_url&lt;/strong&gt;. É importante dizer que se você tentar imprimi-la antes do código que cria a variável obviamente isso não vai dar certo. Basicamente a função abaixo deve ficar depois da função acima, veja:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php echo $short_url; ?&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Bom, agora você pode usar como quiser: imprimi-la no seu artigo, criar um botão de compartilhamento, etc. Recomendo que você, depois de testar, tente implementar outras APIs e ver o resultado. Caso dê algo errado, tente habilitar o error_reporting do PHP porque vai ajudar bastante você descobrir onde está o erro. Você pode usar os comentários para me perguntar algo, será um prazer responder.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Personalizando o painel de administração do WordPress</title>
+      <link>http://tableless.com.br/customizando-o-painel-de-administracao-do-wordpress/</link>
+      <pubDate>Wed, 03 Jul 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/customizando-o-painel-de-administracao-do-wordpress/</guid>
+      <description>
+
+&lt;p&gt;Você provavelmente já &lt;a href=&#34;http://tableless.com.br/wordpress-uma-pequena-introducao/#.Uc3zT_bXS5c&#34; title=&#34;WordPress – Uma pequena introdução&#34;&gt;conhece o WordPress&lt;/a&gt; e já sabe &lt;a href=&#34;http://tableless.com.br/como-se-tornar-um-profissional-top-em-wordpress/#.Uc3zs_bXS5c&#34; title=&#34;http://tableless.com.br/como-se-tornar-um-profissional-top-em-wordpress/#.Uc3zs_bXS5c&#34;&gt;como criar seus próprios temas&lt;/a&gt;. Mas isto não significa que o trabalho acabou. É possível &amp;#8211; e extremamente recomendável &amp;#8211; personalizar os elementos da interface do Painel de Administração para que ele se adeque as necessidades de cada marca.&lt;/p&gt;
+
+&lt;h4 id=&#34;layouts-únicos&#34;&gt;Layouts únicos&lt;/h4&gt;
+
+&lt;p&gt;Muitas vezes ao fazer a escolha entre utilizar um sistema de administração de conteúdo padrão ou projetar o seu próprio do zero o critério de desempate é a capacidade de personalização. Quando você cria um CMS, seja para um blog, um site ou uma loja, você está levando em conta todas as necessidades específicas daquele cliente. O mesmo não acontece com um sistema pronto. Mas muitas vezes não é preciso reinventar a roda. Com alguns recursos simples você pode transformar o layout de um administrador padrão como o WordPress em algo consistente com a identidade visual do seu projeto.&lt;/p&gt;
+
+&lt;h4 id=&#34;melhor-usabilidade&#34;&gt;Melhor usabilidade&lt;/h4&gt;
+
+&lt;p&gt;Muitas vezes nossos clientes não possuem um conhecimento muito grande em administração de conteúdo para a web e a visão do painel de controle pode ser meio intimidadora. O que parece simples e fácil para você na maioria das vezes é bem complicado para pessoas que não estão habituadas com ambiente de desenvolvimento. Criar elementos que facilitem o uso, adaptando a interface para a cultura / nível de conhecimento de cada empresa é fazer com que o usuário se sinta em casa.&lt;/p&gt;
+
+&lt;h4 id=&#34;branding&#34;&gt;Branding&lt;/h4&gt;
+
+&lt;p&gt;Sua dashboard também pode ser uma extensão da sua marca. Logotipo, cores, tipografia, iconografia&amp;#8230; Estes são alguns dos elementos que podem ser inseridos dentro do painel para criar uma experiência verdadeiramente única &amp;#8211; mesmo dentro de um CMS padrão.&lt;/p&gt;
+
+&lt;h4 id=&#34;menos-dor-de-cabeça&#34;&gt;Menos dor de cabeça&lt;/h4&gt;
+
+&lt;p&gt;Se nada disto te convenceu pense nos motivos egoístas. Se o seu administrador for mais simples de usar você vai receber menos e-mails / ligações / chamadas no Skype com reclamações, certo? O ganho de produtividade (e horas de sono) não tem preço.&lt;/p&gt;
+
+&lt;p&gt;Bem, vamos por a mão na massa!&lt;/p&gt;
+
+&lt;h2 id=&#34;um-endereço-para-chamar-de-seu&#34;&gt;Um endereço para chamar de seu&lt;/h2&gt;
+
+&lt;p&gt;Se você está habituado a utilizar o WordPress provavelmente já digita &amp;#8220;/wp-login&amp;#8221; ou &amp;#8220;/wp-admin&amp;#8221; após o endereço de qualquer site que utilize a plataforma para entrar na sua conta. Mas talvez para o seu cliente seria mais fácil de lembrar do endereço se a url tivesse um nome mais amigável como &amp;#8220;/administrador&amp;#8221; ou até mesmo apenas &amp;#8220;/login&amp;#8221;, certo?&lt;/p&gt;
+
+&lt;p&gt;Para isto vamos precisar editar o arquivo .htaccess. Este arquivo fica geralmente na pasta raíz do seu diretorio do WordPress. Dependendo das configurações do seu servidor ele pode estar oculto. Para modificar a url do seu painel de administração basta inserir esta linha no topo do seu arquivo (substituindo &amp;#8220;seu-site&amp;#8221; pela sua url):&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;RewriteRule ^login$ http://seu-site.com.br/wp-login.php [NC,L]&lt;/pre&gt;
+
+&lt;p&gt;Agora basta acessar &lt;a href=&#34;http://seu-site.com.br/login&#34;&gt;http://seu-site.com.br/login&lt;/a&gt; para entrar na sua conta WordPress.&lt;/p&gt;
+
+&lt;h2 id=&#34;acessando-o-functions-php&#34;&gt;Acessando o functions.php&lt;/h2&gt;
+
+&lt;p&gt;Grande parte do código que eu vou apresentar para vocês funciona a partir de mudanças no arquivo de funções do WordPress, o functions.php. Para acessar este arquivo em seu painel do WordPress clique no menu &lt;strong&gt;Aparência&lt;/strong&gt;, &lt;strong&gt;Editor&lt;/strong&gt; e em seguida &lt;strong&gt;Funções do Tema&lt;/strong&gt; na barra lateral da direita. Pronto! Outra alternativa é localizar o arquivo no seu servidor através de FTP. O caminho até o arquivo normalmente é &lt;em&gt;/wp-content/themes/nome-do-tema/functions.php&lt;/em&gt; (Obviamente substituindo nome-do-tema pelo&amp;#8230; bem, você já entendeu.) Lembre-se de sempre colocar as linhas de código entre as tags &lt;code&gt;&amp;lt;?php&amp;gt;&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-tela-de-login&#34;&gt;A Tela de Login&lt;/h2&gt;
+
+&lt;p&gt;A primeira impressão é a que fica. Ter um layout bacana para a tela de login é garantir que seu usuário fique impressionado desde o inicio.&lt;/p&gt;
+
+&lt;h3 id=&#34;inserindo-seu-logotipo&#34;&gt;Inserindo seu logotipo&lt;/h3&gt;
+
+&lt;p&gt;Um logotipo é uma parte fundamental de uma marca. Quanto maior a visibilidade que ele tiver, mais fixado ficará na mente das pessoas. Na página inicial do painel de administração acima do formulário de login temos o logo do WordPress.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-37926&#34; alt=&#34;wp-login&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/06/wp-login.jpg&#34; width=&#34;660&#34; height=&#34;400&#34; srcset=&#34;uploads/2013/06/wp-login.jpg 660w, uploads/2013/06/wp-login-277x168.jpg 277w, uploads/2013/06/wp-login-511x310.jpg 511w&#34; sizes=&#34;(max-width: 660px) 100vw, 660px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para deixar o sistema com a identidade visual da sua empresa o primeiro passo é substituir esta imagem pelo seu próprio logo. Crie um arquivo de imagem com o tamanho máximo de 323 pixels de largura por 67 pixels de altura.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-37925&#34; alt=&#34;wp-login-tableless&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/06/wp-login-tableless.jpg&#34; width=&#34;660&#34; height=&#34;400&#34; srcset=&#34;uploads/2013/06/wp-login-tableless.jpg 660w, uploads/2013/06/wp-login-tableless-277x168.jpg 277w, uploads/2013/06/wp-login-tableless-511x310.jpg 511w&#34; sizes=&#34;(max-width: 660px) 100vw, 660px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;O logo do WordPress está como background de uma classe de CSS. Adicione a seguinte classe na sua folha de estilos e substitua o endereço pelo nome e caminho correto da imagem.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body.login div#login h1 a {
+    background-image: url(/wp-content/themes/nome-do-tema/img/site-logo.png);
+}&lt;/pre&gt;
+
+&lt;p&gt;Opcionalmente é possível realizar esta modificação através do functions.php. Lembre-se de alterar o valor de padding-bottom para o que funcionar melhor no seu caso e modificar o nome e caminho da imagem.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;// Custom WordPress Login Logo
+function my_login_logo() { ?&amp;gt;
+   body.login div#login h1 a {
+        background-image: url(/img/site-login-logo.png);
+        padding-bottom: 30px;
+   }
+
+&amp;lt;?php }
+add_action( &#39;login_enqueue_scripts&#39;, &#39;my_login_logo&#39; );&lt;/pre&gt;
+
+&lt;h3 id=&#34;alterando-o-link-do-logotipo&#34;&gt;Alterando o link do logotipo&lt;/h3&gt;
+
+&lt;p&gt;Por padrão o logotipo da tela de login aponta para WordPress.org. Seria interessante trocar o link para seu próprio endereço. O snippet abaixo cuida desta tarefa. Você deve colar esta função no arquivo &amp;#8211; você adivinhou &amp;#8211; functions.php.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;//Link na tela de login para a página inicial 
+function my_login_logo_url() {
+    return get_bloginfo( &#39;url&#39; );
+}
+add_filter( &#39;login_headerurl&#39;, &#39;my_login_logo_url&#39; );
+
+function my_login_logo_url_title() {
+    return &#39;Your Site Name and Info&#39;;
+}
+add_filter( &#39;login_headertitle&#39;, &#39;my_login_logo_url_title&#39; );&lt;/pre&gt;
+
+&lt;h3 id=&#34;criando-seus-próprios-estilos&#34;&gt;Criando seus próprios estilos&lt;/h3&gt;
+
+&lt;p&gt;Não é possível editar o arquivo HTML core do WordPress, mas podemos modifica-lo completamente através de CSS. Existem duas opções: utilizar sua folha de estilos padrão ou criar uma especificamente para o seu tema. Dá para realizar diversas modificações nesta tela como mudança de background, tipografia, trocar as dimensões do logo, etc. Para isto cole este código no functions.php e altere para o caminho e nome da sua folha de estilos. No caso o arquivo se chama style-login.css&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;//Login Stylesheet
+function my_login_stylesheet() { ?&amp;gt;
+    &amp;lt;link rel=&#34;stylesheet&#34; id=&#34;custom_wp_admin_css&#34;  href=&#34;&#34; type=&#34;text/css&#34; media=&#34;all&#34; /&amp;gt;
+&amp;lt;?php }
+add_action( &#39;login_enqueue_scripts&#39;, &#39;my_login_stylesheet&#39; );&lt;/pre&gt;
+
+&lt;p&gt;Segue uma lista de classes úteis para a personalização desta tela.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;body.login {}
+body.login div#login {}
+body.login div#login h1 {}
+body.login div#login h1 a {}
+body.login div#login form#loginform {}
+body.login div#login form#loginform p {}
+body.login div#login form#loginform p label {}
+body.login div#login form#loginform input {}
+body.login div#login form#loginform input#user_login {}
+body.login div#login form#loginform input#user_pass {}
+body.login div#login form#loginform p.forgetmenot {}
+body.login div#login form#loginform p.forgetmenot input#rememberme {}
+body.login div#login form#loginform p.submit {}
+body.login div#login form#loginform p.submit input#wp-submit {}
+body.login div#login p#nav {}
+body.login div#login p#nav a {}
+body.login div#login p#backtoblog {}
+body.login div#login p#backtoblog a {}&lt;/pre&gt;
+
+&lt;h2 id=&#34;alterando-o-ícone-da-dashboard&#34;&gt;Alterando o ícone da Dashboard&lt;/h2&gt;
+
+&lt;p&gt;OK. Agora que você já modificou a aparência externa do seu administrador está na hora de alterar a aparência interna. O primeiro passo é o ícone do cabeçalho do seu painel de controle. Por padrão temos um pequeno W.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-37922&#34; alt=&#34;header-dashboard&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/06/header-dashboard.jpg&#34; width=&#34;660&#34; height=&#34;26&#34; srcset=&#34;uploads/2013/06/header-dashboard.jpg 660w, uploads/2013/06/header-dashboard-329x12.jpg 329w, uploads/2013/06/header-dashboard-588x23.jpg 588w&#34; sizes=&#34;(max-width: 660px) 100vw, 660px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para adicionar o seu próprio ícone customizado basta criar uma imagem com 20px quadrados. A imagem precisa ser transparente (formato gif ou png).&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-37921&#34; alt=&#34;header-dashboard-tableless&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/06/header-dashboard-tableless.jpg&#34; width=&#34;660&#34; height=&#34;26&#34; srcset=&#34;uploads/2013/06/header-dashboard-tableless.jpg 660w, uploads/2013/06/header-dashboard-tableless-329x12.jpg 329w, uploads/2013/06/header-dashboard-tableless-588x23.jpg 588w&#34; sizes=&#34;(max-width: 660px) 100vw, 660px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Você pode modificar o background por CSS da classe #wp-admin-bar-wp-logo .ab-icon ou acrescentar o seguinte código no seu arquivo functions.php.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;//Custom dashboard logo
+add_action(&#39;admin_head&#39;, &#39;my_custom_logo&#39;);
+function my_custom_logo() {
+echo &#39;
+#wp-admin-bar-wp-logo .ab-icon {background: url(&#39;.get_bloginfo(&#39;template_directory&#39;).&#39;/img/admin_logo.png) no-repeat center top !important; }&#39;;
+}&lt;/pre&gt;
+
+&lt;h2 id=&#34;como-modificar-o-texto-do-footer&#34;&gt;Como modificar o texto do footer&lt;/h2&gt;
+
+&lt;p&gt;Por padrão o footer do WordPress exibe a mensagem &amp;#8220;Obrigado por criar com o WordPress&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-37920&#34; alt=&#34;footer&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/06/footer.jpg&#34; width=&#34;660&#34; height=&#34;52&#34; srcset=&#34;uploads/2013/06/footer.jpg 660w, uploads/2013/06/footer-329x25.jpg 329w, uploads/2013/06/footer-588x46.jpg 588w&#34; sizes=&#34;(max-width: 660px) 100vw, 660px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Ok. Não somos ingratos, mas já que você que criou seu próprio tema seria interessante colocar ali um link para seu portfólio, créditos relativos ao cliente ou a mensagem que você bem entender, certo?&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-37919&#34; alt=&#34;footer-modificado&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/06/footer-modificado.jpg&#34; width=&#34;660&#34; height=&#34;52&#34; srcset=&#34;uploads/2013/06/footer-modificado.jpg 660w, uploads/2013/06/footer-modificado-329x25.jpg 329w, uploads/2013/06/footer-modificado-588x46.jpg 588w&#34; sizes=&#34;(max-width: 660px) 100vw, 660px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para trocar este texto novamente vamos utilizar o nosso grande amigo functions.php. Adicione o seguinte código e mude o texto entre as aspas depois do echo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;// Customizar o Footer do WordPress
+function remove_footer_admin () {
+    echo &#39;© &amp;lt;a href=&#34;http://tableless.com.br/&#34;&amp;gt;Tableless&amp;lt;/a&amp;gt; - Desenvolvimento inteligente com padrões web e design&#39;;
+}
+add_filter(&#39;admin_footer_text&#39;, &#39;remove_footer_admin&#39;);&lt;/pre&gt;
+
+&lt;h2 id=&#34;saudações&#34;&gt;Saudações!&lt;/h2&gt;
+
+&lt;p&gt;O administrador em inglês do WordPress saúda o usuário com um &amp;#8220;Howdy!&amp;#8221;. Embora muita gente ache que a saudação jovem e divertida, talvez um cliente sério e corporativo ficasse mais satisfeito com algo menos &amp;#8220;sou um cowboy do Texas&amp;#8221;. Por sorte o painel em português diz um simples &amp;#8220;olá&amp;#8221;. Mesmo assim você poder querer trocar o texto para algo que combine mais com o seu projeto.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-37924&#34; alt=&#34;mensagem-header&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/06/mensagem-header.jpg&#34; width=&#34;660&#34; height=&#34;26&#34; srcset=&#34;uploads/2013/06/mensagem-header.jpg 660w, uploads/2013/06/mensagem-header-329x12.jpg 329w, uploads/2013/06/mensagem-header-588x23.jpg 588w&#34; sizes=&#34;(max-width: 660px) 100vw, 660px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para trocar o texto da saudação padrão do WordPress basta adicionar o seguinte snippet no arquivo functions.php.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-37923&#34; alt=&#34;mensagem-header-modificada&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/06/mensagem-header-modificada.jpg&#34; width=&#34;660&#34; height=&#34;26&#34; srcset=&#34;uploads/2013/06/mensagem-header-modificada.jpg 660w, uploads/2013/06/mensagem-header-modificada-329x12.jpg 329w, uploads/2013/06/mensagem-header-modificada-588x23.jpg 588w&#34; sizes=&#34;(max-width: 660px) 100vw, 660px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;No exemplo a seguir o texto dirá &amp;#8220;Bem vindo&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;// Saudação customizada
+function replace_howdy( $wp_admin_bar ) {
+    $my_account=$wp_admin_bar-&amp;gt;get_node(&#39;my-account&#39;);
+    $newtitle = str_replace( &#39;Olá&#39;, &#39;Bem vindo&#39;, $my_account-&amp;gt;title );            
+    $wp_admin_bar-&amp;gt;add_node( array(
+        &#39;id&#39; =&amp;gt; &#39;my-account&#39;,
+        &#39;title&#39; =&amp;gt; $newtitle,
+    ) );
+}
+add_filter( &#39;admin_bar_menu&#39;, &#39;replace_howdy&#39;,25 );&lt;/pre&gt;
+
+&lt;p&gt;Ah, se o seu admin estiver em inglês substitua &amp;#8220;Olá&amp;#8221; por &amp;#8220;Howdy&amp;#8221; ou este snippet não vai funcionar&amp;#8230;&lt;/p&gt;
+
+&lt;h2 id=&#34;temas-de-administração&#34;&gt;Temas de administração&lt;/h2&gt;
+
+&lt;p&gt;Todos estes snippets são bacanas para dar um tapa no visual do WordPress. Mas, se você ainda está insatisfeito com o nível de personalização, pode criar um tema completamente diferente. Para isto basta alterar o CSS do administrador. A folha de estilos padrão (/wp-admin/css) é bem completa e organizadinha. Pode ser que você só precise fazer alguns ajustes.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-37918&#34; alt=&#34;admin-css&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2013/06/admin-css.jpg&#34; width=&#34;660&#34; height=&#34;350&#34; srcset=&#34;uploads/2013/06/admin-css.jpg 660w, uploads/2013/06/admin-css-316x168.jpg 316w, uploads/2013/06/admin-css-584x310.jpg 584w&#34; sizes=&#34;(max-width: 660px) 100vw, 660px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Aqui estão algumas das classes mais utilizadas:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#wphead&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O cabeçalho do painél contendo o título principal, nome do blog e link para o site.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#adminmenu ul&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;A barra de navegação lateral com os links: &lt;strong&gt;Posts&lt;/strong&gt;, &lt;strong&gt;Mídia&lt;/strong&gt;, &lt;strong&gt;Ferramentas&lt;/strong&gt;&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#adminmenu2 ul&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;A subnavegação da barra lateral. Por exemplo &amp;#8220;dentro&amp;#8221; de &lt;strong&gt;Posts&lt;/strong&gt; teríamos &lt;strong&gt;Todos os Posts&lt;/strong&gt;, &lt;strong&gt;Adicionar Novo&lt;/strong&gt;, &lt;strong&gt;Tags&lt;/strong&gt; e &lt;strong&gt;Categorias&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;.wrap&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;A div que funciona como um container principal do painel de administração.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#footer&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O rodapé do site com logotipo do wordpress, versão e links.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;.wrap h2&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Títulos das seções principais como por exemplo &lt;strong&gt;Paine&lt;/strong&gt;l.&lt;/p&gt;
+
+&lt;p&gt;Posteriormente você pode criar um plugin com o seu tema para instalar/desinstalar quando quiser ou até mesmo e redistribuir para a comunidade.&lt;/p&gt;
+
+&lt;h2 id=&#34;apenas-a-ponta-do-iceberg&#34;&gt;Apenas a ponta do iceberg&lt;/h2&gt;
+
+&lt;p&gt;As dicas que eu mostrei aqui são só o começo. Dominando bem as classes CSS do tema e conhecendo o funcionamento do sistema é possível modificar completamente o layout do WordPress. É possível, por exemplo, criar widgets personalizados, esconder ou modificar itens do menu, ocultar alertas de atualizações, exibir mensagens de ajuda, etc. Além disto existem centenas de plugins a sua disposição para transformar ainda mais o sistema, seja em termos de design, seja acrescentando novas funcionalidades. A principal vantagem de trabalhar com um CMS tão conhecido e respeitado no mercado como o WordPress é justamente essa: poder contar com uma comunidade de desenvolvedores imensa criando e compartilhando conhecimento.&lt;/p&gt;
+
+&lt;h3 id=&#34;saiba-mais&#34;&gt;Saiba mais:&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codex.wordpress.org/Customizing_the_Login_Form&#34; title=&#34;Codex WordPress - Customizing the Login Form&#34;&gt;Codex &amp;#8211; Customizing the Login Form&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codex.wordpress.org/Creating_Admin_Themes&#34; title=&#34;Codex WordPress - Creating Admin Themes&#34;&gt;Codex &amp;#8211; Creating Admin Themes&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://wp-snippets.com/&#34; title=&#34;WP Snippets&#34;&gt;WP Snippets&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://wp.smashingmagazine.com/2012/05/17/customize-wordpress-admin-easily/&#34; title=&#34;Customize WordPress Admin Easily&#34;&gt;Smashing Magazine &amp;#8211; Customize WordPress Admin Easily &lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Como se tornar um profissional Top em WordPress</title>
+      <link>http://tableless.com.br/como-se-tornar-um-profissional-top-em-wordpress/</link>
+      <pubDate>Mon, 04 Feb 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/como-se-tornar-um-profissional-top-em-wordpress/</guid>
+      <description>
+
+&lt;p&gt;Neste artigo, vou mostrar como você poderá se tornar um profissional Top em WordPress e isso pode valer não só para os desenvolvedores, mas também para blogueiros, designers e todos os outros.&lt;/p&gt;
+
+&lt;p&gt;Primeiro, vamos definir algumas coisas: Se tornar um profissional Top em WordPress é um trabalho duro &amp;#8211; muito duro. Você precisará de tempo, energia e determinação. Se você está procurando um artigo rápido sobre esse tema, irá perder seu tempo. Ser um dos melhores é uma tarefa difícil e, estatisticamente falando, as probabilidades de acontecer isso estão contra você.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Com o WordPress, você não está dormindo no sofá de outra pessoa. É uma ferramenta open source que você pode controlar.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Em primeiro lugar, por que se importar com o WordPress? Cory Miller é o co-fundador da IThemes, que oferece temas WordPress profissionais, plugins e treinamento dos projetos. Ele também é co-autor da última edição do livro WordPress For Dummies. Miller começou com um blog em WordPress em 2006, como um iniciante e sem nenhuma experiência, começando a aprender com os temas gratuitos. Perguntei pra ele por que as pessoas devem se envolver com o WordPress.&lt;/p&gt;
+
+&lt;p&gt;“Com o WordPress, você não está dormindo no sofá de outra pessoa. É uma ferramenta open source que você pode controlar. Você pode fazer o que quiser com ele e sempre que quiser. Você não precisa de outra pessoa estúpida para fazer alterações ou não tocar nos códigos porque ele está fechado nos servidores de outras pessoas. Você tem liberdade. Mas o principal motivo para se envolver com WordPress é publicar alguma coisa na Web de forma fácil. Praticamente qualquer um pode ter um blog ou um site com o WordPress e isso abre uma oportunidade incrível para todos nós.“&lt;/p&gt;
+
+&lt;p&gt;O WordPress torna fácil publicar um blog ou site e democratiza a publicação de conteúdo na internet. Sua facilidade de usar torna possível um profissional Top sem ser um gênio em PHP.&lt;/p&gt;
+
+&lt;h2 id=&#34;por-que-ser-top-em-wordpress&#34;&gt;Por que ser Top em WordPress?&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2013/02/profissional-em-wordpress-414x310.jpg&#34; alt=&#34;Profissional em WordPress&#34; width=&#34;414&#34; height=&#34;310&#34; class=&#34;alignnone size-medium wp-image-8156&#34; srcset=&#34;uploads/2013/02/profissional-em-wordpress-414x310.jpg 414w, uploads/2013/02/profissional-em-wordpress-224x168.jpg 224w, uploads/2013/02/profissional-em-wordpress.jpg 500w&#34; sizes=&#34;(max-width: 414px) 100vw, 414px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Ser comum é normal e subestimado. Você pode não ser o melhor em tudo e se passar sua vida tentando ser, poderá passar sua vida em uma neurose horrível. Além disso, pode ser bom ser apenas ok em alguma coisa e você aceitar isso, pois isso seria bem menos estressante. Dito isso, pode ser muito bom se esforçar para ser melhor naquilo em que você é apaixonado e se isso é WordPress e o controle de fazer suas próprias coisas, você tem muitos benefícios, por exemplo:&lt;/p&gt;
+
+&lt;h4 id=&#34;ganhar-mais-dinheiro&#34;&gt;Ganhar mais dinheiro&lt;/h4&gt;
+
+&lt;p&gt;Se você quiser ganhar mais dinheiro, você precisa ser o melhor no que faz. Se você é bom, sua reputação irá crescer e você será capaz de cobrar por melhores preços. Confira neste e-book &lt;a href=&#34;http://build.codepoet.com/2012/05/11/getting-pricing-right/&#34; target=&#34;_blank&#34;&gt;como obter o preço certo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;ter-os-melhores-clientes&#34;&gt;Ter os melhores clientes&lt;/h4&gt;
+
+&lt;p&gt;Uma vez que você chegou ao topo, você tem muito mais liberdade para escolher seus clientes. Como seus preços irão aumentar, você vai descobrir que os clientes mais fáceis de lhe dar são os clientes que pagam melhor.&lt;/p&gt;
+
+&lt;h4 id=&#34;ter-mais-influência&#34;&gt;Ter mais influência&lt;/h4&gt;
+
+&lt;p&gt;Se você é apaixonado por WordPress, construir sua reputação significa mais oportunidade de ser influenciador.&lt;/p&gt;
+
+&lt;h4 id=&#34;faça-parte-da-comunidade&#34;&gt;Faça parte da comunidade&lt;/h4&gt;
+
+&lt;p&gt;A comunidade do WordPress é enorme e cresce ainda mais. Ao participar na comunidade e construir uma reputação no que você faz, você cria contatos com outras pessoas que também são apaixonadas por WordPress e que seguem o que você faz.&lt;/p&gt;
+
+&lt;h4 id=&#34;fazer-os-contatos-certos&#34;&gt;Fazer os contatos certos&lt;/h4&gt;
+
+&lt;p&gt;Se você construir uma boa reputação e contribuir com a comunidade WordPress, participando de WordCamps, encontros, eventos e se envolver, as pessoas vão tomar conhecimento de quem você é.&lt;/p&gt;
+
+&lt;h2 id=&#34;eu-não-sou-desenvolvedor-o-que-posso-fazer&#34;&gt;Eu não sou desenvolvedor. O que posso fazer?&lt;/h2&gt;
+
+&lt;p&gt;Você não precisa saber escrever código para usar WordPress. Se as únicas pessoas envolvidas com WordPress fossem desenvolvedores, o WordPress não seria o que é hoje. Aqui vai algumas coisas que você pode ser para usar WordPress:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Estilista&lt;/li&gt;
+&lt;li&gt;Gerente de projetos&lt;/li&gt;
+&lt;li&gt;Empresário&lt;/li&gt;
+&lt;li&gt;Consultor&lt;/li&gt;
+&lt;li&gt;Jornalista&lt;/li&gt;
+&lt;li&gt;Blogueiro&lt;/li&gt;
+&lt;li&gt;Professor&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Se você ainda não está convencido que pode usar o WordPress para outras coisas, um grande exemplo disso é Mika Epstein (conhecida como Ipstenu). Para ela, o WordPress começou como um hobby, mas rapidamente se tornou mais gratificante do que seu trabalho em TI, em um banco, onde ela fazia tudo, desde instalações de softwares a monitoramento de servidores. Recentemente, ela começou a trabalhar no suporte para WordPress da DreamHost, ajuda na documentação do WordPress.org e da suporte nos fóruns e blogs da comunidade do WordPress.&lt;/p&gt;
+
+&lt;h2 id=&#34;começando-a-se-tornar-top-em-wordpress&#34;&gt;Começando a se tornar Top em WordPress&lt;/h2&gt;
+
+&lt;p&gt;Para ser um profissional Top em WordPress, você não precisa ser capaz de escrever PHP e saber como consultar um banco de dados MySQL. O ecossistema do WordPress é grande e há espeço para diferente especialidades e se você quer se tornar um profissional Top, deve se tornar um especialista em algumas dessas áreas.&lt;/p&gt;
+
+&lt;h2 id=&#34;use-o-wordpress&#34;&gt;Use o WordPress&lt;/h2&gt;
+
+&lt;p&gt;Pode parecer óbvio, mas usando o WordPress para você mesmo é uma ótima maneira para começar. Poderia ser o seu blog pessoal ou um site para um amigo ou para alguém da sua família, enfim, encontre uma maneira de usar logo o WordPress. Seria estranho alguém querer se tornar Top sem nunca ter experimentado a ferramenta a partir da perspectiva do usuário.&lt;/p&gt;
+
+&lt;h2 id=&#34;instalando-o-wordpress-localmente&#34;&gt;Instalando o WordPress localmente&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2013/02/mamp-wordpress-381x310.jpg&#34; alt=&#34;MAMP WordPress&#34; width=&#34;381&#34; height=&#34;310&#34; class=&#34;alignnone size-medium wp-image-8157&#34; srcset=&#34;uploads/2013/02/mamp-wordpress-381x310.jpg 381w, uploads/2013/02/mamp-wordpress-206x168.jpg 206w, uploads/2013/02/mamp-wordpress.jpg 423w&#34; sizes=&#34;(max-width: 381px) 100vw, 381px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Você não precisa ser um desenvolvedor para criar um ambiente de desenvolvimento no seu computador. Pode parecer assustador, mas eu me lembro da primeira vez que estava configurando o Xampp com o WordPress e estava totalmente confuso e não tinha ideia do que estava fazendo. Agora eu tenho mais instalações locais do WordPress do que eu posso acompanhar. Instalar WordPress no seu computador significa que você pode fazer o que quiser com ele sem ter que se preocupar com nomes de domínios, hospedagens etc. Depois de instalar o WordPress algumas vezes em seu computador, vai perceber como é extremamente simples. Veja os tutoriais de como instalar o WordPress usando &lt;a href=&#34;http://wpmu.org/install-wordpress-locally-on-windows-with-xampp/&#34; target=&#34;_blank&#34;&gt;Xampp&lt;/a&gt; (Windows) ou &lt;a href=&#34;http://wp.smashingmagazine.com/2011/09/28/developing-wordpress-locally-with-mamp/&#34; target=&#34;_blank&#34;&gt;MAMP&lt;/a&gt; (Mac).&lt;/p&gt;
+
+&lt;h2 id=&#34;siga-os-blogs&#34;&gt;Siga os blogs&lt;/h2&gt;
+
+&lt;p&gt;Há uma infinidade de blogs sobre WordPress que você pode aprender. Adicione eles no seu leitor de RSS e mantenha-se atualizado. Com tantos blogs falando sobre WordPress, pode parecer que todos oferecem a mesma coisa, mas cada um oferece algo único. Aqui estão alguns dos meus favoritos:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://wp.smashingmagazine.com/&#34; target=&#34;_blank&#34;&gt;&lt;strong&gt;Smashing Magazine (Categoria de WordPress)&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Artigos mais longos e tutoriais.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://wprealm.com/&#34; target=&#34;_blank&#34;&gt;&lt;strong&gt;Realm WP&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Notícias sobre WordPress, opinião e artigos de especialistas em toda a comunidade.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.wpcandy.com/&#34; target=&#34;_blank&#34;&gt;&lt;strong&gt;WPCandy&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Notícias e Podcasts sobre WordPress.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.wpbeginner.com/&#34; target=&#34;_blank&#34;&gt;&lt;strong&gt;WPBeginner&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Tutoriais de WordPress e vídeos, junto com uma seção de cupons de desconto em produtos e serviços relacionados com WordPress.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://wpmu.org/&#34; target=&#34;_blank&#34;&gt;&lt;strong&gt;WPMU.org&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Dicas diárias, tutoriais e notícias de WordPress.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://wplift.com/&#34; target=&#34;_blank&#34;&gt;&lt;strong&gt;WPLift&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Temas, plug-ins e tutoriais.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://build.codepoet.com/&#34; target=&#34;_blank&#34;&gt;&lt;strong&gt;Code Poet&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Entrevistas com especialistas de destaque do WordPress e tutoriais.&lt;/p&gt;
+
+&lt;h2 id=&#34;seja-entusiasta&#34;&gt;Seja entusiasta&lt;/h2&gt;
+
+&lt;p&gt;Um pouco de entusiasmo leva tempo. James Mason, começou em um emprego como desenvolvedor de WordPress no WPMU DEV, mas fez um péssimo trabalho na modificaçãoo de um plugin que lhe deram. No entanto, eles sabiam de suas habilidades de comunicação e atitude.&lt;/p&gt;
+
+&lt;p&gt;“Independente do mercado, as pessoas querem trabalhar com alguém que gostem de estar perto. Ter uma atitude positiva e estar disposto a enfrentar os desafios são qualidades que qualquer empresa está procurando.“&lt;/p&gt;
+
+&lt;p&gt;Seu entusiasmo o levou para um longo caminho e agora Mason é CEO de sua própria agência de WordPress e gerenciamento de projetos, &lt;a href=&#34;http://thewpvalet.com/&#34; target=&#34;_blank&#34;&gt;Valet WP&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;ouvir&#34;&gt;Ouvir&lt;/h2&gt;
+
+&lt;p&gt;Já se passaram 10 anos desde que o WordPresss nasceu. Isso significa que há muita gente experiente na comunidade. Encontre essas pessoas e as ouça. Dougal Campbell é curador de uma lista no Twitter, chamado &lt;a href=&#34;https://twitter.com/#!/dougal/wpleaders&#34; target=&#34;_blank&#34;&gt;WPLeaders&lt;/a&gt; e é um ótimo lugar para encontrar pessoas com experiência em WordPress. Aproveite o tempo para aprender como funciona a comunidade antes de mergulhar nela.&lt;/p&gt;
+
+&lt;h2 id=&#34;envolva-se&#34;&gt;Envolva-se&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2013/02/envolvase-wordpress-465x310.jpeg&#34; alt=&#34;Envolva-se&#34; width=&#34;465&#34; height=&#34;310&#34; class=&#34;alignnone size-medium wp-image-8158&#34; srcset=&#34;uploads/2013/02/envolvase-wordpress-465x310.jpeg 465w, uploads/2013/02/envolvase-wordpress-252x168.jpeg 252w, uploads/2013/02/envolvase-wordpress.jpeg 500w&#34; sizes=&#34;(max-width: 465px) 100vw, 465px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora que você aprendeu o básico em WordPress, está na hora de começar a se envolver. Claro, você pode até caminhar sozinho e há muitas pessoas com empresas de sucesso de WordPress que não tem nada a ver com a comunidade. Mas há muitos motivos para se envolver com a comunidade. Aqui está o porquê:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A comunidade oferece um campus de treinamento livre, onde especialistas lhe daráo feedback e te ajudar a usar melhor o WordPress.&lt;/li&gt;
+&lt;li&gt;Se você é freelancer ou tem seu próprio negócio, a comunidade pode lhe fornecer suporte e relações humanas.&lt;/li&gt;
+&lt;li&gt;Ao se envolver com WordPress, você está ajudando a criar um produto melhor e todos podem se beneficiar.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;make-wordpress-org&#34;&gt;Make WordPress.org&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2013/02/make-wordpress.jpg&#34; alt=&#34;Make WordPress&#34; width=&#34;527&#34; height=&#34;238&#34; class=&#34;alignnone size-full wp-image-8159&#34; srcset=&#34;uploads/2013/02/make-wordpress.jpg 527w, uploads/2013/02/make-wordpress-329x148.jpg 329w&#34; sizes=&#34;(max-width: 527px) 100vw, 527px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Make WordPress.org é o lugar onde você pode encontrar blogs para todos os grupos. Onde costumava haver listas de discussão, agora há blogs. Todos os grupos estão reunidos na &lt;a href=&#34;http://make.wordpress.org/&#34; target=&#34;_blank&#34;&gt;Make WordPress.org&lt;/a&gt;. Você pode acompanhar todas elas ou escolher as que são mais relevantes para você. Os blogs que fazem parte são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Núcleo&lt;/li&gt;
+&lt;li&gt;Plugins&lt;/li&gt;
+&lt;li&gt;Acessibilidade&lt;/li&gt;
+&lt;li&gt;Suporte (incluindo fóruns e documentos)&lt;/li&gt;
+&lt;li&gt;UI&lt;/li&gt;
+&lt;li&gt;Temas&lt;/li&gt;
+&lt;li&gt;Polyglots&lt;/li&gt;
+&lt;li&gt;Eventos&lt;/li&gt;
+&lt;li&gt;Sistemas&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Há assunto para todos e cada blog tem uma comunidade empolgante e que trabalha para fazer o WordPress melhor. Cada frupo tem sua própria liderançaa que é responsável por organizar as discussões levantadas.&lt;/p&gt;
+
+&lt;h2 id=&#34;outros-suportes&#34;&gt;Outros suportes&lt;/h2&gt;
+
+&lt;p&gt;Os fóruns de suporte do WordPress são um excelente recurso para os usuários do WordPress, mas também é um ótimo lugar para você aprimorar suas habilidades em WordPress. Aprendemos melhor ensinando as pessoas. Eu aprendi 95% do que eu sei em WordPress escrevendo artigos e respondendo perguntas nos fóruns. Isso te ajuda a esclarecer o seu próprio conhecimento do WordPress. Respondendo perguntas de outras pessoas é a melhor maneira de fazer isso.&lt;/p&gt;
+
+&lt;p&gt;“Se você quiser saber mais sobre WordPress, não há maneira mais rápida do que ajudando as outras pessoas.“&lt;/p&gt;
+
+&lt;h2 id=&#34;escreva-sobre-wordpress&#34;&gt;Escreva sobre WordPress&lt;/h2&gt;
+
+&lt;p&gt;Você poderia começar a escrever sobre WordPress para o WordPress Codex, encontrando alguma página que precisa ser editada. O Codex feito em MediaWiki e qualquer um com um nome de usuário WordPress.org pode editar. O Codex tem sempre a necessidade de atualização e edição e contribuir com seus próprios artigos ajudará a primorar suas habilidades de WordPress. Você também pode ajudar com o &lt;a href=&#34;http://make.wordpress.org/support/handbook/&#34; target=&#34;_blank&#34;&gt;Manual de usuário do WordPress&lt;/a&gt;, que está atualmente em processo de edição nos blogs de suporte do WordPress.&lt;/p&gt;
+
+&lt;p&gt;O WordPress.org não é o único lugar para escrever sobre WordPress. Caso você encontre uma solução para um problema de WordPress e escrever sobre isso em seu blog pessoal, as pessoas encontrarão através do Google e lhes ajudarão a resolver seu problema e você o problema delas. Com o processo de escrever sobre como resolver problemas de WordPress, as soluções chegarão cada vez mais de forma clara para você.&lt;/p&gt;
+
+&lt;h2 id=&#34;conheça-a-comunidade&#34;&gt;Conheça a comunidade&lt;/h2&gt;
+
+&lt;p&gt;Trabalhar online é ótimo, mas não há nada como o encontro cara a cara para criar relacionamentos mais fortes e profundos. A fundação WordPress aceita dois tipos de eventos: WordPress &lt;a href=&#34;http://central.wordcamp.org/&#34; target=&#34;_blank&#34;&gt;WordCamps&lt;/a&gt; e &lt;a href=&#34;http://wordpress.org/news/2012/01/year-of-the-meetup/&#34; target=&#34;_blank&#34;&gt;Meetups&lt;/a&gt;. Wordcamps são grandes conferências anuais no qual especialistas e entusiastas se reúnem para compartilhar suas experiências com WordPress. Meetups são mais regulares, muitas vezes, uma vez por mês e são curtos encontros informais que podem envolver hacking ou apresentações. Participe de eventos e, quando se sentir confiante o suficiente, palestre neles. Não sinta que você tem que ser um gênio de WordPress para fazer uma apresentaçãoo. Se você já fez alguma coisa útil, o que vale a pena é compartilhar. Wordcamps e Meetups são importantes meios de construção de novos relacionamentos e amizades dentro dos mesmos interesses.&lt;/p&gt;
+
+&lt;h2 id=&#34;siga-em-frente&#34;&gt;Siga em frente&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2013/02/siga-wordpress-466x310.jpg&#34; alt=&#34;Siga em frente&#34; width=&#34;466&#34; height=&#34;310&#34; class=&#34;alignnone size-medium wp-image-8160&#34; srcset=&#34;uploads/2013/02/siga-wordpress-466x310.jpg 466w, uploads/2013/02/siga-wordpress-253x168.jpg 253w, uploads/2013/02/siga-wordpress.jpg 500w&#34; sizes=&#34;(max-width: 466px) 100vw, 466px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Ao formar relacionamentos com as pessoas certas, você está no primeiro passo para ficar à frente. Essas pessoas não precisam ser as mais proeminentes, mas pessoas com conhecimento e experiência que você possa confiar. As vezes é uma questão de conhecer as pessoas certas para responder suas perguntas. Isso não significa que você deve chamar as pessoas às 4 da manhã para pedir ajuda. Ao construir novos relacionamentos e interagindo com a comunidade, você terá uma coleção inteira de pessoas que podem ajuda-lo com vários tipos de questões como qual a melhor empresa de hospedagem ou como encontrar um bom programador. Ficando à frente nem sempre é ser o melhor em algo em si, mas conhecer as pessoas certas fazendo as perguntas certas.&lt;/p&gt;
+
+&lt;h2 id=&#34;saiba-o-que-está-acontecendo&#34;&gt;Saiba o que está acontecendo&lt;/h2&gt;
+
+&lt;p&gt;Se você quiser chegar à frente, você precisa saber mais do que apenas é o WordPress em sua versão atual. Você deve se manter atualizado com o que vai acontecer no WordPress não apenas em seu Core, mas em toda sua comunidade. Se você está trabalhando com seus clientes, você precisa saber o que está reservado para eles nas próximas atualizações do WordPress. Há muitas maneiras de fazer isso:&lt;/p&gt;
+
+&lt;h4 id=&#34;execute-o-nightly-builds&#34;&gt;Execute o nightly builds&lt;/h4&gt;
+
+&lt;p&gt;Mantenha a &lt;a href=&#34;http://wordpress.org/download/nightly/&#34; target=&#34;_blank&#34;&gt;nightly builds&lt;/a&gt; instalado em uma instalação local. Isso irá manter o seu update.&lt;/p&gt;
+
+&lt;h4 id=&#34;acompanhe-o-desenvolvimento-do-core&#34;&gt;Acompanhe o desenvolvimento do Core&lt;/h4&gt;
+
+&lt;p&gt;Você pode acompanhar o que está acontecendo no núcleo do WordPress de várias maneiras: seguindo o &lt;a href=&#34;http://make.wordpress.org/core/&#34; target=&#34;_blank&#34;&gt;Make WordPress Core&lt;/a&gt;, mantendo-se com os &lt;a href=&#34;https://irclogs.wordpress.org/chanlog.php?channel=wordpress-dev&#34; target=&#34;_blank&#34;&gt;Recent Development Chats&lt;/a&gt; e seguindo o &lt;a href=&#34;http://core.trac.wordpress.org/&#34; target=&#34;_blank&#34;&gt;WordPress Trac&lt;/a&gt;. Você também pode seguir o &lt;a href=&#34;https://twitter.com/wordpresstrac&#34; target=&#34;_blank&#34;&gt;@wordpresstrac&lt;/a&gt; no Twitter para atualizações ao vivo.&lt;/p&gt;
+
+&lt;h4 id=&#34;acompanhe-as-mudanças-de-interface&#34;&gt;Acompanhe as mudanças de interface&lt;/h4&gt;
+
+&lt;p&gt;Grande mudanças na interface do usuário pode ser confuso para os usuários despreparados com WordPress. Mantenha seus clientes informados sobre as atualizações.&lt;/p&gt;
+
+&lt;h2 id=&#34;saiba-quando-fazer-uma-pausa&#34;&gt;Saiba quando fazer uma pausa&lt;/h2&gt;
+
+&lt;p&gt;Não jogue fora sua TV e não se livre do seu vídeo-game e seus livros ou qualquer coisa que voê gosta de fazer. Nos primeiros anos em que trabalhei com WordPress, eu trabalhava dia e noite. Fazer seu próprio negócio e se envolver com a comunidade pode ser muito intensa. Há confrontos e argumentos que chegarão até você. Pode vir de uma pessoa rude, fórum, twitter e isso pode te deixar cansado. Você precisa dar uma pausa e fazer as coisas que você gosta.&lt;/p&gt;
+
+&lt;h2 id=&#34;continue-ouvindo&#34;&gt;Continue ouvindo&lt;/h2&gt;
+
+&lt;p&gt;Mesmo que você tenha chegado ao topo, você precisa ouvir. Outras pessoas continuarão tendo opiniões diferente das suas e não importa o quanto bom você pense que é, há casos em que você pode estar errado. Chegar ao topo não significa saber todas as coisas a respeito de tudo, mas só que você é realmente bom em algo. Continue ouvindo aqueles que também são bons e mesmo os que não são.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;O mercado de WordPress é uma área onde reúne muitos tipos de profissionais. Não apenas desenvolvedores, mas jornalistas, blogueiros, gerentes de projetos, designers, consultores, médicos, professores e inúmeros profissões que utilizam o WordPress e são muito bem remunerado com ele. Há outras recompensas além do dinheiro. O nosso mundo está cada vez mais fragmentado, especialmente para nós que passamos a maior parte do tempo online. Ser parte de uma comunidade significa ter pessoas para se comunicar, compartilhar ideias e colaborar para formar novas parcerias e amizades. Se você quer tomar o caminho para o topo e se divertir enquanto faz isso, então é só escutar, aprender, compartilhar, colaborar e contribuir.&lt;/p&gt;
+
+&lt;p&gt;_Tradução e adaptação do texto de &lt;a href=&#34;http://wp.smashingmagazine.com/author/siobhan-mckeown/?rel=author&#34; target=&#34;_blank&#34;&gt;Siobhan McKeown&lt;/a&gt;, originalmente publicado na &lt;a href=&#34;http://wp.smashingmagazine.com/2012/12/05/become-top-wordpress-professional/&#34; target=&#34;_blank&#34;&gt;Smashing Magazine&lt;/a&gt;._&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

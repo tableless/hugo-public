@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Phppoo on Tableless</title>
+    <link>http://tableless.com.br/tags/phppoo/index.xml</link>
+    <description>Recent content in Phppoo on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/phppoo/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando aplicações portáveis entre diferentes SGBDs usando PDO(PHP Data Objects)</title>
+      <link>http://tableless.com.br/criando-aplicacoes-portaveis-entre-diferentes-sgbds-usando-pdophp-data-objects/</link>
+      <pubDate>Mon, 26 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-aplicacoes-portaveis-entre-diferentes-sgbds-usando-pdophp-data-objects/</guid>
+      <description>&lt;p&gt;Quero apresentar nesse artigo as principais funcionalidades do PDO. PDO é uma biblioteca que implementa abstração ao acesso dos dados, ou seja, ela utiliza um driver específico, para cada SGBD (Sistema Gerenciador de Banco de Dados), tornando possível a portabilidade da base de dados de sua aplicação, sem que a mesma sofra danos ou que você passe horas e horas reescrevendo linhas e mais linhas de código.&lt;/p&gt;
+
+&lt;p&gt;O primeiro passo é habilitar o driver do PDO no php.ini retirando o &amp;#8220;;&amp;#8221; da sua frente;&lt;/p&gt;
+
+&lt;p&gt;No Windows:&lt;/p&gt;
+
+&lt;pre&gt;extension=php_pdo.dll
+extension=php_pdo_mysql.dll&lt;/pre&gt;
+
+&lt;p&gt;No Linux:&lt;/p&gt;
+
+&lt;pre&gt;extension=pdo.so
+extension=pdo_mysql.so
+&lt;/pre&gt;
+
+&lt;p&gt;Consideremos o seguinte banco de dados:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;create database livraria;
+use livraria;
+create table livros(
+id int not null auto_increment,
+titulo varchar(75) not null,
+preco decimal(10,2) not null,
+estoque int not null,
+PRIMARY KEY (id));
+&lt;/pre&gt;
+
+&lt;p&gt;Estabelecemos a conexão com o Banco de dados no nosso arquivo connect.php&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;//Local do banco
+$host = &#34;localhost&#34;;
+//Nome do banco de dados
+$db = &#34;livraria&#34;;
+//Seu Usuário no banco de dados
+$user = &#34;root&#34;;
+//Senha do banco de dados
+$pass = &#34;&#34;;
+//Estabelecendo a conexão
+try
+{
+  /**
+   *Agora o pulo do gato,aqui é onde a mágica acontece, precisamos especificar o banco de dados 
+que iremos trabalhar,no nosso caso, optei pelo mysql. Em seguida especificamos o local 
+e o nome do banco de dados e por último o usuário e a senha
+    */
+    $pdo = new PDO(&#34;mysql:host=$host;dbname=$db&#34;, $user, $pass);
+}
+catch (Exception $e)
+{
+    echo &#34;Erro ao estabelecer conexão com o banco de dados:&#34;.$e-&amp;gt;getMessage();
+    die;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para inserir no Banco de dados criamos o arquivo insert.php.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/**
+ * Insere conexão com o banco de dados estabelecida anteriormente 
+ */
+include &#39;connect.php&#39;;
+/**
+ * Variáveis que podem receber os valores do seu formulário
+ */
+ $titulo = &#34;Padrões de Projeto - PHP&#34;;
+ $preco = 140.5;
+ $estoque = 5;
+
+try 
+{   /**
+    *Aqui preparamos primeiramente nossa instrução de inserção e como valores, 
+passamos as &#34;?&#34;(interrogações) para referencia-las com o parâmetro passado pela função bindParam. 
+    * */
+    $sql=&#34;INSERT INTO `livros` (`titulo`, `preco`, `estoque`) VALUES (?, ?, ?)&#34;;
+    $stmt = $pdo-&amp;gt;prepare($sql);
+    $stmt-&amp;gt;bindParam(1,$titulo);
+    $stmt-&amp;gt;bindParam(2,$preco);
+    $stmt-&amp;gt;bindParam(3,$estoque);
+    
+    if($stmt-&amp;gt;execute())
+        echo &#34;Gravado com Sucesso&#34;;
+    else
+        throw new Exception(&#34;Erro ao gravar informação&#34;);
+
+}
+catch (Exception $e) 
+{
+    echo $e-&amp;gt;getMessage();   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para atualizar os arquivos no banco de dados utilizamos nosso arquivo update.php:&lt;/p&gt;
+
+&lt;pre&gt;/**
+*   Inclusão da minha Conexão
+* */
+include &#39;connect.php&#39;;
+/**
+ * Variáveis que vem do seu formulário html  
+ */
+$titulo = &#34;Padrões de Projeto - PHP&#34;;
+$preco = 60;
+$estoque = 5;
+try 
+{   
+       /**
+    *Aqui preparamos nossa instrução de atualização dos dados  
+    * */
+    $sql=&#34;UPDATE `livros` SET `preco` = ?, `estoque`= ? WHERE `titulo` = ?&#34;;
+    $stmt = $pdo-&amp;gt;prepare($sql);
+    $stmt-&amp;gt;bindParam(1,$preco);
+    $stmt-&amp;gt;bindParam(2,$estoque);
+    $stmt-&amp;gt;bindParam(3,$titulo);
+
+    if($stmt-&amp;gt;execute())
+        echo &#34;Atualizado com Sucesso&#34;;
+    else
+        throw new Exception(&#39;Erro ao Atualizar&#39;);
+
+} 
+catch (Exception $e) 
+{
+    echo $e-&amp;gt;getMessage();   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para listar os dados no list.php:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;include &#39;conect.php&#39;;
+   //listando os livros
+   $sql = &#34;SELECT * FROM livros&#34;;
+   $dados = $pdo-&amp;gt;query($sql);
+/**
+*fetch()-&amp;gt;Retorna a próxima linha do resultado.
+*fetchAll()-&amp;gt; Retorna um array com todos os resultados.
+*fetchObject()-&amp;gt; Retorna a próxima linha do resultado como objeto.
+*fetchColumn()-&amp;gt; Retorna uma coluna da próxima linha do resultado.
+**/
+while ($result = $dados-&amp;gt;fetch())
+{   
+ echo $result[&#39;titulo&#39;] . &#34; - &#34;. $result[&#39;preco&#39;]. &#34;-&#34;. $result[&#39;estoque&#39;].&#34;
+&#34;;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;E para deletar os arquivos criamos o delete.php:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/**
+ *  Inclusão da minha Conexão
+ **/
+include &#39;conect.php&#39;;
+/**
+ * Variáveis que vem do seu formulário html  
+ */
+$titulo = &#34;Padrões de Projeto - PHP&#34;;
+$preco = 60;
+$estoque = 5;
+
+try 
+{   
+    /**
+    * Aqui preparamos nossa instrução de exclusão dos dados.  
+    **/
+      $sql=&#34;DELETE FROM `livros` WHERE `titulo` = ?&#34;;
+    $stmt = $pdo-&amp;gt;prepare($sql);
+    $stmt-&amp;gt;bindParam(1,$titulo);
+
+    if($stmt-&amp;gt;execute())
+        echo &#34;Deletado com Sucesso&#34;;
+    else
+        throw new Exception(&#39;Erro ao Deletar&#39;);
+
+} 
+catch (Exception $e) 
+{
+    echo $e-&amp;gt;getMessage();   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Métodos da classe PDO:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;exec int Utilizado para insert, update e delete
+query PDOStatement Utilizado para resultados tabulares, comando select.
+prepare PDOStatement Cria um prepared statement, utilizado para dados variáveis.
+&lt;/pre&gt;
+
+&lt;p&gt;Trabalhar com PDO tem várias vantagens, além da portabilidade, existe também a questão da segurança, mas isso é cena para os próximos capítulos. Aconselho que visitem a &lt;a href=&#34;http://php.net/manual/pt_BR/class.pdostatement.php&#34;&gt;documentação&lt;/a&gt; para que possam ter acesso a informação completa da biblioteca, pois a mesma é muito rica e fornecerá ao desenvolvedor inúmeras vantagens que facilitarão no dia a dia do seu desenvolvimento. Obrigado ^^!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/Anrahh/pdo_tableless&#34;&gt;clique aqui para baixar o código completo.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Referências&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.diogomatheus.com.br/blog/php/trabalhando-com-pdo-no-php/&#34;&gt;http://www.diogomatheus.com.br/blog/php/trabalhando-com-pdo-no-php/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://php.net/manual/en/book.pdo.php&#34;&gt;http://php.net/manual/en/book.pdo.php&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.php.net/manual/en/pdo.drivers.php&#34;&gt;http://www.php.net/manual/en/pdo.drivers.php&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,598 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Grillorafael on Tableless</title>
+    <link>http://tableless.com.br/author/grillorafael/index.xml</link>
+    <description>Recent content in Grillorafael on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/grillorafael/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Alergia à SQL</title>
+      <link>http://tableless.com.br/alergia-sql/</link>
+      <pubDate>Mon, 16 Mar 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/alergia-sql/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;Quem nunca ouviu as seguintes frases: “Escrever SQL nos dias de hoje não é uma boa prática” ou “Tente não escrever SQL, usa os recursos do ORM”, ainda não trabalhou o suficiente.&lt;/p&gt;
+
+&lt;p&gt;O mercado de startups parece cada vez mais alérgico ao SQL, um dos recursos mais poderosos e antigos(1974!) no mundo dos bancos de dados.&lt;/p&gt;
+
+&lt;p&gt;O que as pessoas esquecem ou escolhem ignorar é a &lt;a href=&#34;http://rob.conery.io/2015/02/24/embracing-sql-in-postgres/&#34; target=&#34;_blank&#34;&gt;capacidade que um banco de dados tem&lt;/a&gt; e pode te oferecer para resolver problemas banais.&lt;/p&gt;
+
+&lt;p&gt;Mas a questão é, como e porque devemos perder o medo do SQL?&lt;/p&gt;
+
+&lt;h2 id=&#34;escrever-sql-é-sim-uma-boa-prática&#34;&gt;Escrever SQL é sim uma boa prática&lt;/h2&gt;
+
+&lt;p&gt;Quando estamos envolvidos demais com os ORMs que utilizamos para fazer aplicações, tentamos cada vez mais resolver os problemas de acesso de dados utilizando os recursos do ORM que muitas vezes são muito bons e completos.&lt;/p&gt;
+
+&lt;p&gt;Porém, quando precisamos resolver consultas mais complexas, nós enfrentamos elas geralmente de duas formas diferentes:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Realizando diversas buscas e processando a nível de aplicação&lt;/li&gt;
+&lt;li&gt;Escrever uma String de SQL e executá-la com o ORM&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Por mais vantajoso em termos de desempenho seja escrever a String da consulta dentro do ORM, muitas vezes preferimos processar essas consultas em tempo de execução utilizando os lindos recursos de nossas maravilhosas linguagens dinâmicas. Afinal, é deselegante escrever uma String com uma query SQL no meio do nosso Business Logic, né?&lt;/p&gt;
+
+&lt;p&gt;Esse pensamento é bastante comum, pouco eficiente e bastante errado. Quando assumimos fazer o item 1, perdemos os recursos de &lt;a href=&#34;http://en.wikipedia.org/wiki/Query_optimization&#34; target=&#34;_blank&#34;&gt;otimização de query&lt;/a&gt; que o banco nos fornece e damos lugar um código que é muito provavelmente ineficiente e tem pouca garantia de consistência. Quando assumimos o item 2, ganhamos o fator otimização porém perdemos no fator manutenibilidade.&lt;/p&gt;
+
+&lt;p&gt;Você pode alegar que não se pode ganhar todas né? Nesse caso, você pode sim ganhar todas.&lt;/p&gt;
+
+&lt;h2 id=&#34;routines-e-procedures&#34;&gt;Routines e Procedures&lt;/h2&gt;
+
+&lt;p&gt;Funções internas do banco de dados são normalmente chamadas de Procedure ou Routine. Essas procedures se comportam como uma função em qualquer linguagem de programação, ou seja, podemos chama-las através de consultas, podemos utilizá-las em outras procedures e podemos também chama-las através do nosso ORM de preferência.&lt;/p&gt;
+
+&lt;p&gt;Se quiser ler mais sobre procedures nativas do PostgreSQL tem uma &lt;a href=&#34;http://rob.conery.io/2015/02/24/embracing-sql-in-postgres/&#34; target=&#34;_blank&#34;&gt;matéria bem legal&lt;/a&gt; dando uma palhinha do que ele pode fazer por você.&lt;/p&gt;
+
+&lt;h3 id=&#34;minhas-procedures&#34;&gt;Minhas procedures&lt;/h3&gt;
+
+&lt;p&gt;Você também pode definir procedures para trabalhar com suas tabelas e fazer operações nos seus dados. A forma de definir é bastante simples.&lt;/p&gt;
+
+&lt;pre&gt;CREATE OR REPLACE FUNCTION hello_world(p_name character varying)
+RETURNS character varying
+AS
+$BODY$
+BEGIN
+    RETURN CONCAT(&#39;Hello, &#39;, p_name, &#39;!&#39;);
+END;
+$BODY$
+    LANGUAGE plpgsql VOLATILE;
+&lt;/pre&gt;
+
+&lt;p&gt;Para executar a procedure basta realizar uma consulta nela.&lt;/p&gt;
+
+&lt;pre&gt;select hello_world(&#39;rafael&#39;);
+
+-- Retorno
+hello_world
+----------------
+Hello, Rafael!
+(1 row)
+&lt;/pre&gt;
+
+&lt;p&gt;Podemos ver então que a declaração de uma procedure é bastante simples e flexível. Podemos ter funções com diversos retornos como tabelas, tipos nativos e tipos criados pelo usuário.&lt;/p&gt;
+
+&lt;p&gt;Existe também aqueles que gostam de trabalhar somente com SQL por já ter se estressado o suficiente com o ORM e tentou &lt;a href=&#34;http://rob.conery.io/2015/02/21/its-time-to-get-over-that-stored-procedure-aversion-you-have/&#34; target=&#34;_blank&#34;&gt;recriar o Devise utilizando procedures&lt;/a&gt; (Este é um artigo bastante interessante de alguém que cansou de ter problemas com ORMs).&lt;/p&gt;
+
+&lt;h2 id=&#34;lógica-de-dados-vs-lógica-de-negócios&#34;&gt;Lógica de Dados VS Lógica de Negócios&lt;/h2&gt;
+
+&lt;p&gt;Hoje em dia chamamos tudo que está rodando na nossa aplicação de lógica de negócios, porém, não é bem assim. É importante conhecer os limites e as diferenças do que é lógica de dados e o que é lógica de negócios.&lt;/p&gt;
+
+&lt;h3 id=&#34;lógica-de-dados&#34;&gt;Lógica de Dados&lt;/h3&gt;
+
+&lt;p&gt;Lógico de dados é tudo aquilo que opera somente na camada dos dados (Duh), ou seja, é tudo aquilo que representa condições do nosso dado.&lt;/p&gt;
+
+&lt;p&gt;Exemplos:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Criptografia de senhas&lt;/li&gt;
+&lt;li&gt;Timestamps de tabela (createdAt, updatedAt)&lt;/li&gt;
+&lt;li&gt;Softdelete (deletedAt)&lt;/li&gt;
+&lt;li&gt;Consistências (Verificação de unicidade, chaves primárias, etc)&lt;/li&gt;
+&lt;li&gt;Quando criar registro X, criar registro Y também&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;lógica-de-negócios&#34;&gt;Lógica de Negócios&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Quando um usuário criar uma conta, disparar um Email de boas vindas&lt;/li&gt;
+&lt;li&gt;Quando o usuário inserir um registro na tabela, notificar via SMS outro usuário&lt;/li&gt;
+&lt;li&gt;Usuário x só pode acessar lugares x, y e z do sistema&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Para fazer a lógica de negócios funcionar, devemos mapear a lógica em dados e trabalhar a lógica de dados para atender nossa lógica de negócios.&lt;/p&gt;
+
+&lt;p&gt;Em um mundo ideal existe uma completa separação entre essas lógicas mas no mundo real isso acaba se sobrepondo para agilizar o desenvolvimento.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-escrever-sql-da-forma-certa&#34;&gt;Como escrever SQL da forma certa&lt;/h2&gt;
+
+&lt;p&gt;Nos pegamos então em um mundo onde é inevitável escrever SQL. Em algum momento das nossas aplicações, vamos ter que colocar um SQL no meio do nosso código para resolver uma consulta complexa. Quando isso acontecer o que devemos fazer?&lt;/p&gt;
+
+&lt;h3 id=&#34;meça&#34;&gt;Meça&lt;/h3&gt;
+
+&lt;p&gt;Consultas difíceis de escrever no ORM não é o único motivo para escrever SQL na sua aplicação. &lt;a href=&#34;https://www.airpair.com/ruby-on-rails/performance&#34; target=&#34;_blank&#34;&gt;Muitas vezes o ORM que você está usando é lento&lt;/a&gt; para determinadas tarefas. Para resolver isso, fuja um pouco dele e trabalhe no nível do SQL.&lt;/p&gt;
+
+&lt;h3 id=&#34;separe-as-lógicas&#34;&gt;Separe as lógicas&lt;/h3&gt;
+
+&lt;p&gt;Saiba separar o seu SQL do código da aplicação. Crie uma procedure e faça uma chamada. Dessa forma você desacopla a lógica da consulta da aplicação e se um dia essa consulta operar de forma diferente basta atualizar a procedure.&lt;/p&gt;
+
+&lt;h2 id=&#34;aproveite-o-melhor-dos-dois-mundos&#34;&gt;Aproveite o melhor dos dois mundos&lt;/h2&gt;
+
+&lt;p&gt;Meu objetivo não é convencer ninguém a parar de usar ORMs, mas saber medir e tomar deciões através de dados. ORMs não solucionam todos os problemas de acesso aos dados, além de adicionarem uma camada desnecessária de complexidade na aplicação.&lt;/p&gt;
+
+&lt;p&gt;Alguns exemplos:&lt;/p&gt;
+
+&lt;p&gt;Antes&lt;/p&gt;
+
+&lt;p&gt;Aplicaçao&lt;/p&gt;
+
+&lt;pre&gt;var sql = &#39;&#39;;
+sql += &#39; SELECT p1.id, p1.nome, p1.descricao,  ST_AsGeoJSON(p1.&#34;poiGeometrico&#34;) geojson, a1.nome &#34;acervo_nome&#34;, c1.nome &#34;categoria_nome&#34;, p1.&#34;urlIcone&#34;, &#39;;
+sql += &#39; p2.id id2, p2.nome nome2 , p2.descricao descricao2,  ST_AsGeoJSON(p2.&#34;poiGeometrico&#34;) &#34;geojson2&#34;, a2.nome &#34;acervo_Nome2&#34;, c2.nome &#34;categoria_nome2&#34;, p2.&#34;urlIcone&#34; &#34;urlIcone2&#34;, &#39;;
+sql += &#39; ST_Distance(ST_Transform(p1.&#34;poiGeometrico&#34;,3067), ST_Transform(p2.&#34;poiGeometrico&#34;,3067)) distancia &#39;;
+sql += &#39; FROM &#34;Poi&#34; p1, &#34;Poi&#34; p2, &#34;Acervo&#34; a1, &#34;Acervo&#34; a2, &#34;Categoria&#34; c1, &#34;Categoria&#34; c2 &#39;;
+sql += &#39; WHERE c1.id = :categoriaId1 AND c2.id = :categoriaId2 AND &#39;;
+sql += &#39; p1.&#34;AcervoId&#34; = a1.id AND p2.&#34;AcervoId&#34; = a2.id AND &#39;;
+sql += &#39; p1.&#34;CategoriumId&#34; = c1.id AND p2.&#34;CategoriumId&#34; = c2.id &#39;;
+sql += &#39; AND ST_Distance(ST_Transform(p1.&#34;poiGeometrico&#34;,3067), ST_Transform(p2.&#34;poiGeometrico&#34;,3067)) &amp;lt; :distancia &amp;#039;;
+
+var parametros = {
+    categoriaId1: parseInt(req.body.categoriaId1, 10),
+    categoriaId2: parseInt(req.body.categoriaId2, 10),
+    distancia: parseInt(req.body.distancia, 10)
+};
+
+db.sequelize.query(sql, null, {
+    raw: true
+}, parametros)
+    .then(function(data) {
+        res.send(data);
+    });
+&lt;/pre&gt;
+
+&lt;p&gt;Depois&lt;/p&gt;
+
+&lt;p&gt;SQL&lt;/p&gt;
+
+&lt;pre&gt;CREATE OR REPLACE FUNCTION deteccao_de_impacto(
+    p_categoria_id1 integer,
+    p_categoria_id2 integer,
+    p_distancia integer
+)
+RETURNS TABLE (
+    id integer,
+    nome varchar,
+    descricao varchar,
+    geojson json,
+    acervo_nome varchar,
+    categoria_nome varchar,
+    urlIcone varchar,
+    id2 integer,
+    nome2 varchar,
+    descricao2 varchar,
+    geojson2 json,
+    acervo_Nome2 varchar,
+    categoria_nome2 varchar,
+    urlIcone2 varchar,
+    distancia integer
+) AS
+$BODY$
+#variable_conflict use_variable
+BEGIN
+    RETURN QUERY
+    SELECT
+        p1.id,
+        p1.nome,
+        p1.descricao,
+        ST_AsGeoJSON(p1.poiGeometrico) geojson,
+        a1.nome acervo_nome,
+        c1.nome categoria_nome,
+        p1.urlIcone,
+        p2.id id2,
+        p2.nome nome2,
+        p2.descricao descricao2,
+        ST_AsGeoJSON(p2.poiGeometrico) geojson2,
+        a2.nome acervo_Nome2,
+        c2.nome categoria_nome2,
+        p2.urlIcone urlIcone2,
+        ST_Distance(
+            ST_Transform(p1.poiGeometrico, 3067),
+            ST_Transform(p2.poiGeometrico, 3067)
+        ) distancia
+    FROM
+        Poi p1,
+        Poi p2,
+        Acervo a1,
+        Acervo a2,
+        Categoria c1,
+        Categoria c2
+    WHERE
+        c1.id = p_categoria_id1 AND
+        c2.id = p_categoria_id2 AND
+        p1.AcervoId = a1.id AND
+        p2.AcervoId = a2.id AND
+        p1.CategoriumId = c1.id AND
+        p2.CategoriumId = c2.id AND
+        ST_Distance(
+            ST_Transform(p1.poiGeometrico, 3067),
+            ST_Transform(p2.poiGeometrico, 3067)
+        ) &amp;lt; p_distancia
+    ;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION deteccao_de_impacto(integer, integer, integer)
+  OWNER TO postgres;
+&lt;/pre&gt;
+
+&lt;p&gt;Aplicaçao&lt;/p&gt;
+
+&lt;pre&gt;var sql = &#34;select deteccao_de_impacto(:categoriaId1, :categoriaId2, :distancia)&#34;;
+var parametros = {
+    categoriaId1: parseInt(req.body.categoriaId1, 10),
+    categoriaId2: parseInt(req.body.categoriaId2, 10),
+    distancia: parseInt(req.body.distancia, 10)
+};
+
+db.sequelize.query(sql, null, {
+    raw: true
+}, parametros)
+    .then(function(data) {
+        res.send(data);
+    });
+&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Tutorial Ionic – Meu primeiro app</title>
+      <link>http://tableless.com.br/tutorial-ionic-meu-primeiro-app/</link>
+      <pubDate>Thu, 05 Mar 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/tutorial-ionic-meu-primeiro-app/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;Após publicar uma &lt;a href=&#34;http://tableless.com.br/introducao-ao-ionic-framework/&#34; target=&#34;_blank&#34;&gt;breve introdução do Ionic Framework&lt;/a&gt;, vamos agora tentar construir uma app que consiga abordar o uso de componentes nativos de um celular assim como o build para as determinadas plataformas.&lt;/p&gt;
+
+&lt;p&gt;Para isso, ao decorrer deste tutorial, vamos construir uma app bastante simples que utiliza a posição do usuário para exibir os dados do tempo na tela.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-que-é-necessário&#34;&gt;O que é necessário?&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;NodeJS&lt;/li&gt;
+&lt;li&gt;NPM&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Após instalar os 2, vamos instalar o &lt;em&gt;ionic&lt;/em&gt; e o &lt;em&gt;cordova&lt;/em&gt; como módulos globais.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;npm install -g ionic cordova
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;criando-o-projeto&#34;&gt;Criando o projeto&lt;/h2&gt;
+
+&lt;p&gt;Para criar a estrutura inicial do projeto, vamos utilizar o gerador do Ionic CLI. Como o app é bastante simples, vamos utilizar o gerador &lt;em&gt;blank&lt;/em&gt; do ionic.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;ionic start weather blank
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/02/Screen-Shot-2015-02-28-at-12.21.21-AM.png&#34;&gt;&lt;img alt=&#34;estrutura de páginas do Ionic&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/02/Screen-Shot-2015-02-28-at-12.21.21-AM.png&#34; width=&#34;163&#34; height=&#34;440&#34; class=&#34;alignnone size-full wp-image-47368&#34; srcset=&#34;uploads/2015/02/Screen-Shot-2015-02-28-at-12.21.21-AM.png 163w, uploads/2015/02/Screen-Shot-2015-02-28-at-12.21.21-AM-51x139.png 51w&#34; sizes=&#34;(max-width: 163px) 100vw, 163px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Podemos ver então a estrutura de pastas inicial do projeto. Inicialmente vamos mexer somente no conteúdo da pasta &lt;em&gt;www&lt;/em&gt; que é onde se encontra nosso projecto html, css e js.&lt;/p&gt;
+
+&lt;h2 id=&#34;apis-e-plugins-utilizados&#34;&gt;APIS e Plugins utilizados&lt;/h2&gt;
+
+&lt;p&gt;Para fazer a captura dos dados meteorológicos vamos utilizar uma API gratuita chamada &lt;a href=&#34;https://developer.forecast.io/&#34; target=&#34;_blank&#34;&gt;Forecast for Developers&lt;/a&gt;. Para fazer a captura dos dados temos que utilizar um plugin do Cordova de Geolocalização. É importante dizer que não é recomendável utilizar o &lt;em&gt;navigator.geolocation&lt;/em&gt; nativo pois ele irá pedir permissão para o usuário com frequência e irá mostrar uma mensagem não amigável para isso como a imagem abaixo ilustra.&lt;/p&gt;
+
+&lt;p&gt;&lt;img alt=&#34;Diálogo de permissão de localização via html5&#34; src=&#34;http://www.raymondcamden.com/images/bad.png&#34; width=&#34;320&#34; height=&#34;480&#34; class=&#34;aligncenter&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para instalar o plugin de geolocalização do Cordova, basta rodarmos o comando abaixo na pasta do projeto.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;cordova plugin add org.apache.cordova.geolocation
+&lt;/pre&gt;
+
+&lt;p&gt;Após instalado o plugin do cordova, vamos instalar uma lib que tem implementado a comunicação com alguns plugins do Cordova de uma forma mais amigável para o AngularJS que é o &lt;a href=&#34;http://ngcordova.com/&#34; target=&#34;_blank&#34;&gt;ngCordova&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para instalar o &lt;em&gt;ngCordova&lt;/em&gt; basta rodar&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;bower install ngCordova
+&lt;/pre&gt;
+
+&lt;p&gt;E importar no arquivo &lt;em&gt;www/index.html&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;script src=&#34;lib/ngCordova/dist/ng-cordova.js&#34;&amp;gt;&amp;lt;/script&amp;gt; 
+&amp;lt;script src=&#34;cordova.js&#34;&amp;gt;&amp;lt;/script&amp;gt; 
+&lt;/pre&gt;
+
+&lt;p&gt;Após feito isso, devemos avisar para o AngularJS que nosso projeto depende deste módulo. Esta definição está no arquivo &lt;em&gt;www/js/app.js&lt;/em&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;(function() {
+    angular.module(&#39;weather&#39;, [&#39;ionic&#39;, &#39;ngCordova&#39;])
+        .run(function($ionicPlatform) {
+            $ionicPlatform.ready(function() {
+                // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+                // for form inputs)
+                if (window.cordova &amp;&amp; window.cordova.plugins.Keyboard) {
+                    cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+                }
+                if (window.StatusBar) {
+                    StatusBar.styleDefault();
+                }
+            });
+        });
+})();
+&lt;/pre&gt;
+
+&lt;p&gt;Desse momento em diante temos acesso a todos os módulos do &lt;em&gt;ngCordova&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;organização&#34;&gt;Organização&lt;/h2&gt;
+
+&lt;p&gt;Como a App é bastante simples, não vamos fragmentar a implementação em diversos arquivos. Vamos focar em construir apenas utilizando o &lt;em&gt;app.js&lt;/em&gt;. Vamos então construir 2 componentes no AngularJS, o serviço &lt;em&gt;Weather&lt;/em&gt; para se comunicar com a API e o controller &lt;em&gt;WeatherCtrl&lt;/em&gt; para fazer a ponte entre a nossa view e a api.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;(function() {
+    angular.module(&#39;weather&#39;, [&#39;ionic&#39;, &#39;ngCordova&#39;])
+        .run(function($ionicPlatform) {
+            $ionicPlatform.ready(function() {
+                // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+                // for form inputs)
+                if (window.cordova &amp;&amp; window.cordova.plugins.Keyboard) {
+                    cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+                }
+                if (window.StatusBar) {
+                    StatusBar.styleDefault();
+                }
+            });
+        })
+        .factory(&#39;Weather&#39;, function($http) {
+
+        })
+        .controller(&#39;WeatherCtrl&#39;, function($scope, Weather) {
+
+        });
+})();
+&lt;/pre&gt;
+
+&lt;p&gt;Após feito isso, devemos fazer o bind entre o &lt;em&gt;WeatherCtrl&lt;/em&gt; e o nosso HTML.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;body ng-app=&#34;weather&#34; ng-controller=&#34;WeatherCtrl as weatherCtrl&#34;&amp;gt;
+    &amp;lt;ion-pane&amp;gt;
+        &amp;lt;ion-header-bar class=&#34;bar-stable&#34;&amp;gt;
+            &amp;lt;h1 class=&#34;title&#34;&amp;gt;Weather&amp;lt;/h1&amp;gt;
+        &amp;lt;/ion-header-bar&amp;gt;
+        &amp;lt;ion-content&amp;gt;
+            
+        &amp;lt;/ion-content&amp;gt;
+    &amp;lt;/ion-pane&amp;gt;
+&amp;lt;/body&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Feito isso, devemos então implementar o acesso aos dados da API através de uma posição geográfica.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;.factory(&#39;Weather&#39;, function($q, $http) {
+            var deferred = $q.defer();
+
+            function getCurrentWeather(lat, lng) {
+                var url = &#39;https://api.forecast.io/forecast/SUA_CHAVE_DE_API/&#39; + lat +&#39;,&#39; + lng + &#39;?callback=JSON_CALLBACK&#39;;
+                $http.jsonp(url)
+                    .success(deferred.resolve)
+                    .error(deferred.reject);
+
+                return deferred.promise;
+            }
+
+            return {
+                getCurrentWeather: getCurrentWeather
+            };
+        })
+&lt;/pre&gt;
+
+&lt;p&gt;O serviço retorna uma promise que é o retorno da chamada JSONP para a API que iremos capturar no controller após acessarmos a localização do dispositivo.&lt;/p&gt;
+
+&lt;p&gt;Com o serviço pronto, vamos então fazer a chamada ao GPS no &lt;em&gt;controller&lt;/em&gt; e com a posição, vamos capturar os dados meteorológicos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;.controller(&#39;WeatherCtrl&#39;, function($scope, $cordovaGeolocation, Weather) {
+            $scope.loading = true;
+
+            $scope.toCelsius = function(temperature) {
+                return ((temperature - 32) / 1.8).toFixed(1);
+            };
+
+            $cordovaGeolocation
+                .getCurrentPosition({
+                    timeout: 10000,
+                    enableHighAccuracy: false
+                })
+                .then(function(position) {
+                    var lat = position.coords.latitude;
+                    var long = position.coords.longitude;
+
+                    Weather.getCurrentWeather(lat, long).then(function(data) {
+                        $scope.weatherInfo = data;
+                        $scope.loading = false;
+                    }, function(error) {
+                        //TODO Display error message
+                    });
+                }, function(err) {
+                    //TODO Display error message
+                });
+        });
+&lt;/pre&gt;
+
+&lt;p&gt;Se vocês repararem, eu adicionei umas variáveis ao escopo para controlar se está carregando dados ou não e para converter de Fahrenheit para Celsius que usaremos posteriormente no nosso HTML.&lt;/p&gt;
+
+&lt;p&gt;Com o &lt;em&gt;controller&lt;/em&gt; preparado vamos então preparar o nosso HTML para mostrar uma imagem de carregamento enquanto não demos os dados e posteriormente mostrar a temperatura e a sensação térmica em celsius.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;body ng-app=&#34;weather&#34; ng-controller=&#34;WeatherCtrl as weatherCtrl&#34;&amp;gt;
+    &amp;lt;ion-pane&amp;gt;
+        &amp;lt;ion-header-bar class=&#34;bar-stable&#34;&amp;gt;
+            &amp;lt;h1 class=&#34;title&#34;&amp;gt;Weather&amp;lt;/h1&amp;gt;
+        &amp;lt;/ion-header-bar&amp;gt;
+        &amp;lt;ion-content class=&#34;text-center&#34;&amp;gt;
+            &amp;lt;div ng-show=&#34;loading&#34;&amp;gt;
+                Carregando informações...
+            &amp;lt;/div&amp;gt;
+            &amp;lt;div ng-hide=&#34;loading&#34;&amp;gt;
+                &amp;lt;p&amp;gt;
+                    Temperatura: {{toCelsius(weatherInfo.currently.temperature)}}º
+                &amp;lt;/p&amp;gt;
+                &amp;lt;p&amp;gt;
+                    Sensação térmica: {{toCelsius(weatherInfo.currently.apparentTemperature)}}º
+                &amp;lt;/p&amp;gt;
+            &amp;lt;/div&amp;gt;
+        &amp;lt;/ion-content&amp;gt;
+    &amp;lt;/ion-pane&amp;gt;
+&amp;lt;/body&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Para visualizar o resultado podemos rodar o projeto no navegador utilizando o comando&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;ionic serve
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;gerando-as-builds-para-o-celular&#34;&gt;Gerando as &lt;em&gt;builds&lt;/em&gt; para o celular&lt;/h2&gt;
+
+&lt;p&gt;Para gerar as os pacotes de App para celular basta rodarmos alguns comandos no Ionic CLI. É importante ressaltar que para criar o projeto iOS é necessário possuir um computador OSX.&lt;/p&gt;
+
+&lt;h3 id=&#34;adicionando-as-plataformas&#34;&gt;Adicionando as plataformas&lt;/h3&gt;
+
+&lt;p&gt;Para adicionarmos as plataformas em que vamos compilar nossa app bastar rodar o comando &lt;em&gt;ionic platform add PLATFORM&lt;/em&gt; passando a plataforma desejada. Para efeitos de teste, vamos utilizar apenas o Android.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;ionic platform add android
+&lt;/pre&gt;
+
+&lt;p&gt;Após rodar esse comando vamos ver que o Ionic está criando um projeto Android dentro da pasta &lt;em&gt;platforms&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/02/Screen-Shot-2015-02-28-at-1.13.16-AM.png&#34;&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2015/02/Screen-Shot-2015-02-28-at-1.13.16-AM.png&#34; alt=&#34;Criação do projeto Android&#34; width=&#34;1061&#34; height=&#34;258&#34; class=&#34;alignnone size-full wp-image-47383&#34; srcset=&#34;uploads/2015/02/Screen-Shot-2015-02-28-at-1.13.16-AM.png 1061w, uploads/2015/02/Screen-Shot-2015-02-28-at-1.13.16-AM-265x64.png 265w, uploads/2015/02/Screen-Shot-2015-02-28-at-1.13.16-AM-400x97.png 400w&#34; sizes=&#34;(max-width: 1061px) 100vw, 1061px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;A partir daí não precisamos fazer mais nada! Basta rodar a app em seu aparelho ou emulador através do comando&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;ionic run android
+&lt;/pre&gt;
+
+&lt;p&gt;Este comando irá fazer o &lt;em&gt;build&lt;/em&gt; e enviar para o celular que estiver conectado ou emulador que estiver aberto.&lt;/p&gt;
+
+&lt;p&gt;Para quem quiser, o projeto está disponível no &lt;a href=&#34;https://github.com/grillorafael/ionic-weather&#34; target=&#34;_blank&#34;&gt;Github&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introdução ao Ionic Framework</title>
+      <link>http://tableless.com.br/introducao-ao-ionic-framework/</link>
+      <pubDate>Thu, 26 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/introducao-ao-ionic-framework/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-que-é-o-ionic&#34;&gt;O que é o Ionic?&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://ionicframework.com/&#34;&gt;Ionic&lt;/a&gt; é um framework criado no final de 2013 que visa a criação de aplicações híbridas para dispositivos móveis. Hoje o Ionic encontra-se na versão 1.0.0-beta.14 que segundo a equipe por trás do desenvolvimento, será o último release beta.&lt;/p&gt;
+
+&lt;p&gt;Ele nada mais é do que uma pilha de componentes e outros frameworks. Estes componentes são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://cordova.apache.org/&#34;&gt;Cordova&lt;/a&gt;: Integração com recursos nativos dos dispositivos&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://angularjs.org/&#34;&gt;AngularJS&lt;/a&gt;: Criação da parte Web da App&lt;/li&gt;
+&lt;li&gt;Ionic Module e o Ionic CLI: Ferramentas e Componentes disponibilizados pelo framework&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;pré-requisitos&#34;&gt;Pré-requisitos&lt;/h2&gt;
+
+&lt;p&gt;Para utilizar o Ionic e desenvolvedor aplicações móveis com o Cordova é necessário ter instalado as seguintes dependências:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;NodeJS&lt;/li&gt;
+&lt;li&gt;NPM&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Vou pular a parte em que diz como instalar o NodeJS e o NPM pois são coisas simples de se encontrar na internet.&lt;/p&gt;
+
+&lt;h2 id=&#34;objetivo-do-artigo&#34;&gt;Objetivo do artigo&lt;/h2&gt;
+
+&lt;p&gt;O objetivo deste artigo é dar uma breve introdução do que é o Ionic e o que ele usa como tecnologias.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-começar&#34;&gt;Como começar&lt;/h2&gt;
+
+&lt;p&gt;Uma vez com NodeJS e o NPM instalados, é necessário instalar 2 módulos globais.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;npm install -g ionic cordova&lt;/pre&gt;
+
+&lt;p&gt;Uma vez com esses dois módulos instalados, usaremos o gerador do Ionic CLI para criar um novo projeto.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;ionic start appName tabs&lt;/pre&gt;
+
+&lt;p&gt;A sintaxe para a criação de uma nova aplicação é &lt;em&gt;ionic start NOME_DO_APP TIPO_DO_GENERATOR&lt;/em&gt;. Existem hoje 3 tipos de projeto base que são &lt;em&gt;tabs&lt;/em&gt;, &lt;em&gt;blank&lt;/em&gt; e &lt;em&gt;sidemenu&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Cada gerador irá iniciar seu projeto de uma forma diferente porém todos seguem a mesma estrutura de pastas exibida abaixo.&lt;/p&gt;
+
+&lt;p&gt;[## O que é o Ionic?&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://ionicframework.com/&#34;&gt;Ionic&lt;/a&gt; é um framework criado no final de 2013 que visa a criação de aplicações híbridas para dispositivos móveis. Hoje o Ionic encontra-se na versão 1.0.0-beta.14 que segundo a equipe por trás do desenvolvimento, será o último release beta.&lt;/p&gt;
+
+&lt;p&gt;Ele nada mais é do que uma pilha de componentes e outros frameworks. Estes componentes são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://cordova.apache.org/&#34;&gt;Cordova&lt;/a&gt;: Integração com recursos nativos dos dispositivos&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://angularjs.org/&#34;&gt;AngularJS&lt;/a&gt;: Criação da parte Web da App&lt;/li&gt;
+&lt;li&gt;Ionic Module e o Ionic CLI: Ferramentas e Componentes disponibilizados pelo framework&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;pré-requisitos-1&#34;&gt;Pré-requisitos&lt;/h2&gt;
+
+&lt;p&gt;Para utilizar o Ionic e desenvolvedor aplicações móveis com o Cordova é necessário ter instalado as seguintes dependências:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;NodeJS&lt;/li&gt;
+&lt;li&gt;NPM&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Vou pular a parte em que diz como instalar o NodeJS e o NPM pois são coisas simples de se encontrar na internet.&lt;/p&gt;
+
+&lt;h2 id=&#34;objetivo-do-artigo-1&#34;&gt;Objetivo do artigo&lt;/h2&gt;
+
+&lt;p&gt;O objetivo deste artigo é dar uma breve introdução do que é o Ionic e o que ele usa como tecnologias.&lt;/p&gt;
+
+&lt;h2 id=&#34;como-começar-1&#34;&gt;Como começar&lt;/h2&gt;
+
+&lt;p&gt;Uma vez com NodeJS e o NPM instalados, é necessário instalar 2 módulos globais.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;npm install -g ionic cordova&lt;/pre&gt;
+
+&lt;p&gt;Uma vez com esses dois módulos instalados, usaremos o gerador do Ionic CLI para criar um novo projeto.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;ionic start appName tabs&lt;/pre&gt;
+
+&lt;p&gt;A sintaxe para a criação de uma nova aplicação é &lt;em&gt;ionic start NOME_DO_APP TIPO_DO_GENERATOR&lt;/em&gt;. Existem hoje 3 tipos de projeto base que são &lt;em&gt;tabs&lt;/em&gt;, &lt;em&gt;blank&lt;/em&gt; e &lt;em&gt;sidemenu&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Cada gerador irá iniciar seu projeto de uma forma diferente porém todos seguem a mesma estrutura de pastas exibida abaixo.&lt;/p&gt;
+
+&lt;p&gt;]&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/02/Screen-Shot-2015-02-18-at-5.33.43-PM.png&#34;&gt;4&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Uma vez com o projeto criado, podemos roda-lo com o comando &lt;em&gt;ionic serve&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Como podemos ver pela imagem, o ionic utiliza o Gulp como ferramenta de automatização de tarefas mas não se preocupe que ele tem objetivos muito simples como compilar o SCSS, CoffeeScript e rodar um servidor para visualização do projeto. &lt;strong&gt;O uso do SCSS e do CoffeeScript é opcional.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O desenvolvimento da aplicação a partir daí é bastante &lt;em&gt;straightforward&lt;/em&gt;. Em nada difere de desenvolver um sistema Web tradicional.&lt;/p&gt;
+
+&lt;h2 id=&#34;e-se-eu-quiser-utilizar-recursos-nativos-do-dispositivo&#34;&gt;E se eu quiser utilizar recursos nativos do dispositivo?&lt;/h2&gt;
+
+&lt;p&gt;Caso seja necessário utilizar recursos nativos do celular como Câmera, Push Notification, Leitor de Código de Barra entre outros, você pode utilizar todos os recursos do Cordova que estão disponíveis e além disso utilizar um outro módulo do AngularJS que a equipe do Ionic criou para facilitar o uso de plugins que é o &lt;a href=&#34;http://ngcordova.com/&#34;&gt;ngCordova&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;A grande vantagem do Ionic é que seu desenvolvimento foi pensado em utilizar os recursos mais novos do CSS, HTML e JavaScript com o objetivo de prover para o desenvolvedor uma gama de componentes pré-prontos de alta qualidade e desempenho.&lt;/p&gt;
+
+&lt;p&gt;A equipe por trás da ferramenta está trabalhando a todo vapor lançando correções e melhorias continuamente e ouvindo bastante os desenvolvedor que a estão utilizando.&lt;/p&gt;
+
+&lt;p&gt;É também um ótimo projeto para contribuir pois o desenvolvimento é bastante simples e a comunidade é bastante receptiva.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

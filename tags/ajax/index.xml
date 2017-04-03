@@ -1,0 +1,1053 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ajax on Tableless</title>
+    <link>http://tableless.com.br/tags/ajax/index.xml</link>
+    <description>Recent content in Ajax on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/ajax/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Múltiplas galerias de fotos dinâmicas com Fancybox, Ajax e JSON</title>
+      <link>http://tableless.com.br/multiplas-galerias-de-fotos-dinamicas-com-fancybox-ajax-e-json/</link>
+      <pubDate>Fri, 27 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/multiplas-galerias-de-fotos-dinamicas-com-fancybox-ajax-e-json/</guid>
+      <description>
+
+&lt;h3 id=&#34;introdução&#34;&gt;Introdução&lt;/h3&gt;
+
+&lt;p&gt;Ano passado trabalhei em um projeto que era um concurso de fotografia online, o &lt;a href=&#34;http://www.prixphotoaliancafrancesa.com.br&#34; target=&#34;_blank&#34;&gt;Prix Photo Web&lt;/a&gt;, onde cada fotógrafo podia se cadastrar, fazer upload de suas fotos e concorrer a um prêmio.&lt;/p&gt;
+
+&lt;p&gt;O site tinha uma página de galeria, onde se podia ver os diversos trabalhos publicados a partir de &lt;em&gt;thumbnails&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Eu havia pego o código já quase todo pronto, mas resolvi atualizar algumas coisas e uma delas foi a tal galeria.&lt;/p&gt;
+
+&lt;p&gt;No decorrer do processo acabei tendo que usar o &lt;strong&gt;JSON&lt;/strong&gt; para trocar informações entre scripts PHP e JavaScript, e achei muito interessante a maneira como isso aconteceu.&lt;/p&gt;
+
+&lt;p&gt;O resultado final pode ser conferido &lt;a href=&#34;http://www.prixphotoaliancafrancesa.com.br/galeria&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;, e a seguir vou descrever o passo a passo do processo que percorri.&lt;/p&gt;
+
+&lt;h3 id=&#34;escopo&#34;&gt;Escopo&lt;/h3&gt;
+
+&lt;p&gt;O conteúdo do site era totalmente dinâmico, ou seja, vinha de consultas ao banco de dados feitas no carregamento da página. Veja abaixo como ficou a página da galeria, com os &lt;em&gt;thumbnails&lt;/em&gt; clicáveis:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-1.png&#34;&gt;&lt;img class=&#34; wp-image-43 size-large aligncenter&#34; src=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-1-1024x550.png&#34; alt=&#34;galeria-prix-1&#34; width=&#34;660&#34; height=&#34;354&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Ao dar o clique em um dos &lt;em&gt;thumbs&lt;/em&gt; se abria uma galeria de fotos em &lt;em&gt;lightbox&lt;/em&gt;, usando o &lt;em&gt;plugin&lt;/em&gt; jQuery &lt;a href=&#34;http://fancyapps.com/fancybox/&#34; target=&#34;_blank&#34;&gt;&lt;em&gt;fancybox&lt;/em&gt; &lt;/a&gt;(um velho favorito meu):&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-2.png&#34;&gt;&lt;img class=&#34; size-large wp-image-42 aligncenter&#34; src=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/galeria-prix-2-1024x550.png&#34; alt=&#34;galeria-prix-2&#34; width=&#34;660&#34; height=&#34;354&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;o-problema&#34;&gt;O problema&lt;/h4&gt;
+
+&lt;p&gt;Eu já tinha toda a lógica para exibir os &lt;em&gt;thumbnails&lt;/em&gt; na página e também as galerias em &lt;em&gt;lightbox&lt;/em&gt;, mas achei o código meio &amp;#8216;macarrônico&amp;#8217; e me questionei se não podia ser mais simples e limpo.&lt;/p&gt;
+
+&lt;p&gt;Para demonstrar o funcionamento do sistema existente de carregamento das galerias, segue um diagrama:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/diagrama-prix.png&#34;&gt;&lt;img class=&#34; size-full wp-image-68 aligncenter&#34; src=&#34;http://www.decheryweb.com.br/blog/wp-content/uploads/diagrama-prix.png&#34; alt=&#34;diagrama-prix&#34; width=&#34;361&#34; height=&#34;536&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Trata-se de um exemplo básico de uso de Ajax, aonde temos:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Página HTML&lt;/strong&gt;: Renderiza a galeria de &lt;em&gt;thumbnails&lt;/em&gt; e as galerias de fotos em &lt;em&gt;lightbox&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Script JS&lt;/strong&gt;: Ativado a cada clique em um &lt;em&gt;thumbnail&lt;/em&gt;, faz a requisição de um arquivo PHP através de &lt;em&gt;Ajax&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Arquivo PHP&lt;/strong&gt;: Faz as consultas no banco de dados para pegar todas os dados necessários para exibição da galeria, e devolve estes dados ao script, que finalmente vai exibir a galeria, usando o plugin &lt;em&gt;fancybox&lt;/em&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;O sistema como um todo funcionava, mas faltava um toque de agilidade, que foi dado ao acrescentar o JSON no sistema.&lt;/p&gt;
+
+&lt;p&gt;Vamos então ver agora como isso foi feito.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-código&#34;&gt;O código&lt;/h3&gt;
+
+&lt;p&gt;O HTML da galeria era mais ou menos assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;projetos&#34;&amp;gt;
+    &amp;lt;a id=&#34;10&#34;&amp;gt;
+        &amp;lt;img src=&#34;dir/nome-img.jpg&#34;&amp;gt;
+    &amp;lt;/a&amp;gt;
+    &amp;lt;a id=&#34;11&#34;&amp;gt;
+        &amp;lt;img src=&#34;dir/nome-img.jpg&#34;&amp;gt;
+    &amp;lt;/a&amp;gt;
+&amp;lt;/div&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;E abaixo o código JS (usando jQuery) que fazia acontecer a mágica a cada clique nos &lt;em&gt;thumbnails&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(document).ready(function(){
+    $(&#39;.projetos &amp;gt; a&#39;).click(function(){
+        var id = $(this).attr(&#39;id&#39;);
+        $.post(&#39;ajax-projetos.php&#39;,{&#39;idp&#39;:id}, function(data){
+            fancyPrix(data);
+        },&#39;text&#39;);
+    });
+});&lt;/pre&gt;
+
+&lt;p&gt;Observando o script, vemos que ele aplica algumas ações ao evento &lt;em&gt;click&lt;/em&gt; nos links, conforme indicado neste trecho: &lt;code&gt;$(&#39;.projetos &amp;gt; a&#39;).click(function(){&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;As ações basicamente são: a requisição do arquivo &lt;code&gt;ajax-projetos.php&lt;/code&gt; usando o método do jQuery $.&lt;code&gt;post&lt;/code&gt; (método do jQuery para chamadas Ajax), passando como parâmetro a variável &lt;code&gt;id&lt;/code&gt;, cujo valor vem de um atributo em cada link. O retorno dado pelo arquivo php, representado na variável &lt;code&gt;data&lt;/code&gt;, era em seguida passado pela função &lt;code&gt;fancyPrix&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se ficou com dúvidas examine novamente o script até entender todo o processo.&lt;/p&gt;
+
+&lt;h3 id=&#34;usando-o-json&#34;&gt;Usando o JSON&lt;/h3&gt;
+
+&lt;p&gt;Agora que ficou claro (espero) o importante papel do script JS, vamos ao arquivo &lt;code&gt;ajax-projetos.php&lt;/code&gt;. Como explicado no diagrama apresentado anteriormente, este arquivo fazia a consulta no banco de dados entregando ao final um &lt;em&gt;array&lt;/em&gt; contendo os dados necessários para a renderização da galeria de imagens em &lt;em&gt;lightbox&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Ao final do processo, o array produzido tinha a seguinte estrutura:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$proj = array (
+    &#34;candidato&#34; =&amp;gt; &#34;Felisbério dos Santos&#34;,
+    &#34;imgs&#34;  =&amp;gt; array ( 
+        0 =&amp;gt; &#34;http://localhost/projeto/diretorio/nome-arquivo.jpg&#34;,
+        1 =&amp;gt; &#34;http://localhost/projeto/diretorio/nome-arquivo.jpg&#34;,
+        2 =&amp;gt; &#34;http://localhost/projeto/diretorio/nome-arquivo.jpg&#34;,
+    ),
+    &#34;projeto&#34; =&amp;gt; &#34;Sombras Negras&#34;
+);&lt;/pre&gt;
+
+&lt;p&gt;Como se pode ver, o &lt;em&gt;array&lt;/em&gt; tinha todos os dados necessários para criação da galeria: nome do candidato, nome do projeto e as imagens, como um &lt;em&gt;sub-array&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;No código original, a grande falha no entanto era a forma como esses dados eram devolvidos ao script JS. Havia uma mistura de código JS como variáveis do php dentro do mesmo script que tornava tudo confuso e difícil de manter.&lt;/p&gt;
+
+&lt;p&gt;Porque não passar o &lt;em&gt;array&lt;/em&gt; de volta como um objeto &lt;strong&gt;JSON&lt;/strong&gt;, que pode ser interpretado dentro do script JS original, abolindo assim o uso de código php macarrônico?&lt;/p&gt;
+
+&lt;p&gt;Isto foi feito simplesmente adicionando-se ao código esta linha:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;echo json_encode($proj);&lt;/pre&gt;
+
+&lt;p&gt;A função nativa do PHP &amp;#8216;&lt;a href=&#34;http://php.net/manual/pt_BR/function.json-encode.php&#34; target=&#34;_blank&#34;&gt;json_encode&lt;/a&gt;&amp;#8216;, como diz o nome, converte o &lt;em&gt;array&lt;/em&gt; &lt;code&gt;$proj&lt;/code&gt; para um objeto JSON, que ficará assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;{
+    &#34;candidato&#34;:&#34;Felisbério dos Santos&#34;,
+    &#34;imgs&#34;:[
+        &#34;http://path/da/imagem/136/000-1.jpg&#34;,
+        &#34;http://path/da/imagem/136/000-2.jpg&#34;,
+        &#34;http://path/da/imagem/136/000-3.jpg&#34;
+        ],
+    &#34;nome&#34;:&#34;Sombras Negras&#34;
+ }&lt;/pre&gt;
+
+&lt;p&gt;Este objeto pode ser passado tranquilamente pela script JS, aonde será usado na já citada função &lt;code&gt;fancyPrix()&lt;/code&gt;, que é quem vai pegar cada informação do objeto JSON e aplicar no _plugin &lt;a href=&#34;http://fancyapps.com/fancybox/&#34; target=&#34;_blank&#34;&gt;fancybox&lt;/a&gt;_, da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function fancyPrix(projeto) {
+    $.fancybox.open(projeto.imgs, {
+        padding: 0,
+        maxWidth : &#39;680px&#39;,
+        maxHeight : &#39;660px&#39;,
+        title: projeto.nome + &#34; - &#34;+ projeto.candidato,
+        loop : &#39;false&#39;,
+        prevEffect : &#39;none&#39;,
+        nextEffect : &#39;none&#39;
+    });
+}&lt;/pre&gt;
+
+&lt;p&gt;Vemos que o plugin &lt;em&gt;fancybox&lt;/em&gt; possui um método que permite trabalhar com objetos JSON, o &lt;code&gt;fancybox.open&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Repare como foram passadas as imagens logo no início do código: &lt;code&gt;$.fancybox.open(projeto.imgs, {&lt;/code&gt;. Com a simples propriedade &lt;code&gt;projeto.imgs&lt;/code&gt; conseguimos passar &lt;strong&gt;todas&lt;/strong&gt; as imagens que fazem parte da galeria. O restante das propriedades são usadas como opções dentro do plugin, como mostrado acima.&lt;/p&gt;
+
+&lt;p&gt;Relembrando o script jQuery original podemos ver como a galeria toda é criada em apenas uma linha de código.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;$(document).ready(function(){
+    $(&#39;.projetos a&#39;).click(function(){
+        var id = $(this).attr(&#39;id&#39;);
+        $.post(&#39;ajax-projetos.php&#39;,{&#39;idp&#39;:id}, function(data){
+            &lt;strong&gt;fancyPrix(data);&lt;/strong&gt;
+        },&#39;text&#39;);
+    });
+});&lt;/pre&gt;
+
+&lt;h3 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h3&gt;
+
+&lt;p&gt;Quando apliquei esta solução e vi tudo funcionando o orgulho (e o alívio) foram grandes, mas maior ainda foi a sensação de &amp;#8216;uau&amp;#8217; ao ver as diferentes linguagens da web conversando juntas e de maneira tão integrada.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Formulário responsivo com MailChimp</title>
+      <link>http://tableless.com.br/formulario-responsivo-com-mailchimp/</link>
+      <pubDate>Fri, 06 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/formulario-responsivo-com-mailchimp/</guid>
+      <description>
+
+&lt;p&gt;Há cada dia mais utilizamos serviços disponíveis na web que tem um plano básico e gratuito que permite integrações. Nos últimos meses tenho feito formulários com frequência usando uma abordagem bem simples. Vou mostrar agora como criar um formulário responsivo, integrando com MailChimp e usando jQuery Validate.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-html&#34;&gt;O HTML&lt;/h2&gt;
+
+&lt;p&gt;Vamos criar o formulário da seguinte maneira:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;section&amp;gt;
+  &amp;lt;h1&amp;gt;CREATE RESPONSIVE FORM WITH INTEGRATE MAILCHIMP&amp;lt;/h1&amp;gt;
+  &amp;lt;form id=&#34;form-contact&#34; method=&#34;POST&#34; action=&#34;mailchimp-contact.php&#34;&amp;gt;
+    &amp;lt;div class=&#34;input&#34;&amp;gt;
+      &amp;lt;label for=&#34;name&#34;&amp;gt;Name&amp;lt;/label&amp;gt;
+      &amp;lt;input type=&#34;text&#34; id=&#34;name&#34; name=&#34;name&#34; placeholder=&#34;Your name&#34; required&amp;gt;
+    &amp;lt;/div&amp;gt;
+
+    ...
+    
+    &amp;lt;div class=&#34;input txt&#34;&amp;gt;
+      &amp;lt;label for=&#34;message&#34;&amp;gt;Message&amp;lt;/label&amp;gt;
+      &amp;lt;textarea id=&#34;message&#34; name=&#34;message&#34; cols=&#34;10&#34; rows=&#34;5&#34; placeholder=&#34;Its message leaves&#34; required&amp;gt;&amp;lt;/textarea&amp;gt;
+    &amp;lt;/div&amp;gt;
+    &amp;lt;div class=&#34;buttons&#34;&amp;gt;
+      &amp;lt;span class=&#34;form-message&#34;&amp;gt;&amp;lt;/span&amp;gt;
+      &amp;lt;input type=&#34;submit&#34; value=&#34;SEND&#34; /&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;/form&amp;gt;
+&amp;lt;/section&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-form-mailchimp/demo-only-elements.html&#34; target=&#34;_blank&#34; title=&#34;Ver demo sem style.&#34;&gt;Ver demo sem style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-css&#34;&gt;O CSS&lt;/h2&gt;
+
+&lt;p&gt;Para cada label e input foi adicionado uma &lt;code&gt;div.input&lt;/code&gt; para inserir uma formatação por grupo.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-form-está-centralizado-com-max-width&#34;&gt;O form está centralizado com max-width:&lt;/h3&gt;
+
+&lt;p&gt;Por ser um elemento &amp;#8216;block&amp;#8217;, vamos definir o tamanho máximo que ele pode ter.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;form {
+&amp;nbsp; margin: 0 auto;
+&amp;nbsp; max-width: 850px;
+&amp;nbsp; padding: 20px 10px;
+&amp;nbsp; background-color: rgba(255,255,255,0.4)
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;o-grupo-div-input-com-50-em-8216-width-8217-do-form&#34;&gt;O grupo div.input com 50% em &amp;#8216;width&amp;#8217; do form:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input {
+  float: left;
+  width: 48%;
+  padding: 0 1% 20px;
+  position: relative;
+}
+
+.input.txt { width: 98%; } /*textarea 100%*/
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;os-labels&#34;&gt;Os labels:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input label {
+  display: block;
+  padding-bottom: 5px;
+  color: #666;
+}
+&lt;/pre&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input label.error {
+  position: absolute;
+  right: 18px;
+  top: 35px;
+  color: #f00;
+}&lt;/pre&gt;
+
+&lt;p&gt;O label.error é gerado pelo jQuery validate e adicionado seguido dos campos.&lt;/p&gt;
+
+&lt;h3 id=&#34;os-campos&#34;&gt;Os campos:&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;.input input,
+.input textarea {
+  padding-top: 10px;
+  padding-bottom: 9px;
+  border: none;
+  font-size: 16px;
+  font-weight: 100;
+  font-family: &#34;Helvetica Neue&#34;, Helvetica, Arial, sans-serif;
+}
+
+.input input {
+  width: 94%;
+  padding-left: 3%;
+  padding-right: 3%;
+}
+
+.input textarea {
+  width: 97%;
+  padding-left: 1.5%;
+  padding-right: 1.5%;
+}&lt;/pre&gt;
+
+&lt;p&gt;Formatamos os campos para ter 100% de tamanho do elemento pai &amp;#8216;div.input&amp;#8217;.&lt;/p&gt;
+
+&lt;p&gt;Sempre que redimensionar não haverá quebras, portanto, responsivo meu amigo.&lt;/p&gt;
+
+&lt;h3 id=&#34;agora-um-capricho-para-resoluções-pequenas&#34;&gt;Agora um capricho para resoluções pequenas.&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;@media screen and (max-width: 520px) {
+  .input {
+    width: 98%;
+  }
+}&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://palloi.github.io/responsive-form-mailchimp/demo-style-elements.html&#34; target=&#34;_blank&#34; title=&#34;Ver demo com style.&#34;&gt;Ver demo com style.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;o-jquery-mailchimp&#34;&gt;O jQuery + MailChimp&lt;/h2&gt;
+
+&lt;p&gt;Com o HTML e CSS prontos, vamos adicionar o JavaScript que é fácil. Como dependemos do jQuery e não podemos iniciar de qualquer forma, segue uma estrutura bem legal:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;function(){
+  var contact = function(){
+    var init = function() {
+      //initialize code
+    };
+    
+&amp;nbsp;   //more functions
+
+    return {init: init};
+  }();
+
+  //jQuery loaded
+  $(document).ready(contact.init);
+})();&lt;/pre&gt;
+
+&lt;p&gt;Como sabemos exatamente qual função vai executar quando a jQuery carregar, adicionaremos o jQuery Validate no init:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var init = function() {
+  $(&amp;#039;#form-contact&amp;#039;).validate({
+    rules : {
+      name: &#34;required&#34;,
+      email: { required: true, email: true },
+      phone: { required: true, minlength: 14 },
+      company: &#34;required&#34;,
+      message: &#34;required&#34;
+    },
+    messages: {
+      name: &#34;*&#34;,
+      email: { required: &#34;*&#34;, email: &#34;*&#34; },
+      phone: { required: &#34;*&#34;, minlength: &#34;*&#34; },
+      company: &#34;*&#34;,
+      message: &#34;*&#34;
+    }
+  });
+};&lt;/pre&gt;
+
+&lt;p&gt;Agora que estamos validando todos os campos, que tal adicionar um ajax para deixar nosso formulário bem suave e uma função para exibir mensagens de sucesso ou erro, veja:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var init = function() {
+  $(&amp;#039;#form-contact&amp;#039;).validate({
+    rules : {
+      ...
+    },
+    messages: {
+      ...
+    },
+    submitHandler: function(form) {
+      var $form = $(form);
+
+      var params = {
+        name: $form.find(&amp;#039;#name&amp;#039;).val(),
+        email: $form.find(&amp;#039;#email&amp;#039;).val(),
+        phone: $form.find(&amp;#039;#phone&amp;#039;).val(),
+        company: $form.find(&amp;#039;#company&amp;#039;).val(),
+        message: $form.find(&amp;#039;#message&amp;#039;).val()
+      };
+
+      $.ajax({
+        type: $form.attr(&amp;#039;method&amp;#039;),
+        url: $form.attr(&amp;#039;action&amp;#039;),
+        data: params,
+        success: function( data ) {
+          if(data == &#34;true&#34;) {
+            $form.find(&amp;#039;.input input&amp;#039;).val(&#34;&#34;);
+            $form.find(&amp;#039;.input textarea&amp;#039;).val(&#34;&#34;);
+            setMessage(&#34;Mission accomplished. &amp;lt;strong&amp;gt;&#34;+ params.email +&#34;&amp;lt;/strong&amp;gt; was successfully added to list.&#34;, &#34;success&#34;);
+          } else {
+            setMessage(&#34;Mission failed. &amp;lt;strong&amp;gt;&#34;+ params.email +&#34;&amp;lt;/strong&amp;gt; not was added to list.&#34;, &#34;error&#34;);
+          }
+        },
+        error: function( data ) {
+          setMessage(&#34;Mission failed in connection. Try again.&#34;, &#34;error&#34;);
+        }
+      });
+
+      return false;
+    }
+  });
+};
+
+var setMessage = function($message, $type) {
+  $(&amp;#039;.form-message&amp;#039;).html($message).addClass($type);
+
+  setTimeout(function(){
+    $(&amp;#039;.form-message&amp;#039;).removeClass($type);
+  }, 6000);
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Via &amp;#8216;submitHandler&amp;#8217; do &lt;a href=&#34;http://jQueryvalidation.org/&#34; target=&#34;_blank&#34;&gt;jQuery Validate&lt;/a&gt;, vamos disparar por ajax todos os dados preenchidos e travar o post do form com &amp;#8216;return false&amp;#8217; no final da função. Assim evitamos aquele redirecionamento de post.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-php&#34;&gt;O PHP&lt;/h3&gt;
+
+&lt;p&gt;Como definimos com &amp;#8216;method&amp;#8217; e &amp;#8216;action&amp;#8217; para o nosso formulário, segue o código para resgatar os dados:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+    require_once &amp;#039;MCAPI.class.php&amp;#039;;
+    $api = new MCAPI(&amp;#039;casiuach1293kajsc912319203cja23s-us9&amp;#039;);
+    $merge_vars = array(&amp;#039;NAME&amp;#039;=&amp;gt;$_POST[&#34;name&#34;], &#39;PHONE&#39;=&amp;gt;$_POST[&#34;phone&#34;], &#39;COMPANY&#39;=&amp;gt;$_POST[&#34;company&#34;], &#39;MESSAGE&#39;=&amp;gt;$_POST[&#34;message&#34;]);
+    
+    // Submit subscriber data to MailChimp
+    // For parameters doc, refer to: http://apidocs.mailchimp.com/api/1.3/listsubscribe.func.php
+    $retval = $api-&amp;gt;listSubscribe( &amp;#039;12938asd98&amp;#039;, $_POST[&#34;email&#34;], $merge_vars, &amp;#039;html&amp;#039;, false, true );
+    
+    if ($api-&amp;gt;errorCode){
+        echo &#34;false&#34;;
+    } else {
+        echo &#34;true&#34;;
+    }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Dependemos da MCAPI.class que você pode verificar na &lt;a href=&#34;https://apidocs.mailchimp.com/api/example-code/&#34; target=&#34;_blank&#34;&gt;documentação&lt;/a&gt; ou baixar &lt;a href=&#34;https://codeload.github.com/sunarlim/mailchimp-subscribe/zip/master&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt;, só lembrando que precisa adicionar sua API Key e List ID.&lt;/p&gt;
+
+&lt;h2 id=&#34;pronto&#34;&gt;PRONTO&lt;/h2&gt;
+
+&lt;p&gt;Nosso formulário é responsivo e integrado ao mailchimp.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://css4html.com.br/demos/responsive-form-mailchimp/&#34; target=&#34;_blank&#34; title=&#34;Veja como ficou o resultado final&#34;&gt;Veja como ficou o resultado final&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/palloi/responsive-form-mailchimp/&#34; target=&#34;_blank&#34; title=&#34;Veja o código completo no github&#34;&gt;Veja o c&amp;oacute;digo completo no github&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;É isso ae pessoal, obrigado.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Upload de arquivos com PHP</title>
+      <link>http://tableless.com.br/upload-de-arquivos-com-php/</link>
+      <pubDate>Tue, 01 Jul 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/upload-de-arquivos-com-php/</guid>
+      <description>
+
+&lt;p&gt;Neste artigo vamos aprender como fazer upload de arquivos com PHP. Porém, com alguns recursos adicionais em cada exemplo.&lt;/p&gt;
+
+&lt;p&gt;No primeiro exemplo, iremos fazer um upload básico de apenas um arquivo, assim conseguimos pegar o jeito da coisa.&lt;/p&gt;
+
+&lt;p&gt;No segundo exemplo, vamos fazer um upload de múltiplas imagens, e utilizaremos a classe WideImage para tratá-las (redimensionar, cortar e salvar).&lt;/p&gt;
+
+&lt;p&gt;E por fim, no último exemplo, vamos fazer o upload por AJAX, utilizando o Jquery Form Plugin.&lt;/p&gt;
+
+&lt;h2 id=&#34;upload-básico&#34;&gt;Upload Básico&lt;/h2&gt;
+
+&lt;p&gt;Primeiro vamos fazer um upload clássico e rápido de apenas um arquivo. Por ser apenas um exemplo, resolvi escrever o código php na mesma página do HTML, para ficar de simples compreensão, por isso, na &lt;strong&gt;action&lt;/strong&gt; do formulário temos #.&lt;/p&gt;
+
+&lt;p&gt;Um dos atributos que não podemos esquecer para fazer upload, é o que seta o &lt;strong&gt;enctype&lt;/strong&gt; ao nosso formulário.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+   &amp;lt;title&amp;gt;Basic Upload&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+   &amp;lt;form action=&#34;#&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+      &amp;lt;input type=&#34;file&#34; name=&#34;fileUpload&#34;&amp;gt;
+      &amp;lt;input type=&#34;submit&#34; value=&#34;Enviar&#34;&amp;gt;
+   &amp;lt;/form&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+&amp;lt;?php
+   if(isset($_FILES[&#39;fileUpload&#39;]))
+   {
+      date_default_timezone_set(&#34;Brazil/East&#34;); //Definindo timezone padrão
+
+      $ext = strtolower(substr($_FILES[&#39;fileUpload&#39;][&#39;name&#39;],-4)); //Pegando extensão do arquivo
+      $new_name = date(&#34;Y.m.d-H.i.s&#34;) . $ext; //Definindo um novo nome para o arquivo
+      $dir = &#39;uploads/&#39;; //Diretório para uploads
+
+      move_uploaded_file($_FILES[&#39;fileUpload&#39;][&#39;tmp_name&#39;], $dir.$new_name); //Fazer upload do arquivo
+   }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora passamos ao código PHP, primeiro verificamos se o arquivo foi enviado através do &lt;strong&gt;isset&lt;/strong&gt;. Se sim, seguimos para o upload do arquivo.&lt;/p&gt;
+
+&lt;p&gt;Primeiro definimos o timezone da aplicação, para podemos usar a função date sem problemas.&lt;/p&gt;
+
+&lt;p&gt;Como &amp;#8220;boa prática&amp;#8221; definimos uma variável com o ano, mês, dia, hora, minuto e segundo e concatenamos com a extensão do arquivo pega acima.&lt;/p&gt;
+
+&lt;p&gt;Para finalmente fazer o upload do arquivo, usamos a função &lt;strong&gt;move_uploaded_file&lt;/strong&gt;, passando dois parâmetros, primeiro o nome temporário do arquivo armazenado pelo servidor, e o novo nome do arquivo, já com diretório padrão.&lt;/p&gt;
+
+&lt;p&gt;Se você deseja pegar alguma outra informação do arquivo, a variável $_FILES contém algumas outras informações que não são usadas no exemplo, como:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;name&amp;#8217;]&lt;/strong&gt; O nome original do arquivo no computador do usuário&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;type&amp;#8217;]&lt;/strong&gt; O tipo mime do arquivo, se o browser deu esta informação (ex.: &amp;#8220;image/gif&amp;#8221;)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;size&amp;#8217;]&lt;/strong&gt; O tamanho, em bytes, do arquivo&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;tmp_name&amp;#8217;]&lt;/strong&gt; O nome temporário do arquivo, como foi guardado no servidor&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;$_FILES[&amp;#8216;fileUpload&amp;#8217;][&amp;#8216;error&amp;#8217;]&lt;/strong&gt; O código de erro associado a este upload de arquivo (adicionado no PHP 4.2.0)&lt;/p&gt;
+
+&lt;h2 id=&#34;upload-múltiplo&#34;&gt;Upload Múltiplo&lt;/h2&gt;
+
+&lt;p&gt;Para o segundo exemplo faremos o upload de múltiplas imagens. Porém, nesse exemplo utilizaremos a classe &lt;a href=&#34;http://wideimage.sourceforge.net/&#34; title=&#34;WideImage&#34; target=&#34;_blank&#34;&gt;WideImage&lt;/a&gt;, para tratarmos as imagens que foram enviadas.&lt;/p&gt;
+
+&lt;p&gt;O segredo do múltiplo upload é a adição do atributo &lt;strong&gt;multiple&lt;/strong&gt; à tag do input type=&amp;#8221;file&amp;#8221; e adicionar &lt;strong&gt;[ ]&lt;/strong&gt; ao name da tag.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+   &amp;lt;title&amp;gt;Multiple Upload&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+   &amp;lt;form action=&#34;#&#34; method=&#34;POST&#34; enctype=&#34;multipart/form-data&#34;&amp;gt;
+      &amp;lt;input type=&#34;file&#34; name=&#34;fileUpload[]&#34; multiple&amp;gt;
+      &amp;lt;input type=&#34;submit&#34; value=&#34;Enviar&#34;&amp;gt;
+   &amp;lt;/form&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+&amp;lt;?php
+   if(isset($_FILES[&#39;fileUpload&#39;]))
+   {
+      require &#39;WideImage/WideImage.php&#39;; //Inclui classe WideImage à página
+
+      date_default_timezone_set(&#34;Brazil/East&#34;);
+
+      $name     = $_FILES[&#39;fileUpload&#39;][&#39;name&#39;]; //Atribui uma array com os nomes dos arquivos à variável
+      $tmp_name = $_FILES[&#39;fileUpload&#39;][&#39;tmp_name&#39;]; //Atribui uma array com os nomes temporários dos arquivos à variável
+
+      $allowedExts = array(&#34;.gif&#34;, &#34;.jpeg&#34;, &#34;.jpg&#34;, &#34;.png&#34;, &#34;.bmp&#34;); //Extensões permitidas
+
+      $dir = &#39;uploads/&#39;;
+
+      for($i = 0; $i &amp;lt; count($tmp_name); $i++) //passa por todos os arquivos
+      {
+         $ext = strtolower(substr($name[$i],-4));
+
+         if(in_array($ext, $allowedExts)) //Pergunta se a extensão do arquivo, está presente no array das extensões permitidas
+         {
+            $new_name = date(&#34;Y.m.d-H.i.s&#34;) .&#34;-&#34;. $i . $ext;
+
+            $image = WideImage::load($tmp_name[$i]); //Carrega a imagem utilizando a WideImage
+
+            $image = $image-&amp;gt;resize(170, 180, &#39;outside&#39;); //Redimensiona a imagem para 170 de largura e 180 de altura, mantendo sua proporção no máximo possível
+            $image = $image-&amp;gt;crop(&#39;center&#39;, &#39;center&#39;, 170, 180); //Corta a imagem do centro, forçando sua altura e largura
+
+            $image-&amp;gt;saveToFile($dir.$new_name); //Salva a imagem
+         }
+      }
+   }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;O código PHP deste exemplo muda um pouco comparado ao primeiro. Como neste exemplo estamos utilizando a classe WideImage, temos que inclui-la ao projeto. Em seguida, colocamos todos os nomes de arquivos enviados dentro da variável $name e todos os nomes temporários dentro da variável $tmp_name.&lt;/p&gt;
+
+&lt;p&gt;Para fazer a consistência que iremos salvar apenas imagens, criei uma array de possíveis extensões para imagens. Logo adiante, passamos por cada arquivo dentro do for, e realizamos a pergunta se a extensão do arquivo que estou pegando no for se encontra no array de extensões permitidas, se sim, continuaremos para salva-la no servidor, mas antes, redimensiono a mesma com o WideImage (sem perder a proporção), e depois corto a mesma para ter imagens apenas com as dimensões que forcei.&lt;/p&gt;
+
+&lt;h2 id=&#34;upload-com-ajax&#34;&gt;Upload com AJAX&lt;/h2&gt;
+
+&lt;p&gt;Neste último exemplo, vamos utilizar o mesmo código PHP de cima para salvar as imagens, porém, com alguns truques HTML e utilizando o &lt;a href=&#34;http://malsup.com/jquery/form/&#34; title=&#34;Jquery Form Plugin&#34; target=&#34;_blank&#34;&gt;Jquery Form Plugin&lt;/a&gt; para fazer o upload via AJAX.&lt;/p&gt;
+
+&lt;p&gt;Não repare na utilização de css inline, ou javascript incorporado ao exemplo, procurei o máximo de agilidade possível e foco no ajax.&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+   &amp;lt;title&amp;gt;Multiple Upload Ajax&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+   &amp;lt;form id=&#34;formImage&#34; style=&#34;display:none&#34;&amp;gt;
+      &amp;lt;input type=&#34;file&#34; id=&#34;fileUpload&#34; name=&#34;fileUpload[]&#34; multiple onchange=&#34;saveImages()&#34;&amp;gt;
+   &amp;lt;/form&amp;gt;
+
+   &amp;lt;div id=&#34;btnFake&#34; style=&#34;background:#CCC; width:100px; height:100px; cursor:pointer;&#34;&amp;gt;&amp;lt;/div&amp;gt;
+
+   &amp;lt;script src=&#34;//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+   &amp;lt;script src=&#34;//malsup.github.io/jquery.form.js&#34;&amp;gt;&amp;lt;/script&amp;gt;
+
+   &amp;lt;script&amp;gt;
+      document.getElementById(&#39;btnFake&#39;).addEventListener(&#39;click&#39;, function(){
+         document.getElementById(&#39;fileUpload&#39;).click();
+      });
+
+      function saveImages()
+      {
+         $(&#39;#formImage&#39;).ajaxSubmit({
+            url  : &#39;multiple-upload-ajax.php&#39;,
+            type : &#39;POST&#39;
+         });
+      }
+   &amp;lt;/script&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Criei um botão &amp;#8220;personalizado&amp;#8221; para não ficarmos com aquele padrão do input type=&amp;#8221;file&amp;#8221;, que é muito feio, e escondi o form todo porque não usamos ele para mais nada além de fazer upload de imagens. Porém, no javascript eu adiciono um evento de click ao meu &lt;strong&gt;btnFake&lt;/strong&gt;, para quando clicarmos nele, o fileUpload ser clicado também, assim mascaramos o nosso botão de upload.&lt;/p&gt;
+
+&lt;p&gt;Na tag do input type=&amp;#8221;file&amp;#8221; adicionei um novo atributo, o de &lt;strong&gt;onchange&lt;/strong&gt;, para assim que selecionados os arquivos que desejo fazer upload, eles sejam enviados ao servidor, sem a necessidade de previamente clicarmos em outro botão para apenas enviar.&lt;/p&gt;
+
+&lt;p&gt;A função saveImages ativa a função ajaxSubmit do plugin jquery form, enviando o formulário completo (no caso o de id &lt;strong&gt;formImage&lt;/strong&gt;), para uma url especificada e com um método de envio do tipo POST.&lt;/p&gt;
+
+&lt;p&gt;Como disse mais acima, o código PHP é o mesmo do exemplo anterior:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+   if(isset($_FILES[&#39;fileUpload&#39;]))
+   {
+      require &#39;WideImage/WideImage.php&#39;;
+
+      date_default_timezone_set(&#34;Brazil/East&#34;);
+
+      $name     = $_FILES[&#39;fileUpload&#39;][&#39;name&#39;];
+      $tmp_name = $_FILES[&#39;fileUpload&#39;][&#39;tmp_name&#39;];
+
+      $allowedExts = array(&#34;.gif&#34;, &#34;.jpeg&#34;, &#34;.jpg&#34;, &#34;.png&#34;, &#34;.bmp&#34;);
+
+      $dir = &#39;uploads/&#39;;
+
+      for($i = 0; $i &amp;lt; count($tmp_name); $i++)
+      {
+         $ext = strtolower(substr($name[$i],-4));
+
+         if(in_array($ext, $allowedExts))
+         {
+            $new_name = date(&#34;Y.m.d-H.i.s&#34;) .&#34;-&#34;. $i . $ext;
+
+            $image = WideImage::load($tmp_name[$i]);
+
+            $image = $image-&amp;gt;resize(170, 180, &#39;outside&#39;);
+            $image = $image-&amp;gt;crop(&#39;center&#39;, &#39;center&#39;, 170, 180);
+
+            $image-&amp;gt;saveToFile($dir.$new_name);
+         }
+      }
+   }
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Bom, é isso aí pessoal. Apesar de ser algo simples, muitos quando começam a conhecer PHP tem dúvidas desse tipo.&lt;/p&gt;
+
+&lt;p&gt;Espero que todos consigam. Bons estudos!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Lendo um arquivo de texto com AJAX</title>
+      <link>http://tableless.com.br/lendo-um-arquivo-de-texto-com-ajax/</link>
+      <pubDate>Wed, 14 Sep 2011 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/lendo-um-arquivo-de-texto-com-ajax/</guid>
+      <description>&lt;p&gt;Inicio mostrando como realizar uma requisição de arquivos de texto com AJAX.&lt;/p&gt;
+
+&lt;p&gt;Em tempos de Web 2.0, não podemos pensar mais em sites que usem requisições síncronas para rotinas de interação com o usuário.&lt;/p&gt;
+
+&lt;p&gt;Uma das técnicas mais utilizadas para esse fim é o AJAX &amp;#8211; Assynchronous Javascript and XML.&lt;/p&gt;
+
+&lt;p&gt;De uma forma resumida e sem muito &amp;#8220;tecniquês&amp;#8221;, AJAX é a captura de informações sem a necessidade de recarregamento da estrutura do documento HTML a cada requisição ao servidor web.&lt;/p&gt;
+
+&lt;p&gt;E para poder fazer conexão assíncrona com o servidor web temos que criar um objeto com as propriedades e métodos AJAX .&lt;/p&gt;
+
+&lt;p&gt;Porém, como a web não é um ambiente perfeito, temos que criar um objeto AJAX para os browsers Firefox, Chrome, Opera, Safari, chamado de XMLHttpRequest. E para o IE um objeto ActiveX que faça referencia ao objeto XMLHTTP.&lt;/p&gt;
+
+&lt;p&gt;Como padrão de desenvolvimento, vamos criar um arquivo que faça essa identificação e criação chamado de xhr.js.&lt;/p&gt;
+
+&lt;p&gt;Para a criação desse arquivo, abra o editor de código de sua preferência e digite o seguinte código:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Arquivo xhr.js&lt;/strong&gt;&amp;#8230;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//Declarando variaveis globais
+var xhr;
+var txt ;
+
+function ajax(){
+//Verificando se os browsers aceitam o objeto XMLHttpRequest
+if(window.XMLHttpRequest){
+xhr  = new XMLHttpRequest();
+}
+//Verificando se o browser IE versão &amp;gt; 6
+else if(window.ActiveXObject){
+try{
+xhr = new ActiveXObject(Msxml2.XMLHTTP);
+}
+catch(e){
+try{
+xhr =  new ActiveXObject(Microsoft.XMLHTTP);
+}
+catch(er){
+txt = &#34;Seu browser não aceita AJAX!&#34;;
+alert(txt);
+}
+}
+}
+return xhr;
+}
+...
+&lt;/pre&gt;
+
+&lt;p&gt;Em seguida, vamos criar o arquivo HTML e fazer referência ao objeto AJAX criado pelo arquivo &lt;strong&gt;xhr.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para isso use a  tag script no head da página html. Exemplo: &lt;strong&gt;&lt;script type=&amp;#8221;text/javascript&amp;#8221; src=&amp;#8221;caminho/xhr.js&amp;#8221;&gt;&lt;/script&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Arquivo ajax_txt.html&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//Declarando variáveis globais
+var xhr;
+var valor;
+
+//Função para pegar os arquivos de texto
+function pegaTextos{
+//Instancia o objeto ajax e guarda na var xhr
+xhr = ajax();
+//Captura o elemento select  via DOM
+var txt = document.getElementById(&#34;textos&#34;);
+//Pega o valor da opção escolhida na lista do campo select
+valor = txt.options[txt.selectedIndex].value;
+//Monta a url da chamada AJAX
+var url = &#34;texto&#34;+valor+&#34;.txt&#34;;
+//Abre a conexão com o servidor web via AJAX
+xhr.open(&#34;GET&#34;,url,false);
+//Confirma o envio dos dados
+xhr.send(null);
+//Verifica a mudança de estado do servidor web e dispara a função para mostrar os textos
+xhr.onreadystatechange = mostraTextos;
+}
+
+//Função para mostras os textos
+function mostraTextos(){
+//Verifica o status do retorno do servidor web
+if(xhr.readyState == 4 &amp;&amp; xhr.status == 200){
+//Pega a resposta do servidor web
+var resposta = xhr.responseText;
+//Captura a div Box para mostrar os textos
+var box  = document.getElementById(&#34;box&#34;);
+//Escreve os textos na div Box
+box.innerHTML = resposta;
+//Aplica um estilo de borda na div Box
+box.style.border = &#34;1px dotted #333&#34;;
+}
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Aplicando um estilo CSS na div Box&lt;/p&gt;
+
+&lt;pre class=&#34;lang-css&#34;&gt;#box{
+width: 450px;
+height: auto;
+padding: 10px;
+margin-top: 25px;
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Montamos agora o HTML com o combo dos textos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;body&amp;gt;
+&amp;lt;p&amp;gt;Selecionando textos com AJAX&amp;lt;/p&amp;gt;&amp;lt;br/&amp;gt;
+&amp;lt;select id=&#34;textos&#34; onchange=&#34;pegaTextos()&#34;&amp;gt;
+&amp;lt;option value=&#34;&#34; selected=&#34;selected&#34;&amp;gt;selecione&amp;lt;/option&amp;gt;
+&amp;lt;option value=&#34;1&#34;&amp;gt;Texto 1&amp;lt;/option&amp;gt;
+&amp;lt;option value=&#34;2&#34;&amp;gt;Texto 2&amp;lt;/option&amp;gt;
+&amp;lt;option value=&#34;3&#34;&amp;gt;Texto 3&amp;lt;/option&amp;gt;
+&amp;lt;/select&amp;gt;
+&amp;lt;div id=&#34;box&#34;&amp;gt;&amp;lt;/div&amp;gt;
+&amp;lt;/body&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Para que a chamada AJAX funcione, temos que criar os arquivos de textos com os respectivos nomes: texto1.txt,texto2.txt e texto3.txt.&lt;/p&gt;
+
+&lt;p&gt;Em seguida salve os arquivos na mesma pasta onde se encontram os &lt;strong&gt;arquivos xhr.js&lt;/strong&gt; e &lt;strong&gt;ajax_txt.html&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Agora é so testar!&lt;/p&gt;
+
+&lt;p&gt;Lembrando que para uma requisição AJAX funcionar, ela tem que passar por um servidor. No nosso caso o &lt;strong&gt;localhost&lt;/strong&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Digest 04/09: Javascript, JQuery e Ajax</title>
+      <link>http://tableless.com.br/digest-0409-javascript-jquery-e-ajax/</link>
+      <pubDate>Wed, 29 Apr 2009 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/digest-0409-javascript-jquery-e-ajax/</guid>
+      <description>&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://jorenrapini.com/blog/web-development/useful-javascript-jquery-and-ajax-tutorials-and-resources-massive-link-collection-part-1&#34;&gt;Useful Javascript, jQuery, and AJAX Tutorials and Resources &amp;#8211; Massive Link Collection Part #1&lt;/a&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://tableless.com.br/wp-admin/post-new.php&#34;&gt;jQuery Tips and Tricks II&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.ajaxline.com/10-best-jquery-datepickers-plugins&#34;&gt;10 Best jQuery Datepickers Plugins&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.noupe.com/php/20-useful-php-jquery-tutorials.html&#34;&gt;20 Useful PHP + jQuery Components &amp;amp; Tuts for Everyday Project&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://webstandard.kulando.de/post/2009/04/09/best-of-jquery-tutorials-part-3&#34;&gt;Best of JQuery Tutorials&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.queness.com/post/212/10-jquery-and-non-jquery-javascript-rich-text-editors&#34;&gt;10 JQuery and Non JQuery Javascript Rich Text Editors&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.queness.com/post/204/25-jquery-plugins-that-enhance-and-beautify-html-form-elements&#34;&gt;25+ jQuery Plugins that enhance and beautify HTML form elements&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.webdesigntoolslist.com/2009/04/webmastertools/javascript-cheat-sheets-quick-reference-guides-for-javascript-webmasters-coders-web-developers-designers/&#34;&gt;Roundup of Javascript Cheat Sheets&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Site em Ajax? Site em Flash? Pergunta ruim.</title>
+      <link>http://tableless.com.br/site-em-ajax-site-em-flash-pergunta-ruim/</link>
+      <pubDate>Fri, 14 Sep 2007 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/site-em-ajax-site-em-flash-pergunta-ruim/</guid>
+      <description>&lt;p&gt;Recebi há poucos dias um email que me deixou intrigado. Um amigo descrevia um site que vai construir em breve e me perguntava: você acha que devo fazê-lo em Ajax? Essa é uma pergunta ruim. A boa pergunta seria: onde, nesse site, eu deveria usar Ajax?&lt;/p&gt;
+
+&lt;p&gt;Enquanto os cabeças-pequenas ficam discutindo se devem fazer ou não site em Flash, o Flickr faz um site HTML, com um excelente slideshow em Flash. Deixe-me perguntar: o &lt;a href=&#34;http://www.youtube.com&#34;&gt;YouTube&lt;/a&gt; é um &amp;#8220;site em Flash&amp;#8221;? O &lt;a href=&#34;http://video.google.com/&#34;&gt;Google Video&lt;/a&gt;? E o &lt;a href=&#34;http://www.charges.com.br&#34;&gt;Charges.com.br&lt;/a&gt;? Não? Uma vez que o uso de Flash era inevitável, porque não fizeram logo o site todo em Flash? Porque, amiguinhos, Flash é bom para umas coisas, HTML é bom para outras. Eis uma lição que precisamos aprender: não ao radicalismo, nem oito, nem oitenta.&lt;/p&gt;
+
+&lt;p&gt;HTML é a ferramenta ideal se você quer que as pessoas consigam usar o botão voltar, adicionar bookmarks, mandar o endereço para os amigos, selecionar e copiar texto, imprimir a página, encontrar seu conteúdo no Google e etc. Claro, dá para fazer &lt;strong&gt;quase&lt;/strong&gt; tudo isso funcionar com Flash ou Ajax, mas com HTML você faz isso sem trabalho nenhum. Está pronto. Basta escrever bom HTML que o resto acontece sozinho. Além disso, HTML tem um custo de desenvolvimento muito reduzido em relação ao Flash. Custo de desenvolvimento, amigos, se mede em horas de trabalho. Gerar formulários, buscas, listagens e relatórios é muito mais fácil em HTML do que em Flash. Se você usa um desses frameworks modernosos então, nem se fala.&lt;/p&gt;
+
+&lt;p&gt;Por outro lado, Flash é bom para algumas outras coisas. Por exemplo, se você vai publicar vídeo numa página web, Flash é hoje a opção mais leve, simples e compatível. Ajax, por sua vez, é excelente para evitar refreshs e modifica o modelo de interação com a página. Então não precisamos escolher entre um &amp;#8220;site em Flash&amp;#8221; e um &amp;#8220;site em Ajax&amp;#8221; em detrimento de um &amp;#8220;site comum, em HTML&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Para ajudar meu amigo, vou publicar aqui algumas coisas que levo em consideração ao escolher onde usar Javascript e Ajax em um site. Entenda que isso não é uma verdade absoluta, há provavelmente muito mais coisas que você pode levar em consideração, em que eu talvez nunca tenha pensado. Hoje, eu penso no seguinte:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Acessibilidade&lt;/strong&gt;: o bom Javascript não quebra a acessibilidade do bom HTML (posso falar mais sobre isso outro dia.) Mas isso pode dar algum trabalho. É preciso levar em conta a importância da acessibilidade para aquela aplicação específica. Sim, acessibilidade pode não ser importante para determinadas aplicações. Por exemplo, o &lt;a href=&#34;http://maps.google.com/&#34;&gt;Google Maps&lt;/a&gt; é inacessível a deficientes visuais e a qualquer um que não consiga usar um mouse. Quem aí vai dizer que eles fizeram uma escolha errada? Mas, para a maioria das aplicações, acessibilidade é importante, e é preciso pensar nisso antes de planejar nosso Javascript.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Modelo de interação&lt;/strong&gt;: você pode torcer o nariz, mas as pessoas estão acostumadas com o modelo de interação com páginas: clica &amp;#8211; espera um pouquinho &amp;#8211; carrega uma nova página. Elas sabem usar os recursos do navegador feitos para esse modelo, como a barra de endereços, os bookmarks, e o botão voltar. Ah, o que seria de nós sem o botão voltar? Então, eu uso Javascript sem medo onde é claro para as pessoas que elas estão interagindo com a mesma página, no modelo &amp;#8220;aplicação&amp;#8221;. Mas evito usá-lo onde possa dar a impressão de que estão navegando para outra página. Caso contrário, elas vão tentar usar o botão voltar e o resto todo. Você leu certo, &amp;#8220;evito&amp;#8221; não quer dizer que eu nunca faça, só tento ser muito parcimonioso. O nosso &lt;a href=&#34;http://tableless.com.br/artigos/ajaxdemo/&#34; title=&#34;Tutorial de Ajax&#34;&gt;Tutorial de Ajax&lt;/a&gt; (e também a &lt;a href=&#34;http://tableless.com.br/artigos/ajaxdemo2/&#34; title=&#34;Tutorial de Ajax, parte 2&#34;&gt;continuação&lt;/a&gt;) foi feito em Ajax por motivos didáticos. Navegando nele você vai sentir falta do botão voltar e de poder usar bookmarks.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Custo x benefício&lt;/strong&gt;: convenhamos, HTML comum funciona bem para a maioria das coisas, e realmente muito bem para algumas. É a ferramenta ideal, por exemplo, para publicar um site de conteúdo, como esse aqui. Um portal de notícias, um blog, um manual de produto, etc. Usando Ajax você pode fazer com que, ao navegar em um site assim, seja recarregada apenas a parte principal, com o conteúdo. Menus, cabeçalho e rodapé permanecem. Mas será que vale a pena? Trabalhando com padrões web, com seu CSS, javascript e imagens no cache, você vai economizar quanto em banda com esse Ajax? Aqui no Tableless economizaríamos cerca de 15 Kb por página. Por outro lado, teríamos que incluir um bocado de Javascript colocar esse Ajax para funcionar, e manter funcionando coisas como o botão voltar. Sendo que cada visitante vê em média 2 páginas (1,95 para ser mais exato) isso dificilmente representaria alguma economia em banda. E daria um bocado de trabalho.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Logo, meu conselho é: não faça sites &amp;#8220;em Ajax&amp;#8221;, nem sites &amp;#8220;em Flash&amp;#8221;. Faça sites com os padrões web, e use Ajax ou Flash onde isso for realmente ajudar seus usuários.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Cuidado para não regredir</title>
+      <link>http://tableless.com.br/cuidado-para-nao-regredir/</link>
+      <pubDate>Fri, 09 Mar 2007 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/cuidado-para-nao-regredir/</guid>
+      <description>&lt;p&gt;Você se lembra de quando esse treco todo de Web Standards começou a pegar aqui no Brasil? Muitos falavam que era moda, que ia passar&amp;#8230; Outros queriam descobrir as vantagens e outros ainda as desvantagens. Foi bem parecido com o que aconteceu com o &amp;#8220;Ajax&amp;#8221;. Nos dois começaram a surgir pessoas praticando os conceitos com afinco e tendo resultados interessantes. Entretanto há uma outra parte que mesmo utilizando conceitos novos, conseguiram regredir.&lt;/p&gt;
+
+&lt;p&gt;Engraçado isso né? Mesmo utilizando tecnologias e metodologias que geram uma produtividade acima do normal para qualquer projeto, o desenvolvedor consegue regredir e &lt;a href=&#34;http://tableless.com.br/codigo_novo_maneira_velha&#34;&gt;usar essas novas idéias da maneira antiga&lt;/a&gt;. Com Tableless foi assim e está sendo agora com o Ajax. Hoje em dia o pessoal está utilizando Ajax em tudo! Quer mostrar algum texto, use Ajax. Quer mostrar uma coluna? Use Ajax. Desde de quando precisamos usar Ajax para poder mostrar um simples texto na tela? Deixa o site mais rápido? Deixa mais acessível? Fica melhor em relação a performance, compatibilidade ou algo parecido?&lt;/p&gt;
+
+&lt;p&gt;Vamos com calma. Vamos planejar e pensar antes de sentar o bumbum no banco e codificar. Essas metodologias ajudam demais o desenvolvedor mas só se forem usadas com moderação e da maneira correta. Caso contrário elas são tão penosas quanto as maneiras antigas de desenvolvimento.&lt;/p&gt;
+
+&lt;p&gt;O bom desenvolvimento é um conjunto de vários pontos. Vão desde planejamento até a relação de designers e programadores. É um caminho tortuoso, mas bem fácil de caminhar.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Máscaras Javascript em Campos de Formulário</title>
+      <link>http://tableless.com.br/mascaras-javascript-em-campos-de-formulario/</link>
+      <pubDate>Fri, 19 Jan 2007 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/mascaras-javascript-em-campos-de-formulario/</guid>
+      <description>&lt;p&gt;Vou tentar, uma vez por semana, responder aqui a alguma dúvida de algum aluno dos &lt;a href=&#34;http://visie.com.br/cursos&#34;&gt;cursos da Visie&lt;/a&gt; que seja útil para todo mundo. A de hoje:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://elcio.com.br/ajax/mascara/&#34;&gt;Javascript: máscara em campos de formulário simples e crossbrowser&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Uma dúvida muito comum diz respeito ao tratamento de teclas para campos de formulário. É um hábito de programadores de sistemas Desktop filtrar o que o usuário digita em campos como, por exemplo, data e CPF, permitindo apenas que ele digite número, e colocando automaticamente pontos, traços e outros separadores conforme ele digita. Ao tentar reproduzir esse comportamento na web, a experiência pode ser um tanto quanto frustrante, principalmente devido às diferenças entre o Internet Explorer e os outros navegadores. Além disso, a captura de eventos de teclado em Javascript é uma tarefa relativamente complicada. Por isso vou apresentar uma técnica alternativa, que não usa a captura de teclas.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Comentários aqui.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Apontador Web 2.0</title>
+      <link>http://tableless.com.br/apontador-web-20/</link>
+      <pubDate>Thu, 16 Nov 2006 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/apontador-web-20/</guid>
+      <description>&lt;p&gt;Uso o &lt;a href=&#34;http://www.apontador.com.br&#34;&gt;Apontador&lt;/a&gt; há muito tempo. E já fazia tempo que eu estava descontente com aquele applet Java horrível. Com a vinda do &lt;a href=&#34;http://maps.google.com/&#34;&gt;Google Maps&lt;/a&gt;, que agora tem mapas brasileiros, eu quase tinha um bom substituto. Só faltava funcionar a busca por endereços brasileiros.&lt;/p&gt;
+
+&lt;p&gt;E não é que eu entrei agora no Apontador e eles finalmente mudaram aquela velha interface? Trocaram o mapinha por um mapa Ajax na tela inteira, me mandaram direto para o conteúdo, agilizaram a busca e está funcionando bem rápido. E parece que funciona completamente no meu Firefox no Linux. A interação está muito mais confortável, destacando-se os seguintes pontos:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Arrastar o mapão na tela inteira, principalmente funcionando rápido como está, é muito melhor do que as setinhas da velha versão HTML do Apontador. E muito mais leve que a velha versão Java.&lt;/li&gt;
+&lt;li&gt;A busca está muito melhor assim. Muito mais fácil de usar.&lt;/li&gt;
+&lt;li&gt;O site é um excelente exemplo de uso do Ajax. A antiga busca de endereço te levava por três ou quatro telas. Em cada uma delas você tinha que esperar carregar menus, cabeçalhos, rodapés, publicidades e etc.&lt;/li&gt;
+&lt;li&gt;As ferramentas de agenda, clima, trânsito e traçado de rotas também foram muito bem implementadas. A impressão geral é de que tudo o que eu for fazer é mais rápido, e mais fácil de encontrar, nessa nova versão.&lt;/li&gt;
+&lt;li&gt;O layout melhorou muito.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Senti falta da informação sobre CEP. Eu usava o Apontador ao invés do site dos Correios, que é quase sempre muito lento, pra consultar CEPs.&lt;/p&gt;
+
+&lt;p&gt;Puseram um selinho &amp;#8220;web 2.0&amp;#8221; lá. O que vocês acham? Eu não tenho opinião formada sobre isso, fico meio com a pulga atrás da orelha. Queria ouvir a opinião de vocês.&lt;/p&gt;
+
+&lt;p&gt;Vamos ver se eles vão mesmo manter o espírito da coisa ao chamar de web 2.0. Algumas características dos sites web 2.0 que ajudariam bastante esse produto:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Always beta&lt;/strong&gt;: a melhoria contínua. O Apontador ficou congelado por anos, parecia um produto largado. Vamos ver se agora tem novidade toda semana.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;APIs públicas&lt;/strong&gt;: por enquanto não vi nada disso, mas é assim com quase todo site web 2.0. Primeiro se lança o produto, assim que ele é bom o suficiente para ser útil. Algum tempo depois chegam coisas como APIs públicas. O problema é que infelizmente muitos nunca liberam APIs para nos divertirmos. Vamos ver que caminho o Apontador vai tomar.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Conteúdo gerado pelo usuário&lt;/strong&gt;: isso seria bem interessante. Imagine enviar para seus amigos uma URL do mapa de sua festa de aniversário, de modo que eles possam traçar rotas até lá? Ou alguma coisa como o &lt;a href=&#34;http://wikimapia.org&#34;&gt;Wikimapia&lt;/a&gt;? Quem sabe até um mash-up com a Wikimapia?&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Está aí, Apontador, um exemplo de um site que sofreu uma melhoria muito grande, e um projeto para se acompanhar.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Web 2.0 Awards</title>
+      <link>http://tableless.com.br/web-20-awards/</link>
+      <pubDate>Fri, 07 Apr 2006 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/web-20-awards/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;http://web2.0awards.org/&#34;&gt;Web 2.0 Awards&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Fizeram uma seleção dos melhores sites Web 2.0 (sem discussão ao nome, ok?! &amp;#58;&amp;#45;&amp;#80;). O legal é que você acaba conhecendo mais serviços interessantes que existiam por aí, alternativos aos serviços que o pessoal costuma conhecer.&lt;/p&gt;
+
+&lt;p&gt;E lembrando&amp;#8230; O conceito (pelo menos para mim) de um site ser ou não da Web 2.0 é muito mais profundo. Não é só por que o camarada coloca um ajax aqui, outro ali, que o site será automaticamente promovido a Web 2.0. Na minha opinião o buraco é mais embaixo. Os sites com este quilate trabalham de outra forma, as funcionalidades são pensadas nos mínimos detalhes para tornar a experiência de navegação mais prazerosa, mais ágil para o usuário. Só colocar um Ajax bonitinho não faz isso, não muda toda essa experiência.&lt;/p&gt;
+
+&lt;p&gt;Tem gente que só por que essa onda de Web 2.0 chegou, pensa que algumas soluções são totalmente revolucionárias e que vão melhorar a vida do usuário. Engano&amp;#8230; se você usar por exemplo, sem estudo prévio de público e tudo mais, um recurso de &amp;#8220;drag and drop&amp;#8221;, você pode estragar totalmente a experiência do usuário. Pensou na acessibilidade (um cego acessando por exemplo), usabilidade (como o usuário vai se tocar que é para arrastar e não clicar?), público alvo e etc? Estas premissas ainda continuam valendo &amp;#8211; só que agora valem muito mais &amp;#8211; já que estamos mexendo com funcionalidades que antes não eram muito exploradas.&lt;/p&gt;
+
+&lt;p&gt;To errado? Qual sua opinião?&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Auto-completar Ajax como o Google Suggest</title>
+      <link>http://tableless.com.br/auto-completar-ajax-como-o-google-suggest/</link>
+      <pubDate>Fri, 27 Jan 2006 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/auto-completar-ajax-como-o-google-suggest/</guid>
+      <description>&lt;p&gt;Algumas pessoas tem escrito perguntando como se produz um efeito semelhante ao &lt;a href=&#34;http://www.google.com/webhp?complete=1&amp;amp;hl=en&#34;&gt;Google Suggest&lt;/a&gt;. &lt;a href=&#34;http://elcio.com.br/ajax/autocompletar/&#34;&gt;Esta série de artigos&lt;/a&gt; e o script que a acompanha são uma maneira de tentar responder a esta dúvida.&lt;/p&gt;
+
+&lt;p&gt;Como você pode ver lá, é o início do trabalho. Pretendo ter tudo pronto em duas semanas. Colaborações são muito bem vindas!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Podcast #16</title>
+      <link>http://tableless.com.br/podcast-16/</link>
+      <pubDate>Thu, 19 Jan 2006 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/podcast-16/</guid>
+      <description>&lt;p&gt;Você se lembra quando o flash começou a abrir suas asinhas? Se lembra de como todos ficaram impressionados e boquiabertos com as possibilidades vindouras? Todos faziam sites &amp;#8220;fúteis&amp;#8221;, com pouco conteúdo mas com muitas firulas e coisas que faziam qualquer visitante ficar apaixonado pelos efeitos especiais.&lt;/p&gt;
+
+&lt;p&gt;Talvez o Ajax tenha o mesmo caminho&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;tempo: ~9m06&lt;/p&gt;
+
+&lt;p&gt;tamanho: 8,33mb&lt;/p&gt;
+
+&lt;p&gt;Cadastre &lt;a href=&#34;http://feeds.feedburner.com/tableless&#34;&gt;nosso feed&lt;/a&gt; no seu agregador preferido, ou &lt;a href=&#34;http://tableless.com.br/podcast/podcast16.mp3&#34;&gt;baixe o arquivo mp3&lt;/a&gt;.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://webinsider.uol.com.br/vernoticia.php/id/2673&#34;&gt;Web 2.0: chega a hora de repensar conteúdo&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.revolucao.etc.br/archives/web-20-nao-significa-nada-me-desculpe/&#34;&gt;Web 2.0 não significa nada&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.alistapart.com/articles/web3point0&#34;&gt;Web 3.0&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://brunotorres.net/2005/10/14/web-01&#34;&gt;Web 0.1α&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Descontos no DreamHost – para serviços anuais e mensais</title>
+      <link>http://tableless.com.br/desconto-no-dreamhost/</link>
+      <pubDate>Wed, 04 Jan 2006 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/desconto-no-dreamhost/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;Atenção&lt;/strong&gt;: Se tiver problemas com o pagamento por ser necessário o Google Checkout, leia as instruções aqui:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://blog.elcio.com.br/pagando-o-dreamhost-com-google-checkout-mesmo-sendo-brasileiro/&#34;&gt;Pagando o Dreamhost com Google Checkout mesmo sendo brasileiro&lt;/a&gt; e &lt;a href=&#34;http://www.revolucao.etc.br/archives/criando-sua-conta-no-google-checkout-para-assinar-a-dreamhost/&#34;&gt;outras informações aqui&lt;/a&gt;.[&lt;strong&gt;Atenção&lt;/strong&gt;: Se tiver problemas com o pagamento por ser necessário o Google Checkout, leia as instruções aqui:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://blog.elcio.com.br/pagando-o-dreamhost-com-google-checkout-mesmo-sendo-brasileiro/&#34;&gt;Pagando o Dreamhost com Google Checkout mesmo sendo brasileiro&lt;/a&gt; e &lt;a href=&#34;http://www.revolucao.etc.br/archives/criando-sua-conta-no-google-checkout-para-assinar-a-dreamhost/&#34;&gt;outras informações aqui&lt;/a&gt;.]&lt;a href=&#34;http://blog.elcio.com.br/pagando-o-dreamhost-com-google-checkout-mesmo-sendo-brasileiro/&#34;&gt;1&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Eu uso &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt; a muito tempo. Quase nunca tenho problemas (você já viu este site fora do ar?). Ele tem ferramentas úteis como WordPress ou PHPBB que são facilmente instaláveis com apenas 1 clique. Fazer atualização destes sistemas também é tão fácil quanto instalá-los.&lt;/p&gt;
+
+&lt;p&gt;Algumas vantagens:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;No &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt; você também pode criar domínios e subdomínios ilimitados. Isso é bom para quem quiser hospedar sites de clientes, amigos e etc;&lt;/li&gt;
+&lt;li&gt;Painel de controle simple e bonito;&lt;/li&gt;
+&lt;li&gt;Você pode criar uma conta FTP individual para cada domínio hospedado;&lt;/li&gt;
+&lt;li&gt;Além do FTP, você tem acesso o servidor via SSH;&lt;/li&gt;
+&lt;li&gt;O &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/signup/?next_step=Index&#34;&gt;plano mais básico&lt;/a&gt; do &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt; te dá 200 Gigas de espaço e 2 Teras de transferência mensal.&lt;/li&gt;
+&lt;li&gt;Você pode ter mais de 3000 contas de email para cada domínio hospedado&amp;#8230; e isso no plano básico!&lt;/li&gt;
+&lt;li&gt;Fora painel de controle, instalações com um clique, Ruby on Rails, PHP nas versões 4 e 5 e MySQL, Streamming Quicktime, Aliases de e-mails ilimitados e muito mais.&lt;/li&gt;
+&lt;li&gt;Você ganha um domínio .com/.net/.org *&lt;strong&gt;&lt;em&gt;graça&lt;/em&gt;&lt;/strong&gt;*&lt;/li&gt;
+&lt;li&gt;E depois que virar cliente, você ainda pode ganhar uns trocados com o programa de afiliados que eles tem. É só indicar assim como fazemos aqui. Se quiser, pode copiar as informações descritas nesta página.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;No &lt;a href=&#34;http://wiki.dreamhost.com/index.php/Main_Page&#34;&gt;Wiki do Dreamhost&lt;/a&gt; tem mais detalhes e repostas de alguma dúvida que você possa ter.&lt;/p&gt;
+
+&lt;p&gt;Com o Tableless você ganha 3 tipos de descontos no &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt;, abaixo veja as descrições e passos para o cadastro:&lt;/p&gt;
+
+&lt;p&gt;Com o cupom de desconto &lt;strong&gt;TABLELESS&lt;/strong&gt; você consegue:&lt;/p&gt;
+
+&lt;p&gt;25% de desconto no L1 Anual: &lt;strong&gt;de $119.40 você paga $89.65&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;15% no L2 Anual: &lt;strong&gt;de $239.40 você paga $203.49&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você preferir &lt;strong&gt;uma conta mensal&lt;/strong&gt; no &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt;, também damos desconto, use o cupom &lt;strong&gt;TABLEBLESSMENSAL&lt;/strong&gt; e ganhe &lt;strong&gt;$39,90&lt;/strong&gt; de desconto em todos os planos mensais do &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mensal L1 de $59,90 &lt;strong&gt;você paga $20,00&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mensal L2 de $69,90 &lt;strong&gt;você paga $30,00&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mensal L3 de $89,90 &lt;strong&gt;você paga $50,00&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;E tem também o cupom &lt;strong&gt;TABLELESS6007&lt;/strong&gt;, onde você ganha 60% de desconto nos planos:&lt;/p&gt;
+
+&lt;p&gt;Mensal L1 de $59,90 &lt;strong&gt;você paga $24,96.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Anual L1 de $119,40 &lt;strong&gt;você paga $47,76 por um ano!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Mensal L2 de $69,90 **você paga só $27,96.&lt;/p&gt;
+
+&lt;p&gt;** Mensal L3 de $89,90 &lt;strong&gt;você paga $35,96.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;E tem também o &lt;strong&gt;TABLELESS2&lt;/strong&gt; onde você ganha $40,00 de desconto em qualquer plano do &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt;. Só colocar TABLELESS2 na hora de comprar qualquer plano e você ganha $40,00 de desconto no ato.&lt;/p&gt;
+
+&lt;p&gt;Para poder &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;ganhar desconto ao assinar&lt;/a&gt; algum plano de hospedagem na &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Dreamhost&lt;/a&gt;, siga os seguintes passos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;Escolha o plano que gostar mais&lt;/a&gt;;&lt;/li&gt;
+&lt;li&gt;Clique no botão “&lt;strong&gt;SIGN UP NOW&lt;/strong&gt;” do respectivo plano;&lt;/li&gt;
+&lt;li&gt;Na seguinte página, você escolhe o nível do plano que você gostaria de ter;&lt;/li&gt;
+&lt;li&gt;Na mesma página, você escolhe se quer receber comissões por indicações;&lt;/li&gt;
+&lt;li&gt;Logo após, selecione as opções de domínio, se você não tiver domínio ainda, preencha os dados referentes ao seu domínio, conta de usuário, email e seus dados pessoais. Se já tiver, é só selecionar dizendo que já tem um domínio;&lt;/li&gt;
+&lt;li&gt;No último campo, intitulado “&lt;strong&gt;Promo Code or email of who referred you:&lt;/strong&gt;“, digite um dos cupons do Tableless: &lt;strong&gt;TABLELESS&lt;/strong&gt;, &lt;strong&gt;TABLELESSMENSAL&lt;/strong&gt; ou &lt;strong&gt;TABLELESS60&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Clique em &lt;strong&gt;I agree to abide by DreamHost&amp;#8217;s &lt;a href=&#34;http://www.dreamhost.com/tos.html&#34; target=&#34;new&#34;&gt;Terms of Service&lt;/a&gt; and &lt;a href=&#34;http://www.dreamhost.com/spam.html&#34; target=&#34;new&#34;&gt;Anti-Spam Policy&lt;/a&gt;.&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;E para finalizar clique no botão “&lt;strong&gt;Continue to secure payment…&lt;/strong&gt;”;&lt;/li&gt;
+&lt;li&gt;Cheque o valor. Ele já deve estar &lt;em&gt;com o desconto aplicado&lt;/em&gt;;&lt;/li&gt;
+&lt;li&gt;Preencha os dados do seu cartão de crédito (&lt;strong&gt;&lt;em&gt;tem que ser internacional&lt;/em&gt;&lt;/strong&gt; &lt;strong&gt;ou via &lt;a href=&#34;http://www.paypal.com/us/&#34;&gt;paypal&lt;/a&gt;&lt;/strong&gt;) e finalize a compra;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Pagando pelo GoogleChekout é fácil:&lt;/p&gt;
+
+&lt;p&gt;Por causa de fraudes que estavam ocorrendo o Dreamhost está passando a utilizar o GoogleCheckout como forma de pagamento. Para ter uma conta no GoogleCheckout, você precisa apenas já ter ou criar uma conta no Google (GMail).&lt;/p&gt;
+
+&lt;p&gt;Para usar o GoogleCheckout no Dreamhost, siga os passos abaixo:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Ao se cadastrar, no país escolha BAHAMAS. Isso porque você não precisará colocar CEP.&lt;/li&gt;
+&lt;li&gt;Preencha o restante dos dados normalmente.&lt;/li&gt;
+&lt;li&gt;Quando chegar em SHIP MY ORDER TO, selecione a opção A DIFFERENT ADDRESS, e agora sim, selecione BRAZIL como seu país. Depois, preencha seu endereço.&lt;/li&gt;
+&lt;li&gt;Clique em AGREE e CONTINUE e pronto!&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Assine o &lt;a href=&#34;http://www.dreamhost.com/r.cgi?132780/hosting.html&#34;&gt;DreamHost pelo Tableless&lt;/a&gt; e saia do sufoco.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Web 2.0 pé no chão</title>
+      <link>http://tableless.com.br/web-20-pe-no-chao/</link>
+      <pubDate>Tue, 03 Jan 2006 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/web-20-pe-no-chao/</guid>
+      <description>&lt;p&gt;Publiquei o texto lá no &lt;a href=&#34;http://elcio.com.br/&#34;&gt;meu site&lt;/a&gt;, mas acho que ele é relevante aqui também, então lá vai o link:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://blog.elcio.com.br/web-20-pe-no-chao/&#34;&gt;Web 2.0 pé no chão&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>24 ways to impress your friends</title>
+      <link>http://tableless.com.br/24-ways-to-impress-your-friends/</link>
+      <pubDate>Fri, 30 Dec 2005 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/24-ways-to-impress-your-friends/</guid>
+      <description>&lt;p&gt;Excelente site: &lt;a href=&#34;http://24ways.org/&#34;&gt;24ways.org&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;24 dicas de desenvolvimento web. CSS, DOM, Ajax, etc&amp;#8230; Todas preciosíssimas.&lt;/p&gt;
+
+&lt;p&gt;Você pode ver &lt;a href=&#34;http://24ways.org/examples/edit-in-place-with-ajax/&#34;&gt;aqui&lt;/a&gt; um exemplo do tipo de coisa que se ensina lá. Fantástico, não?&lt;/p&gt;
+
+&lt;p&gt;Dica do &lt;a href=&#34;http://www.dpartamentos.com.br/&#34;&gt;DvD Franco&lt;/a&gt; na &lt;a href=&#34;http://br.groups.yahoo.com/group/webstandards-br/&#34;&gt;webstandards-br&lt;/a&gt;, que &lt;a href=&#34;http://br.groups.yahoo.com/group/webstandards-br/message/4741&#34;&gt;perguntou&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;o que acontece quando vira o mês? somem as 24 dicas dos meses anteriores? vc num tem + acesso, nem por 1 menu do site?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Também não sei&amp;#8230;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

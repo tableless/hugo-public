@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Jpa on Tableless</title>
+    <link>http://tableless.com.br/tags/jpa/index.xml</link>
+    <description>Recent content in Jpa on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/jpa/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>JPA de A à Z – Por que conhecer?</title>
+      <link>http://tableless.com.br/jpa-de-z-por-que-conhecer/</link>
+      <pubDate>Tue, 30 Aug 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/jpa-de-z-por-que-conhecer/</guid>
+      <description>&lt;p&gt;Não dá pra negar que o Java é uma linguagem bastante verbosa e quando falávamos em juntar o Java com um banco de dados ai sim dava pra ver o tamanho do problema.&lt;/p&gt;
+
+&lt;p&gt;Se não tivéssemos cuidado era muito fácil perder o controle da complexidade de nossas entidades e consultas.&lt;/p&gt;
+
+&lt;p&gt;Antes de entendermos sobre a  JPA, é necessário entender que costumávamos utilizar em nossos projetos o JDBC (Java Database Connectivity) que é uma API presente no Java desde a versão 1.1 da plataforma. Mesmo sendo uma API bem antiga ela ainda continua sendo atualizada e modificada pela comunidade e pela Oracle.&lt;/p&gt;
+
+&lt;p&gt;Resumidamente o JDBC é o antecessor da JPA porque ela era a principal forma de executar nossas querys SQL de select, update, delete, insert e até mesmo executar funções presentes no banco de dados. U&lt;span style=&#34;line-height: 1.5&#34;&gt;m detalhe interessante sobre o JDBC são seus Drivers de conexão, sendo cada banco de dados é responsável por desenvolver e atualizar o seu Driver. Isso facilitava muito a vida do desenvolvedor porque esses Drivers visam encapsular boa parte do código necessário para se conseguir uma conexão, então era uma preocupação a menos que tínhamos que ter.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;Mas nem tudo eram flores quando usávamos o JDBC, porque além de ter que escrever códigos SQL direto no Java, tínhamos também que instanciar uma conexão, buscar a conexão com o banco de dados. Dai era preciso preparar um outro objeto para poder manipular a consulta informando os valores dos parâmetros e só então executávamos a consulta.&lt;/p&gt;
+
+&lt;p&gt;Acabávamos tendo um trabalho tedioso só para executar uma consulta, todavia o ciclo não acabava nisso, depois era preciso fazer um casting do retorno da consulta para com objeto que queríamos manipular e como se não fosse suficiente também era necessário lembrar de fechar as conexões com o banco de dados.&lt;/p&gt;
+
+&lt;p&gt;É preciso entender que estamos falando de muito tempo atrás, um tempo em que as facilidades da JPA ainda não existiam e que muita especificação que existe hoje nasceu das dificuldades do passado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;public class ProdutoDAO {
+
+    Connection dbConnection;
+
+    public ProdutoDAO(Connection con) {
+        this.dbConnection = con;
+    }
+
+    public void salva(Produto produto) throws SQLException {
+        String sql = &#34;INSERT INTO PRODUTO (NOME, DESCRICAO) VALUES (?,?)&#34;;
+
+        try (PreparedStatement prStmt = dbConnection.prepareStatement(sql,
+                Statement.RETURN_GENERATED_KEYS)) {
+
+            prStmt.setString(1, produto.getNome());
+            prStmt.setString(2, produto.getDescricao());
+            prStmt.execute();
+
+            try (ResultSet rs = prStmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    int id = rs.getInt(1);
+                    produto.setId(id);
+                }
+            }
+
+        }
+    }
+
+    public List lista() throws SQLException {
+        List produtos = new ArrayList();
+
+        String sql = &#34;SELECT * FROM PRODUTO&#34;;
+
+        try (PreparedStatement prStmt = dbConnection.prepareStatement(sql)) {
+            prStmt.execute();
+
+            converterQueryEmProdutos(produtos, prStmt);
+        }
+
+        return produtos;
+    }
+
+    public List busca(Produto produto) throws SQLException {
+
+        String sql = &#34;SELECT * FROM PRODUTO WHERE DESCRICAO like ?&#34;;
+        List produtos = new ArrayList();
+
+        try (PreparedStatement prdStmt = dbConnection.prepareStatement(sql)) {
+            prdStmt.setString(1, produto.getDescricao);
+            prdStmt.execute();
+
+            converterQueryEmProdutos(produtos, prdStmt);
+        }
+
+        return produtos;
+    }
+
+    private void converterQueryEmProdutos(List produtos, PreparedStatement prdStmt) throws SQLException {
+
+        try (ResultSet rs = prdStmt.getResultSet()) {
+            while (rs.next()) {
+                int id = rs.getInt(1);
+                String nomeProduto = rs.getString(&#34;nome&#34;);
+                String descricaoProduto = rs.getString(&#34;descricao&#34;);
+                Produto produto = new Produto(nomeProduto, descricaoProduto);
+                produto.setId(id);
+                produtos.add(produto);
+            }
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Olhando pra esse código podemos passar um baita sufoco se por acaso algum dia o analista de requisitos resolva mexer nos atributos da entidadeProduto. Nessa DAO de exemplo só foi criada poucas consultas, mas vamos usar nossa criatividade e imaginar que na verdade existem 10 e o analista resolveu mudar o nome da coluna &amp;#8220;DESCRICAO&amp;#8221; para &amp;#8220;TIPO_PRODUTO&amp;#8221;, uma pequena mudança de nomenclatura já é suficiente para que perdêssemos tempo refatorando boa parte de nosso código.&lt;/p&gt;
+
+&lt;p&gt;Foi para evitar todo esse trabalho que surgiu o conceito ORM (Object Relational Mapping) que traduzindo livremente de acordo com a minha vontade quer dizer: “Estou salvando a sua alma transformando os dados de um banco de dados que estão no paradigma relacional para o paradigma orientado a objetos que você tanto precisa”.&lt;/p&gt;
+
+&lt;p&gt;Junto com a ORM também surgiu o Hibernate que é o framework JPA mais famoso e utilizado no momento. Só por curiosidade saiba que a JPA surgiu por causa dele, viram que a ideia era tão boa que resolveram transformar a implementação do Hibernate em uma especificação e até hoje muita coisa que é implementada no framework posteriormente vira especificação na JPA.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Mas o que é JPA?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;JPA significa Java Persistence API e como já falei ela é uma especificação que nasceu de uma JSR (Java Specification Requests) que basicamente são pedidos para mudanças na linguagem, entenda a JPA como um contrato, normas, regras ou interface e que todos os Frameworks Java que trabalham com persistência de dados devem implementa-la. Além do Hibernate também temos outros Framworks como por exemplo o OpenJPA, o Batoo e o EclipseLink.&lt;/p&gt;
+
+&lt;p&gt;Então basicamente a JPA é uma especificação que regulamenta ferramentas muito poderosas que utilizamos no nosso dia a dia para automatizar e economizar tempo de desenvolvimento. Essa especificação nos ajuda em todos os processos quando precisamos trabalhar com um banco de dados, sendo assim podemos usa-la para executar consultas, inserts, updates e deletes.&lt;/p&gt;
+
+&lt;p&gt;Lembra daquele código verboso? Como sera que ele ficaria se fosse escrito utilizando a JPA?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;public Produto obterPorId(Produto produto) {
+        return manager.find(Produto.class, produto.getId());
+    }
+
+    @SuppressWarnings(&#34;unchecked&#34;)
+    public List obterTodos() {
+        return manager.createQuery(&#34;SELCT p FROM Produto p&#34;).getResultList();
+    }
+&lt;/pre&gt;
+
+&lt;p&gt;Repare que no método &lt;strong&gt;obterPorId&lt;/strong&gt; não foi necessário criar uma única query SQL para executar a consulta por ID, também não foi preciso fazer nenhum casting a JPA se encarregou de fazer tudo isso pra gente. Agora olhando o método &lt;strong&gt;obterTodos &lt;/strong&gt;temos uma String que se parece muito com uma query SQL só que não é, a essa String damos o nome de JPQL (Java Persistence Query Language) e vamos conhecer mais sobre ela em outro momento.&lt;/p&gt;
+
+&lt;p&gt;Por fim espero que você nos acompanhe nos próximos posts porque vamos aprender mais sobre essa ferramenta poderosa em conjunto com boas práticas. A ideia é de que os posts não sejam muito longos e também não sejam só tutorias de JPA, aqui iremos explorar os conceitos, apresentar exemplos e colocar minha experiência em ação com as boas práticas.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JPA Hibernate – Como funciona a anotação @version?</title>
+      <link>http://tableless.com.br/hibernate-como-funciona-anotacao-version/</link>
+      <pubDate>Sun, 19 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/hibernate-como-funciona-anotacao-version/</guid>
+      <description>&lt;p&gt;Recentemente um colega de trabalho me perguntou qual era função da anotação &lt;strong&gt;@version&lt;/strong&gt; presente nas entidades aqui do projeto. Achei interessante essa pergunta e resolvi fazer da resposta o meu primeiro post no blog.&lt;/p&gt;
+
+&lt;p&gt;Para responder essa de pergunta temos que lembrar que todo banco de dados possui um controle de concorrência entre transações (se necessário solicitem nos comentários que faço um post explicando a fundo sobre isso). Para esse post só precisamos conhecer o método de controle &lt;em&gt;Optimistic concurrency control&lt;/em&gt; (controle de concorrência otimista).&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;Optimistic concurrency control&lt;/em&gt; (OCC)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;_Optimistic concurrency control _ou controle de concorrência otimista é um método aplicado nas transações de bancos de dados relacionais. Nesse método se acredita que a probabilidade de que duas transações utilizarem o mesmo objeto é minima, logo nada é verificado enquanto a transação está sendo executada e isso faz com que o custo dela diminua.&lt;/p&gt;
+
+&lt;p&gt;Normalmente essa técnica funciona bem em Frameworks ORM porque eles conseguem escalonar as transações para que ocorra pouca ou nenhuma interferência. Mas no caso de ocorrer uma interferência o que acontece? Simples, alguma transação escolhida pelo Hibernate vai ser abortada e terá que ser recomeçada pelo cliente.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;A anotação @version&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora que sabemos superficialmente o que é um controle de concorrência e o método &lt;strong&gt;OCC &lt;/strong&gt;fica mais fácil compreender a importância do &lt;strong&gt;@version&lt;/strong&gt; em nossas entidades. Tenha em mente que ao adicionar um atributo com essa anotação não precisamos nos preocupar em alterar seu valor porque o Hibernate fica encarregado dessa função.&lt;/p&gt;
+
+&lt;p&gt;Para usarmos o método de concorrência otimista só precisamos declarar um atributo com o nome &lt;strong&gt;version&lt;/strong&gt; em nossa entidade. Normalmente ele é do tipo numérico e também pode ser do tipo data, mas não recomendo essa pratica e vou explicar o motivo no final deste post, abaixo temos um exemplo da classe Consulta.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;@Entity
+@Table(name = &#34;CONSULTAS&#34;, schema = &#34;tableless&#34;)
+public class Consultas{
+@Id
+@GeneratedValue(strategy = GenerationType.AUTO)
+@Column(name = &#34;ID_CONSULTA&#34;)
+private Integer numero;
+
+@Temporal(TemporalType.TIMESTAMP)
+@Column(name = &#34;DATA_CONSULTA&#34;)
+private Date dataConsulta;
+
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = &#34;PACIENTE_CODIGO&#34;)
+private Pacientes paciente;
+
+@Version
+private Integer version;
+
+//getter e setter
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Com esse mapeamento o Hibernate vai usar automaticamente o número da versão para verificar se o objeto utilizado na transição foi atualizado desde a ultima vez em que ele foi requisitado. Pelo código SQL a baixo podemos ver a presença do atributo version tanto no trecho do SET como na cláusula WHERE isso acontece porque o Hibernate vai buscar o objeto no banco de dados usando também o número da versão e vai incrementar esse número ao mesmo tempo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;UPDATE CONSULTAS 
+SET DATA_CONSULTA = ?, PACIENTE_CODIGO = ?, version = ?
+WHERE ID_CONSULTA = ? 
+AND version = ?&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;@version com Data&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Usar um tipo data no atributo version é uma prática que não recomendo porque no banco de dados a coluna será do tipo &lt;strong&gt;TIMESTAMP &lt;/strong&gt;e isso pode acabar permitindo que duas ou mais transações possam ser executadas com o mesmo objeto ao mesmo tempo dependendo da precisão do fuso horário configurada no banco de dados, c&lt;span style=&#34;line-height: 1.5&#34;&gt;aso essa situação acabe acontecendo vamos acabar tendo uma violação de normalização. Algumas pessoas preferem utilizar o tipo data para conseguirem visualizar &amp;#8220;quando&amp;#8221; aquele objeto foi alterado pela ultima vez, caso essa seja sua necessidade recomendo que crie um novo atributo em sua classe ao invés de utilizar a anotação &lt;strong&gt;@version&lt;/strong&gt; como data.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;
+  Por fim espero que esse post te ajude a trabalhar com controle de concorrência no Hibernate. Dúvidas, sugestões, correções, elogios nos comentários ou no meu twitter. Xablau!
+&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

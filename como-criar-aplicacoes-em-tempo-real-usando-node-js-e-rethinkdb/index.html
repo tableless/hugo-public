@@ -1,0 +1,403 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/como-criar-aplicacoes-em-tempo-real-usando-node-js-e-rethinkdb/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/como-criar-aplicacoes-em-tempo-real-usando-node-js-e-rethinkdb/">Como criar aplicações em tempo real usando Node.js e RethinkDB</a></h1>
+  <p class="tb-hero-p">
+    
+    Sobre o RethinkDB Se você precisa de um banco de dados NoSQL que funcione com dados JSON e tenha suporte completo para buscas em tempo real e uma mistura de modelos entre SQL e NoSQL, então uma boa opção é o RethinkDB.
+Trata-se de uma base de dados em código aberto em que todos os dados JSON são persistidos em tabelas como um banco de dados SQL convencional, permitindo que você execute queries entre múltiplas tabelas utilizando o comando clássico join.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/jscrambler">Jscrambler</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<h2 id="sobre-o-rethinkdb">Sobre o RethinkDB</h2>
+
+<p>Se você precisa de um banco de dados NoSQL que funcione com dados JSON e tenha suporte completo para buscas em tempo real e uma mistura de modelos entre SQL e NoSQL, então uma boa opção é o RethinkDB.</p>
+
+<p>Trata-se de uma base de dados em código aberto em que todos os dados JSON são persistidos em tabelas como um banco de dados SQL convencional, permitindo que você execute queries entre múltiplas tabelas utilizando o comando clássico <strong>join</strong>.</p>
+
+<p>Mas você também pode persistir arrays e sub-documentos como está acostumado a fazer com o MongoDB, CouchDB ou PostgreSQL.</p>
+
+<p>Há alguns materiais bacanas no RethinkDB, como:</p>
+
+<ul>
+<li>Suporte ao GeoSpartial;</li>
+<li>API para lidar com strings, datas, booleanos e documentos;</li>
+<li>API para Math;</li>
+<li>Suporte ao Map-reduce;</li>
+<li>Cliente HTTP para capturar alguns dados externos;</li>
+<li>Changefeeds , que é uma busca em tempo real;</li>
+<li>Suporte para index (simples, composto e multi);</li>
+<li>Painel de administrador nativo da web;</li>
+</ul>
+
+<h2 id="desenvolvendo-o-aplicativo">Desenvolvendo o aplicativo</h2>
+
+<p>E então, que tal desenvolver algo útil usando o RethinkDB? Para explorar a busca em tempo real, vamos construir uma timeline global simples utilizando o recurso <a href="http://rethinkdb.com/docs/changefeeds/javascript">changefeed</a> para listar todos os dados na timeline em tempo real, com o uso do Node.js, Express, Socket.IO e o RethinkDB.</p>
+
+<p>Primeiro, você precisa instalar o RethinkDB. Antes de começar escrevendo os códigos abaixo, para instalar esse banco de dados eu recomendo que você leia e siga as instruções deste link <a href="http://rethinkdb.com/docs/install">http://rethinkdb.com/docs/install</a> de acordo com seu sistema operacional.</p>
+
+<p>Depois de instalá-lo, execute os comandos abaixo para iniciar o projeto:</p>
+
+<pre><code class="bash">mkdir timeline
+cd timeline
+npm init
+npm install--save express socket.io rethinkdb
+</code></pre>
+
+<p>Agora, vamos trabalhar! Para simplificar as coisas nós vamos usar o código do ES6 da versão nativa <strong>Node v6.x.x</strong>, e o backend será um único arquivo de código para fins de estudo, mas se você precisa desenvolver um servidor backend complexo e bem estruturado utilizando o RethinkDB, dê uma olhada neste projeto <a href="https://github.com/caio-ribeiro-pereira/node-api-examples">node-api-examples</a>, o qual possui uma lista com alguns exemplos de APIs utilizando os mesmos roteadores web e bancos de dados. Existem alguns exemplos do uso do RethinkDB com Koa, Express e o Hapi.js.</p>
+
+<p>Bem, vamos criar o servidor backend de nossa aplicação. Você pode criar o arquivo <code>index.js</code> por meio do código abaixo:</p>
+
+<pre><code class="javascript">const http = require('http');
+const fs = require('fs');
+const express = require('express');
+const socketIO = require('socket.io');
+const r = require('rethinkdb');
+const config = require('./config.json');
+
+// Loading Express, HTTP, Socket.IO and RethinkDB
+const db = Object.assign(config.rethinkdb, {
+    db: 'timeline'
+});
+const app = express();
+const server = http.Server(app);
+const io = socketIO(server);
+
+// Connecting to RethinkDB server
+r.connect(db)
+    .then(conn =&gt; {
+        // Index route which renders the index.html
+        app.get('/', (req, res) =&gt; {
+            fs.readFile(`${__dirname}/index.html`, (err, html) =&gt; {
+                res.end(html || err);
+            });
+        });
+        // The changefeed is provided by change() function
+        // which emits broadcast of new messages for all clients
+        r.table('messages')
+            .changes()
+            .run(conn)
+            .then(cursor =&gt; {
+                cursor.each((err, data) =&gt; {
+                    const message = data.new_val;
+                    io.sockets.emit('/messages', message);
+                });
+            });
+        // Listing all messages when new user connects into socket.io
+        io.on('connection', (client) =&gt; {
+            r.table('messages')
+                .run(conn)
+                .then(cursor =&gt; {
+                    cursor.each((err, message) =&gt; {
+                        io.sockets.emit('/messages', message);
+                    });
+                });
+            // Listening the event from client and insert new messages
+            client.on('/messages', (body) =&gt; {
+                const {
+                    name,
+                    message
+                } = body;
+                const data = {
+                    name,
+                    message,
+                    date: new Date()
+                };
+                r.table('messages').insert(data).run(conn);
+            });
+        });
+        server.listen(3000, () =&gt; console.log('Timeline Server!'));
+    })
+    .error(err =&gt; {
+        console.log('Can\'t connect to RethinkDB');
+        throw err;
+    });
+</code></pre>
+
+<p>Existem alguns detalhes importantes que você precisa saber quando for usar o RethinkDB. Primeiro, todas as funções desse módulo funcionam usando callbacks ou <a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promessas</a>. Se você escolher as promessas, você pode criar funções assíncronas bem estruturadas com gerentes de erros melhores.</p>
+
+<p>O recurso <strong>changefeed</strong> (via <code>r.table('messages').changes()</code>) é um subscriber do banco de dados, o qual é uma query observadora e retorna qualquer modificação de uma tabela. A combinação com o <code>io.sockets.emit()</code> permite que o servidor envie dados em tempo real para o cliente.</p>
+
+<p>Agora, vamos criar um script simples de migração para preparar o banco de dados antes de rodar o servidor. Essa migração é muito comum em bancos de dados relacionais. Crie o arquivo <code>database.js</code> com o script abaixo:</p>
+
+<pre><code class="javascript">const r = require('rethinkdb');
+const config = require('./config.json');
+let conn;
+
+r.connect(config.rethinkdb)
+    .then(connection =&gt; {
+        console.log('Connecting RethinkDB...');
+        conn = connection;
+        return r.dbCreate('timeline').run(conn);
+    })
+    .then(() =&gt; {
+        console.log('Database "timeline" created!');
+        return r.db('timeline').tableCreate('messages').run(conn);
+    })
+    .then(() =&gt; console.log('Table "messages" created!'))
+    .error(err =&gt; console.log(err))
+    .finally(() =&gt; process.exit(0));
+</code></pre>
+
+<p>E não se esqueça de criar o arquivo <code>config.json</code>, o qual possui dados para conectar no servidor RethinkDB:</p>
+
+<pre><code class="javascript">{
+    "rethinkdb": {
+        "host": "localhost",
+        "port": 28015
+    }
+}
+</code></pre>
+
+<p>Para finalizar nossa aplicação, precisamos criar o arquivo <code>index.html</code>, que será a parte do lado do cliente para os usuários enviarem mensagens na timeline.</p>
+
+<pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+
+&lt;head&gt;
+    &lt;meta charset="utf-8"&gt;
+    &lt;title&gt;Timeline&lt;/title&gt;
+    &lt;meta name="viewport" content="width=device-width,initial-scale=1"&gt;
+    &lt;script src="/socket.io/socket.io.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+    &lt;form style="text-align:center;margin:50px 0"&gt;
+        &lt;label for="name"&gt;Name:&lt;/label&gt;
+        &lt;input type="text" id="name" /&gt;
+        &lt;label for="message"&gt;Message:&lt;/label&gt;
+        &lt;input type="text" id="message" /&gt;
+        &lt;button type="submit"&gt;Send&lt;/button&gt;
+    &lt;/form&gt;
+    &lt;fieldset style="padding: 20px;width:50%;margin:0 auto"&gt;
+        &lt;legend style="text-align:center"&gt;Timeline&lt;/legend&gt;
+        &lt;p id="messages"&gt;&lt;/p&gt;
+    &lt;/fieldset&gt;
+    &lt;script&gt;
+        (function() {
+            var socket = io();
+            var form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var name = e.target.querySelector('#name');
+                var message = e.target.querySelector('#message');
+                var data = {
+                    name: name.value,
+                    message: message.value
+                };
+                socket.emit('/messages', data);
+                e.target.reset();
+            });
+            socket.on('/messages', function(data) {
+                var messages = document.querySelector('#messages');
+                var message = '&lt;b&gt;' + data.name + ':&lt;/b&gt; ' +
+                    data.message + '&lt;br /&gt;';
+                messages.innerHTML += message;
+            });
+        })();
+    &lt;/script&gt;
+&lt;/body&gt;
+
+&lt;/html&gt;
+</code></pre>
+
+<p>Agora nós estamos prontos para rodar essa aplicação! Mas antes de iniciar o servidor, na primeira vez você deve executar a migração do banco de dados para criar o banco de dados e tabela para este projeto. Para isso, execute o seguinte comando:</p>
+
+<pre><code>node database.js
+</code></pre>
+
+<p>Se tudo der certo, você pode iniciar o servidor ao executar:</p>
+
+<pre><code>node index.js
+</code></pre>
+
+<p>E você pode brincar enviando mensagens nesta aplicação acessando o endereço <a href="http://localhost:3000">http://localhost:3000</a>.</p>
+
+<h2 id="protegendo-o-aplicativo">Protegendo o aplicativo</h2>
+
+<p>Se quiser saber mais sobre como começar protegendo seu aplicativo, basta acessar este <a href="https://blog.jscrambler.com/jscrambler-101-first-use">tutorial</a>, que irá ajudar nos primeiros passos de uso do <a href="https://www.jscrambler.com">Jscrambler</a>.</p>
+
+<h2 id="conclusão">Conclusão</h2>
+
+<p>O RethinkDB é o incrível NoSQL! Esse banco de dados pode oferecer suporte total para aplicações de tempo real apenas utilizando o changefeed + socket.io. <a href="http://rethinkdb.com/docs/changefeeds/javascript">Neste link</a>, você pode ler mais sobre o que é possível criar usando o changefeeds. Quase todas as funções podem executar usando as Promises, que fazem com que você escreva um código melhor e você pode facilmente usar o recurso <strong>ES7 async/await</strong> para simplificar as funções de promessas também.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

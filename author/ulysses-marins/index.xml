@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ulysses Marins on Tableless</title>
+    <link>http://tableless.com.br/author/ulysses-marins/index.xml</link>
+    <description>Recent content in Ulysses Marins on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/ulysses-marins/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Teste de carga em APIs utilizando Artillery</title>
+      <link>http://tableless.com.br/teste-de-carga-em-apis-utilizando-artillery/</link>
+      <pubDate>Mon, 06 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/teste-de-carga-em-apis-utilizando-artillery/</guid>
+      <description>&lt;p&gt;Independente do produto que você esteja criando, é sempre importante assegurar a qualidade do mesmo fazendo uma bateria de testes antes de colocar no mercado. Se tratando de desenvolvimento de software, existem algumas métricas que são essenciais para deixar claro para todos os envolvidos no projeto, incluindo seus usuários, o quanto determinado sistema/aplicativo é confiável para suportar o uso do público.&lt;/p&gt;
+
+&lt;p&gt;Dentro da área de qualidade de software, existem diversos tipos de testes que visam atingir o objetivo citado acima, de mostrar a todos que o produto é estável e robusto, alguns deles: teste de integração, teste unitário, teste de penetração, teste de regressão e por aí vai.&lt;/p&gt;
+
+&lt;p&gt;Este post tem como objetivo falar um pouco sobre o teste de carga, que em sua essência foi criado para simular quantidades diferentes de tentativa de acesso a determinado sistema ou device, tendo como saída um relatório de como o software se comportou em determinado cenário.&lt;/p&gt;
+
+&lt;p&gt;Quando falamos de APIs e escalonamento de infra, é interessante saber o número exato de requisições que o servidor (ou servidores) consegue responder corretamente em um tempo aceitável para seus clientes.&lt;/p&gt;
+
+&lt;p&gt;Caso você já tenha tentado fazer algo do tipo, provavelmente se deparou com o JMeter, que é uma das ferramentas mais famosas e completas para esse tipo de trabalho. Porém, a curva de aprendizado com o JMeter é um pouco longa, pois existem muitas configurações/opções que o usuário acaba se perdendo no início, até encontrar o que realmente precisa para o seu caso.&lt;figure class=&#34;graf graf--figure&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;graf-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*1hZHPrQKHwCctBX7bFOPmw.png&#34; /&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;Na tentativa de tornar esse processo de teste de carga um pouco mais amigável ao usuário, foi criado o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://artillery.io/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Artillery&lt;/a&gt;, uma ferramenta que com poucos passos permite você simular diversos tipos de cenários para teste de serviços que estejam utilizando para comunicação http e/ou web sockets.&lt;/p&gt;
+
+&lt;p&gt;Basicamente você precisa ter o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://nodejs.org/en/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;node&lt;/a&gt; e o &lt;a class=&#34;markup--anchor markup--p-anchor&#34; href=&#34;https://www.npmjs.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;npm&lt;/a&gt; instalado para poder começar a brincadeira.&lt;/p&gt;
+
+&lt;p&gt;Para instalar o Artillery:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ npm install -g artillery&lt;/pre&gt;
+
+&lt;p&gt;Para testar sua instalação:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ artillery dino&lt;/pre&gt;
+
+&lt;p&gt;Caso tenha aparecido um dinossauro em seu terminal, está tudo certo e você pode seguir adiante.&lt;/p&gt;
+
+&lt;p&gt;Para começar a rodar seus testes de carga, é necessário criar um arquivo de configuração. Você pode dar qualquer nome a ele, mas para esse artigo, criarei um chamado &lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;artillery.yml&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Neste cara que você colocará todas as informações referentes a sua API, como endpoint, rotas e cenários. Você pode tanto testar rotas/recursos isolados, quanto cenários mais complexos, como por exemplo um processo de compra em um ecommerce, que basicamente teria uma rota para buscar os produtos, outra pra fazer checkout e outra para pagamento.&lt;/p&gt;
+
+&lt;p&gt;Segue abaixo um exemplo desse arquivo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;config:
+  target: &#39;&lt;a class=&#34;markup--anchor markup--pre-anchor&#34; href=&#34;http://localhost:3000%27&#34; target=&#34;_blank&#34; rel=&#34;nofollow noopener noopener&#34;&gt;http://localhost:3000&#39;&lt;/a&gt;
+  phases:
+    - duration: 60
+      arrivalRate: 20
+scenarios:
+  -
+    name: &#39;Listagem de usuários&#39;
+    flow:
+    - get:
+        url: &#34;/users&#34;&lt;/pre&gt;
+
+&lt;p&gt;No arquivo acima colocamos o endpoint da nossa API, o atributo &lt;em&gt;duration&lt;/em&gt; representa a duração deste ciclo de teste em segundos e o &lt;em&gt;arrivalRate&lt;/em&gt; o número de novos usuários por segundo.&lt;/p&gt;
+
+&lt;p&gt;Para rodar o teste, rode o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ artillery run artillery.yml&lt;/pre&gt;
+
+&lt;p&gt;Após a execução, temos o seguinte resultado:&lt;figure class=&#34;graf graf--figure&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;graf-image&#34; src=&#34;https://cdn-images-1.medium.com/max/800/1*iuh0Z_BoqM4epjC2pOvt_A.png&#34; /&gt;&lt;figcaption class=&#34;imageCaption&#34;&gt;Output do Artillery&lt;/figcaption&gt;&lt;/figure&gt;&lt;/p&gt;
+
+&lt;p&gt;Todas as métricas de tempo são em milis, &lt;em class=&#34;markup--em markup--p-em&#34;&gt;RPS&lt;/em&gt; (request per second), &lt;em class=&#34;markup--em markup--p-em&#34;&gt;codes&lt;/em&gt; são os códigos HTTP e o número de respostas com o mesmo, no caso acima, tivemos 1200 (60&amp;#215;20, como configuramos) requisições em 60 segundos e todas retornaram 200. &lt;em class=&#34;markup--em markup--p-em&#34;&gt;Scenarios launched&lt;/em&gt; são os ‘usuários virtuais’ criados e &lt;em class=&#34;markup--em markup--p-em&#34;&gt;Scenarios completed&lt;/em&gt; são quantos deles conseguiram executar o cenário com sucesso.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;Importante: &lt;/strong&gt;Enquanto o teste estiver rodando, um preview do resultado vai sendo printado no terminal a cada 10 segundos, mas só no final você tem os números consolidados do teste completo.&lt;/p&gt;
+
+&lt;p&gt;Agora você pode ir alterando números de usuários concorrentes, quantidade de tempo do teste, novos cenários, simulando fluxos mais complexos e etc.&lt;/p&gt;
+
+&lt;p&gt;Vale a pena dar uma olhada na &lt;a href=&#34;https://artillery.io/docs/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;documentação&lt;/a&gt; que é super objetiva e simples de entender.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Features que sua API REST precisa ter desde o início</title>
+      <link>http://tableless.com.br/features-que-sua-api-rest-precisa-ter-desde-o-inicio/</link>
+      <pubDate>Thu, 17 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/features-que-sua-api-rest-precisa-ter-desde-o-inicio/</guid>
+      <description>
+
+&lt;p&gt;Eu tenho trabalhado com dados suavemente flutuando através do protocolo http por um tempo e agora eu tenho esse sentimento altruísta de que eu posso contribuir com os desenvolvedores mais jovens com algumas histórias sobre os desafios que enfrentei durante a minha jornada.&lt;/p&gt;
+
+&lt;p&gt;Este artigo basicamente tem o objetivo de listar e discutir sobre alguns pontos importantes que sua API, possivelmente, poderia abraçar desde o início do projeto, a fim de acelerar o processo de desenvolvimento para todos em sua equipe.&lt;/p&gt;
+
+&lt;h2 id=&#34;autenticação-e-autorização&#34;&gt;Autenticação e Autorização&lt;/h2&gt;
+
+&lt;p&gt;Se você se preocupa com quem vai acessar seus endpoints, é necessário prestar atenção sobre este tópico. Existem algumas especificações conhecidas para lidar com este assunto, principalmente &lt;a href=&#34;https://jwt.io/&#34;&gt;JWT&lt;/a&gt;, &lt;a href=&#34;https://oauth.net/&#34;&gt;OAuth&lt;/a&gt; e &lt;a href=&#34;https://oauth.net/2/&#34;&gt;OAuth2&lt;/a&gt;. Estas abordagens irão abranger a maioria dos cenários em seus aplicativos, mas às vezes você será desafiado a criar um novo tipo de camada de segurança para atender algum requisito específico, neste caso, tente não reinventar a roda e adapte suas necessidades em um desses listados.&lt;/p&gt;
+
+&lt;h2 id=&#34;query-filtering-sorting-e-pagination&#34;&gt;Query, Filtering, Sorting e Pagination&lt;/h2&gt;
+
+&lt;p&gt;Assim que o seu banco de dados cresce, você vai começar a notar que alguns recursos estão demorando muito para serem recuperados. As abordagens comuns para esta situação são: armazenar em cache seus objetos (próximo tópico) e / ou criar a paginação / filtragem. Se você pode obter o seu recurso com algo como:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;shiny.api.com/resources?query[type=2]&amp;limit=5&amp;start=1&amp;order=[name]&lt;/pre&gt;
+
+&lt;p&gt;&amp;#8230;seus clients serão capazes de selecionar apenas o que eles realmente precisam para processar uma página ou tela específica. É bom para dar uma certa autonomia para seus consumidores. Próximo nível deste assunto é &lt;a href=&#34;http://graphql.org/learn/&#34;&gt;GraphQL&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;cache&#34;&gt;Cache&lt;/h2&gt;
+
+&lt;p&gt;Uma boa maneira de recuperar seus recursos incrivelmente rápido é desenvolver alguma estratégia de cache. O custo de suas requisições serão menores uma vez que seus dados estarão prontos para serem consumidos em um banco de dados in-memory. Com algum esforço você pode lidar com isso usando &lt;a href=&#34;http://redis.io/&#34;&gt;Redis&lt;/a&gt; ou &lt;a href=&#34;https://memcached.org/&#34;&gt;Memcached&lt;/a&gt;. Boa sorte com sua expiração de cache. Confira algumas reflexões sobre este tema com o &lt;a href=&#34;http://blog.remarkablelabs.com/2012/12/russian-doll-caching-cache-digests-rails-4-countdown-to-2013&#34;&gt;Russian Doll Caching&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;wrappers-e-summarized-fields&#34;&gt;Wrappers e Summarized Fields&lt;/h2&gt;
+
+&lt;p&gt;Às vezes, você precisará fornecer alguns campos calculados &amp;#8211; ou quaisquer dados agregados em geral &amp;#8211; em suas respostas e para esse cenário, posso sugerir-lhe montar algo nessa linha:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;{
+  &#34;summay&#34;: {
+    &#34;total&#34;: 2
+    &#34;averageAge&#34;: 22
+  },
+  &#34;data&#34;:[
+  {
+    &#34;name&#34;: &#34;John&#34;,
+    &#34;age&#34;: 22
+  },
+  {
+    &#34;name&#34;: &#34;Mary&#34;,
+    &#34;age&#34;: 22
+  }
+  ]
+}
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;hateos&#34;&gt;HATEOS&lt;/h2&gt;
+
+&lt;p&gt;HATEOAS significa &lt;em&gt;Hypermedia as the application state of the engine&lt;/em&gt;. É uma abordagem que permite que os clientes interpretem de forma autônima e dinâmica o estado atual de um recurso e as transições que podem ser iniciados decorrente deste mesmo estado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-js&#34;&gt;{
+  &#34;id&#34;: 276,
+  &#34;amount&#34;: 90.00,
+  &#34;links&#34;: [
+  {
+    &#34;type&#34;: &#34;orders&#34;,
+    &#34;rel&#34;: &#34;self&#34;,
+    &#34;href&#34;: &#34;/orders/ 276&#34;
+  },
+  {
+    &#34;type&#34;: &#34;customer&#34;,
+    &#34;rel&#34;: &#34;order&#39;s customer&#34;,
+    &#34;href&#34;: &#34;/orders/276/customers&#34;
+  }
+  ]
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Sobre o JSON acima, você pode tirar as seguintes conclusões:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Dentro do array &amp;#8220;links&amp;#8221; são todas as &amp;#8216;transições&amp;#8217; possíveis com o recurso, neste caso, podem acessar o cliente que criou as ordens com o URI /orders/276/customers.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;rel:auto&lt;/strong&gt; significa que esta URI é a referência do estado atual, neste caso, a ordem com ID 276. &lt;strong&gt;rel&lt;/strong&gt;, em geral, representa a relação entre a ligação com o recurso atual.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;type&lt;/strong&gt; indica o tipo de recurso que é o link em questão.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ao padronizar seus serviços RESTful usando HATEOAS você permite que os clientes usem os recursos de maneiras mais fáceis, afinal de contas, as possibilidades de navegação entre os estados serão listadas em cada hit em seus recursos.&lt;/p&gt;
+
+&lt;p&gt;Conforme descrito em um &lt;a href=&#34;http://martinfowler.com/articles/richardsonMaturityModel.html&#34;&gt;post&lt;/a&gt; de Martin Fowler, HATEOAS em sua API é o último passo para atingir a &amp;#8216;Glória de REST&amp;#8221;, o estado da arte.&lt;/p&gt;
+
+&lt;h2 id=&#34;message-queue&#34;&gt;Message Queue&lt;/h2&gt;
+
+&lt;p&gt;Aposto que você tem algumas rotas em suas APIs que são síncronas mas não precisam necessariamente ser. Alguns casos de uso para uso de fila de mensagens são: enviar e-mails após alguma ação, redimensionamento de imagem, codificação de vídeo, etc. Uma prática comum para esta situação é colocar essas ações em uma fila de mensagens para serem processadas posteriormente de forma assíncrona. Dê uma olhada na &lt;a href=&#34;https://www.rabbitmq.com/&#34;&gt;RabbitMQ&lt;/a&gt; ou &lt;a href=&#34;https://kafka.apache.org/&#34;&gt;Kafka&lt;/a&gt;, ambas são grandes soluções.&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211;&lt;/p&gt;
+
+&lt;p&gt;É isso aí. Pelo menos para mim estes são os principais aspectos que eu vi nos últimos anos no desenvolvimento de novos apis http/rpc/rest. Se você acha que existem alguns outros pontos importantes para mencionar, por favor deixe nos comentários e conversamos sobre 🙂&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Migrando de enterprise dev para startup dev</title>
+      <link>http://tableless.com.br/migrando-de-enterprise-dev-para-startup-dev/</link>
+      <pubDate>Sun, 11 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/migrando-de-enterprise-dev-para-startup-dev/</guid>
+      <description>&lt;p&gt;Comecei minha carreira na área de desenvolvimento de software razoavelmente cedo, aos 16 anos estudava no ensino médio pela manhã, estagiava à tarde e estudava no curso técnico à noite. Ao contrário de muitos desenvolvedores, meu primeiro contato com código não foi dos melhores, foram horas e horas de estudo pra conseguir entender &lt;sup&gt;1&lt;/sup&gt;&amp;frasl;&lt;sub&gt;3&lt;/sub&gt; do que o professor estava tentando ensinar, na época ASP — sim, o ‘clássico’.&lt;/p&gt;
+
+&lt;p&gt;Agora, com 26 anos, posso fazer uma análise interessante do que aconteceu nos últimos 10 anos de software e talvez essa reflexão sirva como norte pra quem está começando ou pra quem está afim de fazer uma troca de ares.&lt;/p&gt;
+
+&lt;p&gt;Começando com algumas verdades:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;O mercado de trabalho em grandes empresas é entediante&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Tive a oportunidade de trabalhar em multinacionais gigantes — não cabe citá-las aqui — e lembro que ao entrar em cada uma delas, a vontade de criar e ser o melhor profissional possível sempre me acompanhava e a cada dia de trabalho essa mesma vontade ia se auto-destruindo por alguns motivos como: código legado horrível, tecnologias do tempo do meu avô, pessoas com incrível má vontade, burocracias infinitas para coisas pequenas e por aí vai.&lt;/p&gt;
+
+&lt;p&gt;Boa parte da energia era sugada por todo e qualquer tipo de atividade, menos pela única coisa que eu realmente queria: criar algo com algum real valor.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;Trabalhar com tecnologia pode e deve ser legal&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Durante muito tempo questionei se eu realmente estava na área certa, porque a minha satisfação profissional estava sempre abaixo do esperado. Criei diversos side projects, alguns relacionados com TI e outros não, para prencheer essa lacuna da realização.&lt;/p&gt;
+
+&lt;p&gt;O que sempre me intrigava é que ao chegar em casa e criar esses projetos, aprender novas linguagens, fazer um CLI pra ler tweets ou um bot inútil, parecia ser tão legal. Por que eu não conseguia ter um suspiro parecido no meu ambiente profissional?&lt;/p&gt;
+
+&lt;p&gt;&lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;Você pode se divertir com TI também&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Certo dia resolvi chutar o balde, largar o emprego em uma dessas grandes multinacionais e ver no que dava.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;PS:&lt;/strong&gt; Anter de continuar, eu não tenho filhos, nem grandes responsabilidades, não vá fazer o mesmo de forma inconsequente, não é essa a ideia 😛&lt;/p&gt;
+
+&lt;p&gt;Dei sorte, fui parar em uma companhia com pessoas excepcionais e que estavam pilhadas na criação de um novo projeto. Eu nunca havia experimentado aquele tipo de dinamismo e vontade de fazer as coisas, parecia que eu estava cego esse tempo todo, que havia um mundo diferente na área de TI e eu só havia enxergado agora.&lt;/p&gt;
+
+&lt;p&gt;Atualmente, em uma outra companhia, encontrei o mesmo feeling e liberdade de criação, de poder usar boas práticas, de ter pessoas com vontade de fazer o melhor todo dia, sem aquele clima de velório, com todo mundo reclamando do processo ou do lay-off que está por vir.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong class=&#34;markup--strong markup--p-strong&#34;&gt;Como você pode fazer esse shift?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Existem diversas maneiras de você se tornar um profissional mais atraente pro mercado, onde esses projetos bacanas estão sendo feitos. Abaixo algumas sugestões:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Aprenda coisas novas fora do ambiente de trabalho, não se limite ao que você vê das 8 as 18, existe um mundo de paradigmas de programação, linguagens, design patterns, projetos open source, tipos de arquitetura que você pode aprender e tirar lições.&lt;/li&gt;
+&lt;li&gt;Crie side/pet projects para por em prática essas coisas que você aprende por conta própria, é a melhor maneira de assegurar que você realmente entendeu o que você aprendeu.&lt;/li&gt;
+&lt;li&gt;Coloque esses projetos no &lt;a class=&#34;markup--anchor markup--li-anchor&#34; href=&#34;https://github.com/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://github.com/&#34;&gt;https://github.com/&lt;/a&gt;&lt;/a&gt;, o mesmo pode servir de ‘portfolio’ para você em algum processo seletivo.&lt;/li&gt;
+&lt;li&gt;Participe de algum &lt;a class=&#34;markup--anchor markup--li-anchor&#34; href=&#34;https://www.meetup.com/&#34; target=&#34;_blank&#34; rel=&#34;nofollow&#34;&gt;&lt;a href=&#34;https://www.meetup.com/&#34;&gt;https://www.meetup.com/&lt;/a&gt;&lt;/a&gt; de tecnologia, existem centenas acontecendo pelo Brasil e é uma ótima oportunidade de conhecer pessoas que estão em outros lugares e que podem te ajudar a conseguir uma nova oportunidade.&lt;/li&gt;
+&lt;li&gt;Te inscreve em algum dos milhares de cursos onlines (Udemy, Pluralsight, Code Academy, Udacity, Tree House, etc) e faça um até o final.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Por fim, apenas um esclarecimento: eu conheci pessoas muito bacanas e excelentes profissionais nessas grandes empresas que passei também e sim, é possível ser feliz trabalhando nesses lugares, tudo depende do seu perfil. Se você é mais da pilha de inovação/criação de projetos, minhas sugestões talvez façam mais sentido.&lt;/p&gt;
+
+&lt;p&gt;Ah, e não estou considerando ‘enterprise’ empresas como Google, Facebook e/ou qualquer outra que mesmo sendo grande tenha em sua cultura uma vibe diferente em relação aos projetos/times.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Por que utilizar Go/Golang no seu backend?</title>
+      <link>http://tableless.com.br/por-que-utilizar-gogolang-no-seu-backend/</link>
+      <pubDate>Tue, 28 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/por-que-utilizar-gogolang-no-seu-backend/</guid>
+      <description>
+
+&lt;p&gt;O tempo passa e quando você é viciado no que faz, no meu caso, codar, a busca por se aprimorar ou descobrir novas maneiras de resolver os problemas da sua área nunca param, assim sendo, um belo dia, cheguei até o &lt;strong&gt;Go&lt;/strong&gt; e desde então não parei mais de aprender sobre a linguagem. A ideia é a cada semana fazer um post sobre, iniciando agora com uma simples introdução e sugestões de artigos para se animar.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;aligncenter&#34; src=&#34;http://synflood.at/tmp/golang-slides/images/gophercolor.png&#34; alt=&#34;Imagem do gopher&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que--gogolang&#34;&gt;O que é Go/Golang?&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;Go&lt;/strong&gt; ou &lt;strong&gt;Golang&lt;/strong&gt; &amp;#8211; termo que facilita buscas no google &amp;#8211; é uma linguagem &lt;em&gt;open source&lt;/em&gt; criada em 2009 pelo &lt;strong&gt;Google&lt;/strong&gt;, mais especificamente por caras como &lt;em&gt;Rob Pike&lt;/em&gt; e &lt;em&gt;Ken Thompson&lt;/em&gt;. Caso você não conheça, são engenheiros renomados, que tiveram grande influência na história da computação e em projetos &lt;em&gt;open source&lt;/em&gt; de grande escala, pra citar um bem &amp;#8220;simples&amp;#8221;: &lt;strong&gt;Unix&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Só por esta constatação, você já poderia largar tudo e seguir os passos deles cegamente, afinal, Rob e Ken provavelmente não estariam trabalhando em algo meia boca. Brincadeiras à parte, a Go foi criada com objetivos simples, dentre os principais, ter a rapidez do C, mas ser um pouco mais legível e/ou fácil de programar. Inclusive, nos meus primeiros passos com a linguagem, pude sentir exatemente isso. &lt;a href=&#34;https://www.youtube.com/watch?v=FTl0tl9BGdc&#34; target=&#34;_blank&#34;&gt;Aqui&lt;/a&gt; tem um vídeo bem massa do Rob dizendo o porquê você deve aprender Go.&lt;/p&gt;
+
+&lt;h3 id=&#34;por-que-eu-usaria-go&#34;&gt;Por que eu usaria Go?&lt;/h3&gt;
+
+&lt;p&gt;Acima, eu disse algumas vantagens de utilizar a linguagem, porém, a lista é bem mais vasta. Tentarei compilar os pontos que mais me chamam atenção e que possivelmente seriam casos de uso para você utilizá-la:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Go é incrivelmente ‘leve’ em termos de uso de memória. Existe &lt;a href=&#34;http://www.iron.io/how-we-went-from-30-servers-to-2-go/&#34; target=&#34;_blank&#34;&gt;um caso conhecido&lt;/a&gt; de uma companhia que rodava um serviço em Ruby utilizando 50 servidores e foram para 2 com Go.&lt;/li&gt;
+&lt;li&gt;Concorrência é um dos pontos fortes da linguagem, se você precisar sobrecarregar um backend com diversos processamentos simultâneos, as &lt;code&gt;goroutines&lt;/code&gt; e &lt;code&gt;channels&lt;/code&gt; &lt;a href=&#34;https://matt.aimonetti.net/posts/2012/11/27/real-life-concurrency-in-go/&#34; target=&#34;_blank&#34;&gt;vão te ajudar bastante&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;Compila muito rápido.&lt;/li&gt;
+&lt;li&gt;Tem &lt;em&gt;garbage collector&lt;/em&gt;, você não precisa se preocupar tanto com memória como nos seus dias de C.&lt;/li&gt;
+&lt;li&gt;É fortemente tipada. (eu pelo menos acho isso bom, phpeiros)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;quem-est-usando-go&#34;&gt;Quem está usando Go?&lt;/h3&gt;
+
+&lt;p&gt;Existe uma infinidade de empresas que ao descobrirem os poderes mágicos de Go, foram migrando seus serviços/backend. Abaixo algumas grandes:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Uber &amp;#8211; &lt;a href=&#34;https://eng.uber.com/go-geofence/&#34; target=&#34;_blank&#34;&gt;How we built uber engineering’s highest query per second service using Go&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Docker &amp;#8211; &lt;a href=&#34;http://pt.slideshare.net/jpetazzo/docker-and-go-why-did-we-decide-to-write-docker-in-go&#34; target=&#34;_blank&#34;&gt;Why did we decide to write Docker in Go?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Dropbox &amp;#8211; &lt;a href=&#34;https://blogs.dropbox.com/tech/2014/07/open-sourcing-our-go-libraries/&#34; target=&#34;_blank&#34;&gt;Open sourcing our Go libraries&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;OpenShift &amp;#8211; &lt;a href=&#34;https://blog.gopheracademy.com/birthday-bash-2014/openshift-3-old-dogs-new-tricks/&#34; target=&#34;_blank&#34;&gt;OpenShift3 and Go &amp;#8211; Teaching Old Dogs New Tricks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Twitter &amp;#8211; &lt;a href=&#34;https://blog.twitter.com/2015/handling-five-billion-sessions-a-day-in-real-time&#34; target=&#34;_blank&#34;&gt;Handling five billion sessions a day – in real time&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Enfim, existem muito mais empresas que se importam e/ou tem necessidade de melhorar a performance de seus serviços e grande parte delas estão olhando para Go e outras linguagens com poderes maiores do que as ‘enterprise languages’ que vemos há anos por aí nas grandes empresas do país.&lt;/p&gt;
+
+&lt;p&gt;Espero que o post tenha sido informativo e inspirador para você descobrir mais sobre a linguagem Go.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

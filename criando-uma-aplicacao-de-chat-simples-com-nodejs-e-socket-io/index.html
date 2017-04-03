@@ -1,0 +1,422 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/criando-uma-aplicacao-de-chat-simples-com-nodejs-e-socket-io/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/criando-uma-aplicacao-de-chat-simples-com-nodejs-e-socket-io/">Criando uma aplicação de Chat simples com NodeJS e Socket.io</a></h1>
+  <p class="tb-hero-p">
+    
+    Neste tutorial iremos abordar alguns conceitos do Socket.io criando um simples sistema de chat para browser.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/daniel-campos">Daniel Campos</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Neste tutorial iremos abordar alguns conceitos do Socket.io criando um simples sistema de chat para browser.</p>
+
+<p><img src="https://raw.githubusercontent.com/dericeira/Simple-Chat-Socket.io/master/example.gif" alt="https://raw.githubusercontent.com/dericeira/Simple-Chat-Socket.io/master/example.gif" /></p>
+
+<h2 id="o-que-é-socket-io">O que é Socket.io?</h2>
+
+<p><a href="http://socket.io">Socket.io</a> é um uma biblioteca Javascript feita para construir aplicações real-time, possibilitando uma comunicação bi-direcional entre cliente e servidor. O socket.io utiliza as especificações de Web Sockets (para quem quer saber mais, recomendo dar uma olhada <a href="https://www.html5rocks.com/pt/tutorials/websockets/basics/">neste ótimo artigo</a> da HTML5 Rocks).</p>
+
+<p>O Socket.io roda, no lado do servidor, em NodeJS, e, no lado do cliente, ele roda diretamente no browser, possibilitando uma enorme gama de possibilidades de aplicações, como jogos, sistemas de notificações, real-time analytics e sistemas de chats e conversas em tempo real.</p>
+
+<h2 id="setando-o-projeto">Setando o projeto</h2>
+
+<p>Primeiramente, temos que instalar algumas bibliotecas que iremos utilizar no projeto, para isso usarei o <a href="https://github.com/yarnpkg/yarn">yarn</a>.</p>
+
+<p>Em primeiro lugar, vou adicionar ao projeto a biblioteca do Socket.io que rodará do lado do servidor.</p>
+
+<pre class="prettyprint">yarn add socketio</pre>
+
+<p>Também iremos utilizar o express:</p>
+
+<pre class="prettyprint">yarn add express</pre>
+
+<p>Também precisamos adicionar o Socket.io para o cliente (você pode utilizar a CDN oficial disponibilizada no site deles também):</p>
+
+<pre class="prettyprint">yarn add socket.io-client</pre>
+
+<p>E, por último, usarei a biblioteca jQuery para manipular a DOM.</p>
+
+<pre class="lang-bash">yarn add jquery</pre>
+
+<h2 id="fazendo-o-html-css">Fazendo o HTML+CSS</h2>
+
+<p>Vamos criar um arquivo index.html e já deixar preparado o nosso template do sistema de chat.</p>
+
+<pre class="lang-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+ &lt;meta charset="UTF-8"&gt;
+ &lt;title&gt;Simple chat&lt;/title&gt;
+ &lt;link rel="stylesheet" href="assets/css.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="nickname_container" id="nick"&gt;
+
+ &lt;span&gt;Type your nickname:&lt;/span&gt;
+ &lt;form id="submit"&gt;&lt;input type="text" id="nickname" /&gt;&lt;/form&gt;
+
+&lt;/div&gt;
+
+&lt;div id="chat" hidden&gt;
+
+ &lt;div class="menu" =&gt;
+ &lt;div class="name" id="name"&gt;Alex&lt;/div&gt;
+ &lt;div class="last" id="time"&gt;18:09&lt;/div&gt;
+ &lt;/div&gt;
+
+ &lt;ol class="chat"&gt;
+ 
+ &lt;/ol&gt;
+ 
+ &lt;input class="textarea" type="text" placeholder="Type here!" id="textarea" /&gt;
+&lt;/div&gt;
+ &lt;script src="node_modules/jquery/dist/jquery.min.js"&gt;&lt;/script&gt;
+ &lt;script src="node_modules/socket.io-client/socket.io.js"&gt;&lt;/script&gt;
+ &lt;script src="assets/js.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+<p>Repare que eu também criei o diretório assets, e criei os arquivos css.css e js.js.</p>
+
+<p>Não entrarei na parte do CSS, pois o foco aqui é o javascript, mas você pode ver o resultado no <a href="https://github.com/dericeira/Simple-Chat-Socket.io/blob/master/assets/css.css">github</a>. Eu utilizei como base <a href="https://codepen.io/Varo/pen/gbZzgr">este pen</a> para construir o layout.</p>
+
+<h2 id="server-side">Server-side</h2>
+
+<p>Vamos iniciar com a criação da parte de servidor do Socket.io, ou seja, iremos lidar com os eventos server-side.</p>
+
+<p>Iniciaremos criando um arquivo <strong>app.js</strong> no diretório raíz e importaremos os módulos e faremos algumas operações iniciais:</p>
+
+<pre class="lang-javascript">var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+
+var clients = {};
+
+app.get('/', function(req, res){
+res.send('server is running');
+});
+
+//SocketIO vem aqui
+
+http.listen(3000, function(){
+console.log('listening on port 3000');
+});
+</pre>
+
+<p>Este script implementa um servidor Node utilizando os módulos http e express (para roteamento).</p>
+
+<p>A variável clientes que está sendo criada servirá para armazenar nossa lista de clientes.</p>
+
+<p>Agora iremos adicionar o nosso primeiro evento do Socket.io, que será o <strong>connection</strong>, que dispara a cada vez que um cliente se conecta ao socket.</p>
+
+<pre class="lang-javascript">io.on("connection", function (client) {
+    console.log('user connected');
+});</pre>
+
+<p>Para nossa sala de chat, precisaremos implementar outros 3 eventos: <strong>join</strong>, <strong>send</strong> e <strong>disconnect</strong>:</p>
+
+<pre class="lang-javascript">io.on("connection", function (client) {
+  client.on("join", function(name){
+    console.log("Joined: " + name);
+    clients[client.id] = name;
+    client.emit("update", "You have connected to the server.");
+    client.broadcast.emit("update", name + " has joined the server.")
+  });
+
+  client.on("send", function(msg){
+    console.log("Message: " + msg);
+    client.broadcast.emit("chat", clients[client.id], msg);
+  });
+
+  client.on("disconnect", function(){
+    console.log("Disconnect");
+    io.emit("update", clients[client.id] + " has left the server.");
+    delete clients[client.id];
+  });
+});
+</pre>
+
+<p>O evento join deverá ser disparado quando o cliente entrar no servidor, adicionando o id do cliente no array e emitindo dois novos eventos, nomeando-os de <strong>update</strong>.</p>
+
+<p>Note que há uma diferença entre o método <strong>client.emit</strong> e o <strong>client.broadcast.emit</strong>. O client.emit enviará a notificação somente para o cliente atual, ou seja, o cliente que acabou de entrar na sala de chat. O <strong>client.broadcast.emit</strong> irá emitir para todos os clientes conectados, com exceção do que está executando a ação. Se utilizássemos o método <strong>io.emit</strong>, a mensagem seria enviada a todos os clientes conectados ao socket. Abaixo uma série de exemplos de métodos disponíveis:</p>
+
+<pre class="lang-javascript">// enviar apenas para o cliente atual
+client.emit('message', "this is a test");
+
+// enviar para todos os clientes, inclusive o atual
+io.emit('message', "this is a test");
+
+// enviar para todos os clientes, exceto o atual
+client.broadcast.emit('message', "this is a test");
+
+// enviar para todos os clientes (com exceção do atual) para uma sala específica
+socket.broadcast.to('game').emit('message', 'nice game');
+
+// enviar para todos os clientes em uma sala específica
+io.in('game').emit('message', 'cool game');
+
+// enviar para o atual, caso ele esteja na sala
+client.to('game').emit('message', 'enjoy the game');
+
+// enviar para todos os clientes em um namespace 'namespace1'
+io.of('namespace1').emit('message', 'gg');
+
+// enviando para um socketid individual
+client.broadcast.to(socketid).emit('message', 'for your eyes only');</pre>
+
+<p>Com todos esses métodos, conseguiríamos implementar salas específicas, mensagens individuais, etc. Porém nosso foco é mostrar a parte mais básica e entender o funcionamento.</p>
+
+<h2 id="client-side">Client-side</h2>
+
+<p>Com nosso servidor concluido e rodando, vamos passar para a parte de client-side de nossa aplicação de chat. Vamos ao <strong>js.js</strong>.</p>
+
+<p>Primeiramente, inicializaremos o socket.io e criaremos uma variável <strong>ready</strong>, setada como false. Esta variável será responsável por indicar se o usuário já informou ou não o seu nickname.</p>
+
+<pre class="prettyprint">$(document).ready(function(){
+    var socket = io.connect("http://localhost:3000");
+    var ready = false;
+});
+</pre>
+
+<p>Com esta implementação, já conseguimos disparar o evento <strong>connection</strong> em nosso servidor. Porém, precisamos fazer com que o servidor receba a informação cada vez que um novo usuário entrar na sala informando o seu nickname.</p>
+
+<pre class="lang-javascript">$("#submit").submit(function(e) {
+    e.preventDefault();
+    $("#nick").fadeOut();
+    $("#chat").fadeIn();
+    var name = $("#nickname").val();
+    var time = new Date();
+    $("#name").html(name);
+    $("#time").html('First login: ' + time.getHours() + ':' + time.getMinutes());
+
+    ready = true;
+    socket.emit("join", name);
+});
+</pre>
+
+<p>A função jQuery acima captura a submissão do formulário de nickname, fecha a tela de seleção de nick, mostra a tela de chat, seta a variável ready para true e executa um comando de socket, o <strong>socket.emit</strong>, que informa para o nosso servidor que um novo usuário acabou de entrar na sala.</p>
+
+<p>Nada irá acontecer, pois ainda não temos o receptor do evento <strong>update</strong>, que está sendo disparado no nosso servidor, então vamos criá-lo:</p>
+
+<pre class="lang-javascript">socket.on("update", function(msg) {
+    if (ready) {
+        $('.chat').append('&lt;li class="info"&gt;' + msg + '&lt;/li&gt;')
+    }
+});
+</pre>
+
+<p>Este código fará com que, a cada vez que o servidor emitir um update, o jQuery adicione uma nova linha no chat com a mensagem retornada.</p>
+
+<p>Agora, iremos fazer com que nossa aplicação envie as mensagens ao servidor a cada vez que o cliente apertar o enter no input de texto:</p>
+
+<pre class="prettyprint">$("#textarea").keypress(function(e){
+    if(e.which == 13) {
+         var text = $("#textarea").val();
+         $("#textarea").val('');
+         var time = new Date();
+         $(".chat").append('&lt;li class="self"&gt;&lt;div class="msg"&gt;&lt;span&gt;'
+                      + $("#nickname").val() + ':&lt;/span&gt;    &lt;p&gt;' + text + '&lt;/p&gt;&lt;time&gt;' + 
+                      time.getHours() + ':' + time.getMinutes() + '&lt;/time&gt;&lt;/div&gt;&lt;/li&gt;');
+         socket.emit("send", text);
+    }
+});
+</pre>
+
+<p>E, para concluir, precisamos fazer com que o socket.io observe todas as mensagens referente ao chat em si, e adicione à DOM:</p>
+
+<pre class="prettyprint">socket.on("chat", function(client,msg) {
+ if (ready) {
+    var time = new Date();
+    $(".chat").append('&lt;li class="other"&gt;&lt;div class="msg"&gt;&lt;span&gt;' + 
+                 client + ':&lt;/span&gt;&lt;p&gt;' + msg + '&lt;/p&gt;&lt;time&gt;' + time.getHours() + ':' + 
+                 time.getMinutes() + '&lt;/time&gt;&lt;/div&gt;&lt;/li&gt;');
+ }
+});</pre>
+
+<h2 id="conclusão">Conclusão</h2>
+
+<p>Na minha opinião,  as sockets são uma das melhores funcionalidades do HTML5, e possuem uma infinidade de aplicação. O ganho de performance é espetacular se bem aplicado, uma vez que evita o uso de requisições HTTP em aplicações onde a necessidade de atualização é grande (baixa latência).</p>
+
+<p>Disponibilizei o código do tutorial no <a href="https://github.com/dericeira/Simple-Chat-Socket.io">github</a> para quem se interessar, e estou aberto a tirar dúvidas.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

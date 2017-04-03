@@ -1,0 +1,2328 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Java on Tableless</title>
+    <link>http://tableless.com.br/tags/java/index.xml</link>
+    <description>Recent content in Java on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/java/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Construindo uma página com login no JSF</title>
+      <link>http://tableless.com.br/construindo-uma-pagina-com-login-no-jsf/</link>
+      <pubDate>Tue, 06 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/construindo-uma-pagina-com-login-no-jsf/</guid>
+      <description>
+
+&lt;p&gt;Neste post vou falar sobre um assunto um pouco trivial e que qualquer iniciante no framework &lt;strong&gt;JSF&lt;/strong&gt; pode se perder: &lt;strong&gt;As fases do JSF e onde interceptar a navegação para que o usuário realize a autenticação&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;É importante que você saiba o que é JSF e como configurá-lo em seu editor, aqui estarei utilizando o Eclipse, caso não saiba como configurar em seu editor, ao final, deixarei alguns links para lhe ajudar.&lt;/p&gt;
+
+&lt;p&gt;Vamos la =) .&lt;/p&gt;
+
+&lt;h2 id=&#34;fases-do-jsf&#34;&gt;Fases do JSF&lt;/h2&gt;
+
+&lt;p&gt;O JSF funciona através de fases que são invocadas a partir do momento que abrimos uma página.&lt;/p&gt;
+
+&lt;p&gt;Então, o JSF executa um processo para coletar as informações, validar e criar a página de resposta que será enviada ao usuário.&lt;/p&gt;
+
+&lt;p&gt;Este processo é composto por 6 fases:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55231&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/fases-jsf.png&#34; alt=&#34;Fases do JSF&#34; width=&#34;748&#34; height=&#34;411&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h3 id=&#34;restore-view&#34;&gt;Restore View&lt;/h3&gt;
+
+&lt;p&gt;Fase onde o JSF criará uma árvore de componentes, contendo um objeto para cada componente visual do formulário e, se for a primeira exibição da página, ele pula todas as fases e vai para a &lt;strong&gt;Render Response&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se a página já foi exibida, o framework buscará pela árvore já existente.&lt;/p&gt;
+
+&lt;h3 id=&#34;apply-request-values&#34;&gt;Apply Request Values&lt;/h3&gt;
+
+&lt;p&gt;Nesta fase, o framework pega os valores do formulário, eles são recebidos como Strings independente do tipo.&lt;/p&gt;
+
+&lt;h3 id=&#34;process-validation&#34;&gt;Process Validation&lt;/h3&gt;
+
+&lt;p&gt;O JSF converte os valores existentes para os tipos que estão vinculados nas propriedades dos Managed Beans.&lt;/p&gt;
+
+&lt;p&gt;Após a conversão, é feita a validação desses valores.&lt;/p&gt;
+
+&lt;p&gt;Se ocorrer algum erro em qualquer dessas etapas, o JSF redireciona para a fase Render Response.&lt;/p&gt;
+
+&lt;h3 id=&#34;update-model-values&#34;&gt;Update Model Values&lt;/h3&gt;
+
+&lt;p&gt;Os dados convertidos são colocados nos objetos Managed Beans que estão vinculados.&lt;/p&gt;
+
+&lt;h3 id=&#34;invoke-application&#34;&gt;Invoke Application&lt;/h3&gt;
+
+&lt;p&gt;O método do atributo action que está vinculado a algum botão que foi acionado é avalido pela Expression Language e seu valor é retornado.&lt;/p&gt;
+
+&lt;h3 id=&#34;render-response&#34;&gt;Render Response&lt;/h3&gt;
+
+&lt;p&gt;O JSF processa a página recebida pelas fases anteriores e gera o código XHTML para o usuário.&lt;/p&gt;
+
+&lt;h2 id=&#34;criação-do-login&#34;&gt;Criação do Login&lt;/h2&gt;
+
+&lt;p&gt;Primeiramente vamos criar nosso xhtml com os campos e botões para login vinculado com um Managed Bean e outro xhtml para ser a página inicial após o login do usuário.&lt;/p&gt;
+
+&lt;p&gt;A página deve ter os campos vinculados a um Managed Bean chamado usuário e um botão vinculado a algum método para logar.&lt;/p&gt;
+
+&lt;p&gt;Este foi meu código, claro, há diversos meios diferente para se fazer o mesmo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;?xml version=&#34;1.0&#34; encoding=&#34;ISO-8859-1&#34; ?&amp;gt;
+&amp;lt;!DOCTYPE html PUBLIC &#34;-//W3C//DTD XHTML 1.0 Strict//EN&#34; &#34;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&#34;&amp;gt;
+&amp;lt;html xmlns=&#34;http://www.w3.org/1999/xhtml&#34;
+      xmlns:h=&#34;http://java.sun.com/jsf/html&#34;
+      xmlns:f=&#34;http://java.sun.com/jsf/core&#34;
+&gt;
+&amp;lt;h:head&amp;gt;
+&amp;lt;meta http-equiv=&#34;Content-Type&#34; content=&#34;text/html; charset=ISO-8859-1&#34; /&amp;gt;
+&amp;lt;title&amp;gt;Login&amp;lt;/title&amp;gt;
+&amp;lt;/h:head&amp;gt;
+&amp;lt;h:body&amp;gt;
+    &amp;lt;h:form&amp;gt;
+        &amp;lt;h:panelGrid columns=&#34;2&#34;&amp;gt; 
+            &amp;lt;h:outputLabel value=&#34;Usuário:&#34; /&amp;gt;
+            &amp;lt;h:inputText value=&#34;#{usuario.usuario}&#34; size=&#34;20&#34; /&amp;gt;
+            
+            &amp;lt;h:outputLabel value=&#34;Senha:&#34; /&amp;gt;
+            &amp;lt;h:inputSecret value=&#34;#{usuario.senha}&#34; size=&#34;20&#34; /&amp;gt;
+                
+            &amp;lt;h:commandButton value=&#34;Logar&#34; action=&#34;#{usuario.logar}&#34; /&amp;gt;
+        &amp;lt;/h:panelGrid&amp;gt;
+        &amp;lt;h:messages /&amp;gt;    
+    &amp;lt;/h:form&amp;gt;
+&amp;lt;/h:body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;E este foi o resultado:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55232&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/result-jsf-login.png&#34; alt=&#34;Formulário de login XHTMl&#34; width=&#34;261&#34; height=&#34;89&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;No método logar vou verificar se o usuário e a senha correspondem ao meu nome: &amp;#8220;Julio&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Caso o usuário ou a senha forem diferentes de &amp;#8220;Julio&amp;#8221;, exibirei uma mensagem informando que o usuário é inválido.&lt;/p&gt;
+
+&lt;p&gt;Em outros casos será invocado um &lt;em&gt;DAO&lt;/em&gt;, que verificará se o usuário existe na base de dados ou o que for preciso.&lt;/p&gt;
+
+&lt;p&gt;Crie, também, uma página de resposta caso o usuário esteja correto.&lt;/p&gt;
+
+&lt;p&gt;Segue o código da classe Usuário:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;package root;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
+
+@ManagedBean
+@SessionScoped
+public class Usuario {
+    private String usuario = &#34;&#34;;
+    private String senha = &#34;&#34;;
+    
+    public String logar(){
+        if(usuario.equals(&#34;Julio&#34;) &amp;&amp; senha.equals(&#34;Julio&#34;)){
+            return &#34;pag-sucesso&#34;;
+        }
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, &#34;Usuário inválido&#34;, &#34;Usuário inválido&#34;);
+        ctx.addMessage(null, msg);
+        return &#34;&#34;;              
+    }
+    
+    
+    public String getUsuario() {
+        return usuario;
+    }
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
+    }
+    public String getSenha() {
+        return senha;
+    }
+    public void setSenha(String senha) {
+        this.senha = senha;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;E, também, o código do XHTML de resposta em caso de sucesso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;?xml version=&#34;1.0&#34; encoding=&#34;ISO-8859-1&#34; ?&amp;gt;
+&amp;lt;!DOCTYPE html PUBLIC &#34;-//W3C//DTD XHTML 1.0 Strict//EN&#34; &#34;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&#34;&amp;gt;
+&amp;lt;html xmlns=&#34;http://www.w3.org/1999/xhtml&#34;
+      xmlns:h=&#34;http://java.sun.com/jsf/html&#34;
+      xmlns:f=&#34;http://java.sun.com/jsf/core&#34;
+&gt;
+&amp;lt;h:head&amp;gt;
+&amp;lt;meta http-equiv=&#34;Content-Type&#34; content=&#34;text/html; charset=ISO-8859-1&#34; /&amp;gt;
+&amp;lt;title&amp;gt;Sucesso!!&amp;lt;/title&amp;gt;
+&amp;lt;/h:head&amp;gt;
+&amp;lt;h:body&amp;gt;
+    Usuário logado!!!
+&amp;lt;/h:body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;testes&#34;&gt;Testes&lt;/h3&gt;
+
+&lt;p&gt;Vamos testar nossa página:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55233&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/teste-jsf.png&#34; alt=&#34;Teste do login em sucesso&#34; width=&#34;295&#34; height=&#34;111&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Primeiramente coloquei os campos de modo correto, ou seja, com os valores em &amp;#8220;Julio&amp;#8221;, e após pressionar o botão &amp;#8220;Logar&amp;#8221; a página de sucesso foi retornada como esperado.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55234&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/teste-jsf-sucesso.png&#34; alt=&#34;teste-jsf-sucesso&#34; width=&#34;159&#34; height=&#34;62&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Mas tem um problema, conseguimos acessarmos diretamente a página de sucesso, pois não há nenhuma validação se o usuário está logado. Em casos de sistemas grandes, isso pode ser um enorme problema, pois qualquer usuário poderia ter acesso a informações não permitidas.&lt;/p&gt;
+
+&lt;h3 id=&#34;correção&#34;&gt;Correção&lt;/h3&gt;
+
+&lt;p&gt;Devemos criar um login que valide se o usuário já está no sistema, então vamos criar uma classe que sirva como ouvinte entre as fases do JSF.&lt;/p&gt;
+
+&lt;p&gt;Para isto, é preciso:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Criar uma classe que implemente a interface &lt;strong&gt;PhaseListener&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Registrar no faces-config.xml.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Criarei uma classe chamada &amp;#8220;Listener&amp;#8221; que implementa a interface PhaseListener.&lt;/p&gt;
+
+&lt;p&gt;Esta interface possui 3 métodos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;beforePhase: código que será executado antes do processamento da fase;&lt;/li&gt;
+&lt;li&gt;afterPhase: código que será executado após o processamento da fase;&lt;/li&gt;
+&lt;li&gt;getPhaseId: retorna um Enum com o nome da fase atual.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Devemos implementar nosso método para verificar se o usuário está logado no método &amp;#8220;afterPhase&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Para verificar se a página que está sendo acessada é diferente da página &amp;#8220;login.xhtml&amp;#8221; devemos pegar a instância atual do &amp;#8220;FacesContext&amp;#8221; e, partir dele, pegar o ViewRoot e o ViewId que contém o nome da página atual:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;package root;
+
+import javax.faces.application.Application;
+import javax.faces.application.NavigationHandler;
+import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.PhaseListener;
+
+public class Listener implements PhaseListener{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void beforePhase(PhaseEvent arg0) {
+    }
+
+    @Override
+    public void afterPhase(PhaseEvent arg0) {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        if(!ctx.getViewRoot().getViewId().equals(&#34;/login.xhtml&#34;)){
+                    
+        }
+    }
+
+    @Override
+    public PhaseId getPhaseId() {
+        return null;
+    }
+
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Após isto, é preciso verificar se o usuário está logado, isto pode ser feito com um atributo booleano na classe Usuario ou verificar se os parâmetros estão de acordo com o que queremos, vou utilizar esta segunda opção.&lt;/p&gt;
+
+&lt;p&gt;Para pegar o objeto Usuario que queremos, devemos utilizar o objeto &amp;#8220;Application&amp;#8221; a partir do FacesContext atual, através do método &amp;#8220;getApplication&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Então utilizamos o método &amp;#8220;evaluateExpressionGet&amp;#8221; do objeto &amp;#8220;Application&amp;#8221;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;package root;
+
+import javax.faces.application.Application;
+import javax.faces.application.NavigationHandler;
+import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.PhaseListener;
+
+public class Listener implements PhaseListener{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void beforePhase(PhaseEvent arg0) {
+    }
+
+    @Override
+    public void afterPhase(PhaseEvent arg0) {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        if(!ctx.getViewRoot().getViewId().equals(&#34;/login.xhtml&#34;)){
+            Application app = ctx.getApplication();
+            Usuario u = app.evaluateExpressionGet(ctx, &#34;#{usuario}&#34;, Usuario.class);
+        }
+    }
+
+    @Override
+    public PhaseId getPhaseId() {
+        return null;
+    }
+
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora aplicamos nossa validação, no meu caso apenas peguei o atributo usuario a partir do objeto Usuario atual e verifiquei se é diferente de &amp;#8220;Julio&amp;#8221;, se for, &lt;strong&gt;retorno a navegação para a página login&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Isto é feito a partir do objeto &amp;#8220;NavigationHandler&amp;#8221; conseguido a através do objeto &amp;#8220;Application&amp;#8221; e invoco o método &amp;#8220;handleNavigation&amp;#8221;, que altera o fluxo. Por último chamo o método &amp;#8220;renderResponse&amp;#8221; do FacesContext.&lt;/p&gt;
+
+&lt;p&gt;E, claro, devemos indicar ao Listener qual fase que desejamos interceptar, que no nosso caso é a &amp;#8220;Restore View&amp;#8221; indicando no método &amp;#8220;getPhaseId&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;&amp;quot;lang-java&#34;&gt;package root;
+
+import javax.faces.application.Application;
+import javax.faces.application.NavigationHandler;
+import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.PhaseListener;
+
+public class Listener implements PhaseListener{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void beforePhase(PhaseEvent arg0) {
+    }
+
+    @Override
+    public void afterPhase(PhaseEvent arg0) {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        if(!ctx.getViewRoot().getViewId().equals(&#34;/login.xhtml&#34;)){
+            Application app = ctx.getApplication();
+            Usuario u = app.evaluateExpressionGet(ctx, &#34;#{usuario}&#34;, Usuario.class);
+            if(!u.getUsuario().equals(&#34;Julio&#34;)){
+                NavigationHandler handler = app.getNavigationHandler();
+                handler.handleNavigation(ctx, &#34;&#34;, &#34;login&#34;);
+                ctx.renderResponse();
+            }
+        }
+    }
+
+    @Override
+    public PhaseId getPhaseId() {
+        return PhaseId.RESTORE_VIEW;
+    }
+}&lt;/pre&gt;
+
+&lt;p&gt;Para que funcione, precisamos registrar no faces-config.xml que ele é um Listener.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-xml&#34;&gt;&amp;lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&amp;gt;
+&amp;lt;faces-config
+    xmlns=&#34;http://xmlns.jcp.org/xml/ns/javaee&#34;
+    xmlns:xsi=&#34;http://www.w3.org/2001/XMLSchema-instance&#34;
+    xsi:schemaLocation=&#34;http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd&#34;
+    version=&#34;2.2&#34;&amp;gt;
+    &amp;lt;lifecycle&amp;gt;
+        &amp;lt;phase-listener&amp;gt;root.Listener&amp;lt;/phase-listener&amp;gt;
+    &amp;lt;/lifecycle&amp;gt;
+
+&amp;lt;/faces-config&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora ao tentarmos entrar na página de sucesso diretamente, ele não vai.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55235&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/resultado-final-jsf.png&#34; alt=&#34;Resultado final&#34; width=&#34;479&#34; height=&#34;267&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para quem deseja obter a URL correta, apenas adicionar &amp;#8220;?faces-redirect=true&amp;#8221; ao final da String de redirecionamento no Listener:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;package root;
+
+import javax.faces.application.Application;
+import javax.faces.application.NavigationHandler;
+import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.PhaseListener;
+
+public class Listener implements PhaseListener{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void beforePhase(PhaseEvent arg0) {
+    }
+
+    @Override
+    public void afterPhase(PhaseEvent arg0) {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        if(!ctx.getViewRoot().getViewId().equals(&#34;/login.xhtml&#34;)){
+            Application app = ctx.getApplication();
+            Usuario u = app.evaluateExpressionGet(ctx, &#34;#{usuario}&#34;, Usuario.class);
+            if(!u.getUsuario().equals(&#34;Julio&#34;)){
+                NavigationHandler handler = app.getNavigationHandler();
+                handler.handleNavigation(ctx, &#34;&#34;, &#34;login?faces-redirect=true&#34;);
+                ctx.renderResponse();
+            }
+        }
+    }
+
+    @Override
+    public PhaseId getPhaseId() {
+        return PhaseId.RESTORE_VIEW;
+    }
+
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Então:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55236&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/alteracao-param-jsf-2.png&#34; alt=&#34;Entrada no browser&#34; width=&#34;439&#34; height=&#34;92&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Retorna:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55237&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/alteracao-param-jsf-3.png&#34; alt=&#34;Resposta no browser&#34; width=&#34;383&#34; height=&#34;193&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Obtendo o resultado desejado.&lt;/p&gt;
+
+&lt;p&gt;Comente em caso de dúvidas ou falhas =D.&lt;/p&gt;
+
+&lt;p&gt;Em meu blog tem alguns outros artigos deste mesmo tipo, se deseja ver: &lt;a href=&#34;http://jcdourado.github.io&#34;&gt;http://jcdourado.github.io&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Obrigado!!&lt;/p&gt;
+
+&lt;p&gt;Segue alguns links de artigos e alguns livros que ajudam nessa caminhada:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.devmedia.com.br/jsf-session-criando-um-modulo-de-login/30975&#34;&gt;http://www.devmedia.com.br/jsf-session-criando-um-modulo-de-login/30975&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.devmedia.com.br/java-web-criando-uma-tela-de-login-com-jpa-jsf-primefaces-e-mysql/32456&#34;&gt;http://www.devmedia.com.br/java-web-criando-uma-tela-de-login-com-jpa-jsf-primefaces-e-mysql/32456&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.universidadejava.com.br/materiais/jsf-tela-login/&#34;&gt;http://www.universidadejava.com.br/materiais/jsf-tela-login/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Livro: &lt;strong&gt;JSF Eficaz&lt;/strong&gt; &amp;#8211; Casa do Código.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JPA de A à Z – Por que conhecer?</title>
+      <link>http://tableless.com.br/jpa-de-z-por-que-conhecer/</link>
+      <pubDate>Tue, 30 Aug 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/jpa-de-z-por-que-conhecer/</guid>
+      <description>&lt;p&gt;Não dá pra negar que o Java é uma linguagem bastante verbosa e quando falávamos em juntar o Java com um banco de dados ai sim dava pra ver o tamanho do problema.&lt;/p&gt;
+
+&lt;p&gt;Se não tivéssemos cuidado era muito fácil perder o controle da complexidade de nossas entidades e consultas.&lt;/p&gt;
+
+&lt;p&gt;Antes de entendermos sobre a  JPA, é necessário entender que costumávamos utilizar em nossos projetos o JDBC (Java Database Connectivity) que é uma API presente no Java desde a versão 1.1 da plataforma. Mesmo sendo uma API bem antiga ela ainda continua sendo atualizada e modificada pela comunidade e pela Oracle.&lt;/p&gt;
+
+&lt;p&gt;Resumidamente o JDBC é o antecessor da JPA porque ela era a principal forma de executar nossas querys SQL de select, update, delete, insert e até mesmo executar funções presentes no banco de dados. U&lt;span style=&#34;line-height: 1.5&#34;&gt;m detalhe interessante sobre o JDBC são seus Drivers de conexão, sendo cada banco de dados é responsável por desenvolver e atualizar o seu Driver. Isso facilitava muito a vida do desenvolvedor porque esses Drivers visam encapsular boa parte do código necessário para se conseguir uma conexão, então era uma preocupação a menos que tínhamos que ter.&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;Mas nem tudo eram flores quando usávamos o JDBC, porque além de ter que escrever códigos SQL direto no Java, tínhamos também que instanciar uma conexão, buscar a conexão com o banco de dados. Dai era preciso preparar um outro objeto para poder manipular a consulta informando os valores dos parâmetros e só então executávamos a consulta.&lt;/p&gt;
+
+&lt;p&gt;Acabávamos tendo um trabalho tedioso só para executar uma consulta, todavia o ciclo não acabava nisso, depois era preciso fazer um casting do retorno da consulta para com objeto que queríamos manipular e como se não fosse suficiente também era necessário lembrar de fechar as conexões com o banco de dados.&lt;/p&gt;
+
+&lt;p&gt;É preciso entender que estamos falando de muito tempo atrás, um tempo em que as facilidades da JPA ainda não existiam e que muita especificação que existe hoje nasceu das dificuldades do passado.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;public class ProdutoDAO {
+
+    Connection dbConnection;
+
+    public ProdutoDAO(Connection con) {
+        this.dbConnection = con;
+    }
+
+    public void salva(Produto produto) throws SQLException {
+        String sql = &#34;INSERT INTO PRODUTO (NOME, DESCRICAO) VALUES (?,?)&#34;;
+
+        try (PreparedStatement prStmt = dbConnection.prepareStatement(sql,
+                Statement.RETURN_GENERATED_KEYS)) {
+
+            prStmt.setString(1, produto.getNome());
+            prStmt.setString(2, produto.getDescricao());
+            prStmt.execute();
+
+            try (ResultSet rs = prStmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    int id = rs.getInt(1);
+                    produto.setId(id);
+                }
+            }
+
+        }
+    }
+
+    public List lista() throws SQLException {
+        List produtos = new ArrayList();
+
+        String sql = &#34;SELECT * FROM PRODUTO&#34;;
+
+        try (PreparedStatement prStmt = dbConnection.prepareStatement(sql)) {
+            prStmt.execute();
+
+            converterQueryEmProdutos(produtos, prStmt);
+        }
+
+        return produtos;
+    }
+
+    public List busca(Produto produto) throws SQLException {
+
+        String sql = &#34;SELECT * FROM PRODUTO WHERE DESCRICAO like ?&#34;;
+        List produtos = new ArrayList();
+
+        try (PreparedStatement prdStmt = dbConnection.prepareStatement(sql)) {
+            prdStmt.setString(1, produto.getDescricao);
+            prdStmt.execute();
+
+            converterQueryEmProdutos(produtos, prdStmt);
+        }
+
+        return produtos;
+    }
+
+    private void converterQueryEmProdutos(List produtos, PreparedStatement prdStmt) throws SQLException {
+
+        try (ResultSet rs = prdStmt.getResultSet()) {
+            while (rs.next()) {
+                int id = rs.getInt(1);
+                String nomeProduto = rs.getString(&#34;nome&#34;);
+                String descricaoProduto = rs.getString(&#34;descricao&#34;);
+                Produto produto = new Produto(nomeProduto, descricaoProduto);
+                produto.setId(id);
+                produtos.add(produto);
+            }
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Olhando pra esse código podemos passar um baita sufoco se por acaso algum dia o analista de requisitos resolva mexer nos atributos da entidadeProduto. Nessa DAO de exemplo só foi criada poucas consultas, mas vamos usar nossa criatividade e imaginar que na verdade existem 10 e o analista resolveu mudar o nome da coluna &amp;#8220;DESCRICAO&amp;#8221; para &amp;#8220;TIPO_PRODUTO&amp;#8221;, uma pequena mudança de nomenclatura já é suficiente para que perdêssemos tempo refatorando boa parte de nosso código.&lt;/p&gt;
+
+&lt;p&gt;Foi para evitar todo esse trabalho que surgiu o conceito ORM (Object Relational Mapping) que traduzindo livremente de acordo com a minha vontade quer dizer: “Estou salvando a sua alma transformando os dados de um banco de dados que estão no paradigma relacional para o paradigma orientado a objetos que você tanto precisa”.&lt;/p&gt;
+
+&lt;p&gt;Junto com a ORM também surgiu o Hibernate que é o framework JPA mais famoso e utilizado no momento. Só por curiosidade saiba que a JPA surgiu por causa dele, viram que a ideia era tão boa que resolveram transformar a implementação do Hibernate em uma especificação e até hoje muita coisa que é implementada no framework posteriormente vira especificação na JPA.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Mas o que é JPA?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;JPA significa Java Persistence API e como já falei ela é uma especificação que nasceu de uma JSR (Java Specification Requests) que basicamente são pedidos para mudanças na linguagem, entenda a JPA como um contrato, normas, regras ou interface e que todos os Frameworks Java que trabalham com persistência de dados devem implementa-la. Além do Hibernate também temos outros Framworks como por exemplo o OpenJPA, o Batoo e o EclipseLink.&lt;/p&gt;
+
+&lt;p&gt;Então basicamente a JPA é uma especificação que regulamenta ferramentas muito poderosas que utilizamos no nosso dia a dia para automatizar e economizar tempo de desenvolvimento. Essa especificação nos ajuda em todos os processos quando precisamos trabalhar com um banco de dados, sendo assim podemos usa-la para executar consultas, inserts, updates e deletes.&lt;/p&gt;
+
+&lt;p&gt;Lembra daquele código verboso? Como sera que ele ficaria se fosse escrito utilizando a JPA?&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;public Produto obterPorId(Produto produto) {
+        return manager.find(Produto.class, produto.getId());
+    }
+
+    @SuppressWarnings(&#34;unchecked&#34;)
+    public List obterTodos() {
+        return manager.createQuery(&#34;SELCT p FROM Produto p&#34;).getResultList();
+    }
+&lt;/pre&gt;
+
+&lt;p&gt;Repare que no método &lt;strong&gt;obterPorId&lt;/strong&gt; não foi necessário criar uma única query SQL para executar a consulta por ID, também não foi preciso fazer nenhum casting a JPA se encarregou de fazer tudo isso pra gente. Agora olhando o método &lt;strong&gt;obterTodos &lt;/strong&gt;temos uma String que se parece muito com uma query SQL só que não é, a essa String damos o nome de JPQL (Java Persistence Query Language) e vamos conhecer mais sobre ela em outro momento.&lt;/p&gt;
+
+&lt;p&gt;Por fim espero que você nos acompanhe nos próximos posts porque vamos aprender mais sobre essa ferramenta poderosa em conjunto com boas práticas. A ideia é de que os posts não sejam muito longos e também não sejam só tutorias de JPA, aqui iremos explorar os conceitos, apresentar exemplos e colocar minha experiência em ação com as boas práticas.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JPA Hibernate – Como funciona a anotação @version?</title>
+      <link>http://tableless.com.br/hibernate-como-funciona-anotacao-version/</link>
+      <pubDate>Sun, 19 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/hibernate-como-funciona-anotacao-version/</guid>
+      <description>&lt;p&gt;Recentemente um colega de trabalho me perguntou qual era função da anotação &lt;strong&gt;@version&lt;/strong&gt; presente nas entidades aqui do projeto. Achei interessante essa pergunta e resolvi fazer da resposta o meu primeiro post no blog.&lt;/p&gt;
+
+&lt;p&gt;Para responder essa de pergunta temos que lembrar que todo banco de dados possui um controle de concorrência entre transações (se necessário solicitem nos comentários que faço um post explicando a fundo sobre isso). Para esse post só precisamos conhecer o método de controle &lt;em&gt;Optimistic concurrency control&lt;/em&gt; (controle de concorrência otimista).&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;Optimistic concurrency control&lt;/em&gt; (OCC)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;_Optimistic concurrency control _ou controle de concorrência otimista é um método aplicado nas transações de bancos de dados relacionais. Nesse método se acredita que a probabilidade de que duas transações utilizarem o mesmo objeto é minima, logo nada é verificado enquanto a transação está sendo executada e isso faz com que o custo dela diminua.&lt;/p&gt;
+
+&lt;p&gt;Normalmente essa técnica funciona bem em Frameworks ORM porque eles conseguem escalonar as transações para que ocorra pouca ou nenhuma interferência. Mas no caso de ocorrer uma interferência o que acontece? Simples, alguma transação escolhida pelo Hibernate vai ser abortada e terá que ser recomeçada pelo cliente.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;A anotação @version&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora que sabemos superficialmente o que é um controle de concorrência e o método &lt;strong&gt;OCC &lt;/strong&gt;fica mais fácil compreender a importância do &lt;strong&gt;@version&lt;/strong&gt; em nossas entidades. Tenha em mente que ao adicionar um atributo com essa anotação não precisamos nos preocupar em alterar seu valor porque o Hibernate fica encarregado dessa função.&lt;/p&gt;
+
+&lt;p&gt;Para usarmos o método de concorrência otimista só precisamos declarar um atributo com o nome &lt;strong&gt;version&lt;/strong&gt; em nossa entidade. Normalmente ele é do tipo numérico e também pode ser do tipo data, mas não recomendo essa pratica e vou explicar o motivo no final deste post, abaixo temos um exemplo da classe Consulta.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;@Entity
+@Table(name = &#34;CONSULTAS&#34;, schema = &#34;tableless&#34;)
+public class Consultas{
+@Id
+@GeneratedValue(strategy = GenerationType.AUTO)
+@Column(name = &#34;ID_CONSULTA&#34;)
+private Integer numero;
+
+@Temporal(TemporalType.TIMESTAMP)
+@Column(name = &#34;DATA_CONSULTA&#34;)
+private Date dataConsulta;
+
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = &#34;PACIENTE_CODIGO&#34;)
+private Pacientes paciente;
+
+@Version
+private Integer version;
+
+//getter e setter
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Com esse mapeamento o Hibernate vai usar automaticamente o número da versão para verificar se o objeto utilizado na transição foi atualizado desde a ultima vez em que ele foi requisitado. Pelo código SQL a baixo podemos ver a presença do atributo version tanto no trecho do SET como na cláusula WHERE isso acontece porque o Hibernate vai buscar o objeto no banco de dados usando também o número da versão e vai incrementar esse número ao mesmo tempo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;UPDATE CONSULTAS 
+SET DATA_CONSULTA = ?, PACIENTE_CODIGO = ?, version = ?
+WHERE ID_CONSULTA = ? 
+AND version = ?&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;@version com Data&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Usar um tipo data no atributo version é uma prática que não recomendo porque no banco de dados a coluna será do tipo &lt;strong&gt;TIMESTAMP &lt;/strong&gt;e isso pode acabar permitindo que duas ou mais transações possam ser executadas com o mesmo objeto ao mesmo tempo dependendo da precisão do fuso horário configurada no banco de dados, c&lt;span style=&#34;line-height: 1.5&#34;&gt;aso essa situação acabe acontecendo vamos acabar tendo uma violação de normalização. Algumas pessoas preferem utilizar o tipo data para conseguirem visualizar &amp;#8220;quando&amp;#8221; aquele objeto foi alterado pela ultima vez, caso essa seja sua necessidade recomendo que crie um novo atributo em sua classe ao invés de utilizar a anotação &lt;strong&gt;@version&lt;/strong&gt; como data.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;
+  Por fim espero que esse post te ajude a trabalhar com controle de concorrência no Hibernate. Dúvidas, sugestões, correções, elogios nos comentários ou no meu twitter. Xablau!
+&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte Final</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-final/</link>
+      <pubDate>Tue, 27 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-final/</guid>
+      <description>
+
+&lt;p&gt;Os servidores HTTP são parte fundamental da Web como conhecemos, sendo responsáveis por fornecer todo o conteúdo que acessamos através de nossos navegadores. Durante esse tutorial, entenderemos como funciona a comunicação entre o navegador e o servidor e como a informação é entregue ao usuário.&lt;/p&gt;
+
+&lt;p&gt;Caso não tenha acompanhado os últimos posts, recomendo que leia as Partes &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/&#34;&gt;um&lt;/a&gt;, &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/&#34;&gt;dois&lt;/a&gt; e &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-iii/&#34;&gt;três&lt;/a&gt; antes de prosseguir a leitura deste post.&lt;/p&gt;
+
+&lt;p&gt;Essa é a última parte do tutorial, mas antes de prosseguir vamos recapitular o que vimos até agora então: Nós conhecemos o protocolo HTTP/1.1, qual o padrão de requisição e resposta, entendemos um pouco de &lt;em&gt;sockets&lt;/em&gt; e por fim montamos um mini servidor que recebe requisições HTTP, e devolve a página solicitada.&lt;/p&gt;
+
+&lt;p&gt;É claro que nosso servidor não é perfeito, além da função &lt;em&gt;main&lt;/em&gt; ter ficado gigante, nosso servidor só responde a uma requisição e para! O ideal é que o servidor permaneça em execução para receber novas requisições e também possa receber várias requisições simultâneas, afinal de contas é para isso que um servidor web serve =D&lt;/p&gt;
+
+&lt;h2 id=&#34;organizando-o-código&#34;&gt;Organizando o código&lt;/h2&gt;
+
+&lt;p&gt;Pra ficar simples, vamos separar a requisição da resposta em duas classes diferentes que vou chamar de RequisicaoHTTP e RespostaHTTP&lt;/p&gt;
+
+&lt;p&gt;RequisicaoHTTP.java&lt;/p&gt;
+
+&lt;pre&gt;import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+public class RequisicaoHTTP {
+
+    private String protocolo;
+    private String recurso;
+    private String metodo;
+    private boolean manterViva = true;
+    private long tempoLimite = 3000;
+    private Map&amp;lt;String, List&amp;gt; cabecalhos;
+
+    public static RequisicaoHTTP lerRequisicao(InputStream entrada) throws IOException {
+        RequisicaoHTTP requisicao = new RequisicaoHTTP();
+        BufferedReader buffer = new BufferedReader(new InputStreamReader(entrada));
+        System.out.println(&#34;Requisição: &#34;);
+        /* Lê a primeira linha
+         contem as informaçoes da requisição
+         */
+        String linhaRequisicao = buffer.readLine();
+        //quebra a string pelo espaço em branco
+        String[] dadosReq = linhaRequisicao.split(&#34; &#34;);
+        //pega o metodo
+        requisicao.setMetodo(dadosReq[0]);
+        //paga o caminho do arquivo
+        requisicao.setRecurso(dadosReq[1]);
+        //pega o protocolo
+        requisicao.setProtocolo(dadosReq[2]);
+        String dadosHeader = buffer.readLine();
+        //Enquanto a linha nao for nula e nao for vazia
+        while (dadosHeader != null &amp;&amp; !dadosHeader.isEmpty()) {
+            System.out.println(dadosHeader);
+            String[] linhaCabecalho = dadosHeader.split(&#34;:&#34;);
+            requisicao.setCabecalho(linhaCabecalho[0], linhaCabecalho[1].trim().split(&#34;,&#34;));
+            dadosHeader = buffer.readLine();
+        }
+        //se existir a chave Connection no cabeçalho
+        if (requisicao.getCabecalhos().containsKey(&#34;Connection&#34;)) {
+            //seta o manterviva a conexao se o connection for keep-alive
+            requisicao.setManterViva(requisicao.getCabecalhos().get(&#34;Connection&#34;).get(0).equals(&#34;keep-alive&#34;));
+        }
+        return requisicao;
+    }
+
+    public void setCabecalho(String chave, String... valores) {
+        if (cabecalhos == null) {
+            cabecalhos = new TreeMap&amp;lt;&amp;gt;();
+        }
+        cabecalhos.put(chave, Arrays.asList(valores));
+    }
+
+    //getters e setters vão aqui
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que simplesmente copiei a parte onde liamos a requisição e imprimíamos na tela, dentro de um método estático lerRequisicao() que retorna um objeto RequisicaoHTTP. Perceba ainda que esse método recebe o InputStream de onde iremos ler a requisição como parâmetro. Além do mais iremos colocar os dados do cabeçalho em um Mapa&lt;chave,valor&gt; para facilitar o manuseio desses dados posteriormente caso seja necessário.&lt;/p&gt;
+
+&lt;p&gt;Até o momento os únicos dados que utilizávamos da requisição era a primeira linha que contém o caminho do arquivo, a partir de agora vamos usar o Connection (se existir) para saber se manteremos a conexão viva ou não, veja que há uma propriedade tempoLimite que por padrão é 3000 milissegundos (3 segundos), que vamos utilizar para controlar quanto tempo uma conexão deve permanecer ativa. O resto é só você implementar (os métodos &lt;em&gt;getters&lt;/em&gt; e &lt;em&gt;setters&lt;/em&gt; eu omiti).&lt;/p&gt;
+
+&lt;p&gt;RespostaHTTP.java&lt;/p&gt;
+
+&lt;pre&gt;import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+public class RespostaHTTP {
+
+    private String protocolo;
+    private int codigoResposta;
+    private String mensagem;
+    private byte[] conteudoResposta;
+    private Map&amp;lt;String, List&amp;gt; cabecalhos;
+    private OutputStream saida;
+
+    public RespostaHTTP() {
+
+    }
+
+    public RespostaHTTP(String protocolo, int codigoResposta, String mensagem) {
+        this.protocolo = protocolo;
+        this.codigoResposta = codigoResposta;
+        this.mensagem = mensagem;
+    }
+
+    /**
+     * Envia os dados da resposta ao cliente.
+     *
+     * @throws IOException
+     */
+    public void enviar() throws IOException {
+        //escreve o headers em bytes
+        saida.write(montaCabecalho());
+        //escreve o conteudo em bytes
+        saida.write(conteudoResposta);
+        //encerra a resposta
+        saida.flush();
+    }
+
+    /**
+     * Insere um item de cabeçalho no mapa
+     *
+     * @param chave
+     * @param valores lista com um ou mais valores para esta chave
+     */
+    public void setCabecalho(String chave, String... valores) {
+        if (cabecalhos == null) {
+            cabecalhos = new TreeMap&amp;lt;&amp;gt;();
+        }
+        cabecalhos.put(chave, Arrays.asList(valores));
+    }
+
+    /**
+     * pega o tamanho da resposta em bytes
+     *
+     * @return retorna o valor em bytes do tamanho do conteudo da resposta
+     * convertido em string
+     */
+    public String getTamanhoResposta() {
+        return getConteudoResposta().length + &#34;&#34;;
+    }
+
+    /**
+     * converte o cabecalho em string.
+     *
+     * @return retorna o cabecalho em bytes
+     */
+    private byte[] montaCabecalho() {
+        return this.toString().getBytes();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append(protocolo).append(&#34; &#34;).append(codigoResposta).append(&#34; &#34;).append(mensagem).append(&#34;\r\n&#34;);
+        for (Map.Entry&amp;lt;String, List&amp;gt; entry : cabecalhos.entrySet()) {
+            str.append(entry.getKey());
+            String stringCorrigida = Arrays.toString(entry.getValue().toArray()).replace(&#34;[&#34;, &#34;&#34;).replace(&#34;]&#34;, &#34;&#34;);
+            str.append(&#34;: &#34;).append(stringCorrigida).append(&#34;\r\n&#34;);
+        }
+        str.append(&#34;\r\n&#34;);
+        return str.toString();
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que para a resposta utilizamos o mesmo conceito, estamos montando o cabeçalho na requisição em um Mapa&lt;chave, valor&gt;, criei também outros métodos para auxiliar na geração dos dados pertinentes ao cabeçalho, e sobrescrevi o método toString() para converter o mapa no formato padrão da resposta HTTP, e por fim, o método enviar para enviar a requisição ao servidor.&lt;/p&gt;
+
+&lt;p&gt;Servidor.java&lt;/p&gt;
+
+&lt;pre&gt;import java.io.File;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.file.Files;
+import java.util.Date;
+
+public class Servidor {
+
+    public static void main(String[] args) throws IOException {
+        /* cria um socket &#34;servidor&#34; associado a porta 8000
+         já aguardando conexões
+         */
+        ServerSocket servidor = new ServerSocket(8000);
+        //aceita a primeita conexao que vier
+        Socket socket = servidor.accept();
+        //verifica se esta conectado
+        if (socket.isConnected()) {
+            //imprime na tela o IP do cliente
+            System.out.println(socket.getInetAddress());
+            //cria um BufferedReader a partir do InputStream do cliente
+
+            RequisicaoHTTP requisicao = RequisicaoHTTP.lerRequisicao(socket.getInputStream());
+
+            //se o caminho foi igual a / entao deve pegar o /index.html
+            if (requisicao.getRecurso().equals(&#34;/&#34;)) {
+                requisicao.setRecurso(&#34;index.html&#34;);
+            }
+            //abre o arquivo pelo caminho
+            File arquivo = new File(requisicao.getRecurso().replaceFirst(&#34;/&#34;, &#34;&#34;));
+
+            RespostaHTTP resposta;
+
+            //se o arquivo existir então criamos a reposta de sucesso, com status 200
+            if (arquivo.exists()) {
+                resposta = new RespostaHTTP(requisicao.getProtocolo(), 200, &#34;OK&#34;);
+            } else { 
+                //se o arquivo não existe então criamos a reposta de erro, com status 404
+                resposta = new RespostaHTTP(requisicao.getProtocolo(), 404, &#34;Not Found&#34;);
+            }
+            //lê todo o conteúdo do arquivo para bytes e gera o conteudo de resposta
+            resposta.setConteudoResposta(Files.readAllBytes(arquivo.toPath()));
+            //converte o formato para o GMT espeficicado pelo protocolo HTTP
+            String dataFormatada = Util.formatarDataGMT(new Date());
+            //cabeçalho padrão da resposta HTTP/1.1
+            resposta.setCabecalho(&#34;Location&#34;, &#34;http://localhost:8000/&#34;);
+            resposta.setCabecalho(&#34;Date&#34;, dataFormatada);
+            resposta.setCabecalho(&#34;Server&#34;, &#34;MeuServidor/1.0&#34;);
+            resposta.setCabecalho(&#34;Content-Type&#34;, &#34;text/html&#34;);
+            resposta.setCabecalho(&#34;Content-Length&#34;,resposta.getTamanhoResposta());
+            //cria o canal de resposta utilizando o outputStream
+            resposta.setSaida(socket.getOutputStream());
+            resposta.enviar();
+
+        }
+    }
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Agora o código do nosso servidor está pequeno mas ainda não é o suficiente &amp;#8211; continua recebendo uma requisição e respondendo apenas uma vez. Vamos ver mais um conceito:&lt;/p&gt;
+
+&lt;h2 id=&#34;threads&#34;&gt;Threads&lt;/h2&gt;
+
+&lt;p&gt;As &lt;em&gt;threads&lt;/em&gt;, de maneira geral, são segmentos de código que são executados &amp;#8220;paralelamente&amp;#8221; (ou pelo menos quase) dentro de um mesmo programa. Para exemplificar melhor, pense nisso: imagine que ao abrir um software de grandes proporções, ele tenha que carregar todas as bibliotecas necessárias, mas ao mesmo tempo tem que mostrar ao usuário o progresso do carregamento. A ideia que temos é que esses dois trechos de código são executados paralelamente. Isso é possível graças às _threads._ Neste exemplo, temos duas &lt;em&gt;threads&lt;/em&gt; executando: uma que carrega as bibliotecas e outra que mostra o progresso para o usuário. Dentro de um programa, pode-se ter quantas threads quisermos, e enquanto o programa estiver executando, essas &lt;em&gt;threads&lt;/em&gt; podem ser criadas, executadas, terminadas, permitir que novas &lt;em&gt;threads&lt;/em&gt; e outros. Quem faz esse controle é a máquina virtual (JVM).&lt;/p&gt;
+
+&lt;p&gt;Olha que legal, um servidor recebe várias conexões simultâneas, onde por essas conexões passarão as requisições. Praticamente, todas essas requisições são processadas da mesma maneira, logo, para cada conexão que esse servidor recebe, ele cria uma nova &lt;em&gt;thread&lt;/em&gt;, permitindo tratar as requisições de um cliente. Veja só, se temos 5 computadores solicitando uma página, então teremos 5 threads processando essas requisições, e por aí vai.&lt;/p&gt;
+
+&lt;p&gt;Agora fica fácil analisar qual segmento do código queremos executar paralelamente. A partir desse segmento iremos montar uma estrutura de Thread, da seguinte maneira:&lt;/p&gt;
+
+&lt;p&gt;ThreadConexao.java&lt;/p&gt;
+
+&lt;pre&gt;import java.io.File;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.nio.file.Files;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class ThreadConexao implements Runnable {
+
+    private final Socket socket;
+    private boolean conectado;
+
+    public ThreadConexao(Socket socket) {
+        this.socket = socket;
+    }
+
+    @Override
+    public void run() {
+        conectado = true;
+        //imprime na tela o IP do cliente
+        System.out.println(socket.getInetAddress());
+        while (conectado) {
+            try {
+                //cria uma requisicao a partir do InputStream do cliente
+                RequisicaoHTTP requisicao = RequisicaoHTTP.lerRequisicao(socket.getInputStream());
+                //se a conexao esta marcada para se mantar viva entao seta keepalive e o timeout
+                if (requisicao.isManterViva()) {
+                    socket.setKeepAlive(true);
+                    socket.setSoTimeout(requisicao.getTempoLimite());
+                } else {
+                    //se nao seta um valor menor suficiente para uma requisicao
+                    socket.setSoTimeout(300);
+                }
+
+                //se o caminho foi igual a / entao deve pegar o /index.html
+                if (requisicao.getRecurso().equals(&#34;/&#34;)) {
+                    requisicao.setRecurso(&#34;index.html&#34;);
+                }
+                //abre o arquivo pelo caminho
+                File arquivo = new File(requisicao.getRecurso().replaceFirst(&#34;/&#34;, &#34;&#34;));
+
+                RespostaHTTP resposta;
+
+                //se o arquivo existir então criamos a reposta de sucesso, com status 200
+                if (arquivo.exists()) {
+                    resposta = new RespostaHTTP(requisicao.getProtocolo(), 200, &#34;OK&#34;);
+                } else {
+                    //se o arquivo não existe então criamos a reposta de erro, com status 404
+                    resposta = new RespostaHTTP(requisicao.getProtocolo(), 404, &#34;Not Found&#34;);
+                    arquivo = new File(&#34;404.html&#34;);
+                }
+                //lê todo o conteúdo do arquivo para bytes e gera o conteudo de resposta
+                resposta.setConteudoResposta(Files.readAllBytes(arquivo.toPath()));
+                //converte o formato para o GMT espeficicado pelo protocolo HTTP
+                String dataFormatada = Util.formatarDataGMT(new Date());
+                //cabeçalho padrão da resposta HTTP/1.1
+                resposta.setCabecalho(&#34;Location&#34;, &#34;http://localhost:8000/&#34;);
+                resposta.setCabecalho(&#34;Date&#34;, dataFormatada);
+                resposta.setCabecalho(&#34;Server&#34;, &#34;MeuServidor/1.0&#34;);
+                resposta.setCabecalho(&#34;Content-Type&#34;, &#34;text/html&#34;);
+                resposta.setCabecalho(&#34;Content-Length&#34;, resposta.getTamanhoResposta());
+                //cria o canal de resposta utilizando o outputStream
+                resposta.setSaida(socket.getOutputStream());
+                resposta.enviar();
+            } catch (IOException ex) {
+                //quando o tempo limite terminar encerra a thread
+                if (ex instanceof SocketTimeoutException) {
+                    try {
+                        conectado = false;
+                        socket.close();
+                    } catch (IOException ex1) {
+                        Logger.getLogger(ThreadConexao.class.getName()).log(Level.SEVERE, null, ex1);
+                    }
+                }
+            }
+
+        }
+    }
+
+}
+&lt;/pre&gt;
+
+&lt;p&gt;A estrutura de uma &lt;em&gt;thread&lt;/em&gt; é bem simples: uma classe que implementa a interface Runnable. Essa interface possui um único método a ser implementado, o método run(). Esse método é o nosso segmento de código que queremos que seja executado em paralelo. Veja que nele temos o código que tínhamos na &lt;em&gt;main&lt;/em&gt; com apenas algumas modificações para controlar o tempo máximo de conexão (o tempo que a conexão deve se manter ativa).&lt;/p&gt;
+
+&lt;h2 id=&#34;threadpools&#34;&gt;ThreadPools&lt;/h2&gt;
+
+&lt;p&gt;Por fim, temos que falar um pouco sobre as Thread Pools, que tem o trabalho de controlar a criação de &lt;em&gt;threads&lt;/em&gt;. Claro que podemos criar quantas &lt;em&gt;threads&lt;/em&gt; quisermos, mas, às vezes, a situação requer um certo controle, ainda mais quando um servidor web pode receber milhares ou até milhões de requisições por segundo. Por isso, precisamos gerenciar essas &lt;em&gt;threads&lt;/em&gt; de maneira eficiente, para que nosso servidor não sobrecarregue. Para isso, o Java tem os Executors, que criam um ambiente de execução de múltiplas &lt;em&gt;threads&lt;/em&gt;. Existem diversos tipos de ExecutorService. No nosso caso, iremos utilizar o fixo, que significa limitarmos a criação de &lt;em&gt;threads&lt;/em&gt; a um número fixo. Se o número de &lt;em&gt;threads&lt;/em&gt; criadas exceder o limite, essas novas &lt;em&gt;threads&lt;/em&gt; deverão aguardar até que as outras &lt;em&gt;threads&lt;/em&gt; terminem para começar a executar. Com isso, nossa classe Servidor passa a ficar da seguinte forma:&lt;/p&gt;
+
+&lt;p&gt;Servidor.java&lt;/p&gt;
+
+&lt;pre&gt;import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class Servidor {
+
+    public static void main(String[] args) throws IOException {
+        /* cria um socket &#34;servidor&#34; associado a porta 8000
+         já aguardando conexões
+         */
+        ServerSocket servidor = new ServerSocket(8000);
+        //executor que limita a criação de threads a 20
+        ExecutorService pool = Executors.newFixedThreadPool(20);
+        
+        while (true) {
+            //cria uma nova thread para cada nova solicitacao de conexao
+            pool.execute(new ThreadConexao(servidor.accept()));
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que agora colocamos a criação de novas &lt;em&gt;threads&lt;/em&gt; while(true). Isso impede que nosso servidor pare de executar após a primeira requisição, permitindo que ele aceite múltiplas conexões. Você deve estar a se perguntar &amp;#8211; mas um &lt;em&gt;while true&lt;/em&gt; não gera um laço infinito? &amp;#8211; de certa forma sim, mas para a nossa situação esta é a ideia, já que não queremos que o servidor pare, e que o servidor só finalize quando o usuário enviar o comando CTRL+C no prompt/terminal. De qualquer forma, o método accept() é bloqueado até que receba uma nova conexão, e esse laço sé será executado quando houver uma solicitação, caso contrário, ficará parado num estado de bloqueio =D&lt;/p&gt;
+
+&lt;p&gt;Pronto. Agora temos um servidor funcional que aceita conexões múltiplas e responde a muitas requisições.&lt;/p&gt;
+
+&lt;h2 id=&#34;considerações-finais&#34;&gt;Considerações finais&lt;/h2&gt;
+
+&lt;p&gt;Nosso servidor está longe de ser uma versão completa para competir com o Apache e outros servidores HTTP, até por que nosso servidor só envia documentos HTML. Vale lembrar que, quando o navegador recebe um HTML como resposta, ele tem que renderizá-lo, e ao fazer isto, ele encontra tags de arquivos de imagem, áudio, scripts ou estilos, o que gera outras requisições para o servidor, para que ele envie também esses arquivos. O código ainda pode ser melhorado, teríamos que fazer com que o servidor forneça o Content-Type correto para cada tipo de arquivo (o que não é difícil, fica como exercício). Também seria necessário implementar uma camada de segurança (o que hoje em dia é fundamental, pois sem ela nosso servidor está completamente vulnerável a ataques), e por aí vai.&lt;/p&gt;
+
+&lt;p&gt;Além do mais, nosso servidor responde ao padrão HTTP/1.1, mas recentemente foi lançado o protocolo HTTP2, que veio para tornar o antigo padrão ainda mais rápido. Embora tenha sofrido alterações internas (o que significa que os servidores HTTP terão que se &amp;#8220;adaptar&amp;#8221; para seguirem esse novo padrão), o conceito continua o mesmo. Você pode ler um pouco mais sobre HTTP2 nesse post &lt;a href=&#34;http://tableless.com.br/http2-atualizacao-do-protocolo-base-da-internet/&#34;&gt;&amp;#8220;HTTP/2 – Atualização do protocolo base da internet&amp;#8221;&lt;/a&gt; e nesse &lt;a href=&#34;http://tableless.com.br/http2-para-desenvolvedores-de-web/&#34;&gt;&amp;#8220;HTTP2 para Desenvolvedores de Web&amp;#8221;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Espero ter despertado em vocês a vontade de conhecer mais a fundo como as coisas funcionam, para criarem suas próprias contribuições e compartilharem com a galera, afinal, esse é o espirito do Tableless.&lt;/p&gt;
+
+&lt;p&gt;Por favor, deixem comentários, se gostaram ou não, erros, dúvidas. O feedback de vocês é importante.&lt;/p&gt;
+
+&lt;p&gt;Até a próxima =D&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h2 id=&#34;referências&#34;&gt;Referências:&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;Lições sobre socket (em inglês):&lt;/strong&gt; &lt;a title=&#34;http://www.oracle.com/technetwork/java/socket-140484.html&#34; href=&#34;http://www.oracle.com/technetwork/java/socket-140484.html&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.oracle.com/technetwork/java/socket-140484.html&#34;&gt;http://www.oracle.com/technetwork/java/socket-140484.html&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Java Tutorial Tudo sobre sockets (em inglês):&lt;/strong&gt; &lt;a title=&#34;http://docs.oracle.com/javase/tutorial/networking/sockets/&#34; href=&#34;http://docs.oracle.com/javase/tutorial/networking/sockets/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://docs.oracle.com/javase/tutorial/networking/sockets/&#34;&gt;http://docs.oracle.com/javase/tutorial/networking/sockets/&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RFC2616 (em inglês):&lt;/strong&gt; &lt;a title=&#34;http://www.w3.org/Protocols/rfc2616/rfc2616.html&#34; href=&#34;http://www.w3.org/Protocols/rfc2616/rfc2616.html&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://www.w3.org/Protocols/rfc2616/rfc2616.html&#34;&gt;http://www.w3.org/Protocols/rfc2616/rfc2616.html&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Código&lt;/strong&gt;&lt;strong&gt; Fonte Completo:&lt;/strong&gt; &lt;a title=&#34;Repo MeuServidorHTTP&#34; href=&#34;https://github.com/thiguetta/MeuServidorHTTP&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/thiguetta/MeuServidorHTTP&#34;&gt;https://github.com/thiguetta/MeuServidorHTTP&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Versão alternativa que fornece arquivos de imagem, javascript e css também:&lt;/strong&gt; &lt;a title=&#34;Repo SimpleHTTPServer&#34; href=&#34;https://github.com/thiguetta/SimpleHTTPServer&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/thiguetta/SimpleHTTPServer&#34;&gt;https://github.com/thiguetta/SimpleHTTPServer&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte III</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-iii/</link>
+      <pubDate>Mon, 05 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-iii/</guid>
+      <description>
+
+&lt;p&gt;Estamos entrando na terceira parte do tutorial, e quem está acompanhando até aqui já sabe então como funciona a comunicação entre cliente e servidor, envio de requisição pelo cliente e recebimento de resposta (na duvida só voltar e releia a &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/&#34; title=&#34;Criando seu próprio servidor HTTP do zero (ou quase) – Parte I&#34;&gt;Parte I&lt;/a&gt; e/ou &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/&#34; title=&#34;Criando seu próprio servidor HTTP do zero (ou quase) – Parte II&#34;&gt;Parte II&lt;/a&gt;), porém o que a gente quer é criar o servidor, receber as requisições e enviar a resposta ao cliente.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-servidor&#34;&gt;O Servidor&lt;/h2&gt;
+
+&lt;p&gt;A idéia do servidor é bem simples e estende a do cliente, como assim? Fácil, fácil. no post anterior vimos como criar um socket, no caso, nos criamos um socket já conectado ao site do google, mas o que internamente acontece é, criamos um socket, associamos esse socket a uma porta (lembrando que no caso do cliente a porta aberta é aleatória, so para que o servidor saiba onde deve retornar a resposta) e conectamos ao socket do servidor na porta especifica.&lt;/p&gt;
+
+&lt;p style=&#34;text-align: justify&#34;&gt;
+  Agora vamos pensar um pouco, no caso do servidor, temos que criar um socket, associar (bind) a uma porta especifica(para que todos os clientes saibam exatamente onde conectar) e ficamos aguardando alguém solicitar uma conexão (listen), se alguém solicitar conexão nós aceitamos (accept), resumindo o processo, temos como na imagem abaixo:
+&lt;/p&gt;
+
+&lt;div style=&#34;width: 369px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://3.bp.blogspot.com/_Gt5b2CU22sM/S4iS4lbeU5I/AAAAAAAAAUU/DBmariOce1o/s400/rzab6503.gif&#34;&gt;&lt;img src=&#34;http://3.bp.blogspot.com/_Gt5b2CU22sM/S4iS4lbeU5I/AAAAAAAAAUU/DBmariOce1o/s400/rzab6503.gif&#34; alt=&#34;&#34; width=&#34;359&#34; height=&#34;324&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Diagrama Cliente/Servidor
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Em Java já temos uma classe pronta que faz isso, que é o ServerSocket, que já cria um socket que está aguardando conexões, o que torna nossa vida bem mais simples, então vamos parar de teoria e ir pro código, para isso criamos uma classe chamada Servidor e nela faremos o seguinte:&lt;/p&gt;
+
+&lt;pre&gt;import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class Servidor {
+
+    public static void main(String[] args) throws IOException {
+        /* cria um socket &#34;servidor&#34; associado a porta 8000
+          já aguardando conexões
+        */
+        ServerSocket servidor = new ServerSocket(8000);
+        //aceita a primeita conexao que vier
+        Socket socket = servidor.accept();
+        //verifica se esta conectado  
+        if (socket.isConnected()) {
+            //imprime na tela o IP do cliente
+            System.out.println(&#34;O computador &#34;+ socket.getInetAddress() + &#34; se conectou ao servidor.&#34;);
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que estamos abrindo a porta 8000 e não a 80, isso por que embora essa seja a porta &amp;#8220;destinada/utilizada&amp;#8221; para servidores HTTP, ela é gerenciada pelo sistema operacional então não poderemos abri-la por enquanto (o SO não permitiria até por que em alguns sistemas linux já existe um servidor HTTP utilizando essa porta, em outros a porta está bloqueada pelo firewall, e teremos que abri-la manualmente mas veremos isso em breve), por isso vamos utilizar outra porta para testes, vamos compilar esse código e coloca-lo em execução, veja que ele permanecerá em execução até que ele receba pelo menos uma solicitação de conexão, que é o que vamos fazer, assim basta abrir o navegador e digitar o endereço &lt;a href=&#34;http://localhost:8000&#34;&gt;http://localhost:8000&lt;/a&gt; e ir para a página, veja que ao fazer isso sua linha de comando aparecerá a frase:&lt;/p&gt;
+
+&lt;pre&gt;java Server
+O computador /0:0:0:0:0:0:0:1 se conectou ao servidor.&lt;/pre&gt;
+
+&lt;p&gt;Veja  que este é o endereço IP do seu computador já no formato IPv6.  Note  que logo em seguida o programa foi finalizado, isso porque nosso servidor não está configurado para múltiplas conexões/requisições, porém vamos fazer isso já já, agora vamos ver qual foi a requisição que nosso navegador fez ao servidor, e para ler a entrada o conceito é o mesmo de ontem, vamos usar o InputStream para ler os dados enviados pelo cliente, então vamos adicionar o seguinte código logo após imprimir o IP:&lt;/p&gt;
+
+&lt;pre&gt;[...]
+            //cria um BufferedReader a partir do InputStream do cliente
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            System.out.println(&#34;Requisição: &#34;);
+            //Lê a primeira linha
+            String linha = buffer.readLine();
+            //Enquanto a linha não for vazia
+            while (!linha.isEmpty()) {
+                //imprime a linha
+                System.out.println(linha);
+                //lê a proxima linha
+                linha = buffer.readLine();
+            }
+[...]
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que agora utilizamos um BufferedReader ao invés do Scanner, isto por que o Scanner mesmo após ter terminado de ler a requisição ele espera que a a conexão seja encerrada, a fim de aguardar novas entradas, mas como não é interessante para gente esperar,  vamos usar o Buffer pois podemos verificar se a linha for vazia, se for, simplesmente encerra o programa sem ter que aguardar que a conexão seja encerrada. (Caso seja necessário continuar lendo a entrada antes da conexão encerras é so pegar o InputReader novamente e continuar lendo. Agora ao executarmos nosso servidor,  e acessar a página localhost:8000 no navegador teremos a seguinte saída na linha de comando:&lt;/p&gt;
+
+&lt;pre&gt;java Server
+O computador /0:0:0:0:0:0:0:1 se conectou ao servidor.
+Requisição: 
+GET / HTTP/1.1
+Host: localhost:8000
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:29.0) Gecko/20100101 Firefox/29.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Encoding: gzip, deflate
+DNT: 1
+Connection: keep-alive&lt;/pre&gt;
+
+&lt;p&gt;Veja que minha requisição foi originada de um navegador Firefox e que o formato da requisição é muito semelhante do que vimos na primeira parte do tutorial =D. Agora é so fazer o servidor tratar essas informações e devolver uma resposta ao cliente, nesse caso vamos devolver uma página HTML que é o que o navegador espera. Vamos criar duas páginas uma chamada índex.html e outra 404.html, e vamos armazena-las na mesma pasta que está colocando o código fonte do servidor com os seguintes códigos:&lt;/p&gt;
+
+&lt;p&gt;Arquivo index.html&lt;/p&gt;
+
+&lt;h1 id=&#34;funcionou&#34;&gt;Funcionou!!!!&lt;/h1&gt;
+
+&lt;p&gt;Arquivo 404.html&lt;/p&gt;
+
+&lt;pre&gt;Erro 404&lt;/pre&gt;
+
+&lt;h1 id=&#34;a-página-que-você-procura-não-foi-encontrada&#34;&gt;A página que você procura não foi encontrada&lt;/h1&gt;
+
+&lt;p&gt;Por convenção quando alguém solicita o arquivo &amp;#8220;/&amp;#8221; está solicitando a pagina inicial que geralmente é o índex.html, dependendo da configuração do servidor, no nosso caso queremos que nosso servidor retorne o índex.html, se o usuário pedir por qualquer coisa no formato &amp;#8220;/{nome da pagina}.html&amp;#8221; retornaremos esse arquivo, caso o arquivo não exista, retornaremos o erro 404 e a página de erro correspondente.&lt;/p&gt;
+
+&lt;p&gt;Sabemos que a primeira linha da requisição contem o método, o arquivo solicitado e o protocolo separados por um espaço em branco, para o nosso servidor o método não importa, então assumiremos sempre o GET, e o protocolo será sempre o HTTP/1.1, então o que nos importa é o arquivo solicitado. Vamos alterar o nosso código que deve ficar assim:&lt;/p&gt;
+
+&lt;pre&gt;[...]
+            /* Lê a primeira linha
+             contem as informaçoes da requisição
+             */
+            String linha = buffer.readLine();
+            //quebra a string pelo espaço em branco
+            String[] dadosReq = linha.split(&#34; &#34;);
+            //pega o metodo
+            String metodo = dadosReq[0];
+            //paga o caminho do arquivo
+            String caminhoArquivo = dadosReq[1];
+            //pega o protocolo
+            String protocolo = dadosReq[2];
+            //Enquanto a linha não for vazia
+            while (!linha.isEmpty()) {
+                //imprime a linha
+                System.out.println(linha);
+                //lê a proxima linha
+                linha = buffer.readLine();
+            }
+            //se o caminho foi igual a / entao deve pegar o /index.html
+            if (caminhoArquivo.equals(&#34;/&#34;)) {
+                caminhoArquivo = &#34;/index.html&#34;;
+            }
+            //abre o arquivo pelo caminho
+            File arquivo = new File(caminhoArquivo);
+            byte[] conteudo;
+            //status de sucesso - HTTP/1.1 200 OK
+            String status = protocolo + &#34; 200 OK\r\n&#34;;
+            //se o arquivo não existe então abrimos o arquivo de erro, e mudamos o status para 404
+            if (!arquivo.exists()) {
+                status = protocolo + &#34; 404 Not Found\r\n&#34;;
+                arquivo = new File(&#34;/404.html&#34;);
+            }
+            conteudo = Files.readAllBytes(arquivo.toPath());
+[...]
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que ainda não respondemos ao navegados com os dados, apenas montamos uma parte da resposta, para enviar a resposta precisaremos do OutputStream e montar uma string com a estrutura básica da resposta, dai vamos escrever esses dados no stream, semelhante ao que fizemos na parte II do nosso tutorial:&lt;/p&gt;
+
+&lt;pre&gt;//cria um formato para o GMT espeficicado pelo HTTP
+            SimpleDateFormat formatador = new SimpleDateFormat(&#34;E, dd MMM yyyy hh:mm:ss&#34;, Locale.ENGLISH);
+            formatador.setTimeZone(TimeZone.getTimeZone(&#34;GMT&#34;));
+            Date data = new Date();
+            //Formata a dara para o padrao
+            String dataFormatada = formatador.format(data) + &#34; GMT&#34;;
+            //cabeçalho padrão da resposta HTTP
+            String header = status
+                    + &#34;Location: http://localhost:8000/\r\n&#34;
+                    + &#34;Date: &#34; + dataFormatada + &#34;\r\n&#34;
+                    + &#34;Server: MeuServidor/1.0\r\n&#34;
+                    + &#34;Content-Type: text/html\r\n&#34;
+                    + &#34;Content-Length: &#34; + conteudo.length + &#34;\r\n&#34;
+                    + &#34;Connection: close\r\n&#34;
+                    + &#34;\r\n&#34;;
+            //cria o canal de resposta utilizando o outputStream
+            OutputStream resposta = socket.getOutputStream();
+            //escreve o headers em bytes
+            resposta.write(header.getBytes());
+            //escreve o conteudo em bytes
+            resposta.write(conteudo);
+            //encerra a resposta
+            resposta.flush();
+&lt;/pre&gt;
+
+&lt;p&gt;Agora é só compilar, rodar e ver o resultado =D&lt;/p&gt;
+
+&lt;p&gt;No caso de sucesso deve aparecer como na figura abaixo:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/sucesso.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51391&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/sucesso.png&#34; alt=&#34;200 - Sucesso&#34; width=&#34;1279&#34; height=&#34;707&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Caso a página não existe, deve aparecer assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/09/erro404.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-51392&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/09/erro404.png&#34; alt=&#34;Erro 404&#34; width=&#34;1280&#34; height=&#34;709&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Temos um servidor funcional capaz de fornecer as páginas HTML para os clientes que solicitarem, mas perceba que nosso servidor atende a apenas uma requisição e se encerra logo em seguida, sem contar que nosso método main ficou gigante, mas fique tranquilo, isso será assunto para a próxima e ultima parte do tutorial, onde vamos organizar melhor nosso código, tratar alguns comandos do servidor importantes como manter a conexão viva e trabalhar com múltiplas requisições, conexões simultâneas e afins. Por hora fica o exercício, tente organizar o código a sua maneira, altere como desejar, crie mais páginas HTML e teste e veja se está sendo exibida corretamente, todo código feito até aqui está no final da página e está todo comentado para facilitar o entendimento.&lt;/p&gt;
+
+&lt;p&gt;Espero que estejam gostando e por favor deixem comentários com seu feedback: o que achou, dúvidas, se funcionou ou não, se a abordagem não estiver adequada ou mesmo erros que posso ter cometido pelo caminho.&lt;/p&gt;
+
+&lt;p&gt;Até o próximo post.&lt;/p&gt;
+
+&lt;p&gt;Download do código fonte: &lt;a href=&#34;https://github.com/thiguetta/ServidorHTTP&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://github.com/thiguetta/ServidorHTTP&#34;&gt;https://github.com/thiguetta/ServidorHTTP&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte II</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/</link>
+      <pubDate>Fri, 11 Sep 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/</guid>
+      <description>
+
+&lt;p&gt;Se chegou até aqui é por que você terminou de ler a primeira parte do tutorial (Caso não, leia a &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/&#34; title=&#34;Criando seu próprio servidor HTTP do zero (ou quase) – Parte I&#34;&gt;Parte I&lt;/a&gt; ), mas não desista, a parte legal vai chegar, mas antes de começar, falta mais um item de teoria &amp;#8211;  sim eu sei que é chato, mas juro que é importante &amp;#8211; os Sockets.&lt;/p&gt;
+
+&lt;h2 id=&#34;sockets-e-portas&#34;&gt;Sockets e portas&lt;/h2&gt;
+
+&lt;p&gt;Falamos muito de requisições e respostas no último post mas ainda não falamos de conexão e troca de informações. Bom, vamos lá, ligeiramente comentamos um pouco sobre os protocolos de rede, também disse que o protocolo web, o HTTP, está na camada mais alta do TCP/IP, a camada de aplicação, mas para este tutorial pouco importa o que acontece nas camadas inferiores  (se tiver curiosidade procure mais sobre), o que realmente importa é saber que esse tal de TCP/IP é responsável pela conexão entre dois pontos (dois computadores, ou no nosso caso, cliente e servidor).&lt;/p&gt;
+
+&lt;p&gt;Tanto o servidor quanto o cliente são computadores com seus respectivos sistemas operacionais (Linux, Windows, etc) e neles estão em execução diversas aplicações inclusive o navegador e o próprio servidor HTTP, mas nesse monte de aplicações em execução, como vamos saber que estamos enviando e recebendo dados da aplicação certa? precisamos de um algo que identifique cada aplicação (ou pelo menos que identifique uma aplicação que use a rede). Esses pontos de identificação, por assim dizer, são chamados de Socket (ou em português, soquete, tomada, encaixe, enfim algo que tenha uma “abertura/encaixe&amp;#8221; para conexão), resumindo é um ponto que permite conectar alguma coisa, no nosso caso, um outro computador através da rede. Para receber uma conexão, o Socket precisa de uma abertura, essa abertura é o que chamamos de porta, sei que para alguns o conceito parece ser trivial, mas para outros, inclusive profissionais de TI, esses conceitos podem embaralhar a cabeça.&lt;/p&gt;
+
+&lt;p&gt;Resumindo, um Socket é o ponto final da conexão, onde uma porta é aberta para que a aplicação possa enviar ou receber dados, cada porta é identificada por um número que é única no computador, sendo que se tentar abrir uma porta que já estiver sendo usado por outra aplicação, o sistema operacional irá barrar e retornar um erro de acesso negado ou informa que a porta está em uso.&lt;/p&gt;
+
+&lt;p&gt;Existe uma lista de portas conhecidas  que são utilizadas por algumas aplicações, as mais comuns são:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;21 FTP &amp;#8211; Transferencia de arquivo&lt;/li&gt;
+&lt;li&gt;22 SSH &amp;#8211;  Secure Shell&lt;/li&gt;
+&lt;li&gt;25 SMTP &amp;#8211; Envio de Emails&lt;/li&gt;
+&lt;li&gt;80 HTTP &amp;#8211; Web&lt;/li&gt;
+&lt;li&gt;443 HTTPS &amp;#8211; Web “Segura&amp;#8221;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Uma porta ela é única por computador mas não é única na internet, quando você quer efetuar a conexão com uma determinada aplicação rodando em um computador remoto, a identificação do socket é composto pelo endereço de IP ou o nome canônico (domínio &amp;#8211; endereço do site) da máquina destino e a porta que essa aplicação usando, no seguinte formato {Endereço}:{Porta}.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;exemplo.com:80 ou
+ 192.168.1.224:1000     
+&lt;/pre&gt;
+
+&lt;p&gt;A maioria das aplicações que requerem conexão com algum serviço se conectam diretamente as portas especificas que cada uma delas usa, sendo necessário informar apenas o IP (ao menos que seja uma porta que a aplicação não conheça, o serviço está funcionando numa porta atípica ai será necessário informar, veremos mais na parte III). O que isso significa? isso significa que quando você digita o site &lt;a href=&#34;http://www.google.com.br&#34;&gt;http://www.google.com.br&lt;/a&gt; no seu navegador, ele sabe que os servidores HTTP estão executando na porta 80, então não é preciso identificar-la, pois o navegador irá &amp;#8220;converter&amp;#8221; para o formato correto, transparentemente, a mesma coisa acontece quando você acessa um site seguro utilizando &lt;a href=&#34;https://www.seubanco.com.br&#34;&gt;https://www.seubanco.com.br&lt;/a&gt; o navegador sabe que a porta de conexão segura no servidor é a 443, e tentará se conectar nela.&lt;/p&gt;
+
+&lt;p&gt;O que acontece é seu navegador irá se conectar ao site, ele sabe que o servidor está respondendo na porta 80 no endereço tal, para isso é necessário que o navegador abre uma porta local aleatória, para que assim o servidor possa saber para quem responder:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.raywenderlich.com/wp-content/uploads/2011/06/sockets.jpg&#34;&gt;&lt;img src=&#34;http://www.raywenderlich.com/wp-content/uploads/2011/06/sockets.jpg&#34; alt=&#34;&#34; width=&#34;600&#34; height=&#34;200&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto agora que entendemos o conceito (ou pelo menos espero que tenham entendido =D) vamos colocar as mãos na massa.&lt;/p&gt;
+
+&lt;p&gt;Vou partir do principio que já sabem criar uma classe e compilar um programa em Java (caso não lembre-se que o Google é nosso amigo =D). Se preferir, usando o mesmo conceito pode converter a ideia para a linguagem de sua preferência (só não esqueça de compartilhar com a galera =D).&lt;/p&gt;
+
+&lt;p&gt;Vamos lá, vou criar uma classe em Java chamada Cliente, será uma classe simples que vai se conectar a um servidor (neste caso vamos conectar no &lt;a href=&#34;http://google.com.br&#34;&gt;google.com.br&lt;/a&gt;) e ver se ele está conectado, se sim ele imprimirá na tela o IP do servidor.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;import java.io.IOException;
+import java.net.Socket;
+
+public class Cliente {
+    public static void main(String[] args) throws IOException {
+        //cria um socket com o google na porta 80
+        Socket socket = new Socket(&#34;google.com.br&#34;, 80);
+        //verifica se esta conectado
+        if (socket.isConnected()) { 
+            //imprime o endereço de IP do servidor
+            System.out.println(&#34;Conectado a &#34; + socket.getInetAddress());
+        }
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Ao instanciar um novo objeto da classe Socket com os parâmetros domínio e porta, internamente a máquina virtual Java já abre uma porta aleatória em seu computador e em seguida conecta ao servidor google.com.br na porta 80. Veja que até então não sabemos o endereço de IP do servidor mas ao efetuar a conexão o socket já se atualiza com essa informação. Vamos compilar nossa classe e verificar o resultado que  deve ser algo desse tipo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ javac Cliente.java
+$ java Cliente
+Conectado a google.com.br/173.194.118.151&lt;/pre&gt;
+
+&lt;p&gt;Mas isso não é o suficiente queremos trocar informações com o servidor conectado, para isso nosso socket fornece 2 recursos  um para leitura dos dados recebidos (InputStream) do servidor e outro para enviar os dados que queremos para o servidor (OutputStream), é claro que para enviarmos algum dado para o servidor temos que saber como se comunicar com o servidor, como a gente já sabe, o servidor do google é um servidor HTTP que nos fornece as páginas de serviço do Google, certo? então sabemos que o servidor entende o protocolo HTTP. vamos enviar uma requisição HTTP simples a esse servidor e ver o que ele responde.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;/* veja que a requisição termina com \r\n que equivale a &amp;lt;CR&amp;gt;&amp;lt;LF&amp;gt;
+       para encerar a requisição tem uma linha em branco */
+    String requisicao = &#34;&#34;
+        + &#34;GET / HTTP/1.1\r\n&#34;
+        + &#34;Host: www.google.com.br\r\n&#34;
+        + &#34;\r\n&#34;;
+    //OutputStream para enviar a requisição
+    OutputStream envioServ = socket.getOutputStream();
+    //temos que mandar a requisição no formato de vetor de bytes
+    byte[] b = requisicao.getBytes();
+    //escreve o vetor de bytes no &#34;recurso&#34; de envio 
+    envioServ.write(b);
+    //marca a finalização da escrita
+    envioServ.flush();
+&lt;/pre&gt;
+
+&lt;p&gt;É claro que apenas isso não basta pois somente estamos enviando a requisição certo?, então precisaremos ler o InputStream logo após enviar os dados para ver o que o servidor responde, vamos facilitar as coisas afinal isto não é C, para ler o que o servidor responde vamos utilizar um Scanner, que ja faz a conversão o Input de bytes para String, assim a gente não tem que tratar esses trecos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;//cria um scanner a partir do InputStream que vem do servidor
+    Scanner sc = new Scanner(socket.getInputStream());
+    //enquanto houver algo para ler
+    while (sc.hasNext()) {
+        //imprime uma linha da resposta
+        System.out.println(sc.nextLine());
+    }
+&lt;/pre&gt;
+
+&lt;p&gt;Agora se executarmos o programa podemos ler o que o servidor nos devolve e exibir na tela, logo teremos um resultado parecido com isso&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;$ javac Cliente.java 
+$ java Cliente
+Conectado a google.com.br/173.194.118.151 
+HTTP/1.1 200 OK
+Date: Tue, 17 Jun 2014 23:29:57 GMT
+Expires: -1
+Cache-Control: private, max-age=0
+Content-Type: text/html; charset=ISO-8859-1
+Set-Cookie: PREF=ID=fee5bb44e3822528:FF=0:TM=1403047797:LM=1403047797:S=BpVMDbzBHKUgdlRS; expires=Thu, 16-Jun-2016 23:29:57 GMT; path=/; domain=.google.com.br
+Set-Cookie: NID=67=CT9hDvtQnKCvGeox_lmn7IjB_gbZ6Z9m7YT2rM1LAw2hVDVbvas16qfTsH1Jc1TRhrynqE-j0fb3EPl_JvjttiV-kqVpJlYjmg7Qd_e8oHcnJM1L2xlHWtlKw2EcomUM; expires=Wed, 17-Dec-2014 23:29:57 GMT; path=/; domain=.google.com.br; HttpOnly
+P3P: CP=&#34;This is not a P3P policy! See http://www.google.com/support/accounts/bin/answer.py?hl=en&amp;answer=151657 for more info.&#34;
+Server: gws
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+Alternate-Protocol: 80:quic
+Transfer-Encoding: chunked
+
+8000
+&amp;lt;!doctype html&amp;gt;&amp;lt;html[...]um monte de HTML[...]
+
+0
+&lt;/pre&gt;
+
+&lt;p&gt;Veja que o resultado é semelhante ao que vimos anteriormente sobre na nossa teoria de requisição e resposta, também há algumas outras propriedade que não vimos mas não importa para nós ao menos que queira se aprofundar no assunto. Veja também que seu programa também continua em execução, isso acontece porque o servidor do google ainda não encerrou a conexão, isso acontece porque no HTTP/1.1 a propriedade &amp;#8220;Connection: keep-alive&amp;#8221; é padrão mesmo que não enviamos na requisição, quem define esse tempo é o próprio servidor, por experiência própria eu sei que a conexão com o google se mantém ativa por aproximadamente 3 minutos, isso para dar tempo suficiente para que você faça todas as pesquisas sem ter que criar uma nova conexão para cada pesquisa que você faz, isso é importante no caso do google já que ele recebe milhares de requisições por segundo, sendo que varias delas são feitas pela mesma pessoa, então não convém criar uma nova conexão para cada nova requisição.&lt;/p&gt;
+
+&lt;p&gt;Você deve estar se perguntando, mas Thiago, isso não é o que o navegador faz?&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Sim, o que fizemos hoje foi implementar a parte mais básica de um navegados web.&lt;/p&gt;
+
+&lt;p&gt;Mas a proposta é fazer um servidor e não um navegador, certo?&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Certo, mas antes de avançarmos é importante entender bem qual é o trabalho do navegador antes de criar o servidor que irá responder as requisições dele, mas isso será assunto para a parte III.&lt;/p&gt;
+
+&lt;p&gt;Posso fazer em outra linguagem?&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Claro, socket é implementado em todas as linguagens, basta consultar a documentação da sua linguagem preferida para entender como replicar o conceito acima.&lt;/p&gt;
+
+&lt;p&gt;Por hoje ficamos por aqui pessoal, espero que tenham aproveitado bem nossa parte prática, no próximo começaremos definitivamente a criar nosso servidor.&lt;/p&gt;
+
+&lt;p&gt;Até Mais.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando seu próprio servidor HTTP do zero (ou quase) – Parte I</title>
+      <link>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/</link>
+      <pubDate>Tue, 01 Sep 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-i/</guid>
+      <description>
+
+&lt;p&gt;Sou apaixonado por tecnologias livres e como sou extremamente curioso, gosto de saber como as coisas funcionam. Como também sou cinestésico, não me contento em apenas em entender, tenho que criar, recriar, escrever, rescrever, inventar, reinventar, enfim sentir realmente como se faz. Nesse vai e vem de aprendizado, minha última curiosidade foi entender como os servidores HTTP funcionam e criar um do zero (ou pelo menos quase).&lt;/p&gt;
+
+&lt;p&gt;É claro que para fazer isso eu não fui tão lá embaixo a ponto de utilizar C, utilizei da linguagem de programação da qual me sinto mais confortável e que já oferece algumas facilidades que em C teria que sangrar pra fazer o mesmo porém não impossível, mas enfim, optei por desenvolver em Java, os passos vou contar pra vocês aqui, mas utilizando os mesmo conceitos nada impede que utilize qualquer outra linguagem de programação.&lt;/p&gt;
+
+&lt;h2 id=&#34;introdução&#34;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;Vamos ao que interessa! A grosso modo, um servidor HTTP é uma aplicação (software) que fornece páginas web (geralmente escritas em HTML), ou seja, ao digitar o endereço da página (URL) e dar um ENTER no seu navegador, ele envia uma requisição no servidor destino, o servidor processa essa informação e retorna o documento HTML correspondente, por fim o navegador renderiza o documento e exibe aquela página bonita (nem sempre!).&lt;/p&gt;
+
+&lt;div style=&#34;width: 510px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://www.tankonyvtar.hu/en/tartalom/tamop425/0027_ADW1/images/ADW100.png&#34;&gt;&lt;img src=&#34;http://www.tankonyvtar.hu/en/tartalom/tamop425/0027_ADW1/images/ADW100.png&#34; alt=&#34;Requisição HTTP&#34; width=&#34;500&#34; height=&#34;200&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Requisição HTTP
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Para isso vamos entender como a comunicação entre seu navegador e o servidor funciona, o protocolo, depois vamos entender como é feita a conexão, tratar e enviar documentos e por fim vamos deixar nosso servidor pronto para receber múltiplas conexões.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-protocolo-http&#34;&gt;O Protocolo HTTP&lt;/h2&gt;
+
+&lt;p&gt;É claro que nem so de Web a Internet é feita, existem uma serie de recursos que estão sobre a Internet, a web é uma delas, mas para que esses serviços sejam tratados como devem é necessário ter um linguagem comum que permita que o servidor entenda o que o navegador quer, e que o navegador saiba se a resposta do pedido está correta ou não, para isso estabelecem-se os protocolos, que são padrões estipulados por um órgão competente afim de uniformizar o “trafego” de informações de diferentes serviços na internet. Quem define esses padrões é a IETF (Internet Engineering Task Force, ou melhor, Força Tarefa de Engenharia da Internet). Para saber mais quem são eles, acesse &lt;a href=&#34;http://www.ietf.org&#34; target=&#34;_blank&#34;&gt;aqui&lt;/a&gt; (em Inglês)&lt;/p&gt;
+
+&lt;p&gt;O protocolo HTTP, ou Hyper Text Transfer Protocol, ou melhor ainda, protocolo de transferencia de hiper texto, direto e reto é o cara que define a troca de paginas HTML, pronto falei!. A versão mais atual (que é a que vamos adotar nesse tutorial por assim dizer) é a 1.1 que na minha opinião é a mais difundida também (pode ser que encontre por ai alguns utilizando a versão 1.0 ou até mesmo a 0.9), enfim , essa versão e seus padrões foram propostos no documento &lt;a href=&#34;http://www.ietf.org/rfc/rfc2068.txt&#34; target=&#34;_blank&#34;&gt;RFC 2068&lt;/a&gt; e atualizado e alterado por diversos outros RFCs, que não convém a gente falar aqui, mas se tiver curiosidade procura lá no site da IEFT acima que tem todos.&lt;/p&gt;
+
+&lt;p&gt;So para nos situar o HTTP está na camada mais alta do protocolo de comunicação de rede conhecido como TCP/IP (não vamos entrar em detalhes pois não é o foco), chamada camada de aplicação (Nada mais justo já que o servidor e o navegados são aplicações).&lt;/p&gt;
+
+&lt;div style=&#34;width: 430px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://static.thegeekstuff.com/wp-content/uploads/2011/10/tcp-ip.png&#34;&gt;&lt;img src=&#34;http://static.thegeekstuff.com/wp-content/uploads/2011/10/tcp-ip.png&#34; alt=&#34;Camadas de Rede (TCP/IP)&#34; width=&#34;420&#34; height=&#34;470&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Camadas de Rede (TCP/IP)
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;No nosso escopo, o servidor é um software que fica aguardando solicitações, falando em nível de aplicação, o processo é simples, o navegador (vamos chamar de cliente) envia uma requisição (request), o servidor processa e devolve uma resposta(response).&lt;/p&gt;
+
+&lt;h2 id=&#34;a-requisição&#34;&gt;A Requisição&lt;/h2&gt;
+
+&lt;p&gt;A requisição é um “documento” em texto plano composto por um cabeçalho (que define  a comunicação, requerido) e os dados (opcional, depende da aplicação).&lt;/p&gt;
+
+&lt;p&gt;O cabeçalho é bem simples, a primeira linha contém a informação principal da requisição, ou seja, qual a sua solicitação (método), o que está sendo solicitado (arquivo/página/recurso a ser acessado) e padrão de comunicação que no nosso caso é o HTTP/1.1, a segunda linha é o endereço de host do servidor que irá responder a sua solicitação, veja o exemplo:&lt;/p&gt;
+
+&lt;pre&gt;GET /index.html HTTP/1.1
+Host: &lt;a href=&#34;http://google.com&#34;&gt;google.com&lt;/a&gt;&lt;/pre&gt;
+
+&lt;p&gt;As linhas seguintes são informações pertinentes a conexão e podem conter informações de quem está solicitando, o formato dessas informações é do tipo &lt;propriedade&gt; : &lt;valor&gt; o final de cada linha é encerrado por um &lt;CR&gt;&lt;LF&gt; (cuidado, pois muitos confundem este comando com o ENTER, embora para windows esse comando corresponde ao ENTER, não é verdade para Linux e afins), o final da requisição deve ser uma linha em branco (ou seja apenas um &lt;CR&gt;&lt;LF&gt;)veja o exemplo de uma requisição completa&lt;/p&gt;
+
+&lt;pre&gt;GET /HTTP/1.1
+Host: www.google.com.br
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:29.0) Gecko/20100101 Firefox/29.0
+Accept: text/html,application/xhtml+xml,application/xml
+Accept-Language: pt-BR,pt,en-US,en
+Accept-Encoding: gzip, deflate
+Connection: keep-alive&lt;/pre&gt;
+
+&lt;p&gt;Traduzindo, queremos pegar (GET) a raiz ou página inicial ( / ) que está em “www.google.com.br”. Esta requisição está sendo enviada de um navegador (User-Agent) Firefox, que aceita (Accept) os seguintes formatos, html e xml de preferencia que estejam no idioma (Accept-Language) Português do Brasil (pt-BR) ou qualquer outro idioma a seguir (veja que é possível passar uma lista de idiomas na ordem em que gostaria que aparecessem, veja que caso o servidor não tenha nenhuma dessas páginas ou não trate essa propriedade, ele irá devolver a página no idioma padrão do html que ele encontrar correspondente a sua solicitação), o formato de compactação aceito pelo navegador  (Accept-Enconding) e por fim a persistência da conexão, ou seja se você quer que o servidor mantenha a conexão ativa, o que eu quero dizer é que para cada recurso dentro de uma pagina HTML, seja uma imagem, um estilo css, ou um javascript, que precisa ser carregado, o navegador faz uma nova requisição, não seria legal criar uma nova conexão para cada requisição ainda mais se elas acontecem em um curto espaço de tempo, então o keep-alive mantém a conexão “viva&amp;#8221; tempo pra que esses recursos sejam carregados. É claro que o protocolo define muito mais propriedades, como pode observar no documento RFC mencionado acima, porém cada servidor deve implementar essas funcionalidades, no nosso caso vamos implementar apenas as funcionalidades na requisição de exemplo e algumas mais que mencionaremos mais adiante.&lt;/p&gt;
+
+&lt;h2 id=&#34;a-resposta&#34;&gt;A Resposta&lt;/h2&gt;
+
+&lt;p&gt;A resposta segue um formato bem parecido da requisição, a primeira linha contem o protocolo, o código e mensagem de retorno como segue:&lt;/p&gt;
+
+&lt;pre&gt;HTTP/1.1 200 OK&lt;/pre&gt;
+
+&lt;p&gt;Esse código é esperado quando a pagina solicitada foi encontrada e seu conteúdo está enviada logo abaixo do cabeçalho (veremos a diante). Existem diversos códigos de retorno de sucesso, e de erro também, quem aqui nunca recebeu um 404 Not Found ao tentar acessar uma página que não existe?, esses e outros detalhes iremos tratar na parte de implementação. Por fim as linhas seguintes da resposta contem algumas informações pertinentes ao navegador e por fim a pagina html solicitada, veja que o conteúdo é concatenado com a resposta:&lt;/p&gt;
+
+&lt;pre&gt;HTTP/1.1 200 OK
+Date: Tue, 17 Jun 2014 01:20:13 GMT
+Server: gws
+Location: https://www.google.com.br/
+Last-Modified: Tue, 17 Jun 2014 01:20:13 GMT
+Content-Encoding: gzip
+Content-Length: 234
+Connection: closeContent-Type: text/html
+
+
+&amp;lt;html&amp;gt;todo o html da página&amp;lt;/html&amp;gt; *&lt;/pre&gt;
+
+&lt;p&gt;*este conteúdo pode estar compactado&lt;/p&gt;
+
+&lt;p&gt;Nesta resposta o servidor retorna a data da resposta (Date), qual o nome/tipo/empresa que desenvolveu/sistema operacional do servidor que gerou a resposta, a localização atual (Location) importante caso seu site use caminho relativo em hiperlinks, imagens e outros (veremos com mais detalhes na implementação) ultima vez que o arquivo foi modificado (Last-Modified), importante caso o navegador permita cache de paginas, compactacao do conteúdo (Content-Enconding), para que o navegador saiba fazer a descompactacao se necessário, tamanho em bytes do  conteúdo,o estado da conexão, que neste caso o servidor informa que a conexão foi fechado, o tipo do conteúdo(Content-Type), que é um texto contendo html e por fim, é claro, o conteúdo da resposta, ou seja, aquilo que o navegador irá exibir pra gente.&lt;/p&gt;
+
+&lt;p&gt;Quer testar? Então abra o navegador de sua preferência, melhor que seja o firefox =D, em seguida abra o modo de desenvolvedor (geralmente é so apertar F12), e por fim clique na aba Rede, pronto agora é so digitar um site na barra de endereço, e acompanhar as requisições pelo console, se quiser mais detalhes clique em uma requisição e peça para exibir detalhes, se estiver usando o firefox, ele aparece esses detalhes logo na lateral da lista de requisições. analise as propriedades enviadas na requisição e veja qual foi a resposta. você irá percebem que existem mais propriedades do que comentamos aqui, mas para nós neste tutorial não será necessário, se quiser pode pesquisar mais sobre eles ou ler o documento RFC que ja falamos sobre ele.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_17&#34; style=&#34;width: 310px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://euamoaweb.com.br.md-54.webhostbox.net/arquivolivre.com.br/wp-content/uploads/2014/06/Screen-Shot-2014-06-17-at-12.00.06-AM.png&#34;&gt;&lt;img class=&#34;wp-image-17 size-medium&#34; src=&#34;http://blog-tsg0.rhcloud.com/wp-content/uploads/2014/06/Screen-Shot-2014-06-17-at-12.00.06-AM-300x165.png&#34; alt=&#34;Requisicao&#34; width=&#34;300&#34; height=&#34;165&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Requisicao
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div id=&#34;attachment_18&#34; style=&#34;width: 310px&#34; class=&#34;wp-caption aligncenter&#34;&gt;
+  &lt;a href=&#34;http://euamoaweb.com.br.md-54.webhostbox.net/arquivolivre.com.br/wp-content/uploads/2014/06/Screen-Shot-2014-06-17-at-12.00.34-AM.png&#34;&gt;&lt;img class=&#34;wp-image-18 size-medium&#34; src=&#34;http://blog-tsg0.rhcloud.com/wp-content/uploads/2014/06/Screen-Shot-2014-06-17-at-12.00.34-AM-300x166.png&#34; alt=&#34;Resposta&#34; width=&#34;300&#34; height=&#34;166&#34; /&gt;&lt;/a&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Resposta
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Chegamos ao fim da primeira parte do nosso tutorial, sei que teoria é chato mas se faz necessário, mas prometo que na &lt;a href=&#34;http://tableless.com.br/criando-seu-proprio-servidor-http-do-zero-ou-quase-parte-ii/&#34; target=&#34;_blank&#34;&gt;Parte II&lt;/a&gt; colocaremos as mãos a obra.&lt;/p&gt;
+
+&lt;p&gt;Então até a próxima.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JAVA – Estruturas de Repetição</title>
+      <link>http://tableless.com.br/java-estruturas-de-repeticao/</link>
+      <pubDate>Wed, 10 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/java-estruturas-de-repeticao/</guid>
+      <description>
+
+&lt;p&gt;As estruturas de repetição também são conhecidas como laços (loops) e são utilizados para executar, repetidamente, uma instrução ou bloco de instrução enquanto determinada condição estiver sendo satisfeita.&lt;/p&gt;
+
+&lt;p&gt;Qualquer que seja a estrutura de repetição, ela contém quatro elementos fundamentais: inicialização, condição, corpo e iteração. A inicialização compõe-se de todo código que determina a condição inicial da repetição. A condição é uma expressão booleana avaliada após cada leitura do corpo e determina se uma nova leitura deve ser feita ou se a estrutura de repetição deve ser encerrada. O corpo compõe-se de todas as instruções que são executadas repetidamente. A iteração é a instrução que deve ser executada depois do corpo e antes de uma nova repetição.&lt;/p&gt;
+
+&lt;h2 id=&#34;while&#34;&gt;While&lt;/h2&gt;
+
+&lt;p&gt;O termo while pode ser traduzido para o português como “enquanto”. Este termo é utilizado para construir uma estrutura de repetição que executa, repetidamente, uma única instrução ou um bloco delas “enquanto” uma expressão booleana for verdadeira.&lt;/p&gt;
+
+&lt;p&gt;Veja que a inicialização precede o início da repetição. Isso significa que você deve definir o estado inicial dos elementos que serão utilizados nesse laço antes de seu cabeçalho. A palavra reservada while sempre será seguida de um par de parênteses, que delimitam a condição desta estrutura de repetição. Essa condição deve ser uma expressão booleana e, enquanto ela for verdadeira, esta estrutura continuará executando as instruções contidas no seu corpo.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/while.bmp&#34;&gt;&lt;img class=&#34; size-full wp-image-49309 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/while.bmp&#34; alt=&#34;while&#34; width=&#34;599&#34; height=&#34;225&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;do-while&#34;&gt;Do-while&lt;/h2&gt;
+
+&lt;p&gt;A estrutura de repetição do-while é uma variação da estrutura while. Existe uma diferença sutil, porém importante, entre elas. Em um laço while, a condição é testada antes da primeira execução das instruções que compõem seu corpo. Desse modo, se a condição for falsa na primeira vez em que for avaliada, as instrução desse laço não serão executadas nenhuma vez. Em um laço do-while, por outro lado, a condição somente é avaliada depois que suas instruções são executadas pela primeira vez, assim, mesmo que a condição desse laço seja falsa antes de ele iniciar, suas instruções serão executadas pelo menos uma vez.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/do-while.bmp&#34;&gt;&lt;img class=&#34; size-full wp-image-49310 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/do-while.bmp&#34; alt=&#34;do-while&#34; width=&#34;612&#34; height=&#34;240&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;estrutura-for&#34;&gt;Estrutura For&lt;/h2&gt;
+
+&lt;p&gt;O laço for é uma estrutura de repetição compacta. Seus elementos de inicialização, condição e iteração são reunidos na forma de um cabeçalho e o corpo é disposto em seguida.&lt;/p&gt;
+
+&lt;p&gt;Veja a sintaxe geral de uma estrutura for:&lt;/p&gt;
+
+&lt;p&gt;Observe que a inicialização, condição e iteração aparecem, entre parênteses, após a palavra reservada “for” e elas são separadas apenas por um ponto-e-vírgula. A instrução ou bloco de instruções que este tipo de laço repete são transcritos a partir da linha subsequente ao seu cabeçalho.&lt;/p&gt;
+
+&lt;p&gt;O laço for e o laço while são apenas formas diferentes de uma mesma estrutura básica de repetição. Qualquer laço for pode ser transcrito em termos de um laço while e vice-versa. Do mesmo modo que em um laço while, se a condição de um laço for já é falsa logo na primeira avaliação que se fizer dela, as instruções contidas em seu corpo jamais serão executadas.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/for.bmp&#34;&gt;&lt;img class=&#34; size-full wp-image-49311 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/for.bmp&#34; alt=&#34;for&#34; width=&#34;459&#34; height=&#34;157&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;quebras-de-laço&#34;&gt;Quebras de Laço&lt;/h2&gt;
+
+&lt;p&gt;As quebras de laço são utilizadas para interromper o fluxo normal das estruturas de repetição while, do-while e for. Há dois tipos distintos de quebras de laço, representadas pelas palavras reservadas break e continue.&lt;/p&gt;
+
+&lt;p&gt;Há situações em que é preciso interromper um laço antes que sua condição se torne falsa. É para isso que serve o break. Figurando dentro do bloco de instruções de um laço qualquer, essa instrução encerra a estrutura de repetição, desviando a execução do aplicativo para a linha seguinte ao final desse laço.&lt;/p&gt;
+
+&lt;p&gt;Enquanto a instrução break é utilizada para encerrar um laço, a instrução continue serve para iniciar uma nova repetição em que todas as instruções tenham sido executadas. Em laços while e do-while, uma instrução continue desvia o fluxo de execução para a condição. Em um laço for, ela desvia o fluxo de execução para a iteração e, em seguida, a condição é lida novamente.&lt;/p&gt;
+
+&lt;h2 id=&#34;enhanced-for&#34;&gt;Enhanced-for&lt;/h2&gt;
+
+&lt;p&gt;O enhanced-for foi introduzido a partir do&amp;nbsp;Java 5, e é utilizado para realizar as varreduras em collections. Para cada iteração do for, o elemento da iteração é atribuído à variável. Utilizando o enhanced-for, você é obrigado a percorrer um array por exemplo.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/06/enhanced-for.bmp&#34;&gt;&lt;img class=&#34; size-full wp-image-49312 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/06/enhanced-for.bmp&#34; alt=&#34;enhanced-for&#34; width=&#34;410&#34; height=&#34;204&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Bom galera, essa foi uma passada rápida pelas estruturas de repetição que o java oferece, sugestões e críticas serão sempre bem recebidas, obrigado.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JAVA – Estruturas de Decisão</title>
+      <link>http://tableless.com.br/java-estruturas-de-decisao/</link>
+      <pubDate>Fri, 22 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/java-estruturas-de-decisao/</guid>
+      <description>
+
+&lt;p&gt;As estruturas de decisão são utilizadas para controlar o fluxo de execução dos aplicativos, possibilitando que a leitura das instruções siga caminhos alternativos em função da análise de determinadas condições. Com elas, é possível condicionar a leitura de uma instrução ou de um bloco delas a uma ou mais condições que precisam ser satisfeitas.&lt;/p&gt;
+
+&lt;p&gt;Todos os aplicativos de exemplo precedentes executam suas instruções de forma linear, ou seja, todas elas são lidas sequencialmente, na ordem em que foram escritas no código. Com o uso de estruturas de decisão, alguns trechos dos programas somente serão executados sob determinadas condições.&lt;/p&gt;
+
+&lt;h2 id=&#34;estrutura-if&#34;&gt;Estrutura if&lt;/h2&gt;
+
+&lt;p&gt;A estrutura de decisão if é utilizada para impor uma ou mais condições que deverão ser satisfeitas para a execução de uma instrução ou bloco de instruções. A sua forma geral é a seguinte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;If (&amp;lt;condição&amp;gt;) &amp;lt;instrução ou bloco&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;A condição sempre irá figurar entre parênteses, após a palavra reservada if, e deve ser uma expressão booleana que resulte em um valor true ou false. A instrução ou o bloco de instruções somente será executado caso o resultado dessa expressão seja true. Caso o resultado seja false, o fluxo de execução será desviado e a instrução ou o bloco de instruções não será executado.&lt;/p&gt;
+
+&lt;p&gt;Havendo uma única instrução condicionada pela estrutura if, ela figura logo após a condição e termina com um ponto e vírgula. A sintaxe é a seguinte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;If(&amp;lt;Condição&amp;gt;) &amp;lt;Instrução&amp;gt;;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;estrutura-if-else&#34;&gt;Estrutura if-else&lt;/h2&gt;
+
+&lt;p&gt;A estrutura de decisão if-else é uma variação da estrutura if. Ela é utilizada para impor uma ou mais condições que deverão ser satisfeitas para a execução de uma instrução ou bloco de instruções e possibilita a definição de uma instrução ou bloco de instruções a serem executados caso as condições não sejam satisfeitas. A sua forma geral é a seguinte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;If(&amp;lt;Condição&amp;gt;) &amp;lt;instrução ou bloco&amp;gt;
+
+else &amp;lt;instrução ou bloco&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;A condição sempre irá figurar entre parênteses, após a palavra reservada if, e deve ser uma expressão booleana que resulte em um valor true ou false. A primeira instrução ou o bloco de instruções somente será executado caso o resultado dessa expressão seja true. Caso o resultado seja false, o fluxo de execução será desviado e a instrução ou o bloco posterior ao else será executado.&lt;/p&gt;
+
+&lt;h2 id=&#34;equals&#34;&gt;Equals&lt;/h2&gt;
+
+&lt;p&gt;O método equals é usado para a comparação. A classe String e as classes Wrapper sobrescrevem o equals para garantir que dois objetos desses tipos, com o mesmo conteúdo, possam ser considerados iguais. Para descobrir se as referências são iguais, deve-se utilizar o   “ == ” para que seja comparado os bits das variáveis.&lt;/p&gt;
+
+&lt;p&gt;Toda comparação utilizando o equals irá verificar, primeiro se existe uma sobrescrita do mesmo nas classes comparadas. Caso não haja, o método padrão da classe Object é utilizado.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/equals-com-objeto.bmp&#34;&gt;&lt;img class=&#34; wp-image-48938 size-full aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/equals-com-objeto.bmp&#34; alt=&#34;&#34; width=&#34;456&#34; height=&#34;238&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O resultado será falso, pois as classes, apesar de terem os mesmos atributos e métodos, a referência é diferente, como eu disse mas acima, para descobrir se as referências são iguais, deve-se utilizar “ == ”.&lt;/p&gt;
+
+&lt;p&gt;O equals também poderá ser utilizado para a comparação de Strings:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/equals-com-string.bmp&#34;&gt;&lt;img class=&#34; wp-image-48939 size-full aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/equals-com-string.bmp&#34; alt=&#34;&#34; width=&#34;527&#34; height=&#34;201&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Nesse caso, a primeira instrução irá gerar uma resposta false, pois não estamos utilizando o método equalsIgnoreCase, que ignora as letras maiúsculas e minúsculas, portanto, a segunda instrução irá gerar uma resposta true.&lt;/p&gt;
+
+&lt;h2 id=&#34;operador-ternário&#34;&gt;Operador Ternário&lt;/h2&gt;
+
+&lt;p&gt;Esse código trata-se de um operador matemático, com um condicional. Em alguns casos, ambos podem ter comportamento um pouco diferente. Lembrando também que o ternário sempre deve retornar valor, e o valor será sempre do mesmo tipo, para ambos os lados da expressão.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/if-ternario.bmp&#34;&gt;&lt;img class=&#34; size-full wp-image-48941 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/if-ternario.bmp&#34; alt=&#34;operador ternario&#34; width=&#34;632&#34; height=&#34;288&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Nesse caso, temos duas condições, essas duas condições são iguais, porém a de cima utiliza o operador ternário.&lt;/p&gt;
+
+&lt;h2 id=&#34;switch&#34;&gt;SWITCH&lt;/h2&gt;
+
+&lt;p&gt;A estrutura de decisão switch-case, ou simplesmente switch, é uma forma simples para se definir diversos desvios no código a partir de uma única variável ou expressão. Havendo uma variável com diversos valores possíveis e sendo necessário um tratamento específico para cada um deles, o uso da estrutura if-else se torna confuso e dificulta a leitura do código. Nesse caso, a clareza e a facilidade estão do lado da estrutura switch.&lt;/p&gt;
+
+&lt;p&gt;A sintaxe geral da estrutura switch é a seguinte:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/switch.bmp&#34;&gt;&lt;img class=&#34; size-full wp-image-48942 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/switch.bmp&#34; alt=&#34;switch&#34; width=&#34;514&#34; height=&#34;408&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Se for utilizada uma expressão, ela deve retornar um tipo de dados compatível com todos os valores especificados através das declarações case. Por dedução, todas as declarações devem conter valores de um mesmo tipo. Caso esteja utilizada uma variável, seu tipo também deve ser compatível com os valores das declarações.&lt;/p&gt;
+
+&lt;p&gt;Cada um dos valores especificados com as declarações case deve ser um valor literal exclusivo. Se houver algum valor duplicado, será gerado um erro no momento em que você tentar compilar seu código.&lt;/p&gt;
+
+&lt;p&gt;A palavra reservada break é utilizada na estrutura switch para promover um desvio da execução para a linha posterior ao final de seu bloco. Geralmente, ele é utilizado como a última instrução de cada declaração case.&lt;/p&gt;
+
+&lt;p&gt;A palavra default indica que caso nenhum dos cases seja utilizado, a instrução que se encontra no default será executada.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JAVA – Introdução a sua API</title>
+      <link>http://tableless.com.br/java-introducao-a-sua-api/</link>
+      <pubDate>Mon, 18 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/java-introducao-a-sua-api/</guid>
+      <description>&lt;p&gt;A API do Java é composta por dois tipos de recursos distintos: classes e interfaces. Ela é como um bloco dividido em duas grandes partes, são centenas de Interfaces e milhares de classes que acompanham o kit de desenvolvimento do Java e que podem ser empregadas para a realização de diversos tipos de tarefas durante a construção de um programa.&lt;/p&gt;
+
+&lt;p&gt;Na API do Java, não existem métodos ou quaisquer tipos de dados desgarrados. O seu caráter fortemente orientado a objetos obriga a declaração de todos os métodos dentro de uma classe ou de uma interface. Do mesmo modo, não é possível declarar uma variável ou constante fora do escopo de uma classe ou de uma interface. A representação de dados deve ser feita, necessariamente, através de atributos que pertencem a uma classe ou interface específica.&lt;/p&gt;
+
+&lt;p&gt;As classes formam uma hierarquia dentro da API do Java, e a classe java.lang.Object é a raiz dessa hierarquia. Direta ou indiretamente, toda classe tem Object como a sua superclasse, assim, todos os métodos por ela implementados são herdados por todas as demais classes.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Organização&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;As classes e interfaces que compõem a API do Java estão divididas em pacotes, e cada pacote agrupa um conjunto de classes e interfaces que possuem propósitos comuns. Lembre-se de que um pacote também pode conter outros pacotes, de modo que eles acabam formando uma estrutura complexa de compartimentos.&lt;/p&gt;
+
+&lt;p&gt;A estrutura dos pacotes que abriga as classes e interfaces de Java reflete apenas a estrutura de diretórios onde os seus arquivos compilados estão dispostos. Mas, na verdade, as classes e interfaces do JDK não estão armazenadas em uma estrutura de diretórios que tenha sido criada efetivamente. Elas se encontram em um arquivo compactado chamado rt.jar, que se encontra no diretório: \jre\lib.&lt;/p&gt;
+
+&lt;p&gt;Assim como a localização de um arquivo no disco rígido compõe-se da identificação de todos os diretórios e subdiretórios e de seu nome, a localização de uma classe ou interface compõe-se da identificação do pacote raiz, de todos os sub pacotes e de seu nome. A classe String, por exemplo, está localizada no pacote lang e este pacote está contido no pacote java. Desse modo, a localização da classe String é escrita do seguinte modo: java.lang.String.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;O pacote java&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O pacote que fora chamado de java contém os recursos fundamentais do Java. É nele que estão contidas as classes e interfaces essenciais à consecução dos seus desígnios enquanto linguagem de programação, e também recursos indispensáveis para a realização de tarefas extremamente importantes para a construção de quaisquer programas.&lt;/p&gt;
+
+&lt;p&gt;O pacote java divide-se em 13 pacotes, e cada um deles contém classes e interfaces distribuídas em diversos sub pacotes. Conhecer cada um dos milhares de componentes contidos nesse pacote é uma meta que exigira muito tempo e esforço, e não se justifica. O que importa não é dominar todos os recursos disponíveis nesse e nos outros pacotes, mas tão somente saber utilizar aquelas classes e interfaces que precisam ser aplicadas para construir determinado tipo de aplicação que você deseja desenvolver.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Conteúdo do pacote java:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      &lt;strong&gt;Pacote&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      &lt;strong&gt;Descrição&lt;/strong&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      applet
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Provê as classes necessárias para criar um applet e as classes que um applet usa para se comunicar com seu contexto.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      awt
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Contém classes e interfaces utilizadas para desenhar gráficos e imagens e construir GUIs.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      beans
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Contém classes relacionadas ao desenvolvimento de componentes beans baseados na arquitetura denominada como JavaBean.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      io
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Provê entrada e saída para o sistema através de fluxo, serialização e arquivos de sistema.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      lang
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Provê classes que são fundamentais ao desígnio de Java enquanto linguagem de programação.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      math
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Provê classes para executar aritmética de inteiros de precisão arbitrária e aritmética decimal de precisão.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      net
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Provê classes para implementação de aplicações de redes.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      nio
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Define “buffers”, que são recipientes para dados e proveem uma prévia dos outros pacotes NIO.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      rmi
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Provê classes e interfaces para implementar aplicativos que utilizem invocação remota de métodos (RMI – Remot Method Invocation.)
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      security
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Provê classes e interfaces para implementar procedimentos de segurança de informações.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      sql
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Provê classes e interfaces para acessar a processar dados armazenados em uma fonte de dados, normalmente um banco de dados relacional.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      text
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Provê classes e interfaces para controlar texto, datas, números e mensagens de modo independente de idiomas naturais.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;64&#34;&gt;
+      util
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;512&#34;&gt;
+      Contém a estrutura de coleções, modelo de eventos, facilidades com data e hora, internacionalização e classes de utilidades diversas.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;strong&gt; &lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;O pacote javax&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O pacote javax contém várias classes e interfaces que complementam aquelas dispostas no pacote java e outras que oferecem recursos totalmente novos. Em conjunto, esses dois pacotes são os recipientes onde se encontra a base de recursos da API do Java a ser utilizada para o desenvolvimento de uma enorme diversidade de programas.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Parte do conteúdo do pacote javax:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt; &lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td width=&#34;92&#34;&gt;
+      &lt;strong&gt;Pacote&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;484&#34;&gt;
+      &lt;strong&gt;Descrição&lt;/strong&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;92&#34;&gt;
+      acessibility
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;484&#34;&gt;
+      Define um contrato entre componentes de interface do usuário e uma tecnologia que provê acesso a esses componentes.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;92&#34;&gt;
+      imageio
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;484&#34;&gt;
+      Pacote principal de entrada e saída de imagem.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;92&#34;&gt;
+      naming
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;484&#34;&gt;
+      Contém classes e interfaces para nomear acesso a serviços.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;92&#34;&gt;
+      print
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;484&#34;&gt;
+      Contém as classes e interfaces principais para o serviço de impressão do Java.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;92&#34;&gt;
+      rmi
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;484&#34;&gt;
+      Contém classes e interfaces adicionais para a implementação de invocação remota de métodos.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;92&#34;&gt;
+      security
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;484&#34;&gt;
+      Provê uma estrutura para autenticação e autorização através de certificados e chaves públicas.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;92&#34;&gt;
+      sound
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;484&#34;&gt;
+      Provê classes e interfaces para capturar, processamento e reprodução de áudio.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;92&#34;&gt;
+      sql
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;484&#34;&gt;
+      Provê acesso a fonte de dados do lado do servidor.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;92&#34;&gt;
+      swing
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;484&#34;&gt;
+      Provê um conjunto de componentes “leves” para a construção de GUIs que funcionam do mesmo modo em todas as plataformas.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;92&#34;&gt;
+      transaction
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;484&#34;&gt;
+      Contém classes de exceção lançadas pelo Object Request Broker (ORB).
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;92&#34;&gt;
+      xml
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;484&#34;&gt;
+      Provê classes que permitem o processamento de documentos XML.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;É claro que novos pacotes tendem a ser adicionados ao pacote javax no futuro, assim como podem ser adicionados ao pacote java ou os outros pacotes que definem a organização da API do Java. O próprio pacote javax não existia na primeira versão do Java, tendo sido desenvolvido e agregado posteriormente.&lt;/p&gt;
+
+&lt;p&gt;Nestes momentos, é preciso apenas ter em mente que a API do Java compõe-se de classes e interfaces organizadas em uma estrutura de pacotes. A descrição superficial dessas estruturas é suficiente, por enquanto, tendo em vista que recursos específicos serão analisados com maior riqueza de detalhes em momento oportuno.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Recursos Essenciais&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Os recursos essenciais aos desígnios do Java estão contidos no pacote java.lang. É aí que se encontram os recursos necessários para a implementação de diversas das operações fundamentais que são realizadas para a construção de grandes diversidade de aplicações.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Operações com Textos: A classe String&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Texto é qualquer expressão composta por um conjunto de caracteres, incluindo as letras do alfabeto, os números, sinais de pontuação e todos os demais caracteres reconhecidos pelo padrão Unicode. Qualquer sequência de caracteres é, pois, um texto.&lt;/p&gt;
+
+&lt;p&gt;São diversos os tipos de operações que precisam ser realizadas com textos durante a execução de programas. A captação, comparação, validação, manipulação e exibição de textos são exemplos de operações que precisam ser realizadas com uma frequência enorme. Isso faz com que a representação de textos seja fundamental para a construção dos mais diversos tipos de programas.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Principais construtores da classe String:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td width=&#34;149&#34;&gt;
+      &lt;strong&gt;Assinatura&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;427&#34;&gt;
+      &lt;strong&gt;Descrição&lt;/strong&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;149&#34;&gt;
+      String()
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;427&#34;&gt;
+      Cria uma string vazia.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;149&#34;&gt;
+      String(char[] value)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;427&#34;&gt;
+      Cria uma string a partir de um vetor de caracteres representado pelo parâmetro chamado value.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;149&#34;&gt;
+      String(byte[] bytes)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;427&#34;&gt;
+      Cria uma string a partir de um vetor de bytes  representado pelo parâmetro chamado byte.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;149&#34;&gt;
+      String(String original)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;427&#34;&gt;
+      Cria uma string contendo a mesma sequência de caracteres de parâmetro chamado original.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;strong&gt;Alguns métodos da classe String:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      &lt;strong&gt;Assinatura&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      &lt;strong&gt;Descrição&lt;/strong&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      char charAt(int index)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      Retorna o caractere contido na posição especificada pelo parâmetro index.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      int compareTo(String anotherString)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      Compara o texto de duas strings e retorna um número inteiro que define a ordem destes textos. (zero significa que são iguais).
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      int compareToIgnoreCase(String anotherString)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      Realiza a mesma tarefa que a anterior, porém ignorando a diferença entre caracteres maiúsculos e minúsculos.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      boolean endWith(String suffix)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      Testa se a string corrente termina com o sufixo especificado.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      int indexOf(String str)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      Retorna a posição inicial, na string corrente, da substring especificada pelo parâmetro str. Se a substring não for encontrada, o retorno é -1.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      int lastIndexOf(String str)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      Retorna a posição inicial, na string corrente, da última ocorrência da substring especificada pelo parâmetro str. Se a substring não for encontrada, o retorno é   -1.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      int length()
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      Retorna o número de caracteres contidos na string corrente.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      String replaceAll(String org, String replacement)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      Retorna uma string resultante da substituição, na string corrente, de cada ocorrência da substring especificada no parâmetro org pela substring especificada no parâmetro replacement.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      boolean startsWith(String prefix)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      Testa se a string corrente começa com o prefixo especificado pelo parâmetro prefix.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      String substring(int begin, int end)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      Retorna uma nova string com a sequência de caracteres que se encontra entre as posições especificadas pelos parâmetros begin e end.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      String toLowerCase()
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      Retorna uma nova string contendo todos os caracteres da string atual convertidos para minúsculo.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;300&#34;&gt;
+      String toUpperCase()
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;276&#34;&gt;
+      Retorna uma nova string contendo todos os caracteres da string atual convertidos para maiúsculo.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Operações Matemáticas&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Assim como a manipulação de textos é uma operação comum em quaisquer tipos de programas, a realização de operações matemáticas é muito frequente na grande maioria deles. Isso justifica a dedicação do tempo necessário para o estudo dos recursos disponíveis para suportar esse tipo de operação.&lt;/p&gt;
+
+&lt;p&gt;As operações matemáticas básicas são suportadas pela própria linguagem Java e podem ser realizadas com o uso de operadores. Soma, subtração, multiplicação e divisão são exemplos de operações matemáticas suportadas pela linguagem através de operadores.&lt;/p&gt;
+
+&lt;p&gt;No entanto, existem diversas operações matemáticas que não encontram suporte na linguagem. Potência, raiz quadrada, logaritmo, operações trigonométricas e até operações de arredondamento são exemplos de operações que não podem ser realizadas exclusivamente com os recursos da linguagem, para realizá-las, é preciso recorrer aos métodos da classe java.lang.Math.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Alguns métodos da classe Math:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td width=&#34;243&#34;&gt;
+      &lt;strong&gt;Assinatura&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;333&#34;&gt;
+      &lt;strong&gt;Descrição&lt;/strong&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;243&#34;&gt;
+      static double cell(double a)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;333&#34;&gt;
+      Retorna o próximo valor double que seja um número matemático inteiro.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;243&#34;&gt;
+      static double floor(double a)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;333&#34;&gt;
+      Retorna o valor double anterior que seja um número matemático inteiro.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;243&#34;&gt;
+      static double rint(double a)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;333&#34;&gt;
+      Arredonda o número informado e retorna-o na forma de um double.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;243&#34;&gt;
+      static long round(double a)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;333&#34;&gt;
+      Arredonda o número informado e retorna-0 na forma de um long.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;243&#34;&gt;
+      static double pow(double a, double b)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;333&#34;&gt;
+      Eleva um número à determinada potência.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;243&#34;&gt;
+      static double sqrt(double a)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;333&#34;&gt;
+      Calcula a raiz quadrada de um número.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;243&#34;&gt;
+      static double random()
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;333&#34;&gt;
+      Retorna um número aleatório entre 0 e 1.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Perceba que todos os métodos listados são estáticos, por conterem o qualificador static em suas assinaturas. Isso significa que não é preciso instanciar um objeto da classe Math para fazer uso desses métodos, basta invocá-los a partir da própria classe, do mesmo modo como se faz com seus atributos.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Valores Aleatórios&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Objetos da classe java.util.Random podem ser utilizados para gerar um fluxo de dados aleatório. Enquanto o método random() da classe Math somente é capaz de gerar números aleatórios entre zero e um, um objeto da classe Random pode ser usado para gerar diferentes tipos de dados aleatórios e em diferentes intervalos.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Alguns métodos da classe java.util.Random.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td width=&#34;158&#34;&gt;
+      &lt;strong&gt;Assinatura&lt;/strong&gt;
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;418&#34;&gt;
+      &lt;strong&gt;Descrição&lt;/strong&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;158&#34;&gt;
+      boolean nextBoolean()
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;418&#34;&gt;
+      Retorna um valor booleano aleatório.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;158&#34;&gt;
+      double nextDouble()
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;418&#34;&gt;
+      Retorna um valor aleatório entre 0,0 e 0,9 como um tipo double.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;158&#34;&gt;
+      float nextFloat()
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;418&#34;&gt;
+      Retorna um valor aleatório entre 0,0 e 0,9 como um tipo float.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;158&#34;&gt;
+      int nextInt()
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;418&#34;&gt;
+      Retorna um número inteiro aleatório.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;158&#34;&gt;
+      int nextInt(int n)
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;418&#34;&gt;
+      Retorna um número inteiro aleatório entre 0 e o valor especificado através do parâmetro n.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;tr&gt;
+    &lt;td width=&#34;158&#34;&gt;
+      long nextLong()
+    &lt;/td&gt;
+    
+    &lt;td width=&#34;418&#34;&gt;
+      Retorna um número inteiro longo aleatório.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JAVA – O caminho do aprendizado</title>
+      <link>http://tableless.com.br/java-o-caminho-aprendizado/</link>
+      <pubDate>Thu, 16 Apr 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/java-o-caminho-aprendizado/</guid>
+      <description>&lt;p&gt;Para entender o que é o Java, é preciso compreender três elementos que quando estão juntos, se torna possível o desenvolvimento de um sistema, são eles: Uma linguagem de programação, um ambiente de desenvolvimento e uma interface de programas aplicativos (Applications Programming Interface – API).&lt;/p&gt;
+
+&lt;p&gt;Uma linguagem é composta por um conjunto de palavras e símbolos utilizados pelos programadores para escrever cada parte de um programa. Além disso, ela também define regras de sintaxe que precisam ser observadas. No Java, a linguagem é utilizada para produzir diversos elementos de um programa, tais como: classes, interfaces, atributos, métodos, variáveis, constantes, estruturas de decisão e estruturas de repetição.&lt;/p&gt;
+
+&lt;p&gt;O ambiente de desenvolvimento é o conjunto de ferramentas necessárias para o desenvolvimento de softwares. O kit padrão do Java contém um conjunto de considerável de ferramentas, tais como: um compilador (javac), um interpretador de aplicativos (java), um visualizador de applets (appletviewer) e um gerador de documentação (javadoc). Também existem várias IDEs (Integrated Development Environment – Ambiente de Desenvolvimento Integrado) disponíveis que facilitam o processo de desenvolvimento de software, como a  IDE eclipse, que é uma das IDEs mais utilizadas pelos desenvolvedores.&lt;/p&gt;
+
+&lt;p&gt;Porém os softwares desenvolvidos em Java não resultam somente da junção de um ambiente de desenvolvimento e de uma linguagem de programação. A isso se soma um extenso conjunto de componentes, que formam sua API. O Java contém dois tipos fundamentais de componentes em sua API: as classes e as interfaces , uma pessoa que queira estudar Java, deverá passar a maior parte do seu tempo estudando a sua API do que aprender a lidar com a linguagem e com um ambiente de desenvolvimento.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;O termo interface não deve ser confundido com “Interface gráfica”. Do mesmo modo que uma classe, uma interface pode abrigar atributos e métodos. Para evitar mal entendidos, as referências à “Interface Gráfica” são feitas através da sigla GUI (Graphic User Interface – Interface Gráfica de Usuário).&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Como a API Java contém diversas classes e interfaces para o desenvolvimento de software, o desenvolvedor poderá se concentrar apenas na construção dos componentes que atenderão às necessidades do sistema que está sendo desenvolvido.&lt;/p&gt;
+
+&lt;p&gt;Sendo assim, pode-se dizer que existem três partes distintas para se aprender acerca do Java: A linguagem de programação, a segunda diz respeito ao funcionamento das ferramentas que compõem o seu ambiente de desenvolvimento, e a terceira é o extenso conjunto de classes e interfaces que compõem a sua API.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/04/imagem1.jpg&#34;&gt;&lt;img class=&#34;aligncenter wp-image-48148 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/04/imagem1.jpg&#34; alt=&#34;&#34; width=&#34;623&#34; height=&#34;456&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pode-se perceber claramente que “linguagem Java” é uma expressão que não representa todo o caminho a ser trilhado. Para se tornar um desenvolvedor Java, é preciso estudar tanto a linguagem quanto sua API e um ambiente de desenvolvimento. Assim, o mais adequado é assumir o conceito de Java como um conjunto de tecnologias que podem ser aplicadas ao desenvolvimento de software e não apenas como uma linguagem.&lt;/p&gt;
+
+&lt;p&gt;Ao tratar do Java tão somente como uma linguagem de programação, ignora-se o segredo de seu sucesso: a produtividade possibilitada por sua extensa API e um ambiente de execução que permite que seus programas sejam executados nos principais sistemas operacionais.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JAVA – A ORIGEM</title>
+      <link>http://tableless.com.br/java-origem/</link>
+      <pubDate>Tue, 07 Apr 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/java-origem/</guid>
+      <description>&lt;p&gt;Nossa história começa em 1991, quando um grupo de empregados da Sun Microsystems iniciaram um projeto para pequenos dispositivos eletrônicos de consumo, tais como o  PDA (Personal Digital Assistant), o projeto recebeu o nome de Projeto Green, e James Gosling assumiu sua coordenação.&lt;/p&gt;
+
+&lt;p&gt;A ideia era possibilitar a criação de programas portáveis que pudessem ser executados em diversos dispositivos. Mais a equipe teria que desenvolver programas específicos para cada tipo de dispositivo, dai surgiu a ideia de desenvolver um sistema operacional que permitiria a utilização de seus programas pelos mais diversos tipos de equipamento. A nova linguagem foi batizada de Oak (carvalho), uma referência ao carvalho que James Gosling visualizava a partir de seu escritório. O sistema operacional que foi desenvolvido, foi chamado de GreenOS, e junto com ele foi construída uma interface gráfica padronizada.&lt;/p&gt;
+
+&lt;p&gt;Após  ter um sistema operacional e uma interface gráfica, a equipe desenvolveu um avançado PDA chamado de Star7, a Sun Microsystems participou de uma competição pública para o desenvolvimento de uma tecnologia para TV a Cabo interativa, onde seria aplicado o Star7, no entanto ela perdeu essa competição, mesmo sendo um produto de alta qualidade o mercado ainda não estava preparado para o Star7. Perto de cortar o financiamento do projeto, a Sun decidiu abandonar a ênfase nos dispositivos eletrônicos e se voltar para a internet que já começava a crescer.&lt;/p&gt;
+
+&lt;p&gt;O nome da linguagem desenvolvida pelo projeto Green foi mudada de Oak para Java, que  foi uma homenagem à uma ilha da Indonésia de onde os Norte-Americanos importavam o café que era consumido pela equipe de James Gosling. Ate 1994, não havia uma aplicação definida para o Java. Foi quando Jonathan Payne e Patrick Naughton criaram um novo navegador para Web que podia executar programas escritos em Java (applets), batizado de Web Runner. E em 1996, em uma iniciativa inédita, a Sun Microsystems resolveu disponibilizar gratuitamente um kit de desenvolvimento de software para a comunidade, que ficou conhecido como Java Developer`s Kit (JDK). Desde então a aceitação da tecnologia Java cresceu rapidamente entre empresas e desenvolvedores. A Sun Microsystems lançou o JDK 1.1 com melhorias significativas para o desenvolvimento de aplicações gráficas e distribuídas. Depois disso, a empresa continuou lançando novas versões gratuitas com novas melhorias e recursos.&lt;/p&gt;
+
+&lt;p&gt;Em abril de 2009, a Oracle ofereceu US$ 7,4 bilhões pela aquisição da Sun Microsystems e a proposta foi aceita. Essa aquisição deu à Oracle a propriedade de vários produtos, incluindo o Java e o sistema operacional Solaris. Em comunicado, a Oracle afirmou que o Java foi o software mais importante adquirido ao longo de sua história. Muitas especulações foram feitas a cerca do futuro do Java depois de passar a ser propriedade da Oracle. Mais com certeza essa aquisição contribuiu muito para que o Java tivesse um salto qualitativo.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

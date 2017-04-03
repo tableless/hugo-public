@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Léo Juoli on Tableless</title>
+    <link>http://tableless.com.br/author/l%C3%A9o-juoli/index.xml</link>
+    <description>Recent content in Léo Juoli on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/l%C3%A9o-juoli/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando um widget de “Artigos Populares” por numero de visualizações</title>
+      <link>http://tableless.com.br/criando-um-widget-de-artigos-populares-por-numero-de-visualizacoes/</link>
+      <pubDate>Thu, 13 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-um-widget-de-artigos-populares-por-numero-de-visualizacoes/</guid>
+      <description>&lt;p&gt;Recentemente tive que implementar um widget de artigos populares para um cliente. Acontece que até então a única maneira que eu sabia fazer isso era ordenando os posts por número de comentários. Propus a solução ao meu cliente e o mesmo disse que queria que o mesmo fosse ordenados por número de visualizações. Bom, nunca tinha feito isso, então corri atrás de alguns artigos &amp;#8220;gringos&amp;#8221; explicando como fazer e me espantei sobre como era simples.&lt;/p&gt;
+
+&lt;p&gt;Primeiro de tudo, precisamos encontrar uma maneira de registrar cada visita do artigo. Para que isso seja possível adicionamos esse código no &lt;strong&gt;functions.php&lt;/strong&gt; do tema:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/* Populares */
+function wpb_set_post_views($postID) {
+$cookie = strtotime(date(&#39;Y-m-d&#39;));
+ $pv_url = &#39;wpmidia_&#39;.md5($_SERVER[&#39;REQUEST_URI&#39;]);
+ 
+ if( is_single() &amp;&amp; !isset($_COOKIE[$pv_url]) ){
+ $count_key = &#39;wpb_post_views_count&#39;;
+ $count = get_post_meta($postID, $count_key, true);
+ if($count==&#39;&#39;){
+ $count = 0;
+ delete_post_meta($postID, $count_key);
+ add_post_meta($postID, $count_key, &#39;0&#39;);&lt;/pre&gt;
+
+&lt;pre&gt;setcookie($pv_url, $cookie, time()+3600, COOKIEPATH, COOKIE_DOMAIN, false); // 1 hora
+ }else{
+ $count++;
+ update_post_meta($postID, $count_key, $count);
+ setcookie($pv_url, $cookie, time()+3600, COOKIEPATH, COOKIE_DOMAIN, false); // 1 hora
+ }
+ }
+}
+//To keep the count accurate, lets get rid of prefetching
+remove_action( &#39;wp_head&#39;, &#39;adjacent_posts_rel_link_wp_head&#39;, 10, 0);
+function wpb_track_post_views ($post_id) {
+ if ( !is_single() ) return;
+ if ( empty ( $post_id) ) {
+ global $post;
+ $post_id = $post-&amp;gt;ID; 
+ }
+ wpb_set_post_views($post_id);
+}
+add_action( &#39;wp_head&#39;, &#39;wpb_track_post_views&#39;);&lt;/pre&gt;
+
+&lt;p&gt;A segunda função &lt;strong&gt;wpb_track_post_views&lt;/strong&gt; vai basicamente chamar a primeira função toda vez que o tipo de página for &amp;#8220;single&amp;#8221;, ou seja, em todos os artigos. É essencial que seu template tenha a chamada &lt;code&gt;wp_head();&lt;/code&gt; no header do tema. A primeira função vai registrar mais uma visualização do post em nosso banco de dados pela variável &lt;code&gt;$count_key&lt;/code&gt;. Só que tem um pequeno problema que já contornamos no nosso código: toda vez que um usuário der refresh na página ele registraria mais uma visualização, isso faria com que usuários comuns conseguissem burlar, sem querer (ou por querer, sei lá), os posts. Como dito, conseguimos driblar isso, no código usamos o &lt;code&gt;setcookie&lt;/code&gt; para criar um cookie no navegador e impedir que a função seja chamada nos próximos 3600 segundos ou 1 hora (você pode alterar se quiser).&lt;/p&gt;
+
+&lt;p&gt;Dito isso, não adiantaria nada se não pudêssemos chamar essa função. Para isso adicionamos mais um trecho no &lt;strong&gt;functions.php&lt;/strong&gt; do tema:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;function wpb_get_post_views($postID){
+ $count_key = &#39;wpb_post_views_count&#39;;
+ $count = get_post_meta($postID, $count_key, true);
+ if($count==&#39;&#39;){
+ delete_post_meta($postID, $count_key);
+ add_post_meta($postID, $count_key, &#39;0&#39;);
+ return &#34;0 View&#34;;
+ }
+ return $count.&#39; Views&#39;;
+ }&lt;/pre&gt;
+
+&lt;p&gt;A função acima serve também para retornar o numero de visualizações que o artigo teve, basta chama-la com wpb_get_post_views($id), sendo $id o ID do artigo.&lt;/p&gt;
+
+&lt;p&gt;Agora que implementamos todas as funções precisamos exibir isso em algum lugar e o código abaixo serve justamente para isso:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;ul&amp;gt;
+ &amp;lt;?php $popularpost = new WP_Query( array( &#39;posts_per_page&#39; =&amp;gt; 5, &#39;meta_key&#39; =&amp;gt; &#39;wpb_post_views_count&#39;, &#39;orderby&#39; =&amp;gt; &#39;meta_value_num&#39;, &#39;order&#39; =&amp;gt; &#39;DESC&#39; ) );
+ while ( $popularpost-&amp;gt;have_posts() ) : $popularpost-&amp;gt;the_post();
+ ?&amp;gt;
+ &amp;lt;li&amp;gt;
+ &amp;lt;small&amp;gt;&amp;lt;?php the_category(&#39;, &#39;); ?&amp;gt;&amp;lt;/small&amp;gt;
+ &amp;lt;a href=&#34;&amp;lt;?php echo get_permalink(); ?&amp;gt;&#34; title=&#34;&amp;lt;?php the_title_attribute(); ?&amp;gt;&#34;&amp;gt;
+ &amp;lt;h3&amp;gt;&amp;lt;?php the_title(); ?&amp;gt;&amp;lt;h3&amp;gt;
+ &amp;lt;/li&amp;gt;
+ &amp;lt;?php
+ endwhile;
+ wp_reset_query();
+ ?&amp;gt;
+ &amp;lt;/ul&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Você pode adicionar thumbnails, links e afins como o de costume.&lt;/p&gt;
+
+&lt;p&gt;O que achou? Tem uma solução melhor? Comenta!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Utilizando a API do bit.ly para gerar links encurtados para seus posts WordPress</title>
+      <link>http://tableless.com.br/utilizando-api-bit-ly-para-gerar-links-encurtados-para-seus-posts-wordpress/</link>
+      <pubDate>Wed, 29 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/utilizando-api-bit-ly-para-gerar-links-encurtados-para-seus-posts-wordpress/</guid>
+      <description>&lt;p&gt;Todo mundo sabe que é fundamental criar links de compartilhamento no seu artigo, só que no Twitter isso se restringe a 140 caracteres, e ao enviar o título do seu artigo, URL e seu usuário no Twitter pode faltar espaço. E para economizar espaço fazemos o quê? Uma das táticas é utilizar links curtos através de serviços como o &lt;a href=&#34;http://bit.ly&#34;&gt;bit.ly&lt;/a&gt;. Como tudo na programação, criamos uma maneira de automatizar nossas ações e para isso vamos ao código!&lt;/p&gt;
+
+&lt;p&gt;Primeiramente precisamos entender como a API do bit.ly funciona. Podemos fazer uma requisição via URL e a mesma nos retornará um arquivo XML:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://api.bit.ly/shorten?version=**[VERSÃO]**&amp;amp;longUrl=**[URL]**&amp;amp;login=**[LOGIN]**&amp;amp;apiKey=**[API]**&amp;amp;format=**[FORMATO]**&#34;&gt;http://api.bit.ly/shorten?version=**[VERSÃO]**&amp;amp;longUrl=**[URL]**&amp;amp;login=**[LOGIN]**&amp;amp;apiKey=**[API]**&amp;amp;format=**[FORMATO]**&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[VERSÃO]&lt;/strong&gt; &amp;#8211; A versão do XML&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[URL]&lt;/strong&gt; &amp;#8211; A URL a ser encurtada&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[LOGIN]&lt;/strong&gt; &amp;#8211; Seu login no bit.ly&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[API]&lt;/strong&gt; &amp;#8211; Seu código de API no bit.ly&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;[FORMATO]&lt;/strong&gt; &amp;#8211; O formato de retorno (no nosso caso vamos usar XML)&lt;/p&gt;
+
+&lt;p&gt;Basta substituir os dados pelos seus e a requisição retornará um arquivo XML com as informações que precisamos. Veja um exemplo:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone wp-image-50423 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/07/XML2.png&#34; alt=&#34;&#34; width=&#34;879&#34; height=&#34;288&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Bom, visto isso vamos aos códigos! Primeiramente criaremos uma função no &lt;strong&gt;functions.php&lt;/strong&gt; do seu tema, substituindo LOGIN e API por seus respectivos dados:&lt;/p&gt;
+
+&lt;pre&gt;function make_bitly_url($url,$format = &#39;xml&#39;,$version = &#39;2.0.1&#39;)
+{
+  //Set up account info
+  $bitly_login = &#39;LOGIN&#39;;
+  $bitly_api = &#39;API&#39;;
+  //create the URL
+  $bitly = &#39;http://api.bit.ly/shorten?version=&#39;.$version.&#39;&amp;longUrl=&#39;.urlencode($url).&#39;&amp;login=&#39;.$bitly_login.&#39;&amp;apiKey=&#39;.$bitly_api.&#39;&amp;format=&#39;.$format;
+  $xml = simplexml_load_file($bitly) -&amp;gt; results;
+  foreach($xml -&amp;gt; nodeKeyVal as $nodeKeyVal) {
+    return (string)$nodeKeyVal -&amp;gt; shortUrl;
+  }
+}&lt;/pre&gt;
+
+&lt;p&gt;Vamos às explicações: o código acima é basicamente um leitor de XML, e informando os seus dados ele vai formar uma URL que vai fazer uma requisição ao serviço do bit.ly e retornar o &lt;strong&gt;XML&lt;/strong&gt; que será lido pela função &lt;strong&gt;simplexml_load&lt;/strong&gt; e armazenado como um vetor na variável&lt;strong&gt; $xml&lt;/strong&gt;. Depois fazemos um loop com o &lt;strong&gt;foreach&lt;/strong&gt; por todos os itens &lt;strong&gt;nodeKeyVal&lt;/strong&gt; e retornamos a tag &lt;strong&gt;shortUrl&lt;/strong&gt; para a função que vamos chamar depois. Repare que colocamos uma (string) antes de puxar o &lt;strong&gt;$nodeKeyVal -&amp;gt; shortUrl&lt;/strong&gt;; isso é pra transformá-la em um valor retornável.&lt;/p&gt;
+
+&lt;p&gt;Como quase toda API, a do bit.ly tem limitação de requisições. Por isso precisamos armazenar as URLs encurtadas em nosso banco de dados. Vamos ao código de novo; dessa vez você vai colocar logo após iniciar o seu loop no &lt;strong&gt;single.php&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php
+global $short_url;
+// Checar se ja existe um URL encurtado armazenado no banco de dados
+if(get_post_meta($post-&amp;gt;ID, &#34;short_url&#34;, true) != &#34;&#34;){
+  //Short URL already exists, pull from post meta
+  $short_url = get_post_meta($post-&amp;gt;ID, &#34;short_url&#34;, true);
+}
+else {
+  // Caso não tenha, vamos criar uma
+  $full_url = get_permalink();
+  $short_url = make_bitly_url($full_url);
+  // Salvar no port_meta
+  add_post_meta($post-&amp;gt;ID, &#39;short_url&#39;, $short_url, true);
+}
+?&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;O código já está comentado mas vale explicar algumas coisas: usamos um condicional para checar se no nosso &lt;strong&gt;post_meta&lt;/strong&gt; existe uma tag &lt;strong&gt;short_url&lt;/strong&gt; diferente de um valor nulo; caso já exista ele vai pegá-la e armazenar na variável &lt;strong&gt;$short_url&lt;/strong&gt;. Caso não exista, iremos criar uma chamando a função &lt;strong&gt;make_bitly_url,&lt;/strong&gt; armazenando na variável &lt;strong&gt;$short_url&lt;/strong&gt; e depois adicionando-a ao &lt;strong&gt;post_meta.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto! Isso é quase o fim, agora só precisamos imprimir a variável &lt;strong&gt;$short_url&lt;/strong&gt;. É importante dizer que se você tentar imprimi-la antes do código que cria a variável obviamente isso não vai dar certo. Basicamente a função abaixo deve ficar depois da função acima, veja:&lt;/p&gt;
+
+&lt;pre&gt;&amp;lt;?php echo $short_url; ?&amp;gt;&lt;/pre&gt;
+
+&lt;p&gt;Bom, agora você pode usar como quiser: imprimi-la no seu artigo, criar um botão de compartilhamento, etc. Recomendo que você, depois de testar, tente implementar outras APIs e ver o resultado. Caso dê algo errado, tente habilitar o error_reporting do PHP porque vai ajudar bastante você descobrir onde está o erro. Você pode usar os comentários para me perguntar algo, será um prazer responder.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

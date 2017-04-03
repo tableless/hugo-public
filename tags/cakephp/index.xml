@@ -1,0 +1,1131 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Cakephp on Tableless</title>
+    <link>http://tableless.com.br/tags/cakephp/index.xml</link>
+    <description>Recent content in Cakephp on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/cakephp/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Formulário sem Model no CakePHP 3.x</title>
+      <link>http://tableless.com.br/formulario-sem-model-no-cakephp-3-x/</link>
+      <pubDate>Tue, 16 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/formulario-sem-model-no-cakephp-3-x/</guid>
+      <description>
+
+&lt;p&gt;Requisitos do artigos:&lt;/p&gt;
+
+&lt;p&gt;&amp;#8211; Ter o CakePHP 3 instalado ( &lt;a href=&#34;https://medium.com/@eabreusantos/instalando-o-cakephp-3-0-2f2a155cb8b1&#34; target=&#34;_blank&#34;&gt;Artigo de como instalar o Cakephp 3.x&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;O que aprenderemos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Como trabalhar com formulários que não necessitam de um Model.&lt;/li&gt;
+&lt;li&gt;Criar uma página de contato.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;formulários&#34;&gt;Formulários&lt;/h3&gt;
+
+&lt;p&gt;Na maioria das vezes, trabalhamos com formulários relacionados a um Model para persistir dados. Outras vezes precisamos validar os dados de um formulário onde não há persistência, como é no caso de um Formulário de Contato. Para tal tarefa, o CakePHP 3.x nos disponibiliza o que chamamos de &lt;strong&gt;Modelless Forms&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para começar, precisamos criar uma pasta chamada &amp;#8216;Forms&amp;#8217; dentro do diretório &amp;#8216;app\src&amp;#8217;. Para exemplificar vamos assumir que iremos criar um formulário de contato básico com nome, email e mensagem.&lt;/p&gt;
+
+&lt;p&gt;Na pasta Forms, crie um arquivo chamado &amp;#8216;ContactForm.php&amp;#8217; com o seguinte conteúdo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;namespace App\Form;
+use Cake\Form\Form;
+use Cake\Form\Schema;
+use Cake\Validation\Validator;
+class ContactForm extends Form
+{
+ /*
+ * Cria schema do formulário
+ * @param Schema object
+ * @return Schema object
+ */
+ protected function _buildSchema(Schema $schema)
+{
+ return $schema-&amp;gt;addField(&#39;name&#39;, &#39;string&#39;)
+ -&amp;gt;addField(&#39;email&#39;, [&#39;type&#39; =&amp;gt; &#39;string&#39;])
+ -&amp;gt;addField(&#39;body&#39;, [&#39;type&#39; =&amp;gt; &#39;text&#39;]);
+}
+/*
+*Add regras de validação aos campos do formulário
+* @param Validator object
+* @return Validator object
+*/
+protected function _buildValidator(Validator $validator)
+{
+ return $validator-&amp;gt;add(&#39;name&#39;, &#39;length&#39;, [
+ &#39;rule&#39; =&amp;gt; [&#39;minLength&#39;, 10],
+ &#39;message&#39; =&amp;gt; &#39;Campo nome é obrigatório&#39;
+ ])-&amp;gt;add(&#39;email&#39;, &#39;format&#39;, [
+ &#39;rule&#39; =&amp;gt; &#39;email&#39;,
+ &#39;message&#39; =&amp;gt; &#39;Endereço de e-mail inválido&#39;,
+ ]);
+}
+/*
+* Envia e-mail com os dados do contato
+* @param array $data dados da requisição
+* @return bool true caso tenha enviado o e-mail com sucesso
+*/
+protected function _execute(array $data)e
+{
+// Send an email.
+return true;
+}
+}&lt;/pre&gt;
+
+&lt;p&gt;Linha 1:4 — Declaramos o namespace e importamos classes que iremos utilizar.&lt;/p&gt;
+
+&lt;p&gt;Linha 5 — Declaração da classe, obrigatório o sufixo Form tanto na declaração da classe como no nome do arquivo, Modelless Forms devem obrigatoriamente estender da classe Form.&lt;/p&gt;
+
+&lt;p&gt;Linha 12:17 — Método &amp;#8216;&lt;strong&gt;_buildSchema&lt;/strong&gt;&amp;#8216;, recebe como parâmetro um objeto do tipo Schema. É usado para definir o esquema de dados que será utilizado pelo FormHelper para criar o formulário html. É possível definir o tipo do campo, tamanho do campo e precisão. Este método deve retornar o próprio objeto Schema.&lt;/p&gt;
+
+&lt;p&gt;Linha 23:32 — Método &lt;strong&gt;&amp;#8216;_buildValidator&lt;/strong&gt;&amp;#8216;, recebe como parâmetro um objeto do tipo Validator. É usado para definir o esquema de validação do formulário quando processado. É possível definir várias regras de validação para mesmo campo. Este método deve retornar o próprio objeto Validator. Veja mais regras e opções em: &lt;a href=&#34;http://book.cakephp.org/3.0/en/core-libraries/validation.html&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://book.cakephp.org/3.0/en/core-libraries/validation.html&#34;&gt;http://book.cakephp.org/3.0/en/core-libraries/validation.html&lt;/a&gt;&lt;/a&gt;. Em breve irei publicar um artigo sobre Validação de dados.&lt;/p&gt;
+
+&lt;p&gt;Linha 38:~ — Método &amp;#8216;&lt;strong&gt;_execute&lt;/strong&gt;&amp;#8216;, recebe como parâmetro um array contendo os dados da requisição ou no caso os dados do formulário que o usuário preencheu. O retorno deste método é de acordo com a implementação.&lt;/p&gt;
+
+&lt;h3 id=&#34;processando-o-formulário&#34;&gt;Processando o Formulário&lt;/h3&gt;
+
+&lt;p&gt;Uma vez definida a classe do formulário, temos agora de processa-lo, para isto podemos utilizar um Controller. Na pasta &amp;#8216;app\src\Controller&amp;#8217; crie um arquivo chamado &amp;#8216;ContactController.php&amp;#8217; com o seguinte conteúdo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;namespace App\Controller;
+use App\Controller\AppController;
+use App\Form\ContactForm;
+class ContactController extends AppController
+{
+  /*
+  * Exibe e processa o formulário de contato caso seja uma requisição post
+  * @return void\Response
+  */
+public function index()
+{
+ $contact = new ContactForm();
+ if ($this-&amp;gt;request-&amp;gt;is(&#39;post&#39;)) {
+ if ($contact-&amp;gt;execute($this-&amp;gt;request-&amp;gt;data)) {
+ $this-&amp;gt;Flash-&amp;gt;success(&#39;Mensagem enviado, aguarde nosso retorno.&#39;);
+} else {
+ $this-&amp;gt;Flash-&amp;gt;error(&#39;Ocorreu um problema ao enviar sua mensagem.&#39;);
+}
+}
+ $this-&amp;gt;set(&#39;contact&#39;, $contact);
+}
+}&lt;/pre&gt;
+
+&lt;p&gt;Linha 13 — Verificamos se a requisição é do tipo &amp;#8216;POST&amp;#8217;.&lt;/p&gt;
+
+&lt;p&gt;Linha 14 — Caso seja, tentamos processar o formulário executando o método &amp;#8216;execute()&amp;#8217; que recebe como parâmetro os dados da requisição que estará disponível no método &amp;#8216;_execute&amp;#8217; do Form. Ao executar o método &amp;#8216;execute&amp;#8217;, automaticamente o formulário irá tentar validar os dados de acordo com sua implementação do método &amp;#8216;_buildValidator&amp;#8217;, se a validação passar, só então o método &amp;#8216;_execute&amp;#8217; é chamado.&lt;/p&gt;
+
+&lt;p&gt;Linha 20 — Envia o objeto do formulário à view para ser utilizado no FormHelper.&lt;/p&gt;
+
+&lt;h3 id=&#34;capturando-erros-de-validação&#34;&gt;Capturando erros de validação&lt;/h3&gt;
+
+&lt;p&gt;Para capturar os erros de validação, utilize o método &amp;#8216;errors()&amp;#8217; do objeto do formulário, veja abaixo um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php &#34;&gt;// Na action do controller
+public function index()
+{
+ $contact = new ContactForm();
+ $erros = [];
+ if ($this-&amp;gt;request-&amp;gt;is(&#39;post&#39;)) {
+ if ($contact-&amp;gt;execute($this-&amp;gt;request-&amp;gt;data)) {
+ $this-&amp;gt;Flash-&amp;gt;success(&#39;Mensagem enviado, aguarde nosso retorno.&#39;);
+} else {
+//Captura &lt;span class=&#34;hiddenGrammarError&#34;&gt;erros
+ $erros&lt;/span&gt; = $contact-&amp;gt;errors();
+ $this-&amp;gt;Flash-&amp;gt;error(&#39;Ocorreu um problema ao enviar sua mensagem.&#39;);
+}
+}
+ $this-&amp;gt;set(&#39;contact&#39;, $contact);
+ $this-&amp;gt;set(&#39;erros&#39;,$erros);
+}&lt;/pre&gt;
+
+&lt;p&gt;O método &amp;#8216;errors&amp;#8217; retorna um array com a listagem de campos que não estão válidos, sendo os índices os nomes dos campos e os valores as mensagens de erro.&lt;/p&gt;
+
+&lt;h3 id=&#34;exibição-do-formulário&#34;&gt;Exibição do Formulário&lt;/h3&gt;
+
+&lt;p&gt;Para que o formulário seja exibido para usuário, crie uma view no diretório &amp;#8216;app\src\View\Template\Contact&amp;#8217; com o nome &amp;#8216;index.ctp&amp;#8217; e o seguinte conteúdo:&lt;/p&gt;
+
+&lt;p&gt;Por enquanto é só galera, em breve irei publicar como enviar os dados do formulário para um e-mail.&lt;/p&gt;
+
+&lt;p&gt;Qualquer dúvida, estou a disposição para ajudar.&lt;/p&gt;
+
+&lt;p&gt;Abraços!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Instalando o CAKEPHP 3.0 via Composer</title>
+      <link>http://tableless.com.br/instalando-o-cakephp-3-0-via-composer/</link>
+      <pubDate>Sun, 07 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/instalando-o-cakephp-3-0-via-composer/</guid>
+      <description>
+
+&lt;p&gt;Requisitos do tutorial:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;PHP instalado e configurado&lt;/li&gt;
+&lt;li&gt;Ambiente Linux&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;No dia 22/03/2015 foi disponibilizado para download no &lt;a href=&#34;http://cakephp.org&#34;&gt;site do CakePHP&lt;/a&gt; a &lt;a href=&#34;http://book.cakephp.org/3.0/en/installation.html&#34;&gt;versão 3.0 do framework para PHP CakePHP&lt;/a&gt;. Já utilizamos a versão 2.x em projetos aqui na empresa e tivemos bons resultados.&lt;/p&gt;
+
+&lt;p&gt;Com o lançamento desta nova versão, muita coisa mudou: um novo ORM foi lançado; o uso de namespaces foi adotado; entre outras features que iremos abordar em outras publicações.&lt;/p&gt;
+
+&lt;p&gt;Neste artigo irei realizar um passo a passo da instalação do Cakephp 3.0 &lt;a href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34;&gt;utilizando o Composer&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que-é-o-composer&#34;&gt;O que é o Composer&lt;/h3&gt;
+
+&lt;p&gt;O Composer é o gerenciador de dependências do PHP, com ele é possível definir uma lista de bibliotecas que sua aplicação necessita para funcionar, além de poder definir requisitos como, versão do PHP, extensions etc.&lt;/p&gt;
+
+&lt;p&gt;Para aprender mais sobre o Composer, listei alguns artigos abaixo:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://blog.thiagobelem.net/gerenciando-dependencias-com-o-composer/&#34;&gt;http://blog.thiagobelem.net/gerenciando-dependencias-com-o-composer/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34;&gt;http://tableless.com.br/composer-para-iniciantes/&lt;/a&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://getcomposer.org ( site oficial)&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://getcomposer.org&#34;&gt;http://getcomposer.org&lt;/a&gt; ( site oficial)&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;instalando-o-composer&#34;&gt;Instalando o Composer&lt;/h3&gt;
+
+&lt;p&gt;Na pasta onde irá ficar localizada a aplicação, abra o terminal e digite o seguinte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;#Caso tenha o Curl instalado
+curl -s https://getcomposer.org/installer | php
+## ou ##
+#Caso não possua o Curl instalado
+php -r &#34;readfile(&#39;https://getcomposer.org/installer&#39;);&#34; | php&lt;/pre&gt;
+
+&lt;p&gt;Documentação do comando usado: &lt;a href=&#34;http://php.net/manual/pt_BR/features.commandline.options.php%20http://curl.haxx.se/mail/lib-2004-07/0017.html&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://php.net/manual/pt_BR/features.commandline.options.php&#34;&gt;http://php.net/manual/pt_BR/features.commandline.options.php&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://php.net/manual/pt_BR/features.commandline.options.php%20http://curl.haxx.se/mail/lib-2004-07/0017.html&#34;&gt;http://curl.haxx.se/mail/lib-2004-07/0017.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;instalando-o-cakephp-3&#34;&gt;Instalando o CakePHP 3&lt;/h3&gt;
+
+&lt;h4 id=&#34;requisitos-mínimos&#34;&gt;Requisitos Mínimos&lt;/h4&gt;
+
+&lt;ol&gt;
+&lt;li&gt;HTTP Server. Exemplo: Apache, Ngix. Com mod_rewrite habilitado de preferência, mas não é obrigatório.&lt;/li&gt;
+&lt;li&gt;PHP 5.4.16 ou maior&lt;/li&gt;
+&lt;li&gt;extensão mbstring&lt;/li&gt;
+&lt;li&gt;extensão intl (Como instalar/habilitar: &lt;a href=&#34;http://goo.gl/qz6tqT&#34;&gt;http://goo.gl/qz6tqT&lt;/a&gt;)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Para instalar o framework, na pasta do projeto onde também o Composer foi instalado e digite o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;#Install cakephp3
+composer create-project --prefer-dist cakephp/app [nome da app]&lt;/pre&gt;
+
+&lt;p&gt;Documentação do comando usado: &lt;a href=&#34;https://getcomposer.org/doc/03-cli.md#create-project&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;https://getcomposer.org/doc/03-cli.md#create-project&#34;&gt;https://getcomposer.org/doc/03-cli.md#create-project&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Para testar se a aplicação foi instalada com sucesso, acesse a pasta da aplicação, no caso o mesmo nome que digitou em [nome da app] e digite o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;#Inicia built-in server
+./bin/cake server&lt;/pre&gt;
+
+&lt;p&gt;Documentação do comando usado: &lt;a href=&#34;http://book.cakephp.org/3.0/en/console-and-shells.html&#34; target=&#34;_blank&#34;&gt;&lt;a href=&#34;http://book.cakephp.org/3.0/en/console-and-shells.html&#34;&gt;http://book.cakephp.org/3.0/en/console-and-shells.html&lt;/a&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Após, se tudo ocorrer bem, uma mensagem será exibida no terminal informando que o servidor embutido foi iniciado e que se encontra disponível no endereço: &lt;a href=&#34;http://localhost:8765/&#34;&gt;http://localhost:8765/&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Por enquanto é só galera, caso tenham alguma dúvida ou problema durante a instalação, ficarei feliz em ajudar.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>CakePHP convenções de nomenclatura e o poderoso Inflector!</title>
+      <link>http://tableless.com.br/cakephp-convencoes-de-nomenclatura-e-o-poderoso-inflector/</link>
+      <pubDate>Thu, 19 Mar 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/cakephp-convencoes-de-nomenclatura-e-o-poderoso-inflector/</guid>
+      <description>
+
+&lt;p&gt;Geralmente eu tenho problemas para encontrar os nomes corretos para os meus controllers, views, models e tabelas. Talvez a tarefa mais difícil de todo programador seja nomear as coisas. Quem nunca ficou indeciso por causa do nome de uma função ou de uma variável? Eu busco sempre permanecer o projeto todo em inglês.&lt;/p&gt;
+
+&lt;p&gt;Bem, &lt;strong&gt;CakePHP&lt;/strong&gt; faz um monte de trabalho tedioso e repetitivo para você, para que você possa se concentrar melhor nas regras do negocio. Mas o CakePHP depende de você! Ele se agarrar às suas convenções de nomenclatura, por isso é importante ter atenção em nomes de &lt;strong&gt;tabelas&lt;/strong&gt;, &lt;strong&gt;controllers&lt;/strong&gt;, &lt;strong&gt;models&lt;/strong&gt;..&lt;/p&gt;
+
+&lt;p&gt;Eu mesmo já tive diversos problemas com nomenclaturas e passei por muita dor de cabeça! Acredite.. O CakePHP espera que você converta corretamente esse problema entre singular, plural, etc 😉&lt;/p&gt;
+
+&lt;p&gt;As Models são singular. Ex: &lt;strong&gt;BigPerson&lt;/strong&gt; e &lt;strong&gt;ReallyBigPerson&lt;/strong&gt; são exemplos de nomes de modelos convencionais. Os nomes das tabelas correspondentes a model do CakePHP são plurais e sublinhado. As tabelas para as models acima mencionadas seriam &lt;strong&gt;big_people&lt;/strong&gt;, &lt;strong&gt;really_big_people&lt;/strong&gt;, respectivamente.&lt;/p&gt;
+
+&lt;p&gt;Aparentemente CakePHP converte substantivos irregulares corretamente e eu me pergunto: Como? Será que ela tem um look-up table enorme para todos eles? Bem, não! Em vez disso, ele faz algumas coisas muito sofisticadas em uma classe chamada &lt;strong&gt;cake/libs/ inflector.php,&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;com um monte de correspondências de regex e muito mais!&lt;/p&gt;
+
+&lt;h2 id=&#34;métodos&#34;&gt;Métodos&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;pluralize&lt;/strong&gt;: Converte para o plural: Apple, Man → Apples, Men&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;singularize&lt;/strong&gt;: Converte para o singular: Apples, Men → Apple, Man&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;camelize&lt;/strong&gt;: Converte underscored hadron_collider → hadronCollider&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;underscore&lt;/strong&gt;: Converte para underscored adronCollider → hadron_collider&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;humanize&lt;/strong&gt;: Converte unserscore para stirng com Captalize devine_intervention → Devine Intervention&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;tableize&lt;/strong&gt;: Converte para underscore e plural MajorFeatureThing → major_feature_things&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;classify&lt;/strong&gt;: Converte para underscore com plural para string no singular major_feature_things → MajorFeatureThing&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;variable&lt;/strong&gt;: Converte de underscored plural ou singular para singular e lowercase. major_feature_things → majorFeatureThing&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;slug&lt;/strong&gt;: Converte caracteres especias/espaços em underscore de qualquer formatação. Este método é UTF-8 encoding! apple purée → apple_puree&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Agora que você tem uma ideia do que o Inflector pode fazer por você, vamos explorar cada um desses métodos em detalhes.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Inflector::pluralize();&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O método pluralize () recebe uma palavra no singular (string) e retorna a versão plural da mesma. Aqui estão alguns exemplos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;Inflector::pluralize(&#39;Apple&#39;); // returns &#34;Apples&#34;
+Inflector::pluralize(&#39;Menu&#39;); // returns &#34;Menus&#34;
+Inflector::pluralize(&#39;News&#39;); // returns &#34;News&#34;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Inflector::singularize()&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O método singularize() recebe uma palavra no plural (string) e retorna a versão no singular dele. Aqui estão alguns exemplos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;Inflector::singularize(&#39;Houses&#39;); // returns &#34;House&#34;
+Inflector::singularize(&#39;Bananas&#39;); // returns &#34;Banana&#34;
+Inflector::singularize(&#39;Men&#39;); // returns &#34;Man&#34;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Inflector::camelize ()&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Você pode passar um método ou a ou uma palavra under_scored para o camelize () e ele&lt;/p&gt;
+
+&lt;p&gt;irá retornar esta palavra FooBar ou fooBar(se você passar false como o segundo argumento). Alguns exemplos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;Inflector::camelize(&#39;foo_bar&#39;); // returns &#34;FooBar&#34; 
+Inflector::camelize(&#39;foo_bar&#39;, false); // returns &#34;fooBar&#34;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Inflector::underscore()&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Este o nome já diz.&lt;/p&gt;
+
+&lt;p&gt;O método underscore () tem basicamente uma palavra e converte os espaços dela em &amp;#8220;_&amp;#8221; , e também converte os caracteres especiais em caracteres normais. Ex:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;Inflector::underscore(&#39;TestField&#39;) // returns test_field
+Inflector::underscore(&#39;FeineApfel&#39;) // returns feine_aepfel
+&lt;/pre&gt;
+
+&lt;p&gt;Este é o meu preferido!&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Inflector::slug()&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O método slug () recebe uma string e cria uma representação &amp;#8220;slugged&amp;#8221; dele.&lt;/p&gt;
+
+&lt;p&gt;Isto significa basicamente que todos os espaços serão substituídos por um determinado caractere (o padrão é &amp;#8220;-&amp;#8220;),&lt;/p&gt;
+
+&lt;p&gt;o que não for palavra será removido e os caracteres com acentos como &amp;#8220;áÁéÍÓÚ&amp;#8221; será traduzida para a sua representação ASCII.&lt;/p&gt;
+
+&lt;p&gt;Aqui estão alguns exemplos:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;Inflector::slug(&#39;The truth - and- more- news&#39;); // returns &#34;the-truth-and-more-news&#34;
+Inflector::slug(&#39;!@$#exciting stuff! - what !@-# was that?&#39;); // returns &#34;exciting-stuff-what-was-that&#34;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Inflector::humanize()&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O método humanize () recebe uma palavra sublinhada, remove um determinado seperator (padrão para &amp;#8220;_&amp;#8221;) e uppercases os primeiros caracteres das palavras. Alguns exemplos dos testes principais:&lt;/p&gt;
+
+&lt;pre class=&#34;lang:php decode:true &#34;&gt;Inflector::humanize(&#39;posts&#39;); // returns &#34;Posts&#34;
+Inflector::humanize(&#39;posts_tags&#39;); // returns &#34;Posts Tags&#34;
+Inflector::humanize(&#39;file_systems&#39;); // returns  &#34;File Systems&#34;&lt;/pre&gt;
+
+&lt;p&gt;Estes são os que eu achei mais importante ..&lt;/p&gt;
+
+&lt;p&gt;Mas se você quiser ver todos os métodos veja na &lt;a href=&#34;http://book.cakephp.org/2.0/en/core-utility-libraries/inflector.html&#34;&gt;documentação aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Adicione suas próprias regras&lt;/p&gt;
+
+&lt;p&gt;Se você precisar, você pode adicionar suas próprias regras e / ou substituir regras padrão. As regras inflector::method() é responsável por isso e funciona como um setter ou getter para todas as regras armazenados. Os testes básicos proporcionam um exemplo:&lt;/p&gt;
+
+&lt;pre lang=&#34;php&#34;&gt;Inflector::rules(&#39;singular&#39;, array(&#39;/rata/&#39; =&amp;gt; &#39;\1ratus&#39;));
+&lt;/pre&gt;
+
+&lt;p&gt;Você também pode adicionar transliterações que mapeia caracteres específicos ou acentuados de linguagem para os ASCII (que são usados ​​para criar slugs, por exemplo). Os teste no core também oferecem um bom exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;$this-&amp;gt;assertNotEqual(Inflector::slug(&#39;JØRGEN&#39;), &#39;JORGEN&#39;);
+Inflector::rules(&#39;transliteration&#39;, array(&#39;/Ø/&#39; =&amp;gt; &#39;O&#39;));
+$this-&amp;gt;assertEqual(Inflector::slug(&#39;JØRGEN&#39;), &#39;JORGEN&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;Uma boa prática é armazenar suas regras personalizadas em um arquivo de inicialização, de modo que eles estão imediatamente disponíveis para a sua aplicação quando estiver totalmente carregado.&lt;/p&gt;
+
+&lt;p&gt;Minha dica é criar dentro do arquivo Bootstrap =D ou até mesmo um helper..&lt;/p&gt;
+
+&lt;p&gt;Agora, vá! Vá e diga a todos os seus amigos sobre a sua nova descoberta! \o/&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Criando uma galeria de imagens com administração em CakePHP, Fancybox e WideImage)</title>
+      <link>http://tableless.com.br/criando-uma-galeria-de-imagens-com-administracao-em-cakephp-fancybox-e-wideimage/</link>
+      <pubDate>Sun, 27 Apr 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-uma-galeria-de-imagens-com-administracao-em-cakephp-fancybox-e-wideimage/</guid>
+      <description>
+
+&lt;p&gt;Eu sou da opinião que todo bom desenvolvedor frontend tem que ter pelo menos uma noção de backend, e o contrário também tem que acontecer, é comum as pessoas virem me perguntar como que faz pra fazer o Fancybox funcionar no CakePHP, ou como que eu integro um plugin para Jquery no site, puxa, a maioria das vezes é adicionar um seletor, chamar o javascript no Html e configurar de acordo com a documentação, vamos ver se simplifico pra vocês.&lt;/p&gt;
+
+&lt;p&gt;A ideia é criar uma galeria de imagens com painel de administração e separada por álbuns. Iremos instalar também o DebugKit pra medir o uso de memória do CakePHP e saber se a nossa aplicação está pesada ou não.&lt;/p&gt;
+
+&lt;h3 id=&#34;para-quem-o-cakephp-é-interessante&#34;&gt;Para quem o CakePHP é interessante?&lt;/h3&gt;
+
+&lt;p&gt;O CakePHP é interessante para devs backend que precisam ganhar tempo ao desenvolver ou querem entender como funciona o esquema de MVC.&lt;/p&gt;
+
+&lt;p&gt;Também é interessante para os devs frontend que precisam automatizar algumas tarefas, entender como é o mundo do backend e até ganhar tempo com o sistema de temas, layouts e view do CakePHP (camada V).&lt;/p&gt;
+
+&lt;h3 id=&#34;o-que-vamos-usar&#34;&gt;O que vamos usar?&lt;/h3&gt;
+
+&lt;p&gt;Vamos precisar de:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Uma cópia do CakePHP (&lt;a href=&#34;http://cakephp.org/&#34;&gt;http://cakephp.org/&lt;/a&gt;, a direita tem uma palavra grande escrito Download com o link para a versão estável mais recente.)&lt;/li&gt;
+&lt;li&gt;Uma cópia do Fancybox (&lt;a href=&#34;http://fancyapps.com/fancybox/#license&#34;&gt;http://fancyapps.com/fancybox/#license&lt;/a&gt;, botãozinho azul!)&lt;/li&gt;
+&lt;li&gt;O DebugKit (&lt;a href=&#34;https://github.com/cakephp/debug_kit&#34;&gt;https://github.com/cakephp/debug_kit&lt;/a&gt;, na lateral direita tem um link chamado “Download ZIP”)&lt;/li&gt;
+&lt;li&gt;O WideImage (&lt;a href=&#34;http://wideimage.sourceforge.net/download/&#34;&gt;http://wideimage.sourceforge.net/download/&lt;/a&gt;, aonde está escrito “download it”, baixe só o lib (terceiro da lista))&lt;/li&gt;
+&lt;li&gt;Um desenvolvedor web&lt;/li&gt;
+&lt;li&gt;Água&lt;/li&gt;
+&lt;li&gt;Pó de café&lt;/li&gt;
+&lt;li&gt;Uma cafeteira&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;modo-de-preparo&#34;&gt;Modo de preparo&lt;/h3&gt;
+
+&lt;p&gt;Primeiro você pega a água, o pó de café e a cafeteira pra fazer um café esperto e acompanhar este tutorial.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Preparando o ambiente!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Em seguida, descompacte o CakePHP no seu servidor local (eu uso o Xampp: &lt;a href=&#34;https://www.apachefriends.org/pt_br/index.html&#34;&gt;https://www.apachefriends.org/pt_br/index.html&lt;/a&gt;) para facilitar aqui.&lt;/li&gt;
+&lt;li&gt;Descompacte o DebugKit na pasta app/Plugin do CakePHP e renomeie o diretório &lt;strong&gt;debug_kit-master&lt;/strong&gt; para &lt;strong&gt;DebugKit&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;O FancyBox vai em &lt;em&gt;app/webroot&lt;/em&gt;, mas apenas a pasta source, e renomeie para fancy.&lt;/li&gt;
+&lt;li&gt;O WideImage pode ir em &lt;em&gt;app/Vendor/wideimage&lt;/em&gt; e dentro os arquivos dele de forma que o WideImage.php fique disponível em &lt;em&gt;app/Vendor/wideimage/WideImage.php&lt;/em&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Agora que temos todos os arquivos, vamos ativar o DebugKit pra poder ter as métricas de uso de memória, execução dos SQLs e outros dados.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Abra o arquivo &lt;em&gt;app/Config/bootstrap.php&lt;/em&gt; e cole o código abaixo (cod.1) na linha 72&lt;/li&gt;
+&lt;li&gt;Após isso abra o AppController.php (em &lt;em&gt;app/Controller&lt;/em&gt;) e cole o bloco cod.2 na linha 35, entre as chaves ({}) da classe AppController.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod.1::&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;CakePlugin::load(&#39;DebugKit&#39;);&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod.2::&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;public $components = array(
+&#39;DebugKit.Toolbar&#39;,
+&#39;Session&#39;
+);
+&lt;/pre&gt;
+
+&lt;p&gt;Se acessar sua aplicação agora vai ver que temos um pequeno botão no canto superior direito, ao clicar nele você já tem acesso aos dados da sua aplicação, em timer você vê o uso de memória.&lt;/p&gt;
+
+&lt;p&gt;Pra fechar, acesse o core.php em app/Config, procure e descomente a linha a seguir (aqui era a 152) removendo as barras do começo (//)&lt;/p&gt;
+
+&lt;pre&gt;Configure::write(&#39;Routing.prefixes&#39;, array(&#39;admin&#39;));&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Preparando a estrutura&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Pra começar vamos precisar de um banco de dados (vamos usar o MySql), execute o código abaixo (se quiser, use algo como PHPMyAdmin para ajudar) pra criar as tabelas:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod.3:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;-- --------------------------------------------------------
+
+--
+-- Estrutura da tabela `albuns`
+--
+
+CREATE TABLE IF NOT EXISTS `albuns` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `titulo` varchar(255) NOT NULL,
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura da tabela `imagens`
+--
+
+CREATE TABLE IF NOT EXISTS `imagens` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `url` varchar(250) NOT NULL,
+  `titulo` varchar(250) NOT NULL,
+  `descricao` text NOT NULL,
+  `albun_id` int(11) NOT NULL,
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+&lt;/pre&gt;
+
+&lt;p&gt;Preencha as linhas que comentei (host, login, password e database), com isso já temos o banco de dados também conectado, para verificar, acesse a aplicação no navegador e verifique a última mensagem dos blocos coloridos.&lt;/p&gt;
+
+&lt;p&gt;Para finalizar esta etapa de preparação, vamos criar os arquivos da galeria:&lt;/p&gt;
+
+&lt;p&gt;Em app/Model crie Albun.php e Imagen.php (e sim, com n, já que o CakePHP trabalha com singular e plural em inglês, até da pra mudar isso, mas o artigo já vai ficar enorme).&lt;/p&gt;
+
+&lt;p&gt;Em app/Controller crie AlbunsController.php e ImagensController.php&lt;/p&gt;
+
+&lt;p&gt;Em app/View crie 2 pastas (Albuns e Imagens) com 3 arquivos dentro de cada:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;admin_novo.ctp&lt;/li&gt;
+&lt;li&gt;admin_editar.ctp&lt;/li&gt;
+&lt;li&gt;admin_index.ctp&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;E apenas na pasta Albuns, crie mais 2 arquivos além dos dois que devem estar dentro dela e da Imagens:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ver.ctp&lt;/li&gt;
+&lt;li&gt;index.ctp&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A partir deste ponto é interessante que você conheça um pouco sobre MVC. Aqui vai uma dica: &lt;a href=&#34;http://blog.erikfigueiredo.com.br/exemplo-de-framework-com-psr-0-psr-1-e-psr-2-entendendo-o-padrao-mvc-na-pratica-parte-01/&#34;&gt;escrevi sobre isso aqui&lt;/a&gt;. Não precisa fazer o exemplo todo, apenas entender como é.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Relacionando as imagens com os albuns&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Em primeiro lugar precisamos entender como as imagens se relacionam com cada álbum, a própria documentação do CakePHP já fala sobre isso (&lt;a href=&#34;http://book.cakephp.org/2.0/en/models/associations-linking-models-together.html&#34;&gt;http://book.cakephp.org/2.0/en/models/associations-linking-models-together.html&lt;/a&gt;), infelizmente está em inglês, vou eu mesmo mostrar como é.&lt;/p&gt;
+
+&lt;p&gt;Temos 4 tipos possíveis de relacionamento entre tabelas.&lt;/p&gt;
+
+&lt;p&gt;Um para um &amp;#8211; hasOne&lt;/p&gt;
+
+&lt;p&gt;Um para muitos &amp;#8211; hasMany&lt;/p&gt;
+
+&lt;p&gt;Muitos para um &amp;#8211; belongTo&lt;/p&gt;
+
+&lt;p&gt;Muitos para muitos – hasAndBelongsToMany ou HABTM&lt;/p&gt;
+
+&lt;p&gt;Se você ler com calma já vai ver que é fácil de definir relacionamentos, no nosso caso imagens tem um álbum ou Muitos para Um, indo ao contrário, álbum te muitas imagens ou Um para Muitos, logo:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Album hasMany Imagem&lt;/p&gt;
+
+&lt;p&gt;Imagems belongsTo Album&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Entendeu a lógica por traz de definir os relacionamentos? Então vamos informar isso nos models.&lt;/p&gt;
+
+&lt;p&gt;Abra os arquivos Album.php e Imagem.php que estão em app/Model e vamos configurar:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 5:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;//Albun.php
+
+class Albun extends AppModel
+{
+    public $hasMany = array(&#39;Imagen&#39;);
+}
+
+// Imagen .php
+
+class Imagen extends AppModel
+{
+    public $belongsTo = array(&#39;Albun&#39;);
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Pronto, com isso sempre que buscarmos algo no banco de dados ele já vai incluir automaticamente os dados relacionados, ou seja, se eu listar o álbum, ele vai trazer todas as imagens deste determinado álbum e o contrário também vai acontecer (dizer a qual álbum a imagem pertence).&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Criando os controllers&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Os controllers vão decidir o que será feito na aplicação, ou seja, exibir o que? Pegar que infromação no banco? Que hora o upload deve ser feito? É muito simples, os dois arquivos devem ser salvos em app/Controller:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 6:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;//AlbunsController.php
+
+class AlbunsController extends AppController
+{
+    
+}
+
+//ImagensController.php
+
+class ImagensController extends AppController
+{
+    
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Configurando a criação de álbuns de imagens na administração&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;No controller álbuns (AlbunsController.php) crie uma função chamada admin_novo, assim:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 7:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;public function  admin_novo()
+{
+        if ($this-&amp;gt;request-&amp;gt;is(&#39;post&#39;)) {
+            $this-&amp;gt;Albun-&amp;gt;create();
+            if ($this-&amp;gt;Albun-&amp;gt;save($this-&amp;gt;request-&amp;gt;data)) {
+                $this-&amp;gt;Session-&amp;gt;setFlash(__(&#39;Album criado.&#39;));
+                return $this-&amp;gt;redirect(array(&#39;action&#39; =&amp;gt; &#39;index&#39;));
+            } else {
+                $this-&amp;gt;Session-&amp;gt;setFlash(__(&#39;Erro ao criar o álbum, tente novamente.&#39;));
+            }
+        }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Este action (o nome dado as &lt;em&gt;functions&lt;/em&gt; de cada página nos controllers do CakePHP) vai testar se o carregamento da página foi um post, se sim, ele informa que estamos criando um registro, tenta salvar o registro e envia para a index caso tenha sucesso, com uma mensagem de “Album criado”, caso contrário, apenas informa que algo deu errado.&lt;/p&gt;
+
+&lt;p&gt;A view desta action, ou o cara que vai exibir os dados na tela do usuário fica assim (arquivo app/View/Albuns/admin_novo.ctp):&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 7A:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;albuns form&#34;&amp;gt;
+&amp;lt;?php echo $this-&amp;gt;Form-&amp;gt;create(&#39;Albun&#39;); ?&amp;gt;
+ &amp;lt;fieldset&amp;gt;
+ &amp;lt;legend&amp;gt;Novo album&amp;lt;/legend&amp;gt;
+ &amp;lt;?php
+ echo $this-&amp;gt;Form-&amp;gt;input(&#39;titulo&#39;);
+ ?&amp;gt;
+ &amp;lt;/fieldset&amp;gt;
+&amp;lt;?php echo $this-&amp;gt;Form-&amp;gt;end(__(&#39;Submit&#39;)); ?&amp;gt;
+&amp;lt;/div&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Configurando a edição de álbuns de imagens na administração&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Muito parecido com add, mas dessa vez checando se o álbum especificado existe antes de salvar.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 8:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;public function admin_editar($id = null) {
+        if (!$this-&amp;gt;Albun-&amp;gt;exists($id)) {
+            throw new NotFoundException(__(&#39;Albun inválido&#39;));
+        }
+        if ($this-&amp;gt;request-&amp;gt;is(array(&#39;post&#39;, &#39;put&#39;))) {
+            if ($this-&amp;gt;Albun-&amp;gt;save($this-&amp;gt;request-&amp;gt;data)) {
+                $this-&amp;gt;Session-&amp;gt;setFlash(__(&#39;O álbum foi salvo.&#39;));
+                return $this-&amp;gt;redirect(array(&#39;action&#39; =&amp;gt; &#39;index&#39;));
+            } else {
+                $this-&amp;gt;Session-&amp;gt;setFlash(__(&#39;Erro ao criar o álbum, tente novamente.&#39;));
+            }
+        } else {
+            $options = array(&#39;conditions&#39; =&amp;gt; array(&#39;Albun.&#39; . $this-&amp;gt;Albun-&amp;gt;primaryKey =&amp;gt; $id));
+            $this-&amp;gt;request-&amp;gt;data = $this-&amp;gt;Albun-&amp;gt;find(&#39;first&#39;, $options);
+        }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;E a view (app/View/Albuns/admin_editar.ctp)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 8A:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;albuns form&#34;&amp;gt;
+&amp;lt;?php echo $this-&amp;gt;Form-&amp;gt;create(&#39;Albun&#39;); ?&amp;gt;
+ &amp;lt;fieldset&amp;gt;
+ &amp;lt;legend&amp;gt;Editando album&amp;lt;/legend&amp;gt;
+ &amp;lt;?php
+ echo $this-&amp;gt;Form-&amp;gt;input(&#39;id&#39;);
+ echo $this-&amp;gt;Form-&amp;gt;input(&#39;titulo&#39;);
+ ?&amp;gt;
+ &amp;lt;/fieldset&amp;gt;
+&amp;lt;?php echo $this-&amp;gt;Form-&amp;gt;end(__(&#39;Submit&#39;)); ?&amp;gt;
+&amp;lt;/div&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Configurando a remoção de álbuns de imagens na administração&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Também preciso remover o álbum quando não precisar mais dele. Temos uma action que pode cuidar disso, é bem parecido com a admin_editar, mas desta vez ele usa &lt;strong&gt;delete&lt;/strong&gt; em vez de &lt;strong&gt;save&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 9:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;public function admin_remover($id = null) {
+        $this-&amp;gt;Albun-&amp;gt;id = $id;
+        if (!$this-&amp;gt;Albun-&amp;gt;exists()) {
+            throw new NotFoundException(__(&#39;Invalid albun&#39;));
+        }
+        $this-&amp;gt;request-&amp;gt;onlyAllow(&#39;post&#39;, &#39;delete&#39;);
+        if ($this-&amp;gt;Albun-&amp;gt;delete()) {
+            $this-&amp;gt;Session-&amp;gt;setFlash(__(&#39;The albun has been deleted.&#39;));
+        } else {
+            $this-&amp;gt;Session-&amp;gt;setFlash(__(&#39;The albun could not be deleted. Please, try again.&#39;));
+        }
+        return $this-&amp;gt;redirect(array(&#39;action&#39; =&amp;gt; &#39;index&#39;));
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Este &lt;strong&gt;action&lt;/strong&gt; redireciona para index, então ele não tem uma view.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Configurando a listagem de álbuns de imagens na administração&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;E pra fechar a administração de álbuns, a listagem de álbuns com paginação:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 10:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;public function admin_index() {
+    $this-&amp;gt;Albun-&amp;gt;recursive = -1;
+    $this-&amp;gt;set(&#39;albuns&#39;, $this-&amp;gt;Paginator-&amp;gt;paginate());
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O &lt;strong&gt;recursive -1&lt;/strong&gt; impede que o álbum traga os dados relacionados que no nosso caso são as imagens, a segunda linha traz os álbuns salvos no banco com paginação (página 1, página 2&amp;#8230;).&lt;/p&gt;
+
+&lt;p&gt;Não esqueça de ativar o componente paginator no seu controller acrescentando a variável $components no inicio da classe AlbunsController (logo abaixo tem um exemplo na classe imagens)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 11:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;public $components = array(&#39;Paginator&#39;);
+&lt;/pre&gt;
+
+&lt;p&gt;E a view (app/View/Albuns/admin_index.ctp):&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 10A:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;div class=&#34;albuns index&#34;&amp;gt; &amp;lt;h2&amp;gt;Albuns&amp;lt;/h2&amp;gt;
+ &amp;lt;table cellpadding=&#34;0&#34; cellspacing=&#34;0&#34;&amp;gt;
+ &amp;lt;tr&amp;gt;
+ &amp;lt;th&amp;gt;&amp;lt;?php echo $this-&amp;gt;Paginator-&amp;gt;sort(&#39;id&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;th&amp;gt;&amp;lt;?php echo $this-&amp;gt;Paginator-&amp;gt;sort(&#39;titulo&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;th&amp;gt;&amp;lt;?php echo $this-&amp;gt;Paginator-&amp;gt;sort(&#39;created&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;th&amp;gt;&amp;lt;?php echo $this-&amp;gt;Paginator-&amp;gt;sort(&#39;modified&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;th class=&#34;actions&#34;&amp;gt;&amp;lt;?php echo __(&#39;Actions&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;/tr&amp;gt;
+ &amp;lt;?php foreach ($albuns as $albun): ?&amp;gt;
+ &amp;lt;tr&amp;gt;
+ &amp;lt;td&amp;gt;&amp;lt;?php echo h($albun[&#39;Albun&#39;][&#39;id&#39;]); ?&amp;gt;&amp;nbsp;&amp;lt;/td&amp;gt;
+ &amp;lt;td&amp;gt;&amp;lt;?php echo h($albun[&#39;Albun&#39;][&#39;titulo&#39;]); ?&amp;gt;&amp;nbsp;&amp;lt;/td&amp;gt;
+ &amp;lt;td&amp;gt;&amp;lt;?php echo h($albun[&#39;Albun&#39;][&#39;created&#39;]); ?&amp;gt;&amp;nbsp;&amp;lt;/td&amp;gt;
+ &amp;lt;td&amp;gt;&amp;lt;?php echo h($albun[&#39;Albun&#39;][&#39;modified&#39;]); ?&amp;gt;&amp;nbsp;&amp;lt;/td&amp;gt;
+ &amp;lt;td class=&#34;actions&#34;&amp;gt;
+ &amp;lt;?php echo $this-&amp;gt;Html-&amp;gt;link(&#39;Editar&#39;, array(&#39;action&#39; =&amp;gt; &#39;editar&#39;, $albun[&#39;Albun&#39;][&#39;id&#39;])); ?&amp;gt;
+ &amp;lt;?php echo $this-&amp;gt;Form-&amp;gt;postLink(&#39;Remover&#39;, array(&#39;action&#39; =&amp;gt; &#39;remover&#39;, $albun[&#39;Albun&#39;][&#39;id&#39;]), null, __(&#39;Tem certeza que quer remover # %s?&#39;, $albun[&#39;Albun&#39;][&#39;titulo&#39;])); ?&amp;gt;
+ &amp;lt;/td&amp;gt;
+ &amp;lt;/tr&amp;gt;
+&amp;lt;?php endforeach; ?&amp;gt;
+ &amp;lt;/table&amp;gt;
+ &amp;lt;p&amp;gt;
+ &amp;lt;?php
+ echo $this-&amp;gt;Paginator-&amp;gt;counter(array(
+ &#39;format&#39; =&amp;gt; __(&#39;Page {:page} of {:pages}, showing {:current} records out of {:count} total, starting on record {:start}, ending on {:end}&#39;)
+ ));
+ ?&amp;gt; &amp;lt;/p&amp;gt;
+ &amp;lt;div class=&#34;paging&#34;&amp;gt;
+ &amp;lt;?php
+ echo $this-&amp;gt;Paginator-&amp;gt;prev(&#39;&amp;lt; &#39; . __(&#39;previous&#39;), array(), null, array(&#39;class&#39; =&amp;gt; &#39;prev disabled&#39;));
+ echo $this-&amp;gt;Paginator-&amp;gt;numbers(array(&#39;separator&#39; =&amp;gt; &#39;&#39;));
+ echo $this-&amp;gt;Paginator-&amp;gt;next(__(&#39;next&#39;) . &#39; &amp;gt;&#39;, array(), null, array(&#39;class&#39; =&amp;gt; &#39;next disabled&#39;));
+ ?&amp;gt;
+ &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+&amp;lt;div class=&#34;actions&#34;&amp;gt;
+ &amp;lt;h3&amp;gt;Actions&amp;lt;/h3&amp;gt;
+ &amp;lt;ul&amp;gt;
+ &amp;lt;li&amp;gt;&amp;lt;?php echo $this-&amp;gt;Html-&amp;gt;link(__(&#39;Novo&#39;), array(&#39;action&#39; =&amp;gt; &#39;novo&#39;)); ?&amp;gt;&amp;lt;/li&amp;gt;
+ &amp;lt;/ul&amp;gt;
+&amp;lt;/div&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Configurando a administração de imagens&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;A administração de imagens é bem parecida com a de álbuns, vou apenas passar o código pra gente não se estender muito, mas está bem simples de entender.&lt;/p&gt;
+
+&lt;p&gt;Primeiro o controller ImagensController.php&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 12:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;public $components = array(&#39;Paginator&#39;);
+
+    public function admin_index() {
+        $this-&amp;gt;Imagen-&amp;gt;recursive = 0;
+        $this-&amp;gt;set(&#39;imagens&#39;, $this-&amp;gt;Paginator-&amp;gt;paginate());
+    }
+
+    public function admin_novo() {
+        if ($this-&amp;gt;request-&amp;gt;is(&#39;post&#39;)) {
+            $this-&amp;gt;Imagen-&amp;gt;create();
+            $this-&amp;gt;request-&amp;gt;data[&#39;Imagen&#39;][&#39;url&#39;] = $this-&amp;gt;Imagen-&amp;gt;upload($this-&amp;gt;request-&amp;gt;data[&#39;Imagen&#39;][&#39;url&#39;], $this-&amp;gt;request-&amp;gt;data[&#39;Imagen&#39;][&#39;albun_id&#39;]);
+            if ($this-&amp;gt;Imagen-&amp;gt;save($this-&amp;gt;request-&amp;gt;data)) {
+                $this-&amp;gt;Session-&amp;gt;setFlash(__(&#39;The imagen has been saved.&#39;));
+                return $this-&amp;gt;redirect(array(&#39;action&#39; =&amp;gt; &#39;index&#39;));
+            } else {
+                $this-&amp;gt;Session-&amp;gt;setFlash(__(&#39;The imagen could not be saved. Please, try again.&#39;));
+            }
+        }
+        $albuns = $this-&amp;gt;Imagen-&amp;gt;Albun-&amp;gt;find(&#39;list&#39;, array(&#39;fields&#39;=&amp;gt;array(&#39;id&#39;,&#39;titulo&#39;)));
+        $this-&amp;gt;set(compact(&#39;albuns&#39;));
+    }
+
+    public function admin_editar($id = null) {
+        if (!$this-&amp;gt;Imagen-&amp;gt;exists($id)) {
+            throw new NotFoundException(__(&#39;Invalid imagen&#39;));
+        }
+        if ($this-&amp;gt;request-&amp;gt;is(array(&#39;post&#39;, &#39;put&#39;))) {
+            $this-&amp;gt;request-&amp;gt;data[&#39;Imagen&#39;][&#39;url&#39;] = $this-&amp;gt;Imagen-&amp;gt;upload($this-&amp;gt;request-&amp;gt;data[&#39;Imagen&#39;][&#39;url&#39;], $this-&amp;gt;request-&amp;gt;data[&#39;Imagen&#39;][&#39;albun_id&#39;]);
+            if ($this-&amp;gt;Imagen-&amp;gt;save($this-&amp;gt;request-&amp;gt;data)) {
+                $this-&amp;gt;Session-&amp;gt;setFlash(__(&#39;The imagen has been saved.&#39;));
+                return $this-&amp;gt;redirect(array(&#39;action&#39; =&amp;gt; &#39;index&#39;));
+            } else {
+                $this-&amp;gt;Session-&amp;gt;setFlash(__(&#39;The imagen could not be saved. Please, try again.&#39;));
+            }
+        } else {
+            $options = array(&#39;conditions&#39; =&amp;gt; array(&#39;Imagen.&#39; . $this-&amp;gt;Imagen-&amp;gt;primaryKey =&amp;gt; $id));
+            $this-&amp;gt;request-&amp;gt;data = $this-&amp;gt;Imagen-&amp;gt;find(&#39;first&#39;, $options);
+        }
+        $albums = $this-&amp;gt;Imagen-&amp;gt;Albun-&amp;gt;find(&#39;list&#39;, array(&#39;fields&#39;=&amp;gt;array(&#39;id&#39;,&#39;titulo&#39;)));
+        $this-&amp;gt;set(compact(&#39;albums&#39;));
+    }
+
+    public function admin_remover($id = null) {
+        $this-&amp;gt;Imagen-&amp;gt;id = $id;
+        if (!$this-&amp;gt;Imagen-&amp;gt;exists()) {
+            throw new NotFoundException(__(&#39;Invalid imagen&#39;));
+        }
+        $this-&amp;gt;request-&amp;gt;onlyAllow(&#39;post&#39;, &#39;delete&#39;);
+        if ($this-&amp;gt;Imagen-&amp;gt;delete()) {
+            $this-&amp;gt;Session-&amp;gt;setFlash(__(&#39;The imagen has been deleted.&#39;));
+        } else {
+            $this-&amp;gt;Session-&amp;gt;setFlash(__(&#39;The imagen could not be deleted. Please, try again.&#39;));
+        }
+        return $this-&amp;gt;redirect(array(&#39;action&#39; =&amp;gt; &#39;index&#39;));
+    }
+&lt;/pre&gt;
+
+&lt;p&gt;E as views:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 12A:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;//app/View/Imagens/admin_index.ctp
+&amp;lt;div class=&#34;imagens index&#34;&amp;gt;
+ &amp;lt;h2&amp;gt;Imagens&amp;lt;/h2&amp;gt;
+ &amp;lt;table cellpadding=&#34;0&#34; cellspacing=&#34;0&#34;&amp;gt;
+ &amp;lt;tr&amp;gt;
+ &amp;lt;th&amp;gt;&amp;lt;?php echo $this-&amp;gt;Paginator-&amp;gt;sort(&#39;id&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;th&amp;gt;&amp;lt;?php echo $this-&amp;gt;Paginator-&amp;gt;sort(&#39;imagem&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;th&amp;gt;&amp;lt;?php echo $this-&amp;gt;Paginator-&amp;gt;sort(&#39;titulo&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;th&amp;gt;&amp;lt;?php echo $this-&amp;gt;Paginator-&amp;gt;sort(&#39;descricao&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;th&amp;gt;&amp;lt;?php echo $this-&amp;gt;Paginator-&amp;gt;sort(&#39;albun_id&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;th&amp;gt;&amp;lt;?php echo $this-&amp;gt;Paginator-&amp;gt;sort(&#39;created&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;th&amp;gt;&amp;lt;?php echo $this-&amp;gt;Paginator-&amp;gt;sort(&#39;modified&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;th class=&#34;actions&#34;&amp;gt;&amp;lt;?php echo __(&#39;Actions&#39;); ?&amp;gt;&amp;lt;/th&amp;gt;
+ &amp;lt;/tr&amp;gt;
+ &amp;lt;?php foreach ($imagens as $imagen): ?&amp;gt;
+ &amp;lt;tr&amp;gt;
+ &amp;lt;td&amp;gt;&amp;lt;?php echo h($imagen[&#39;Imagen&#39;][&#39;id&#39;]); ?&amp;gt;&amp;nbsp;&amp;lt;/td&amp;gt;
+ &amp;lt;td&amp;gt;&amp;lt;?php echo h($imagen[&#39;Imagen&#39;][&#39;url&#39;]); ?&amp;gt;&amp;nbsp;&amp;lt;/td&amp;gt;
+ &amp;lt;td&amp;gt;&amp;lt;?php echo h($imagen[&#39;Imagen&#39;][&#39;titulo&#39;]); ?&amp;gt;&amp;nbsp;&amp;lt;/td&amp;gt;
+ &amp;lt;td&amp;gt;&amp;lt;?php echo h($imagen[&#39;Imagen&#39;][&#39;descricao&#39;]); ?&amp;gt;&amp;nbsp;&amp;lt;/td&amp;gt;
+ &amp;lt;td&amp;gt;&amp;lt;?php echo h($imagen[&#39;Imagen&#39;][&#39;albun_id&#39;]); ?&amp;gt;&amp;nbsp;&amp;lt;/td&amp;gt;
+ &amp;lt;td&amp;gt;&amp;lt;?php echo h($imagen[&#39;Imagen&#39;][&#39;created&#39;]); ?&amp;gt;&amp;nbsp;&amp;lt;/td&amp;gt;
+ &amp;lt;td&amp;gt;&amp;lt;?php echo h($imagen[&#39;Imagen&#39;][&#39;modified&#39;]); ?&amp;gt;&amp;nbsp;&amp;lt;/td&amp;gt;
+ &amp;lt;td class=&#34;actions&#34;&amp;gt;
+ &amp;lt;?php echo $this-&amp;gt;Html-&amp;gt;link(&#39;Editar&#39;, array(&#39;action&#39; =&amp;gt; &#39;editar&#39;, $imagen[&#39;Imagen&#39;][&#39;id&#39;])); ?&amp;gt;
+ &amp;lt;?php echo $this-&amp;gt;Form-&amp;gt;postLink(&#39;Delete&#39;, array(&#39;action&#39; =&amp;gt; &#39;remover&#39;, $imagen[&#39;Imagen&#39;][&#39;id&#39;]), null, __(&#39;Tem certeza que quer remover # %s?&#39;, $imagen[&#39;Imagen&#39;][&#39;titulo&#39;])); ?&amp;gt;
+ &amp;lt;/td&amp;gt;
+ &amp;lt;/tr&amp;gt;
+&amp;lt;?php endforeach; ?&amp;gt;
+ &amp;lt;/table&amp;gt;
+ &amp;lt;p&amp;gt;
+ &amp;lt;?php
+ echo $this-&amp;gt;Paginator-&amp;gt;counter(array(
+ &#39;format&#39; =&amp;gt; __(&#39;Page {:page} of {:pages}, showing {:current} records out of {:count} total, starting on record {:start}, ending on {:end}&#39;)
+ ));
+ ?&amp;gt; &amp;lt;/p&amp;gt;
+ &amp;lt;div class=&#34;paging&#34;&amp;gt;
+ &amp;lt;?php
+ echo $this-&amp;gt;Paginator-&amp;gt;prev(&#39;&amp;lt; &#39; . __(&#39;previous&#39;), array(), null, array(&#39;class&#39; =&amp;gt; &#39;prev disabled&#39;));
+ echo $this-&amp;gt;Paginator-&amp;gt;numbers(array(&#39;separator&#39; =&amp;gt; &#39;&#39;));
+ echo $this-&amp;gt;Paginator-&amp;gt;next(__(&#39;next&#39;) . &#39; &amp;gt;&#39;, array(), null, array(&#39;class&#39; =&amp;gt; &#39;next disabled&#39;));
+ ?&amp;gt;
+ &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+&amp;lt;div class=&#34;actions&#34;&amp;gt;
+ &amp;lt;h3&amp;gt;Actions&amp;lt;/h3&amp;gt;
+ &amp;lt;ul&amp;gt;
+ &amp;lt;li&amp;gt;&amp;lt;?php echo $this-&amp;gt;Html-&amp;gt;link(__(&#39;Novo&#39;), array(&#39;action&#39; =&amp;gt; &#39;novo&#39;)); ?&amp;gt;&amp;lt;/li&amp;gt;
+ &amp;lt;/ul&amp;gt;
+&amp;lt;/div&amp;gt;
+
+//app/View/Imagens/admin_novo.ctp
+&amp;lt;div class=&#34;imagens form&#34;&amp;gt;
+&amp;lt;?php echo $this-&amp;gt;Form-&amp;gt;create(&#39;Imagen&#39;,array(&#39;type&#39;=&amp;gt;&#39;file&#39;)); ?&amp;gt;
+ &amp;lt;fieldset&amp;gt;
+ &amp;lt;legend&amp;gt;Nova imagem&amp;lt;/legend&amp;gt;
+ &amp;lt;?php
+ echo $this-&amp;gt;Form-&amp;gt;input(&#39;url&#39;,array(&#39;type&#39;=&amp;gt;&#39;file&#39;));
+ echo $this-&amp;gt;Form-&amp;gt;input(&#39;titulo&#39;);
+ echo $this-&amp;gt;Form-&amp;gt;input(&#39;descricao&#39;);
+ echo $this-&amp;gt;Form-&amp;gt;input(&#39;albun_id&#39;);
+ ?&amp;gt;
+ &amp;lt;/fieldset&amp;gt;
+&amp;lt;?php echo $this-&amp;gt;Form-&amp;gt;end(__(&#39;Submit&#39;)); ?&amp;gt;
+&amp;lt;/div&amp;gt;
+
+//app/View/Imagens/admin_editar.ctp
+&amp;lt;div class=&#34;imagens form&#34;&amp;gt;
+&amp;lt;?php echo $this-&amp;gt;Form-&amp;gt;create(&#39;Imagen&#39;); ?&amp;gt;
+ &amp;lt;fieldset&amp;gt;
+ &amp;lt;legend&amp;gt;Editando imagem&amp;lt;/legend&amp;gt;
+ &amp;lt;?php
+ echo $this-&amp;gt;Form-&amp;gt;input(&#39;id&#39;);
+ echo $this-&amp;gt;Form-&amp;gt;input(&#39;url&#39;);
+ echo $this-&amp;gt;Form-&amp;gt;input(&#39;titulo&#39;);
+ echo $this-&amp;gt;Form-&amp;gt;input(&#39;descricao&#39;);
+ echo $this-&amp;gt;Form-&amp;gt;input(&#39;albun_id&#39;);
+ ?&amp;gt;
+ &amp;lt;/fieldset&amp;gt;
+&amp;lt;?php echo $this-&amp;gt;Form-&amp;gt;end(__(&#39;Submit&#39;)); ?&amp;gt;
+&amp;lt;/div&amp;gt;
+
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Configurando o upload e tratamento de imagens&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Note nas actions admin_novo e admin_editar do ImagensController que você tem uma linha assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;$this-&amp;gt;request-&amp;gt;data[&#39;Imagen&#39;][&#39;url&#39;] = $this-&amp;gt;Imagen-&amp;gt;upload($this-&amp;gt;request-&amp;gt;data[&#39;Imagen&#39;][&#39;url&#39;], $this-&amp;gt;request-&amp;gt;data[&#39;Imagen&#39;][&#39;albun_id&#39;]);
+&lt;/pre&gt;
+
+&lt;p&gt;Ela carrega uma função do model Imagen.php chamada upload que cuida de salvar os dados do arquivo enviado ($this-&amp;gt;request-&amp;gt;data[&amp;#8216;Imagen&amp;#8217;][&amp;#8216;url&amp;#8217;]) e também criar uma pasta com o id do álbum atual ($this-&amp;gt;request-&amp;gt;data[&amp;#8216;Imagen&amp;#8217;][&amp;#8216;albun_id&amp;#8217;]) no diretório app/webroot/img, mas o que ela faz ao certo?&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Primeiro vamos verificar se o arquivo enviado tem o tipo certo (jpeg, gif, png&amp;#8230;)&lt;/li&gt;
+&lt;li&gt;Em seguida verificamos se deu tudo certo durante o upload&lt;/li&gt;
+&lt;li&gt;Caso tenha, checo se o diretório aonde as imagens vão fica existe (será em app/webroot/img/album/{id do álbum}), se não existir eu crio&lt;/li&gt;
+&lt;li&gt;Então parto pra etapa de conversão de nome, transformando em um formato aceito na web, mas sem perder o nome de arquivo que o usuário tinha antes&lt;/li&gt;
+&lt;li&gt;E uso o WideImage pra ajustar a imagem para um tamanho aproximado de 800x600px e criar uma miniatura de 250x250px exatos (cortando o excesso a partir de centro da imagem)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;O código completo vai no app/Model/Imagen.php, logo a baixo da linha da variável $belongsTo:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 13:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;public function upload($arquivo, $id) {
+        $ext = array(
+            &#39;image/jpeg&#39;,
+            &#39;image/pjpeg&#39;,
+            &#39;image/x-jps&#39;,
+            &#39;image/png&#39;,
+            &#39;image/gif&#39;,
+        );
+        
+        if ($arquivo[&#39;error&#39;]!=0 || $arquivo[&#39;size&#39;]==0 || !in_array($arquivo[&#39;type&#39;], $ext)){
+            return false;
+        }
+        
+        
+        if(!is_dir(WWW_ROOT.&#39;img&#39;.DS.&#39;album&#39;.DS.$id)){  
+            App::uses(&#39;Folder&#39;, &#39;Utility&#39;); 
+            
+            $folder = new Folder();
+            if($folder-&amp;gt;create(WWW_ROOT.&#39;img&#39;.DS.&#39;album&#39;.DS.$id)){  
+                //se conseguiu criar o diretório eu dou permissão  
+                $folder-&amp;gt;chmod(WWW_ROOT.&#39;img&#39;.DS.&#39;album&#39;.DS.$id, 0755, true);  
+            } else {  
+                return false;  
+            }
+            $folder = new Folder();
+            if($folder-&amp;gt;create(WWW_ROOT.&#39;img&#39;.DS.&#39;album&#39;.DS.$id.DS.&#39;thumb&#39;)){  
+                //se conseguiu criar o diretório eu dou permissão  
+                $folder-&amp;gt;chmod(WWW_ROOT.&#39;img&#39;.DS.&#39;album&#39;.DS.$id.DS.&#39;thumb&#39;, 0755, true);  
+            } else {  
+                return false;  
+            }
+        }
+        
+        $pathinfo=pathinfo($arquivo[&#39;name&#39;]);
+        $pathinfo[&#39;filename&#39;]=strtolower(Inflector::slug($pathinfo[&#39;filename&#39;],&#39;-&#39;));
+        $arquivo[&#39;name&#39;]=$pathinfo[&#39;filename&#39;].&#39;.&#39;.$pathinfo[&#39;extension&#39;];
+        
+        App::import(&#39;Vendor&#39;, &#39;wideimage/WideImage&#39;);  
+        $img = WideImage::load($arquivo[&#39;tmp_name&#39;]);  
+        $img = $img-&amp;gt;resize(800,600,&#39;outside&#39;);  
+        $min = $img-&amp;gt;resize(250,250,&#39;outside&#39;);  
+        $min = $min-&amp;gt;crop(&#39;50%-125&#39;,&#39;50%-125&#39;,250,250);
+        $img-&amp;gt;saveToFile(WWW_ROOT.&#39;img&#39;.DS.&#39;album&#39;.DS.$id.DS.$arquivo[&#39;name&#39;]);
+        $min-&amp;gt;saveToFile(WWW_ROOT.&#39;img&#39;.DS.&#39;album&#39;.DS.$id.DS.&#39;thumb&#39;.DS.$arquivo[&#39;name&#39;]);
+        
+        return $arquivo[&#39;name&#39;];
+    }
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Listando os álbuns&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Bem, nossa aplicação já está salvando a imagem, já cria álbuns e associa um ao outro, mas ainda não mostra o resultado final, vamos configurar isso.&lt;/p&gt;
+
+&lt;p&gt;Primeiro precisamos de uma listagem de álbuns com uma miniatura e um titulo para o usuário escolher o que quer ver.&lt;/p&gt;
+
+&lt;p&gt;Vou configurar para que a miniatura seja a primeira imagem do álbum, vamos ao controller (app/Controller/AlbunsController.php):&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 14:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;public function index() {
+        $albuns = $this-&amp;gt;Albun-&amp;gt;find(
+            &#39;all&#39;,
+            array(
+                &#39;contain&#39;=&amp;gt;array(
+                    &#39;Imagen&#39;=&amp;gt;array(
+                        &#39;limit&#39;=&amp;gt;1
+                    )
+                )
+            )
+        );
+        $this-&amp;gt;set(&#39;albuns&#39;, $albuns);
+    }
+&lt;/pre&gt;
+
+&lt;p&gt;Você viu que eu usei o contain ali dentro do array, isso é um behavior e ele precisa ser chamado no Model pra funcionar, para isso vá ao model Albun.php e acrescente a variável antes ou depois da var $hasMany:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 14A:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;public $actsAs = array(&#39;Containable&#39;);&lt;/pre&gt;
+
+&lt;p&gt;A view é a &lt;em&gt;app/Albuns/index.ctp&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 14B:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;?php
+
+foreach ($albuns as $v) :
+ if(!empty($v[&#39;Imagen&#39;][0][&#39;url&#39;])) {
+ echo &#39;&amp;lt;div style=&#34;float:left&#34;&amp;gt;&#39;;
+ $img = $this-&amp;gt;Html-&amp;gt;image(&#39;album/&#39;.$v[&#39;Albun&#39;][&#39;id&#39;].&#39;/40/&#39;.$v[&#39;Imagen&#39;][0][&#39;url&#39;]);
+ echo $this-&amp;gt;Html-&amp;gt;link($img,&#39;/albuns/ver/&#39;.$v[&#39;Albun&#39;][&#39;id&#39;],array(&#39;escape&#39;=&amp;gt;false)).&#39;&amp;lt;br&amp;gt;&#39;;
+ echo $v[&#39;Albun&#39;][&#39;titulo&#39;];
+ echo &#39;&amp;lt;/div&amp;gt;&#39;;
+ }
+endforeach;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Listando as imagens de cada álbum&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;E pra fechar nossa galeria faltou apenas criarmos a exibição da galeria em si, para isso devemos trazer o nosso álbum e o CakePHP já vai trazer os dados relacionados a ele (que no nosso caso são as imagens):&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 15:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;public function ver($id = null) {
+        if (!$this-&amp;gt;Albun-&amp;gt;exists($id)) {
+            throw new NotFoundException(__(&#39;Invalid albun&#39;));
+        }
+        
+        $options = array(&#39;conditions&#39; =&amp;gt; array(&#39;Albun.&#39; . $this-&amp;gt;Albun-&amp;gt;primaryKey =&amp;gt; $id));
+        $album = $this-&amp;gt;Albun-&amp;gt;find(&#39;first&#39;, $options);
+        $this-&amp;gt;set(&#39;album&#39;, $album);
+    }
+&lt;/pre&gt;
+
+&lt;p&gt;A view ver.ctp(não vou falar o caminho desta vez, deve ter ficado claro pra você) de álbuns vai exibir o html já formatado para eu usar o Fancybox, ou seja, imagem dentro de um link.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 15A:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;h3&amp;gt;&amp;lt;?php echo $album[&#39;Albun&#39;][&#39;titulo&#39;];?&amp;gt;&amp;lt;/h3&amp;gt;
+&amp;lt;?php foreach ($album[&#39;Imagen&#39;] as $v) :
+ $img = $this-&amp;gt;Html-&amp;gt;image(&#39;album/&#39;.$album[&#39;Albun&#39;][&#39;id&#39;].&#39;/40/&#39;.$v[&#39;url&#39;]);
+ echo $this-&amp;gt;Html-&amp;gt;link(
+ $img,
+ &#39;/img/album/&#39;.$album[&#39;Albun&#39;][&#39;id&#39;].&#39;/&#39;.$v[&#39;url&#39;],
+ array(
+ &#39;escape&#39;=&amp;gt;false,
+ &#39;class&#39;=&amp;gt;&#39;fancy&#39;,
+ &#39;alt&#39;=&amp;gt;$v[&#39;descricao&#39;],
+ &#39;title&#39;=&amp;gt;$v[&#39;titulo&#39;],
+ &#39;rel&#39;=&amp;gt;$album[&#39;Albun&#39;][&#39;titulo&#39;]
+ )
+ );
+endforeach;?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Integrando ao FancyBox&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O Fancybox é um plugin para frontend, então o processo é o mesmo que em qualquer outro lugar, basta criar o HTML da galeria no formato que ele usa (fizemos isso no passo anterior) e chamar os javascripts, css e configurar o plugin.&lt;/p&gt;
+
+&lt;p&gt;Ainda na view ver.ctp de Albuns, faça isso logo no final:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cod. 16:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;Html-&amp;gt;script(
+        array(
+            &#39;//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js&#39;,
+            &#39;/fancy/jquery.fancybox.pack&#39;
+        ),
+        array(&#39;inline&#39;=&amp;gt;false)
+    );
+    echo $this-&amp;gt;Html-&amp;gt;css(
+        array(&#39;/fancy/jquery.fancybox&#39;),
+        null,
+        array(&#39;inline&#39;=&amp;gt;false)
+    );
+    echo $this-&amp;gt;Html-&amp;gt;scriptBlock(
+        &#39;$(&#34;.fancy&#34;).fancybox();&#39;,
+        array(&#39;inline&#39;=&amp;gt;false)
+    );
+?&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;O primeiro bloco (Html-&amp;gt;script) chama os javascripts (o jquery do server do Google e o jquery.fancybox.pack.js que está no diretório webroot).&lt;/p&gt;
+
+&lt;p&gt;O segundo bloco (Html-&amp;gt;css) faz o mesmo com o css local.&lt;/p&gt;
+
+&lt;p&gt;E o terceiro cria um bloco &amp;#8230; configurando o Fancybox, note que eu coloquei tudo com inline=&amp;gt;false assim ele não imprime isso na view e sim nas tags script e css que estão no nosso arquivo app/View/Layout/default.ctp (já vem no CakePHP) pra evitar a bagunça (como se o javacript direto na página fosse muito organizado, mas deu pra entender bem como proceder).&lt;/p&gt;
+
+&lt;h3 id=&#34;como-usar&#34;&gt;Como usar?&lt;/h3&gt;
+
+&lt;p&gt;Fácil, você tem três urls base:&lt;/p&gt;
+
+&lt;p&gt;/albuns – listagem de álbuns&lt;/p&gt;
+
+&lt;p&gt;/admin/abuns – administração de álbuns&lt;/p&gt;
+
+&lt;p&gt;/admin/imagens – administração de imagens&lt;/p&gt;
+
+&lt;p&gt;Além disso você ainda pode usar estas urls, mas a navegação da galeria já vai te guia por elas:&lt;/p&gt;
+
+&lt;p&gt;/admin/novo&lt;/p&gt;
+
+&lt;p&gt;/admin/albuns/editar/{id do album}&lt;/p&gt;
+
+&lt;p&gt;/admin/albuns/remover/{id do álbum}&lt;/p&gt;
+
+&lt;p&gt;/admin/novo&lt;/p&gt;
+
+&lt;p&gt;/admin/imagens/editar/{id da imagem}&lt;/p&gt;
+
+&lt;p&gt;/admin/imagens/remover/{id da imagem}&lt;/p&gt;
+
+&lt;p&gt;/albuns/ver/{id do album}&lt;/p&gt;
+
+&lt;p&gt;Perceba que cada action gerou uma url e que o admin_ gerou um /admin em cada action, além dos ids e os controllers, no fim você entende que as urls seguem o padrão&lt;/p&gt;
+
+&lt;p&gt;/:prefixo/:controller/:action – lembrando que o prefixo é o admin&lt;/p&gt;
+
+&lt;p&gt;Ou&lt;/p&gt;
+
+&lt;p&gt;/:controller/:action&lt;/p&gt;
+
+&lt;p&gt;Ou&lt;/p&gt;
+
+&lt;p&gt;/:controller – e action passada é a index por padrão quando uma não for especificada.&lt;/p&gt;
+
+&lt;p&gt;Isso ainda pode ser personalizado, mas é outro assunto.&lt;/p&gt;
+
+&lt;h3 id=&#34;conclusão-western&#34;&gt;Conclusão {.western}&lt;/h3&gt;
+
+&lt;p&gt;Note que esta é uma tarefa normalmente dispendiosa, é uma administração completa de galeria de imagens que embora simples é bem completa e eu consegui resumir tudo em poucas linhas de código e um artigo apenas.&lt;/p&gt;
+
+&lt;p&gt;Você ainda precisa proteger a administração da sua aplicação com senha, adicionar um controle de imagens melhor, checar se o arquivo existe e alterar o nome para não substituir, apagar a imagem quando o dado for apagado do banco (tanto o álbum quanto as imagens), remover a imagem antiga quando troca no admin_editar, setar imagem de capa do álbum&amp;#8230; enfim, mas agora você tem um norte pra começar a trabalhar.&lt;/p&gt;
+
+&lt;p&gt;Aqui o arquivo pronto para download (o sql do banco está em app/Config/Schema/database.sql): &lt;a href=&#34;http://blog.erikfigueiredo.com.br/galeria.zip&#34;&gt;http://blog.erikfigueiredo.com.br/galeria.zip&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Obrigado a todos.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

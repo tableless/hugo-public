@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/criando-um-widget-de-artigos-populares-por-numero-de-visualizacoes/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/criando-um-widget-de-artigos-populares-por-numero-de-visualizacoes/">Criando um widget de “Artigos Populares” por numero de visualizações</a></h1>
+  <p class="tb-hero-p">
+    
+    Recentemente tive que implementar um widget de artigos populares para um cliente. Acontece que até então a única maneira que eu sabia fazer isso era ordenando os posts por número de comentários. Propus a solução ao meu cliente e o mesmo disse que queria que o mesmo fosse ordenados por número de visualizações. Bom, nunca tinha feito isso, então corri atrás de alguns artigos &#8220;gringos&#8221; explicando como fazer e me espantei sobre como era simples.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/l%C3%A9o-juoli">Léo Juoli</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      <p>Recentemente tive que implementar um widget de artigos populares para um cliente. Acontece que até então a única maneira que eu sabia fazer isso era ordenando os posts por número de comentários. Propus a solução ao meu cliente e o mesmo disse que queria que o mesmo fosse ordenados por número de visualizações. Bom, nunca tinha feito isso, então corri atrás de alguns artigos &#8220;gringos&#8221; explicando como fazer e me espantei sobre como era simples.</p>
+
+<p>Primeiro de tudo, precisamos encontrar uma maneira de registrar cada visita do artigo. Para que isso seja possível adicionamos esse código no <strong>functions.php</strong> do tema:</p>
+
+<pre class="lang-php">/* Populares */
+function wpb_set_post_views($postID) {
+$cookie = strtotime(date('Y-m-d'));
+ $pv_url = 'wpmidia_'.md5($_SERVER['REQUEST_URI']);
+ 
+ if( is_single() && !isset($_COOKIE[$pv_url]) ){
+ $count_key = 'wpb_post_views_count';
+ $count = get_post_meta($postID, $count_key, true);
+ if($count==''){
+ $count = 0;
+ delete_post_meta($postID, $count_key);
+ add_post_meta($postID, $count_key, '0');</pre>
+
+<pre>setcookie($pv_url, $cookie, time()+3600, COOKIEPATH, COOKIE_DOMAIN, false); // 1 hora
+ }else{
+ $count++;
+ update_post_meta($postID, $count_key, $count);
+ setcookie($pv_url, $cookie, time()+3600, COOKIEPATH, COOKIE_DOMAIN, false); // 1 hora
+ }
+ }
+}
+//To keep the count accurate, lets get rid of prefetching
+remove_action( 'wp_head', 'adjacent_posts_rel_link_wp_head', 10, 0);
+function wpb_track_post_views ($post_id) {
+ if ( !is_single() ) return;
+ if ( empty ( $post_id) ) {
+ global $post;
+ $post_id = $post-&gt;ID; 
+ }
+ wpb_set_post_views($post_id);
+}
+add_action( 'wp_head', 'wpb_track_post_views');</pre>
+
+<p>A segunda função <strong>wpb_track_post_views</strong> vai basicamente chamar a primeira função toda vez que o tipo de página for &#8220;single&#8221;, ou seja, em todos os artigos. É essencial que seu template tenha a chamada <code>wp_head();</code> no header do tema. A primeira função vai registrar mais uma visualização do post em nosso banco de dados pela variável <code>$count_key</code>. Só que tem um pequeno problema que já contornamos no nosso código: toda vez que um usuário der refresh na página ele registraria mais uma visualização, isso faria com que usuários comuns conseguissem burlar, sem querer (ou por querer, sei lá), os posts. Como dito, conseguimos driblar isso, no código usamos o <code>setcookie</code> para criar um cookie no navegador e impedir que a função seja chamada nos próximos 3600 segundos ou 1 hora (você pode alterar se quiser).</p>
+
+<p>Dito isso, não adiantaria nada se não pudêssemos chamar essa função. Para isso adicionamos mais um trecho no <strong>functions.php</strong> do tema:</p>
+
+<pre class="lang-php">function wpb_get_post_views($postID){
+ $count_key = 'wpb_post_views_count';
+ $count = get_post_meta($postID, $count_key, true);
+ if($count==''){
+ delete_post_meta($postID, $count_key);
+ add_post_meta($postID, $count_key, '0');
+ return "0 View";
+ }
+ return $count.' Views';
+ }</pre>
+
+<p>A função acima serve também para retornar o numero de visualizações que o artigo teve, basta chama-la com wpb_get_post_views($id), sendo $id o ID do artigo.</p>
+
+<p>Agora que implementamos todas as funções precisamos exibir isso em algum lugar e o código abaixo serve justamente para isso:</p>
+
+<pre class="lang-html">&lt;ul&gt;
+ &lt;?php $popularpost = new WP_Query( array( 'posts_per_page' =&gt; 5, 'meta_key' =&gt; 'wpb_post_views_count', 'orderby' =&gt; 'meta_value_num', 'order' =&gt; 'DESC' ) );
+ while ( $popularpost-&gt;have_posts() ) : $popularpost-&gt;the_post();
+ ?&gt;
+ &lt;li&gt;
+ &lt;small&gt;&lt;?php the_category(', '); ?&gt;&lt;/small&gt;
+ &lt;a href="&lt;?php echo get_permalink(); ?&gt;" title="&lt;?php the_title_attribute(); ?&gt;"&gt;
+ &lt;h3&gt;&lt;?php the_title(); ?&gt;&lt;h3&gt;
+ &lt;/li&gt;
+ &lt;?php
+ endwhile;
+ wp_reset_query();
+ ?&gt;
+ &lt;/ul&gt;</pre>
+
+<p>Você pode adicionar thumbnails, links e afins como o de costume.</p>
+
+<p>O que achou? Tem uma solução melhor? Comenta!</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

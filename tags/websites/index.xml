@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Websites on Tableless</title>
+    <link>http://tableless.com.br/tags/websites/index.xml</link>
+    <description>Recent content in Websites on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/websites/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Servindo sites estáticos com Jekyll</title>
+      <link>http://tableless.com.br/jekyll-servindo-sites-estaticos/</link>
+      <pubDate>Mon, 11 Nov 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/jekyll-servindo-sites-estaticos/</guid>
+      <description>
+
+&lt;p&gt;O &lt;a href=&#34;http://tableless.com.br/servicos/front-end.php&#34;&gt;Tableless produz código front-end&lt;/a&gt; HTML/CSS/JAVASCRIPT para vários tipos de clientes, grandes ou pequenos. Os clientes querem ao final do projeto arquivos estáticos, em uma estrutura de arquivos decente e código bem organizado e isso não é algo tão trivial assim.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-problema&#34;&gt;O problema&lt;/h2&gt;
+
+&lt;p&gt;O primeiro problema que temos quando iniciamos a produção de um site, é como resolver as partes de layout que são repetidas em todas as páginas do projeto, por exemplo: header, footer, sidebar e essas coisas. Já vi vários dos meus alunos mantendo sites com dezenas de páginas, sem nem ao menos usar um simples include de PHP. Eu os perdoo por que a maioria estava começando. Mesmo assim é algo muito amador manter um site dessa forma. No Tableless, durante algum tempo, por conveniência, usávamos simples includes do PHP para prevenir repetições. Escolhemos PHP por conveniência, &lt;a href=&#34;http://tableless.com.br/servicos/wordpress.php&#34;&gt;já que produzimos muitos sites em WordPress&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Um dos problemas estava resolvido. O segundo problema era: como entregar isso para o cliente?&lt;/p&gt;
+
+&lt;p&gt;Eu não poderia simplesmente enviar um pacote com vários arquivos &lt;strong&gt;.php&lt;/strong&gt; para um cliente que trabalhava com ASP ou Python.&lt;/p&gt;
+
+&lt;p&gt;Logo começamos a usar o &lt;strong&gt;wget&lt;/strong&gt; para percorrer o projeto e transformar as páginas em HTML estático. Não demorou muito para desistirmos disso. Embora seja tudo automático, não era o ideal. Precisávamos ter algo mais inteligente para isso. Foi aí que surgiu em nossas vidas algumas ferramentas para gerar sites estáticos. Conhecemos o Jekyll, Middleman e alguns outros. Hoje vamos falar um pouco do &lt;a href=&#34;http://jekyllrb.com&#34;&gt;Jekyll&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;jekyll&#34;&gt;Jekyll&lt;/h2&gt;
+
+&lt;p&gt;O Jekyll é um gerador de códigos estáticos. A ideia é que você crie páginas e até mesmo um blog de forma estática, usando HTML que você já conhece, junto com alguns truques que irão ajudá-lo a converter seu site em arquivos estáticos, pronto para ser publicado. Ele é baseado em vários formatos como Markdown para formatação de textos e posts e um padrão de template chamado Liquid com um pouco de YAML para exibir e guardar os dados das variáveis. Não se preocupe com a sopa de letras, por enquanto. Mais à frente no texto você vai entender um pouco mais.&lt;/p&gt;
+
+&lt;h2 id=&#34;estrutura-de-diretórios&#34;&gt;Estrutura de diretórios&lt;/h2&gt;
+
+&lt;p&gt;A coisa toda é muito simples: todo o arquivo que tiver &lt;strong&gt;_&lt;/strong&gt; (underline) na frente do nome, o Jekyll vai ignorar no pacote final, quando converter seu projeto. Veja uma estrutura de um dos nossos projetos:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://tableless.com.br/wp-content/uploads/2013/11/Screen-Shot-2013-11-10-at-5.09.22-PM.png&#34; alt=&#34;Screen Shot 2013-11-10 at 5.09.22 PM&#34; width=&#34;265&#34; height=&#34;277&#34; class=&#34;alignnone size-full wp-image-39447&#34; srcset=&#34;uploads/2013/11/Screen-Shot-2013-11-10-at-5.09.22-PM.png 265w, uploads/2013/11/Screen-Shot-2013-11-10-at-5.09.22-PM-160x168.png 160w&#34; sizes=&#34;(max-width: 265px) 100vw, 265px&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A pasta &lt;strong&gt;_includes&lt;/strong&gt; guarda arquivos que serão reutilizados nas páginas do projeto, tipo o header, footer, sidebar e etc ou qualquer outra coisa de acordo com sua necessidade.&lt;/p&gt;
+
+&lt;p&gt;Na pasta &lt;strong&gt;_layouts&lt;/strong&gt; você vai colocar os padrões de layout de páginas. Imagine que existam páginas com formatos de estruturas diferentes. É aí que você vai organizar essas coisas.&lt;/p&gt;
+
+&lt;p&gt;Para você ter um exemplo, nesse projeto fizemos apenas uma estrutura básica que usamos para home e para as páginas internas. Embora as páginas tenham estruturas diferentes, decidimos usar apenas um arquivo default para incluir por padrão em todas as páginas o header e o footer. As estruturas das páginas foram definidas de acordo com o código específico em cada uma das páginas. Veja o código do arquivo &lt;strong&gt;default.html&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-yaml&#34;&gt;{% include header.html %}
+
+{{ content }}
+
+{% include footer.html %}
+&lt;/pre&gt;
+
+&lt;p&gt;Ridículo, né?&lt;/p&gt;
+
+&lt;p&gt;Ah! O &lt;code&gt;{{ content }}&lt;/code&gt; é uma variável que exibe o conteúdo das páginas. É como o &lt;code&gt;the_content()&lt;/code&gt; do WordPress. É ali que o Jekyll vai inserir o conteúdo das páginas que você criar. No nosso caso, o código encontrado em &lt;strong&gt;defail-view.html, index e results&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;A pasta &lt;strong&gt;_site&lt;/strong&gt; é o build do seu projeto. É ali que o Jekyll coloca a versão final estática do site, pronto para ser publicado.&lt;/p&gt;
+
+&lt;p&gt;Tem gente que deixa a pasta _site versionável no GIT, tem gente que bota no &lt;strong&gt;.ignore&lt;/strong&gt;. Aí vai de você decidir o que achar melhor.&lt;/p&gt;
+
+&lt;p&gt;As URLs ficam assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;.
+|-- _config.yml
+|-- _includes/
+|-- _layouts/
+|-- _posts/
+|-- _site/
+|-- detail-view.html    # =&amp;gt; http://projeto.com/detail-view.html
+|-- index.html    # =&amp;gt; http://projeto.com
+└── results.html  # =&amp;gt; http://projeto.com/results.html
+&lt;/pre&gt;
+
+&lt;p&gt;Se você inserir um arquivo &lt;strong&gt;index.html&lt;/strong&gt; nas pastas, a url das páginas vão ficar assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;.
+|-- _config.yml
+|-- _includes/
+|-- _layouts/
+|-- _posts/
+|-- _site/
+|-- detail-view/
+|---- index.html    # =&amp;gt; http://projeto.com/detail-view/
+|-- index.html    # =&amp;gt; http://projeto.com
+|-- results/
+└──── index.html    # =&amp;gt; http://projeto.com/results/
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;estrutura-de-código&#34;&gt;Estrutura de código&lt;/h2&gt;
+
+&lt;p&gt;A estrutura de código dos arquivos é muito simples de se entender, mas para alguns pode ser um pouco estranha por não ter familiaridade com estruturas de dados como YAML. Mas isso é simples e você aprende rápido, tenho certeza. Continue lendo para você ver como é fácil.&lt;/p&gt;
+
+&lt;h3 id=&#34;sem-banco-de-dados&#34;&gt;Sem banco de dados&lt;/h3&gt;
+
+&lt;p&gt;Para começar, você não mantém um banco de dados e é isso que faz toda a graça. O conteúdo do seu site ficar guardado nos arquivos de cada página. Você não precisa levantar um servidor de MySQL. Todas as informações do site estarão nos arquivos que você criar para cada página. Ou seja, nada de queries, nada de templates tags do WordPress.&lt;/p&gt;
+
+&lt;h4 id=&#34;yaml-e-liquid&#34;&gt;YAML e Liquid&lt;/h4&gt;
+
+&lt;p&gt;O formato YAML é conhecido pela facilidade de leitura. Ele foi criado para ser fácil da gente entender e também escrever. Ou seja, ele é um formato simples para escrevermos manualmente, mas também para manipularmos via programação. É aqui que o Jekyll começa a ficar legal. Essa estrutura é usada também no Middleman e no DocPad. Logo, aprendendo aqui, você já vai saber mais ou menos como funciona nos outros geradores.&lt;/p&gt;
+
+&lt;p&gt;Qualquer arquivo que contém um bloco YAML &amp;#8211; que o pessoal do Jekyll chama de &lt;strong&gt;front-matter&lt;/strong&gt; &amp;#8211; será processado como um arquivo especial. O front-matter &lt;strong&gt;precisa ser a primeira coisa do arquivo&lt;/strong&gt; e deve estar num formato válido de YAML. Toda página do seu site feito em Jekyll precisa começar com essa estrutura:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-yaml&#34;&gt;---
+layout: default
+title: Home
+---
+&lt;/pre&gt;
+
+&lt;p&gt;Simples, ahn? O bloco é demarcado pelos três traços no começo e no fim. TEM que ser três traços. Nem mais, nem menos. O código YAML são as duas variáveis &lt;strong&gt;layout&lt;/strong&gt; e &lt;strong&gt;title&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Neste bloco você pode usar variáveis predefinidas ou criar suas próprias variáveis. Essas variáveis estarão disponíveis para você acessar usando as tags do formato Liquid. Você já vai ver mais abaixo, primeiro vamos entender as duas variáveis acima.&lt;/p&gt;
+
+&lt;p&gt;A variável &lt;strong&gt;layout&lt;/strong&gt; indica que você está usando a estrutura de template do &lt;strong&gt;default.html&lt;/strong&gt;. Lembra a estrutura de arquivos e diretórios que mostramos logo no início? Os nomes que você coloca ali na variável &lt;strong&gt;layout&lt;/strong&gt; são os nomes dos arquivos que estão dentro da pasta &lt;strong&gt;_layouts&lt;/strong&gt;, sem a extensão &lt;strong&gt;.html&lt;/strong&gt;. Logo, se você tiver um arquivo ali dentro chamado &lt;strong&gt;no-sidebar.html&lt;/strong&gt;, indicando um formato de página que não vai ter sidebar, o valor da variável &lt;strong&gt;layout&lt;/strong&gt; será &lt;strong&gt;no-sidebar&lt;/strong&gt;. Fica assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-yaml&#34;&gt;---
+layout: no-sidebar
+title: Página Interna
+---
+&lt;/pre&gt;
+
+&lt;p&gt;A segunda variável é a &lt;strong&gt;title&lt;/strong&gt;. Aqui é uma variável criada por mim, que será usada para ser o título da página. Veja abaixo como a gente puxa o valor da variável &lt;strong&gt;title&lt;/strong&gt; que definimos acima, usando o formato Liquid.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;title&amp;gt; {{ page.title }} &amp;lt;/title&amp;gt;
+    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+...
+&lt;/pre&gt;
+
+&lt;p&gt;O &lt;strong&gt;{{ page.title }}&lt;/strong&gt; está dizendo que nesse local, ao renderizar o site, o Jekyll irá colocar o título da página atual.&lt;/p&gt;
+
+&lt;p&gt;O formato &lt;a href=&#34;http://docs.shopify.com/themes/liquid-basics&#34;&gt;Liquid&lt;/a&gt; é um formato de template muito simples. A sua sintaxe é muito parecida com outros tipos de padrões de templates, como por exemplo o &lt;a href=&#34;http://tableless.com.br/templates-client-side-com-mustache-js/&#34;&gt;Mustache.js&lt;/a&gt;. Logo, não tem muito segredo. Você abre duas chaves &lt;strong&gt;{{&lt;/strong&gt;, coloca o nome da variável e depois fecha com duas chaves novamente &lt;strong&gt;}}&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;entendendo-mais-sobre-as-variáveis&#34;&gt;Entendendo mais sobre as variáveis&lt;/h4&gt;
+
+&lt;p&gt;Você usa o prefixo &lt;strong&gt;page&lt;/strong&gt; para puxar os dados da página. Qualquer coisa que esteja ali no front-matter vai ser puxado usado o &lt;strong&gt;page&lt;/strong&gt; antes. Se você quiser pegar o nome do site, por exemplo, ou qualquer outra coisa referente ao site inteiro, você usa o prefixo &lt;strong&gt;site&lt;/strong&gt;. Um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;title&amp;gt; {{ page.title }} - {{ site.name }} &amp;lt;/title&amp;gt;
+    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+...
+&lt;/pre&gt;
+
+&lt;p&gt;Nesse caso, as informações referentes ao site não estarão no &lt;strong&gt;front-matter&lt;/strong&gt;, mas em um arquivo de configuração, que o Jekyll vai ler sempre quando for iniciado. Esse arquivo se chama &lt;strong&gt;_config.yml&lt;/strong&gt;. Você vai escrevê-lo no mesmo formato que o front-matter. Um exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-yml&#34;&gt;&lt;strong&gt;name:&lt;/strong&gt; Nome do Projeto
+&lt;strong&gt;source:&lt;/strong&gt;      .
+&lt;strong&gt;destination:&lt;/strong&gt; ./_site
+&lt;strong&gt;plugins:&lt;/strong&gt;     ./_plugins
+&lt;strong&gt;layouts:&lt;/strong&gt;     ./_layouts
+&lt;strong&gt;css_folder:&lt;/strong&gt;  &#39;assets/stylesheets&#39;
+&lt;strong&gt;js_folder:&lt;/strong&gt;  &#39;assets/javascripts&#39;
+&lt;strong&gt;img_folder:&lt;/strong&gt;  &#39;assets/images&#39;
+&lt;strong&gt;include:&lt;/strong&gt;     [&#39;.htaccess&#39;]
+&lt;strong&gt;exclude:&lt;/strong&gt;     []
+&lt;strong&gt;keep_files:&lt;/strong&gt;  [&#39;.git&#39;,&#39;.svn&#39;]
+&lt;strong&gt;timezone:&lt;/strong&gt;    nil
+
+...
+
+&lt;/pre&gt;
+
+&lt;p&gt;Há outras variáveis globais que podem não estar aí no &lt;strong&gt;_config.yml&lt;/strong&gt;. Por exemplo a &lt;strong&gt;{{ site.pages }}&lt;/strong&gt; que retorna a lista de páginas do site.&lt;/p&gt;
+
+&lt;p&gt;Há uma série de variáveis disponíveis &lt;a href=&#34;http://jekyllrb.com/docs/frontmatter/&#34;&gt;aqui&lt;/a&gt; e você pode ver as &lt;a href=&#34;http://jekyllrb.com/docs/variables/&#34;&gt;variáveis globais aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;entendendo-o-config-yml&#34;&gt;Entendendo o _config.yml&lt;/h3&gt;
+
+&lt;p&gt;O &lt;strong&gt;_config.yml&lt;/strong&gt; guarda as configurações do seu projeto. Ele deve estar sempre no root do seu projeto. Sempre que você inicia um novo projeto Jekyll, ele cria um _config.yml. Você pode ver um exemplo abaixo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-yml&#34;&gt;source:      .
+destination: ./_site
+plugins:     ./_plugins
+layouts:     ./_layouts
+include:     [&#39;.htaccess&#39;]
+exclude:     []
+keep_files:  [&#39;.git&#39;,&#39;.svn&#39;]
+gems:        []
+timezone:    nil
+encoding:    nil
+
+future:      true
+show_drafts: nil
+limit_posts: 0
+pygments:    true
+
+relative_permalinks: true
+
+permalink:     date
+paginate_path: &#39;page:num&#39;
+
+markdown:      maruku
+markdown_ext:  markdown,mkd,mkdn,md
+textile_ext:   textile
+
+excerpt_separator: &#34;\n\n&#34;
+
+safe:        false
+host:        0.0.0.0
+port:        4000
+baseurl:     /
+url:         http://localhost:4000
+lsi:         false
+
+maruku:
+  use_tex:    false
+  use_divs:   false
+  png_engine: blahtex
+  png_dir:    images/latex
+  png_url:    /images/latex
+
+rdiscount:
+  extensions: []
+
+redcarpet:
+  extensions: []
+
+kramdown:
+  auto_ids: true
+  footnote_nr: 1
+  entity_output: as_char
+  toc_levels: 1..6
+  smart_quotes: lsquo,rsquo,ldquo,rdquo
+  use_coderay: false
+
+  coderay:
+    coderay_wrap: div
+    coderay_line_numbers: inline
+    coderay_line_numbers_start: 1
+    coderay_tab_width: 4
+    coderay_bold_every: 10
+    coderay_css: style
+
+redcloth:
+  hard_breaks: true
+&lt;/pre&gt;
+
+&lt;p&gt;Para ficar mais fácil, eu ainda adiciono uma ou outra opção personalizada no _config.yml, como por exemplo o caminho do CSS e do Javascript:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-yml&#34;&gt;css_folder:  &#39;assets/stylesheets&#39;
+js_folder:  &#39;assets/javascripts&#39;
+img_folder: &#39;assets/images&#39;
+&lt;/pre&gt;
+
+&lt;p&gt;Assim eu chamo os assets assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&#34;pt-br&#34;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;title&amp;gt; {{ page.title }} - {{ site.name }} &amp;lt;/title&amp;gt;
+    &amp;lt;meta charset=&#34;utf-8&#34;&amp;gt;
+
+    &amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;{{ site.css_folder }}/bootstrap.min.css&#34;&amp;gt;
+    &amp;lt;link rel=&#34;stylesheet&#34; type=&#34;text/css&#34; href=&#34;{{ site.css_folder }}/style.css&#34;&amp;gt;
+
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+
+...
+
+&lt;/pre&gt;
+
+&lt;p&gt;Bem legal, né?&lt;/p&gt;
+
+&lt;p&gt;Não precisa entender todas as variáveis que eles colocam ali no &lt;strong&gt;_config.yml&lt;/strong&gt;. Basta entender que dá para criar novas variáveis personalizadas e que você pode modificar os valores das variáveis existentes. Há muita coisa ali que você não precisa usar. Mesmo assim, se você tiver muitos outros dados para usar, você pode importar em formato YAML entro da pasta &lt;strong&gt;_data&lt;/strong&gt;, que eu não vou detalhar sobre isso aqui, por enquanto.&lt;/p&gt;
+
+&lt;h3 id=&#34;quick-start&#34;&gt;Quick start&lt;/h3&gt;
+
+&lt;p&gt;Para iniciar um projeto e começar a fuçar nas coisas é fácil.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;~ $ gem install jekyll
+~ $ jekyll new nome-projeto
+~ $ cd nome-projeto
+~/nome-projeto $ jekyll serve --w
+&lt;/pre&gt;
+
+&lt;p&gt;O parâmetro &lt;strong&gt;&amp;#8211;w&lt;/strong&gt; ou &lt;strong&gt;&amp;#8211;watch&lt;/strong&gt; serve para que a cada vez que você fizer uma modificação nos arquivos do projeto, o Jekyll faz um build automático do projeto. Aí é só fazer um refresh no site e ver as modificações.&lt;/p&gt;
+
+&lt;p&gt;O Jekyll vai subir seu site na porta :4000, é só seguir para: &lt;a href=&#34;http://localhost:4000/&#34;&gt;http://localhost:4000/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Lembre-se que você precisa ter Ruby instalado na sua máquina, já que o Jekyll é uma GEM.&lt;/p&gt;
+
+&lt;p&gt;Feito isso, dá uma fuçada na pasta do projeto. Você vai perceber que existe uma pasta &lt;strong&gt;_posts&lt;/strong&gt; que eu não citei nesse artigo.&lt;/p&gt;
+
+&lt;p&gt;O Jekyll pode ser usado para criar um blog. Os posts são arquivos escritos em Markdown e que são automaticamente transformados em arquivos HTML e guardados em pastas organizadas por ordem cronológica. Coisa fina! Talvez em um próximo post eu explique melhor esse módulo.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusão&#34;&gt;Conclusão&lt;/h2&gt;
+
+&lt;p&gt;Eu, pessoalmente, prefiro Jekyll ao Middleman. Os dois são bem parecidos. Mas eu acho Jekyll bem mais simples. Eu uso Middeman em outros projetos e vou tentar preparar um post explicando o básico para vocês sobre ele.&lt;/p&gt;
+
+&lt;p&gt;Se você tem Windows e estiver muito afim de fazer isso tudo funcionar, leia esse post do Nando ensinando como faz para instalar &lt;a href=&#34;http://simplesideias.com.br/configurando-ruby-rails-mysql-e-git-no-windows&#34;&gt;Ruby, Rails, MySQL e Git no Windows&lt;/a&gt; ou compra um Mac.&lt;/p&gt;
+
+&lt;p&gt;A comunidade Ruby ajudou muito o mundo front-end com várias ferramentas que ajudam a automatizar processos de desenvolvimento. É por isso que geralmente os front-ends que trabalham em projetos com Ruby conseguem se virar melhor em determinados pontos. Mas essa é uma outra história. 😉&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

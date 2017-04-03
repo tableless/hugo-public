@@ -1,0 +1,389 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/dominando-o-uso-de-prototype-em-javascript/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/dominando-o-uso-de-prototype-em-javascript/">Dominando o uso de prototype em JavaScript</a></h1>
+  <p class="tb-hero-p">
+    
+    |
+  Neste artigo vamos aprender a utilizar um aspecto bastante importante das funções: protótipos.
+
+    
+  </p>
+      <span class="tb-author">por <a href="/author/clovis-neto">Clovis Neto</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Vários desenvolvedores web falam que protótipos representam uma forma de definirmos tipos de objetos, mas se você observar com cuidado, isto é uma característica de funções.</p>
+
+<p>Perceba que todas as funções têm uma propriedade <em>prototype</em> que, inicialmente, referencia um objeto vazio.</p>
+
+<p>Usando a palavra chave <em>New</em> para invocar a função construtor, temos agora um objeto recém instanciado  como seu contexto.</p>
+
+<p>Ex:</p>
+
+<pre class="lang-javascript">function Lutador(){}
+ var lutador1 = new Lutador();</pre>
+
+<h2 id="o-básico-8211-incluindo-métodos-numa-classe-função">O básico &#8211; Incluindo métodos numa classe (função)</h2>
+
+<p>Temos nossa classe <strong>Lutador</strong>, que se encontra vazia e queremos anexar um método a ela. Logo utilizamos a seguinte estrutura:</p>
+
+<pre class="lang-javascript">function Lutador(){}
+Lutador.prototype.Socar = function(){
+ return true;
+}
+ var lutador1 = new Lutador();
+
+console.log(lutador1.Socar());</pre>
+
+<p>Um protótipo nos permite predefinir propriedades, incluindo métodoss. Você pode saber como acessar as propriedades de protótipos a partir da instância do objeto com <em>lutador1.constructor.prototype.Socar</em>.</p>
+
+<p>Uma observação importante é que não importa a ordem onde o protótipo é declarado, pois &#8220;suas atualizações&#8221; são feitas dinamicamente, ex:</p>
+
+<p>Isto:</p>
+
+<pre class="lang-javascript">function Lutador(){}
+Lutador.prototype.Socar = function(){
+ return true;
+}
+ var lutador1 = new Lutador();</pre>
+
+<p>Tem o mesmo sentido de:</p>
+
+<pre class="lang-javascript">function Lutador(){}
+ var lutador1 = new Lutador();
+Lutador.prototype.Socar = function(){
+ return true;
+}</pre>
+
+<p>Podemos também instânciar um objeto deste modo:</p>
+
+<pre class="lang-javascript">function Lutador(){}
+var lutador1 = new Lutador();
+var lutador2 = new lutador1.constructor();
+console.log("Verificanco se esta afirmção é verdadeira: "+lutador1 !== lutador2);</pre>
+
+<blockquote>
+<p>Note que <strong>lutador1</strong> não é o mesmo objeto de <strong>lutador2</strong>, mas são duas instâncias distintas.</p>
+</blockquote>
+
+<p>Tudo que vimos até agora, foi o básico de que os protótipos oferecem, agora está na hora de avançar um pouco mais.</p>
+
+<h2 id="herança-e-a-cadeia-de-protótipos">Herança e a cadeia de protótipos</h2>
+
+<p>Existem várias formas de como obter uma herança com protótipos, mas sem dúvida, a melhor forma é este modo:</p>
+
+<pre class="lang-javascript">function Lutador(){
+ this.attackPlayer = function(){
+  return true;
+ }
+} 
+
+function Habilidades(){
+ this.esquivaPlayer = function(){
+  console.log("esquivou");
+ }
+}
+
+//fazendo Lutador herdar de Habilidades
+Lutador.prototype = new Habilidades();
+lutador1 = new Lutador();
+
+//verificando
+console.log(lutador1 instanceof Lutador);
+console.log(lutador1 instanceof Habilidades);</pre>
+
+<blockquote>
+<p><em>Nota: &#8220;Existe também outra técnica semelhante a esta, e que eu desaconselho. É utilizar o objeto do protótipo de</em> Habilidades<em> diretamente como protótipo de</em> Lutador_&#8230; Ex:_ Lutador.prototype = Habilidades.prototype; <em>pois fazendo isto, qualquer alteração no protótipo de</em> Lutador <em>também modificará o protótipo de</em> Habilidades<em>, porque eles serão o mesmo objeto, e isso com certeza terá alguns efeitos colaterais indesejaveis</em></p>
+</blockquote>
+
+<h2 id="incluindo-novo-método-nos-elementos-html-por-meio-do-protótipo-htmlelement">Incluindo novo método nos elementos HTML por meio do protótipo HTMLElement</h2>
+
+<p>Nos navegadores atuais e antigos (IE8+) temos uma funcionalidade bastante interessante que nos permite estender qualquer nó HTML de nossa escolha, vejamos então o próximo exemplo:</p>
+
+<pre class="lang-javascript">HTMLElement.prototype.remover = function() {
+        this.parentNode.removeChild(this);
+    };
+
+    document.querySelector("#a").remover();</pre>
+
+<p>Neste exemplo incluimos um novo método &#8220;remover&#8221;, em todos os elementos do DOM por meio do protótipo do contrutor HTMLElement. Logo depois removemos o elemento html que tem por <em>id=&#8221;a&#8221; </em></p>
+
+<blockquote>
+<p><em>Um exemplo muito bom de utilização deste recurso é a biblioteca Prototype, por ela conseguimos obter muitas funcionalidades nos elementos DOM, por exemplo injetar HTML e manipular CSS.</em></p>
+</blockquote>
+
+<h4 id="extenção-de-object-e-array">Extenção de Object e Array</h4>
+
+<p>Por meio de protótipos também podemos estender os tipos primitivos do javascript, como: Object, Array e Number. Vejamos como estender uma variável do tipo array por meio de protótipos:</p>
+
+<pre class="lang-javascript">Array.prototype.cataFruta = function(callback) {
+    for(var i = 0; i &lt; this.length; i++){
+        callback.call(this,this[i],i);
+    }
+};
+var frutas = ["laranja","uva","pinha","morango"];
+frutas.cataFruta(function(element,index){
+    console.log("fruta: "+element+" sua posição é: "+index);
+});</pre>
+
+<p>Note que adicionamos um método &#8220;cataFruta()&#8221;, que serve como um forEach dentro do array, e este mesmo método pode receber um callback que retorna dois parâmetros, que é o elemento atual em execução e o seu índice. Também podemos estender Object:</p>
+
+<pre class="lang-javascript">Object.prototype.esconde = function(callback) {
+    if(this.hasOwnProperty("style")){
+        this.style.opacity = 0;
+        this.style.filter = "alpha(opacity=0)";
+        callback.call(this,this);
+    }
+};
+document.getElementById('escondido').esconde(function(element){
+    console.log("escondemos a div com o id: "+element.getAttribute("id")+"!!");
+});</pre>
+
+<p>Note que usamos a mesma lógica para os dois, só mudou que ao invés de <em>Array.prototype</em> colocamos <em>Object.prototype.</em> Também podemos estender o tipo Number, algo que não recomendo pois ele é um protótipo nativo muito problemático.</p>
+
+<blockquote>
+<p><em>&#8220;Devido à forma como números e propriedades de números são processados pelo engine JavaScript, alguns resultados podem ser bastante confusos&#8230;&#8221; (Segredos do Ninja Javascript::Novatec)</em></p>
+</blockquote>
+
+<h4 id="subclasse-do-objeto-array">Subclasse do objeto Array</h4>
+
+<p>Como expliquei mais à cima, existe um modo de herdamos heranças em classes JavaScript, isso não é diferente com o objeto Array. Vejamos um exemplo de como podemos criar uma subclasse do tipo array:</p>
+
+<pre class="lang-javascript">function MinhaClasse(){}
+MinhaClasse.prototype = new Array();
+var meu = new MinhaClasse();
+meu.push(1,2,3);
+console.log("O tamanho da subclasse meu é: "+meu.length);
+
+Ou ao invés de criar, podemos apenas "simular" a criação de uma subclasse do tipo array, ex:</pre>
+
+<pre class="lang-javascript">function MinhaClasse(){}
+MinhaClasse.prototype.length = 0;
+
+(function(){
+    var novos_metodos = ['push','shift','join','unshift','slice','pop','splice'];
+    for (var i = 0; i &lt; novos_metodos.length; i++)(function(metodo){
+        MinhaClasse.prototype[metodo] = function(){
+            return Array.prototype[metodo].apply(this,arguments);
+        }
+    })(novos_metodos[i]);
+})();
+
+var meu = new MinhaClasse();
+meu.push(1,2,3);
+console.log("O tamanho da subclasse meu é: "+meu.length);</pre>
+
+<h2 id="um-erro-grave-de-usuário">Um erro grave de usuário</h2>
+
+<p>Tudo que vimos até agora é muito bom e ajuda bastante para nossas aplicações JavaScript, com esse conhecimento e um pouco de esforço da até mesmo para criar sua própria biblioteca JavaScript. Mas ainda eu não poderia encerrar o artigo sem antes lhes prevenir de um erro que alguns usuários com pouco conhecimento de JavaScript cometem&#8230;</p>
+
+<p>Tudo que vimos não terá utilidade nenhuma se não invocarmos a função como construtor. Imagine que um usuário leigo de JS pegou seu código mas tenta invocar a função &#8220;como função&#8221; achando que é assim que tem que ser feito. ex:</p>
+
+<pre class="lang-javascript">function Pessoa(nome,sobrenome){
+    this.name = nome+" "+sobrenome;
+}
+
+var homem = Pessoa("Clóvis","Neto");
+console.log(homem.name);</pre>
+
+<p>Note no console de seu navegador que um erro aconteceu ao tentarmos verificar o <em>name</em> de homem. Logo isto ocorrerá sempre que o usuário tentar invocar a &#8220;função como função&#8221;.</p>
+
+<blockquote>
+<p><em>Então qual será a solução para este problema? </em></p>
+</blockquote>
+
+<p>Simples podemos fazer uma verificação, se o objeto é uma instância da função&#8230; caso não seja, retornaremos a forma correta de como chamar a função e tudo estará resolvido. Ex:</p>
+
+<pre class="lang-javascript">function Pessoa(nome,sobrenome){
+        if(!(this instanceof arguments.callee)){
+        return new Pessoa(nome,sobrenome);
+    }
+
+    this.name = nome+" "+sobrenome;
+}
+
+var homem = Pessoa("Clóvis","Neto");
+console.log(homem.name);</pre>
+
+<p>Rode agora nosso script e veja que tudo vai bem, e não aparece erro nenhum no console 🙂</p>
+
+<p>Bem vou parar por aqui para o artigo não ficar muito grande, por hoje é só, um forte abraço de Clóvis Neto e até a próxima 😀</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

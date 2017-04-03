@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Back End on Tableless</title>
+    <link>http://tableless.com.br/tags/back-end/index.xml</link>
+    <description>Recent content in Back End on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/back-end/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>JPA Hibernate – Como funciona a anotação @version?</title>
+      <link>http://tableless.com.br/hibernate-como-funciona-anotacao-version/</link>
+      <pubDate>Sun, 19 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/hibernate-como-funciona-anotacao-version/</guid>
+      <description>&lt;p&gt;Recentemente um colega de trabalho me perguntou qual era função da anotação &lt;strong&gt;@version&lt;/strong&gt; presente nas entidades aqui do projeto. Achei interessante essa pergunta e resolvi fazer da resposta o meu primeiro post no blog.&lt;/p&gt;
+
+&lt;p&gt;Para responder essa de pergunta temos que lembrar que todo banco de dados possui um controle de concorrência entre transações (se necessário solicitem nos comentários que faço um post explicando a fundo sobre isso). Para esse post só precisamos conhecer o método de controle &lt;em&gt;Optimistic concurrency control&lt;/em&gt; (controle de concorrência otimista).&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;Optimistic concurrency control&lt;/em&gt; (OCC)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;_Optimistic concurrency control _ou controle de concorrência otimista é um método aplicado nas transações de bancos de dados relacionais. Nesse método se acredita que a probabilidade de que duas transações utilizarem o mesmo objeto é minima, logo nada é verificado enquanto a transação está sendo executada e isso faz com que o custo dela diminua.&lt;/p&gt;
+
+&lt;p&gt;Normalmente essa técnica funciona bem em Frameworks ORM porque eles conseguem escalonar as transações para que ocorra pouca ou nenhuma interferência. Mas no caso de ocorrer uma interferência o que acontece? Simples, alguma transação escolhida pelo Hibernate vai ser abortada e terá que ser recomeçada pelo cliente.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;A anotação @version&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Agora que sabemos superficialmente o que é um controle de concorrência e o método &lt;strong&gt;OCC &lt;/strong&gt;fica mais fácil compreender a importância do &lt;strong&gt;@version&lt;/strong&gt; em nossas entidades. Tenha em mente que ao adicionar um atributo com essa anotação não precisamos nos preocupar em alterar seu valor porque o Hibernate fica encarregado dessa função.&lt;/p&gt;
+
+&lt;p&gt;Para usarmos o método de concorrência otimista só precisamos declarar um atributo com o nome &lt;strong&gt;version&lt;/strong&gt; em nossa entidade. Normalmente ele é do tipo numérico e também pode ser do tipo data, mas não recomendo essa pratica e vou explicar o motivo no final deste post, abaixo temos um exemplo da classe Consulta.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;@Entity
+@Table(name = &#34;CONSULTAS&#34;, schema = &#34;tableless&#34;)
+public class Consultas{
+@Id
+@GeneratedValue(strategy = GenerationType.AUTO)
+@Column(name = &#34;ID_CONSULTA&#34;)
+private Integer numero;
+
+@Temporal(TemporalType.TIMESTAMP)
+@Column(name = &#34;DATA_CONSULTA&#34;)
+private Date dataConsulta;
+
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = &#34;PACIENTE_CODIGO&#34;)
+private Pacientes paciente;
+
+@Version
+private Integer version;
+
+//getter e setter
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Com esse mapeamento o Hibernate vai usar automaticamente o número da versão para verificar se o objeto utilizado na transição foi atualizado desde a ultima vez em que ele foi requisitado. Pelo código SQL a baixo podemos ver a presença do atributo version tanto no trecho do SET como na cláusula WHERE isso acontece porque o Hibernate vai buscar o objeto no banco de dados usando também o número da versão e vai incrementar esse número ao mesmo tempo.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;UPDATE CONSULTAS 
+SET DATA_CONSULTA = ?, PACIENTE_CODIGO = ?, version = ?
+WHERE ID_CONSULTA = ? 
+AND version = ?&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;@version com Data&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Usar um tipo data no atributo version é uma prática que não recomendo porque no banco de dados a coluna será do tipo &lt;strong&gt;TIMESTAMP &lt;/strong&gt;e isso pode acabar permitindo que duas ou mais transações possam ser executadas com o mesmo objeto ao mesmo tempo dependendo da precisão do fuso horário configurada no banco de dados, c&lt;span style=&#34;line-height: 1.5&#34;&gt;aso essa situação acabe acontecendo vamos acabar tendo uma violação de normalização. Algumas pessoas preferem utilizar o tipo data para conseguirem visualizar &amp;#8220;quando&amp;#8221; aquele objeto foi alterado pela ultima vez, caso essa seja sua necessidade recomendo que crie um novo atributo em sua classe ao invés de utilizar a anotação &lt;strong&gt;@version&lt;/strong&gt; como data.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;
+  Por fim espero que esse post te ajude a trabalhar com controle de concorrência no Hibernate. Dúvidas, sugestões, correções, elogios nos comentários ou no meu twitter. Xablau!
+&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Consumo eficiente de recursos computacionais de servidores de aplicação web com Node.js</title>
+      <link>http://tableless.com.br/consumo-eficiente-de-recursos-computacionais-de-servidores-de-aplicacao-web-com-node-js/</link>
+      <pubDate>Thu, 28 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/consumo-eficiente-de-recursos-computacionais-de-servidores-de-aplicacao-web-com-node-js/</guid>
+      <description>
+
+&lt;h2 id=&#34;introdução&#34;&gt;INTRODUÇÃO&lt;/h2&gt;
+
+&lt;p&gt;Nos últimos anos, houve um considerável crescimento do número de usuários e volume de dados na Internet. Em 2014, cerca de 3 bilhões de pessoas no mundo usavam a internet e 43.6% das residências em todo mundo possuíam algum forma de acesso a grande rede. Os sites de redes sociais têm registrado, ao longo dos anos, um crescimento exponencial, o Facebook, por exemplo, possuía no final de 2013, 1,3 bilhões de usuários ativos, enquanto o Twitter, maior &lt;em&gt;microblog&lt;/em&gt; internacional, registrava, na mesma época, 646 milhões de usuários ativos, responsáveis por 58 milhões de &lt;em&gt;tweets&lt;/em&gt; postados diariamente (ITU, 2014). Nesse cenário, as aplicações necessitam atender esse grande número de acesso simultâneo mantendo estabilidade e desempenho satisfatório.&lt;/p&gt;
+
+&lt;p&gt;Duas possíveis soluções podem ser utilizadas para resolução de problemas de picos de acessos simultâneos: 1) a substituição da máquina antiga por uma mais robusta, com maior capacidade de processamento; e 2) incorporar novas máquinas, a fim de atender o aumento da demanda dos clientes. Não obstante, as aplicações – &lt;em&gt;software&lt;/em&gt; – necessitam utilizar mecanismos e paradigmas capazes de extrair a capacidade máxima de processamento do &lt;em&gt;hardware&lt;/em&gt;, ou seja, atender um maior número de requisições com o mínimo possível de recursos computacionais.&lt;/p&gt;
+
+&lt;p&gt;Por conseguinte, Node.js pode ser uma alternativa eficiente em aplicações com um alto número de requisições simultâneas por ter em seu modelo de programação as estratégias já mencionadas.&lt;/p&gt;
+
+&lt;p&gt;Para verificar a eficiência do Node.js foi montado um ambiente controlado para execução de testes de performance, simulando um alto número de acessos simultâneos a uma aplicação de “Hello World”, que tem como saída uma mensagem de “Hello World” e a hora de execução do &lt;em&gt;script&lt;/em&gt;. Na execução dos testes foi analisado o consumo de recursos computacionais da plataforma Node.js em relação a outras tecnologias.&lt;/p&gt;
+
+&lt;h2 id=&#34;metodologia&#34;&gt;METODOLOGIA&lt;/h2&gt;
+
+&lt;p&gt;Foi considerado como universo desta pesquisa, servidores de aplicações web que necessitam atender um grande número de requisições simultâneas. Para amostragem foram selecionadas plataformas que utilizam entradas e saídas não bloqueantes como estratégia para melhoramento de desempenho: a) Node.js; b) Thin; c) Twistted; e d) Tornado.&lt;/p&gt;
+
+&lt;p&gt;A coleta dos dados foi realizada durante a execução de testes de performance, em um ambiente controlado, utilizando a ferramenta Apache JMeter. Antes do teste, o plugin ServerAgent, do Apache JMeter, foi configurado no sistema operacional da aplicação servidora, para permitir a coleta dos dados referentes ao uso de memória e CPU. Foram utilizadas 05 (cinco) máquinas virtuais, com sistema operacional Debian 7.5 e em cada uma dessas máquinas foi instalado uma plataforma da amostragem. Acessos simultâneos de 100, 500 e 1.000 usuários, foram originados do Apache JMeter e direcionados a cada um dos hosts da amostragem, que executavam um código de “Hello, World!”.&lt;/p&gt;
+
+&lt;p&gt;Os dados obtidos por ocasião da execução do teste de carga objetivaram trazer subsídios para interpretar a eficiência e consumo de recursos da plataforma Node.js em relação as demais plataformas da amostra. A análise dos dados levou em consideração 04 (quatro) indicadores de desempenho, dividido em dois grupos: a) indicadores de serviço: disponibilidade e tempo de resposta; e b) indicadores de eficiência: consumo de recursos e throughput (vazão).&lt;/p&gt;
+
+&lt;h2 id=&#34;resultados&#34;&gt;RESULTADOS&lt;/h2&gt;
+
+&lt;p&gt;Com base nos testes realizados percebeu-se que, Node.js demonstrou ter maior desempenho que todas as outras plataformas. Sendo capaz de atender quase o dobro de requisições por segundo, em relação à Thin, tecnologia que demonstrou desempenho mais próximo ao Node.js.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53919&#34; style=&#34;width: 574px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53919 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/tempo_resposta.png&#34; alt=&#34;Resultado do tempo médio de resposta&#34; width=&#34;564&#34; height=&#34;332&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Figura 1 &amp;#8211; Resultado do tempo médio de resposta (em milissegundos)
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;No aspecto tempo de resposta, como pode ser observado na figura acima, o Node.js teve o melhor tempo, gastando metade do tempo utilizado pela plataforma Thin, que ficou em segundo lugar.&lt;/p&gt;
+
+&lt;p&gt;Salienta-se que, em todas as plataformas, o tempo médio de resposta quando 1.000 (um mil) requisições concorrentes estavam sendo executadas não foi um tempo aceitável para ambientes de produção, justificado pela pouca capacidade dos recursos computacionais dos servidores em que as aplicações estavam sendo executadas. Todavia, os aspectos aqui analisados são as diferenças dos resultados apresentados entre as plataformas analisadas, uma vez que todas aplicações foram executadas nas mesmas condições de infraestrutura e hardware.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53918&#34; style=&#34;width: 574px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53918 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/req_por_segundo.png&#34; alt=&#34;Resultado do throughput (vazão)&#34; width=&#34;564&#34; height=&#34;332&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Figura 2 &amp;#8211; Resultado do throughput (vazão)
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Este é um indicador do grupo dos indicadores orientados a eficiência, e um dos principais fatores a ser analisado no teste, pois expressa a capacidade do servidor em atender requisições durante um determinado período. No gráfico da figura 2, está exposto o número de requisições executadas por segundo e é notável que das plataformas analisadas, Node.js apresentou o melhor índice de requisições, chegando a obter mais de 500 requisições por segundo para os testes de 1.000 requisições concorrentes, enquanto a plataforma que obteve o segundo melhor índice alcançou, no melhor caso, um valor acima de 400 requisições por segundo, sendo com apenas 100 requisições simultâneas. É visível a grande diferença entre as plataformas, chegando a ter um aumento de desempenho de quase 50% utilizando os mesmo recursos de hardware.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53917&#34; style=&#34;width: 488px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53917 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/erros.png&#34; alt=&#34;Porcentagem de erros durante os testes&#34; width=&#34;478&#34; height=&#34;164&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Tabela 1 &amp;#8211; Porcentagem de erros durante os testes
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Quanto ao consumo dos recursos computacionais, todas as tecnologias tiveram um consumo bastante alto nas avaliações com mais 100 requisições concorrentes. Thin, não conseguiu completar com sucesso todas as requisições, nos testes de 500 requisições teve uma taxa de erro de 0,44%. Já nas avaliações com 1.000 requisições, essa taxa aumentou para 2,32%, conforme a tabela 1.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53921&#34; style=&#34;width: 574px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53921 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/uso_memoria.png&#34; alt=&#34;Resultado do consumo de memória RAM&#34; width=&#34;564&#34; height=&#34;332&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Figura 3 &amp;#8211; Resultado do consumo de memória RAM
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;No indicador consumo de memória RAM, figura 3, praticamente todas as plataformas tiveram consumo constante e estável. Das plataformas que conseguiram atender todas as requisições com taxas de erro “zero”, Node.js foi a que teve o menor consumo, enquanto o Twisted foi a que obteve o maior consumo de memória, porém essa diferença entre as plataformas, em geral, foi baixa.&lt;/p&gt;
+
+&lt;div id=&#34;attachment_53920&#34; style=&#34;width: 574px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;wp-image-53920 size-full&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/04/uso_cpu.png&#34; alt=&#34;Resultado consumo de CPU&#34; width=&#34;564&#34; height=&#34;332&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Figura 4 &amp;#8211; Resultado consumo de CPU
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Quanto ao uso da CPU, em geral, todas as tecnologias avaliadas tiveram um alto consumo. Das plataformas que completaram todas as requisições sem erros, em média, a Twisted foi a que apresentou o menor consumo de CPU e Tornado a que apresentou o maior índice de consumo. Node.js só ficou abaixo das demais plataformas nos testes de 100 requisições simultâneas, nas avaliações com 500 e 1000 requisições concorrentes, Node.js teve o segundo maior consumo de CPU.&lt;/p&gt;
+
+&lt;p&gt;Cabe ressaltar que apesar do consumo de memória e CPU ter sido similar entre todas as plataformas, Node.js foi superior nas questões de tempo de resposta e número de requisições por segundo, ou seja, foi capaz de atender, com sucesso, um número muito maior de requisições por segundo, com um tempo relativamente menor para atender cada requisição, utilizando a mesma capacidade de recursos de hardware das demais tecnologias.&lt;/p&gt;
+
+&lt;h2 id=&#34;considerações-finais&#34;&gt;CONSIDERAÇÕES FINAIS&lt;/h2&gt;
+
+&lt;p&gt;Analisando os resultados nos testes é possível concluir que Node.js é realmente uma alternativa para consumo eficiente dos recursos computacionais, e demonstrou ser um servidor de aplicação web de alto desempenho, tendo uma performance até 50% maior que as demais arquiteturas exploradas nos testes. Isto se deve ao fato de essa plataforma ter sido construída com esse propósito, de alto desempenho.&lt;/p&gt;
+
+&lt;p&gt;Foi possível comprovar que a performance de Node.js é bem superior a dos servidores web “event-based” comparados nesta pesquisa, permitindo que aplicações que exigem um alto de número de conexões concorrentes sejam mantidas com menos recursos computacionais, reduzindo o custo de infraestrutura dos servidores. Contudo, Node.js não é uma plataforma para todo tipo de aplicação. Em algumas situações, ela não poderá ser utilizada sozinha, mas como um suplemento em aplicações de grande porte, cabendo aos gestores e engenheiros avaliar os requisitos da aplicação e verificar se Node.js é a solução ideal para o desenvolvimento do projeto.&lt;/p&gt;
+
+&lt;h2 id=&#34;referências&#34;&gt;REFERÊNCIAS&lt;/h2&gt;
+
+&lt;p&gt;Basso, Fernando Luis. (2014) “Um estudo experimentativo e comparativo da plataforma Node.js”, &lt;a href=&#34;http://painel.passofundo.ifsul.edu.br/uploads/arq/201505221046071866349516.pdf&#34;&gt;http://painel.passofundo.ifsul.edu.br/uploads/arq/201505221046071866349516.pdf&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Bonfim, F. L., Liang, M. (2014) “Aplicações escaláveis com mean stack”, &lt;a href=&#34;http://www.inf.ufpr.br/ml09/TG/monografia.pdf&#34;&gt;http://www.inf.ufpr.br/ml09/TG/monografia.pdf&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Gros-Dubois, J. (2014) “Process-based vs Thread-based concurrency (Node.js)”, &lt;a href=&#34;https://ncombo.wordpress.com/2014/07/11/process-based-vs-thread-basedconcurrency-node-js&#34;&gt;https://ncombo.wordpress.com/2014/07/11/process-based-vs-thread-basedconcurrency-node-js&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;ITU, International Telecommunication Union. (2014) “Measuring the Information Society Report 2014”, Geneva Switzerland.&lt;/p&gt;
+
+&lt;p&gt;Junior, F. A. R. (2012) “Programação Orientada a Eventos no lado do servidor utilizando Node.js”, &lt;a href=&#34;http://www.infobrasil.inf.br/userfiles/16-S3-3-97136-Programa%C3%A7%C3%A3o%20Orientada___.pdf&#34;&gt;http://www.infobrasil.inf.br/userfiles/16-S3-3-97136-Programa%C3%A7%C3%A3o%20Orientada___.pdf&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Molyneaux, I. (2014) “The Art of Application Performance Testing: From Strategy to Tools”, Gravenstein Highway North: O’Reilly, 2ª Edição.&lt;/p&gt;
+
+&lt;p&gt;Moreira, R. H. (2013) “O que é Node.js?”, &lt;a href=&#34;http://nodebr.com/o-que-e-node-js&#34;&gt;http://nodebr.com/o-que-e-node-js&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Node.js. (2015) “About Node.js”, &lt;a href=&#34;https://nodejs.org&#34;&gt;https://nodejs.org&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Teixeira, P. (2013) “Professional Node.Js: BUILDING Javascript-Based Scalable Software.”, Indianapolis: John Wiley &amp;amp; Sons.&lt;/p&gt;
+
+&lt;p&gt;Opher, E., Niblett, P. (2011) “Event Processing in Action”. Stamford: Manning.&lt;/p&gt;
+
+&lt;p&gt;Pereira, C. R. (2011) “Aplicações web real-time com Node.Js”, Stamford: Casa do Código.&lt;/p&gt;
+
+&lt;p&gt;Ribeiro, C. (2013) “Destilando JMeter I: Introdução e Conceitos”, &lt;a href=&#34;http://www.bugbang.com.br/destilando-jmeter-i-introducao-e-conceitos&#34;&gt;http://www.bugbang.com.br/destilando-jmeter-i-introducao-e-conceitos&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Por que Python?</title>
+      <link>http://tableless.com.br/por-que-python/</link>
+      <pubDate>Tue, 29 Sep 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/por-que-python/</guid>
+      <description>
+
+&lt;p&gt;Eu sou apaixonado por &lt;a href=&#34;https://www.python.org/&#34;&gt;Python&lt;/a&gt;. Muito. Daquele tipo que fala de Python sempre que pode. E uma pergunta que sempre me fazem é: por quê? Vou tentar fazer uma lista dos motivos mais relevantes:&lt;/p&gt;
+
+&lt;h2 id=&#34;1-é-muito-bom-escrever-código-python&#34;&gt;1. É muito bom escrever código Python&lt;/h2&gt;
+
+&lt;p&gt;Geralmente, quando alguém cria uma linguagem de programação, tem em vista um objetivo. Por exemplo, Lisp foi escrita para programação funcional. Java foi escrita para que o mesmo código pudesse rodar em qualquer lugar. PHP foi criada para construir páginas web. E Python foi criada para ser produtiva e fácil de escrever.&lt;/p&gt;
+
+&lt;p&gt;Um programador experiente aprende a sintaxe do Python em algumas poucas horas. O jeito de escrever faz sentido.&lt;/p&gt;
+
+&lt;p&gt;Veja, por exemplo, essa função para calcular um número de &lt;a href=&#34;https://pt.wikipedia.org/wiki/Sequ%C3%AAncia_de_Fibonacci&#34;&gt;Fibonacci&lt;/a&gt;:&lt;/p&gt;
+
+&lt;pre&gt;def fib(n):
+    if n&amp;lt;3:
+        return n
+    return fib(n-1) + fib(n-2)&lt;/pre&gt;
+
+&lt;p&gt;Note como a sintaxe é simples. Mesmo nas decisões de design que são &amp;#8220;pouco ortodoxas&amp;#8221;, como os blocos baseados na indentação, a decisão foi tomada pensando em produtividade. O modelo de blocos do Python faz com que você precise digitar menos. Além disso, é impossível escrever código não indentado em Python.&lt;/p&gt;
+
+&lt;p&gt;Veja nesse outro exemplo, a função de Fibonacci em uma versão &lt;a href=&#34;https://en.wikipedia.org/wiki/Memoization&#34;&gt;memoized&lt;/a&gt;:&lt;/p&gt;
+
+&lt;pre&gt;memo = {0:0, 1:1}
+
+def fib(n):
+    if not n in memo:
+        memo[n] = fib(n-1) + fib(n-2)
+    return memo[n]&lt;/pre&gt;
+
+&lt;p&gt;Reparou como é simples? Ao trabalhar com Python, a linguagem nunca está entre você e seu problema. Você pode gastar seu tempo com a lógica de programação, que é o que realmente importa, e não com especificidades da linguagem que você está usando.&lt;/p&gt;
+
+&lt;h2 id=&#34;2-organizar-um-projeto-python-é-muito-fácil&#34;&gt;2. Organizar um projeto Python é muito fácil&lt;/h2&gt;
+
+&lt;p&gt;Vamos colocar nossa função de Fibonacci e salvar num arquivo, fib.py, incluindo um pouquinho de documentação. Chamamos cada arquivo Python de módulo:&lt;/p&gt;
+
+&lt;pre&gt;&#39;&#39;&#39;Fibonacci function, memoized for better performance.&#39;&#39;&#39;
+memo = {0:0, 1:1}
+
+def fib(n):
+    &#39;&#39;&#39;Returns the nth Fibonacci number.&#39;&#39;&#39;
+    if not n in memo:
+        memo[n] = fib(n-1) + fib(n-2)
+    return memo[n]&lt;/pre&gt;
+
+&lt;p&gt;Agora vamos importar esse arquivo no console do Python, e veja o que dá para fazer:&lt;/p&gt;
+
+&lt;div style=&#34;width: 490px&#34; class=&#34;wp-caption alignnone&#34;&gt;
+  &lt;img class=&#34;&#34; src=&#34;http://elcio.com.br/wp-content/uploads/2015/09/fib.gif&#34; alt=&#34;&#34; width=&#34;480&#34; height=&#34;267&#34; /&gt;
+  
+  &lt;p class=&#34;wp-caption-text&#34;&gt;
+    Executando fib.py e ajuda.
+  &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;É como PHPDoc ou Javadoc, mas completamente nativo, e com uma sintaxe muito simples. E tudo o que você precisa para ler a documentação é o próprio Python.&lt;/p&gt;
+
+&lt;h2 id=&#34;3-o-ecossistema-python-é-fantástico&#34;&gt;3. O ecossistema Python é fantástico&lt;/h2&gt;
+
+&lt;p&gt;Começando pela própria linguagem, que vem com uma excelente &lt;a href=&#34;https://docs.python.org/3/library/&#34;&gt;biblioteca padrão&lt;/a&gt;. Essa biblioteca é bastante extensa e possui excelentes módulos, bem documentados e fáceis de usar. Por exemplo, digamos que você queira baixar o código fonte desse artigo e gerar um arquivo GZip com ele, veja como é fácil:&lt;/p&gt;
+
+&lt;pre&gt;import urllib
+import gzip
+html=urllib.urlopen(&#39;http://tableless.com.br/por-que-python/&#39;).read()
+gzfile=gzip.open(&#39;por-que-python.html.gz&#39;,&#39;w&#39;)
+gzfile.write(html)&lt;/pre&gt;
+
+&lt;p&gt;Usamos os módulos urllib e gzip. Entre os recursos fornecidos pelos módulos que já vem com o Python, posso citar o controle de threads e processamento paralelo, a criação de webservices, bibliotecas para sockets, http, ftp, e-mail, a leitura e escrita de XML, JSON, CSV, o acesso a recursos do sistema operacional, matemática e estatística, criptografia, manipulação de arquivos de áudio, testes automatizados, etc.&lt;/p&gt;
+
+&lt;p&gt;Como é fácil escrever código bom e bem documentado, a comunidade Python tem feito um excelente em fornecer módulos para praticamente tudo o que você precisar fazer. Você pode encontrar, no &lt;a href=&#34;https://pypi.python.org/pypi&#34;&gt;Python Package Index&lt;/a&gt;, milhares de módulos prontos para coisas como ler e escrever arquivos Excel, trabalhar com imagens, acessar bancos de dados os mais diversos, trabalhar com automação residencial, enviar SMS, integrar seu software ao Gmail, falar com serviços de VoIP, conectar-se a redes sociais, criar um servidor de e-mails, desenvolver jogos 3D, e uma infinidade de outros recursos.&lt;/p&gt;
+
+&lt;h3 id=&#34;e-tem-mais-8230&#34;&gt;E tem mais&amp;#8230;&lt;/h3&gt;
+
+&lt;p&gt;Se você não programa em Python, espero tê-lo deixado pelo menos um pouquinho curioso. No próximo artigo, vamos falar um pouco mais da linguagem, mostrando algumas características da sintaxe e dos tipos de dados que a tornam tão interessante. Até lá, fique à vontade nos comentários. Sugestões, dúvidas, críticas e opiniões são muito bem vindas e vão me ajudar a preparar os próximos artigos.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JAVA – Estruturas de Decisão</title>
+      <link>http://tableless.com.br/java-estruturas-de-decisao/</link>
+      <pubDate>Fri, 22 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/java-estruturas-de-decisao/</guid>
+      <description>
+
+&lt;p&gt;As estruturas de decisão são utilizadas para controlar o fluxo de execução dos aplicativos, possibilitando que a leitura das instruções siga caminhos alternativos em função da análise de determinadas condições. Com elas, é possível condicionar a leitura de uma instrução ou de um bloco delas a uma ou mais condições que precisam ser satisfeitas.&lt;/p&gt;
+
+&lt;p&gt;Todos os aplicativos de exemplo precedentes executam suas instruções de forma linear, ou seja, todas elas são lidas sequencialmente, na ordem em que foram escritas no código. Com o uso de estruturas de decisão, alguns trechos dos programas somente serão executados sob determinadas condições.&lt;/p&gt;
+
+&lt;h2 id=&#34;estrutura-if&#34;&gt;Estrutura if&lt;/h2&gt;
+
+&lt;p&gt;A estrutura de decisão if é utilizada para impor uma ou mais condições que deverão ser satisfeitas para a execução de uma instrução ou bloco de instruções. A sua forma geral é a seguinte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;If (&amp;lt;condição&amp;gt;) &amp;lt;instrução ou bloco&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;A condição sempre irá figurar entre parênteses, após a palavra reservada if, e deve ser uma expressão booleana que resulte em um valor true ou false. A instrução ou o bloco de instruções somente será executado caso o resultado dessa expressão seja true. Caso o resultado seja false, o fluxo de execução será desviado e a instrução ou o bloco de instruções não será executado.&lt;/p&gt;
+
+&lt;p&gt;Havendo uma única instrução condicionada pela estrutura if, ela figura logo após a condição e termina com um ponto e vírgula. A sintaxe é a seguinte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;If(&amp;lt;Condição&amp;gt;) &amp;lt;Instrução&amp;gt;;
+&lt;/pre&gt;
+
+&lt;h2 id=&#34;estrutura-if-else&#34;&gt;Estrutura if-else&lt;/h2&gt;
+
+&lt;p&gt;A estrutura de decisão if-else é uma variação da estrutura if. Ela é utilizada para impor uma ou mais condições que deverão ser satisfeitas para a execução de uma instrução ou bloco de instruções e possibilita a definição de uma instrução ou bloco de instruções a serem executados caso as condições não sejam satisfeitas. A sua forma geral é a seguinte:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;If(&amp;lt;Condição&amp;gt;) &amp;lt;instrução ou bloco&amp;gt;
+
+else &amp;lt;instrução ou bloco&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;A condição sempre irá figurar entre parênteses, após a palavra reservada if, e deve ser uma expressão booleana que resulte em um valor true ou false. A primeira instrução ou o bloco de instruções somente será executado caso o resultado dessa expressão seja true. Caso o resultado seja false, o fluxo de execução será desviado e a instrução ou o bloco posterior ao else será executado.&lt;/p&gt;
+
+&lt;h2 id=&#34;equals&#34;&gt;Equals&lt;/h2&gt;
+
+&lt;p&gt;O método equals é usado para a comparação. A classe String e as classes Wrapper sobrescrevem o equals para garantir que dois objetos desses tipos, com o mesmo conteúdo, possam ser considerados iguais. Para descobrir se as referências são iguais, deve-se utilizar o   “ == ” para que seja comparado os bits das variáveis.&lt;/p&gt;
+
+&lt;p&gt;Toda comparação utilizando o equals irá verificar, primeiro se existe uma sobrescrita do mesmo nas classes comparadas. Caso não haja, o método padrão da classe Object é utilizado.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/equals-com-objeto.bmp&#34;&gt;&lt;img class=&#34; wp-image-48938 size-full aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/equals-com-objeto.bmp&#34; alt=&#34;&#34; width=&#34;456&#34; height=&#34;238&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;O resultado será falso, pois as classes, apesar de terem os mesmos atributos e métodos, a referência é diferente, como eu disse mas acima, para descobrir se as referências são iguais, deve-se utilizar “ == ”.&lt;/p&gt;
+
+&lt;p&gt;O equals também poderá ser utilizado para a comparação de Strings:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/equals-com-string.bmp&#34;&gt;&lt;img class=&#34; wp-image-48939 size-full aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/equals-com-string.bmp&#34; alt=&#34;&#34; width=&#34;527&#34; height=&#34;201&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Nesse caso, a primeira instrução irá gerar uma resposta false, pois não estamos utilizando o método equalsIgnoreCase, que ignora as letras maiúsculas e minúsculas, portanto, a segunda instrução irá gerar uma resposta true.&lt;/p&gt;
+
+&lt;h2 id=&#34;operador-ternário&#34;&gt;Operador Ternário&lt;/h2&gt;
+
+&lt;p&gt;Esse código trata-se de um operador matemático, com um condicional. Em alguns casos, ambos podem ter comportamento um pouco diferente. Lembrando também que o ternário sempre deve retornar valor, e o valor será sempre do mesmo tipo, para ambos os lados da expressão.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/if-ternario.bmp&#34;&gt;&lt;img class=&#34; size-full wp-image-48941 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/if-ternario.bmp&#34; alt=&#34;operador ternario&#34; width=&#34;632&#34; height=&#34;288&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Nesse caso, temos duas condições, essas duas condições são iguais, porém a de cima utiliza o operador ternário.&lt;/p&gt;
+
+&lt;h2 id=&#34;switch&#34;&gt;SWITCH&lt;/h2&gt;
+
+&lt;p&gt;A estrutura de decisão switch-case, ou simplesmente switch, é uma forma simples para se definir diversos desvios no código a partir de uma única variável ou expressão. Havendo uma variável com diversos valores possíveis e sendo necessário um tratamento específico para cada um deles, o uso da estrutura if-else se torna confuso e dificulta a leitura do código. Nesse caso, a clareza e a facilidade estão do lado da estrutura switch.&lt;/p&gt;
+
+&lt;p&gt;A sintaxe geral da estrutura switch é a seguinte:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2015/05/switch.bmp&#34;&gt;&lt;img class=&#34; size-full wp-image-48942 aligncenter&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2015/05/switch.bmp&#34; alt=&#34;switch&#34; width=&#34;514&#34; height=&#34;408&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Se for utilizada uma expressão, ela deve retornar um tipo de dados compatível com todos os valores especificados através das declarações case. Por dedução, todas as declarações devem conter valores de um mesmo tipo. Caso esteja utilizada uma variável, seu tipo também deve ser compatível com os valores das declarações.&lt;/p&gt;
+
+&lt;p&gt;Cada um dos valores especificados com as declarações case deve ser um valor literal exclusivo. Se houver algum valor duplicado, será gerado um erro no momento em que você tentar compilar seu código.&lt;/p&gt;
+
+&lt;p&gt;A palavra reservada break é utilizada na estrutura switch para promover um desvio da execução para a linha posterior ao final de seu bloco. Geralmente, ele é utilizado como a última instrução de cada declaração case.&lt;/p&gt;
+
+&lt;p&gt;A palavra default indica que caso nenhum dos cases seja utilizado, a instrução que se encontra no default será executada.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>PHP Slim Framework</title>
+      <link>http://tableless.com.br/php-slim-framework/</link>
+      <pubDate>Wed, 04 Jun 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/php-slim-framework/</guid>
+      <description>
+
+&lt;p&gt;O Slim Framework é um microframework PHP que facilita sua vida na hora de fazer pequenas APIs.&lt;/p&gt;
+
+&lt;p&gt;Vou falar sobre um problema que tive em um projeto em uma empresa que trabalho. Lá eu codifico com diferentes linguagens de programação em pequenos sistemas. Esses sistemas precisam ser acessados por 3 filiais e os usuários se logam com o mesmo login usado no E.R.P. que eles utilizam.&lt;/p&gt;
+
+&lt;p&gt;Para simplificar meu trabalho resolvi criar uma API simples para autenticar os usuários. Como eu queria usar uma estrutura REST e não queria fazer tudo na unha e nem queria colocar um framework grande como Rails, Laravel, Zend ou Django. Pesquisei sobre microframeworks PHP e cheguei ao &lt;a href=&#34;http://www.sinatrarb.com/&#34;&gt;Sinatra&lt;/a&gt;, que já conhecia, e o &lt;a href=&#34;http://flask.pocoo.org/&#34;&gt;Flask&lt;/a&gt; (Python). Então encontrei o &lt;a href=&#34;http://www.slimframework.com/&#34;&gt;Slim&lt;/a&gt; um microframework PHP.&lt;/p&gt;
+
+&lt;p&gt;Eu queria trabalhar com uma estrutura REST e o Slim já faz isso de forma muito simples criando rotas, como qualquer outro framework que trabalha com REST, a diferença é que um microframework é mais leve e não precisa de tantas configurações. É uma mão na roda para quem precisa escrever uma API. Para vocês terem ideia: em um dia consegui resolver meu problema de autenticação.&lt;/p&gt;
+
+&lt;h2 id=&#34;código&#34;&gt;Código&lt;/h2&gt;
+
+&lt;p&gt;Agora vamos ao código! O Slim pode ser instalado via &lt;a href=&#34;https://getcomposer.org/&#34;&gt;Composer&lt;/a&gt; ou fazendo o download do código fonte, para quem não conhece ele é um gerenciador de dependências para PHP assim como &lt;a href=&#34;http://bundler.io/&#34;&gt;Bundler&lt;/a&gt; é para o Ruby, nesse post vou mostrar a instalação via composer:&lt;/p&gt;
+
+&lt;h3 id=&#34;passo-1-8211-instalação-do-composer&#34;&gt;Passo 1 &amp;#8211; Instalação do composer&lt;/h3&gt;
+
+&lt;p&gt;Leia o post (&lt;a href=&#34;http://tableless.com.br/composer-para-iniciantes/&#34;&gt;Composer para iniciantes&lt;/a&gt;) do &lt;a href=&#34;http://tableless.com.br/author/andrecardosodev/&#34;&gt;Andre Cardoso&lt;/a&gt;. Mas basicamente, para quem tem linux, é só abrir o terminal e digitar o código abaixo, se tiver windows, é só pegar o executável no site e instalar.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;curl -s https://getcomposer.org/installer | php&lt;/pre&gt;
+
+&lt;h3 id=&#34;passo-2-8211-criar-o-arquivo-composer-json&#34;&gt;Passo 2 &amp;#8211; Criar o arquivo composer.json&lt;/h3&gt;
+
+&lt;p&gt;Crie um diretorio para seu projeto(no meu caso eu chamei de api) e coloque um arquivo chamado composer.json dentro dela:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;mkdir api
+cd api
+&lt;/pre&gt;
+
+&lt;p&gt;No arquivo composer.json adicione as seguintes linhas:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-json&#34;&gt;{
+    &#34;require&#34;: {
+        &#34;slim/slim&#34;: &#34;2.*&#34;
+    }
+}
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;passo-3-8211-instalar-as-dependências&#34;&gt;Passo 3 &amp;#8211; Instalar as dependências&lt;/h3&gt;
+
+&lt;pre class=&#34;lang-bash&#34;&gt;composer install&lt;/pre&gt;
+
+&lt;p&gt;Caso você não tenha o Composer, as suas variáveis de ambiente deverão ser assim:&lt;/p&gt;
+
+&lt;pre&gt;php composer.phar install&lt;/pre&gt;
+
+&lt;h3 id=&#34;passo-4-8211-criação-da-app&#34;&gt;Passo 4 &amp;#8211; Criação da app&lt;/h3&gt;
+
+&lt;p&gt;Crie um arquivo &lt;code&gt;index.php&lt;/code&gt; e dentro dele coloque:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+require &#39;vendor/autoload.php&#39;;
+
+//instancie o objeto
+$app = new \Slim\Slim();
+
+//defina a rota
+get(&#39;/&#39;, function () { 
+  echo &#34;Hello, World!&#34;; 
+}); 
+//rode a aplicação Slim 
+$app-&amp;gt;run();&lt;/pre&gt;
+
+&lt;p&gt;Se você acessar &lt;code&gt;http://localhost/api/&lt;/code&gt; você verá a mensagem &lt;strong&gt;&amp;#8220;Hello World!&amp;#8221;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Mas não é isso que queremos, queremos uma API REST que retorne um JSON. Então vamos ver um exemplo bem simples. O Slim também trabalha com templates, então dentro do diretório da nossa aplicação vamos criar um diretório chamado de &lt;code&gt;templates&lt;/code&gt; e dentro dele criaremos um arquivo chamado &lt;code&gt;default.php&lt;/code&gt;, neste arquivo coloque o seguintes conteúdo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php 
+header(&#39;Content-Type: application/json; charset=utf-8&#39;);
+echo json_encode($data);
+&lt;/pre&gt;
+
+&lt;p&gt;Agora voltando ao nosso arquivo &lt;code&gt;index.php&lt;/code&gt; edite-o deixando da seguinte forma:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;&amp;lt;?php
+require &#39;vendor/autoload.php&#39;;
+
+//instancie o objeto
+$app = new \Slim\Slim(array(
+&#39;templates.path&#39; =&amp;gt; &#39;templates&#39;
+));
+
+//defina a rota
+$app-&amp;gt;get(&#39;/&#39;, function () use ($app){ 
+  //defina
+  $data = array(&#34;data&#34;=&amp;gt;array(&#34;Hello&#34;=&amp;gt;&#34;World!&#34;)); 
+  //set o arquivo de template
+  $app-&amp;gt;render(&#39;default.php&#39;,$data,200); 
+}); 
+
+//rode a apliçicação Slim
+$app-&amp;gt;run();&lt;/pre&gt;
+
+&lt;p&gt;Quando você acessar a url novamente você verá algo como:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-json&#34;&gt;{&#34;Hello&#34;:&#34;World!&#34;}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora vamos incrementar mais. No mesmo arquivo &lt;code&gt;index.php&lt;/code&gt; antes de &lt;code class=&#34;lang-php&#34;&gt;$app-&amp;gt;run();&lt;/code&gt; adicione:&lt;/p&gt;
+
+&lt;pre&gt;$app-&amp;gt;group(&#39;/users&#39;,function() use ($app){
+
+  //rota para a home
+  $app-&amp;gt;get(&#39;/&#39;,function() use ($app){
+    //exemplo de lista de usuarios
+    $users = array(
+     &#39;users&#39;=&amp;gt;array(
+       &#39;jo&#39;=&amp;gt;&#39;senhadejo&#39;,
+       &#39;luca&#39;=&amp;gt;&#39;senhaluca&#39;,
+       &#39;yasmin&#39;=&amp;gt;&#39;senhayasmin&#39;,
+       &#39;eric&#39;=&amp;gt;&#39;seric&#39;
+     )
+    );
+    $data = array(
+      &#39;data&#39;=&amp;gt;$users
+      );
+    $app-&amp;gt;render(&#39;default.php&#39;,$data,200);
+  });
+
+  //rota para login
+  $app-&amp;gt;post(&#39;/login/&#39;,function() use ($app){
+    if(isset($_POST))
+    {
+      $data = $_POST;
+      $app-&amp;gt;render(&#39;default.php&#39;,$data,200);
+    }
+    else
+    {
+      $app-&amp;gt;render(404);
+    }
+  });
+
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Caso você esteja acessando o sistema por subdiretório crie um arquivo chamado &lt;code&gt;.htaccess&lt;/code&gt; com o seguinte conteúdo:&lt;/p&gt;
+
+&lt;pre&gt;RewriteEngine On
+RewriteBase /api/
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /api/index.php [L]
+&lt;/pre&gt;
+
+&lt;p&gt;Perceba que adicionei o método group no arquivo &lt;code&gt;index.php.&lt;/code&gt; O Slim trabalha também com grupos de rotas, então é possível criar vários grupos com rotas próprias, dessa forma podemos organizar o código e não ter que ficar digitando o mesmo código várias vezes. Com o grupo de rotas chamado /users tudo que tiver dentro dele deverá vir precedido de /users ex: (/users/login/, /users/update/).&lt;/p&gt;
+
+&lt;p&gt;Acessando &lt;code&gt;http://localhost/api/users/&lt;/code&gt; você verá uma lista de usuários, caso acesse &lt;code&gt;http://localhost/api/users/login/&lt;/code&gt; você verá uma página de erro. Isso ocorre porque setamos apenas uma rota POST para /users/login/ e como você acessou via GET o sistema redirecionou pois não existe a rota GET para /users/login/.&lt;/p&gt;
+
+&lt;p&gt;Daqui para frente é só continuar implementando coisas novas, criando uma classe para conectar ao banco de dados, utilizando outros verbos HTTP, novos templates e etc. Você pode criar classes e usá-las normalmente é só incluí-las com o require e instanciar o objeto;&lt;/p&gt;
+
+&lt;p&gt;O post termina aqui. O link para documentação do Slim é esse &lt;a href=&#34;http://docs.slimframework.com/&#34;&gt;http://docs.slimframework.com/&lt;/a&gt; divirtam-se e mãos a obra! ;D&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Front-end, UX e Back-end</title>
+      <link>http://tableless.com.br/front-end-ux-e-back-end/</link>
+      <pubDate>Wed, 16 Jan 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/front-end-ux-e-back-end/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;“One of the reasons for poor design execution is that UX teams need to own more than just design. We need to own front-end development.”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Frase sensacional &lt;a href=&#34;http://www.uxmatters.com/mt/archives/2012/04/great-user-experiences-require-great-front-end-development.php&#34;&gt;em um artigo do site UXMatters&lt;/a&gt;, um dos melhores sites sobre experiência do usuário e arquitetura de informação que tenho nas minhas leituras regulares.&lt;/p&gt;
+
+&lt;p&gt;Os designers para web precisam muito aprender a linguagem com que seus layouts serão codificados. Na minha opinião é estranho um designer para web não entender HTML e CSS, pelo menos o básico, o suficiente. Mesmo que ele não vá digitar código todos os dias. Conhecer essas linguagens é tão necessário quanto Photoshop ou Illustrator.&lt;/p&gt;
+
+&lt;p&gt;Os melhores desenvolvedores front-end, que prezam pelo layout bonito e bem afinado pensam e falam usando linguagens de design e UX. Claro que HTML, CSS e Javascript são linguagens técnicas, mas elas estão muito mais perto do lado de Design e experiência do usuário do que programação pesada de back. O Javascript, talvez, é o que se aproxima da área mais hardcore do back-end, mas isso só quando falamos em consumir APIs, usar JS no lado do servidor e etc. Javascript é o tempo inteiro usado também para tratar experiências e comportamentos para o usuário.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;O front-end faz a integração do projeto, fazendo as amarrações necessárias para que o sistema seja funcional e usável.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;A maioria dos programadores back-end não conhecem front-end por não enxergarem isso como uma forma de melhorar suas skills. Normalmente alguns programadores não gostam de front por acharem muito próximo de UX. Coisa designer, sabe? Enquanto isso o pessoal da área de UX não se aproxima de front-end por acharem que é coisa de programador. É simples, mas é uma verdade. Ambos acabam atrofiando as possibilidades de melhorarem muito seus conhecimentos dentro das suas áreas.&lt;/p&gt;
+
+&lt;p&gt;Os desenvolvedores front-end trabalham no meio desses dois profissionais completamente diferentes e muitos se arriscam em um dos dois lados. Há os front-ends designers, que sabem o que é bonito e feio, entendem de grid, alinhamento, cores e etc. Podem não arriscar a criar um layout, mas entendem do assunto. Há também o front-end programador, que talvez até conheça uma linguagem back-end e manja o básico de algumas outras. Não faz um sistema complexo todos os dias, mas é um contribuir fervoroso nos projetos em que trabalha. Ambos são especialistas em front-end, com focos totalmente diferentes. Outro ponto que os destacam é que eles não ignoram as skills de cada área, mesmo não fazendo parte do seu core. E nem podem deixar que isso aconteça, eles perderiam muitos pontos de experiência.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Quando os times de UX entendem a importância do front-end, eles entregam não apenas representações visuais dos projetos, mas também experiências que realmente valham a pena.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Os front-ends trabalham muito melhor suas skills quando eles entendem em qual dos lados eles tem mais facilidade. Se você é front-end e acha design interessante, busque mais conhecimento nessa área. Se puder, sente-se ao lado dos designers na sua equipe. Se você acha que programação server-side é sua praia, sente-se ao lado dos programadores. Entenda como eles fazem a integração da linguagem server-side no código client-side gerado por você. Estude maneiras de como o client pode consumir informação do back.&lt;/p&gt;
+
+&lt;p&gt;Apenas assim front-ends irão produzir códigos mais robustos e escaláveis, pensando na experiência do usuário e em formas de consumir e reutilizar informações mais eficientemente.&lt;/p&gt;
+
+&lt;p&gt;Quando os times de UX entendem a importância do front-end, eles entregam não apenas representações visuais dos projetos, mas podem entregar experiências que realmente valham a pena. Isso é ultrapassar aquela barreira do “é possível ou não é possível de fazer”. Isso diminui custos. Todo o resultado é mais correto. Um UX que entrega um protótipo funcional em HTML e CSS vale seu peso em ouro. É importante por que esse tipo de atitude concretiza ideias enquanto o projeto ainda é imaturo.&lt;/p&gt;
+
+&lt;p&gt;Entender sobre os processos é importante para qualquer um dentro da equipe. Entender as limitações e saber quais os impactos que cada decisão, por mínima que seja, desencadeia no projeto é algo que só se conhece quando você procura saber mais do que acontece ao seu redor. E eu não estou dizendo para você ser um profissional canivete, longe disso. Mas trabalhar em equipe envolve muito mais do que conversas nos dailys da vida.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

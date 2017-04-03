@@ -1,0 +1,389 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/upload-de-arquivos-com-php/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/upload-de-arquivos-com-php/">Upload de arquivos com PHP</a></h1>
+  <p class="tb-hero-p">
+    
+    Aprenda a fazer o upload de arquivos com PHP e AJAX, utilizando WideImage e Jquery Form Plugin.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/lucas-caprio">Lucas Caprio</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>Neste artigo vamos aprender como fazer upload de arquivos com PHP. Porém, com alguns recursos adicionais em cada exemplo.</p>
+
+<p>No primeiro exemplo, iremos fazer um upload básico de apenas um arquivo, assim conseguimos pegar o jeito da coisa.</p>
+
+<p>No segundo exemplo, vamos fazer um upload de múltiplas imagens, e utilizaremos a classe WideImage para tratá-las (redimensionar, cortar e salvar).</p>
+
+<p>E por fim, no último exemplo, vamos fazer o upload por AJAX, utilizando o Jquery Form Plugin.</p>
+
+<h2 id="upload-básico">Upload Básico</h2>
+
+<p>Primeiro vamos fazer um upload clássico e rápido de apenas um arquivo. Por ser apenas um exemplo, resolvi escrever o código php na mesma página do HTML, para ficar de simples compreensão, por isso, na <strong>action</strong> do formulário temos #.</p>
+
+<p>Um dos atributos que não podemos esquecer para fazer upload, é o que seta o <strong>enctype</strong> ao nosso formulário.</p>
+
+<pre>&lt;html&gt;
+&lt;head&gt;
+   &lt;title&gt;Basic Upload&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+   &lt;form action="#" method="POST" enctype="multipart/form-data"&gt;
+      &lt;input type="file" name="fileUpload"&gt;
+      &lt;input type="submit" value="Enviar"&gt;
+   &lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+&lt;?php
+   if(isset($_FILES['fileUpload']))
+   {
+      date_default_timezone_set("Brazil/East"); //Definindo timezone padrão
+
+      $ext = strtolower(substr($_FILES['fileUpload']['name'],-4)); //Pegando extensão do arquivo
+      $new_name = date("Y.m.d-H.i.s") . $ext; //Definindo um novo nome para o arquivo
+      $dir = 'uploads/'; //Diretório para uploads
+
+      move_uploaded_file($_FILES['fileUpload']['tmp_name'], $dir.$new_name); //Fazer upload do arquivo
+   }
+?&gt;
+</pre>
+
+<p>Agora passamos ao código PHP, primeiro verificamos se o arquivo foi enviado através do <strong>isset</strong>. Se sim, seguimos para o upload do arquivo.</p>
+
+<p>Primeiro definimos o timezone da aplicação, para podemos usar a função date sem problemas.</p>
+
+<p>Como &#8220;boa prática&#8221; definimos uma variável com o ano, mês, dia, hora, minuto e segundo e concatenamos com a extensão do arquivo pega acima.</p>
+
+<p>Para finalmente fazer o upload do arquivo, usamos a função <strong>move_uploaded_file</strong>, passando dois parâmetros, primeiro o nome temporário do arquivo armazenado pelo servidor, e o novo nome do arquivo, já com diretório padrão.</p>
+
+<p>Se você deseja pegar alguma outra informação do arquivo, a variável $_FILES contém algumas outras informações que não são usadas no exemplo, como:</p>
+
+<p><strong>$_FILES[&#8216;fileUpload&#8217;][&#8216;name&#8217;]</strong> O nome original do arquivo no computador do usuário</p>
+
+<p><strong>$_FILES[&#8216;fileUpload&#8217;][&#8216;type&#8217;]</strong> O tipo mime do arquivo, se o browser deu esta informação (ex.: &#8220;image/gif&#8221;)</p>
+
+<p><strong>$_FILES[&#8216;fileUpload&#8217;][&#8216;size&#8217;]</strong> O tamanho, em bytes, do arquivo</p>
+
+<p><strong>$_FILES[&#8216;fileUpload&#8217;][&#8216;tmp_name&#8217;]</strong> O nome temporário do arquivo, como foi guardado no servidor</p>
+
+<p><strong>$_FILES[&#8216;fileUpload&#8217;][&#8216;error&#8217;]</strong> O código de erro associado a este upload de arquivo (adicionado no PHP 4.2.0)</p>
+
+<h2 id="upload-múltiplo">Upload Múltiplo</h2>
+
+<p>Para o segundo exemplo faremos o upload de múltiplas imagens. Porém, nesse exemplo utilizaremos a classe <a href="http://wideimage.sourceforge.net/" title="WideImage" target="_blank">WideImage</a>, para tratarmos as imagens que foram enviadas.</p>
+
+<p>O segredo do múltiplo upload é a adição do atributo <strong>multiple</strong> à tag do input type=&#8221;file&#8221; e adicionar <strong>[ ]</strong> ao name da tag.</p>
+
+<pre>&lt;html&gt;
+&lt;head&gt;
+   &lt;title&gt;Multiple Upload&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+   &lt;form action="#" method="POST" enctype="multipart/form-data"&gt;
+      &lt;input type="file" name="fileUpload[]" multiple&gt;
+      &lt;input type="submit" value="Enviar"&gt;
+   &lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+&lt;?php
+   if(isset($_FILES['fileUpload']))
+   {
+      require 'WideImage/WideImage.php'; //Inclui classe WideImage à página
+
+      date_default_timezone_set("Brazil/East");
+
+      $name     = $_FILES['fileUpload']['name']; //Atribui uma array com os nomes dos arquivos à variável
+      $tmp_name = $_FILES['fileUpload']['tmp_name']; //Atribui uma array com os nomes temporários dos arquivos à variável
+
+      $allowedExts = array(".gif", ".jpeg", ".jpg", ".png", ".bmp"); //Extensões permitidas
+
+      $dir = 'uploads/';
+
+      for($i = 0; $i &lt; count($tmp_name); $i++) //passa por todos os arquivos
+      {
+         $ext = strtolower(substr($name[$i],-4));
+
+         if(in_array($ext, $allowedExts)) //Pergunta se a extensão do arquivo, está presente no array das extensões permitidas
+         {
+            $new_name = date("Y.m.d-H.i.s") ."-". $i . $ext;
+
+            $image = WideImage::load($tmp_name[$i]); //Carrega a imagem utilizando a WideImage
+
+            $image = $image-&gt;resize(170, 180, 'outside'); //Redimensiona a imagem para 170 de largura e 180 de altura, mantendo sua proporção no máximo possível
+            $image = $image-&gt;crop('center', 'center', 170, 180); //Corta a imagem do centro, forçando sua altura e largura
+
+            $image-&gt;saveToFile($dir.$new_name); //Salva a imagem
+         }
+      }
+   }
+?&gt;
+</pre>
+
+<p>O código PHP deste exemplo muda um pouco comparado ao primeiro. Como neste exemplo estamos utilizando a classe WideImage, temos que inclui-la ao projeto. Em seguida, colocamos todos os nomes de arquivos enviados dentro da variável $name e todos os nomes temporários dentro da variável $tmp_name.</p>
+
+<p>Para fazer a consistência que iremos salvar apenas imagens, criei uma array de possíveis extensões para imagens. Logo adiante, passamos por cada arquivo dentro do for, e realizamos a pergunta se a extensão do arquivo que estou pegando no for se encontra no array de extensões permitidas, se sim, continuaremos para salva-la no servidor, mas antes, redimensiono a mesma com o WideImage (sem perder a proporção), e depois corto a mesma para ter imagens apenas com as dimensões que forcei.</p>
+
+<h2 id="upload-com-ajax">Upload com AJAX</h2>
+
+<p>Neste último exemplo, vamos utilizar o mesmo código PHP de cima para salvar as imagens, porém, com alguns truques HTML e utilizando o <a href="http://malsup.com/jquery/form/" title="Jquery Form Plugin" target="_blank">Jquery Form Plugin</a> para fazer o upload via AJAX.</p>
+
+<p>Não repare na utilização de css inline, ou javascript incorporado ao exemplo, procurei o máximo de agilidade possível e foco no ajax.</p>
+
+<pre>&lt;html&gt;
+&lt;head&gt;
+   &lt;title&gt;Multiple Upload Ajax&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+   &lt;form id="formImage" style="display:none"&gt;
+      &lt;input type="file" id="fileUpload" name="fileUpload[]" multiple onchange="saveImages()"&gt;
+   &lt;/form&gt;
+
+   &lt;div id="btnFake" style="background:#CCC; width:100px; height:100px; cursor:pointer;"&gt;&lt;/div&gt;
+
+   &lt;script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"&gt;&lt;/script&gt;
+   &lt;script src="//malsup.github.io/jquery.form.js"&gt;&lt;/script&gt;
+
+   &lt;script&gt;
+      document.getElementById('btnFake').addEventListener('click', function(){
+         document.getElementById('fileUpload').click();
+      });
+
+      function saveImages()
+      {
+         $('#formImage').ajaxSubmit({
+            url  : 'multiple-upload-ajax.php',
+            type : 'POST'
+         });
+      }
+   &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+<p>Criei um botão &#8220;personalizado&#8221; para não ficarmos com aquele padrão do input type=&#8221;file&#8221;, que é muito feio, e escondi o form todo porque não usamos ele para mais nada além de fazer upload de imagens. Porém, no javascript eu adiciono um evento de click ao meu <strong>btnFake</strong>, para quando clicarmos nele, o fileUpload ser clicado também, assim mascaramos o nosso botão de upload.</p>
+
+<p>Na tag do input type=&#8221;file&#8221; adicionei um novo atributo, o de <strong>onchange</strong>, para assim que selecionados os arquivos que desejo fazer upload, eles sejam enviados ao servidor, sem a necessidade de previamente clicarmos em outro botão para apenas enviar.</p>
+
+<p>A função saveImages ativa a função ajaxSubmit do plugin jquery form, enviando o formulário completo (no caso o de id <strong>formImage</strong>), para uma url especificada e com um método de envio do tipo POST.</p>
+
+<p>Como disse mais acima, o código PHP é o mesmo do exemplo anterior:</p>
+
+<pre>&lt;?php
+   if(isset($_FILES['fileUpload']))
+   {
+      require 'WideImage/WideImage.php';
+
+      date_default_timezone_set("Brazil/East");
+
+      $name     = $_FILES['fileUpload']['name'];
+      $tmp_name = $_FILES['fileUpload']['tmp_name'];
+
+      $allowedExts = array(".gif", ".jpeg", ".jpg", ".png", ".bmp");
+
+      $dir = 'uploads/';
+
+      for($i = 0; $i &lt; count($tmp_name); $i++)
+      {
+         $ext = strtolower(substr($name[$i],-4));
+
+         if(in_array($ext, $allowedExts))
+         {
+            $new_name = date("Y.m.d-H.i.s") ."-". $i . $ext;
+
+            $image = WideImage::load($tmp_name[$i]);
+
+            $image = $image-&gt;resize(170, 180, 'outside');
+            $image = $image-&gt;crop('center', 'center', 170, 180);
+
+            $image-&gt;saveToFile($dir.$new_name);
+         }
+      }
+   }
+?&gt;
+</pre>
+
+<p>Bom, é isso aí pessoal. Apesar de ser algo simples, muitos quando começam a conhecer PHP tem dúvidas desse tipo.</p>
+
+<p>Espero que todos consigam. Bons estudos!</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

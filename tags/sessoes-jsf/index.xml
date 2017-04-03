@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Sessoes Jsf on Tableless</title>
+    <link>http://tableless.com.br/tags/sessoes-jsf/index.xml</link>
+    <description>Recent content in Sessoes Jsf on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/sessoes-jsf/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Construindo uma página com login no JSF</title>
+      <link>http://tableless.com.br/construindo-uma-pagina-com-login-no-jsf/</link>
+      <pubDate>Tue, 06 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/construindo-uma-pagina-com-login-no-jsf/</guid>
+      <description>
+
+&lt;p&gt;Neste post vou falar sobre um assunto um pouco trivial e que qualquer iniciante no framework &lt;strong&gt;JSF&lt;/strong&gt; pode se perder: &lt;strong&gt;As fases do JSF e onde interceptar a navegação para que o usuário realize a autenticação&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;É importante que você saiba o que é JSF e como configurá-lo em seu editor, aqui estarei utilizando o Eclipse, caso não saiba como configurar em seu editor, ao final, deixarei alguns links para lhe ajudar.&lt;/p&gt;
+
+&lt;p&gt;Vamos la =) .&lt;/p&gt;
+
+&lt;h2 id=&#34;fases-do-jsf&#34;&gt;Fases do JSF&lt;/h2&gt;
+
+&lt;p&gt;O JSF funciona através de fases que são invocadas a partir do momento que abrimos uma página.&lt;/p&gt;
+
+&lt;p&gt;Então, o JSF executa um processo para coletar as informações, validar e criar a página de resposta que será enviada ao usuário.&lt;/p&gt;
+
+&lt;p&gt;Este processo é composto por 6 fases:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55231&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/fases-jsf.png&#34; alt=&#34;Fases do JSF&#34; width=&#34;748&#34; height=&#34;411&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;h3 id=&#34;restore-view&#34;&gt;Restore View&lt;/h3&gt;
+
+&lt;p&gt;Fase onde o JSF criará uma árvore de componentes, contendo um objeto para cada componente visual do formulário e, se for a primeira exibição da página, ele pula todas as fases e vai para a &lt;strong&gt;Render Response&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Se a página já foi exibida, o framework buscará pela árvore já existente.&lt;/p&gt;
+
+&lt;h3 id=&#34;apply-request-values&#34;&gt;Apply Request Values&lt;/h3&gt;
+
+&lt;p&gt;Nesta fase, o framework pega os valores do formulário, eles são recebidos como Strings independente do tipo.&lt;/p&gt;
+
+&lt;h3 id=&#34;process-validation&#34;&gt;Process Validation&lt;/h3&gt;
+
+&lt;p&gt;O JSF converte os valores existentes para os tipos que estão vinculados nas propriedades dos Managed Beans.&lt;/p&gt;
+
+&lt;p&gt;Após a conversão, é feita a validação desses valores.&lt;/p&gt;
+
+&lt;p&gt;Se ocorrer algum erro em qualquer dessas etapas, o JSF redireciona para a fase Render Response.&lt;/p&gt;
+
+&lt;h3 id=&#34;update-model-values&#34;&gt;Update Model Values&lt;/h3&gt;
+
+&lt;p&gt;Os dados convertidos são colocados nos objetos Managed Beans que estão vinculados.&lt;/p&gt;
+
+&lt;h3 id=&#34;invoke-application&#34;&gt;Invoke Application&lt;/h3&gt;
+
+&lt;p&gt;O método do atributo action que está vinculado a algum botão que foi acionado é avalido pela Expression Language e seu valor é retornado.&lt;/p&gt;
+
+&lt;h3 id=&#34;render-response&#34;&gt;Render Response&lt;/h3&gt;
+
+&lt;p&gt;O JSF processa a página recebida pelas fases anteriores e gera o código XHTML para o usuário.&lt;/p&gt;
+
+&lt;h2 id=&#34;criação-do-login&#34;&gt;Criação do Login&lt;/h2&gt;
+
+&lt;p&gt;Primeiramente vamos criar nosso xhtml com os campos e botões para login vinculado com um Managed Bean e outro xhtml para ser a página inicial após o login do usuário.&lt;/p&gt;
+
+&lt;p&gt;A página deve ter os campos vinculados a um Managed Bean chamado usuário e um botão vinculado a algum método para logar.&lt;/p&gt;
+
+&lt;p&gt;Este foi meu código, claro, há diversos meios diferente para se fazer o mesmo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;?xml version=&#34;1.0&#34; encoding=&#34;ISO-8859-1&#34; ?&amp;gt;
+&amp;lt;!DOCTYPE html PUBLIC &#34;-//W3C//DTD XHTML 1.0 Strict//EN&#34; &#34;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&#34;&amp;gt;
+&amp;lt;html xmlns=&#34;http://www.w3.org/1999/xhtml&#34;
+      xmlns:h=&#34;http://java.sun.com/jsf/html&#34;
+      xmlns:f=&#34;http://java.sun.com/jsf/core&#34;
+&gt;
+&amp;lt;h:head&amp;gt;
+&amp;lt;meta http-equiv=&#34;Content-Type&#34; content=&#34;text/html; charset=ISO-8859-1&#34; /&amp;gt;
+&amp;lt;title&amp;gt;Login&amp;lt;/title&amp;gt;
+&amp;lt;/h:head&amp;gt;
+&amp;lt;h:body&amp;gt;
+    &amp;lt;h:form&amp;gt;
+        &amp;lt;h:panelGrid columns=&#34;2&#34;&amp;gt; 
+            &amp;lt;h:outputLabel value=&#34;Usuário:&#34; /&amp;gt;
+            &amp;lt;h:inputText value=&#34;#{usuario.usuario}&#34; size=&#34;20&#34; /&amp;gt;
+            
+            &amp;lt;h:outputLabel value=&#34;Senha:&#34; /&amp;gt;
+            &amp;lt;h:inputSecret value=&#34;#{usuario.senha}&#34; size=&#34;20&#34; /&amp;gt;
+                
+            &amp;lt;h:commandButton value=&#34;Logar&#34; action=&#34;#{usuario.logar}&#34; /&amp;gt;
+        &amp;lt;/h:panelGrid&amp;gt;
+        &amp;lt;h:messages /&amp;gt;    
+    &amp;lt;/h:form&amp;gt;
+&amp;lt;/h:body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;E este foi o resultado:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55232&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/result-jsf-login.png&#34; alt=&#34;Formulário de login XHTMl&#34; width=&#34;261&#34; height=&#34;89&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;No método logar vou verificar se o usuário e a senha correspondem ao meu nome: &amp;#8220;Julio&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Caso o usuário ou a senha forem diferentes de &amp;#8220;Julio&amp;#8221;, exibirei uma mensagem informando que o usuário é inválido.&lt;/p&gt;
+
+&lt;p&gt;Em outros casos será invocado um &lt;em&gt;DAO&lt;/em&gt;, que verificará se o usuário existe na base de dados ou o que for preciso.&lt;/p&gt;
+
+&lt;p&gt;Crie, também, uma página de resposta caso o usuário esteja correto.&lt;/p&gt;
+
+&lt;p&gt;Segue o código da classe Usuário:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;package root;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
+
+@ManagedBean
+@SessionScoped
+public class Usuario {
+    private String usuario = &#34;&#34;;
+    private String senha = &#34;&#34;;
+    
+    public String logar(){
+        if(usuario.equals(&#34;Julio&#34;) &amp;&amp; senha.equals(&#34;Julio&#34;)){
+            return &#34;pag-sucesso&#34;;
+        }
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, &#34;Usuário inválido&#34;, &#34;Usuário inválido&#34;);
+        ctx.addMessage(null, msg);
+        return &#34;&#34;;              
+    }
+    
+    
+    public String getUsuario() {
+        return usuario;
+    }
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
+    }
+    public String getSenha() {
+        return senha;
+    }
+    public void setSenha(String senha) {
+        this.senha = senha;
+    }
+}
+&lt;/pre&gt;
+
+&lt;p&gt;E, também, o código do XHTML de resposta em caso de sucesso.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;&amp;lt;?xml version=&#34;1.0&#34; encoding=&#34;ISO-8859-1&#34; ?&amp;gt;
+&amp;lt;!DOCTYPE html PUBLIC &#34;-//W3C//DTD XHTML 1.0 Strict//EN&#34; &#34;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&#34;&amp;gt;
+&amp;lt;html xmlns=&#34;http://www.w3.org/1999/xhtml&#34;
+      xmlns:h=&#34;http://java.sun.com/jsf/html&#34;
+      xmlns:f=&#34;http://java.sun.com/jsf/core&#34;
+&gt;
+&amp;lt;h:head&amp;gt;
+&amp;lt;meta http-equiv=&#34;Content-Type&#34; content=&#34;text/html; charset=ISO-8859-1&#34; /&amp;gt;
+&amp;lt;title&amp;gt;Sucesso!!&amp;lt;/title&amp;gt;
+&amp;lt;/h:head&amp;gt;
+&amp;lt;h:body&amp;gt;
+    Usuário logado!!!
+&amp;lt;/h:body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;testes&#34;&gt;Testes&lt;/h3&gt;
+
+&lt;p&gt;Vamos testar nossa página:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55233&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/teste-jsf.png&#34; alt=&#34;Teste do login em sucesso&#34; width=&#34;295&#34; height=&#34;111&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Primeiramente coloquei os campos de modo correto, ou seja, com os valores em &amp;#8220;Julio&amp;#8221;, e após pressionar o botão &amp;#8220;Logar&amp;#8221; a página de sucesso foi retornada como esperado.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55234&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/teste-jsf-sucesso.png&#34; alt=&#34;teste-jsf-sucesso&#34; width=&#34;159&#34; height=&#34;62&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Mas tem um problema, conseguimos acessarmos diretamente a página de sucesso, pois não há nenhuma validação se o usuário está logado. Em casos de sistemas grandes, isso pode ser um enorme problema, pois qualquer usuário poderia ter acesso a informações não permitidas.&lt;/p&gt;
+
+&lt;h3 id=&#34;correção&#34;&gt;Correção&lt;/h3&gt;
+
+&lt;p&gt;Devemos criar um login que valide se o usuário já está no sistema, então vamos criar uma classe que sirva como ouvinte entre as fases do JSF.&lt;/p&gt;
+
+&lt;p&gt;Para isto, é preciso:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Criar uma classe que implemente a interface &lt;strong&gt;PhaseListener&lt;/strong&gt;;&lt;/li&gt;
+&lt;li&gt;Registrar no faces-config.xml.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Criarei uma classe chamada &amp;#8220;Listener&amp;#8221; que implementa a interface PhaseListener.&lt;/p&gt;
+
+&lt;p&gt;Esta interface possui 3 métodos:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;beforePhase: código que será executado antes do processamento da fase;&lt;/li&gt;
+&lt;li&gt;afterPhase: código que será executado após o processamento da fase;&lt;/li&gt;
+&lt;li&gt;getPhaseId: retorna um Enum com o nome da fase atual.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Devemos implementar nosso método para verificar se o usuário está logado no método &amp;#8220;afterPhase&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Para verificar se a página que está sendo acessada é diferente da página &amp;#8220;login.xhtml&amp;#8221; devemos pegar a instância atual do &amp;#8220;FacesContext&amp;#8221; e, partir dele, pegar o ViewRoot e o ViewId que contém o nome da página atual:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;package root;
+
+import javax.faces.application.Application;
+import javax.faces.application.NavigationHandler;
+import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.PhaseListener;
+
+public class Listener implements PhaseListener{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void beforePhase(PhaseEvent arg0) {
+    }
+
+    @Override
+    public void afterPhase(PhaseEvent arg0) {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        if(!ctx.getViewRoot().getViewId().equals(&#34;/login.xhtml&#34;)){
+                    
+        }
+    }
+
+    @Override
+    public PhaseId getPhaseId() {
+        return null;
+    }
+
+}
+
+&lt;/pre&gt;
+
+&lt;p&gt;Após isto, é preciso verificar se o usuário está logado, isto pode ser feito com um atributo booleano na classe Usuario ou verificar se os parâmetros estão de acordo com o que queremos, vou utilizar esta segunda opção.&lt;/p&gt;
+
+&lt;p&gt;Para pegar o objeto Usuario que queremos, devemos utilizar o objeto &amp;#8220;Application&amp;#8221; a partir do FacesContext atual, através do método &amp;#8220;getApplication&amp;#8221;.&lt;/p&gt;
+
+&lt;p&gt;Então utilizamos o método &amp;#8220;evaluateExpressionGet&amp;#8221; do objeto &amp;#8220;Application&amp;#8221;:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;package root;
+
+import javax.faces.application.Application;
+import javax.faces.application.NavigationHandler;
+import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.PhaseListener;
+
+public class Listener implements PhaseListener{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void beforePhase(PhaseEvent arg0) {
+    }
+
+    @Override
+    public void afterPhase(PhaseEvent arg0) {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        if(!ctx.getViewRoot().getViewId().equals(&#34;/login.xhtml&#34;)){
+            Application app = ctx.getApplication();
+            Usuario u = app.evaluateExpressionGet(ctx, &#34;#{usuario}&#34;, Usuario.class);
+        }
+    }
+
+    @Override
+    public PhaseId getPhaseId() {
+        return null;
+    }
+
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Agora aplicamos nossa validação, no meu caso apenas peguei o atributo usuario a partir do objeto Usuario atual e verifiquei se é diferente de &amp;#8220;Julio&amp;#8221;, se for, &lt;strong&gt;retorno a navegação para a página login&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Isto é feito a partir do objeto &amp;#8220;NavigationHandler&amp;#8221; conseguido a através do objeto &amp;#8220;Application&amp;#8221; e invoco o método &amp;#8220;handleNavigation&amp;#8221;, que altera o fluxo. Por último chamo o método &amp;#8220;renderResponse&amp;#8221; do FacesContext.&lt;/p&gt;
+
+&lt;p&gt;E, claro, devemos indicar ao Listener qual fase que desejamos interceptar, que no nosso caso é a &amp;#8220;Restore View&amp;#8221; indicando no método &amp;#8220;getPhaseId&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;&amp;quot;lang-java&#34;&gt;package root;
+
+import javax.faces.application.Application;
+import javax.faces.application.NavigationHandler;
+import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.PhaseListener;
+
+public class Listener implements PhaseListener{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void beforePhase(PhaseEvent arg0) {
+    }
+
+    @Override
+    public void afterPhase(PhaseEvent arg0) {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        if(!ctx.getViewRoot().getViewId().equals(&#34;/login.xhtml&#34;)){
+            Application app = ctx.getApplication();
+            Usuario u = app.evaluateExpressionGet(ctx, &#34;#{usuario}&#34;, Usuario.class);
+            if(!u.getUsuario().equals(&#34;Julio&#34;)){
+                NavigationHandler handler = app.getNavigationHandler();
+                handler.handleNavigation(ctx, &#34;&#34;, &#34;login&#34;);
+                ctx.renderResponse();
+            }
+        }
+    }
+
+    @Override
+    public PhaseId getPhaseId() {
+        return PhaseId.RESTORE_VIEW;
+    }
+}&lt;/pre&gt;
+
+&lt;p&gt;Para que funcione, precisamos registrar no faces-config.xml que ele é um Listener.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-xml&#34;&gt;&amp;lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&amp;gt;
+&amp;lt;faces-config
+    xmlns=&#34;http://xmlns.jcp.org/xml/ns/javaee&#34;
+    xmlns:xsi=&#34;http://www.w3.org/2001/XMLSchema-instance&#34;
+    xsi:schemaLocation=&#34;http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd&#34;
+    version=&#34;2.2&#34;&amp;gt;
+    &amp;lt;lifecycle&amp;gt;
+        &amp;lt;phase-listener&amp;gt;root.Listener&amp;lt;/phase-listener&amp;gt;
+    &amp;lt;/lifecycle&amp;gt;
+
+&amp;lt;/faces-config&amp;gt;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora ao tentarmos entrar na página de sucesso diretamente, ele não vai.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55235&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/resultado-final-jsf.png&#34; alt=&#34;Resultado final&#34; width=&#34;479&#34; height=&#34;267&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Para quem deseja obter a URL correta, apenas adicionar &amp;#8220;?faces-redirect=true&amp;#8221; ao final da String de redirecionamento no Listener:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-java&#34;&gt;package root;
+
+import javax.faces.application.Application;
+import javax.faces.application.NavigationHandler;
+import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.PhaseListener;
+
+public class Listener implements PhaseListener{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void beforePhase(PhaseEvent arg0) {
+    }
+
+    @Override
+    public void afterPhase(PhaseEvent arg0) {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        if(!ctx.getViewRoot().getViewId().equals(&#34;/login.xhtml&#34;)){
+            Application app = ctx.getApplication();
+            Usuario u = app.evaluateExpressionGet(ctx, &#34;#{usuario}&#34;, Usuario.class);
+            if(!u.getUsuario().equals(&#34;Julio&#34;)){
+                NavigationHandler handler = app.getNavigationHandler();
+                handler.handleNavigation(ctx, &#34;&#34;, &#34;login?faces-redirect=true&#34;);
+                ctx.renderResponse();
+            }
+        }
+    }
+
+    @Override
+    public PhaseId getPhaseId() {
+        return PhaseId.RESTORE_VIEW;
+    }
+
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Então:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55236&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/alteracao-param-jsf-2.png&#34; alt=&#34;Entrada no browser&#34; width=&#34;439&#34; height=&#34;92&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Retorna:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&#34;alignnone size-full wp-image-55237&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2016/07/alteracao-param-jsf-3.png&#34; alt=&#34;Resposta no browser&#34; width=&#34;383&#34; height=&#34;193&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Obtendo o resultado desejado.&lt;/p&gt;
+
+&lt;p&gt;Comente em caso de dúvidas ou falhas =D.&lt;/p&gt;
+
+&lt;p&gt;Em meu blog tem alguns outros artigos deste mesmo tipo, se deseja ver: &lt;a href=&#34;http://jcdourado.github.io&#34;&gt;http://jcdourado.github.io&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Obrigado!!&lt;/p&gt;
+
+&lt;p&gt;Segue alguns links de artigos e alguns livros que ajudam nessa caminhada:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.devmedia.com.br/jsf-session-criando-um-modulo-de-login/30975&#34;&gt;http://www.devmedia.com.br/jsf-session-criando-um-modulo-de-login/30975&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.devmedia.com.br/java-web-criando-uma-tela-de-login-com-jpa-jsf-primefaces-e-mysql/32456&#34;&gt;http://www.devmedia.com.br/java-web-criando-uma-tela-de-login-com-jpa-jsf-primefaces-e-mysql/32456&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.universidadejava.com.br/materiais/jsf-tela-login/&#34;&gt;http://www.universidadejava.com.br/materiais/jsf-tela-login/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Livro: &lt;strong&gt;JSF Eficaz&lt;/strong&gt; &amp;#8211; Casa do Código.&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

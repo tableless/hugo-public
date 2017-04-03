@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Mysql on Tableless</title>
+    <link>http://tableless.com.br/tags/mysql/index.xml</link>
+    <description>Recent content in Mysql on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/tags/mysql/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Criando aplicações portáveis entre diferentes SGBDs usando PDO(PHP Data Objects)</title>
+      <link>http://tableless.com.br/criando-aplicacoes-portaveis-entre-diferentes-sgbds-usando-pdophp-data-objects/</link>
+      <pubDate>Mon, 26 Sep 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/criando-aplicacoes-portaveis-entre-diferentes-sgbds-usando-pdophp-data-objects/</guid>
+      <description>&lt;p&gt;Quero apresentar nesse artigo as principais funcionalidades do PDO. PDO é uma biblioteca que implementa abstração ao acesso dos dados, ou seja, ela utiliza um driver específico, para cada SGBD (Sistema Gerenciador de Banco de Dados), tornando possível a portabilidade da base de dados de sua aplicação, sem que a mesma sofra danos ou que você passe horas e horas reescrevendo linhas e mais linhas de código.&lt;/p&gt;
+
+&lt;p&gt;O primeiro passo é habilitar o driver do PDO no php.ini retirando o &amp;#8220;;&amp;#8221; da sua frente;&lt;/p&gt;
+
+&lt;p&gt;No Windows:&lt;/p&gt;
+
+&lt;pre&gt;extension=php_pdo.dll
+extension=php_pdo_mysql.dll&lt;/pre&gt;
+
+&lt;p&gt;No Linux:&lt;/p&gt;
+
+&lt;pre&gt;extension=pdo.so
+extension=pdo_mysql.so
+&lt;/pre&gt;
+
+&lt;p&gt;Consideremos o seguinte banco de dados:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;create database livraria;
+use livraria;
+create table livros(
+id int not null auto_increment,
+titulo varchar(75) not null,
+preco decimal(10,2) not null,
+estoque int not null,
+PRIMARY KEY (id));
+&lt;/pre&gt;
+
+&lt;p&gt;Estabelecemos a conexão com o Banco de dados no nosso arquivo connect.php&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;//Local do banco
+$host = &#34;localhost&#34;;
+//Nome do banco de dados
+$db = &#34;livraria&#34;;
+//Seu Usuário no banco de dados
+$user = &#34;root&#34;;
+//Senha do banco de dados
+$pass = &#34;&#34;;
+//Estabelecendo a conexão
+try
+{
+  /**
+   *Agora o pulo do gato,aqui é onde a mágica acontece, precisamos especificar o banco de dados 
+que iremos trabalhar,no nosso caso, optei pelo mysql. Em seguida especificamos o local 
+e o nome do banco de dados e por último o usuário e a senha
+    */
+    $pdo = new PDO(&#34;mysql:host=$host;dbname=$db&#34;, $user, $pass);
+}
+catch (Exception $e)
+{
+    echo &#34;Erro ao estabelecer conexão com o banco de dados:&#34;.$e-&amp;gt;getMessage();
+    die;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para inserir no Banco de dados criamos o arquivo insert.php.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/**
+ * Insere conexão com o banco de dados estabelecida anteriormente 
+ */
+include &#39;connect.php&#39;;
+/**
+ * Variáveis que podem receber os valores do seu formulário
+ */
+ $titulo = &#34;Padrões de Projeto - PHP&#34;;
+ $preco = 140.5;
+ $estoque = 5;
+
+try 
+{   /**
+    *Aqui preparamos primeiramente nossa instrução de inserção e como valores, 
+passamos as &#34;?&#34;(interrogações) para referencia-las com o parâmetro passado pela função bindParam. 
+    * */
+    $sql=&#34;INSERT INTO `livros` (`titulo`, `preco`, `estoque`) VALUES (?, ?, ?)&#34;;
+    $stmt = $pdo-&amp;gt;prepare($sql);
+    $stmt-&amp;gt;bindParam(1,$titulo);
+    $stmt-&amp;gt;bindParam(2,$preco);
+    $stmt-&amp;gt;bindParam(3,$estoque);
+    
+    if($stmt-&amp;gt;execute())
+        echo &#34;Gravado com Sucesso&#34;;
+    else
+        throw new Exception(&#34;Erro ao gravar informação&#34;);
+
+}
+catch (Exception $e) 
+{
+    echo $e-&amp;gt;getMessage();   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para atualizar os arquivos no banco de dados utilizamos nosso arquivo update.php:&lt;/p&gt;
+
+&lt;pre&gt;/**
+*   Inclusão da minha Conexão
+* */
+include &#39;connect.php&#39;;
+/**
+ * Variáveis que vem do seu formulário html  
+ */
+$titulo = &#34;Padrões de Projeto - PHP&#34;;
+$preco = 60;
+$estoque = 5;
+try 
+{   
+       /**
+    *Aqui preparamos nossa instrução de atualização dos dados  
+    * */
+    $sql=&#34;UPDATE `livros` SET `preco` = ?, `estoque`= ? WHERE `titulo` = ?&#34;;
+    $stmt = $pdo-&amp;gt;prepare($sql);
+    $stmt-&amp;gt;bindParam(1,$preco);
+    $stmt-&amp;gt;bindParam(2,$estoque);
+    $stmt-&amp;gt;bindParam(3,$titulo);
+
+    if($stmt-&amp;gt;execute())
+        echo &#34;Atualizado com Sucesso&#34;;
+    else
+        throw new Exception(&#39;Erro ao Atualizar&#39;);
+
+} 
+catch (Exception $e) 
+{
+    echo $e-&amp;gt;getMessage();   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;Para listar os dados no list.php:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;include &#39;conect.php&#39;;
+   //listando os livros
+   $sql = &#34;SELECT * FROM livros&#34;;
+   $dados = $pdo-&amp;gt;query($sql);
+/**
+*fetch()-&amp;gt;Retorna a próxima linha do resultado.
+*fetchAll()-&amp;gt; Retorna um array com todos os resultados.
+*fetchObject()-&amp;gt; Retorna a próxima linha do resultado como objeto.
+*fetchColumn()-&amp;gt; Retorna uma coluna da próxima linha do resultado.
+**/
+while ($result = $dados-&amp;gt;fetch())
+{   
+ echo $result[&#39;titulo&#39;] . &#34; - &#34;. $result[&#39;preco&#39;]. &#34;-&#34;. $result[&#39;estoque&#39;].&#34;
+&#34;;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;E para deletar os arquivos criamos o delete.php:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/**
+ *  Inclusão da minha Conexão
+ **/
+include &#39;conect.php&#39;;
+/**
+ * Variáveis que vem do seu formulário html  
+ */
+$titulo = &#34;Padrões de Projeto - PHP&#34;;
+$preco = 60;
+$estoque = 5;
+
+try 
+{   
+    /**
+    * Aqui preparamos nossa instrução de exclusão dos dados.  
+    **/
+      $sql=&#34;DELETE FROM `livros` WHERE `titulo` = ?&#34;;
+    $stmt = $pdo-&amp;gt;prepare($sql);
+    $stmt-&amp;gt;bindParam(1,$titulo);
+
+    if($stmt-&amp;gt;execute())
+        echo &#34;Deletado com Sucesso&#34;;
+    else
+        throw new Exception(&#39;Erro ao Deletar&#39;);
+
+} 
+catch (Exception $e) 
+{
+    echo $e-&amp;gt;getMessage();   
+}
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Métodos da classe PDO:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;exec int Utilizado para insert, update e delete
+query PDOStatement Utilizado para resultados tabulares, comando select.
+prepare PDOStatement Cria um prepared statement, utilizado para dados variáveis.
+&lt;/pre&gt;
+
+&lt;p&gt;Trabalhar com PDO tem várias vantagens, além da portabilidade, existe também a questão da segurança, mas isso é cena para os próximos capítulos. Aconselho que visitem a &lt;a href=&#34;http://php.net/manual/pt_BR/class.pdostatement.php&#34;&gt;documentação&lt;/a&gt; para que possam ter acesso a informação completa da biblioteca, pois a mesma é muito rica e fornecerá ao desenvolvedor inúmeras vantagens que facilitarão no dia a dia do seu desenvolvimento. Obrigado ^^!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/Anrahh/pdo_tableless&#34;&gt;clique aqui para baixar o código completo.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Referências&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.diogomatheus.com.br/blog/php/trabalhando-com-pdo-no-php/&#34;&gt;http://www.diogomatheus.com.br/blog/php/trabalhando-com-pdo-no-php/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://php.net/manual/en/book.pdo.php&#34;&gt;http://php.net/manual/en/book.pdo.php&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.php.net/manual/en/pdo.drivers.php&#34;&gt;http://www.php.net/manual/en/pdo.drivers.php&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Você sabe paginar dados no MySQL corretamente?</title>
+      <link>http://tableless.com.br/voce-sabe-paginar-dados-no-mysql-corretamente/</link>
+      <pubDate>Fri, 15 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/voce-sabe-paginar-dados-no-mysql-corretamente/</guid>
+      <description>
+
+&lt;p&gt;Esta postagem já começa com uma pergunta: &lt;strong&gt;Será que sabemos realmente fazer uma paginação de dados da forma correta?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p style=&#34;text-align: center;&#34;&gt;
+  &lt;strong&gt;ATENÇÃO!&lt;/strong&gt; Não irei falar do uso de nenhum framework PHP, bibliotecas de ORM ou plugins em JavaScript. Irei tratar sobre a consulta ao banco de dados, somente.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  Talvez você conheça esta funcionalidade do MySQL, e talvez até comentará que isto é algo &amp;#8220;muito básico&amp;#8221;, mas vale lembrar: &lt;em&gt;&amp;#8220;Nem todos sabem de tudo. A internet é uma grande comunidade.&amp;#8221;&lt;/em&gt;
+&lt;/p&gt;
+
+&lt;h2 id=&#34;como-a-maioria-faria&#34;&gt;Como a maioria faria&lt;/h2&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  A grande maioria de nós simplesmente iria executar 2 instruções de SELECT no MySQL. Uma para retornar o total dos registros e outra para paginar estes registros. Alguns, talvez, fariam a consulta de todos os registros no banco e depois limitariam os registros no PHP (Vish!).
+&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  As nossas consultas ao banco ficariam algo mais ou menos assim:
+&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/** Recuperamos o total de registros **/
+SELECT * FROM pessoa
+
+/** Recuperamos somente os 10 primeiros registros **/
+SELECT * FROM pessoa LIMIT 0,10
+&lt;/pre&gt;
+
+&lt;p&gt;Certo, talvez esta execução de comandos não tenha afetado o desempenho do seu site ou aplicação até o momento.&lt;/p&gt;
+
+&lt;p&gt;Agora, imagine ter que tratar milhares de registros, para diversos usuários ao mesmo tempo. Haja memória e servidor para isto!&lt;/p&gt;
+
+&lt;p&gt;Como desenvolvedores, sempre temos que prezar por um excelente desempenho e a utilização mínima de recursos em nossas aplicações, que podem tomar proporções que não imaginamos na sua criação.&lt;/p&gt;
+
+&lt;h2 id=&#34;o-mysql-nos-dá-uma-força&#34;&gt;O MySQL nos dá uma força&lt;/h2&gt;
+
+&lt;p&gt;Existe um parâmetro no MySQL que é pouco conhecido da maioria desenvolvedores. Ele foi criado justamente para facilitar as paginações de registros em uma consulta.&lt;/p&gt;
+
+&lt;p&gt;Com somente um comando SELECT você terá a quantidade de registros e os seus dados paginados de forma simples, e sem uma grande curva de aprendizado. Veja como é simples:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-php&#34;&gt;/** Recupera somente os 10 primeiros registros **/
+SELECT SQL_CALC_FOUND_ROWS * FROM pessoa LIMIT 0,10
+
+/** Retorna o total de linhas do comando SELECT anterior sem considerar o LIMIT **/
+SELECT FOUND_ROWS();
+&lt;/pre&gt;
+
+&lt;p&gt;Que simples e útil é esta função do MySQL! Não existem grandes modificações para serem feitas. Como exemplo, eu adaptei facilmente alguns frameworks que desenvolvi para aumentar a performance.&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  Você pode saber mais destas funções do MySQL &lt;a href=&#34;http://dev.mysql.com/doc/refman/5.7/en/information-functions.html#function_found-rows&#34; target=&#34;_blank&#34;&gt;diretamente na documentação do próprio banco&lt;/a&gt;.
+&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  Além disto, o site &lt;a href=&#34;https://www.percona.com/blog/2007/08/28/to-sql_calc_found_rows-or-not-to-sql_calc_found_rows/&#34; target=&#34;_blank&#34;&gt;Percona trás uma análise da performance do comando&lt;/a&gt;, mas em resumo, o site diz:
+&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p style=&#34;text-align: center;&#34;&gt;
+  &lt;em&gt;&amp;#8220;Se você tem ÍNDICES nas suas cláusulas WHERE, é melhor não utilizar o SQL_CALC_FOUND_ROWS e utilizar 2 consultas.&lt;/em&gt;&lt;br /&gt; &lt;em&gt;Mas caso você não tenha ÍNDICES em suas cláusulas WHERE, se você usar o SQL_CALC_FOUND_ROWS será mais eficiente.&amp;#8221;&lt;/em&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p style=&#34;text-align: center;&#34;&gt;
+  &lt;strong&gt;Para cada realidade, uma aplicação é válida. Utilizar esta função não é REGRA, mas conhecimento sempre fará diferença em nossas carreiras.&lt;/strong&gt;
+&lt;/p&gt;
+
+&lt;p style=&#34;text-align: left;&#34;&gt;
+  Espero que tenha servido para agregar ao conhecimento de alguém. Grande abraço, e até a próxima!
+&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>MySQL Essencial (parte 1)</title>
+      <link>http://tableless.com.br/mysql-essencial-parte-1/</link>
+      <pubDate>Thu, 28 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/mysql-essencial-parte-1/</guid>
+      <description>
+
+&lt;h2 id=&#34;o-inicio-e-quem-usa-o-mysql&#34;&gt;O inicio e quem usa o MySQL&lt;/h2&gt;
+
+&lt;p&gt;O MySQL é um sistema relacional de gerenciamento de banco de dados de código aberto, que utiliza o SQL (Linguagem de consulta estruturada) como interface, é atualmente um dos bancos de dados mais populares na internet, mais de 10 milhões de instalações pelo mundo inteiro. Em Julho de 2013, foi considerado o segundo banco mais utilizado do mundo.&lt;/p&gt;
+
+&lt;p&gt;Criado na Suécia por David Axmark, Allan Larsson e Michael &amp;#8220;Monty&amp;#8221; Widenius, a primeira versão surgiu em 23 de Maio de 1995. Hoje, seu desenvolvimento emprega mais de 400 profissionais no mundo inteiro. Em 2008, a MySQL AB, desenvolvedora do MySQL, foi comprada pela Sun Microsystems (que em 2009, foi comprada pela Oracle), por 1 bilhão de dólares.&lt;/p&gt;
+
+&lt;p&gt;Entre alguns dos usuários mais famosos do MySQL, estão: PayPal, YouTube, Google, Walmart, NASA, Bradesco, Nokia, HP, Lufthansa, etc&amp;#8230;&lt;/p&gt;
+
+&lt;h2 id=&#34;mão-na-massa&#34;&gt;Mão na massa&lt;/h2&gt;
+
+&lt;p&gt;Neste artigo, partiremos do principio que você já tem o MySQL instalado e rodando bonitinho&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;Para acessar o MySQL utilize o comando a seguir:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;mysql -u &amp;lt;usuário&amp;gt; -p&lt;/pre&gt;
+
+&lt;p&gt;Depois desse comando, o MySQL vai te pedir a senha do usuário, obviamente, por segurança.&lt;/p&gt;
+
+&lt;p&gt;Dentro do MySQL, você tem poderes para atualizar, criar e editar qualquer tabela/banco. Para acessar o help, simplesmente digite &amp;#8216;help&amp;#8217; no terminal e aparecerá o menu de ajuda do MySQL.&lt;/p&gt;
+
+&lt;p&gt;Para ver todos os bancos criados, utilize o:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;show databases;
+&lt;/pre&gt;
+
+&lt;p&gt;Para criar um banco, depois de logado no MySQL, você pode seguir o seguir o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;CREATE DATABASE banco_exemplo;
+&lt;/pre&gt;
+
+&lt;p&gt;E &amp;#8216;paaaah&amp;#8217;, seu banco foi criado com sucesso. Agora você precisa acessar este banco:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;USE banco_exemplo;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora, para a coisa ficar mais interessante, vamos criar uma tabela, para podermos adicionar dados nela:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;CREATE TABLE tabela_do_banco_exemplo (
+id INT(11) AUTO_INCREMENT PRIMARY KEY,
+first_name VARCHAR(30) NOT NULL,
+last_name VARCHAR(30) NOT NULL,
+mail VARCHAR(100) NOT NULL,
+mobile VARCHAR(100),
+created_at TIMESTAMP
+);
+&lt;/pre&gt;
+
+&lt;p&gt;No comando acima, criamos uma tabela dentro o seu banco. Nessa tabela teremos 6 colunas:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ID &amp;#8211; um número inteiro de até 11 caracteres que se auto incrementa, ou seja, nunca se repete, se já existir o 1, ele coloca o 2 e que é a chave principal da nossa tabela.&lt;/li&gt;
+&lt;li&gt;first_name &amp;#8211; um campo que aceita numeros, letras e caracteres especiais, com até 30 caracteres e não pode ser NULL.&lt;/li&gt;
+&lt;li&gt;last_name &amp;#8211; um campo que aceita numeros, letras e caracteres especiais, com até 30 caracteres e não pode ser NULL.&lt;/li&gt;
+&lt;li&gt;mail &amp;#8211; um campo que aceita numeros, letras e caracteres especiais, com até 100 caracteres e não pode ser NULL.&lt;/li&gt;
+&lt;li&gt;mobile &amp;#8211; um campo que aceita numeros, letras e caracteres especiais, com até 100 caracteres.&lt;/li&gt;
+&lt;li&gt;created_at &amp;#8211; TIMESTAMP preenche a coluna com o exato horário da inserção da linha na tabela, ou seja, o momento em que a linha foi inserida.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Agora vamos partir para a inserção de conteúdo dentro desta tabela, a final, uma tabela sem nenhuma linha de conteúdo não tem nenhuma função. Então vamos lá:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;INSERT INTO tabela_do_banco_exemplo (first_name, last_name, mail, mobile, created_at) VALUES (&#39;claudio&#39;, &#39;melo&#39;,&#39;claudio@claudiomelo.net&#39;,&#39;(11) 99999-9999&#39;, NOW());
+&lt;/pre&gt;
+
+&lt;p&gt;Ao infinito e além, bom, é o seguinte, na linha acima, inserimos uma linha na tabela que criamos, o INSERT INTO, se explica por si só, né? Lembrando que não colocamos o ID pois ele se &amp;#8220;AUTO INCREMENTA&amp;#8221;, como setamos ao criar a nossa tabela.&lt;/p&gt;
+
+&lt;p&gt;Quando especificamos as colunas que devem ser inseridas, não precisamos necessariamente respeitar a ordem que fizemos quando criamos a tabela, como podem ver no exemplo, eu inverti o mobile e o mail, como dizia na matemática, a ordem dos fatores não altera o produto. Porém, lembre-se de, quando setar o conteúdo da coluna nos VALUES, você tem que seguir a mesma ordem que declarou na lista de colunas que serão atingidas.&lt;/p&gt;
+
+&lt;p&gt;Agora que já criamos um banco, já criamos uma tabela, já inserimos conteúdo dentro desta tabela, chegou o momento de buscar algum conteúdo dentro dessa tabela:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;SELECT * FROM tabela_do_banco_exemplo;
+&lt;/pre&gt;
+
+&lt;p&gt;Isso vai te retornar TODAS as colunas de uma tabela, simples né? Se tiver 50 linhas na sua tabela, o select vai te retornar todas as colunas das 50 linhas. E mais uma vez, você deve estar prestes a me xingar por que quer só as colunas que precisa, mas ai eu te digo, vamos pegar somente as colunas que queremos neste momento:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;SELECT first_name FROM tabela_do_banco_exemplo;
+&lt;/pre&gt;
+
+&lt;p&gt;Mais simples que isso, faça um esforço e tente entender a linha que escrevemos, esqueça o CTRL+C e CTRL+V. Pedimos ao banco um SELECT da coluna first_name, isso vai nos retornar o first_name de todas as linhas da nossa tabela.&lt;/p&gt;
+
+&lt;p&gt;Nesse momento, podemos ser até um pouco mais ousados, eu diria, vamos selecionar a coluna mobile somente de linhas que tem números de telefone diferentes, ou seja, dois cadastros com números iguais de telefone, não aparecerão nessa lista:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;SELECT DISTINCT mobile FROM tabela_do_banco_exemplo;
+&lt;/pre&gt;
+
+&lt;p&gt;Agora você deve estar louco para buscar duas colunas junto com o DISTINCT, então vamos nessa:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-sql&#34;&gt;SELECT DISTINCT mobile, first_name FROM tabela_do_banco_exemplo;
+&lt;/pre&gt;
+
+&lt;p&gt;Isso vai nos retornar uma lista onde não haverá linhas que repitam o número de telefone E (preste bem a atenção neste E) o primeiro nome.&lt;/p&gt;
+
+&lt;p&gt;Bom, por enquanto é só. Criticas ou sugestões é só falar nos comentários ou entrar em contato comigo, ficarei muito agradecido! Em breve teremos a parte 2 para continuar esse papo legal sobre MySQL.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Deletando registros duplicados no banco de dados</title>
+      <link>http://tableless.com.br/deletando-registros-duplicados-banco-de-dados/</link>
+      <pubDate>Thu, 09 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/deletando-registros-duplicados-banco-de-dados/</guid>
+      <description>&lt;p&gt;Precisei fazer a migração de dados de algumas tabelas de cadastro (telefones, hobbies, interesses, formações e etc.) para uma única tabela diferenciando-os pelo id do usuário e o id do campo. O problema é que meu script acabou duplicando as informações. Para a minha sorte isso aconteceu em um banco de desenvolvimento, onde era possível apagar os dados da tabela, ajustar os scripts e refazer a migração. Eu não queria ter esse trabalho novamente e logo resolvi pesquisar um script sql que me ajudasse a apagar os registros duplicados, nesse caso deixando apenas o último registro gravado.&lt;/p&gt;
+
+&lt;p&gt;Assumindo que você use o banco de dados MySql e tenha uma tabela chamada &amp;#8220;nomes&amp;#8221;, e que essa tabela tenha os campos id e nome. Essa sintaxe pode ser usada em outros bancos, utilizaremos o seguinte comando:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-html&#34;&gt;DELETE a FROM nomes AS a, nomes AS b WHERE a.nome=b.nome AND a.id &amp;lt; b.id&lt;/pre&gt;
+
+&lt;p&gt;Perceba que no comando sql após o &lt;code&gt;FROM&lt;/code&gt; eu chamo duas vezes a tabela &amp;#8220;nomes&amp;#8221;, mas as diferencio pelas letras &lt;strong&gt;a&lt;/strong&gt; e &lt;strong&gt;b&lt;/strong&gt;. Você poderia dar o nome que quisesse. Note também que depois do &lt;code&gt;WHERE&lt;/code&gt; eu faço a comparação entre as colunas, verificando a duplicidade e depois digo que o id de &amp;#8220;a&amp;#8221; deve ser menor que o de &amp;#8220;b&amp;#8221;. Dessa forma o MySql vai comparar todos os registros com o mesmo nome e apagar aqueles que contenham o menor id.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;nomes&lt;/strong&gt;: É a tabela com os registros duplicados.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;nome&lt;/strong&gt;: É o campo para comparação dos registros.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;id&lt;/strong&gt;: É a chave primária da tabela.&lt;/p&gt;
+
+&lt;p&gt;Veja na prática como acontece:&lt;/p&gt;
+
+&lt;p&gt;Tabelas com os registros duplicados&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-select-mysql.png&#34;&gt;&lt;img class=&#34;alignnone size-full wp-image-40122&#34; alt=&#34;tableless-select-mysql&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-select-mysql.png&#34; width=&#34;487&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/01/tableless-select-mysql.png 487w, uploads/2014/01/tableless-select-mysql-263x168.png 263w&#34; sizes=&#34;(max-width: 487px) 100vw, 487px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Aplicando o script descrito acima:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-mysql-script-delete.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40121&#34; alt=&#34;tableless-mysql-script-delete&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-mysql-script-delete-588x205.png&#34; width=&#34;588&#34; height=&#34;205&#34; srcset=&#34;uploads/2014/01/tableless-mysql-script-delete-588x205.png 588w, uploads/2014/01/tableless-mysql-script-delete-329x115.png 329w, uploads/2014/01/tableless-mysql-script-delete-660x231.png 660w, uploads/2014/01/tableless-mysql-script-delete.png 720w&#34; sizes=&#34;(max-width: 588px) 100vw, 588px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Caso queira apagar todos os registros duplicados, deixando apenas os registros únicos é só trocar o “&amp;lt;” por “!=”&lt;/p&gt;
+
+&lt;p&gt;veja um exemplo:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-mysql-script-deletall.png&#34;&gt;&lt;img class=&#34;alignnone size-medium wp-image-40120&#34; alt=&#34;tableless-mysql-script-deletall&#34; src=&#34;http://tableless.com.br/wp-content/uploads/2014/01/tableless-mysql-script-deletall-410x310.png&#34; width=&#34;410&#34; height=&#34;310&#34; srcset=&#34;uploads/2014/01/tableless-mysql-script-deletall-410x310.png 410w, uploads/2014/01/tableless-mysql-script-deletall-222x168.png 222w, uploads/2014/01/tableless-mysql-script-deletall.png 733w&#34; sizes=&#34;(max-width: 410px) 100vw, 410px&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pronto! É isso aí pessoal, muito simples né?&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

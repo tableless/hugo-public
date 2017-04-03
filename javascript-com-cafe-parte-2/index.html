@@ -1,0 +1,421 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/javascript-com-cafe-parte-2/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/javascript-com-cafe-parte-2/">JavaScript com café, parte 2</a></h1>
+  <p class="tb-hero-p">
+    
+    Conheça conceitos avançados sobre a linguagem CoffeeScript. Aprenda a utilizar classes, escopo e operadores existenciais.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/davi-ferreira">Davi Ferreira</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>No [artigo anterior][1] vimos as funcionalidades básicas da linguagem CoffeeScript. Falamos sobre variáveis, funções, objetos, condicionais, loops e integração com jQuery. Neste artigo, veremos algumas implementações mais avançadas, com destaque para o conceito de classes.</p>
+
+<h2 id="splats">Splats</h2>
+
+<p>Uma função em CoffeeScript pode receber um ou mais parâmetros definidos em sua especificação. Através de <em>splats</em> (&#8230;) podemos definir também parâmetros variáveis, ou seja, você pode passar quantos parâmetros quiser. Estes parâmetros serão convertidos pelo compilador CoffeeScript em um <em>array</em>:</p>
+
+<p>[cce lang=&#8221;coffeescript&#8221;]lista_autores = (site, autores…) -&gt;</p>
+
+<p>$(&#8220;#nome-site&#8221;).text site</p>
+
+<p>$(&#8220;#autores&#8221;).text autores.join(&#8220;,&#8221; )[/cce]</p>
+
+<p>O código acima resulta no seguinte JavaScript:</p>
+
+<p>[cce lang=&#8221;javascript&#8221;]var lista_autores,</p>
+
+<p>__slice = [].slice;</p>
+
+<p>lista_autores = function() {</p>
+
+<p>var autores, site;</p>
+
+<p>site = arguments[0], autores = 2 &lt;= arguments.length ? __slice.call(arguments, 1) : [];</p>
+
+<p>$(&ldquo;#nome-site&rdquo;).text(site);</p>
+
+<p>return $(&ldquo;#autores&rdquo;).text(autores.join(&ldquo;,&rdquo;));</p>
+
+<p>};[/cce]</p>
+
+<p>Poderíamos, então, chamar a função <strong>lista_autores</strong> passando <strong>n</strong> autores nos argumentos:</p>
+
+<p>[cce lang=&#8221;coffeescript&#8221;]lista_autores &#8220;Tableless&#8221;, &#8220;Davi Ferreira&#8221;, &#8220;Diego Eis&#8221;, &#8220;Zeno Rocha&#8221;</p>
+
+<p>lista_autores &#8220;DaviFerreira.com&#8221;, &#8220;DaviFerreira&#8221;, &#8220;Chico Stallone&#8221;[/cce]</p>
+
+<h2 id="classes">Classes</h2>
+
+<p>Em JavaScript, classes e objetos são uma coisa só. Um objeto não é uma instância de uma classe, como em outras linguagens. Podemos dizer que tudo é um objeto e existem <em>prototypes</em>. Um <em>prototype</em> é um objeto que possui suas propriedades compartilhadas por outros objetos. CoffeeScript faz uso deste recurso para criar Classes e Objetos.</p>
+
+<p>Vejamos a declaração de uma classe:</p>
+
+<p>[cce lang=&#8221;coffeescript&#8221;]class Jogador</p>
+
+<p>constructor: (nome, time) -&gt;</p>
+
+<p>@nome = nome</p>
+
+<p>@time = time</p>
+
+<p>@jogos = []</p>
+
+<p>Jogador.total_jogadores++</p>
+
+<p>total_jogos: -&gt;</p>
+
+<p>console.log @jogos.length</p>
+
+<p>adiciona_jogo: (jogo) -&gt;</p>
+
+<p>@jogos.push(jogo)</p>
+
+<p>@total_jogadores = 0[/cce]</p>
+
+<p>Desconstruindo o código, o <em>constructor</em> da classe, compilado em JavaScript, vira uma função com o mesmo nome do objeto. Os métodos _total<em>jogos</em> e _adiciona<em>jogo</em> são <em>prototypes</em> do objeto Jogador. E, por fim, a variável _total<em>jogadores</em> faz referência à classe Jogador, ou seja, ao objeto original que dá origem às instâncias de jogadores. Por exemplo:</p>
+
+<p>[cce lang=&#8221;coffeescript&#8221;]j1 = new Jogador &#8220;Zico&#8221;, &#8220;Flamengo&#8221;</p>
+
+<p>j1.nome # &#8220;Zico&#8221;</p>
+
+<p>j1.time # &#8220;Flamengo&#8221;</p>
+
+<p>Jogador.total_jogadores # 1</p>
+
+<p>j2 = new Jogador &#8220;Roberto Dinamite&#8221;, &#8220;Vasco&#8221;</p>
+
+<p>j2.nome # &#8220;Roberto Dinamite&#8221;</p>
+
+<p>j2.time # &#8220;Vasco&#8221;</p>
+
+<p>Jogador.total_jogadores # 2[/cce]</p>
+
+<p>Portanto, existem três diferentes tipos de propriedades em uma classe CoffeeScript: 1) o <em>constructor</em> da classe, 2) métodos (<em>prototypes</em>) e propriedades referentes à uma instância da classe e 3) métodos e propriedades referentes ao objeto &#8220;pai&#8221; da classe.</p>
+
+<h2 id="herança">Herança</h2>
+
+<p>Em JavaScript, a herança entre classes é feita através do encadeamento de <em>prototypes</em>. Esse encadeamento pode ser bem confuso quando falamos de muitos objetos. A linguagem CoffeeScript resolve esse problema implementando o recurso <em>extends</em>.</p>
+
+<p>[cce lang=&#8221;coffeescript&#8221;]class Goleiro extends Jogador</p>
+
+<p>constructor: (nome, time) -&gt;</p>
+
+<p>super nome, time</p>
+
+<p>@gols_sofridos = []</p>
+
+<p>Goleiro.total_goleiros++</p>
+
+<p>adiciona_gol_sofrido: (gol) -&gt;</p>
+
+<p>@gols_sofridos.push(gol)</p>
+
+<p>total_gols_sofridos: -&gt;</p>
+
+<p>console.log @gols_sofridos.length</p>
+
+<p>@total_goleiros = 0[/cce]</p>
+
+<p>Notem a chamada especial <em>super</em>, que invoca o método <em>constructor</em> da classe Jogador. Um objeto Goleiro herda todos os métodos da classe pai (Jogador) e pode ainda sobrescrever e/ou ter seus próprios métodos e propriedades.</p>
+
+<h2 id="escopo">Escopo</h2>
+
+<p>É comum uma aplicação CoffeeScript vir separada em módulos. Cada módulo, como vimos no artigo anterior, está encapsulado em uma função anônima autoexecutável. E se quisermos compartilhar variáveis e funções entre os módulos?</p>
+
+<p>Para isso, precisamos definir um escopo global, criando um elemento <em>root</em>, por exemplo.</p>
+
+<p>[cce lang=&#8221;coffeescript&#8221;]root = global ? window</p>
+
+<p>root.site = &#8220;Tableless&#8221;</p>
+
+<p>root.lista_autores = (autores) -&gt;</p>
+
+<p>console.log autores.join(&#8220;, &#8220;)[/cce]</p>
+
+<p>Dessa forma, qualquer módulo tem acesso à variável <em>site</em> e à função _lista<em>autores</em>.</p>
+
+<h2 id="switches">Switches</h2>
+
+<p>Assim como outros exemplos, um <em>switch</em> em CoffeeScript é infinitamente mais bonito e legível do que sua parte original em JavaScript. Como em Ruby, um <em>switch</em> CoffeeScript aceita múltiplos argumentos em um caso:</p>
+
+<p>[cce lang=&#8221;coffeescript&#8221;]switch time</p>
+
+<p>when &#8220;Flamengo&#8221; then console.log &#8220;Primeira Divisão&#8221;</p>
+
+<p>when &#8220;Vasco&#8221;, &#8220;Botafogo&#8221; then console.log &#8220;Segunda Divisão&#8221;</p>
+
+<p>when &#8220;Fluminense&#8221; then console.log &#8220;Terceira Divisão&#8221;[/cce]</p>
+
+<p>O resultado em JavaScript:</p>
+
+<p>[cce lang=&#8221;javascript&#8221;]switch (time) {</p>
+
+<p>case &#8220;Flamengo&#8221;:</p>
+
+<p>console.log(&#8220;Primeira Divisão&#8221;);</p>
+
+<p>break;</p>
+
+<p>case &#8220;Vasco&#8221;:</p>
+
+<p>case &#8220;Botafogo&#8221;:</p>
+
+<p>console.log(&#8220;Segunda Divisão&#8221;);</p>
+
+<p>break;</p>
+
+<p>case &#8220;Fluminense&#8221;:</p>
+
+<p>console.log(&#8220;Terceira Divisão&#8221;);</p>
+
+<p>}[/cce]</p>
+
+<h2 id="operador-existencial">Operador existencial</h2>
+
+<p>Mais uma vez inspirada em Ruby, CoffeeScript implementa o operador existencial &#8220;?&#8221;. Este operador retorna <em>true</em> exceto se a variável testada for <strong>null</strong> ou <strong>undefined</strong>.</p>
+
+<p>[cce lang=&#8221;coffeescript&#8221;]time = &#8220;Flamengo&#8221; if primeira_divisao? and campeao_mundial?[/cce]</p>
+
+<p>Em JavaScript:</p>
+
+<p>[cce lang=&#8221;javascript&#8221;]var time;</p>
+
+<p>if ((typeof primeira_divisao !== &#8220;undefined&#8221; &amp;&amp; primeira_divisao !== null) &amp;&amp; (typeof campeao_mundial !== &#8220;undefined&#8221; &amp;&amp; campeao_mundial !== null)) {</p>
+
+<p>time = &#8220;Flamengo&#8221;;</p>
+
+<p>}[/cce]</p>
+
+<p>Como vimos acima ela também pode ser utilizada para definir variáveis. O exemplo abaixo define a variável <em>site</em> com <em>root.site</em> se essa última existir, caso contrário utiliza o valor &#8220;Tableless&#8221;.</p>
+
+<p>[cce lang=&#8221;coffeescript&#8221;]site = root.site ? &#8220;Tableless&#8221;[/cce]</p>
+
+<p>O operador condicional pode também ser utilizado para evitar uma quebra em encadeamento de métodos. Por exemplo:</p>
+
+<p>[cce lang=&#8221;coffeescript&#8221;]autor = artigo.retorna_autor?().total_artigos?.nome [/cce]</p>
+
+<p>Em JavaScript:</p>
+
+<p>[cce lang=&#8221;javascript&#8221;]var autor, _ref;</p>
+
+<p>autor = typeof artigo.retorna_autor === &#8220;function&#8221; ? (_ref = artigo.retorna_autor().total_artigos) != null ? _ref.nome : void 0 : void 0;[/cce]</p>
+
+<p>Desse modo, ao invés de <em>TypeError</em>, o código acima retornaria <strong>undefined</strong> quando qualquer um dos métodos da cadeia for <strong>null</strong> ou <strong>undefined</strong>.</p>
+
+<h2 id="ferramentas">Ferramentas</h2>
+
+<p>Através do console podemos executar todas as operações do compilador e gerar nosso código JavaScript. No entanto, algumas ferramentas facilitam esse trabalho através de interfaces gráficas:</p>
+
+<h3 id="livereload">LiveReload</h3>
+
+<p>Meu favorito é o [Live Reload][2], disponível como uma app para Mac e Windows e um comando para Linux. Além de compilar CoffeeScript, o LiveReload utiliza extensões para os navegadores e recarrega a página quando qualquer alteração é realizada no código (não apenas CoffeeScript).</p>
+
+<h3 id="codekit">CodeKit</h3>
+
+<p>Lançado recentemente, o aplicativo [CodeKit][3], disponível apenas para Mac, é um concorrente do LiveReload e, além de monitar alterações e recarregar páginas no navegador, conta também com integrações com frameworks, otimização de imagens e validação (lint) de código.</p>
+
+<h3 id="coffeeconsole">CoffeeConsole</h3>
+
+<p>Outra ferramenta interessante é a extensão [CoffeeConsole][4], para Chrome. Esta extensão adiciona um novo painel ao Chrome Developer Tools, possibilitando a execução de códigos CoffeeScript, similar ao console JavaScript já integrado na ferramenta.</p>
+
+<h2 id="mais-coffeescript">Mais CoffeeScript</h2>
+
+<p>Essa foi uma visão geral da linguagem CoffeeScript que, recentemente, entrou para o [ranking das dez linguagens mais populares no GitHub][5], desbancando ObjectC.</p>
+
+<p>Finalizando, para aprender mais sobre CoffeeScript, indico os seguintes recursos:</p>
+
+<ul>
+<li>[The Little Book on CoffeeScript][6] &#8211; Livro disponível na íntegra online e em versões impressa, PDF e para Kindle via O&#8217;Reilly.</li>
+<li>[A sip of CoffeeScript][7] &#8211; Curso interativo do pessoal da CodeSchool com vídeos e exercícios online. Bem legal!</li>
+<li>[Smooth CoffeeScript][8] &#8211; Outro livro disponível de graça online e também em PDF. Possui ainda uma versão interativa em HTML5.</li>
+</ul>
+
+<p>[1]: <a href="http://tableless.com.br/javascript-com-cafe/">http://tableless.com.br/javascript-com-cafe/</a> &ldquo;&rdquo;
+ [2]: <a href="http://livereload.com/">http://livereload.com/</a> &ldquo;&rdquo;
+ [3]: <a href="http://incident57.com/codekit/">http://incident57.com/codekit/</a> &ldquo;&rdquo;
+ [4]: <a href="https://github.com/snookca/CoffeeConsole">https://github.com/snookca/CoffeeConsole</a> &ldquo;&rdquo;
+ [5]: <a href="https://github.com/languages">https://github.com/languages</a> &ldquo;&rdquo;
+ [6]: <a href="http://arcturo.github.com/library/coffeescript/">http://arcturo.github.com/library/coffeescript/</a> &ldquo;&rdquo;
+ [7]: <a href="http://www.codeschool.com/courses/coffeescript">http://www.codeschool.com/courses/coffeescript</a> &ldquo;&rdquo;
+ [8]: <a href="http://autotelicum.github.com/Smooth-CoffeeScript/">http://autotelicum.github.com/Smooth-CoffeeScript/</a> &ldquo;&rdquo;</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

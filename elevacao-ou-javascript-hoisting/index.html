@@ -1,0 +1,311 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/elevacao-ou-javascript-hoisting/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/elevacao-ou-javascript-hoisting/">Elevação ou JavaScript hoisting</a></h1>
+  <p class="tb-hero-p">
+    
+    Elevação é nada mais, nada menos do que trazer para o início do escopo a declaração de variáveis e funções.
+
+Ta, mas como funciona?
+
+Calma, vamos aos poucos. De primeira vista pode parecer extremamente complicado mais depois de saber o que está acontecendo, você vai dizer &#34;poxa era só isso!&#34;.
+
+    
+  </p>
+      <span class="tb-author">por <a href="/author/jonatan-santos">Jonatan Santos</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<h2 id="um-pouco-de-teoria-antes-da-diversão">Um pouco de Teoria antes da diversão.</h2>
+
+<p>Muitas vezes, um simples princípio não compreendido, pode confundir novatos ou especialistas em JavaScript. Neste artigo, vamos tentar entender melhor um problema comum, que é mais simples do que parece.</p>
+
+<h2 id="declarações-na-frente">Declarações na frente</h2>
+
+<p>Antigamente em linguagens como C, se usavam funções ou procedimentos para dividir um programa, mas havia um problema: as declarações deveriam ficar sempre na frente.</p>
+
+<p>Suponha que você queira usar uma função que junta palavras:</p>
+
+<pre class="lang-javascript">juntarPalavras('Arco', 'íris');</pre>
+
+<p>Mas temos um problema aqui, não? Essa função não foi definida antes de ser chamada!</p>
+
+<p>O programa retornará um erro, pois <strong>juntarPalavras()</strong> não foi criada, ou acha que a linguagem deve permitir que você use funções que são definidas no final do código?</p>
+
+<p>Declarar funções no início do programa resolveu o problema por um tempo, pois todas as funções e variáveis eram declaradas antes de serem usadas, sendo assim não se tinha erros de referência.</p>
+
+<p>Com o tempo os programadores pensaram: &#8220;Mas por que cargas d&#8217;água não fazemos isso mais amigável e fácil de ler?&#8221;, &#8220;por que ler o código de baixo para cima e, não de cima para baixo?&#8221;. Agora podemos colocar as definições em qualquer lugar do código e usá-los, mesmo antes de realmente serem definidos, que maravilha não?</p>
+
+<p>O que acontece agora é que os compiladores ou até mesmo linguagens runtime leem todo o programa para saber que funções e variáveis você declarou no código. Após isso, a execução real acontece e ele já sabe onde está cada coisa. JavaScript faz exatamente isso, o que chamamos de Hoisting.</p>
+
+<h2 id="hora-da-diversão">Hora da diversão</h2>
+
+<p>Vamos começar com algo leve, para ir aquecendo os neurônios, veja o seguinte código:</p>
+
+<pre class="lang-javascript">nome = 'Jonatan';
+console.log(nome);
+// Jonatan
+</pre>
+
+<p>Até aqui nada de novo, apenas iniciamos a variável nome com o valor jonatan e mostramos na tela;</p>
+
+<p>Certo, e que tal tentarmos isso:</p>
+
+<pre class="lang-javascript">var nome = meunome;
+console.log(nome);
+// ReferenceError: meunome is not defined
+</pre>
+
+<p>Recebemos um erro bem obvio não acha? Como vamos definir o <strong>nome</strong> com o valor de <strong>meunome</strong> se essa variável nem existe ainda?</p>
+
+<p>Agora, deste jeito:</p>
+
+<pre class="lang-javascript">var nome = meunome;
+console.log(nome);
+var meunome;
+// undefined
+</pre>
+
+<p>Opa! “undefined”, sacam a jogada?</p>
+
+<p>Isso acontece porque o JavaScript não obriga você a declarar variáveis, ​​permite que você defina as funções em qualquer lugar que você queira, o que lhe permite usar uma função antes de sua definição. O nome hoisting, elevação ou até mesmo içamento, é só um termo especificado, pois ele arranca as declarações até o topo do seu escopo.</p>
+
+<p>Beleza, agora qual a diferença entre declaração e inicialização? Simples:</p>
+
+<p>Aqui apenas declaramos a variável <strong>meunome</strong>.</p>
+
+<pre class="lang-javascript">var meunome;
+//undefined
+</pre>
+
+<p>Já nesta parte iniciamos seu conteúdo como <strong>Jonatan</strong>.</p>
+
+<pre class="lang-javascript">meunome = 'Jonatan';
+//Jonatan
+</pre>
+
+<p>Este é o mesmo procedimento feito com as funções:</p>
+
+<pre class="lang-javascript">console.log(multiplicaNumero(10,10));
+var multiplicaNumero = function(a,b) {
+  return a*b;
+}
+//TypeError: undefined is not a function
+</pre>
+
+<p>Viram? Ele elevou a declaração var multiplicaNumero, mas como chamamos antes de ele ser iniciado recebemos um erro.</p>
+
+<p>Se mudarmos para:</p>
+
+<pre class="lang-javascript">console.log(multiplicaNumero(10,10));
+multiplicaNumero = function(a,b) {
+  return a*b;
+}
+//ReferenceError: multiplicaNumero is not defined
+</pre>
+
+<p>Recebemos o erro nos dizendo que <strong>multiplicaNumero</strong> não foi declarado.</p>
+
+<p>Alteramos novamente:</p>
+
+<pre class="lang-javascript">console.log(multiplicaNumero(10,10));
+function multiplicaNumero (a,b) {
+  return a*b;
+}
+// 100
+</pre>
+
+<p>E agora o código executou sem erro porque toda declaração de função não anônima é elevada para o topo do escopo.</p>
+
+<p>Fácil não é? Com isso aprendemos que é uma boa prática declarar e/ou iniciar variáveis e funções no início do escopo:</p>
+
+<pre class="lang-javascript">var a, foo = 'bar';
+var bar = function(){
+  var foo = 'foo';
+  console.log('local: '+foo);
+};
+bar();
+console.log('global: '+foo);
+//local: foo
+//global: bar 
+</pre>
+
+<p>Boas práticas nos levam a caminhos melhores.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

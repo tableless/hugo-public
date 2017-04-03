@@ -1,0 +1,308 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/migrando-mysql-para-mongo/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/migrando-mysql-para-mongo/">Migrando do MySQL para Mongo</a></h1>
+  <p class="tb-hero-p">
+    
+    Breve explicação sobre como migrar do MySQL para o MongoDB.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/elvis">Elvis</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<h2 id="introdução">Introdução</h2>
+
+<p>O Mongodb é um banco de dados NoSql, open-source e escrito em C++ que salva seus dados em formato JSON(usando BSON — uma versão binária de JSON) utilizando chaves e valores para isso.</p>
+
+<p><a href="http://tableless.com.br/wp-content/uploads/2015/03/documentos.png"><img class=" size-full wp-image-47555 aligncenter" src="http://tableless.com.br/wp-content/uploads/2015/03/documentos.png" alt="documentos" width="176" height="81" /></a></p>
+
+<p>O que mais diferencia o Mongo dos outros bancos NoSQL é a simplicidade em converter instruções SQL.</p>
+
+<p>Alem de ser muito simples de instalar e usar, com binários e drivers disponíveis para os principais sistemas operacionais e linguagens de programação, ele ainda é suportado pelas mais populares linguagens tais como: C, C#, C++, Haskell, Java™, JavaScript, Perl, PHP, Python, Ruby e Scala.</p>
+
+<h3 id="vantagens">Vantagens</h3>
+
+<ol>
+<li>escalabilidade</li>
+<li>flexibilidade</li>
+<li>manipulação de dados em grande porte</li>
+<li>desempenho</li>
+<li>facilidade nas consultas</li>
+<li>comunidade ativa</li>
+<li>Sharding</li>
+<li>GridFS</li>
+<li>Replica set</li>
+<li>Orientando a documentos</li>
+<li>Schema livre</li>
+</ol>
+
+<h3 id="desvantagens">Desvantagens</h3>
+
+<ol>
+<li>Alteração de todos os registros</li>
+</ol>
+
+<h2 id="iniciando-a-conversão-do-mysql-para-o-mongodb">Iniciando a conversão do MYSQL para o MONGODB ?</h2>
+
+<p><strong>Criando uma tabela</strong></p>
+
+<pre class="lang-sql">CREATE TABLE `agenda` (
+
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`nome` varchar(125) DEFAULT NULL,
+`email` varchar(125) DEFAULT NULL,
+`telefone` varchar(11) DEFAULT NULL,
+PRIMARY KEY (`id`)
+);</pre>
+
+<p><strong>Criando uma coleção</strong></p>
+
+<pre class="lang-sql">db.createCollection( "agenda" )</pre>
+
+<p><strong>Inserir registro na tabela</strong></p>
+
+<pre class="lang-sql">INSERT INTO agenda(id,nome,email,telefone) VALUES (NULL,'Tiozinho','tio@gmail.com','9999-9999');
+</pre>
+
+<p><strong>Inseriando registro na coleção</strong></p>
+
+<pre class="lang-sql">db.agenda.insert({nome:"Tiozinho" , email: "tio@gmail.com" , telefone: "9999-9999" });</pre>
+
+<p><strong>Buscando registros na tabela</strong></p>
+
+<pre class="lang-sql">//Lista todos os registros
+SELECT * FROM agenda</pre>
+
+<pre class="lang-sql">//Lista apenas o definido no paramentro
+SELECT * FROM agenda WHERE id = 1 // 1 é o parametro
+</pre>
+
+<p><strong>Buscando registro na coleção</strong></p>
+
+<pre class="lang-sql">//Lista todos os registros
+db.agenda.find()
+</pre>
+
+<pre class="lang-sql">//Lista apenas o definido no parâmetro
+db.agenda.find({id:1}) // {id:1} é o parâmetro
+</pre>
+
+<p><strong>Excluindo registro na tabela</strong></p>
+
+<pre class="lang-sql">DELETE FROM agenda WHERE id = 1</pre>
+
+<p><strong>Excluindo registro da coleção</strong></p>
+
+<pre class="lang-sql">db.agenda.remove({id:1});
+</pre>
+
+<p><strong>Atualizando um registro na tabela</strong></p>
+
+<pre class="lang-sql">UPDATE agenda SET email = 'tiozinho@gmail.com' WHERE id = 1;
+</pre>
+
+<p><strong>Atualizando um registro na coleção</strong></p>
+
+<pre class="lang-sql">//Buscando o Tiozinho
+var agd = db.agenda.find({id:1});
+</pre>
+
+<pre class="lang-sql">//Alterando apenas o email
+agd.email = "tiozinho@gmail.com";
+</pre>
+
+<pre class="lang-sql">//Atualizando na coleção
+db.agenda.save(agd);
+</pre>
+
+<p><strong>Extras:</strong> Lembrando ainda temos diversas funções do relacional que podemos utilizar tranquilo no mongodb, dentre elas podemos citar:</p>
+
+<ul>
+<li>drop()</li>
+<li>dropDataBase()</li>
+<li>update()</li>
+<li>count()</li>
+<li>limit()</li>
+<li>sort()</li>
+</ul>
+
+<p>No próximo post utilizaremos todas as funções acima e ainda daremos uma alteração especial nas consultas utilizando mongo, espero vocês e até o próximo.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

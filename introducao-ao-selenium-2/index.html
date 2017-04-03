@@ -1,0 +1,303 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/introducao-ao-selenium-2/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/introducao-ao-selenium-2/">Introdução ao Selenium 2</a></h1>
+  <p class="tb-hero-p">
+    
+    Entenda mais sobre Selenium e entenda como ele pode ajudar em aplicações web.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/igor-ribeiro-lima">Igor Ribeiro Lima</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      <p><a href="http://www.seleniumhq.org/docs/01_introducing_selenium.jsp" title="introdução ao selenium no site oficial">Selenium</a> é uma ferramenta de apoio às necessidades de testes em aplicações web. Altamente flexível, permite muitas opções para a localização de elementos de interface no navegador e simular comportamentos reais de um usuário. A <a href="http://www.seleniumhq.org/docs/03_webdriver.jsp" title="introdução ao selenium webdriver no site oficial">versão 2.0</a> tem como funcionalidade primária a integração da API WebDriver. Projetado para fornecer uma interface ainda mais simples, concisa e orientada a objeto, o que melhora de forma significativa o suporte aos problemas complexos que são enfrentados ao testar uma aplicação web.</p>
+
+<p>Essa API pode ser chamada através de diversas linguagem de programação, porém, em nosso exemplo, iremos utilizar o NodeJS (JavaScript), que pode ser baixado no <a href="http://nodejs.org/download/" title="site oficial do NodeJS">site oficial</a> e que possui um gerenciador de pacotes (Node Package Manager – NPM), o qual permite a interação com um repositório online via linha de comando, facilitando a instalação de várias outras ferramentas.</p>
+
+<p>Nesse exemplo, será utilizado uma ferramenta chamada <a href="http://vowsjs.org/" title="site oficial do vows">Vows</a>, gerenciada e instalada pelo NPM, que ajuda no desenvolvimento orientado a comportamento assíncrono. Usar testes assíncronos no NodeJS tem dois motivos. Primeiro (e talvez óbvio), é que o NodeJS é assíncrono e por isso os testes também deveriam ser. Segundo, é fazer com que os testes, os quais lidam com entrada e saída de dados, rodem mais rápido.</p>
+
+<p>Breve resumo dos conceitos do Vows. <strong>Suite</strong>: um objeto que contêm um ou mais batches, e pode ser executado ou exportado. <strong>Batch</strong>: uma estrutura de contextos. <strong>Context</strong>: um objeto que pode conter um <em>topic</em>(opcional), nenhum ou mais <em>vows</em>, nenhum ou mais <em>sub-contexts</em>. <strong>Topic</strong>: pode ser tanto um valor ou uma função de código assíncrono. <strong>Vow</strong>: é uma função que recebe o _topic_ como um argumento e roda assertivas no <em>topic</em>.</p>
+
+<p>O teste que será feito possui quatro passos: _(i)<em> abrir o navegador, </em>(ii)<em> acessar uma <a href="https://saucelabs.com/test/guinea-pig" title="página oficial de teste do SauceLabs">página de teste</a>, </em>(iii)<em> verificar o título da página e </em>(iv)_ fechar o navegador. Algo bem simples. Suficiente para experimentar a versão 2.0 do Selenium.</p>
+
+<p>As dependências necessárias podem ser instaladas usando o NPM, digitando o seguinte _script_ no terminal:</p>
+
+<pre class="lang-ssh">npm install -g phantomjs vows </pre>
+
+<pre class="lang-ssh"> npm install chai wd vows </pre>
+
+<p>Há duas maneiras de instalar <a href="http://blog.nodejs.org/2011/03/23/npm-1-0-global-vs-local-installation/" title="artigo do blog oficial do NodeJS sobre os tipos de dependências">dependências no NodeJS</a>: globalmente ou localmente. Quando uma dependência é global, os arquivos são executáveis, tornando possível a utilização de uma dependência através da linha de comando. Quanto às dependências locais, estas são instaladas no diretório corrente, dentro de um diretório chamado _node<em>modules</em>.</p>
+
+<p>O primeiro <em>script</em>, utilizando o parâmetro <strong>-g</strong>, instala duas dependências globais: phantomjs e vows.<a href="http://phantomjs.org/" title="site oficial do PhantomJS">PhantomsJS é um headless WebKit</a>, feito totalmente em javascript e possui suporte rápido e nativo para vários padrões web como manipulação de DOM, seletores CSS, JSON, Canvas e SVG.</p>
+
+<p>Já o segundo <em>script</em>, instala três dependências locais: chai, wd e vows. <a href="http://chaijs.com/" title="site oficial do Chai">Chai</a> é uma biblioteca de assertivas BDD/TDD para NodeJS e navegadores, a qual pode ser &#8216;graciosamente&#8217; utilizada com qualquer framework de teste JS. <a href="https://github.com/admc/wd" title="repositorio oficial do WebDriver no github">WD</a> é um cliente em NodeJS para facilitar o acesso à API do Selenium 2, a qual suporta métodos como: fazer requisições GET e POST, clicar no botão VOLTAR do navegador, fazer refresh no navegador, pegar um printscreen da tela corrente, redimensionar e mover a janela do navegador, submeter formulário, digitar texto, usar cookies, selecionar um elemento DOM, clicar e mover um elemento DOM selecionado, etc.</p>
+
+<p>Após a instalação de todas as dependências necessárias, vamos criar dois arquivos: _<strong>configuracao-webdriver-usando-phantom.js</strong><em> com as informações de configurações do webdriver e </em><strong>apenas-um-exemplo.js</strong>_ com os passos-a-passos simulando o comportamento real de um usuário.</p>
+
+<p><strong>configuracao-webdriver-usando-phantom.js</strong></p>
+
+<pre class="lang-js">var exports   = module.exports = {},
+    webdriver = require('wd'),
+    browser   = exports.browser = webdriver.remote({
+      hostname: "localhost",
+      port: 8910
+    });
+ 
+/**
+Vows Errored » callback not fired
+http://birkett.no/blog/2013/05/01/vows-errored-callback-not-fired/
+*/
+process.on( 'uncaughtException', function(err) {
+  console.error('Caught exception: ' + err.stack );
+});
+</pre>
+
+<p><strong>apenas-um-exemplo.js</strong></p>
+
+<pre class="lang-js">var vows    = require('vows'),
+    expect  = require('chai').expect,
+    browser = require('./configuracao-webdriver-usando-phantom.js').browser;
+ 
+vows.describe('Apenas um exemplo')
+.addBatch({
+  'Criando uma nova sessão no WebDriver': {
+    topic: function() {
+      var callback = this.callback;
+      browser.init( {}, function(err, sessionID, capabilities) {
+        callback( err );
+      });
+    },
+    'Sessão criada': function() { /**...*/ }
+  }
+})
+.addBatch({
+  'Acessando a página de teste do SauceLabs': {
+    topic: function() {
+      var callback = this.callback;
+      browser.get( 'http://saucelabs.com/test/guinea-pig', function(err) {
+        callback( err );
+      });
+    },
+    'Página de teste aberta': function() { /**...*/ }
+  }
+})
+.addBatch({
+  'Verificando o título da página': {
+    topic: function() {
+      var callback = this.callback;
+      browser.title( function(err, title) {
+        callback( err, title );
+      });
+    },
+    "O título da página deve conter 'Sauce Labs'": function(title) {
+      expect(title).to.contain('Sauce Labs');
+    },
+    "O título da página deve conter 'page title'": function(title) {
+      expect(title).to.contain('page title');
+    },
+    "O título da página deve conter 'I am a'": function(title) {
+      expect(title).to.contain('I am a');
+    }
+  }
+})
+.addBatch({
+  'Fechando o navegador': {
+    topic: function() {
+      var callback = this.callback;
+      browser.quit( function(err){
+        callback( err );
+      });
+    },
+    'Fim': function() { /**...*/ }
+  }
+}).export(module);
+</pre>
+
+<p>Criado esses dois arquivos, é preciso, em um outro terminal, rodar o PhantomJS em modo WebDriver, digitando o seguinte comando:</p>
+
+<pre class="lanh-ssh">phantomjs --webdriver=localhost:8910 </pre>
+
+<p>Uma vez o PhantomJS rodando em segundo plano, basta rodar o <em>vows</em>, o parâmetro <strong>&#8211;spec</strong> serve apenas para ter um diferente tipo de &#8216;reporter&#8217;, segue o comando e uma ilustração do resultado obtido:</p>
+
+<pre class="lang-ssh">vows apenas-um-exemplo.js --spec </pre>
+
+<p><img class="aligncenter" alt="Resultado obtido" src="https://camo.githubusercontent.com/67da73c5f31ecbfaee938cf04056d96c4f2ada41/687474703a2f2f69313336382e70686f746f6275636b65742e636f6d2f616c62756d732f61673138322f69676f727269626569726f6c696d612f315f626173685f616e645f556d615f696e74726f647563636564696c6174696c64656f5f616f5f53656c656e69756d5f325f616e645f6170656e61732d756d2d6578656d706c6f6a735f6d646173685f696e74726f647563616f2d73656c656e69756d2d74776f2d31335f7a707334333166383131372e706e67" width="897" height="445" /></p>
+
+<p>Esse exemplo contempla de forma bem simples a utilização da API do WebDriver/Selenium 2. Essa abordagem também pode ser feita em <a href="http://tableless.com.br/introducao-de-como-executar-testes-unitarios-em-diferentes-tipos-de-navegadores" title="introdução de como executar testes unitários em diferentes tipos de navegadores">diferentes tipos de navegadores</a>. Como é sempre melhor começarmos aos poucos, aplicando pequenos passos de cada vez, isso ficará para uma próxima discussão. Para quem se interessar, todo código está disponível em um <a href="https://gist.github.com/igorlima/7826752" title="gist introduzindo o Selenium 2">gist</a>. Muito obrigado.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

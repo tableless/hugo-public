@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <base href="http://tableless.com.br/">
+  <title>Tableless</title>
+  <link rel="canonical" href="http://tableless.com.br/workflow-para-cuidar-dos-seus-assets/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Tableless" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+  
+</head>
+<body>
+
+
+  <header id="tb-header">
+    <a href="http://tableless.com.br/" class="tb-logo"><img src="images/logo.svg"></a>
+
+    
+
+    <nav id="tb-menu">
+      <ul>
+
+        
+          
+              
+            <li>
+              <a href="/categories/html">
+                  
+                  HTML
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/css/">
+                  
+                  CSS
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/javascript/">
+                  
+                  JavaScript
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/back-end/">
+                  
+                  Back-end
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/wordpress/">
+                  
+                  WordPress
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/acessibilidade/">
+                  
+                  Acessibilidade
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/design/">
+                  
+                  Design
+              </a>
+          
+            </li>
+          
+              
+            <li>
+              <a href="/categories/t%C3%A9cnicas-e-pr%C3%A1ticas/">
+                  
+                  Na prática
+              </a>
+          
+            </li>
+          
+
+      </ul>
+    </nav>
+
+  </header>
+
+  <header class="tb-post-header">
+    <h1 class="tb-hero-title"><a href="/workflow-para-cuidar-dos-seus-assets/">Workflow para cuidar dos seus assets</a></h1>
+  <p class="tb-hero-p">
+    
+    O termo assets é utilizado na economia para caracterizar todo recurso que se poderá tirar proveito no futuro. Mas não se preocupe, nosso assunto aqui é sobre desenvolvimento web.
+    
+  </p>
+      <span class="tb-author">por <a href="/author/jean-carlo-emer">Jean Carlo Emer</a></span>
+
+
+  </header>
+
+
+<section class="tb-post">
+
+  <section class="tb-post-content">
+    <article class="tb-post-article">
+      
+
+<p>No desenvolvimento web, o termo assets é utilizado para designar tudo o que complementa o conteúdo dos websites. Em outras palavras, assets são nossos recursos de folhas de estilo, scripts, fontes e imagens.</p>
+
+<p>Em uma primeira análise, os assets parecem algo simples de se gerenciar. Porém, o que passa muitas vezes por desapercebido é que a falta de alguns cuidados podem impactar significativamente na performance do projeto notada pelo usuário.</p>
+
+<p>Apesar dos sintomas da baixa performance serem muito mais notados no front-end, uma estratégia adequada de gerência deve iniciar já no back-end das aplicações. Muito por isto, programadores Ruby criaram a biblioteca Sprockets que tem como função compilar e servir assets da melhor maneira possível. Seu principal uso se dá através do Asset Pipeline, parte integrante do framework de desenvolvimento Ruby on Rails.</p>
+
+<p>O que segue é uma análise detalhada das principais funcionalidades do workflow do Asset Pipeline destacando quais os impactos positivos que são refletidos para os projetos que o utilizam.</p>
+
+<h2 id="asset-pipeline">Asset Pipeline</h2>
+
+<p>As principais funcionalidades do framework são: pré-compilar, concatenar, minificar e ajudar para que o navegador faça o cache dos arquivos adequadamente.</p>
+
+<h3 id="pré-compilação">Pré-compilação</h3>
+
+<p>Linguagens como <a href="http://tableless.com.br/javascript-com-cafe">CoffeeScript</a> e <a href="http://tableless.com.br/sass-um-outro-metodo-de-escrever-css">Sass</a> têm se tornado cada vez mais maduras e utilizadas no processo de desenvolvimento. Este texto não tem o caráter de defender quais os benefícios de uso de cada uma delas. Mas é importante que, se você optar ou precisar utilizar alguma delas, seu workflow suporte o seu uso.</p>
+
+<p>O Asset Pipeline e outros frameworks similares provêm uma maneira bastante simples de indicar por quais linguagens e engines o arquivo precisa ser avaliado. Eles fazem isto através da extensão do arquivo. Assim, é só nomear o arquivo com a extensão <code>.coffee</code> para indicar que seu conteúdo está escrito em CoffeeScript.</p>
+
+<p>Mais do que indicar uma linguagem, é possível fazer com que um mesmo arquivo seja avaliado por mais de uma liguagem ou engine através do uso de outros indicadores no nome do arquivo. Um arquivo de nome <code>main.js.coffee.erb</code>, seria avaliado pela engine de template Erb e posteriormente interpretado como CoffeeScript. Nestes casos, o resultado de cada avaliação, que são iniciadas pela extensão mais a direita, é então utilizado como insumo para a próxima avaliação.</p>
+
+<h3 id="concatenação">Concatenação</h3>
+
+<p>Apesar de folhas de estilo e código JavaScript ainda não possuírem construções nativas de módulos, a simples tarefa de separação do código em diferentes arquivos já garante maior legibilidade e facilidade de manutenção.</p>
+
+<p>Por outro lado, queremos continuar entregando a menor quantidade possível de assets no front-end da aplicação. Para tal, precisamos concatenar os arquivos. A maneira de concatenar os arquivos de JavaScript no Asset Pipeline é a seguinte:</p>
+
+<pre class="prettyprint lang-javascript linenums">//= require jquery
+//= require jquery.ui
+//= require main</pre>
+
+<p>E para concatenar folhas de estilo:</p>
+
+<pre class="prettyprint lang-ruby linenums">/*
+*= require normalize 
+*= require layout
+*= require header
+*/</pre>
+
+<p>Vale lembrar que depois de concatenados os arquivos, a referência da linha em que determinado código foi declarado é perdida, o que pode dificultar o <em>debugging</em>. O Asset Pipeline, quando em ambiente de desenvolvimento, inclui todos os arquivos no HTML sem concatenar através de diferentes <code>&lt;script&gt;</code> e <code>&lt;link&gt;</code>. Desta forma, é muito mais fácil identificar qual o arquivo e linha de cada diretiva.</p>
+
+<p>A partir disto, notamos que o workflow que cuida dos assets <strong>precisa necessariamente ter acesso</strong> à aplicação para poder, como neste caso, flexibilizar o uso de diferentes arquivos com base no ambiente.</p>
+
+<p>Vale ressaltar que soluções de workflow escritas nos dias atuais podem utilizar <a href="http://www.html5rocks.com/en/tutorials/developertools/sourcemaps">Source Maps</a>, o que também é possível no Asset Pipeline, para chegar a um resultado semelhante.</p>
+
+<h3 id="minificação">Minificação</h3>
+
+<p>Último passo do seu workflow, minificar os arquivos garante aquela economia esperta da banda larga do usuário. E, assim como na concatenação, você <strong>não</strong> vai querer que os arquivos estejam minificados em seu ambiente de desenvolvimento.</p>
+
+<p>Novamente, o Asset Pipeline não minifica seus arquivos quando em ambiente de desenvolvimento. As ferramentas geralmente utilizadas para a tarefa em ambiente de produção são: minificador do Sass para as folhas de estilos e <a href="https://github.com/mishoo/UglifyJS">UglifyJS</a> para JavaScript.</p>
+
+<h3 id="cache">Cache</h3>
+
+<p>O ponto mais importante relacionado aos assets é a configuração adequada do tempo de expiração de cada arquivo. Porque, no pior dos casos, em decorrência disto o usuário será obrigado a baixar todas as imagens e demais recursos a cada acesso a uma diferente página do seu website.</p>
+
+<p>Pegando como exemplo a configuração de tempo de expiração dos arquivos do <a href="https://github.com/h5bp/html5-boilerplate/blob/9518d22de739a1b03bdbfcde2149e1fd994c280a/.htaccess#L445">HTML5 Boilerplate</a>, é possível notar que os assets possuem em geral um tempo de expiração de um mês. Grosseiramente, isto significa que o usuário irá baixar determinado arquivo novamente apenas daqui um mês.</p>
+
+<p>Os benefícios são óbvios, os malefícios talvez nem tanto. Se o projeto sofrer manutenção e aquela imagem importante for alterada, o usuário não necessariamente terá a nova versão. A solução é renomear os arquivos (e não apenas a <a href="http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring">querystring</a>) a cada alteração para que assim o usuário seja obrigado  a baixar a nova versão.</p>
+
+<p>O Asset Pipeline viabiliza esta estratégia adicionando um código ao nome de todos os arquivos, o <code>main.css</code> é renomeado para algo como <code>main-dc409308c085b71ae34d793cedb384a1.css</code>. O código é relacionado ao conteúdo do arquivo, o que significa que se eu alterar qualquer caractere, este código muda e o nome do meu arquivo também.</p>
+
+<p>Por fim, o Asset Pipeline provê o método <code>asset_path</code> para que eu possa saber o nome do meu arquivo já com o código. Basta utilizar a pré-compilação, e o arquivo de folha de estilo <code>main.css.erb</code> será avaliado pela engine de template que irá traduzir <code>&lt;%= asset_path('logo.png') %&gt;</code> para o nome da imagem já com o código.</p>
+
+<p>Mesmo não sendo um processo tão simples, não existe melhor estratégia na atualidade para garantir que os usuários possam manter arquivos no cache e ao mesmo tempo baixar imediatamente apenas os arquivos que tenham sido alterados em uma manutenção da sua aplicação. Antes que alguém comente, renomear a pasta de todos os assets não garante que apenas os arquivos alterados necessitem ser baixados, todos serão.</p>
+
+<h2 id="outros-frameworks">Outros frameworks</h2>
+
+<p>Entendi, você achou as funcionalidades do Asset Pipeline fantásticas e compreendeu na teoria e prática a importância de cada uma delas. Mas se a sua aplicação não é escrita em Ruby on Rails, é possível utilizar <a href="https://github.com/DanielHeath/sprockets-sample">somente o Sprockets</a>. De qualquer maneira, você vai precisar de Ruby e perderá alguns recursos.</p>
+
+<p>Vale ressaltar que qualquer linguagem de back-end pode implementar um workflow igual a este. E com certeza ele deve ser copiado e aprimorado. Já existem inclusive plugins em desenvolvimento para o <a href="http://tableless.com.br/grunt-voce-deveria-estar-usando">Grunt</a>. Quem sabe você não possa colaborar com algum deles.</p>
+
+    </article>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+
+(function() {
+    
+    
+    if (window.location.hostname == "localhost")
+        return;
+
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = '';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+  </section>
+
+
+  <aside class="tb-aside">
+    Banner
+  </aside>
+
+</section>
+
+
+<footer id="tb-footer">
+    <div class="tb-container">
+    <ul class="tb-social-links">
+        <li><a href="http://facebook.com/tablelessbr">Facebook</a></li>
+        <li><a href="http://twitter.com/tableless">Twitter</a></li>
+        <li><a href="http://tableless.com.br/feed">RSS</a></li>
+        <li><a href="http://medium.com/tableless">Medium</a></li>
+    </ul>
+    <nav class="tb-footer-nav">
+        <a href="">Contato</a>
+        <a href="">Anuncie</a>
+        <a href="">Seja um Autor</a>
+        <a href="">Fazemos código front-end</a>
+    </nav>
+
+    <p class="tb-for-community">
+        Escrito pela e para a comunidade web brasileira. <a href="">Ajude</a>.
+    </p>
+    </div>
+</footer>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+})</script>
+
+
+</body>
+</html>
+

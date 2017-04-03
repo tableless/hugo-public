@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Macgyver on Tableless</title>
+    <link>http://tableless.com.br/author/macgyver/index.xml</link>
+    <description>Recent content in Macgyver on Tableless</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>pt-br</language>
+    <atom:link href="http://tableless.com.br/author/macgyver/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Flux: Entenda como funciona a arquitetura Flux com React</title>
+      <link>http://tableless.com.br/flux-entenda-como-funciona-arquitetura-flux-com-react/</link>
+      <pubDate>Sun, 24 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://tableless.com.br/flux-entenda-como-funciona-arquitetura-flux-com-react/</guid>
+      <description>
+
+&lt;h3 id=&#34;o-que-é-flux&#34;&gt;&lt;strong&gt;O que é Flux&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;Se você já viu algo sobre React, já brincou ou pelo menos acessou a &lt;a href=&#34;http://facebook.github.io/react/docs/getting-started.html&#34;&gt;sua documentação&lt;/a&gt;, deve ter se deparado com um cara chamado &lt;a href=&#34;http://facebook.github.io/flux/docs/overview.html&#34;&gt;&lt;strong&gt;Flux&lt;/strong&gt;&lt;/a&gt;. E se você, assim como eu, ficou um pouco confuso com a ideia, esse post vai descomplicar as coisas para você.&lt;/p&gt;
+
+&lt;p&gt;O Flux (prefiro chamar assim) é uma arquitetura usada pelo Facebook, que junto com o framework React é usado para construir aplicações web no client-side que trabalhem de forma reativa. Basicamente uma forma de fluxo unidirecional de dados entre eventos e ouvintes.&lt;/p&gt;
+
+&lt;p&gt;Caso você ainda não tenha noção do que é ou de como desenvolver com React, eu indico ler essa sequência de posts:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Introdução sobre React: &lt;a href=&#34;http://bit.ly/guia-react&#34;&gt;http://bit.ly/guia-react&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;O que é React e como trabalhar com JSX: &lt;a href=&#34;http://bit.ly/guia-react-pt1&#34;&gt;http://bit.ly/guia-react-pt1&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Virtual DOM e Criação de Componentes: &lt;a href=&#34;http://bit.ly/guia-react-pt2&#34;&gt;http://bit.ly/guia-react-pt2&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Estados e propriedades de um Componente: &lt;a href=&#34;http://bit.ly/guia-react-pt3&#34;&gt;http://bit.ly/guia-react-pt3&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;O conteúdo é ótimo e em português.&lt;/p&gt;
+
+&lt;p&gt;Continuando&amp;#8230;&lt;/p&gt;
+
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Por que parece complicado?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;O nome &lt;strong&gt;Flux&lt;/strong&gt; por si já é algo complicado. Ele faz parecer que Flux é como um framework que você precisa carregar pra começar a usar. Porém, Flux não é nada disso. Na verdade o que o Facebook fez foi: pegar uma coisa chamada &lt;em&gt;fluxo de dados unidirecional&lt;/em&gt;, separar em partes, adicionar um cara chamado &lt;strong&gt;Dispatcher&lt;/strong&gt; e chamar isso tudo de Flux.&lt;/p&gt;
+
+&lt;p&gt;Então você não precisa se preocupar muito quanto a isso. &lt;strong&gt;Flux é um modelo e não uma coisa&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Outra coisa que ajuda a dar uma travada, é que no primeiro contato com Flux nosso cérebro não entende o seu conceito e funcionamento, pois queremos compará-lo a outros modelos que já conhecemos como MVC, MVM e etc. Mas acredite, essa não é a melhor maneira. A primeira &amp;#8220;regra&amp;#8221; aqui é não comparar. Não tente fazer analogias ou algo do tipo agora, isso só vai tornar as coisas mais complicadas.&lt;/p&gt;
+
+&lt;p&gt;Então vamos ter a mente aberta e entender como o Flux funciona.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Obs: Precisei colocar as imagens dos scripts no meu post, pois o WordPress estava interpretando minhas tag como html. Desculpem&amp;#8230;&lt;/em&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;1-o-dispatcher&#34;&gt;&lt;strong&gt;1. O Dispatcher&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;Flux é inicialmente dividido em 3 partes:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Dispatcher&lt;/li&gt;
+&lt;li&gt;View&lt;/li&gt;
+&lt;li&gt;Store&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;O &lt;strong&gt;Dispatcher&lt;/strong&gt; é como uma central da sua aplicação. Uma central responsável por registrar callbacks e emitir eventos. Por ser uma central, fica claro que &lt;strong&gt;deve haver apenas um único Dispatcher para toda sua aplicação&lt;/strong&gt;. Para instanciá-lo você vai precisar usar a lib &lt;a href=&#34;https://github.com/facebook/flux/blob/master/src/Dispatcher.js&#34;&gt;Dispatcher.js&lt;/a&gt; do Facebook.&lt;/p&gt;
+
+&lt;p&gt;Esse é o único código de terceiro que você irá precisar pra rodar sua aplicação Flux.&lt;/p&gt;
+
+&lt;p&gt;Mas lembre-se: &lt;strong&gt;isso é somente uma lib para fazer Dispatchers&lt;/strong&gt;, e não o Flux. Como dito antes, não existe algo como uma biblioteca Flux, pois Flux é só uma arquitetura de fluxo.&lt;/p&gt;
+
+&lt;p&gt;Para instanciar o Dispatcher é simples:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var AppDispatcher = new Dispatcher();
+&lt;/pre&gt;
+
+&lt;h3 id=&#34;2-nossa-view-faz-um-dispatch&#34;&gt;&lt;strong&gt;2. Nossa view faz um Dispatch&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;A view nada mais é do que um componente React.&lt;/p&gt;
+
+&lt;p&gt;Vamos imaginar que nosso app é uma clássica ToDo List.&lt;/p&gt;
+
+&lt;p&gt;Nela nosso usuário digita a tarefa e clica em salvar.&lt;/p&gt;
+
+&lt;p&gt;Nossa view seria assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var MyApp = React.createClass({  
+  render: function() {
+    return (
+        &amp;lt;div&amp;gt;
+          &amp;lt;input type=&#34;text&#34; ref=&#34;taskName&#34;/&amp;gt;
+          &amp;lt;button onCLick={this.handleSave}&amp;gt;Salvar&amp;lt;/button&amp;gt;
+        &amp;lt;/div&amp;gt;
+    );
+  }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Quando o usuário clicar em &lt;em&gt;Salvar&lt;/em&gt;, nossa view faz o dispatch de um evento específico, através do método &lt;strong&gt;AppDispatcher.dispatch:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;handleSave: function() {  
+    var titulo = this.refs.taskName.getDOMNode().value;
+
+    AppDispatcher.dispatch({
+      type: &#39;novo-item&#39;,
+      data: { titulo: titulo }
+    });
+}
+&lt;/pre&gt;
+
+&lt;p&gt;O método dispatch recebe um objeto como argumento. Nele nós temos os parametros type e data.&lt;/p&gt;
+
+&lt;p&gt;Nosso dispatch deve indicar qual evento estamos emitindo, e fazemos isso através do &lt;strong&gt;type&lt;/strong&gt;. Também passamos a informação que queremos salvar através do &lt;strong&gt;data&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;3-a-store-responde-o-evento-do-dispatch&#34;&gt;&lt;strong&gt;3. A Store responde o evento do dispatch&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;Store é o nome que o Facebook decidiu dar para um objeto JavaScript específico, responsável por saber quais são os dados que sua view precisa consumir; e quando e como atualizar a mesma.&lt;/p&gt;
+
+&lt;p&gt;No nosso exemplo precisamos de uma lista para salvar nossas tarefas e deletar as mesmas quando nossa view pedir. Vamos chamá-la de &lt;em&gt;TaskStore&lt;/em&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var _tasks = [];
+
+var TaskStore = {  
+    getAll: function(){
+        return {
+          tasks: _tasks
+        };
+    },
+};
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;NOTA:&lt;/em&gt;&lt;/strong&gt; _Como você deve ter notado, temos uma variável chamada &lt;em&gt;tasks fora da nossa TaskStore. Essa é somente uma forma de deixar a variável que contém nossas tasks, privada, de forma que a view precise chamar TaskStore.getAll() para ter a lista de tasks.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Na TaskStore o dispatcher precisa registrar um callback para cada evento específico. No Flux isso acontece através do método _register_ da biblioteca Dispatcher:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;AppDispatcher.register()  
+&lt;/pre&gt;
+
+&lt;p&gt;Normalmente você encontrará esse registro sendo executado dentro de um método da store. Por exemplo:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var TaskStore = {  
+     dispatcherIndex: AppDispatcher.register(function(payload) {
+        switch(payload.type) {
+          case &#39;novo-item&#39;:
+            _tasks.push(payload.data);
+            break;
+          case &#39;delete-item&#39;:
+            //lógica para deletar
+            break;
+        }
+    })
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Essa é a forma como Flux faz o dispatch de callbacks. Cada &lt;strong&gt;payload&lt;/strong&gt; contém um evento com seu tipo e dados, no nosso caso &lt;em&gt;type&lt;/em&gt; e &lt;em&gt;data&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Uma estrutura de switch decide o que fazer com essa ação de acordo com o type.&lt;/p&gt;
+
+&lt;p&gt;Aqui mudamos nosso array inicial, adicionando a ele uma tarefa.&lt;/p&gt;
+
+&lt;h3 id=&#34;4-a-store-emite-um-evento-quando-finaliza-a-mudança&#34;&gt;&lt;strong&gt;4. A Store emite um evento quando finaliza a mudança&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;Como dito, nossa Store é a única responsável por saber quando e como atualizar a nossa View. Sendo assim ela deve avisar quando concluir a ação da nossa View.&lt;/p&gt;
+
+&lt;p&gt;Você pode usar a lib que achar melhor para emitir eventos. Uma bem simples é a &lt;a href=&#34;http://notes.jetienne.com/2011/03/22/microeventjs.html&#34;&gt;MicroEvent.js&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Para nosso exemplo eu prefiro usar a &lt;a href=&#34;https://nodejs.org/api/events.html&#34;&gt;&lt;strong&gt;EventEmitter&lt;/strong&gt;&lt;/a&gt; do Nodejs, pois com certeza vai se deparar com ela em quase todos os códigos de Flux open source por aí.&lt;/p&gt;
+
+&lt;p&gt;Pra instanciá-la é bem fácil:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var EventEmitter = require(&#39;events&#39;).EventEmitter;  
+&lt;/pre&gt;
+
+&lt;p&gt;Você pode ler mais sobre ela &lt;a href=&#34;https://nodejs.org/api/events.html&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Além disso precisamos usar o &lt;a href=&#34;https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.assign&#34;&gt;&lt;em&gt;Object.assign()&lt;/em&gt;&lt;/a&gt; do JavaScript para copiar as propriedades do EventEmitter para nossa TaskStore.&lt;/p&gt;
+
+&lt;p&gt;Como ele só esta presente no ES6, vamos usar um polyfill maroto aqui pra fazer a coisa funcionar bonitinha. Se chama &lt;strong&gt;object-assign&lt;/strong&gt; e você aprende mais sobre ele &lt;a href=&#34;https://github.com/sindresorhus/object-assign&#34;&gt;aqui&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var assign = require(&#39;object-assign&#39;);  
+&lt;/pre&gt;
+
+&lt;p&gt;Agora com nossa lib de EventEmitter em mãos vamos adicionar à nossa TaskStore os métodos responsáveis por adicionar ouvintes, remover ouvintes e é claro emitir eventos.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var TaskStore = assign({}, EventEmitter.prototype, {  
+  //Adiciona um Listener(ouvinte)
+  addChangeListener: function(callback) {
+    this.on(&#39;change&#39;, callback);
+  },
+
+  //Remove um Listener(ouvinte)
+  removeChangeListener: function(callback) {
+    this.removeListener(&#39;change&#39;, callback);
+  },
+
+  //Emit mudanças
+  emitChange: function() {
+    this.emit(&#39;change&#39;);
+  },
+
+  dispatcherIndex: ...;
+
+};
+&lt;/pre&gt;
+
+&lt;p&gt;Lembra de quando registramos uma ação de adicionar item para o dispatch &amp;#8216;novo-item&amp;#8217;? Então, nossa Store precisa emitir um evento dizendo que essa ação acabou e que nossa View deve se atualizar&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;dispatcherIndex: AppDispatcher.register(function(payload) {
+   switch(payload.type) {
+     case &#39;novo-item&#39;:
+       _tasks.push(payload.data);
+       this.emitChange(); // Avisa que a ação foi concluída
+       break;
+     case &#39;delete-item&#39;:
+       //lógica para deletar
+       break;
+   }
+})
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;NOTA&lt;/strong&gt;: Somente sua Store faz os registros de callbacks do dispatcher. Sua View nunca deve realiza um AppDispatcher.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Sobre Stores e sua finalidade&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Deve haver uma Store para cada propósito de uma parte da sua aplicação.&lt;/p&gt;
+
+&lt;p&gt;Isso é um pouco complicado, então vou tentar ser mais claro: Se em sua aplicação você tem um cadastro de funcionários e um cadastro de clientes, você precisa ter uma store para funcionários e uma para os clientes. Ok?&lt;/p&gt;
+
+&lt;h3 id=&#34;5-a-view-escuta-o-evento-da-store-e-atualiza&#34;&gt;&lt;strong&gt;5. A View escuta o evento da Store e atualiza&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;Nossa View agora precisa escutar o evento da TaskStore para saber que é hora de se atualizar alterando seu estado.&lt;/p&gt;
+
+&lt;p&gt;Fazemos isso ouvindo a TaskStore quando o componente for &amp;#8220;montado&amp;#8221;.&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var MyApp = React.createClass({ 
+  getInitialState: function(){
+    return {
+      tasks: []
+    }
+  },
+ 
+  componentDidMount: function() {
+    TaskStore.addChangeListener(this._onChange);
+  },
+
+  _onChange: function() {
+    this.setState(TaskStore.getAll());
+  },
+
+  render: ...;
+});
+&lt;/pre&gt;
+
+&lt;p&gt;Para que nossa View se atualize devemos utilizar o estado (&lt;em&gt;this.state&lt;/em&gt;) do nosso componente, dentro do nosso método render. Dessa forma todas as vezes em que o estado do nosso componente for alterado, nossa view fará um &lt;strong&gt;re-render&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;No nosso exemplo, pra listar as tasks ficaria assim:&lt;/p&gt;
+
+&lt;pre class=&#34;lang-xml&#34;&gt;var MyApp = React.createClass({  
+  render: function() {
+
+    var listHtml = this.state.tasks.map( function(item, index) { 
+       return &amp;lt;li key={ index }&amp;gt; 
+                { item.titulo } 
+              &amp;lt;/li&amp;gt;; 
+    };
+
+    return (
+        &amp;lt;div&amp;gt;
+
+          &amp;lt;ul&amp;gt;
+            {listHtml}
+          &amp;lt;/ul&amp;gt;
+
+          &amp;lt;input type=&#34;text&#34; ref=&#34;taskName&#34;/&amp;gt;
+          &amp;lt;button onCLick={this.handleSave}&amp;gt;Salvar&amp;lt;/button&amp;gt;
+        &amp;lt;/div&amp;gt;
+    );
+  }
+});
+&lt;/pre&gt;
+
+&lt;p&gt;E então por último remova o ouvinte quando nosso componente for &amp;#8220;desmontado&amp;#8221;&lt;/p&gt;
+
+&lt;pre class=&#34;lang-javascript&#34;&gt;var MyApp = React.createClass({  
+  ...
+
+  componentWillUnmount: function() {
+    TaskStore.removeChangeListener(this._onChange);
+  },
+
+  render: ...;
+});
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;NOTA:&lt;/strong&gt; Nunca se esqueça de remover todos os ouvintes da sua view/componente quando ela for desmontada&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Se você não sabe como funciona o lifecycle de um componente, recomendo dar uma lida na &lt;a href=&#34;https://facebook.github.io/react/docs/component-specs.html&#34;&gt;documentação do React&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;e-pronto&#34;&gt;&lt;strong&gt;E Pronto!&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;Isso é o básico de como funciona o Flux. Claro que esse não foi nenhum tutorial, somente uma explicação de como é o funcionamento. Mas espero ter ajudado um pouco.&lt;/p&gt;
+
+&lt;p&gt;Aqui está um exemplo de &lt;a href=&#34;https://github.com/facebook/flux/tree/master/examples/flux-todomvc&#34;&gt;aplicação com Flux e React&lt;/a&gt; desenvolvida pelo Facebook.&lt;/p&gt;
+
+&lt;p&gt;Qualquer dúvida, críticas, sugestões ou agradecimentos coloquem aí nos comentários.&lt;/p&gt;
+
+&lt;p&gt;Valeu gente!!!&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Esse post foi originalmente publicado em &lt;a href=&#34;http://macgyvermartins.com.br/como-funciona-a-arquitetura-flux-com-react/&#34;&gt;macgyvermartins.com.br&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
